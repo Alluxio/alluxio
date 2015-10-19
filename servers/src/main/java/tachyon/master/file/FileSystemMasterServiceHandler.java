@@ -54,8 +54,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long getFileId(String path) {
-    return mFileSystemMaster.getFileId(new TachyonURI(path));
+  public long getFileId(String path) throws ThriftIOException {
+    try {
+      return mFileSystemMaster.getFileId(new TachyonURI(path));
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
   }
 
   @Override
@@ -110,9 +114,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   // TODO: need to add another create option object for passing ttl
   @Override
-  public long create(String path, CreateTOptions options) throws TachyonTException {
+  public long create(String path, CreateTOptions options) throws TachyonTException,
+      ThriftIOException {
     try {
       return mFileSystemMaster.create(new TachyonURI(path), new CreateOptions(options));
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

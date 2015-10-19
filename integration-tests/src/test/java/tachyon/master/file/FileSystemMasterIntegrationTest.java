@@ -229,9 +229,6 @@ public class FileSystemMasterIntegrationTest {
   private static final int CONCURRENCY_DEPTH = 3;
   private static final TachyonURI ROOT_PATH = new TachyonURI("/root");
   private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
-  private static CreateOptions sSmallCreate;
-  private static MkdirOptions sRecursiveMkdir;
-  private static CreateOptions sRecursiveCreate;
 
   private ExecutorService mExecutorService = null;
   private TachyonConf mMasterTachyonConf;
@@ -254,14 +251,6 @@ public class FileSystemMasterIntegrationTest {
     mExecutorService = Executors.newFixedThreadPool(2);
     mFsMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-  }
-
-  @BeforeClass
-  public static final void beforeClass() {
-    sSmallCreate = new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
-    sRecursiveCreate =
-        new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
-    sRecursiveMkdir = new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
   }
 
   @Test
@@ -392,20 +381,16 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void createFilePerfTest() throws Exception {
-    // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
       MkdirOptions options =
           new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
       mFsMaster.mkdir(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
           .join("0"), options);
     }
-    // System.out.println(System.currentTimeMillis() - sMs);
-    // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
       mFsMaster.getFileInfo(mFsMaster.getFileId(
           new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
     }
-    // System.out.println(System.currentTimeMillis() - sMs);
   }
 
   @Test
@@ -566,6 +551,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void listFilesTest() throws Exception {
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
+
     HashSet<Long> ids = new HashSet<Long>();
     HashSet<Long> dirIds = new HashSet<Long>();
     for (int i = 0; i < 10; i ++) {
@@ -573,7 +561,7 @@ public class FileSystemMasterIntegrationTest {
       mFsMaster.mkdir(dir, MkdirOptions.defaults());
       dirIds.add(mFsMaster.getFileId(dir));
       for (int j = 0; j < 10; j ++) {
-        ids.add(mFsMaster.create(dir.join("j" + j), sSmallCreate));
+        ids.add(mFsMaster.create(dir.join("j" + j), options));
       }
     }
     HashSet<Long> listedIds = Sets.newHashSet();
@@ -592,10 +580,13 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void lsTest() throws Exception {
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
+
     for (int i = 0; i < 10; i ++) {
       mFsMaster.mkdir(new TachyonURI("/i" + i), MkdirOptions.defaults());
       for (int j = 0; j < 10; j ++) {
-        mFsMaster.create(new TachyonURI("/i" + i + "/j" + j), sSmallCreate);
+        mFsMaster.create(new TachyonURI("/i" + i + "/j" + j), options);
       }
     }
 
@@ -642,9 +633,13 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameToDeeper() throws Exception {
+    CreateOptions createOptions =
+        new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+    MkdirOptions mkdirOptions =
+        new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.mkdir(new TachyonURI("/testDir1/testDir2"), sRecursiveMkdir);
-    mFsMaster.create(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"), sRecursiveCreate);
+    mFsMaster.mkdir(new TachyonURI("/testDir1/testDir2"), mkdirOptions);
+    mFsMaster.create(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"), createOptions);
     mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testDir1/testDir2")),
         new TachyonURI("/testDir1/testDir2/testDir3/testDir4"));
   }

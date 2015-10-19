@@ -72,7 +72,8 @@ public final class InodeTreeTest {
 
     BlockMaster blockMaster = new BlockMaster(blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    mTree = new InodeTree(blockMaster, directoryIdGenerator);
+    MountTable mountTable = new MountTable();
+    mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
     mTree.initializeRoot();
@@ -333,8 +334,7 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis(),
-        Constants.NO_TTL);
+    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1).build();
     mTree.deleteInode(testFile);
   }
 

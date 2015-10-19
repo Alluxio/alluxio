@@ -101,7 +101,8 @@ public final class FileSystemMaster extends MasterBase {
   /** This generates unique directory ids. This must be journaled. */
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
   /** This manages the file system mount points. */
-  private final MountTable mMountTable = new MountTable();
+  private final MountTable mMountTable;
+
   private final PrefixList mWhitelist;
 
   /** The service that tries to check inodefiles with ttl set */
@@ -123,7 +124,8 @@ public final class FileSystemMaster extends MasterBase {
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
-    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator);
+    mMountTable = new MountTable();
+    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
     TachyonConf conf = MasterContext.getConf();
@@ -289,10 +291,6 @@ public final class FileSystemMaster extends MasterBase {
       needLog = true;
     }
 
-    if (!file.isPersisted()) {
-      file.setPersisted(true);
-      needLog = true;
-    }
     file.setLastModificationTimeMs(opTimeMs);
     file.setCompleted(length);
     MasterContext.getMasterSource().incFilesCheckpointed();
@@ -335,7 +333,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    */
-  public long getFileId(TachyonURI path) {
+  public long getFileId(TachyonURI path) throws IOException {
     synchronized (mInodeTree) {
       Inode inode;
       try {
@@ -462,40 +460,6 @@ public final class FileSystemMaster extends MasterBase {
     inodeFile.setBlockIds(blockIds);
     inodeFile.setCompleted(fileLength);
     inodeFile.setLastModificationTimeMs(opTimeMs);
-    // Mark all parent directories that have a UFS counterpart as persisted.
-    propagatePersisted(inodeFile, replayed);
-  }
-
-  /**
-   * Propagates the persisted status to all parents of the given inode in the same mount partition.
-   *
-   * @param inode the inode to start the propagation at
-   * @param replayed whether the invocation is a result of replaying the journal
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  private void propagatePersisted(Inode inode, boolean replayed)
-      throws FileDoesNotExistException, InvalidPathException {
-    if (!inode.isPersisted()) {
-      return;
-    }
-    Inode handle = inode;
-    while (handle.getParentId() != InodeTree.NO_PARENT) {
-      handle = mInodeTree.getInodeById(handle.getParentId());
-      TachyonURI path = mInodeTree.getPath(handle);
-      if (mMountTable.isMountPoint(path)) {
-        // Stop propagating the persisted status at mount points.
-        break;
-      }
-      if (handle.isPersisted()) {
-        // Stop if a persisted directory is encountered.
-        break;
-      }
-      handle.setPersisted(true);
-      if (!replayed) {
-        writeJournalEntry(new PersistDirectoryEntry(inode.getId(), inode.isPersisted()));
-      }
-    }
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
@@ -518,11 +482,12 @@ public final class FileSystemMaster extends MasterBase {
    * @throws BlockInfoException
    */
   public long create(TachyonURI path, CreateOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
+      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     MasterContext.getMasterSource().incCreateFileOps();
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
+      List<Inode> modified = createResult.getModified();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
       journalCreatePathResult(createResult);
@@ -532,7 +497,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
+      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     CreatePathOptions createPathOptions =
         new CreatePathOptions.Builder(MasterContext.getConf())
@@ -564,7 +529,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException {
+      throws InvalidPathException, IOException {
     // TODO(yupeng): add validation
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
@@ -574,7 +539,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
+  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) throws IOException {
     try {
       mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
           entry.getTTL());
@@ -791,7 +756,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     long fileId = getFileId(path);
     return getFileBlockInfoList(fileId);
   }
@@ -948,15 +913,6 @@ public final class FileSystemMaster extends MasterBase {
             new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
                 .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
-        for (Inode created : createResult.getCreated()) {
-          String createdPath = mInodeTree.getPath(created).toString();
-          // TODO(jiri): Move this to the client.
-          if (created.isPersisted()) {
-            String ufsPath = mMountTable.resolve(mInodeTree.getPath(created)).getPath();
-            UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-            ufs.mkdirs(ufsPath, false);
-          }
-        }
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
@@ -975,7 +931,7 @@ public final class FileSystemMaster extends MasterBase {
    * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
    * Synchronization is required outside of this method.
    *
-   * @param createResult the {@link InodeTree.CreatePathResult} to journal
+   * @param createResult a {@link InodeTree.CreatePathResult} to journal
    */
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
     for (Inode inode : createResult.getModified()) {
@@ -984,6 +940,9 @@ public final class FileSystemMaster extends MasterBase {
     }
     for (Inode inode : createResult.getCreated()) {
       writeJournalEntry(inode.toJournalEntry());
+    }
+    for (Inode inode : createResult.getPersisted()) {
+      writeJournalEntry(new PersistDirectoryEntry(inode.getId(), true));
     }
   }
 
@@ -1089,7 +1048,6 @@ public final class FileSystemMaster extends MasterBase {
       String ufsDstPath = mMountTable.resolve(dstPath).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
       String parentPath = new TachyonURI(ufsDstPath).getParent().toString();
-      // TODO(jiri): The following can be removed once directory creation is persisted onto UFS.
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         LOG.error("Failed to create " + parentPath);
         return false;
@@ -1123,6 +1081,38 @@ public final class FileSystemMaster extends MasterBase {
       renameInternal(entry.mFileId, new TachyonURI(entry.mDstPath), true, entry.mOpTimeMs);
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Propagates the persisted status to all parents of the given inode in the same mount partition.
+   *
+   * @param inode the inode to start the propagation at
+   * @param replayed whether the invocation is a result of replaying the journal
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws InvalidPathException if an invalid path is encountered
+   */
+  private void propagatePersisted(Inode inode, boolean replayed)
+      throws FileDoesNotExistException, InvalidPathException {
+    if (!inode.isPersisted()) {
+      return;
+    }
+    Inode handle = inode;
+    while (handle.getParentId() != InodeTree.NO_PARENT) {
+      handle = mInodeTree.getInodeById(handle.getParentId());
+      TachyonURI path = mInodeTree.getPath(handle);
+      if (mMountTable.isMountPoint(path)) {
+        // Stop propagating the persisted status at mount points.
+        break;
+      }
+      if (handle.isPersisted()) {
+        // Stop if a persisted directory is encountered.
+        break;
+      }
+      handle.setPersisted(true);
+      if (!replayed) {
+        writeJournalEntry(new PersistDirectoryEntry(inode.getId(), inode.isPersisted()));
+      }
     }
   }
 
