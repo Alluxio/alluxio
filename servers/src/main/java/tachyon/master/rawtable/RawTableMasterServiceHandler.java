@@ -15,7 +15,6 @@
 
 package tachyon.master.rawtable;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.TachyonURI;
@@ -23,7 +22,6 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
@@ -35,13 +33,11 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   // TODO(jiri) Reduce exception handling boilerplate here
   @Override
   public long createRawTable(String path, int columns, ByteBuffer metadata)
-      throws TachyonTException, ThriftIOException {
+      throws TachyonTException {
     try {
       return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 
@@ -73,14 +69,11 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws TachyonTException,
-      ThriftIOException {
+  public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws TachyonTException {
     try {
       mRawTableMaster.updateRawTableMetadata(tableId, metadata);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 }
