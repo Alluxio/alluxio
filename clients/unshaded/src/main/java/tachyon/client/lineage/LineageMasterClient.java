@@ -24,11 +24,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-
 import tachyon.Constants;
 import tachyon.MasterClientBase;
-import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
@@ -79,7 +76,7 @@ public final class LineageMasterClient extends MasterClientBase {
         return mClient.createLineage(inputFiles, outputFiles,
             job.generateCommandLineJobInfo());
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -96,7 +93,7 @@ public final class LineageMasterClient extends MasterClientBase {
       try {
         return mClient.deleteLineage(lineageId, cascade);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -113,7 +110,7 @@ public final class LineageMasterClient extends MasterClientBase {
       try {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

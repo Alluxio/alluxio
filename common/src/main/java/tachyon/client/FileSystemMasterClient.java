@@ -101,7 +101,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.getFileInfo(fileId);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -124,7 +124,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.getFileInfoList(fileId);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -149,7 +149,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.getFileBlockInfo(fileId, fileBlockIndex);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -173,7 +173,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.getFileBlockInfoList(fileId);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -195,7 +195,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.getNewBlockIdForFile(fileId);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -241,7 +241,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.create(path, blockSizeBytes, recursive, ttl);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -265,7 +265,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mClient.completeFile(fileId);
         return;
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -291,7 +291,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.deleteFile(fileId, recursive);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -317,7 +317,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.renameFile(fileId, dstPath);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -343,7 +343,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mClient.setPinned(fileId, pinned);
         return;
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -369,7 +369,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.mkdir(path, recursive);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -395,7 +395,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.free(fileId, recursive);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -418,7 +418,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         mClient.reportLostFile(fileId);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -444,7 +444,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.loadMetadata(path, recursive);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.of(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
