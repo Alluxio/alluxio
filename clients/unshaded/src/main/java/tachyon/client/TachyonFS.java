@@ -40,6 +40,7 @@ import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.master.block.BlockId;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -427,17 +428,21 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets a ClientBlockInfo by the block id.
+   * Gets a ClientBlockInfo by the file and index.
    *
    * Currently unsupported.
    *
-   * @param blockId the id of the block
+   * @param fileId the id of the file
    * @return the ClientBlockInfo of the specified block
    * @throws IOException if the underlying master RPC fails
    */
-  synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
-    throw new UnsupportedOperationException("FileBlockInfo is no longer supported, use FileInfo "
-        + "and/or BlockInfo");
+  synchronized FileBlockInfo getClientBlockInfo(long fileId, int blockIndex) throws IOException {
+    try {
+      return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
+    } catch (TachyonException e) {
+      // TODO: Should not cast this to Tachyon Exception
+      throw new IOException(e);
+    }
   }
 
   /**
