@@ -53,25 +53,6 @@ public class HeartbeatContextTest {
 
   @Test
   public void addNewTimerClassesTest() throws Exception {
-    checkNewTimerClasses();
-
-    // re-check if the standard classes are still in place
-    timerClassesCheckTest();
-    checkInstanceOfTest();
-  }
-
-  private void checkNotNull(String name) {
-    Assert.assertNotNull(String.format("%s must be valued", name),
-        HeartbeatContext.getTimerClass(name));
-  }
-
-  private void checkInstanceOf(String name, Class<HeartbeatTimer> timerClass) {
-    Assert.assertTrue(
-        String.format("%s must be an instance of %s", name, timerClass.getCanonicalName()),
-        HeartbeatContext.getTimerClass(name).isAssignableFrom(timerClass));
-  }
-
-  private void checkNewTimerClasses() {
     String testSleeping = "TEST_SLEEPING_%s";
     String testScheduled = "TEST_SCHEDULED_%s";
 
@@ -89,5 +70,20 @@ public class HeartbeatContextTest {
         checkInstanceOf(name, timerClass);
       }
     }
+
+    // check that the standard classes are still in place
+    timerClassesCheckTest();
+    checkInstanceOfTest();
+  }
+
+  private void checkNotNull(String name) {
+    Assert.assertNotNull(String.format("%s must be valued", name),
+        HeartbeatContext.getTimerClass(name));
+  }
+
+  private void checkInstanceOf(String name, Class<HeartbeatTimer> timerClass) {
+    Assert.assertTrue(
+        String.format("%s must be an instance of %s", name, timerClass.getCanonicalName()),
+        HeartbeatContext.getTimerClass(name).isAssignableFrom(timerClass));
   }
 }

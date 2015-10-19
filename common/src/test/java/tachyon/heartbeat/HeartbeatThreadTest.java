@@ -29,7 +29,7 @@ import org.junit.Test;
  */
 public final class HeartbeatThreadTest {
 
-  private static final String THREAD_NAME = "thread-name";
+  private static final String THREAD_NAME = "heartbeat-thread-test-thread-name";
 
   private static final int NUMBER_OF_THREADS = 1;
 
