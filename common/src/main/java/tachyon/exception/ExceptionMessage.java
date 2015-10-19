@@ -75,6 +75,7 @@ public enum ExceptionMessage {
 
   // lineage
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
+  LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

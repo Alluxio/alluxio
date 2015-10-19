@@ -38,6 +38,7 @@ import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
+import tachyon.util.LineageUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -228,8 +229,7 @@ public final class BlockWorker {
     // Setup the lineage worker
     LOG.info("Started lineage worker at worker with ID " + WorkerIdRegistry.getWorkerId());
 
-    boolean enableLineage = WorkerContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
-    if (enableLineage) {
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       mLineageWorker = new LineageWorker(mBlockDataManager);
     }
   }
@@ -263,7 +263,7 @@ public final class BlockWorker {
     mSyncExecutorService.submit(mSessionCleanerThread);
 
     // Start the lineage worker
-    if (mLineageWorker != null) {
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       mLineageWorker.start();
     }
 
@@ -285,7 +285,7 @@ public final class BlockWorker {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    if (mLineageWorker != null) {
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       mLineageWorker.stop();
     }
     mBlockMasterSync.stop();
