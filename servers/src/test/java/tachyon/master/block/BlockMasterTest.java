@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -99,6 +100,28 @@ public class BlockMasterTest implements Tester<BlockMaster> {
         workerInfo2.generateClientWorkerInfo());
 
     Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
+  }
+
+  @Test
+  public void registerLostWorkerTest() throws Exception {
+    final NetAddress na = new NetAddress("localhost", 80, 81);
+    final long expectedId = 1;
+    final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
+    workerInfo1.addBlock(1L);
+
+    mPrivateAccess.addLostWorker(workerInfo1);
+    final long workerId = mMaster.getWorkerId(na);
+    Assert.assertEquals(expectedId, workerId);
+
+    final List<Long> blocks = ImmutableList.of(42L);
+    mMaster.workerRegister(workerId, ImmutableList.of(1024L), ImmutableList.of(1024L),
+        ImmutableMap.of(1L,blocks));
+
+    final Set<Long> expectedBlocks = ImmutableSet.of(42L);
+    final Set<Long> actualBlocks = workerInfo1.getBlocks();
+
+    Assert.assertEquals("The master should reflect the blocks declared at registration",
+        expectedBlocks, actualBlocks);
   }
 
   @Test

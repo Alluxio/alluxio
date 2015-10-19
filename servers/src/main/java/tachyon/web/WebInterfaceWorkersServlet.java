@@ -42,7 +42,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  public static class NodeInfo {
+  private static class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
     private final String mLastContactSec;
     private final String mWorkerState;
@@ -99,6 +99,21 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     public int getUsedSpacePercent() {
       return mUsedPercent;
     }
+
+    /**
+     * Compare NodeInfo by lexicographical order of their associated host
+     * @param o the comparison term
+     * @return a positive value if {@code this.getHost} is lexcographically "bigger" than
+     *         {@code o.getHost}, 0 if the hosts are equal, a negative value otherwise.
+     */
+    @Override
+    public int compareTo(NodeInfo o) {
+      if (o == null) {
+        return 1;
+      } else {
+        return this.getHost().compareTo(o.getHost());
+      }
+    }
   }
 
   private static final long serialVersionUID = -7454493761603179826L;
@@ -138,13 +153,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     for (WorkerInfo workerInfo : workerInfos) {
       ret[index ++] = new NodeInfo(workerInfo);
     }
-
-    Arrays.sort(ret, new Ordering<NodeInfo>() {
-      @Override
-      public int compare(NodeInfo info0, NodeInfo info1) {
-        return info0.getHost().compareTo(info1.getHost());
-      }
-    });
+    Arrays.sort(ret);
 
     return ret;
   }
