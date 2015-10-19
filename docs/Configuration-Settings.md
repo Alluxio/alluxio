@@ -117,6 +117,21 @@ The common configuration contains constants shared by different components.
     UnderFileSystem. The delimiter is any whitespace and/or ','.</td>
 </tr>
 <tr>
+  <td>tachyon.underfs.s3.proxy.host</td>
+  <td>No default</td>
+  <td>Optionally, specify a proxy host for communicating with S3.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.https.only</td>
+  <td>true</td>
+  <td>If using a proxy to communicate with S3, determine whether to talk to the proxy using https.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.port</td>
+  <td>No default</td>
+  <td>Optionally, specify a proxy port for communicating with S3.</td>
+</tr>
+<tr>
   <td>tachyon.web.resources</td>
   <td>${tachyon.home}/servers/src/main/webapp</td>
   <td>Path to the web application resources.</td>
