@@ -209,7 +209,8 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if fails to create the output file
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      IOException {
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
@@ -299,7 +300,7 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException the file path is invalid
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, LineageDoesNotExistException {
+      throws InvalidPathException, LineageDoesNotExistException, IOException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
     if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {

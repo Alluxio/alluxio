@@ -200,8 +200,8 @@ public class RawTableMaster extends MasterBase {
    * @throws InvalidPathException when path is invalid
    * @throws TableDoesNotExistException when the path does not refer to a table
    */
-  public long getRawTableId(TachyonURI path)
-      throws InvalidPathException, TableDoesNotExistException {
+  public long getRawTableId(TachyonURI path) throws InvalidPathException,
+      TableDoesNotExistException, IOException {
     long tableId = mFileSystemMaster.getFileId(path);
     if (!mRawTables.contains(tableId) || !mFileSystemMaster.isDirectory(tableId)) {
       throw new TableDoesNotExistException(
@@ -254,8 +254,8 @@ public class RawTableMaster extends MasterBase {
    * @throws TableDoesNotExistException when the path does not refer to a table
    * @throws InvalidPathException when path is invalid
    */
-  public RawTableInfo getClientRawTableInfo(TachyonURI path)
-      throws TableDoesNotExistException, InvalidPathException {
+  public RawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
+      InvalidPathException, IOException {
     return getClientRawTableInfo(getRawTableId(path));
   }
 
