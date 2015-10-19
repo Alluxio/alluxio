@@ -291,6 +291,9 @@ public final class Constants {
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+  public static final String S3_PROXY_HOST = "fs.s3n.proxy-host";
+  public static final String S3_PROXY_PORT = "fs.s3n.proxy-port";
+  public static final String S3_PROTOCOL = "fs.s3n.protocol";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
