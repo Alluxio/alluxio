@@ -40,7 +40,7 @@ public enum TachyonExceptionType {
    * Construct a TachyonExceptionType along with its corresponding TachyonException
    */
   TachyonExceptionType(Class<? extends TachyonException> exceptionClass) {
-    this.mExceptionClass = exceptionClass;
+    mExceptionClass = exceptionClass;
   }
 
   public Class<? extends TachyonException> getExceptionClass() {

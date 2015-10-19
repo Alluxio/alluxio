@@ -65,8 +65,8 @@ public abstract class TachyonException extends Exception {
     Class<? extends TachyonException> throwClass = exceptionType.getExceptionClass();
     Exception reflectError;
     try {
-      TachyonException throwInstance = throwClass.getConstructor(String.class)
-          .newInstance(e.getMessage());
+      TachyonException throwInstance =
+          throwClass.getConstructor(String.class).newInstance(e.getMessage());
       return throwInstance;
       // This will be easier when we move to Java 7, when instead of catching Exception we can catch
       // ReflectiveOperationException, the Java 7 superclass for these Exceptions
@@ -79,8 +79,8 @@ public abstract class TachyonException extends Exception {
     } catch (NoSuchMethodException e1) {
       reflectError = e1;
     }
-    String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only " +
-        "constructor: " + reflectError.getMessage();
+    String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
+        + "constructor: " + reflectError.getMessage();
     throw new IllegalStateException(errorMessage);
   }
 
