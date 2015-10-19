@@ -430,6 +430,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Gets a ClientBlockInfo by the file and index.
    *
    * @param fileId the id of the file
+   * @param blockIndex the index of the block in the file, starting from 0
    * @return the ClientBlockInfo of the specified block
    * @throws IOException if the underlying master RPC fails
    */
