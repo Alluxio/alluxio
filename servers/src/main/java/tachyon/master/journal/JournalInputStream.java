@@ -34,7 +34,7 @@ public interface JournalInputStream {
   void close() throws IOException;
 
   /**
-   * @return the sequence number of the latest journal entry seen in the stream.
+   * @return the sequence number of the latest journal entry seen in the stream
    */
   long getLatestSequenceNumber();
 }

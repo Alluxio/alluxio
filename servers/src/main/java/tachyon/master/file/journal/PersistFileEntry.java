@@ -19,7 +19,6 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
-import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 

@@ -23,8 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Unit test for <code>ResourcePool</code> class.
@@ -68,12 +66,14 @@ public class ResourcePoolTest {
   @Test
   public void resourcePoolBlockingTest() throws InterruptedException {
     mThrown.expect(RuntimeException.class);
-    LinkedBlockingQueue queue = PowerMockito.mock(LinkedBlockingQueue.class);
-    TestResourcePool testPool = new TestResourcePool(2, queue);
+    final int POOL_SIZE = 2;
+    @SuppressWarnings("unchecked")
+    LinkedBlockingQueue<Integer> queue = Mockito.mock(LinkedBlockingQueue.class);
+    TestResourcePool testPool = new TestResourcePool(POOL_SIZE, queue);
     Mockito.when(queue.isEmpty()).thenReturn(true);
     Mockito.when(queue.take()).thenThrow(new InterruptedException());
-    int resource1 = testPool.acquire();
-    int resource2 = testPool.acquire();
-    int resource3 = testPool.acquire();
+    for (int i = 0; i < POOL_SIZE + 1; i ++) {
+      testPool.acquire();
+    }
   }
 }

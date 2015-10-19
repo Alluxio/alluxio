@@ -18,17 +18,13 @@ package tachyon.client.lineage;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-
 import tachyon.Constants;
 import tachyon.MasterClientBase;
-import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
@@ -51,12 +47,10 @@ public final class LineageMasterClient extends MasterClientBase {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
-    super(masterAddress, executorService, tachyonConf);
+  public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+    super(masterAddress, tachyonConf);
   }
 
   @Override
