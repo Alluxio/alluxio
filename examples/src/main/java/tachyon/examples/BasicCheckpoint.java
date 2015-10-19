@@ -86,7 +86,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = tachyonClient.getOutStream(filePath, OutStreamOptions.defaults());
+      OutputStream os = tachyonClient.getOutStream(filePath);
       os.write(buf.array());
       os.close();
     }
