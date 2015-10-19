@@ -91,7 +91,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
     if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          tachyonConf.get(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY));
+          Boolean.toString(tachyonConf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
     LOG.debug("Initializing S3 underFs with properties: " + props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
