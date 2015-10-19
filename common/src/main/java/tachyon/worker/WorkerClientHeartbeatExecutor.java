@@ -15,10 +15,7 @@
 
 package tachyon.worker;
 
-import java.io.IOException;
-
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import tachyon.heartbeat.HeartbeatExecutor;
 
