@@ -51,6 +51,12 @@ import tachyon.util.network.NetworkAddressUtils;
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  // Error strings for preconditions in order to improve performance
+  private static final String ERR_BLOCK_INDEX = "Current block index exceeds max index.";
+  private static final String ERR_BUFFER_NULL = "Cannot read with a null buffer.";
+  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
+  private static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
+  private static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
 
   /** How the data should be written into Tachyon space, if at all */
   private final TachyonStorageType mTachyonStorageType;
@@ -129,9 +135,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkArgument(b != null, ERR_BUFFER_NULL);
+    Preconditions.checkArgument(
+        off >= 0 && len >= 0 && len + off <= b.length, ERR_BUFFER_STATE, b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (mPos >= mFileLength) {
@@ -179,9 +185,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     if (mPos == pos) {
       return;
     }
-    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos < mFileLength, "Seek position is past EOF: " + pos
-        + ", fileSize = " + mFileLength);
+    Preconditions.checkArgument(pos >= 0, ERR_SEEK_NEGATIVE, pos);
+    Preconditions.checkArgument(pos < mFileLength, ERR_SEEK_PAST_END_OF_FILE, pos);
 
     seekBlockInStream(pos);
     checkAndAdvanceBlockInStream();
@@ -260,8 +265,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
-    Preconditions.checkState(index < mFileInfo.blockIds.size(),
-        "Current block index exceeds max index.");
+    Preconditions.checkState(index < mFileInfo.blockIds.size(), ERR_BLOCK_INDEX);
     return mFileInfo.blockIds.get(index);
   }
 
