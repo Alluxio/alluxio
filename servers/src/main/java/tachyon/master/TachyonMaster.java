@@ -42,6 +42,7 @@ import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.LineageUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.MasterUIWebServer;
@@ -170,8 +171,7 @@ public class TachyonMaster {
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
-      boolean enableLineage = MasterContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
-      if (enableLineage) {
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
 
@@ -282,7 +282,7 @@ public class TachyonMaster {
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
-      if (mLineageMaster != null) {
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
       }
 
@@ -294,7 +294,7 @@ public class TachyonMaster {
 
   protected void stopMasters() {
     try {
-      if (mLineageMaster != null) {
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.stop();
       }
       mBlockMaster.stop();
@@ -338,7 +338,7 @@ public class TachyonMaster {
     processor.registerProcessor(mFileSystemMaster.getServiceName(),
         mFileSystemMaster.getProcessor());
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
-    if (mLineageMaster != null) {
+    if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
       processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
     }
 

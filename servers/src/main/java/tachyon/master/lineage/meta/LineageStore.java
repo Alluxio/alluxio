@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
@@ -196,11 +197,13 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param fileId the file id
    * @return the lineage containing the output file, null if no lineage outputs the given file
+   * @throws LineageDoesNotExistException
    */
-  public synchronized Lineage reportLostFile(long fileId) {
+  public synchronized Lineage reportLostFile(long fileId) throws LineageDoesNotExistException {
     Lineage lineage = mOutputFileIndex.get(fileId);
     if (lineage == null) {
-      return null;
+      throw new LineageDoesNotExistException(
+          ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
     }
     // TODO(yupeng) push the persisted info to FS master
     if (lineage.getOutputFileState(fileId) != LineageFileState.PERSISTED) {
@@ -256,7 +259,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   /**
-   * Checks if there's an output file with given file id
+   * Checks if there's an output file with given file id.
    *
    * @param fileId the file id
    * @return true if there's a lineage in the store that has the output file of the given id, false
