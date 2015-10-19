@@ -53,16 +53,6 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
 
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
-
   private BlockWorker mWorker = null;
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
@@ -217,10 +207,7 @@ public final class LocalTachyonCluster {
     mWorkerThread.start();
     // waiting for worker web server startup
     CommonUtils.sleepMs(100);
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(mWorkerConf);
+    ClientContext.reset(mWorkerConf);
   }
 
   /**
