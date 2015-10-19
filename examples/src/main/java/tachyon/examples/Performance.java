@@ -34,7 +34,6 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
