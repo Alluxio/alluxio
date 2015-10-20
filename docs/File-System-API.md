@@ -30,7 +30,7 @@ TachyonFileSystem tfs = TachyonFileSystemFactory.get();
 ### Creating a File
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
-done through the TachyonFileSystem object. Since Tachyon files are immutable once written, the
+executed through the TachyonFileSystem object. Since Tachyon files are immutable once written, the
 idiomatic way to create files is to use `TachyonFileSystem#getOutStream(TachyonURI)`, which returns
 a stream object that can be used to write the file. For example:
 
@@ -60,13 +60,12 @@ FileOutStream out = tfs.getOutputStream(path, options);
 
 ### IO Options
 
-There are two different types of storage in Tachyon, Tachyon managed storage and under storage.
-Tachyon managed storage is the memory, SSD, and/or HDD which is allocated to Tachyon workers. For
-read and write operations, users can specify the `TachyonStorageType` to fine tune the interaction
-with Tachyon's managed storage. Likewise, users can specify the `UnderStorageType` to fine tune the
-data operations with the under storage, such as S3, Swift, or HDFS. Note that read operations are
-affected by `TachyonStorageType` (the data can be stored in more Tachyon workers) but not
-`UnderStorageType`.
+Tachyon uses two different storage types: Tachyon managed storage and under storage. Tachyon managed
+storage is the memory, SSD, and/or HDD allocated to Tachyon workers. Under storage is the storage
+resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
+interaction with the Tachyon's native storage and under storage through the `NativeStorageType` and
+`UnderStorageType` respectively. Note that read operations are affected by `TachyonStorageType`
+(the data can be stored in more Tachyon workers) but not `UnderStorageType`.
 
 Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` combinations.
 
