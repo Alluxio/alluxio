@@ -117,6 +117,21 @@ The common configuration contains constants shared by different components.
     UnderFileSystem. The delimiter is any whitespace and/or ','.</td>
 </tr>
 <tr>
+  <td>tachyon.underfs.s3.proxy.host</td>
+  <td>No default</td>
+  <td>Optionally, specify a proxy host for communicating with S3.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.https.only</td>
+  <td>true</td>
+  <td>If using a proxy to communicate with S3, determine whether to talk to the proxy using https.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.port</td>
+  <td>No default</td>
+  <td>Optionally, specify a proxy port for communicating with S3.</td>
+</tr>
+<tr>
   <td>tachyon.web.resources</td>
   <td>${tachyon.home}/servers/src/main/webapp</td>
   <td>Path to the web application resources.</td>
@@ -552,7 +567,7 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.file.understoragetype.default</td>
-  <td>SYNC_PERSIST</td>
+  <td>NO_PERSIST</td>
   <td>The default interaction with the under storage. Possible values are SYNC_PERSIST, NO_PERSIST,
   and ASYNC_PERSIST. This value only affects writes in Tachyon. Sync persist will attempt to write
   data to the under storage as the data is written to Tachyon. When the write completes, the data
@@ -567,12 +582,14 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.file.writetype.default [DEPRECATED]</td>
-  <td>CACHE_THROUGH</td>
+  <td>MUST_CACHE</td>
   <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
     Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
     `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
     UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
-    asynchronously, or synchronous write to UnderFS).</td>
+    asynchronously, or synchronous write to UnderFS). This flag is deprecated, please use the
+    combination of `tachyon.user.file.tachyonstoragetype.default` and
+    `tachyon.user.file.understoragetype.default` instead.</td>
 </tr>
 <tr>
   <td>tachyon.user.heartbeat.interval.ms</td>

@@ -50,6 +50,23 @@ contain your credentials.
 After these changes, Tachyon should be configured to work with S3 as its under storage system, and
 you can try [Running Tachyon Locally with S3](#running-tachyon-locally-with-s3).
 
+## Accessing S3 through a proxy
+
+To communicate with S3 through a proxy, modify the `TACHYON_JAVA_OPTS` section of
+`conf/tachyon-env.sh` to include:
+
+	-Dtachyon.underfs.s3.proxy.host=<PROXY_HOST>
+	-Dtachyon.underfs.s3.proxy.port=<PROXY_PORT>
+	-Dtachyon.underfs.s3.proxy.https.only=<USE_HTTPS?>
+
+Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for your proxy, and
+`<USE_HTTPS?>` should be set to either `true` or `false`, depending on whether https should be
+used to communicate with the proxy.
+
+These configuration parameters may also need to be set for the Tachyon client if it is running in
+a separate JVM from the Tachyon Master and Workers. See
+[Configuring Distributed Applications](#configuring-distributed-applications)
+
 # Configuring Your Application
 
 When building your application to use Tachyon, your application will have to include the

@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
@@ -42,17 +41,6 @@ import tachyon.util.FormatUtils;
 
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
-
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
   private final OutStreamOptions mClientOptions;
@@ -71,10 +59,7 @@ public class BasicOperations implements Callable<Boolean> {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(tachyonConf);
+    ClientContext.reset(tachyonConf);
     TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     long fileId = createFile(tFS);
     writeFile(fileId);
@@ -86,7 +71,7 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
     CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
-        .setBlockSize(mClientOptions.getBlockSize()).setRecursive(true)
+        .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
         .setTTL(mClientOptions.getTTL()).build();
     TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
     long fileId = tFile.getFileId();

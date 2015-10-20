@@ -106,6 +106,9 @@ public final class Constants {
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
   public static final String UNDERFS_GLUSTERFS_MR_DIR =
       "tachyon.underfs.glusterfs.mapred.system.dir";
+  public static final String UNDERFS_S3_PROXY_HOST = "tachyon.underfs.s3.proxy.host";
+  public static final String UNDERFS_S3_PROXY_PORT = "tachyon.underfs.s3.proxy.port";
+  public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "tachyon.underfs.s3.proxy.https.only";
   public static final String ZOOKEEPER_ENABLED = "tachyon.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "tachyon.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "tachyon.zookeeper.election.path";

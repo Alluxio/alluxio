@@ -46,18 +46,18 @@ import tachyon.job.JobConf;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
-import tachyon.master.file.journal.DeleteMountPointEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
+import tachyon.master.file.journal.DeleteMountPointEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
+import tachyon.master.file.journal.PersistFileEntry;
+import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
@@ -154,7 +154,7 @@ public abstract class JournalFormatterTestBase {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
-  public final void before() throws Exception {
+  public void before() throws Exception {
     String path = mTestFolder.newFile().getAbsolutePath();
     mOs = new FileOutputStream(path);
     mIs = new FileInputStream(path);

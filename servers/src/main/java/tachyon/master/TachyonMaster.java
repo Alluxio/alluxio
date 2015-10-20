@@ -42,6 +42,7 @@ import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.LineageUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.MasterUIWebServer;
@@ -170,7 +171,9 @@ public class TachyonMaster {
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
-      mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+      }
 
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
@@ -279,7 +282,9 @@ public class TachyonMaster {
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
-      mLineageMaster.start(isLeader);
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+        mLineageMaster.start(isLeader);
+      }
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -289,7 +294,9 @@ public class TachyonMaster {
 
   protected void stopMasters() {
     try {
-      mLineageMaster.stop();
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+        mLineageMaster.stop();
+      }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -331,7 +338,9 @@ public class TachyonMaster {
     processor.registerProcessor(mFileSystemMaster.getServiceName(),
         mFileSystemMaster.getProcessor());
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
-    processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
+    if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+      processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
+    }
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;

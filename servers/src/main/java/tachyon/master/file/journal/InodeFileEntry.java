@@ -54,10 +54,10 @@ public class InodeFileEntry extends InodeEntry {
 
   public InodeFile toInodeFile() {
     InodeFile inode =
-        new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-            mCreationTimeMs, mTTL);
+        new InodeFile.Builder().setName(mName).setBlockContainerId(BlockId.getContainerId(mId))
+            .setParentId(mParentId).setBlockSizeBytes(mBlockSizeBytes)
+            .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted).build();
 
-    // Set flags.
     if (mCompleted) {
       inode.setCompleted(mLength);
     }

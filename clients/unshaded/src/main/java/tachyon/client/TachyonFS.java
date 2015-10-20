@@ -36,6 +36,8 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -297,19 +299,24 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
    *        not exist in the under file system yet.
-   * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
+   * @param blockSizeBytes The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique
    * @throws IOException if the underlying master RPC fails
    */
   @Override
-  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
+  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeBytes,
       boolean recursive) throws IOException {
     validateUri(path);
     try {
-      if (blockSizeByte > 0) {
-        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
-            Constants.NO_TTL);
+      if (blockSizeBytes > 0) {
+        UnderStorageType underStorageType =
+            mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+                .isThrough() ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+        CreateOptions options =
+            new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
+                .setRecursive(recursive).setUnderStorageType(underStorageType).build();
+        return mFSMasterClient.create(path.getPath(), options);
       } else {
         return mFSMasterClient.loadMetadata(path.getPath(), recursive);
       }
@@ -427,17 +434,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets a ClientBlockInfo by the block id.
+   * Gets a ClientBlockInfo by the file and index.
    *
-   * Currently unsupported.
-   *
-   * @param blockId the id of the block
+   * @param fileId the id of the file
+   * @param blockIndex the index of the block in the file, starting from 0
    * @return the ClientBlockInfo of the specified block
    * @throws IOException if the underlying master RPC fails
    */
-  synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
-    throw new UnsupportedOperationException("FileBlockInfo is no longer supported, use FileInfo "
-        + "and/or BlockInfo");
+  synchronized FileBlockInfo getClientBlockInfo(long fileId, int blockIndex) throws IOException {
+    try {
+      return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
+    } catch (TachyonException e) {
+      // TODO: Should not cast this to Tachyon Exception
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -843,7 +853,13 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.mkdir(path.getPath(), recursive);
+      UnderStorageType underStorageType =
+          mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough()
+              ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+      MkdirOptions options =
+          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
+              .setUnderStorageType(underStorageType).build();
+      return mFSMasterClient.mkdir(path.getPath(), options);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
