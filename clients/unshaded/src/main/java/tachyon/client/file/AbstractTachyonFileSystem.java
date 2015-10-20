@@ -70,8 +70,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       throws FileAlreadyExistsException, IOException, InvalidPathException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      final long fileId = masterClient.create(path.getPath(), options.getBlockSize(),
-          options.isRecursive(), options.getTTL());
+      final long fileId = masterClient.create(path.getPath(), options);
       return new TachyonFile(fileId);
     } catch (TachyonException e) {
       if (e.getType() == TachyonExceptionType.BLOCK_INFO) {
@@ -193,7 +192,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       FileAlreadyExistsException, InvalidPathException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      boolean result = masterClient.mkdir(path.getPath(), options.isRecursive());
+      boolean result = masterClient.mkdir(path.getPath(), options);
       if (result) {
         LOG.info("Created directory " + path.getPath());
       }

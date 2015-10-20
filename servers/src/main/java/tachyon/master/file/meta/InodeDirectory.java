@@ -30,6 +30,23 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
+  public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
+
+    public Builder() {
+      super();
+      mDirectory = true;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeDirectory}.
+     *
+     * @return a {@link InodeDirectory} instance
+     */
+    public InodeDirectory build() {
+      return new InodeDirectory(this);
+    }
+  }
+
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
@@ -45,16 +62,8 @@ public final class InodeDirectory extends Inode {
   @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
-  /**
-   * Creates a new InodeFolder.
-   *
-   * @param name The name of the folder
-   * @param id The inode id of the folder
-   * @param parentId The inode id of the parent of the folder
-   * @param creationTimeMs The creation time of the folder, in milliseconds
-   */
-  public InodeDirectory(String name, long id, long parentId, long creationTimeMs) {
-    super(name, id, parentId, true, creationTimeMs);
+  private InodeDirectory(InodeDirectory.Builder builder) {
+    super(builder);
   }
 
   /**

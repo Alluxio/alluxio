@@ -261,7 +261,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
+    optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
