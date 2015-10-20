@@ -43,6 +43,16 @@ public class LineageEntry extends JournalEntry {
   private final String mJobOutputPath;
   private final long mCreationTimeMs;
 
+  /**
+   * Constructor used for deserializing the entry.
+   * @param id
+   * @param inputFiles
+   * @param outputFileIds
+   * @param outputFileStates
+   * @param jobCommand
+   * @param jobOutputPath
+   * @param creationTimeMs
+   */
   @JsonCreator
   public LineageEntry(@JsonProperty("id") long id,
       @JsonProperty("inputFiles") List<Long> inputFiles,
