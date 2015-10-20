@@ -87,7 +87,7 @@ public class LRUEvictor extends EvictorBase {
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
     mLRUCache.remove(blockId);
   }
-  
+
   @Override
   protected void onRemoveBlockFromIterator(long blockId) {
     mLRUCache.remove(blockId);
