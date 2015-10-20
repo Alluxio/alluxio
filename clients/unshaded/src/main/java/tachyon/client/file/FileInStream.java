@@ -33,6 +33,7 @@ import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.client.file.options.InStreamOptions;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.util.network.NetworkAddressUtils;
@@ -205,7 +206,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     seekBlockInStream(newPos);
     checkAndAdvanceBlockInStream();
     if (toSkipInBlock != mCurrentBlockInStream.skip(toSkipInBlock)) {
-      throw new IOException("The underlying BlockInStream could not skip " + toSkip);
+      throw new IOException(ExceptionMessage.INSTREAM_CANNOT_SKIP.getMessage(toSkip));
     }
     return toSkip;
   }
