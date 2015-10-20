@@ -79,7 +79,8 @@ public final class LocalTachyonMaster {
     mUfsDirectory = mUfsCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
-    mJournalFolder = mUfsCluster.getUnderFilesystemAddress() + "/journal";
+    mJournalFolder =
+        mUfsCluster.getUnderFilesystemAddress() + "/journal" + System.currentTimeMillis();
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
     String[] masterServiceNames = new String[] {
