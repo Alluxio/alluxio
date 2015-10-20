@@ -77,13 +77,13 @@ public enum JournalEntryType {
   PERSIST_FILES(PersistFilesEntry.class),
   REQUEST_FILE_PERSISTENCE(RequestFilePersistenceEntry.class);
 
-  private Class<? extends JournalEntry> mClazz;
+  private Class<? extends JournalEntry> mClass;
 
   JournalEntryType(Class<? extends JournalEntry> clazz) {
-    mClazz = clazz;
+    mClass = clazz;
   }
 
   public Class<? extends JournalEntry> getClazz() {
-    return mClazz;
+    return mClass;
   }
 }
