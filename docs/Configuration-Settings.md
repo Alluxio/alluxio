@@ -557,7 +557,7 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.file.tachyonstoragetype.default</td>
-  <td>STORE</td>
+  <td>PROMOTE</td>
   <td>The default interaction with Tachyon. Possible values are PROMOTE, STORE, and NO_STORE.
   STORE will attempt to write data to Tachyon if the local worker does not have the data. This
   applies to writing new data as well as reading data which is not already on the local worker.
