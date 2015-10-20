@@ -38,6 +38,7 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -356,7 +357,14 @@ public class TachyonFS extends AbstractTachyonFS {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
     }
-    return mRawTableMasterClient.createRawTable(path, columns, metadata);
+    long tableId = mRawTableMasterClient.createRawTable(path, columns, metadata);
+    if (tableId != -1) {
+      mkdirs(path, true);
+      for (int i = 0; i < columns; i ++) {
+        mkdirs(new TachyonURI(RawColumn.getColumnPath(path.toString(), i)), true);
+      }
+    }
+    return tableId;
   }
 
   /**
