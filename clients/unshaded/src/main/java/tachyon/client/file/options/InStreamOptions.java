@@ -33,7 +33,7 @@ public final class InStreamOptions {
      */
     public Builder(TachyonConf conf) {
       mTachyonStorageType =
-          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
+          conf.getEnum(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
     }
 
     /**

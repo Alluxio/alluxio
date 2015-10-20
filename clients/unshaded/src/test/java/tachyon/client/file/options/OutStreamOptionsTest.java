@@ -64,7 +64,7 @@ public class OutStreamOptionsTest {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    conf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, tachyonType.toString());
+    conf.set(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, tachyonType.toString());
     conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
 

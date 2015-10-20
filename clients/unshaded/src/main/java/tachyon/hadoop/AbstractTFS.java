@@ -469,7 +469,7 @@ abstract class AbstractTFS extends FileSystem {
 
   private WriteType getWriteType() {
     TachyonStorageType defaultTachyonStorageType =
-        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
+        mTachyonConf.getEnum(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT,
             TachyonStorageType.class);
     UnderStorageType defaultUnderStorageType =
         mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,

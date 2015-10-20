@@ -40,7 +40,7 @@ public final class OutStreamOptions {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mHostname = null;
       mTachyonStorageType =
-          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
+          conf.getEnum(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
       mUnderStorageType =
           conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
       mTTL = Constants.NO_TTL;

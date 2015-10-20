@@ -46,7 +46,7 @@ public class InStreamOptionsTest {
   public void defaultsTest() {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, tachyonType.toString());
+    conf.set(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, tachyonType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
 
     InStreamOptions options = InStreamOptions.defaults();

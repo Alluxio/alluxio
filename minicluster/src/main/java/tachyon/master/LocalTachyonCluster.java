@@ -25,7 +25,6 @@ import com.google.common.base.Joiner;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
-import tachyon.client.WriteType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
@@ -140,7 +139,7 @@ public final class LocalTachyonCluster {
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     mMasterConf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
-    mMasterConf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+    mMasterConf.set(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, "STORE");
     mMasterConf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
 
     mMaster = LocalTachyonMaster.create(mTachyonHome);
