@@ -238,11 +238,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
-    List<Inode> modifiedInodes = Lists.newArrayList();
     List<Inode> createdInodes = Lists.newArrayList();
-    // Add the last found inode, since the modification time will be updated when descendants are
-    // created.
-    modifiedInodes.add(currentInodeDirectory);
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir =
@@ -266,11 +262,20 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
-    // directory, nothing needs to be done.
+    // directory, update persistence property of the directories if needed, otherwise, nothing needs
+    // to be done.
     Inode lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
       if (lastInode.isDirectory() && options.isDirectory()) {
-        return new CreatePathResult();
+        if (!lastInode.isPersisted() && options.isPersisted()) {
+          lastInode.setPersisted(true);
+          traversalResult.getPersisted().add(lastInode);
+          String ufsPath = mMountTable.resolve(getPath(lastInode)).getPath();
+          UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+          ufs.mkdirs(ufsPath, false);
+        }
+        return new CreatePathResult(Collections.<Inode>emptyList(), createdInodes,
+            traversalResult.getPersisted());
       }
       LOG.info("FileAlreadyExistsException: " + path);
       throw new FileAlreadyExistsException(path.toString());
@@ -305,7 +310,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
     currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
-    return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
+    return new CreatePathResult(Lists.newArrayList(traversalResult.getInode()), createdInodes,
+        traversalResult.getPersisted());
   }
 
   /**
