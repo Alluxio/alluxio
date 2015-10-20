@@ -79,8 +79,8 @@ as the deprecated `WriteType, ReadType` equivalents.
   <td>NO_PERSIST</td>
   <td>MUST_CACHE, CACHE_PROMOTE</td>
   <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
-  on the local worker, a replica will be added to the local Tachyon worker for each completely read
-  data block.</td>
+  in the Tachyon storage of the local worker, a replica will be added to the local Tachyon worker
+  for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker.</td>
 </tr>
 <tr>
@@ -98,7 +98,8 @@ as the deprecated `WriteType, ReadType` equivalents.
   <td>MUST_CACHE, CACHE</td>
   <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
-  <td>Data is written synchronously to a Tachyon worker.</td>
+  <td>Data is written synchronously to a Tachyon worker. Data is not written to the under storage
+  system.</td>
 </tr>
 <tr>
   <td>STORE</td>
