@@ -302,8 +302,8 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void createBlockMetaOutOfSpaceTest() throws Exception {
-    // When creating a block, if the space of the target location is currently taken by another block
-    // being locked.
+    // When creating a block, if the space of the target location is currently taken by another
+    // block being locked.
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
 
