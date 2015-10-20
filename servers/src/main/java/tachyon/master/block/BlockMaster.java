@@ -26,15 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
@@ -121,8 +121,8 @@ public final class BlockMaster extends MasterBase
    * Keeps track of workers which are no longer in communication with the master. Access must be
    * synchronized on mWorkers.
    */
-  private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
-      new LinkedBlockingQueue<MasterWorkerInfo>();
+  private final IndexedSet<MasterWorkerInfo> mLostWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /** The service that detects lost worker nodes, and tries to restart the failed workers. */
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
@@ -256,11 +256,11 @@ public final class BlockMaster extends MasterBase
   /**
    * Gets info about the lost workers. Called by the internal web ui.
    *
-   * @return a list of worker info
+   * @return a set of worker info
    */
-  public List<WorkerInfo> getLostWorkersInfo() {
+  public Set<WorkerInfo> getLostWorkersInfo() {
     synchronized (mWorkers) {
-      List<WorkerInfo> ret = new ArrayList<WorkerInfo>(mLostWorkers.size());
+      Set<WorkerInfo> ret = new HashSet<WorkerInfo>(mLostWorkers.size());
       for (MasterWorkerInfo worker : mLostWorkers) {
         ret.add(worker.generateClientWorkerInfo());
       }
@@ -449,15 +449,26 @@ public final class BlockMaster extends MasterBase
       if (mWorkers.contains(mAddressIndex, workerAddress)) {
         // This worker address is already mapped to a worker id.
         long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerAddress).getId();
-        LOG.warn("The worker " + workerAddress + " already exists as id " + oldWorkerId + ".");
+        LOG.warn("The worker {} already exists as id {}.", workerAddress, oldWorkerId);
         return oldWorkerId;
+      }
+
+      if (mLostWorkers.contains(mAddressIndex, workerAddress)) { // this is one of the lost workers
+        final MasterWorkerInfo lostWorkerInfo = mLostWorkers.getFirstByField(mAddressIndex,
+            workerAddress);
+        final long lostWorkerId = lostWorkerInfo.getId();
+        LOG.warn("A lost worker {} has requested its old id {}.", workerAddress, lostWorkerId);
+
+        mWorkers.add(lostWorkerInfo);
+        mLostWorkers.remove(lostWorkerInfo);
+        return lostWorkerId;
       }
 
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
 
-      LOG.info("getWorkerId(): WorkerNetAddress: " + workerAddress + " id: " + workerId);
+      LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerAddress, workerId);
       return workerId;
     }
   }
@@ -493,7 +504,7 @@ public final class BlockMaster extends MasterBase
 
         processWorkerRemovedBlocks(workerInfo, removedBlocks);
         processWorkerAddedBlocks(workerInfo, currentBlocksOnTiers);
-        LOG.info("registerWorker(): " + workerInfo);
+        LOG.info("registerWorker(): {}", workerInfo);
       }
     }
   }
@@ -514,9 +525,10 @@ public final class BlockMaster extends MasterBase
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
-          LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
+          LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
           return new Command(CommandType.Register, new ArrayList<Long>());
         }
+
         MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         processWorkerRemovedBlocks(workerInfo, removedBlockIds);
         processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
@@ -546,18 +558,28 @@ public final class BlockMaster extends MasterBase
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
-        LOG.warn("Worker " + workerInfo.getId() + " removed block " + removedBlockId
-            + " but block does not exist.");
+        LOG.warn("Worker {} removed block {} but block does not exist.", workerInfo.getId(),
+            removedBlockId);
         // Continue to remove the remaining blocks.
         continue;
       }
-      LOG.info("Block " + removedBlockId + " is removed on worker " + workerInfo.getId());
+      LOG.info("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {
         mLostBlocks.add(removedBlockId);
       }
     }
+  }
+
+  /**
+   * Called by the heartbeat thread whenever a worker is lost.
+   * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
+   */
+  // Synchronized on mBlocks by the caller
+  private void processLostWorker(MasterWorkerInfo latest) {
+    final Set<Long> lostBlocks = latest.getBlocks();
+    processWorkerRemovedBlocks(latest, lostBlocks);
   }
 
   /**
@@ -581,8 +603,7 @@ public final class BlockMaster extends MasterBase
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
           mLostBlocks.remove(blockId);
         } else {
-          LOG.warn(
-              "failed to register workerId: " + workerInfo.getId() + " to blockId: " + blockId);
+          LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
         }
       }
     }
@@ -592,7 +613,9 @@ public final class BlockMaster extends MasterBase
    * @return the lost blocks in Tachyon Storage
    */
   public Set<Long> getLostBlocks() {
-    return Collections.unmodifiableSet(mLostBlocks);
+    synchronized (mBlocks) {
+      return ImmutableSet.copyOf(mLostBlocks);
+    }
   }
 
   /**
@@ -632,28 +655,30 @@ public final class BlockMaster extends MasterBase
   /**
    * Lost worker periodic check.
    */
-  public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
       TachyonConf conf = MasterContext.getConf();
 
       int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-      synchronized (mWorkers) {
-        Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
-        while (iter.hasNext()) {
-          MasterWorkerInfo worker = iter.next();
-          if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
-            LOG.error("The worker " + worker + " got timed out!");
-            mLostWorkers.add(worker);
-            iter.remove();
-          } else if (mLostWorkers.contains(worker)) {
-            LOG.info("The lost worker " + worker + " is found.");
-            mLostWorkers.remove(worker);
+      synchronized (mBlocks) {
+        synchronized (mWorkers) {
+          Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
+          while (iter.hasNext()) {
+            MasterWorkerInfo worker = iter.next();
+            final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
+            if (lastUpdate > masterWorkerTimeoutMs) {
+              LOG.error("The worker {} got timed out!", worker);
+              mLostWorkers.add(worker);
+              iter.remove();
+              processLostWorker(worker);
+            }
           }
         }
       }
     }
+
   }
 
   class PrivateAccess {

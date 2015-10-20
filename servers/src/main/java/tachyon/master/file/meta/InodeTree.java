@@ -251,7 +251,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       if (options.isPersisted()) {
-        String ufsPath = mMountTable.resolve(getPath(dir)).getPath();
+        String ufsPath = mMountTable.resolve(getPath(dir)).toString();
         UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
         ufs.mkdirs(ufsPath, false);
       }
@@ -551,7 +551,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         if (persist && !next.isPersisted()) {
           next.setPersisted(true);
           persisted.add(next);
-          String ufsPath = mMountTable.resolve(getPath(next)).getPath();
+          String ufsPath = mMountTable.resolve(getPath(next)).toString();
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           ufs.mkdirs(ufsPath, false);
         }
