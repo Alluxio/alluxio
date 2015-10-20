@@ -269,7 +269,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
       return createdBlock.getPath();
     } catch (WorkerOutOfSpaceException e) {
-      LOG.info("MEM tier is full");
+      LOG.info("MEM tier is full, try to create block in any tier");
       createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, BlockStoreLocation.anyTier(),
           initialBytes);
       return createdBlock.getPath();

@@ -190,11 +190,7 @@ public final class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        try {
-          freeSpaceInternal(sessionId, initialBlockSize, location);
-        } catch (WorkerOutOfSpaceException e) {
-          // To complete
-        }
+        freeSpaceInternal(sessionId, initialBlockSize, location);
       }
     }
     // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
