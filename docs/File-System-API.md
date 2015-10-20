@@ -60,18 +60,18 @@ FileOutStream out = tfs.getOutputStream(path, options);
 
 ### IO Options
 
-There are two different types of storage in Tachyon, natively managed storage and under storage.
-Natively managed storage is the memory, SSD, and/or HDD which is allocated to Tachyon workers. For
-read and write operations, users can specify the `NativeStorageType` to fine tune the interaction
-with Tachyon's native storage. Likewise, users can specify the `UnderStorageType` to fine tune the
+There are two different types of storage in Tachyon, Tachyon managed storage and under storage.
+Tachyon managed storage is the memory, SSD, and/or HDD which is allocated to Tachyon workers. For
+read and write operations, users can specify the `TachyonStorageType` to fine tune the interaction
+with Tachyon's managed storage. Likewise, users can specify the `UnderStorageType` to fine tune the
 data operations with the under storage, such as S3, Swift, or HDFS. Note that read operations are
-affected by `NativeStorageType` (the data can be stored in more Tachyon workers) but not
+affected by `TachyonStorageType` (the data can be stored in more Tachyon workers) but not
 `UnderStorageType`.
 
-Below is a table of commonly used `NativeStorageType` and `UnderStorageType` combinations.
+Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` combinations.
 
 <table class="table">
-<tr><th>NativeStorageType</th><th>UnderStorageType</th><th>Read Behavior</th><th>Write Behavior</th>
+<tr><th>TachyonStorageType</th><th>UnderStorageType</th><th>Read Behavior</th><th>Write Behavior</th>
 </tr>
 <tr>
   <td>PROMOTE</td>
@@ -85,29 +85,29 @@ Below is a table of commonly used `NativeStorageType` and `UnderStorageType` com
   <td>PROMOTE</td>
   <td>SYNC_PERSIST</td>
   <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
-  in the native storage of the local worker, a replica will be added to the local Tachyon worker for
-  each completely read data block.</td>
+  in the Tachyon storage of the local worker, a replica will be added to the local Tachyon worker
+  for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
 </tr>
 <tr>
   <td>STORE</td>
   <td>NO_PERSIST</td>
-  <td>If the data was in the native storage of the local worker, a replica will be added to the
+  <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker.</td>
 </tr>
 <tr>
   <td>STORE</td>
   <td>SYNC_PERSIST</td>
-  <td>If the data was in the native storage of the local worker, a replica will be added to the
+  <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
 </tr>
 <tr>
   <td>NO_STORE</td>
   <td>SYNC_PERSIST</td>
-  <td>Data is read preferrably from native storage, then under storage. No replicas will be created.
-  </td>
+  <td>Data is read preferrably from Tachyon storage, then under storage. No replicas will be
+  created.</td>
   <td>Data is written synchronously to the under storage system.</td>
 </tr>
 </table>
