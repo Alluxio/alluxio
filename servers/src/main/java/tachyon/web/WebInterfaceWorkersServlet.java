@@ -26,8 +26,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.collect.Ordering;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
@@ -42,7 +40,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  private static class NodeInfo implements Comparable<NodeInfo> {
+  public static class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
     private final String mLastContactSec;
     private final String mWorkerState;
