@@ -122,9 +122,8 @@ public class BasicOperations implements Callable<Boolean> {
 
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 4) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR
-          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> "
-          + "<TachyonStorageType(STORE|NO_STORE)> <UnderStorageType(SYNC_PERSIST|NO_PERSIST)>");
+      System.out.println("java -cp " + Constants.TACHYON_JAR + " " + BasicOperations.class.getName()
+          + " <under storage type for writes (SYNC_PERSIST|NO_PERSIST)>");
       System.exit(-1);
     }
 
