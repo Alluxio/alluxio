@@ -191,7 +191,8 @@ $ ls /leader
 ```
 
 The output of the command should show the new leader. You may need to wait for a moment for the
-new leader to be elected. You can query the public IP for the new leader based on its name in [AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1).
+new leader to be elected. You can query the public IP for the new leader based on its name in
+[AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1).
 
 Visit Tachyon web UI at `http://{NEW_LEADER_MASTER_IP}:19999`. Click `Browse File System` in the
 navigation bar, and you should see all files are still there.
