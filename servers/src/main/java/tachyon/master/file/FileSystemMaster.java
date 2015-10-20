@@ -1334,10 +1334,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonPath = entry.getTachyonURI();
-    TachyonURI ufsPath = entry.getUfsURI();
-    if (!mountInternal(tachyonPath, ufsPath)) {
-      LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
+    TachyonURI tachyonURI = entry.getTachyonURI();
+    TachyonURI ufsURI = entry.getUfsURI();
+    if (!mountInternal(tachyonURI, ufsURI)) {
+      LOG.error("Failed to mount " + ufsURI + " at " + tachyonURI);
     }
   }
 
@@ -1365,9 +1365,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonPath = entry.getTachyonURI();
-    if (!unmountInternal(tachyonPath)) {
-      LOG.error("Failed to unmount " + tachyonPath);
+    TachyonURI tachyonURI = entry.getTachyonURI();
+    if (!unmountInternal(tachyonURI)) {
+      LOG.error("Failed to unmount " + tachyonURI);
     }
   }
 
