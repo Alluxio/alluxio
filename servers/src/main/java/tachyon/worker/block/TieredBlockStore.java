@@ -179,7 +179,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      BlockDoesNotExistException, IOException {
+      IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
@@ -326,8 +326,7 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
-      BlockAlreadyExistsException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     // TODO(bin): Consider whether to retry here.
     freeSpaceInternal(sessionId, availableBytes, location);
   }
