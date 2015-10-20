@@ -158,9 +158,12 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     CreateOptions createOptions =
-        (new CreateOptions.Builder(ClientContext.getConf()))
-            .setBlockSizeBytes(options.getBlockSizeBytes()).setRecursive(true)
-            .setTTL(options.getTTL()).setUnderStorageType(options.getUnderStorageType()).build();
+        new CreateOptions.Builder(ClientContext.getConf())
+            .setBlockSizeBytes(options.getBlockSizeBytes())
+            .setRecursive(true)
+            .setTTL(options.getTTL())
+            .setUnderStorageType(options.getUnderStorageType())
+            .build();
     TachyonFile tFile = create(path, createOptions);
     long fileId = tFile.getFileId();
     return new FileOutStream(fileId, options);
