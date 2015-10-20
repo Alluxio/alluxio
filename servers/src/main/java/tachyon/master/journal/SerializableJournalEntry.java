@@ -17,6 +17,8 @@ package tachyon.master.journal;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 
+import tachyon.Constants;
+
 /**
  * A {@link JournalEntry} with a sequence number.
  */
@@ -32,17 +34,17 @@ public class SerializableJournalEntry {
   /**
    * @return the sequence number for this entry
    */
-  @JsonGetter("mSequenceNumber")
+  @JsonGetter(Constants.JOURNAL_JSON_ENTRY_SEQUENCE_NUMBER_KEY)
   public long getSequenceNumber() {
     return mSequenceNumber;
   }
 
-  @JsonGetter("mType")
+  @JsonGetter(Constants.JOURNAL_JSON_ENTRY_TYPE_KEY)
   public JournalEntryType getType() {
     return mEntry.getType();
   }
 
-  @JsonGetter("mParameters")
+  @JsonGetter(Constants.JOURNAL_JSON_ENTRY_PARAMETER_KEY)
   public JournalEntry getEntry() {
     return mEntry;
   }

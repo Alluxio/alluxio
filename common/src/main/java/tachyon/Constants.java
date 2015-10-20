@@ -144,6 +144,11 @@ public final class Constants {
       "tachyon.master.journal.tailer.sleep.time.ms";
   public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       "tachyon.master.journal.log.size.bytes.max";
+
+  public static final String JOURNAL_JSON_ENTRY_PARAMETER_KEY = "mParameters";
+  public static final String JOURNAL_JSON_ENTRY_TYPE_KEY = "mType";
+  public static final String JOURNAL_JSON_ENTRY_SEQUENCE_NUMBER_KEY = "mSequenceNumber";
+
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
   public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
   public static final String MASTER_PORT = "tachyon.master.port";
