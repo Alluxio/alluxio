@@ -31,7 +31,7 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -123,7 +123,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     try {
       // TODO(jiri): Should we use MasterContext here instead?
       InStreamOptions op = new InStreamOptions.Builder(
-          new TachyonConf()).setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+          new TachyonConf()).setTachyonStorageType(NativeStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);

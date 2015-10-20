@@ -31,7 +31,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -106,13 +106,13 @@ public class TfsShellUtilsTest {
     tfs.mkdir(new TachyonURI("/testWildCards/foo"));
     tfs.mkdir(new TachyonURI("/testWildCards/bar"));
 
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", TachyonStorageType.STORE,
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", TachyonStorageType.STORE,
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, 20);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", TachyonStorageType.STORE,
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, 30);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", TachyonStorageType.STORE,
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, 40);
     return "/testWildCards";
   }

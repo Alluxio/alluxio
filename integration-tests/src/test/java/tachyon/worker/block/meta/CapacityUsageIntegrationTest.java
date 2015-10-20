@@ -25,7 +25,7 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -71,7 +71,7 @@ public class CapacityUsageIntegrationTest {
   }
 
   private TachyonFile createAndWriteFile(TachyonURI filePath,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
+      NativeStorageType nativeStorageType, UnderStorageType underStorageType, int len)
       throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
@@ -80,7 +80,7 @@ public class CapacityUsageIntegrationTest {
     }
 
     OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(tachyonStorageType)
+        new OutStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(nativeStorageType)
             .setUnderStorageType(underStorageType).build();
     FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());
@@ -92,7 +92,7 @@ public class CapacityUsageIntegrationTest {
     final String fileName1 = "/file" + i + "_1";
     final String fileName2 = "/file" + i + "_2";
     TachyonFile file1 =
-        createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
+        createAndWriteFile(new TachyonURI(fileName1), NativeStorageType.STORE,
             UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES);
     FileInfo fileInfo1 = mTFS.getInfo(file1);
     Assert.assertTrue(fileInfo1.getInMemoryPercentage() == 100);
@@ -100,7 +100,7 @@ public class CapacityUsageIntegrationTest {
     mTFS.delete(file1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
     TachyonFile file2 =
-        createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
+        createAndWriteFile(new TachyonURI(fileName2), NativeStorageType.STORE,
             UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 4);
     FileInfo fileInfo2 = mTFS.getInfo(file2);
     Assert.assertTrue(fileInfo2.getInMemoryPercentage() == 100);

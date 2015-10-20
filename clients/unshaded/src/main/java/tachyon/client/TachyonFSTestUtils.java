@@ -25,7 +25,6 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.FileInfo;
@@ -52,16 +51,16 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileName the name of the file to be created
-   * @param tachyonStorageType TachyonStorageType used to create the file
+   * @param nativeStorageType TachyonStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
+      NativeStorageType nativeStorageType, UnderStorageType underStorageType, int len)
       throws IOException {
-    return createByteFile(tfs, new TachyonURI(fileName), tachyonStorageType, underStorageType, len);
+    return createByteFile(tfs, new TachyonURI(fileName), nativeStorageType, underStorageType, len);
   }
 
   /**
@@ -69,19 +68,19 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileURI URI of the file
-   * @param tachyonStorageType TachyonStorageType used to create the file
+   * @param nativeStorageType TachyonStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
+      NativeStorageType nativeStorageType, UnderStorageType underStorageType, int len)
       throws IOException {
     try {
       OutStreamOptions options =
           new OutStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
+              .setTachyonStorageType(nativeStorageType).setUnderStorageType(underStorageType)
               .build();
       FileOutStream os = tfs.getOutStream(fileURI, options);
 
@@ -102,7 +101,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileName the name of the file to be created
-   * @param tachyonStorageType TachyonStorageType used to create the file
+   * @param nativeStorageType TachyonStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file
@@ -110,12 +109,12 @@ public final class TachyonFSTestUtils {
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len,
+      NativeStorageType nativeStorageType, UnderStorageType underStorageType, int len,
       long blockCapacityByte) throws IOException {
     try {
       OutStreamOptions options =
           new OutStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
+              .setTachyonStorageType(nativeStorageType).setUnderStorageType(underStorageType)
               .setBlockSizeBytes(blockCapacityByte).build();
       FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
 

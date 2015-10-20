@@ -24,7 +24,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.conf.TachyonConf;
 
 @RunWith(PowerMockRunner.class)
@@ -32,7 +32,7 @@ import tachyon.conf.TachyonConf;
 public class InStreamOptionsTest {
   @Test
   public void builderTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    NativeStorageType tachyonType = NativeStorageType.STORE;
 
     InStreamOptions options =
         new InStreamOptions.Builder(new TachyonConf())
@@ -44,7 +44,7 @@ public class InStreamOptionsTest {
 
   @Test
   public void defaultsTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    NativeStorageType tachyonType = NativeStorageType.STORE;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, tachyonType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);

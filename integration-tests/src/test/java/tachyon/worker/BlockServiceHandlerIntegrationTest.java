@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -166,7 +166,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
-            .setTachyonStorageType(TachyonStorageType.STORE).build();
+            .setTachyonStorageType(NativeStorageType.STORE).build();
     FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 
@@ -213,14 +213,14 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void evictionTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
-    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", TachyonStorageType.STORE,
+    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, blockSize);
 
     // File should be in memory after it is written with MUST_CACHE
     FileInfo fileInfo1 = mTfs.getInfo(file1);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
 
-    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", TachyonStorageType.STORE,
+    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, blockSize);
 
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
@@ -229,7 +229,7 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
 
-    TachyonFile file3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", TachyonStorageType.STORE,
+    TachyonFile file3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", NativeStorageType.STORE,
         UnderStorageType.NO_PERSIST, blockSize);
 
     waitForHeartbeat();

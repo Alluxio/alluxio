@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
@@ -151,7 +151,7 @@ public class PinIntegrationTest {
   private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException, TachyonException {
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setTachyonStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     FileOutStream os = mTfs.getOutStream(fileURI, options);
     os.close();

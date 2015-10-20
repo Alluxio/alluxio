@@ -64,14 +64,14 @@ public class BufferedBlockInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
+        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
+        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sWriteUnderStore =
         new OutStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setTachyonStorageType(NativeStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 

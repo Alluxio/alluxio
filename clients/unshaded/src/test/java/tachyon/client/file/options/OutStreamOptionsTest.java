@@ -26,7 +26,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
@@ -38,7 +38,7 @@ public class OutStreamOptionsTest {
     Random random = new Random();
     long blockSize = random.nextLong();
     String hostname = "localhost";
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    NativeStorageType tachyonType = NativeStorageType.STORE;
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
 
@@ -60,7 +60,7 @@ public class OutStreamOptionsTest {
 
   @Test
   public void defaultsTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    NativeStorageType tachyonType = NativeStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");

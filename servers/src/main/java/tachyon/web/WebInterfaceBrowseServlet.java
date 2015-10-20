@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -79,7 +79,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     FileInfo fileInfo = tFS.getInfo(tFile);
     if (fileInfo.isCompleted) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+          .setTachyonStorageType(NativeStorageType.NO_STORE).build();
       FileInStream is = tFS.getInStream(tFile, readNoCache);
       try {
         int len = (int) Math.min(5 * Constants.KB, fileInfo.length - offset);

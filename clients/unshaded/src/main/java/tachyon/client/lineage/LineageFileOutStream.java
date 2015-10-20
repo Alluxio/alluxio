@@ -64,7 +64,7 @@ public class LineageFileOutStream extends FileOutStream {
     }
 
     boolean canComplete = false;
-    if (mTachyonStorageType.isStore()) {
+    if (mNativeStorageType.isStore()) {
       try {
         if (mCanceled) {
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {

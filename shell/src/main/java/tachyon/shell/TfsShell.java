@@ -35,7 +35,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
@@ -117,7 +117,7 @@ public class TfsShell implements Closeable {
 
     if (!tFile.isFolder) {
       InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+          .setTachyonStorageType(NativeStorageType.NO_STORE).build();
       FileInStream is;
       try {
         is = mTfs.getInStream(fd, op);
@@ -186,7 +186,7 @@ public class TfsShell implements Closeable {
         Closer closer = Closer.create();
         try {
           InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-              .setTachyonStorageType(TachyonStorageType.STORE).build();
+              .setTachyonStorageType(NativeStorageType.STORE).build();
           FileInStream in = closer.register(mTfs.getInStream(fd, op));
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
@@ -426,7 +426,7 @@ public class TfsShell implements Closeable {
     Closer closer = Closer.create();
     try {
       InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+          .setTachyonStorageType(NativeStorageType.NO_STORE).build();
       FileInStream is = closer.register(mTfs.getInStream(srcFd, op));
       FileOutputStream out = closer.register(new FileOutputStream(dstFile));
       byte[] buf = new byte[64 * Constants.MB];
@@ -1122,7 +1122,7 @@ public class TfsShell implements Closeable {
 
     if (!fInfo.isFolder) {
       InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+          .setTachyonStorageType(NativeStorageType.NO_STORE).build();
       FileInStream is = null;
       try {
         is = mTfs.getInStream(fd, op);
