@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import tachyon.Constants;
+
 public final class JsonJournalFormatter implements JournalFormatter {
 
   /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
@@ -66,9 +68,10 @@ public final class JsonJournalFormatter implements JournalFormatter {
         } catch (JsonProcessingException e) {
           return null;
         }
-        mLatestSequenceNumber = entryNode.get("mSequenceNumber").asLong();
-        JsonNode parametersNode = entryNode.get("mParameters");
-        String entryTypeStr = entryNode.get("mType").asText();
+        mLatestSequenceNumber =
+            entryNode.get(Constants.JOURNAL_JSON_ENTRY_SEQUENCE_NUMBER_KEY).asLong();
+        JsonNode parametersNode = entryNode.get(Constants.JOURNAL_JSON_ENTRY_PARAMETER_KEY);
+        String entryTypeStr = entryNode.get(Constants.JOURNAL_JSON_ENTRY_TYPE_KEY).asText();
 
         JournalEntryType entryType;
         try {
