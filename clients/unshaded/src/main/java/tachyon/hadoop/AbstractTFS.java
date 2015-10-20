@@ -40,6 +40,8 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
@@ -466,6 +468,27 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   private WriteType getWriteType() {
+    TachyonStorageType defaultTachyonStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
+            TachyonStorageType.class);
+    UnderStorageType defaultUnderStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+            UnderStorageType.class);
+
+    if (defaultTachyonStorageType.isStore()) {
+      if (defaultUnderStorageType.isSyncPersist()) { // STORE, SYNC_PERSIST
+        return WriteType.CACHE_THROUGH;
+      }
+      if (defaultUnderStorageType.isAsyncPersist()) { // STORE, ASYNC_PERSIST
+        return WriteType.ASYNC_THROUGH;
+      }
+      // STORE, NO_PERSIST
+      return WriteType.MUST_CACHE;
+    }
+    if (defaultUnderStorageType.isSyncPersist()) { // NO_STORE, SYNC_PERSIST
+      return WriteType.THROUGH;
+    }
+    // Invalid tachyon/under storage setup, use default to write type
     return mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
 }
