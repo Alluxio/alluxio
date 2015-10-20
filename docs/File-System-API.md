@@ -63,7 +63,7 @@ FileOutStream out = tfs.getOutputStream(path, options);
 Tachyon uses two different storage types: Tachyon managed storage and under storage. Tachyon managed
 storage is the memory, SSD, and/or HDD allocated to Tachyon workers. Under storage is the storage
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
-interaction with the Tachyon's native storage and under storage through the `NativeStorageType` and
+interaction with the Tachyon's native storage and under storage through the `TachyonStorageType` and
 `UnderStorageType` respectively. Note that read operations are affected by `TachyonStorageType`
 (the data can be stored in more Tachyon workers) but not `UnderStorageType`.
 
