@@ -572,5 +572,32 @@
         <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
-  </profiles>
+
+    <!-- profile that compiles jsp files -->
+    <profile>
+      <id>compileJsp</id>
+      <build>
+        <pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>maven-jspc-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>prepare-package</phase>
+                <id>compile-jsp</id>
+                <goals>
+                  <goal>jspc</goal>
+                </goals>
+                <configuration>
+                  <sourceDirectory>src/main/webapp</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </pluginManagement>
+      </build>
+    </profile>
+  </profiles>  
 </project>
