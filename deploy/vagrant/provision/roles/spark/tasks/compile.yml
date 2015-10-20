@@ -3,6 +3,10 @@
 - name: set current tachyon version in spark/core/pom.xml
   script: set_tachyon_version.sh
 
+- name: remove dependency exclusion of tachyon-underfs-s3
+  script: remove_s3_exclusion.sh
+  when: ufs == "s3"
+
 - copy: >
     src=roles/ufs_{{ ufs }}/files/compile_spark.sh
     dest=/tmp/compile_spark.sh
