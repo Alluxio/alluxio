@@ -195,9 +195,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
       throws TachyonTException, ThriftIOException {
     try {
-      // NOTE: right now, we ask allocator to allocate new blocks in MEM tier
-      return mWorker.createBlock(sessionId, blockId, StorageLevelAlias.MEM.getValue(),
-          initialBytes);
+      return mWorker.createBlock(sessionId, blockId, initialBytes);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
