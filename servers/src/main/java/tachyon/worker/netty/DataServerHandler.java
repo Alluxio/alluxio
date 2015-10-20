@@ -32,7 +32,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
@@ -47,6 +46,7 @@ import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 import tachyon.network.protocol.databuffer.DataFileChannel;
+import tachyon.util.io.FileUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -172,8 +172,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         // This is the first write to the block, so create the temp block file. The file will only
         // be created if the first write starts at offset 0. This allocates enough space for the
         // write.
-        mDataManager.createBlockRemote(sessionId, blockId, StorageLevelAlias.MEM.getValue(),
-            length);
+        String tempBlockPath = mDataManager.createBlock(sessionId, blockId, length);
+        FileUtils.createBlockPath(tempBlockPath);
       } else {
         // Allocate enough space in the existing temporary block for the write.
         mDataManager.requestSpace(sessionId, blockId, length);
