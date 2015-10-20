@@ -79,7 +79,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     FileInfo fileInfo = tFS.getInfo(tFile);
     if (fileInfo.isCompleted) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
-          .setTachyonStorageType(NativeStorageType.NO_STORE).build();
+          .setNativeStorageType(NativeStorageType.NO_STORE).build();
       FileInStream is = tFS.getInStream(tFile, readNoCache);
       try {
         int len = (int) Math.min(5 * Constants.KB, fileInfo.length - offset);

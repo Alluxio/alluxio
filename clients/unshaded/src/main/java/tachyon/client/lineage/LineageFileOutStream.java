@@ -47,7 +47,7 @@ public class LineageFileOutStream extends FileOutStream {
     OutStreamOptions.Builder builder = new OutStreamOptions.Builder(ClientContext.getConf());
     builder.setBlockSizeBytes(options.getBlockSizeBytes());
     builder.setHostname(options.getHostname());
-    builder.setTachyonStorageType(options.getTachyonStorageType());
+    builder.setNativeStorageType(options.getNativeStorageType());
     builder.setTTL(options.getTTL());
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
     return builder.build();

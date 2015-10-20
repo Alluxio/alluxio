@@ -52,7 +52,7 @@ public class FileInStreamIntegrationTest {
   private static TachyonFileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteBoth;
-  private static OutStreamOptions sWriteTachyon;
+  private static OutStreamOptions sWriteNative;
   private static OutStreamOptions sWriteUnderStore;
 
   @Rule
@@ -70,14 +70,14 @@ public class FileInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
+        new OutStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
+    sWriteNative =
+        new OutStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sWriteUnderStore =
         new OutStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(NativeStorageType.NO_STORE)
+            .setNativeStorageType(NativeStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
@@ -323,7 +323,7 @@ public class FileInStreamIntegrationTest {
   private List<OutStreamOptions> getOptionSet() {
     List<OutStreamOptions> ret = new ArrayList<OutStreamOptions>(3);
     ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
+    ret.add(sWriteNative);
     ret.add(sWriteUnderStore);
     return ret;
   }

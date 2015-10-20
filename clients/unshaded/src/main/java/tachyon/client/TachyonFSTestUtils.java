@@ -42,7 +42,7 @@ public final class TachyonFSTestUtils {
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName, int len,
       OutStreamOptions options) throws IOException {
-    return createByteFile(tfs, fileName, options.getTachyonStorageType(),
+    return createByteFile(tfs, fileName, options.getNativeStorageType(),
         options.getUnderStorageType(), len, options.getBlockSizeBytes());
   }
 
@@ -51,7 +51,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileName the name of the file to be created
-   * @param nativeStorageType TachyonStorageType used to create the file
+   * @param nativeStorageType NativeStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @return the TachyonFile of the created file
@@ -68,7 +68,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileURI URI of the file
-   * @param nativeStorageType TachyonStorageType used to create the file
+   * @param nativeStorageType NativeStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @return the TachyonFile of the created file
@@ -80,7 +80,7 @@ public final class TachyonFSTestUtils {
     try {
       OutStreamOptions options =
           new OutStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(nativeStorageType).setUnderStorageType(underStorageType)
+              .setNativeStorageType(nativeStorageType).setUnderStorageType(underStorageType)
               .build();
       FileOutStream os = tfs.getOutStream(fileURI, options);
 
@@ -101,7 +101,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileName the name of the file to be created
-   * @param nativeStorageType TachyonStorageType used to create the file
+   * @param nativeStorageType NativeStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file
@@ -114,7 +114,7 @@ public final class TachyonFSTestUtils {
     try {
       OutStreamOptions options =
           new OutStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(nativeStorageType).setUnderStorageType(underStorageType)
+              .setNativeStorageType(nativeStorageType).setUnderStorageType(underStorageType)
               .setBlockSizeBytes(blockCapacityByte).build();
       FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
 
@@ -167,7 +167,7 @@ public final class TachyonFSTestUtils {
    */
   public static InStreamOptions toInStreamOptions(OutStreamOptions op) {
     return new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(op.getTachyonStorageType()).build();
+        .setNativeStorageType(op.getNativeStorageType()).build();
   }
 
   private TachyonFSTestUtils() {} // prevent instantiation

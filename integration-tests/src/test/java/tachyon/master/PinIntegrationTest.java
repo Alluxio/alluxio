@@ -151,7 +151,7 @@ public class PinIntegrationTest {
   private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException, TachyonException {
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(NativeStorageType.STORE)
+            .setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     FileOutStream os = mTfs.getOutStream(fileURI, options);
     os.close();

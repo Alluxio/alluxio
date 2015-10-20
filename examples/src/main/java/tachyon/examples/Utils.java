@@ -74,7 +74,7 @@ public final class Utils {
       try {
         return NativeStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse TachyonStorageType;" + e.getMessage());
+        System.err.println("Unable to parse NativeStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }

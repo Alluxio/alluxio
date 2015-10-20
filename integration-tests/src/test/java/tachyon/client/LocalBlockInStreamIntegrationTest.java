@@ -50,7 +50,7 @@ public class LocalBlockInStreamIntegrationTest {
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static TachyonFileSystem sTfs = null;
   private static OutStreamOptions sWriteBoth;
-  private static OutStreamOptions sWriteTachyon;
+  private static OutStreamOptions sWriteNative;
   private static InStreamOptions sReadNoCache;
   private static InStreamOptions sReadCache;
   private static TachyonConf sTachyonConf;
@@ -70,17 +70,17 @@ public class LocalBlockInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
+        new OutStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
+    sWriteNative =
+        new OutStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sReadCache =
-        new InStreamOptions.Builder(sTachyonConf).setTachyonStorageType(NativeStorageType.STORE)
+        new InStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .build();
     sReadNoCache =
         new InStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(NativeStorageType.NO_STORE).build();
+            .setNativeStorageType(NativeStorageType.NO_STORE).build();
   }
 
   /**
@@ -298,7 +298,7 @@ public class LocalBlockInStreamIntegrationTest {
   private List<OutStreamOptions> getOptionSet() {
     List<OutStreamOptions> ret = new ArrayList<OutStreamOptions>(3);
     ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
+    ret.add(sWriteNative);
     return ret;
   }
 }

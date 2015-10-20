@@ -123,7 +123,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     try {
       // TODO(jiri): Should we use MasterContext here instead?
       InStreamOptions op = new InStreamOptions.Builder(
-          new TachyonConf()).setTachyonStorageType(NativeStorageType.NO_STORE).build();
+          new TachyonConf()).setNativeStorageType(NativeStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);

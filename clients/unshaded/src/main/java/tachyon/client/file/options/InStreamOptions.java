@@ -40,7 +40,7 @@ public final class InStreamOptions {
      * @param nativeStorageType the Tachyon storage type to use
      * @return the builder
      */
-    public Builder setTachyonStorageType(NativeStorageType nativeStorageType) {
+    public Builder setNativeStorageType(NativeStorageType nativeStorageType) {
       mNativeStorageType = nativeStorageType;
       return this;
     }
@@ -71,7 +71,7 @@ public final class InStreamOptions {
   /**
    * @return the Tachyon storage type
    */
-  public NativeStorageType getTachyonStorageType() {
+  public NativeStorageType getNativeStorageType() {
     return mNativeStorageType;
   }
 }

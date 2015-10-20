@@ -52,7 +52,7 @@ public class BasicOperations implements Callable<Boolean> {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(nativeStorageType).setUnderStorageType(underStorageType).build();
+        .setNativeStorageType(nativeStorageType).setUnderStorageType(underStorageType).build();
   }
 
   @Override
@@ -105,7 +105,7 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.debug("Reading data...");
     TachyonFile file = new TachyonFile(fileId);
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(NativeStorageType.STORE).build();
+        .setNativeStorageType(NativeStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
     FileInStream is = tachyonFileSystem.getInStream(file, clientOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());

@@ -83,7 +83,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       NativeStorageType tachyonWriteType, UnderStorageType ufsWriteType, boolean deleteIfExists,
       int length) throws IOException, TachyonException {
     OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(tachyonWriteType).setUnderStorageType(ufsWriteType).build();
+        .setNativeStorageType(tachyonWriteType).setUnderStorageType(ufsWriteType).build();
     // If the file exists already, we will override it.
     FileOutStream fileOutStream =
         getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
@@ -122,7 +122,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private boolean read(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
       NativeStorageType readType) throws IOException, TachyonException {
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(readType).build();
+        .setNativeStorageType(readType).build();
     TachyonFile file = tachyonFileSystem.open(filePath);
     DataInputStream input = new DataInputStream(tachyonFileSystem.getInStream(file, clientOptions));
     boolean passes = true;

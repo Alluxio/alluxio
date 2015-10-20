@@ -80,7 +80,7 @@ public class CapacityUsageIntegrationTest {
     }
 
     OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(nativeStorageType)
+        new OutStreamOptions.Builder(new TachyonConf()).setNativeStorageType(nativeStorageType)
             .setUnderStorageType(underStorageType).build();
     FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());

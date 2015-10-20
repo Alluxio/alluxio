@@ -36,10 +36,10 @@ public class InStreamOptionsTest {
 
     InStreamOptions options =
         new InStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(tachyonType)
+            .setNativeStorageType(tachyonType)
             .build();
 
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertEquals(tachyonType, options.getNativeStorageType());
   }
 
   @Test
@@ -51,6 +51,6 @@ public class InStreamOptionsTest {
 
     InStreamOptions options = InStreamOptions.defaults();
 
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertEquals(tachyonType, options.getNativeStorageType());
   }
 }

@@ -91,7 +91,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
     mContext = FileSystemContext.INSTANCE;
-    mNativeStorageType = options.getTachyonStorageType();
+    mNativeStorageType = options.getNativeStorageType();
     mShouldCacheCurrentBlock = mNativeStorageType.isStore();
     mClosed = false;
   }
@@ -214,7 +214,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * Convenience method for updating mCurrentBlockInStream, mShouldCacheCurrentBlock, and
    * mCurrentCacheStream. If the block boundary has been reached, the current BlockInStream is
    * closed and a the next one is opened. mShouldCacheCurrent block is set to
-   * mTachyonStorageType.isCache(). mCurrentCacheStream is also closed and a new one is created for
+   * mNativeStorageType.isStore(). mCurrentCacheStream is also closed and a new one is created for
    * the next block.
    *
    * @throws IOException if the next BlockInStream cannot be obtained

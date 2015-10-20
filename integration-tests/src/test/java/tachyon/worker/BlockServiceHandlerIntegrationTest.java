@@ -166,7 +166,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
-            .setTachyonStorageType(NativeStorageType.STORE).build();
+            .setNativeStorageType(NativeStorageType.STORE).build();
     FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 

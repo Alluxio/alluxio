@@ -86,7 +86,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
-    mNativeStorageType = options.getTachyonStorageType();
+    mNativeStorageType = options.getNativeStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
