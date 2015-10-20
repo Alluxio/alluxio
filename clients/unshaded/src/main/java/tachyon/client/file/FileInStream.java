@@ -132,8 +132,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
-    Preconditions.checkArgument(
-        off >= 0 && len >= 0 && len + off <= b.length, PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (mPos >= mFileLength) {
@@ -182,7 +182,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions.checkArgument(pos < mFileLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, pos);
+    Preconditions.checkArgument(pos < mFileLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
+        pos);
 
     seekBlockInStream(pos);
     checkAndAdvanceBlockInStream();
@@ -261,7 +262,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
-    Preconditions.checkState(index < mFileInfo.blockIds.size(), PreconditionMessage.ERR_BLOCK_INDEX);
+    Preconditions.checkState(index < mFileInfo.blockIds.size(),
+        PreconditionMessage.ERR_BLOCK_INDEX);
     return mFileInfo.blockIds.get(index);
   }
 
