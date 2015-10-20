@@ -17,6 +17,7 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,15 +27,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
+import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
-import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
@@ -392,6 +395,42 @@ public class JournalIntegrationTest {
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
     fsMaster.stop();
+  }
+
+  @Test
+  public void persistFolderLaterTest() throws Exception {
+    String[] folders = new String[] {
+        "/d11", "/d11/d21", "/d11/d22",
+        "/d12", "/d12/d21", "/d12/d22",
+    };
+
+    MkdirOptions.Builder builder = new MkdirOptions.Builder(ClientContext.getConf())
+        .setRecursive(true).setUnderStorageType(UnderStorageType.NO_PERSIST);
+    for (String folder : folders) {
+      mTfs.mkdir(new TachyonURI(folder), builder.build());
+    }
+
+    builder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
+    for (String folder : folders) {
+      mTfs.mkdir(new TachyonURI(folder), builder.build());
+    }
+
+    Map<String, FileInfo> dInfos = Maps.newHashMap();
+    for (String folder : folders) {
+      dInfos.put(folder, mTfs.getInfo(mTfs.open(new TachyonURI(folder))));
+    }
+    mLocalTachyonCluster.stopTFS();
+    persistFolderLaterTestUtil(dInfos);
+    deleteFsMasterJournalLogs();
+    persistFolderLaterTestUtil(dInfos);
+  }
+
+  private void persistFolderLaterTestUtil(Map<String, FileInfo> dInfos) throws Exception {
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+    for (Map.Entry<String, FileInfo> dInfo : dInfos.entrySet()) {
+      Assert.assertEquals(dInfo.getValue(), fsMaster.getFileInfo(fsMaster.getFileId(
+          new TachyonURI(dInfo.getKey()))));
+    }
   }
 
   /**
