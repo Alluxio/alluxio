@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.file.options;
+package tachyon.master.file.options;
 
 import java.util.Random;
 
@@ -25,55 +25,48 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ClientContext.class)
-public class OutStreamOptionsTest {
+@PrepareForTest(MasterContext.class)
+public class CreateOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
     long blockSize = random.nextLong();
-    String hostname = "localhost";
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
+    long operationTimeMs = random.nextLong();
+    boolean persisted = random.nextBoolean();
+    boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
-    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
 
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf())
+    CreateOptions options =
+        new CreateOptions.Builder(new TachyonConf())
             .setBlockSizeBytes(blockSize)
-            .setHostname(hostname)
-            .setTachyonStorageType(tachyonType)
+            .setOperationTimeMs(operationTimeMs)
+            .setPersisted(persisted)
+            .setRecursive(recursive)
             .setTTL(ttl)
-            .setUnderStorageType(ufsType)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(hostname, options.getHostname());
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+    Assert.assertEquals(persisted, options.isPersisted());
+    Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTTL());
-    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
   @Test
   public void defaultsTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
-    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    conf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, tachyonType.toString());
-    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
-    Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+    Whitebox.setInternalState(MasterContext.class, "sTachyonConf", conf);
 
-    OutStreamOptions options = OutStreamOptions.defaults();
+    CreateOptions options = CreateOptions.defaults();
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertEquals(null, options.getHostname());
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    Assert.assertFalse(options.isPersisted());
+    Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
-    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 }

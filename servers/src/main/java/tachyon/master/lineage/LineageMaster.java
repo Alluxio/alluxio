@@ -48,6 +48,7 @@ import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -208,7 +209,8 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if fails to create the output file
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      IOException {
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
@@ -223,9 +225,12 @@ public final class LineageMaster extends MasterBase {
     List<LineageFile> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
-      // TODO: delete the placeholder files if the creation fails.
-      // create the file initialized with block size 1 as placeholder
-      fileId = mFileSystemMaster.create(outputFile, 1, true);
+      // TODO(yupeng): delete the placeholder files if the creation fails.
+      // Create the file initialized with block size 1KB as placeholder.
+      CreateOptions options =
+          new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true)
+              .setBlockSizeBytes(Constants.KB).build();
+      fileId = mFileSystemMaster.create(outputFile, options);
       outputTachyonFiles.add(new LineageFile(fileId));
     }
 
@@ -295,7 +300,7 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException the file path is invalid
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, LineageDoesNotExistException {
+      throws InvalidPathException, LineageDoesNotExistException, IOException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
     if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.file.options;
+package tachyon.master.file.options;
 
 import java.util.Random;
 
@@ -22,24 +22,31 @@ import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
 
-public class SetStateOptionsTest {
+public class MkdirOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
+    long operationTimeMs = random.nextLong();
+    boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
 
-    SetStateOptions options =
-        new SetStateOptions.Builder(new TachyonConf())
-            .setPinned(recursive)
+    MkdirOptions options =
+        new MkdirOptions.Builder(new TachyonConf())
+            .setOperationTimeMs(operationTimeMs)
+            .setPersisted(persisted)
+            .setRecursive(recursive)
             .build();
 
-    Assert.assertEquals(recursive, options.getPinned());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+    Assert.assertEquals(persisted, options.isPersisted());
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 
   @Test
   public void defaultsTest() {
-    SetStateOptions options = SetStateOptions.defaults();
+    CreateOptions options = CreateOptions.defaults();
 
-    Assert.assertNull(options.getPinned());
+    Assert.assertFalse(options.isPersisted());
+    Assert.assertFalse(options.isRecursive());
   }
 }

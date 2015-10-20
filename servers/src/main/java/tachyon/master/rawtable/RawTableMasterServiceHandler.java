@@ -15,6 +15,7 @@
 
 package tachyon.master.rawtable;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.TachyonURI;
@@ -22,6 +23,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
@@ -33,20 +35,24 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   // TODO(jiri) Reduce exception handling boilerplate here
   @Override
   public long createRawTable(String path, int columns, ByteBuffer metadata)
-      throws TachyonTException {
+      throws TachyonTException, ThriftIOException {
     try {
       return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 
   @Override
-  public long getRawTableId(String path) throws TachyonTException {
+  public long getRawTableId(String path) throws TachyonTException, ThriftIOException {
     try {
       return mRawTableMaster.getRawTableId(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 
@@ -60,11 +66,14 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public RawTableInfo getClientRawTableInfoByPath(String path) throws TachyonTException {
+  public RawTableInfo getClientRawTableInfoByPath(String path) throws TachyonTException,
+      ThriftIOException {
     try {
       return mRawTableMaster.getClientRawTableInfo(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 

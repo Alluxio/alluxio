@@ -86,7 +86,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
-    mBlockSize = options.getBlockSize();
+    mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
@@ -96,10 +96,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUfsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
-      String parentPath = (new TachyonURI(mUfsPath)).getParent().getPath();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException("Failed to create " + parentPath);
-      }
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
     } else {
