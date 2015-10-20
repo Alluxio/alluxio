@@ -556,14 +556,15 @@ The user configuration specifies values regarding file system access.
   <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
 <tr>
-  <td>tachyon.user.file.tachyonstoragetype.default</td>
+  <td>tachyon.user.file.nativestoragetype.default</td>
   <td>STORE</td>
   <td>The default interaction with Tachyon. Possible values are PROMOTE, STORE, and NO_STORE.
-  Store will attempt to write data to Tachyon if the local worker does not have the data. This
-  applies to writing new data as well as reading data which is not already on the local worker.
-  Promote behaves the same as store, except if the data is on the local worker, promote will
-  migrate the data to the highest tier. No store will never attempt to write data into Tachyon
-  storage. This is useful to prevent one-time data access from interfering with Tachyon.</td>
+  Store will attempt to write data to Tachyon's natively managed storage if the local worker does
+  not have the data. This applies to writing new data as well as reading data which is not already
+  on the local worker. Promote behaves the same as store, except if the data is on the local worker,
+  promote will migrate the data to the highest tier. No store will never attempt to write data into
+  Tachyon's managed storage. This is useful to prevent one-time data access from interfering with
+  Tachyon.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.understoragetype.default</td>
