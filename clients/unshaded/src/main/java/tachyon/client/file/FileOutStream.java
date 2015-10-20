@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
@@ -36,6 +35,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -274,7 +274,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected void handleCacheWriteException(IOException ioe) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
       // TODO(yupeng): Handle this exception better.
-      throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
     }
 
     LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);

@@ -17,17 +17,15 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
@@ -142,7 +140,7 @@ public enum BlockStoreContext {
       client = acquireLocalWorkerClient();
       if (client == null) {
         // TODO(calvin): Recover from initial worker failure.
-        throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+        throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
       }
     } else {
       client = acquireRemoteWorkerClient(hostname);
@@ -183,7 +181,7 @@ public enum BlockStoreContext {
     // If we couldn't find a worker, crash.
     if (workerAddress == null) {
       // TODO(calvin): Better exception usage.
-      throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
     }
     long clientId = ClientContext.getRandomNonNegativeLong();
     return new WorkerClient(workerAddress, ClientContext.getExecutorService(),
