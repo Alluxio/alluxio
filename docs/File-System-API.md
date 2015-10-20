@@ -67,14 +67,17 @@ interaction with the Tachyon's native storage and under storage through the `Nat
 `UnderStorageType` respectively. Note that read operations are affected by `TachyonStorageType`
 (the data can be stored in more Tachyon workers) but not `UnderStorageType`.
 
-Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` combinations.
+Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` combinations as well
+as the deprecated `WriteType, ReadType` equivalents.
 
 <table class="table">
-<tr><th>TachyonStorageType</th><th>UnderStorageType</th><th>Read Behavior</th><th>Write Behavior</th>
+<tr><th>TachyonStorageType</th><th>UnderStorageType</th><th>Previously</th>
+<th>Read Behavior</th><th>Write Behavior</th>
 </tr>
 <tr>
   <td>PROMOTE</td>
   <td>NO_PERSIST</td>
+  <td>MUST_CACHE, CACHE_PROMOTE</td>
   <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
   on the local worker, a replica will be added to the local Tachyon worker for each completely read
   data block.</td>
@@ -83,6 +86,7 @@ Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` co
 <tr>
   <td>PROMOTE</td>
   <td>SYNC_PERSIST</td>
+  <td>CACHE_THROUGH, CACHE_PROMOTE</td>
   <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
   in the Tachyon storage of the local worker, a replica will be added to the local Tachyon worker
   for each completely read data block.</td>
@@ -91,6 +95,7 @@ Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` co
 <tr>
   <td>STORE</td>
   <td>NO_PERSIST</td>
+  <td>MUST_CACHE, CACHE</td>
   <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker.</td>
@@ -98,6 +103,7 @@ Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` co
 <tr>
   <td>STORE</td>
   <td>SYNC_PERSIST</td>
+  <td>CACHE_THROUGH, CACHE</td>
   <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
@@ -105,6 +111,7 @@ Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` co
 <tr>
   <td>NO_STORE</td>
   <td>SYNC_PERSIST</td>
+  <td>THROUGH, NO_CACHE</td>
   <td>Data is read preferrably from Tachyon storage, then under storage. No replicas will be
   created.</td>
   <td>Data is written synchronously to the under storage system.</td>
