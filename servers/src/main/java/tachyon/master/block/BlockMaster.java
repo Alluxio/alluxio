@@ -613,7 +613,7 @@ public final class BlockMaster extends MasterBase
    * @return the lost blocks in Tachyon Storage
    */
   public Set<Long> getLostBlocks() {
-    synchronized (mLostBlocks) {
+    synchronized (mBlocks) {
       return ImmutableSet.copyOf(mLostBlocks);
     }
   }
