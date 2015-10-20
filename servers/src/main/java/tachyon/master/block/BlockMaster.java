@@ -576,11 +576,10 @@ public final class BlockMaster extends MasterBase
    * Called by the heartbeat thread whenever a worker is lost.
    * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
    */
+  // Synchronized on mBlocks by the caller
   private void processLostWorker(MasterWorkerInfo latest) {
-    synchronized (mBlocks) {
-      final Set<Long> lostBlocks = latest.getBlocks();
-      processWorkerRemovedBlocks(latest, lostBlocks);
-    }
+    final Set<Long> lostBlocks = latest.getBlocks();
+    processWorkerRemovedBlocks(latest, lostBlocks);
   }
 
   /**
@@ -663,15 +662,17 @@ public final class BlockMaster extends MasterBase
       TachyonConf conf = MasterContext.getConf();
 
       int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-      synchronized (mWorkers) {
-        Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
-        while (iter.hasNext()) {
-          MasterWorkerInfo worker = iter.next();
-          if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
-            LOG.error("The worker {} got timed out!", worker);
-            mLostWorkers.add(worker);
-            iter.remove();
-            processLostWorker(worker);
+      synchronized (mBlocks) {
+        synchronized (mWorkers) {
+          Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
+          while (iter.hasNext()) {
+            MasterWorkerInfo worker = iter.next();
+            if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
+              LOG.error("The worker {} got timed out!", worker);
+              mLostWorkers.add(worker);
+              iter.remove();
+              processLostWorker(worker);
+            }
           }
         }
       }
