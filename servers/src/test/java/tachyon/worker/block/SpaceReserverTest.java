@@ -16,8 +16,6 @@
 package tachyon.worker.block;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -35,7 +33,6 @@ import tachyon.StorageLevelAlias;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.test.Tester;
-import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 

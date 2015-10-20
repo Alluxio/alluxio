@@ -41,7 +41,9 @@ public class InodeDirectoryEntry extends InodeEntry {
   }
 
   public InodeDirectory toInodeDirectory() {
-    InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs);
+    InodeDirectory inode =
+        new InodeDirectory.Builder().setName(mName).setId(mId).setParentId(mParentId)
+            .setCreationTimeMs(mCreationTimeMs).setPersisted(mPersisted).build();
     inode.setPersisted(mPersisted);
     inode.setPinned(mPinned);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
