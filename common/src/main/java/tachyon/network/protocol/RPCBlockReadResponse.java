@@ -54,7 +54,7 @@ public final class RPCBlockReadResponse extends RPCResponse {
    *
    * @param request The {@link RPCBlockReadRequest} to generated
    * the {@link RPCBlockReadResponse} for.
-   * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
+   * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response
    * @return The generated {@link RPCBlockReadResponse} object
    */
   public static RPCBlockReadResponse createErrorResponse(final RPCBlockReadRequest request,

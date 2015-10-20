@@ -32,9 +32,9 @@ public class RawTableEntry implements JournalEntry {
   public final ByteBuffer mMetadata;
 
   /**
-   * @param id table id.
-   * @param columns the columns to be set for the table.
-   * @param metadata the metadata to be set for the table.
+   * @param id table id
+   * @param columns the columns to be set for the table
+   * @param metadata the metadata to be set for the table
    */
   public RawTableEntry(long id, int columns, ByteBuffer metadata) {
     mId = id;

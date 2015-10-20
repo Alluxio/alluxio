@@ -96,8 +96,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private InodeDirectory mCachedInode;
 
   /**
-   * @param containerIdGenerator the container id generator to use to get new container ids.
-   * @param directoryIdGenerator the directory id generator to use to get new directory ids.
+   * @param containerIdGenerator the container id generator to use to get new container ids
+   * @param directoryIdGenerator the directory id generator to use to get new directory ids
    */
   public InodeTree(ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable) {
@@ -342,7 +342,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Returns a list of all descendants of a particular {@link InodeDirectory}. Any directory inode
    * precedes its descendants in the list.
    *
-   * @param inodeDirectory The root {@link InodeDirectory} to retrieve all descendants from.
+   * @param inodeDirectory The root {@link InodeDirectory} to retrieve all descendants from
    * @return A list of all descendants
    */
   public List<Inode> getInodeChildrenRecursive(InodeDirectory inodeDirectory) {
@@ -385,8 +385,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
    *
-   * @param inode The {@link Inode} to set the pinned state for.
-   * @param pinned The pinned state to set for the inode (and possible descendants).
+   * @param inode The {@link Inode} to set the pinned state for
+   * @param pinned The pinned state to set for the inode (and possible descendants)
    * @param opTimeMs The operation time
    */
   public void setPinned(Inode inode, boolean pinned, long opTimeMs) {
@@ -411,8 +411,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
    *
-   * @param inode The {@link Inode} to set the pinned state for.
-   * @param pinned The pinned state to set for the inode (and possible descendants).
+   * @param inode The {@link Inode} to set the pinned state for
+   * @param pinned The pinned state to set for the inode (and possible descendants)
    */
   public void setPinned(Inode inode, boolean pinned) {
     setPinned(inode, pinned, System.currentTimeMillis());
@@ -452,7 +452,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Adds the inode represented by the entry parameter into the inode tree. If the inode entry
    * represents the root inode, the tree is "reset", and all state is cleared.
    *
-   * @param entry The journal entry representing an inode.
+   * @param entry The journal entry representing an inode
    */
   public void addInodeFromJournal(InodeEntry entry) {
     if (entry instanceof InodeFileEntry) {
@@ -480,7 +480,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Adds a given inode into the inode tree, by adding the inode to its parent. Also updates the
    * appropriate inode indexes.
    *
-   * @param inode the inode to add to the inode tree.
+   * @param inode the inode to add to the inode tree
    */
   private void addInodeFromJournalInternal(Inode inode) {
     InodeDirectory parentDirectory = mCachedInode;

@@ -32,7 +32,6 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -372,7 +371,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex The block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -386,7 +385,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex The block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */

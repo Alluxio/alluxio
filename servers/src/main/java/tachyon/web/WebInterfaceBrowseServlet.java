@@ -66,7 +66,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    *
    * @param path The path of the file to display
    * @param request The HttpServletRequest object
-   * @param offset Where the file starts to display.
+   * @param offset Where the file starts to display
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
@@ -267,7 +267,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   /**
    * This function sets the fileinfos for folders that are in the path to the current directory.
    *
-   * @param path The path of the current directory.
+   * @param path The path of the current directory
    * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException

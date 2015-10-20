@@ -24,7 +24,7 @@ public interface JournalCheckpointStreamable {
   /**
    * Writes to the journal, in a streaming fashion, via the {@link JournalOutputStream}
    *
-   * @param outputStream the output stream to write to for the journal checkpoint.
+   * @param outputStream the output stream to write to for the journal checkpoint
    * @throws IOException
    */
   void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException;

@@ -134,7 +134,7 @@ public final class NettyDataServer implements DataServer {
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
    * preset.
    *
-   * @param type The channel type. Current channel types supported are nio and epoll.
+   * @param type The channel type. Current channel types supported are nio and epoll
    * @return an instance of ServerBootstrap
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {

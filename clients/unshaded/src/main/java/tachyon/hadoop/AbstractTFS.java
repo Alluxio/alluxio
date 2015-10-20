@@ -152,9 +152,9 @@ abstract class AbstractTFS extends FileSystem {
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
    *        overwritten, and if false an error will be thrown.
-   * @param bufferSize the size of the buffer to be used.
-   * @param replication required block replication for the file.
-   * @param blockSize the size in bytes of the buffer to be used.
+   * @param bufferSize the size of the buffer to be used
+   * @param replication required block replication for the file
+   * @param blockSize the size in bytes of the buffer to be used
    * @param progress queryable progress
    * @throws IOException if 1) overwrite is not specified and the path already exists, 2) if the
    *         path is a folder, or 3) the parent directory does not exist

@@ -333,8 +333,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Copies an object to another key.
-   * @param src the source key to copy.
-   * @param dst the destination key to copy to.
+   * @param src the source key to copy
+   * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String src, String dst) {

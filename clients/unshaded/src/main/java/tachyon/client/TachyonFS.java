@@ -98,7 +98,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param tachyonURI a Tachyon URI to indicate master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
-   * @param tachyonConf The TachyonConf instance.
+   * @param tachyonConf The TachyonConf instance
    * @return the corresponding TachyonFS handler
    */
   public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf) {
@@ -141,7 +141,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Creates a <code>TachyonFS</code> handler for the given Tachyon configuration.
    *
-   * @param tachyonConf The TachyonConf instance.
+   * @param tachyonConf The TachyonConf instance
    * @return the corresponding TachyonFS handler
    */
   public static synchronized TachyonFS get(TachyonConf tachyonConf) {
@@ -300,8 +300,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
    *        not exist in the under file system yet.
-   * @param blockSizeBytes The size of the block in bytes. It is -1 iff ufsPath is non-empty.
-   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @param blockSizeBytes The size of the block in bytes. It is -1 iff ufsPath is non-empty
+   * @param recursive Creates necessary parent folders if true, not otherwise
    * @return The file id, which is globally unique
    * @throws IOException if the underlying master RPC fails
    */
@@ -372,7 +372,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fileId The id of the file / folder. If it is not INVALID_FILE_ID, path parameter is
    *        ignored. Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID.
+   * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
    *        or not.
    * @return true if deletes successfully, false otherwise
@@ -412,7 +412,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * exist.
    *
    * @param fileId the file id
-   * @param blockIndex The index of the block in the file.
+   * @param blockIndex The index of the block in the file
    * @return the block id if exists
    * @throws IOException if the file does not exist, or connection issue was encountered
    */
@@ -485,7 +485,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * such as the pinned flag. This is also different from the behavior of getFile(path), which by
    * default will not use cached metadata.
    *
-   * @param fid file id.
+   * @param fid file id
    * @return <code>TachyonFile</code> of the file id, or null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
@@ -513,7 +513,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Gets <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
    *
-   * @param path file path.
+   * @param path file path
    * @return TachyonFile of the path, or null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
@@ -526,7 +526,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Gets <code>TachyonFile</code> based on the path. If useCachedMetadata is true, this will not
    * see changes to the file's pin setting, or other dynamic properties.
    *
-   * @param path file path.
+   * @param path file path
    * @param useCachedMetadata whether to use the file metadata cache
    * @return TachyonFile of the path, or null if the file does not exist
    * @throws IOException if the underlying master RPC fails
@@ -596,12 +596,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Gets a file status.
    *
-   * @param cache FileInfo cache.
-   * @param key the key in the cache.
-   * @param fileId the id of the queried file. If it is INVALID_FILE_ID, uses path.
+   * @param cache FileInfo cache
+   * @param key the key in the cache
+   * @param fileId the id of the queried file. If it is INVALID_FILE_ID, uses path
    * @param path the path of the queried file. If fielId is not INVALID_FILE_ID, this parameter is
    *        ignored.
-   * @param useCachedMetaData whether to use the cached data or not.
+   * @param useCachedMetaData whether to use the cached data or not
    * @return the clientFileInfo
    * @throws IOException if the underlying master RPC fails
    */
@@ -635,8 +635,8 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * Gets the FileInfo object that represents the fileId, or the path if fileId is INVALID_FILE_ID.
    *
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is INVALID_FILE_ID.
+   * @param fileId the file id of the file or folder
+   * @param path the path of the file or folder. valid iff fileId is INVALID_FILE_ID
    * @param useCachedMetadata if true use the local cached meta data
    * @return the FileInfo of the file. null if the file does not exist
    * @throws IOException if the underlying master RPC fails
@@ -656,7 +656,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Gets <code>ClientFileInfo</code> object based on fileId.
    *
-   * @param fileId the file id of the file or folder.
+   * @param fileId the file id of the file or folder
    * @param useCachedMetadata if true use the local cached meta data
    * @return the FileInfo of the file. null if the file does not exist
    * @throws IOException if the underlying master RPC fails
@@ -818,7 +818,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Locks a block in the current TachyonFS.
    *
-   * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
+   * @param blockId The id of the block to lock. <code>blockId</code> must be positive
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
    * @return the path of the block file locked
@@ -853,7 +853,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Creates a folder.
    *
    * @param path the path of the folder to be created
-   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @param recursive Creates necessary parent folders if true, not otherwise
    * @return true if the folder is created successfully or already existing. false otherwise
    * @throws IOException if the underlying master RPC fails
    */
@@ -888,7 +888,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fileId The id of the file / folder. If it is not INVALID_FILE_ID, path parameter is
    *        ignored. Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID.
+   * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID
    * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
    *        or not
    * @return true if in-memory free successfully, false otherwise
@@ -1026,7 +1026,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Unlocks a block in the current TachyonFS.
    *
-   * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
+   * @param blockId The id of the block to unlock. <code>blockId</code> must be positive
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
    * @throws IOException if the underlying worker RPC fails
