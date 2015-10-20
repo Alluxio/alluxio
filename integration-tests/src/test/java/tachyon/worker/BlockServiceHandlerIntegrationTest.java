@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.thrift.TException;
 import org.junit.After;
@@ -47,7 +45,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
@@ -59,9 +56,6 @@ public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-
-  private final ExecutorService mExecutorService =
-      Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private BlockServiceHandler mWorkerServiceHandler = null;
@@ -90,7 +84,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
+            mLocalTachyonCluster.getMasterPort()), mWorkerTachyonConf);
   }
 
   // Tests that persisting a file successfully informs master of the update
@@ -171,7 +165,7 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
     OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
             .setTachyonStorageType(TachyonStorageType.STORE).build();
     FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));

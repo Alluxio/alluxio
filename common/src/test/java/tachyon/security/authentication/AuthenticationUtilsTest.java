@@ -28,29 +28,41 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit test for methods of {@link AuthenticationUtils}
  *
- * In order to test methods that return kinds of TTransport for connection in different mode,
- * we build Thrift servers and clients with specific TTransport, and let them connect.
+ * In order to test methods that return kinds of TTransport for connection in different mode, we
+ * build Thrift servers and clients with specific TTransport, and let them connect.
  */
 public class AuthenticationUtilsTest {
 
-  TThreadPoolServer mServer;
-  TachyonConf mTachyonConf = new TachyonConf();
-  InetSocketAddress mServerAddress = new InetSocketAddress("localhost",
-      Constants.DEFAULT_MASTER_PORT);
-  TSocket mServerTSocket = AuthenticationUtils.createTSocket(mServerAddress);
+  private TThreadPoolServer mServer;
+  private TachyonConf mTachyonConf;
+  private InetSocketAddress mServerAddress;
+  private TServerSocket mServerTSocket;
+  private TSocket mClientTSocket;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  @Before
+  public void before() throws Exception {
+    mTachyonConf = new TachyonConf();
+    // Use port 0 to assign each test case an available port (possibly different)
+    mServerTSocket = new TServerSocket(new InetSocketAddress("localhost", 0));
+    int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
+    mServerAddress = new InetSocketAddress("localhost", port);
+    mClientTSocket = AuthenticationUtils.createTSocket(mServerAddress);
+  }
 
   /**
    * In NOSASL mode, the TTransport used should be the same as Tachyon original code.
@@ -60,7 +72,7 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // create client and connect to server
     TTransport client = AuthenticationUtils.getClientTransport(mTachyonConf, mServerAddress);
@@ -81,11 +93,11 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // when connecting, authentication happens. It is a no-op in Simple mode.
     TTransport client =
-        PlainSaslUtils.getPlainClientTransport("anyone", "whatever", mServerTSocket);
+        PlainSaslUtils.getPlainClientTransport("anyone", "whatever", mClientTSocket);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -104,7 +116,7 @@ public class AuthenticationUtilsTest {
     // check case that user is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client = PlainSaslUtils.getPlainClientTransport(null, "whatever", mServerTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport(null, "whatever", mClientTSocket);
   }
 
   /**
@@ -117,7 +129,7 @@ public class AuthenticationUtilsTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("anyone", null, mServerTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport("anyone", null, mClientTSocket);
   }
 
   /**
@@ -128,13 +140,13 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that user is empty
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("", "whatever", mServerTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport("", "whatever", mClientTSocket);
     try {
       client.open();
     } finally {
@@ -152,13 +164,13 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that password is empty
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
         + "provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("anyone", "", mServerTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport("anyone", "", mClientTSocket);
     try {
       client.open();
     } finally {
@@ -168,8 +180,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
-   * client user, it use configured AuthenticationProvider.
-   * If the username:password pair matches, a connection should be built.
+   * client user, it use configured AuthenticationProvider. If the username:password pair matches, a
+   * connection should be built.
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
@@ -178,11 +190,11 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client =
-        PlainSaslUtils.getPlainClientTransport("tachyon", "correct-password", mServerTSocket);
+        PlainSaslUtils.getPlainClientTransport("tachyon", "correct-password", mClientTSocket);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -202,11 +214,11 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient =
-        PlainSaslUtils.getPlainClientTransport("tachyon", "wrong-password", mServerTSocket);
+        PlainSaslUtils.getPlainClientTransport("tachyon", "wrong-password", mClientTSocket);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: "
         + "User authentication fails");
@@ -228,7 +240,7 @@ public class AuthenticationUtilsTest {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     TTransport client =
-        PlainSaslUtils.getPlainClientTransport(null, "correct-password", mServerTSocket);
+        PlainSaslUtils.getPlainClientTransport(null, "correct-password", mClientTSocket);
   }
 
   /**
@@ -241,7 +253,7 @@ public class AuthenticationUtilsTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("tachyon", null, mServerTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport("tachyon", null, mClientTSocket);
   }
 
   /**
@@ -254,14 +266,14 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that user is empty
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No authentication"
         + " identity provided");
     TTransport client =
-        PlainSaslUtils.getPlainClientTransport("", "correct-password", mServerTSocket);
+        PlainSaslUtils.getPlainClientTransport("", "correct-password", mClientTSocket);
     try {
       client.open();
     } finally {
@@ -279,13 +291,13 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that password is empty
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage("Peer indicated failure: Plain authentication failed: No password "
         + "provided");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("tachyon", "", mServerTSocket);
+    TTransport client = PlainSaslUtils.getPlainClientTransport("tachyon", "", mClientTSocket);
     try {
       client.open();
     } finally {
@@ -303,19 +315,18 @@ public class AuthenticationUtilsTest {
     // throw unsupported exception currently
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Kerberos is not supported currently.");
-    startServerThread(mTachyonConf);
+    startServerThread();
   }
 
-  private void startServerThread(TachyonConf conf) throws Exception {
+  private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
-    TTransportFactory tTransportFactory = AuthenticationUtils.getServerTransportFactory(conf);
+    TTransportFactory tTransportFactory =
+        AuthenticationUtils.getServerTransportFactory(mTachyonConf);
 
-    TServerSocket wrappedServerSocket = new TServerSocket(mServerAddress);
-
-    mServer = new TThreadPoolServer(new TThreadPoolServer.Args(wrappedServerSocket)
-        .maxWorkerThreads(2).minWorkerThreads(1)
-        .processor(null).transportFactory(tTransportFactory)
-        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    mServer =
+        new TThreadPoolServer(new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2)
+            .minWorkerThreads(1).processor(null).transportFactory(tTransportFactory)
+            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start the server in a new thread
     Thread serverThread = new Thread(new Runnable() {

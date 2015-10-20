@@ -194,7 +194,7 @@ public final class TachyonConf {
   }
 
   /**
-   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance.
+   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance
    */
   public Properties getInternalProperties() {
     return SerializationUtils.clone(mProperties);
@@ -374,7 +374,7 @@ public final class TachyonConf {
    *
    * @param base the String to look for.
    * @param found {@link Map} of String that already seen in this path.
-   * @return resolved String value.
+   * @return resolved String value
    */
   private String lookupRecursively(final String base, Map<String, String> found) {
     // check argument

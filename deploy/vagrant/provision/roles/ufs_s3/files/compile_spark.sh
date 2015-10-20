@@ -1,2 +1,2 @@
 cd /spark
-./make-distribution.sh >/spark/make-distribution.log 2>&1
+build/mvn clean install -Dmaven.javadoc.skip=true -DskipTests -Phive -Phive-thriftserver > compile.log 2>&1

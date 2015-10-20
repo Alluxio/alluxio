@@ -25,10 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
-import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
@@ -47,7 +46,7 @@ public final class UfsUtils {
    * @param tfsRootPath the destination point in mTachyonFS to load the under FS path onto
    * @param ufsRootPath the source path in the under FS to be loaded
    * @param path the path in the under FS be loaded, path.startsWith(ufsRootPath) must be true
-   * @return the new path relative to tfsRootPath.
+   * @return the new path relative to tfsRootPath
    */
   private static TachyonURI buildTFSPath(
       TachyonURI tfsRootPath, TachyonURI ufsRootPath, TachyonURI path) {

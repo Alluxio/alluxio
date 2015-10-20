@@ -29,9 +29,9 @@ public class HdfsUnderFileSystemUtils {
    * @param key the key to replace
    */
   public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
-    if (System.getProperty(key) != null && conf.get(key) == null) {
+    if (System.getProperty(key) != null) {
       conf.set(key, System.getProperty(key));
-    } else if (tachyonConf.containsKey(key)) {
+    } else if (tachyonConf.get(key) != null) {
       conf.set(key, tachyonConf.get(key));
     }
   }

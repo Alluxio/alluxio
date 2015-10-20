@@ -93,9 +93,6 @@ public class TachyonConfTest {
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.IN_TEST_MODE);
     Assert.assertFalse(booleanValue);
 
-    booleanValue = sDefaultTachyonConf.getBoolean(Constants.ASYNC_ENABLED);
-    Assert.assertFalse(booleanValue);
-
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS);
     Assert.assertEquals(1000, intValue);
 
