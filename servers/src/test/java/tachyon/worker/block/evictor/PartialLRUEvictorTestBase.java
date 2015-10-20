@@ -35,7 +35,7 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
   @Test
   public void evictInBottomTierTest() throws Exception {
     int bottomTierLevel =
-        TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
+        TieredBlockStoreTestUtils.TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
     // capacity increases with index
     long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierLevel];
     long smallestCapacity = bottomTierDirCapacity[0];
@@ -46,7 +46,8 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
       cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i] - i * delta, bottomTierLevel, i);
     }
 
-    BlockStoreLocation anyDirInBottomTier = BlockStoreLocation.anyDirInTier(bottomTierLevel + 1);
+    BlockStoreLocation anyDirInBottomTier =
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[bottomTierLevel]);
     // free the StorageDir with max free space
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(smallestCapacity, anyDirInBottomTier, mManagerView);
@@ -62,15 +63,16 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
-    int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
+    int firstTierOrdinal = TieredBlockStoreTestUtils.TIER_ORDINAL[0];
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     long smallestCapacity = firstTierDirCapacity[0];
     long delta = smallestCapacity / 10;
     int nDir = firstTierDirCapacity.length;
     for (int i = 0; i < nDir; i ++) {
-      cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i] - delta * i, firstTierLevel, i);
+      cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i] - delta * i, firstTierOrdinal, i);
     }
-    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(firstTierLevel + 1);
+    BlockStoreLocation anyDirInFirstTier =
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[firstTierOrdinal]);
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
     Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
@@ -87,14 +89,14 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     // first tier, blocks should be moved from the first to the second tier, and some blocks in the
     // second tier should be evicted to hold blocks moved from the first tier.
     BlockStoreLocation anyDirInFirstTier =
-        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[0]);
     int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length;
     int nDirInSecondTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[1].length;
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     long delta = smallestCapacity / 10;
     long blockId = BLOCK_ID;
 
-    for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
+    for (int tierLevel : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierLevel];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
         cache(SESSION_ID, blockId, tierCapacity[dirIdx] - dirIdx * delta, tierLevel, dirIdx);

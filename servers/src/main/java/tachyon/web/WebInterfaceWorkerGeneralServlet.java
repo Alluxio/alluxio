@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -120,11 +121,13 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     long capacityBytes = 0L;
     long usedBytes = 0L;
-    List<Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
-    List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    for (int i = 0; i < capacityBytesOnTiers.size(); i ++) {
-      capacityBytes += capacityBytesOnTiers.get(i);
-      usedBytes += usedBytesOnTiers.get(i);
+    Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
+    for (long capacity : capacityBytesOnTiers.values()) {
+      capacityBytes += capacity;
+    }
+    for (long used : usedBytesOnTiers.values()) {
+      usedBytes += used;
     }
 
     request.setAttribute("capacityBytes", FormatUtils.getSizeFromBytes(capacityBytes));

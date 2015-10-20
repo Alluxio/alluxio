@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.StorageLevelAlias;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -45,8 +44,7 @@ public class BaseAllocatorTest {
   public static final long DEFAULT_HDD_SIZE = 3000;
 
   public static final int[] TIER_LEVEL = {0, 1, 2};
-  public static final StorageLevelAlias[] TIER_ALIAS = {StorageLevelAlias.MEM,
-      StorageLevelAlias.SSD, StorageLevelAlias.HDD };
+  public static final String[] TIER_ALIAS = {"MEM", "SDD", "HDD"};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
@@ -61,9 +59,9 @@ public class BaseAllocatorTest {
   protected Allocator mAllocator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
-  protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier(1);
-  protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier(2);
-  protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier(3);
+  protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier("MEM");
+  protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier("SDD");
+  protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier("HDD");
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -112,7 +110,7 @@ public class BaseAllocatorTest {
    */
   protected void assertTempBlockMeta(Allocator allocator,
       BlockStoreLocation location, int blockSize,
-      boolean avail, int tierAlias, int dirIndex)
+      boolean avail, String tierAlias, int dirIndex)
       throws Exception {
 
     mTestBlockId ++;

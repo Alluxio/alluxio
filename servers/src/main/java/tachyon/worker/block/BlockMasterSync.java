@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
+import tachyon.StorageTierAssoc;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
@@ -95,7 +96,11 @@ public final class BlockMasterSync implements Runnable {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
-      mMasterClient.register(WorkerIdRegistry.getWorkerId(), storeMeta.getCapacityBytesOnTiers(),
+      StorageTierAssoc storageTierAssoc =
+          new StorageTierAssoc(WorkerContext.getConf(), Constants.WORKER_TIERED_STORAGE_LEVELS,
+              Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+      mMasterClient.register(WorkerIdRegistry.getWorkerId(),
+          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);

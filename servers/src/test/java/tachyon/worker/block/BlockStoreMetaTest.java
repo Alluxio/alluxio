@@ -16,11 +16,11 @@
 package tachyon.worker.block;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,7 +52,7 @@ public class BlockStoreMetaTest {
     mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(tachyonHome);
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
-    StorageDir dir = mMetadataManager.getTier(1).getDir(0);
+    StorageDir dir = mMetadataManager.getTier("MEM").getDir(0);
     for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId ++) {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
@@ -62,15 +62,17 @@ public class BlockStoreMetaTest {
 
   @Test
   public void getBlockListTest() {
-    Map<Long, List<Long>> dirIdToBlockIds = new HashMap<Long, List<Long>>();
+    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<String, List<Long>>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
+      List<Long> blockIdsOnTier = new ArrayList<Long>();
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirIdToBlockIds.put(dir.getStorageDirId(), dir.getBlockIds());
+        blockIdsOnTier.addAll(dir.getBlockIds());
       }
+      tierAliasToBlockIds.put(tier.getTierAlias(), blockIdsOnTier);
     }
-    Map<Long, List<Long>> actual = mBlockStoreMeta.getBlockList();
-    Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultDirNum(), actual.keySet().size());
-    Assert.assertEquals(dirIdToBlockIds, actual);
+    Map<String, List<Long>> actual = mBlockStoreMeta.getBlockList();
+    Assert.assertEquals(TieredBlockStoreTestUtils.TIER_ALIAS.length, actual.keySet().size());
+    Assert.assertEquals(tierAliasToBlockIds, actual);
   }
 
   @Test
@@ -94,11 +96,7 @@ public class BlockStoreMetaTest {
 
   @Test
   public void getCapacityBytesOnTiersTest() {
-    List<Long> expectedCapacityBytesOnTiers = new ArrayList<Long>();
-
-    expectedCapacityBytesOnTiers.add(5000L);  // MEM
-    expectedCapacityBytesOnTiers.add(60000L); // SSD
-    expectedCapacityBytesOnTiers.add(0L);     // HDD
+    Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SDD", 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
   }
 
@@ -139,7 +137,7 @@ public class BlockStoreMetaTest {
   @Test
   public void getUsedBytesOnTiersTest() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
-    List<Long> usedBytesOnTiers = new ArrayList<Long>(Arrays.asList(usedBytes, 0L, 0L));
+    Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", usedBytes, "SDD", 0L);
     Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());
   }
 }

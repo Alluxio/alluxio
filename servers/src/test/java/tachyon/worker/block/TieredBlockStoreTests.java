@@ -28,7 +28,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Sets;
 
-import tachyon.StorageLevelAlias;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
@@ -47,9 +46,8 @@ public final class TieredBlockStoreTests {
   private static final long BLOCK_ID2 = 1001;
   private static final long TEMP_BLOCK_ID = 1003;
   private static final long BLOCK_SIZE = 512;
-  private static final StorageLevelAlias FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
-  private static final StorageLevelAlias SECOND_TIER_ALIAS =
-      TieredBlockStoreTestUtils.TIER_ALIAS[1];
+  private static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
+  private static final String SECOND_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[1];
   private TieredBlockStore mBlockStore;
   private BlockMetadataManager mMetaManager;
   private BlockLockManager mLockManager;
@@ -81,9 +79,9 @@ public final class TieredBlockStoreTests {
     field.setAccessible(true);
     mEvictor = (Evictor) field.get(mBlockStore);
 
-    mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS.getValue()).getDir(0);
-    mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS.getValue()).getDir(1);
-    mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS.getValue()).getDir(1);
+    mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
+    mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
+    mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
   }
 
   // Different sessions can concurrently grab block locks on different blocks

@@ -29,13 +29,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -52,11 +49,9 @@ import tachyon.worker.block.meta.BlockMeta;
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockDataManager mBlockDataManager;
-  private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager, TachyonConf conf) {
+  public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mTachyonConf = Preconditions.checkNotNull(conf);
   }
 
   /**
@@ -240,12 +235,10 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         blockExistOnWorker = true;
         BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
         long blockSize = blockMeta.getBlockSize();
-        StorageLevelAlias storageLevelAlias =
-            StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
         // The block last access time is not available. Use -1 for now.
         // It's not necessary to show location information here since
         // we are viewing at the context of this worker.
-        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
+        uiFileInfo.addBlock(blockMeta.getBlockLocation().tierAlias(), blockId, blockSize, -1);
       }
     }
     if (!blockExistOnWorker) {

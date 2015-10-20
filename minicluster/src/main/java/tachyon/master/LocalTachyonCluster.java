@@ -193,8 +193,8 @@ public final class LocalTachyonCluster {
         Long.toString(mWorkerCapacityBytes));
     UnderFileSystemUtils.mkdirIfNotExists(ramdiskPath, mTestConf);
 
-    int maxLevel = mTestConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
-    for (int level = 1; level < maxLevel; level ++) {
+    int numLevels = mWorkerConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVELS);
+    for (int level = 1; level < numLevels; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mTestConf.get(tierLevelDirPath).split(",");

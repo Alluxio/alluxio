@@ -16,14 +16,14 @@
 package tachyon.web;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
-import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -34,8 +34,8 @@ public final class UiFileInfo {
    * Provides ordering of {@link tachyon.web.UiFileInfo} based off a string comparison of the
    * absolute paths.
    */
-  public static final Ordering<UiFileInfo> PATH_STRING_COMPARE = Ordering.natural().onResultOf(
-      new Function<UiFileInfo, Comparable<String>>() {
+  public static final Ordering<UiFileInfo> PATH_STRING_COMPARE =
+      Ordering.natural().onResultOf(new Function<UiFileInfo, Comparable<String>>() {
         @Override
         public Comparable<String> apply(UiFileInfo input) {
           return input.mAbsolutePath;
@@ -78,10 +78,9 @@ public final class UiFileInfo {
   private final boolean mIsPersisted;
   private List<String> mFileLocations;
 
-  private final List<List<UiBlockInfo>> mBlocksOnTier = new ArrayList<List<UiBlockInfo>>(
-      StorageLevelAlias.SIZE);
-  private final List<Long> mSizeOnTier = new ArrayList<Long>(Collections.nCopies(
-      StorageLevelAlias.SIZE, 0L));
+  private final Map<String, List<UiBlockInfo>> mBlocksOnTier =
+      new HashMap<String, List<UiBlockInfo>>();
+  private final Map<String, Long> mSizeOnTier = new HashMap<String, Long>();
 
   public UiFileInfo(FileInfo fileInfo) {
     mId = fileInfo.getFileId();
@@ -97,9 +96,6 @@ public final class UiFileInfo {
     mIsPinned = fileInfo.isPinned;
     mIsPersisted = fileInfo.isPersisted;
     mFileLocations = new ArrayList<String>();
-    for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
-      mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
-    }
   }
 
   public UiFileInfo(LocalFileInfo fileInfo) {
@@ -116,19 +112,18 @@ public final class UiFileInfo {
     mIsPinned = false;
     mIsPersisted = false;
     mFileLocations = new ArrayList<String>();
-    for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
-      mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
-    }
   }
 
-  public void addBlock(StorageLevelAlias storageLevelAlias, long blockId, long blockSize,
-      long blockLastAccessTimeMs) {
-    int tier = storageLevelAlias.getValue() - 1;
-    UiBlockInfo block =
-        new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs,
-            storageLevelAlias == StorageLevelAlias.MEM);
-    mBlocksOnTier.get(tier).add(block);
-    mSizeOnTier.set(tier, mSizeOnTier.get(tier) + blockSize);
+  public void addBlock(String tierAlias, long blockId, long blockSize, long blockLastAccessTimeMs) {
+    UiBlockInfo block = new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
+    List<UiBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
+    if (blocksOnTier == null) {
+      blocksOnTier = new ArrayList<UiBlockInfo>();
+      mBlocksOnTier.put(tierAlias, blocksOnTier);
+    }
+    blocksOnTier.add(block);
+
+    mSizeOnTier.put(tierAlias, mSizeOnTier.getOrDefault(tierAlias, (long) 0) + blockSize);
   }
 
   public String getAbsolutePath() {
@@ -143,7 +138,7 @@ public final class UiFileInfo {
     }
   }
 
-  public List<List<UiBlockInfo>> getBlocksOnTier() {
+  public Map<String, List<UiBlockInfo>> getBlocksOnTier() {
     return mBlocksOnTier;
   }
 
@@ -186,9 +181,8 @@ public final class UiFileInfo {
     return mIsPersisted;
   }
 
-  public int getOnTierPercentage(StorageLevelAlias storageLevelAlias) {
-    int tier = storageLevelAlias.getValue() - 1;
-    return (int) (100 * mSizeOnTier.get(tier) / mSize);
+  public int getOnTierPercentage(String tierAlias) {
+    return (int) (100 * mSizeOnTier.get(tierAlias) / mSize);
   }
 
   public String getName() {

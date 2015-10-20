@@ -15,9 +15,11 @@
 
 package tachyon.master.file;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -82,9 +84,10 @@ public final class FileSystemMasterTest {
 
     // set up worker
     mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    mBlockMaster.workerRegister(mWorkerId, Lists.newArrayList(Constants.MB * 1L, Constants.MB * 1L),
-        Lists.<Long>newArrayList(Constants.KB * 1L, Constants.KB * 1L),
-        Maps.<Long, List<Long>>newHashMap());
+    mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SDD"),
+        ImmutableMap.of("MEM", Constants.MB * 1L, "SDD", Constants.MB * 1L),
+        ImmutableMap.of("MEM", Constants.KB * 1L, "SDD", Constants.KB * 1L),
+        Maps.<String, List<Long>>newHashMap());
   }
 
   @BeforeClass
@@ -167,10 +170,10 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, 2, blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "SDD", blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId);
 
     createFileWithSingleBlock(ROOT_FILE_URI);
@@ -245,7 +248,7 @@ public final class FileSystemMasterTest {
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
     long fileId = mFileSystemMaster.create(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId);
     return blockId;
   }

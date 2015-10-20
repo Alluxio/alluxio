@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import tachyon.StorageLevelAlias;
-
 /**
  * The metadata for a Tachyon block, managed by the block master.
  */
@@ -33,15 +31,15 @@ public final class MasterBlockInfo {
   /** The length of the block in bytes. */
   private final long mLength;
 
-  /** Maps from the worker id to the alias the block is on. */
-  private final Map<Long, Integer> mWorkerIdToAlias;
+  /** Maps from the worker id to the tier alias the block is on. */
+  private final Map<Long, String> mWorkerIdToAlias;
 
   public MasterBlockInfo(long blockId, long length) {
     // TODO(gene): Check valid length?
     mBlockId = blockId;
     mLength = length;
 
-    mWorkerIdToAlias = new HashMap<Long, Integer>();
+    mWorkerIdToAlias = new HashMap<Long, String>();
   }
 
   /**
@@ -62,9 +60,9 @@ public final class MasterBlockInfo {
    * Adds a location of the block. It means that the worker has the block in one of its tiers.
    *
    * @param workerId The id of the worker
-   * @param tierAlias The int value of the tier alias that this block is on
+   * @param tierAlias The alias of the storage tier that this block is on
    */
-  public synchronized void addWorker(long workerId, int tierAlias) {
+  public synchronized void addWorker(long workerId, String tierAlias) {
     mWorkerIdToAlias.put(workerId, tierAlias);
   }
 
@@ -93,29 +91,24 @@ public final class MasterBlockInfo {
 
   /**
    * Gets the locations of the block, which are the workers' net address who has the data of the
-   * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD). That
-   * is, the worker who has the data of the block in its memory is in the top of the list.
+   * block in its tiered storage.
    *
    * @return the net addresses of the locations
    */
   public synchronized List<MasterBlockLocation> getBlockLocations() {
     List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
-    for (StorageLevelAlias alias : StorageLevelAlias.values()) {
-      for (Map.Entry<Long, Integer> entry : mWorkerIdToAlias.entrySet()) {
-        if (alias.getValue() == entry.getValue()) {
-          ret.add(new MasterBlockLocation(entry.getKey(), alias.getValue()));
-        }
-      }
+    for (Map.Entry<Long, String> entry : mWorkerIdToAlias.entrySet()) {
+      ret.add(new MasterBlockLocation(entry.getKey(), entry.getValue()));
     }
     return ret;
   }
 
   /**
-   * @return true if the block is in some worker's memory, false otherwise
+   * @return true if the block is in the given tier
    */
-  public synchronized boolean isInMemory() {
-    for (int aliasValue : mWorkerIdToAlias.values()) {
-      if (aliasValue == StorageLevelAlias.MEM.getValue()) {
+  public synchronized boolean isInTier(String targetTierAlias) {
+    for (String tierAlias : mWorkerIdToAlias.values()) {
+      if (tierAlias.equals(targetTierAlias)) {
         return true;
       }
     }
