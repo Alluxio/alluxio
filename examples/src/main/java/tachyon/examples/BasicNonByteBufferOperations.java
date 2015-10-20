@@ -152,8 +152,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private static void usage() {
     System.out.println("java -cp " + Constants.TACHYON_JAR + " "
         + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
-        + "[TachyonWriteType(STORE|NO_STORE)] [UnderStorageWriteType(SYNC_PERSIST|NO_PERSIST)] "
-        + "[ReadType(STORE|NO_STORE)] [delete file] [num writes]");
+        + "<tachyon storage type for writes (STORE | NO_STORE)> "
+        + "<under storage type for writes (SYNC_PERSIST | NO_PERSIST)> "
+        + "<tachyon storage type for reads (STORE | NO_STORE)> <delete file> <number of files>");
     System.exit(-1);
   }
 }

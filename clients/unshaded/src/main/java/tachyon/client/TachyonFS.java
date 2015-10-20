@@ -346,7 +346,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the RawTable's path
    * @param columns number of columns it has
    * @param metadata the meta data of the RawTable
-   * @return the id if succeed, -1 otherwise
+   * @return the id if succeed, {@link tachyon.util.IdUtils#INVALID_FILE_ID} otherwise
    * @throws IOException if the number of columns is invalid or the underlying master RPC fails
    */
   public synchronized long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
@@ -358,7 +358,7 @@ public class TachyonFS extends AbstractTachyonFS {
           + maxColumns);
     }
     long tableId = mRawTableMasterClient.createRawTable(path, columns, metadata);
-    if (tableId != -1) {
+    if (tableId != IdUtils.INVALID_FILE_ID) {
       mkdirs(path, true);
       for (int i = 0; i < columns; i ++) {
         mkdirs(new TachyonURI(RawColumn.getColumnPath(path.toString(), i)), true);
