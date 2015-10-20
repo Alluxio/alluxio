@@ -222,8 +222,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getCurrentBlockId();
     if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
-      updateBlockInStream(currentBlockId);
       closeCacheStream();
+      updateBlockInStream(currentBlockId);
       if (mShouldCacheCurrentBlock) {
         try {
           // TODO(calvin): Specify the location to be local.
