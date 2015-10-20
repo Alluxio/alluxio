@@ -22,7 +22,6 @@ import java.util.concurrent.Callable;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileOutStream;
@@ -48,15 +47,6 @@ import tachyon.exception.TachyonException;
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
   private final TachyonStorageType mWriteType;
@@ -80,10 +70,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(tachyonConf);
+    ClientContext.reset(tachyonConf);
     TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     write(tFS, mFilePath, mWriteType, mDeleteIfExists, mLength);
     return read(tFS, mFilePath, mReadType);

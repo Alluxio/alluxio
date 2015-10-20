@@ -33,7 +33,7 @@ public final class RPCErrorResponse extends RPCResponse {
    * Decodes the input {@link ByteBuf} into a {@link RPCErrorResponse} object and returns it.
    *
    * @param in The input {@link ByteBuf}.
-   * @return The decoded RPCErrorResponse object.
+   * @return The decoded RPCErrorResponse object
    */
   public static RPCErrorResponse decode(ByteBuf in) {
     return new RPCErrorResponse(Status.fromShort(in.readShort()));

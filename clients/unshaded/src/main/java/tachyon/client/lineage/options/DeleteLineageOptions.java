@@ -53,7 +53,7 @@ public final class DeleteLineageOptions {
   }
 
   /**
-   * @return the default options.
+   * @return the default options
    */
   public static DeleteLineageOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
@@ -67,7 +67,7 @@ public final class DeleteLineageOptions {
 
   /**
    * @return the cascade flag value; if the delete is cascade, it will delete all the downstream
-   *         lineages that depend on the given one recursively.
+   *         lineages that depend on the given one recursively
    */
   public boolean isCascade() {
     return mCascade;

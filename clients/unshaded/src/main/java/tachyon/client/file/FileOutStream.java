@@ -53,6 +53,12 @@ import tachyon.worker.WorkerClient;
 public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // Error strings for preconditions in order to improve performance
+  private static final String ERR_BLOCK_REMAINING =
+      "The current block still has space left, no need to get new block.";
+  private static final String ERR_BUFFER_NULL = "Cannot write a null input buffer.";
+  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
+
   private final long mBlockSize;
   protected final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
@@ -80,7 +86,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
-    mBlockSize = options.getBlockSize();
+    mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
@@ -90,10 +96,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUfsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
-      String parentPath = (new TachyonURI(mUfsPath)).getParent().getPath();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException("Failed to create " + parentPath);
-      }
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
     } else {
@@ -212,9 +214,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkArgument(b != null, ERR_BUFFER_NULL);
+    Preconditions.checkArgument(
+        off >= 0 && len >= 0 && len + off <= b.length, ERR_BUFFER_STATE, b.length, off, len);
 
     if (mShouldCacheCurrentBlock) {
       try {
@@ -247,8 +249,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          "The current block still has space left, no need to get new block");
+      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0, ERR_BLOCK_REMAINING);
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 

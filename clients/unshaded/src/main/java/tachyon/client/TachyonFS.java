@@ -23,8 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -38,17 +36,18 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -186,8 +185,8 @@ public class TachyonFS extends AbstractTachyonFS {
     mZookeeperMode = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
-    mRawTableMasterClient = mCloser.register(new RawTableMasterClient(mMasterAddress,
-        ClientContext.getExecutorService(), mTachyonConf));
+    mRawTableMasterClient =
+        mCloser.register(new RawTableMasterClient(mMasterAddress, mTachyonConf));
     mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
@@ -300,19 +299,24 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
    *        not exist in the under file system yet.
-   * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
+   * @param blockSizeBytes The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
-   * @return The file id, which is globally unique.
+   * @return The file id, which is globally unique
    * @throws IOException if the underlying master RPC fails
    */
   @Override
-  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
+  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeBytes,
       boolean recursive) throws IOException {
     validateUri(path);
     try {
-      if (blockSizeByte > 0) {
-        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
-            Constants.NO_TTL);
+      if (blockSizeBytes > 0) {
+        UnderStorageType underStorageType =
+            mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
+                .isThrough() ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+        CreateOptions options =
+            new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
+                .setRecursive(recursive).setUnderStorageType(underStorageType).build();
+        return mFSMasterClient.create(path.getPath(), options);
       } else {
         return mFSMasterClient.loadMetadata(path.getPath(), recursive);
       }
@@ -430,17 +434,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets a ClientBlockInfo by the block id.
+   * Gets a ClientBlockInfo by the file and index.
    *
-   * Currently unsupported.
-   *
-   * @param blockId the id of the block
+   * @param fileId the id of the file
+   * @param blockIndex the index of the block in the file, starting from 0
    * @return the ClientBlockInfo of the specified block
    * @throws IOException if the underlying master RPC fails
    */
-  synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
-    throw new UnsupportedOperationException("FileBlockInfo is no longer supported, use FileInfo "
-        + "and/or BlockInfo");
+  synchronized FileBlockInfo getClientBlockInfo(long fileId, int blockIndex) throws IOException {
+    try {
+      return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
+    } catch (TachyonException e) {
+      // TODO: Should not cast this to Tachyon Exception
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -457,7 +464,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Gets the user's <code>ClientMetrics</code>.
    *
-   * @return the <code>ClientMetrics</code> object.
+   * @return the <code>ClientMetrics</code> object
    */
   ClientMetrics getClientMetrics() {
     return mClientMetrics;
@@ -484,7 +491,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fid the file id
    * @param useCachedMetadata whether to use cached metadata
-   * @return TachyonFile of the file id, or null if the file does not exist.
+   * @return TachyonFile of the file id, or null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized TachyonFile getFile(long fid, boolean useCachedMetadata) throws IOException {
@@ -499,7 +506,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Gets <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
    *
    * @param path file path.
-   * @return TachyonFile of the path, or null if the file does not exist.
+   * @return TachyonFile of the path, or null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized TachyonFile getFile(TachyonURI path) throws IOException {
@@ -513,7 +520,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param path file path.
    * @param useCachedMetadata whether to use the file metadata cache
-   * @return TachyonFile of the path, or null if the file does not exist.
+   * @return TachyonFile of the path, or null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized TachyonFile getFile(TachyonURI path, boolean useCachedMetadata)
@@ -587,7 +594,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path of the queried file. If fielId is not INVALID_FILE_ID, this parameter is
    *        ignored.
    * @param useCachedMetaData whether to use the cached data or not.
-   * @return the clientFileInfo.
+   * @return the clientFileInfo
    * @throws IOException if the underlying master RPC fails
    */
   private synchronized <K> FileInfo getFileStatus(Map<K, FileInfo> cache, K key, long fileId,
@@ -623,7 +630,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id of the file or folder.
    * @param path the path of the file or folder. valid iff fileId is INVALID_FILE_ID.
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the FileInfo of the file. null if the file does not exist.
+   * @return the FileInfo of the file. null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
@@ -643,7 +650,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fileId the file id of the file or folder.
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the FileInfo of the file. null if the file does not exist.
+   * @return the FileInfo of the file. null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized FileInfo getFileStatus(long fileId, boolean useCachedMetadata)
@@ -713,7 +720,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * @return the sessionId of the worker client. This is only used for testing.
+   * @return the sessionId of the worker client. This is only used for testing
    * @throws IOException when the underlying master RPC fails
    */
   long getSessionId() throws IOException {
@@ -741,7 +748,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * @return The address of the data server on the worker.
+   * @return The address of the data server on the worker
    */
   public synchronized InetSocketAddress getWorkerDataServerAddress() {
     return mWorkerClient.getDataServerAddress();
@@ -786,7 +793,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * <code>path</code> is a file, returns its ClientFileInfo.
    *
    * @param path the target directory/file path
-   * @return A list of FileInfo, null if the file or folder does not exist.
+   * @return A list of FileInfo, null if the file or folder does not exist
    * @throws IOException when the underlying master RPC fails
    */
   @Override
@@ -839,14 +846,20 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
-   * @return true if the folder is created successfully or already existing. false otherwise.
+   * @return true if the folder is created successfully or already existing. false otherwise
    * @throws IOException if the underlying master RPC fails
    */
   @Override
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.mkdir(path.getPath(), recursive);
+      UnderStorageType underStorageType =
+          mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough()
+              ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+      MkdirOptions options =
+          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
+              .setUnderStorageType(underStorageType).build();
+      return mFSMasterClient.mkdir(path.getPath(), options);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -870,7 +883,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID.
    * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
    *        or not
-   * @return true if in-memory free successfully, false otherwise.
+   * @return true if in-memory free successfully, false otherwise
    * @throws IOException if the underlying master RPC fails
    */
   @Override
@@ -908,7 +921,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *        INVALID_FILE_ID.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not
    *        INVALID_FILE_ID.
-   * @return true if renames successfully, false otherwise.
+   * @return true if renames successfully, false otherwise
    * @throws IOException if the underlying master RPC fails
    */
   @Override

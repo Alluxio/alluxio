@@ -80,7 +80,7 @@ public final class MasterWorkerInfo {
    * @param totalBytesOnTiers list of total bytes on each tier
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param blocks set of block ids on this worker
-   * @return A Set of blocks removed (or lost) from this worker.
+   * @return A Set of blocks removed (or lost) from this worker
    */
   public Set<Long> register(final List<Long> totalBytesOnTiers, final List<Long> usedBytesOnTiers,
       final Set<Long> blocks) {
@@ -159,7 +159,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the worker's address.
+   * @return the worker's address
    */
   public NetAddress getAddress() {
     return mWorkerAddress;
@@ -173,7 +173,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return IDs of all blocks the worker contains.
+   * @return IDs of all blocks the worker contains
    */
   public synchronized Set<Long> getBlocks() {
     return new HashSet<Long>(mBlocks);
@@ -194,7 +194,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the last updated time of the worker in ms.
+   * @return the last updated time of the worker in ms
    */
   public synchronized long getLastUpdatedTimeMs() {
     return mLastUpdatedTimeMs;
@@ -229,7 +229,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the start time in milliseconds.
+   * @return the start time in milliseconds
    */
   public long getStartTime() {
     return mStartTimeMs;

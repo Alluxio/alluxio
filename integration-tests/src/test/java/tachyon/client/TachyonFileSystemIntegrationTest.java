@@ -145,6 +145,7 @@ public class TachyonFileSystemIntegrationTest {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
       TachyonFile f = sTfs.open(fileURI);
       sTfs.delete(f);
+      Assert.assertNull(sTfs.openIfExists(fileURI));
       mThrown.expect(FileDoesNotExistException.class);
       sTfs.getInfo(f);
     }
