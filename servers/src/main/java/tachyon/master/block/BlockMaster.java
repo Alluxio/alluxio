@@ -667,7 +667,8 @@ public final class BlockMaster extends MasterBase
           Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
           while (iter.hasNext()) {
             MasterWorkerInfo worker = iter.next();
-            if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
+            final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
+            if (lastUpdate > masterWorkerTimeoutMs) {
               LOG.error("The worker {} got timed out!", worker);
               mLostWorkers.add(worker);
               iter.remove();
