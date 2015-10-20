@@ -60,7 +60,7 @@ public abstract class TachyonException extends Exception {
    * @param e the {link TachyonTException} to convert to a {@link TachyonException}
    * @return a {@link TachyonException} of the type specified in e, with the message specified in e
    */
-  public static TachyonException of(TachyonTException e) {
+  public static TachyonException from(TachyonTException e) {
     TachyonExceptionType exceptionType = TachyonExceptionType.valueOf(e.type);
     Class<? extends TachyonException> throwClass = exceptionType.getExceptionClass();
     Exception reflectError;
