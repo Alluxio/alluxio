@@ -40,8 +40,8 @@ public class PersistFileEntry extends JournalEntry {
     return mFileId;
   }
 
-  @JsonGetter("length")
-  public long getFileLength() {
+  @JsonGetter
+  public long getLength() {
     return mLength;
   }
 

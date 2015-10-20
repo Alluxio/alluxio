@@ -38,7 +38,7 @@ public final class PersistDirectoryEntry extends JournalEntry {
     return mId;
   }
 
-  @JsonGetter("persisted")
+  @JsonGetter
   public boolean isPersisted() {
     return mPersisted;
   }

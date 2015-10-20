@@ -51,8 +51,8 @@ public class DeleteFileEntry extends JournalEntry {
     return mRecursive;
   }
 
-  @JsonGetter("operationTimeMs")
-  public long getOpTimeMs() {
+  @JsonGetter
+  public long getOperationTimeMs() {
     return mOpTimeMs;
   }
 }

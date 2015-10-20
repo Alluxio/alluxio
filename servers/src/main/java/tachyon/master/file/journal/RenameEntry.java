@@ -52,18 +52,18 @@ public class RenameEntry extends JournalEntry {
     return JournalEntryType.RENAME;
   }
 
-  @JsonGetter("fileId")
+  @JsonGetter
   public long getFileId() {
     return mFileId;
   }
 
-  @JsonGetter("operationTimeMs")
-  public long getOpTimeMs() {
+  @JsonGetter
+  public long getOperationTimeMs() {
     return mOpTimeMs;
   }
 
-  @JsonGetter("destinationPath")
-  public String getDstPath() {
+  @JsonGetter
+  public String getDestinationPath() {
     return mDstPath;
   }
 }

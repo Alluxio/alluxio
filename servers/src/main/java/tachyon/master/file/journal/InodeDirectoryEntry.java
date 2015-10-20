@@ -55,7 +55,7 @@ public class InodeDirectoryEntry extends InodeEntry {
     return JournalEntryType.INODE_DIRECTORY;
   }
 
-  @JsonGetter("childrenIds")
+  @JsonGetter
   public Set<Long> getChildrenIds() {
     return mChildrenIds;
   }

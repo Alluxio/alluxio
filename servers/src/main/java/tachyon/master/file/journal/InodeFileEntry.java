@@ -77,7 +77,7 @@ public class InodeFileEntry extends InodeEntry {
     return JournalEntryType.INODE_FILE;
   }
 
-  @JsonGetter("blockSizeBytes")
+  @JsonGetter
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
@@ -87,12 +87,12 @@ public class InodeFileEntry extends InodeEntry {
     return mLength;
   }
 
-  @JsonGetter("completed")
+  @JsonGetter
   public boolean isCompleted() {
     return mCompleted;
   }
 
-  @JsonGetter("cacheable")
+  @JsonGetter
   public boolean isCacheable() {
     return mCacheable;
   }
@@ -102,8 +102,8 @@ public class InodeFileEntry extends InodeEntry {
     return mBlocks;
   }
 
-  @JsonGetter("ttl")
-  public long getTTL() {
+  @JsonGetter
+  public long getTtl() {
     return mTTL;
   }
 }

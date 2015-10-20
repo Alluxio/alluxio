@@ -38,7 +38,7 @@ public final class DeleteLineageEntry extends JournalEntry {
     return mLineageId;
   }
 
-  @JsonGetter("cascade")
+  @JsonGetter
   public boolean isCascade() {
     return mCascade;
   }
