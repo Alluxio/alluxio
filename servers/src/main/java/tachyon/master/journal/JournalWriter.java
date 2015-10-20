@@ -101,7 +101,7 @@ public final class JournalWriter {
    * @param latestSequenceNumber the sequence number of the latest journal entry. This sequence
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
-   * @return the output stream for the journal checkpoint.
+   * @return the output stream for the journal checkpoint
    * @throws IOException
    */
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
@@ -125,7 +125,7 @@ public final class JournalWriter {
    * Returns an output stream for the journal entries. The returned output stream is a singleton for
    * this writer.
    *
-   * @return the output stream for the journal entries.
+   * @return the output stream for the journal entries
    * @throws IOException
    */
   public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
@@ -337,9 +337,15 @@ public final class JournalWriter {
         // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
         ((FSDataOutputStream) mRawOutputStream).sync();
       }
-      if (mDataOutputStream.size() > mMaxLogSize) {
-        LOG.info("Rotating log file. size: " + mDataOutputStream.size() + " maxSize: "
-            + mMaxLogSize);
+      boolean overSize = mDataOutputStream.size() > mMaxLogSize;
+      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3) {
+        // (1) The log file is oversize, needs to be rotated. Or
+        // (2) Underfs is S3, flush on S3OutputStream will only flush to local temporary file,
+        //     call close and complete the log to sync the journal entry to S3.
+        if (overSize) {
+          LOG.info("Rotating log file. size: " + mDataOutputStream.size() + " maxSize: "
+              + mMaxLogSize);
+        }
         // rotate the current log.
         mDataOutputStream.close();
         completeCurrentLog();

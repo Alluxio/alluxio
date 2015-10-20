@@ -38,6 +38,7 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
@@ -180,7 +181,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param tachyonFileSystem the TachyonFileSystem client.
    * @param fileId the file id of the file.
-   * @return the UiFileInfo object of the file.
+   * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
@@ -194,7 +195,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param tachyonFileSystem the TachyonFileSystem client.
    * @param filePath the path of the file.
-   * @return the UiFileInfo object of the file.
+   * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
@@ -209,21 +210,18 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param tachyonFileSystem the TachyonFileSystem client.
    * @param fileId the file id of the file.
    * @param filePath the path of the file. valid iff fileId is -1.
-   * @return the UiFileInfo object of the file.
+   * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
       TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
-          IOException, TachyonException {
+      InvalidPathException, IOException, TachyonException {
     TachyonFile file = null;
     if (fileId != -1) {
       file = new TachyonFile(fileId);
     } else {
       file = tachyonFileSystem.open(filePath);
-      if (file == null) {
-        throw new FileDoesNotExistException(filePath.toString());
-      }
     }
     FileInfo fileInfo;
     try {
