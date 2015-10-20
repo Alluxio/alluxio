@@ -75,9 +75,9 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <STORE|NO_STORE>"
+  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <STORE|NO_STORE> <SYNC_PERSIST|NO_PERSIST>"
 
-  if [ "$#" -ne 2 ]; then
+  if [ "$#" -ne 3 ]; then
     echo $Usage
     exit 1
   fi
@@ -89,28 +89,27 @@ function runTest {
 
   local file="/default_tests_files"
   local class=""
-  local args="$2"
   case "$1" in
     Basic)
-      file+="/BasicFile_$2"
+      file+="/BasicFile_$2_$3"
       class="tachyon.examples.BasicOperations"
       ;;
     BasicNonByteBuffer)
-      file+="/BasicNonByteBuffer_$2"
+      file+="/BasicNonByteBuffer_$2_$3"
       class="tachyon.examples.BasicNonByteBufferOperations"
       ;;
     BasicRawTable)
-      file+="/BasicRawTable_$2"
+      file+="/BasicRawTable_$2_$3"
       class="tachyon.examples.BasicRawTableOperations"
       ;;
     *)
-      echo "Unknown test: $1 with type $2" 1>&2
+      echo "Unknown test: $1 with type $2 $3" 1>&2
       echo "$Usage"
       exit 1
       ;;
   esac
   $LAUNCHER $bin/tachyon tfs rmr "$file"
-  $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$args"
+  $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" tachyon://$MASTER_ADDRESS:19998 "$file" "$2" "$3"
 
   # If test process received a signal abort early
   # Exit Codes for signals terminating a JVM are 128 + signal
@@ -234,25 +233,29 @@ elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit $?
 elif [ "$COMMAND" == "runTests" ]; then
-  declare -a opArr=(STORE NO_STORE)
+  declare -a tachyonStorageTypes=(STORE NO_STORE)
+  declare -a ufsStorageTypes=(SYNC_PERSIST NO_PERSIST)
 
   failed=0
-  for op in ${opArr[@]}
-  do
-    for example in Basic BasicNonByteBuffer BasicRawTable
-    do
-      echo $LAUNCHER $bin/tachyon runTest $example $op
-      $LAUNCHER $bin/tachyon runTest $example $op
-      st=$?
-
-      # If test process received a signal abort early
-      # Exit Codes for signals terminating a JVM are 128 + signal
-      if [ $st -gt 128 ]; then
-        # Received some kind of signal
-        echo "Test process was terminated due to signal"
-        exit $st
+  for tachyonStorageType in ${tachyonStorageTypes[@]}; do
+    for ufsStorageType in ${ufsStorageTypes[@]}; do
+      if [[ "$tachyonStorageType" == "NO_STORE" ]] && [[ "$ufsStorageType" == "NO_PERSIST" ]]; then
+        continue
       fi
-      failed=$(( $failed + $st ))
+      for example in Basic BasicNonByteBuffer BasicRawTable; do
+        echo $LAUNCHER $bin/tachyon runTest $example $tachyonStorageType $ufsStorageType
+        $LAUNCHER $bin/tachyon runTest $example $tachyonStorageType $ufsStorageType
+        st=$?
+
+        # If test process received a signal abort early
+        # Exit Codes for signals terminating a JVM are 128 + signal
+        if [ $st -gt 128 ]; then
+          # Received some kind of signal
+          echo "Test process was terminated due to signal"
+          exit $st
+        fi
+        failed=$(( $failed + $st ))
+      done
     done
   done
 
