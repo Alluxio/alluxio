@@ -67,7 +67,7 @@ public class Sessions {
   /**
    * Remove <code> sessionId </code> from session pool.
    *
-   * @param sessionId The session to be removed.
+   * @param sessionId The session to be removed
    */
   public synchronized void removeSession(long sessionId) {
     LOG.info("Cleaning up session " + sessionId);

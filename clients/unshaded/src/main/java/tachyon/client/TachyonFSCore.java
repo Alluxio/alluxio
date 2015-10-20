@@ -60,8 +60,8 @@ interface TachyonFSCore extends Closeable {
   /**
    * Gets the FileInfo object that represents the fileId, or the path if fileId is -1.
    *
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
+   * @param fileId the file id of the file or folder
+   * @param path the path of the file or folder. valid iff fileId is -1
    * @return the FileInfo of the file or folder, null if the file or folder does not exist
    * @throws IOException when the operation fails
    */
@@ -84,7 +84,7 @@ interface TachyonFSCore extends Closeable {
    * Creates a folder.
    *
    * @param path the path of the folder to be created
-   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @param recursive Creates necessary parent folders if true, not otherwise
    * @return true if the folder is created successfully or already existing. false otherwise
    * @throws IOException if the operation fails
    */
@@ -105,9 +105,9 @@ interface TachyonFSCore extends Closeable {
  /**
   * Frees memory of a file or folder.
   *
-  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored
   *        Otherwise, the method uses the path parameter.
-  * @param path The path of the file / folder. It could be empty iff id is not -1.
+  * @param path The path of the file / folder. It could be empty iff id is not -1
   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
   *        or not
   * @return true if in-memory free successfully, false otherwise

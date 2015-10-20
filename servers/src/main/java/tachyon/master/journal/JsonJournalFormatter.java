@@ -90,8 +90,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
     /**
      * Constructor for serializing entries.
      *
-     * @param SequenceNumber the sequence number for the entry.
-     * @param type the type of the entry.
+     * @param SequenceNumber the sequence number for the entry
+     * @param type the type of the entry
      */
     public JsonEntry(long SequenceNumber, JournalEntryType type) {
       mSequenceNumber = SequenceNumber;

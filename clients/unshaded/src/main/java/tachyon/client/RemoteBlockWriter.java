@@ -50,9 +50,9 @@ public interface RemoteBlockWriter extends Closeable {
   /**
    * Opens a block writer to a data server.
    *
-   * @param address The {@link InetSocketAddress} of the data server.
-   * @param blockId The id of the block to write.
-   * @param sessionId The id of the session writing the block.
+   * @param address The {@link InetSocketAddress} of the data server
+   * @param blockId The id of the block to write
+   * @param sessionId The id of the session writing the block
    * @throws IOException when the operation fails
    */
   void open(InetSocketAddress address, long blockId, long sessionId) throws IOException;
@@ -60,9 +60,9 @@ public interface RemoteBlockWriter extends Closeable {
   /**
    * Writes data to the remote block.
    *
-   * @param bytes An array of bytes representing the source data.
-   * @param offset The offset into the source array of bytes.
-   * @param length The length of the data to write (in bytes).
+   * @param bytes An array of bytes representing the source data
+   * @param offset The offset into the source array of bytes
+   * @param length The length of the data to write (in bytes)
    * @throws IOException when the operation fails
    */
   void write(byte[] bytes, int offset, int length) throws IOException;

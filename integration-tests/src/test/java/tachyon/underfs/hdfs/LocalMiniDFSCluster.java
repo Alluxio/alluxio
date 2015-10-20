@@ -100,7 +100,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    *
    * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance.
+   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, TachyonConf tachyonConf) {
     this(dfsBaseDirs, 1, 0, tachyonConf);
@@ -112,7 +112,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
    *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode The number of datanode
-   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance.
+   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, TachyonConf tachyonConf) {
     this(dfsBaseDirs, numDataNode, 0, tachyonConf);
@@ -126,7 +126,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param numDataNode The number of datanode
    * @param nameNodePort The port of namenode. If it is 0, the real namenode port can be retrieved
    *        by {@link #getNameNodePort()} after the cluster started
-   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance.
+   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort,
       TachyonConf tachyonConf) {
@@ -145,7 +145,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    * @param numDataNode The number of datanode
    * @param nameNodePort The port of namenode. If it is 0, the real namenode port can be retrieved
    *        by {@link #getNameNodePort()} after the cluster started
-   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance.
+   * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    */
   public LocalMiniDFSCluster(Configuration conf, String dfsBaseDirs, int numDataNode,
       int nameNodePort, TachyonConf tachyonConf) {

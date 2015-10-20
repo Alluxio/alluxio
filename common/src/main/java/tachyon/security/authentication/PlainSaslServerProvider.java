@@ -50,10 +50,10 @@ public final class PlainSaslServerProvider extends Provider {
      * created using the parameters supplied. Throws SaslException if it cannot create a SaslServer
      * because of an error.
      *
-     * @param mechanism The name of a SASL mechanism. (e.g. "PLAIN").
+     * @param mechanism The name of a SASL mechanism. (e.g. "PLAIN")
      * @param protocol The non-null string name of the protocol for which the authentication is
      *        being performed.
-     * @param serverName The non-null fully qualified host name of the server to authenticate to.
+     * @param serverName The non-null fully qualified host name of the server to authenticate to
      * @param props The possibly null set of properties used to select the SASL mechanism and to
      *        configure the authentication exchange of the selected mechanism.
      * @param callbackHandler The possibly null callback handler to used by the SASL mechanisms to

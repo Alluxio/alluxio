@@ -64,13 +64,13 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir The directory path as prefix for all the paths of directories in the tiered
    *        storage. When specified, the directory needs to exist before calling this method.
-   * @param tierLevel Like {@link #TIER_LEVEL}, length must be &gt; 0.
-   * @param tierAlias Like {@link #TIER_ALIAS}, each corresponds to an element in tierLevel.
+   * @param tierLevel Like {@link #TIER_LEVEL}, length must be &gt; 0
+   * @param tierAlias Like {@link #TIER_ALIAS}, each corresponds to an element in tierLevel
    * @param tierPath Like {@link #TIER_PATH}, each list represents directories of the tier with the
    *        same list index in tierAlias.
    * @param tierCapacity Like {@link #TIER_CAPACITY_BYTES}, should be in the same dimension with
    *        tierPath, each element is the capacity of the corresponding dir in tierPath.
-   * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property.
+   * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property
    * @throws Exception When error happens during creating temporary folder.
    */
   public static void setupTachyonConfWithMultiTier(String baseDir, int[] tierLevel,
@@ -110,12 +110,12 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir The directory path as prefix for all the paths of directories in the tiered
    *        storage. When specified, the directory needs to exist before calling this method.
-   * @param tierLevel Level of this tier.
-   * @param tierAlias Alias of this tier.
+   * @param tierLevel Level of this tier
+   * @param tierAlias Alias of this tier
    * @param tierPath Path of this tier. When `baseDir` is specified, the actual test tierPath
    *        turns into `baseDir/tierPath`.
-   * @param tierCapacity Capacity of this tier.
-   * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property.
+   * @param tierCapacity Capacity of this tier
+   * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property
    * @return The created TachyonConf
    * @throws Exception When error happens during creating temporary folder.
    */
@@ -135,9 +135,9 @@ public class TieredBlockStoreTestUtils {
   /**
    * Sets up a specific tier's {@link TachyonConf} for a {@link TieredBlockStore}.
    *
-   * @param level Level of the tier.
-   * @param tierAlias Alias of the tier.
-   * @param tierPath Absolute path of the tier.
+   * @param level Level of the tier
+   * @param tierAlias Alias of the tier
+   * @param tierPath Absolute path of the tier
    * @param tierCapacity Capacity of the tier
    */
   private static void setupTachyonConfTier(int level, StorageLevelAlias tierAlias,
@@ -162,8 +162,8 @@ public class TieredBlockStoreTestUtils {
   /**
    * Joins baseDir with all the paths listed in the array and then create the new generated path.
    *
-   * @param baseDir The directory path as prefix for all the paths in the array 'dirs'.
-   * @param dirs 2-D array of directory paths.
+   * @param baseDir The directory path as prefix for all the paths in the array 'dirs'
+   * @param dirs 2-D array of directory paths
    * @return New joined and created paths array
    * @throws Exception When error happens during creating temporary folder.
    */
@@ -182,8 +182,8 @@ public class TieredBlockStoreTestUtils {
   /**
    * Joins baseDir with all the paths listed in the array and then create the new generated path.
    *
-   * @param baseDir The directory path as prefix for all the paths in the array 'dirs'.
-   * @param dirs 1-D array of directory paths.
+   * @param baseDir The directory path as prefix for all the paths in the array 'dirs'
+   * @param dirs 1-D array of directory paths
    * @return New joined and created paths array
    * @throws IOException When error happens during creating temporary folder.
    */

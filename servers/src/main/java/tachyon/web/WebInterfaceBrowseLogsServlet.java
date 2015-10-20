@@ -60,7 +60,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    *
    * @param file The local file to display
    * @param request The HttpServletRequest object
-   * @param offset Where the file starts to display.
+   * @param offset Where the file starts to display
    * @throws IOException
    */
   private void displayLocalFile(File file, HttpServletRequest request, long offset)

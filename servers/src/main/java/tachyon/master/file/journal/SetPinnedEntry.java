@@ -33,9 +33,9 @@ public class SetPinnedEntry implements JournalEntry {
     /**
      * Creates a new instance of <code>SetPinnedEntry</code>
      *
-     * @param id the id of the entry.
-     * @param pinned whether the entry is pinned or not.
-     * @param opTimeMs the operation timestamp (in millisecs).
+     * @param id the id of the entry
+     * @param pinned whether the entry is pinned or not
+     * @param opTimeMs the operation timestamp (in millisecs)
      */
   public SetPinnedEntry(long id, boolean pinned, long opTimeMs) {
     mId = id;
