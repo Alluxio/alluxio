@@ -49,7 +49,7 @@ import tachyon.thrift.FileInfo;
 /**
  * A TachyonFileSystem implementation including convenience methods as well as a streaming API to
  * read and write files. This class does not access the master client directly but goes through the
- * implementations provided in {@link AbstractTachyonFileSystem}. The create api for creating files
+ * implementations provided in {@link AbstractTachyonFileSystem}. The create API for creating files
  * is not supported by this TachyonFileSystem because the files should only be written once, thus
  * getOutStream is sufficient for creating and writing to a file.
  */
@@ -119,10 +119,10 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * operations on it.
    *
    * @param file the handler for the file to read
-   * @param options the set of options specific to this operation.
+   * @param options the set of options specific to this operation
    * @return an input stream to read the file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public FileInStream getInStream(TachyonFile file, InStreamOptions options)
@@ -151,7 +151,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @param options the set of options specific to this operation
    * @return an output stream to write the file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
@@ -219,8 +219,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   /**
    * Convenience method for {@link #open(TachyonURI, OpenOptions)} with default options.
    */
-  public TachyonFile open(TachyonURI path) throws IOException, InvalidPathException,
-      TachyonException {
+  public TachyonFile open(TachyonURI path)
+      throws IOException, InvalidPathException, TachyonException {
     return open(path, OpenOptions.defaults());
   }
 
