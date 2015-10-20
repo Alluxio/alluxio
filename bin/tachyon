@@ -197,7 +197,7 @@ if [[ ${COMMAND} == "format" ]]; then
   if [[ $# -eq 1 ]]; then
     if [[ $1 == "-s" ]]; then
       if [[ -e ${TACHYON_UNDERFS_ADDRESS} ]]
-        # if ufs is local filesystem and already exists 
+        # if ufs is local filesystem and already exists
         exit 0
       else
         declare -a schemes=(hdfs s3 s3n glusterfs swift)
@@ -240,18 +240,18 @@ elif [[ ${COMMAND} == "runTest" ]]; then
   runTest $@
   exit $?
 elif [[ ${COMMAND} == "runTests" ]]; then
-  declare -a tachyonStorageTypes=(STORE NO_STORE)
+  declare -a nativeStorageTypes=(STORE NO_STORE)
   declare -a ufsStorageTypes=(SYNC_PERSIST NO_PERSIST)
 
   failed=0
-  for tachyonStorageType in ${tachyonStorageTypes[@]}; do
+  for nativeStorageType in ${nativeStorageTypes[@]}; do
     for ufsStorageType in ${ufsStorageTypes[@]}; do
-      if [[ ${tachyonStorageType} == "NO_STORE" ]] && [[ ${ufsStorageType} == "NO_PERSIST" ]]; then
+      if [[ ${nativeStorageType} == "NO_STORE" ]] && [[ ${ufsStorageType} == "NO_PERSIST" ]]; then
         continue
       fi
       for example in Basic BasicNonByteBuffer BasicRawTable; do
-        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${tachyonStorageType} ${ufsStorageType}
-        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${tachyonStorageType} ${ufsStorageType}
+        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${nativeStorageType} ${ufsStorageType}
+        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${nativeStorageType} ${ufsStorageType}
         st=$?
 
         # If test process received a signal abort early
