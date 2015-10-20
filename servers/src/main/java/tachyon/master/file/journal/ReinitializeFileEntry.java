@@ -46,7 +46,7 @@ public final class ReinitializeFileEntry extends JournalEntry {
     return mBlockSizeBytes;
   }
 
-  @JsonGetter("ttl")
+  @JsonGetter
   public long getTTL() {
     return mTTL;
   }

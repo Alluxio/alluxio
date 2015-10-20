@@ -45,13 +45,6 @@ public class LineageEntry extends JournalEntry {
 
   /**
    * Constructor used for deserializing the entry.
-   * @param id
-   * @param inputFiles
-   * @param outputFileIds
-   * @param outputFileStates
-   * @param jobCommand
-   * @param jobOutputPath
-   * @param creationTimeMs
    */
   @JsonCreator
   public LineageEntry(@JsonProperty("id") long id,
@@ -122,17 +115,17 @@ public class LineageEntry extends JournalEntry {
     return mId;
   }
 
-  @JsonGetter("inputFiles")
+  @JsonGetter
   public List<Long> getInputFiles() {
     return mInputFiles;
   }
 
-  @JsonGetter("outputFileIds")
+  @JsonGetter
   public List<Long> getOutputFileIds() {
     return mOutputFileIds;
   }
 
-  @JsonGetter("outputFileStates")
+  @JsonGetter
   public List<LineageFileState> getOutputFileStates() {
     return mOutputFileStates;
   }

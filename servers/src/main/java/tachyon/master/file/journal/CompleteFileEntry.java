@@ -41,22 +41,22 @@ public final class CompleteFileEntry extends JournalEntry {
     mOpTimeMs = opTimeMs;
   }
 
-  @JsonGetter("blockIds")
+  @JsonGetter
   public List<Long> getBlockIds() {
     return mBlockIds;
   }
 
-  @JsonGetter("id")
-  public long getFileId() {
+  @JsonGetter
+  public long getId() {
     return mId;
   }
 
-  @JsonGetter("length")
-  public long getFileLength() {
+  @JsonGetter
+  public long getLength() {
     return mLength;
   }
 
-  @JsonGetter("operationTimeMs")
+  @JsonGetter
   public long getOperationTimeMs() {
     return mOpTimeMs;
   }

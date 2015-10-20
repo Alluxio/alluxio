@@ -304,7 +304,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void persistFileFromEntry(PersistFileEntry entry) {
     try {
-      persistFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+      persistFileInternal(entry.getFileId(), entry.getLength(), entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     } catch (SuspectedFileSizeException sfse) {
@@ -468,7 +468,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
     try {
-      completeFileInternal(entry.getBlockIds(), entry.getFileId(), entry.getFileLength(), true,
+      completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(), true,
           entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
