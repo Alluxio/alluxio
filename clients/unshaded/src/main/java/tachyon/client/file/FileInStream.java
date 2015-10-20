@@ -28,7 +28,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
@@ -59,7 +59,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
 
   /** How the data should be written into Tachyon space, if at all */
-  private final TachyonStorageType mTachyonStorageType;
+  private final NativeStorageType mNativeStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
   private final long mBlockSize;
   /** Total length of the file in bytes */
@@ -91,8 +91,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
     mContext = FileSystemContext.INSTANCE;
-    mTachyonStorageType = options.getTachyonStorageType();
-    mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mNativeStorageType = options.getNativeStorageType();
+    mShouldCacheCurrentBlock = mNativeStorageType.isStore();
     mClosed = false;
   }
 
@@ -214,7 +214,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * Convenience method for updating mCurrentBlockInStream, mShouldCacheCurrentBlock, and
    * mCurrentCacheStream. If the block boundary has been reached, the current BlockInStream is
    * closed and a the next one is opened. mShouldCacheCurrent block is set to
-   * mTachyonStorageType.isCache(). mCurrentCacheStream is also closed and a new one is created for
+   * mNativeStorageType.isStore(). mCurrentCacheStream is also closed and a new one is created for
    * the next block.
    *
    * @throws IOException if the next BlockInStream cannot be obtained
@@ -313,7 +313,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       mCurrentBlockInStream.close();
     }
     try {
-      if (mTachyonStorageType.isPromote()) {
+      if (mNativeStorageType.isPromote()) {
         try {
           mContext.getTachyonBlockStore().promote(blockId);
         } catch (IOException ioe) {
@@ -323,7 +323,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       }
       mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(blockId);
       mShouldCacheCurrentBlock =
-          !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
+          !(mCurrentBlockInStream instanceof LocalBlockInStream) && mNativeStorageType.isStore();
     } catch (IOException ioe) {
       LOG.debug("Failed to get BlockInStream for " + blockId + ", using ufs instead", ioe);
       if (!mFileInfo.isPersisted) {
@@ -334,7 +334,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
       mCurrentBlockInStream =
           new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
-      mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+      mShouldCacheCurrentBlock = mNativeStorageType.isStore();
     }
   }
 }

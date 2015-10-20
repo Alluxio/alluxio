@@ -18,13 +18,13 @@ package tachyon.client.file.options;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class InStreamOptions {
   public static class Builder {
-    private TachyonStorageType mTachyonStorageType;
+    private NativeStorageType mNativeStorageType;
 
     /**
      * Creates a new builder for {@link InStreamOptions}.
@@ -32,16 +32,16 @@ public final class InStreamOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mTachyonStorageType =
-          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
+      mNativeStorageType =
+          conf.getEnum(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, NativeStorageType.class);
     }
 
     /**
-     * @param tachyonStorageType the Tachyon storage type to use
+     * @param nativeStorageType the Tachyon storage type to use
      * @return the builder
      */
-    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
-      mTachyonStorageType = tachyonStorageType;
+    public Builder setNativeStorageType(NativeStorageType nativeStorageType) {
+      mNativeStorageType = nativeStorageType;
       return this;
     }
 
@@ -55,7 +55,7 @@ public final class InStreamOptions {
     }
   }
 
-  private final TachyonStorageType mTachyonStorageType;
+  private final NativeStorageType mNativeStorageType;
 
   /**
    * @return the default {@code InStreamOptions}
@@ -65,13 +65,13 @@ public final class InStreamOptions {
   }
 
   private InStreamOptions(InStreamOptions.Builder builder) {
-    mTachyonStorageType = builder.mTachyonStorageType;
+    mNativeStorageType = builder.mNativeStorageType;
   }
 
   /**
    * @return the Tachyon storage type
    */
-  public TachyonStorageType getTachyonStorageType() {
-    return mTachyonStorageType;
+  public NativeStorageType getNativeStorageType() {
+    return mNativeStorageType;
   }
 }

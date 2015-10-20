@@ -53,14 +53,14 @@ the block from where it is already stored. If Tachyon is configured with multipl
 block will not be necessarily read from the top tier, since it could have been moved to a lower tier
 transparently.
 
-Reading data with the TachyonStorageType.PROMOTE will ensure the data is first transferred to the
+Reading data with the NativeStorageType.PROMOTE will ensure the data is first transferred to the
 top tier before it is read from the worker. This can also be used as a data management strategy by
 explicitly moving hot data to higher tiers.
 
 ### Pinning Files
 
 Another way for a user to control the placement and movement of their files is to *pin* and *unpin*
-files. When a file is pinned, its blocks will not be evicted. However, users can still promote blocks 
+files. When a file is pinned, its blocks will not be evicted. However, users can still promote blocks
 of pinned files to move blocks to the top tier.
 
 An example of how to pin a file:
@@ -186,8 +186,8 @@ file paths of the second tier
 the second layer to be 0.1
 
 There are a few restrictions to defining the tiers. First of all, there can be at most 3 tiers.
-Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the 
-alias HDD. If you want Tachyon to use multiple hard drives for the HDD tier, you can configure that 
+Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the
+alias HDD. If you want Tachyon to use multiple hard drives for the HDD tier, you can configure that
 by using multiple paths for `tachyon.worker.tieredstore.level{x}.dirs.path`.
 
 Additionally, the specific evictor and allocator strategies can be configured. Those configuration

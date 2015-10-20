@@ -85,11 +85,11 @@ public class TachyonFileSystemIntegrationTest {
     sPort = sLocalTachyonCluster.getMasterPort();
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     sReadCache =
         new InStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE).build();
+            .setNativeStorageType(NativeStorageType.STORE).build();
   }
 
   @Test

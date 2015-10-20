@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -48,11 +48,11 @@ public class BasicOperations implements Callable<Boolean> {
   private final int mNumbers = 20;
 
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType) {
+      NativeStorageType nativeStorageType, UnderStorageType underStorageType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
+        .setNativeStorageType(nativeStorageType).setUnderStorageType(underStorageType).build();
   }
 
   @Override
@@ -105,7 +105,7 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.debug("Reading data...");
     TachyonFile file = new TachyonFile(fileId);
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.STORE).build();
+        .setNativeStorageType(NativeStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
     FileInStream is = tachyonFileSystem.getInStream(file, clientOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
@@ -128,6 +128,6 @@ public class BasicOperations implements Callable<Boolean> {
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
+        NativeStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
   }
 }

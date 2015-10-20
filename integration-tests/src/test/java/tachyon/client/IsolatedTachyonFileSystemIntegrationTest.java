@@ -73,7 +73,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
         mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
         new OutStreamOptions.Builder(mWorkerTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 

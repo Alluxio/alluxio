@@ -30,7 +30,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
 import tachyon.client.FileSystemMasterClient;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -59,7 +59,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
 
   private final long mBlockSize;
-  protected final TachyonStorageType mTachyonStorageType;
+  protected final NativeStorageType mNativeStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
@@ -86,7 +86,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
-    mTachyonStorageType = options.getTachyonStorageType();
+    mNativeStorageType = options.getNativeStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
@@ -104,7 +104,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mHostname = options.getHostname();
-    mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mShouldCacheCurrentBlock = mNativeStorageType.isStore();
   }
 
   @Override
@@ -149,7 +149,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    if (mTachyonStorageType.isStore()) {
+    if (mNativeStorageType.isStore()) {
       try {
         if (mCanceled) {
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
@@ -252,7 +252,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    if (mTachyonStorageType.isStore()) {
+    if (mNativeStorageType.isStore()) {
       mCurrentBlockOutStream =
           mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
       mShouldCacheCurrentBlock = true;

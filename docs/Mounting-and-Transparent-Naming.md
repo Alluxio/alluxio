@@ -32,8 +32,8 @@ was not created through Tachyon. For instance, if the underlying storage system 
 `Data` with files `Reports` and `Sales`, all of which were not created through Tachyon, their
 metadata will be loaded into Tachyon the first time they are accessed (e.g. when the user asks to
 list the contents of the top-level directory or when they request to open a file). The data of file
-is not loaded to Tachyon during this process. To load the data into Tachyon, one can set the 
-`TachyonStorageType` to `STORE` when reading the data for the first time or use the `load` command
+is not loaded to Tachyon during this process. To load the data into Tachyon, one can set the
+`NativeStorageType` to `STORE` when reading the data for the first time or use the `load` command
 of the Tachyon shell.
 
 ## Mounting API

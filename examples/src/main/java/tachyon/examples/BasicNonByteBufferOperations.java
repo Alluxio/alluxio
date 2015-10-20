@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -43,22 +43,22 @@ import tachyon.exception.TachyonException;
  * </p>
  * <p>
  * This example also let users play around with how to work with files a bit more. The
- * {@link tachyon.client.TachyonStorageType} is something that can be set, as well as ability to
+ * {@link tachyon.client.NativeStorageType} is something that can be set, as well as ability to
  * delete file if exists.
  * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final TachyonStorageType mTachyonWriteType;
+  private final NativeStorageType mTachyonWriteType;
   private final UnderStorageType mUfsWriteType;
-  private final TachyonStorageType mReadType;
+  private final NativeStorageType mReadType;
   private final boolean mDeleteIfExists;
   private final int mLength;
 
   public BasicNonByteBufferOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType,
-      TachyonStorageType readType, boolean deleteIfExists, int length) {
+      NativeStorageType tachyonWriteType, UnderStorageType ufsWriteType,
+      NativeStorageType readType, boolean deleteIfExists, int length) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mTachyonWriteType = tachyonWriteType;
@@ -80,10 +80,10 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private void write(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
-      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType, boolean deleteIfExists,
+      NativeStorageType tachyonWriteType, UnderStorageType ufsWriteType, boolean deleteIfExists,
       int length) throws IOException, TachyonException {
     OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(tachyonWriteType).setUnderStorageType(ufsWriteType).build();
+        .setNativeStorageType(tachyonWriteType).setUnderStorageType(ufsWriteType).build();
     // If the file exists already, we will override it.
     FileOutStream fileOutStream =
         getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
@@ -120,9 +120,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private boolean read(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
-      TachyonStorageType readType) throws IOException, TachyonException {
+      NativeStorageType readType) throws IOException, TachyonException {
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(readType).build();
+        .setNativeStorageType(readType).build();
     TachyonFile file = tachyonFileSystem.open(filePath);
     DataInputStream input = new DataInputStream(tachyonFileSystem.getInStream(file, clientOptions));
     boolean passes = true;
@@ -143,9 +143,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
 
     Utils.runExample(new BasicNonByteBufferOperations(new TachyonURI(args[0]),
-        new TachyonURI(args[1]), Utils.option(args, 2, TachyonStorageType.STORE),
+        new TachyonURI(args[1]), Utils.option(args, 2, NativeStorageType.STORE),
         Utils.option(args, 3, UnderStorageType.NO_PERSIST),
-        Utils.option(args, 4, TachyonStorageType.NO_STORE), Utils.option(args, 5, true),
+        Utils.option(args, 4, NativeStorageType.NO_STORE), Utils.option(args, 5, true),
         Utils.option(args, 6, 20)));
   }
 

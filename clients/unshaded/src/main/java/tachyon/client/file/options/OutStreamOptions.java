@@ -18,7 +18,7 @@ package tachyon.client.file.options;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
@@ -27,7 +27,7 @@ public final class OutStreamOptions {
   public static class Builder {
     private long mBlockSizeBytes;
     private String mHostname;
-    private TachyonStorageType mTachyonStorageType;
+    private NativeStorageType mNativeStorageType;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
 
@@ -39,8 +39,8 @@ public final class OutStreamOptions {
     public Builder(TachyonConf conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mHostname = null;
-      mTachyonStorageType =
-          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
+      mNativeStorageType =
+          conf.getEnum(Constants.USER_FILE_NATIVE_STORAGE_TYPE_DEFAULT, NativeStorageType.class);
       mUnderStorageType =
           conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
       mTTL = Constants.NO_TTL;
@@ -65,11 +65,11 @@ public final class OutStreamOptions {
     }
 
     /**
-     * @param tachyonStorageType the Tachyon storage type to use
+     * @param nativeStorageType the Tachyon storage type to use
      * @return the builder
      */
-    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
-      mTachyonStorageType = tachyonStorageType;
+    public Builder setNativeStorageType(NativeStorageType nativeStorageType) {
+      mNativeStorageType = nativeStorageType;
       return this;
     }
 
@@ -105,7 +105,7 @@ public final class OutStreamOptions {
 
   private final long mBlockSizeBytes;
   private final String mHostname;
-  private final TachyonStorageType mTachyonStorageType;
+  private final NativeStorageType mNativeStorageType;
   private final UnderStorageType mUnderStorageType;
   private final long mTTL;
 
@@ -119,7 +119,7 @@ public final class OutStreamOptions {
   private OutStreamOptions(OutStreamOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
     mHostname = builder.mHostname;
-    mTachyonStorageType = builder.mTachyonStorageType;
+    mNativeStorageType = builder.mNativeStorageType;
     mTTL = builder.mTTL;
     mUnderStorageType = builder.mUnderStorageType;
   }
@@ -141,8 +141,8 @@ public final class OutStreamOptions {
   /**
    * @return the Tachyon storage type
    */
-  public TachyonStorageType getTachyonStorageType() {
-    return mTachyonStorageType;
+  public NativeStorageType getNativeStorageType() {
+    return mNativeStorageType;
   }
 
   /**

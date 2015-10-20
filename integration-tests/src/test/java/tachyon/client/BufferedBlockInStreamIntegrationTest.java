@@ -48,7 +48,7 @@ public class BufferedBlockInStreamIntegrationTest {
   private static TachyonFileSystem sTfs;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteBoth;
-  private static OutStreamOptions sWriteTachyon;
+  private static OutStreamOptions sWriteNative;
   private static OutStreamOptions sWriteUnderStore;
 
   @AfterClass
@@ -64,14 +64,14 @@ public class BufferedBlockInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
+        new OutStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
+    sWriteNative =
+        new OutStreamOptions.Builder(sTachyonConf).setNativeStorageType(NativeStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sWriteUnderStore =
         new OutStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setNativeStorageType(NativeStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
@@ -189,7 +189,7 @@ public class BufferedBlockInStreamIntegrationTest {
   private List<OutStreamOptions> getOptionSet() {
     List<OutStreamOptions> ret = new ArrayList<OutStreamOptions>(3);
     ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
+    ret.add(sWriteNative);
     ret.add(sWriteUnderStore);
     return ret;
   }

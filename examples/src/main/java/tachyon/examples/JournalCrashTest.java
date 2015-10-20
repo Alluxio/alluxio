@@ -32,7 +32,7 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -257,7 +257,7 @@ public class JournalCrashTest {
     // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
     sOutStreamOptions =
         new OutStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setNativeStorageType(NativeStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     // Set the max retry to avoid long pending for client disconnect.
     if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {

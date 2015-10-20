@@ -36,7 +36,7 @@ import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -154,7 +154,7 @@ public class DataServerIntegrationTest {
   public void lengthTooSmall() throws IOException, TachyonException {
     final int length = 20;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, 0, length * -2);
@@ -165,7 +165,7 @@ public class DataServerIntegrationTest {
   public void multiReadTest() throws IOException, TachyonException {
     final int length = 20;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/multiReadTest", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/multiReadTest", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     for (int i = 0; i < 10; i ++) {
@@ -178,7 +178,7 @@ public class DataServerIntegrationTest {
   public void negativeOffset() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, length * -2, 1);
@@ -189,14 +189,14 @@ public class DataServerIntegrationTest {
   public void readMultiFiles() throws IOException, TachyonException {
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
     TachyonFile file1 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/readFile1", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/readFile1", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block1 = getFirstBlockInfo(file1);
     DataServerMessage recvMsg1 = request(block1);
     assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
     TachyonFile file2 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/readFile2", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/readFile2", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block2 = getFirstBlockInfo(file2);
     DataServerMessage recvMsg2 = request(block2);
@@ -213,7 +213,7 @@ public class DataServerIntegrationTest {
   @Test
   public void readPartialTest1() throws TachyonException, IOException {
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, 10);
     BlockInfo block = getFirstBlockInfo(file);
     final int offset = 0;
@@ -225,7 +225,7 @@ public class DataServerIntegrationTest {
   @Test
   public void readPartialTest2() throws TachyonException, IOException {
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, 10);
     BlockInfo block = getFirstBlockInfo(file);
     final int offset = 2;
@@ -239,7 +239,7 @@ public class DataServerIntegrationTest {
   public void readTest() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block);
@@ -250,7 +250,7 @@ public class DataServerIntegrationTest {
   public void readThroughClientTest() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
 
@@ -269,7 +269,7 @@ public class DataServerIntegrationTest {
   public void readThroughClientNonExistentTest() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/testFile", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
 
@@ -296,7 +296,7 @@ public class DataServerIntegrationTest {
   public void readTooLarge() throws IOException, TachyonException {
     final int length = 20;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, 0, length * 2);
@@ -307,7 +307,7 @@ public class DataServerIntegrationTest {
   public void tooLargeOffset() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
+        TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", NativeStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block, length * 2, 1);

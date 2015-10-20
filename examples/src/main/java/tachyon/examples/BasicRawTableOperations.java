@@ -28,7 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
@@ -50,7 +50,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
-      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType) {
+      NativeStorageType tachyonWriteType, UnderStorageType ufsWriteType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
     if (tachyonWriteType.isStore()) {
@@ -139,6 +139,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       System.exit(-1);
     }
     Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
+        NativeStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
   }
 }

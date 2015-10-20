@@ -24,7 +24,7 @@ package tachyon.client;
  * storage.</li>
  * </ul>
  */
-public enum TachyonStorageType {
+public enum NativeStorageType {
   /** Put the data reading or writing in Tachyon storage. */
   STORE(1),
 
@@ -36,7 +36,7 @@ public enum TachyonStorageType {
 
   private final int mValue;
 
-  TachyonStorageType(int value) {
+  NativeStorageType(int value) {
     mValue = value;
   }
 

@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.NativeStorageType;
 import tachyon.client.UnderStorageType;
 
 public final class Utils {
@@ -68,13 +68,13 @@ public final class Utils {
     }
   }
 
-  public static TachyonStorageType option(String[] args, int index,
-      TachyonStorageType defaultValue) {
+  public static NativeStorageType option(String[] args, int index,
+      NativeStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return TachyonStorageType.valueOf(args[index]);
+        return NativeStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse TachyonStorageType;" + e.getMessage());
+        System.err.println("Unable to parse NativeStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }
