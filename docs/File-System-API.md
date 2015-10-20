@@ -9,10 +9,10 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Tachyon provides access to data through a filesystem interface. Files in Tachyon offer the write-once 
-semantics: they become immutable after they have been written in their entirety. Tachyon provides two 
-different Filesystem APIs, a native API and a Hadoop compatible API. The native API provides better 
-performance, while the Hadoop compatible API gives users the flexibility of leveraging Tachyon without 
+Tachyon provides access to data through a filesystem interface. Files in Tachyon offer the write-once
+semantics: they become immutable after they have been written in their entirety. Tachyon provides two
+different Filesystem APIs, a native API and a Hadoop compatible API. The native API provides better
+performance, while the Hadoop compatible API gives users the flexibility of leveraging Tachyon without
 having to modify existing code written using Hadoop's API.
 
 # Native API
@@ -30,7 +30,7 @@ TachyonFileSystem tfs = TachyonFileSystemFactory.get();
 ### Creating a File
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
-done through the TachyonFileSystem object. Since Tachyon files are immutable once written, the 
+done through the TachyonFileSystem object. Since Tachyon files are immutable once written, the
 idiomatic way to create files is to use `TachyonFileSystem#getOutStream(TachyonURI)`, which returns
 a stream object that can be used to write the file. For example:
 
@@ -58,14 +58,69 @@ OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
 FileOutStream out = tfs.getOutputStream(path, options);
 ```
 
+### IO Options
+
+There are two different types of storage in Tachyon, natively managed storage and under storage.
+Natively managed storage is the memory, SSD, and/or HDD which is allocated to Tachyon workers. For
+read and write operations, users can specify the `NativeStorageType` to fine tune the interaction
+with Tachyon's native storage. Likewise, users can specify the `UnderStorageType` to fine tune the
+data operations with the under storage, such as S3, Swift, or HDFS. Note that read operations are
+affected by `NativeStorageType` (the data can be stored in more Tachyon workers) but not
+`UnderStorageType`.
+
+Below is a table of commonly used `NativeStorageType` and `UnderStorageType` combinations.
+
+<table class="table">
+<tr><th>NativeStorageType</th><th>UnderStorageType</th><th>Read Behavior</th><th>Write Behavior</th>
+</tr>
+<tr>
+  <td>PROMOTE</td>
+  <td>NO_PERSIST</td>
+  <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
+  on the local worker, a replica will be added to the local Tachyon worker for each completely read
+  data block.</td>
+  <td>Data is written synchronously to a Tachyon worker.</td>
+</tr>
+<tr>
+  <td>PROMOTE</td>
+  <td>SYNC_PERSIST</td>
+  <td>Data is moved to the highest tier in the worker where the data was read. If the data was not
+  in the native storage of the local worker, a replica will be added to the local Tachyon worker for
+  each completely read data block.</td>
+  <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
+</tr>
+<tr>
+  <td>STORE</td>
+  <td>NO_PERSIST</td>
+  <td>If the data was in the native storage of the local worker, a replica will be added to the
+  local Tachyon worker for each completely read data block.</td>
+  <td>Data is written synchronously to a Tachyon worker.</td>
+</tr>
+<tr>
+  <td>STORE</td>
+  <td>SYNC_PERSIST</td>
+  <td>If the data was in the native storage of the local worker, a replica will be added to the
+  local Tachyon worker for each completely read data block.</td>
+  <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
+</tr>
+<tr>
+  <td>NO_STORE</td>
+  <td>SYNC_PERSIST</td>
+  <td>Data is read preferrably from native storage, then under storage. No replicas will be created.
+  </td>
+  <td>Data is written synchronously to the under storage system.</td>
+</tr>
+</table>
+
 ### Opening a TachyonFile
 
 Operations on an already existing file require its `TachyonFile` handle. The general contract of
 the filesystem client is that operations creating new files expect `TachyonURI` while operations on
-existing files expect `TachyonFile`. The `TachyonFile` handle is not a lock; other clients may 
-still delete or rename the file. However, for renames, the handle will still be valid and reference 
-the same file. A lock is used internally to guarantee atomicity of concurrent operations and also to prevent deletion of files that are opened for reading. Below is an example of how to obtain a `TachyonFile` 
-handle:
+existing files expect `TachyonFile`. The `TachyonFile` handle is not a lock; other clients may
+still delete or rename the file. However, for renames, the handle will still be valid and reference
+the same file. A lock is used internally to guarantee atomicity of concurrent operations and also to
+prevent deletion of files that are opened for reading. Below is an example of how to obtain a
+`TachyonFile` handle:
 
 ```java
 TachyonFileSystem tfs = TachyonFileSystemFactory.get();
@@ -76,7 +131,7 @@ TachyonFile file = tfs.open(path);
 
 ### Reading Data
 
-After obtaining a `TachyonFile` handle, the user may modify the file metadata or get an input stream 
+After obtaining a `TachyonFile` handle, the user may modify the file metadata or get an input stream
 to read the file. For example:
 
 ```java
