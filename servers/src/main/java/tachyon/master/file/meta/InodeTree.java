@@ -281,17 +281,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
               .setId(mDirectoryIdGenerator.getNewDirectoryId())
               .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
               .build();
+      if (options.isPersisted()) {
+        String ufsPath = mMountTable.resolve(getPath(lastInode)).getPath();
+        UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+        ufs.mkdirs(ufsPath, false);
+      }
     } else {
       lastInode =
           new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
               .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL()).setName(name)
               .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
               .setCreationTimeMs(options.getOperationTimeMs()).build();
-      if (options.isPersisted()) {
-        String ufsPath = mMountTable.resolve(getPath(lastInode)).getPath();
-        UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-        ufs.mkdirs(ufsPath, false);
-      }
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(lastInode.getId());
@@ -507,7 +507,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   private TraversalResult traverseToInode(String[] pathComponents, boolean persist)
       throws InvalidPathException, IOException {
-    List<Inode> persisted = Collections.emptyList();
+    List<Inode> persisted = Lists.newArrayList();
 
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");
@@ -542,10 +542,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
         }
       } else {
         // next is a directory and keep navigating
-        if (persist && !current.isPersisted()) {
-          current.setPersisted(true);
-          persisted.add(current);
-          String ufsPath = mMountTable.resolve(getPath(current)).getPath();
+        if (persist && !next.isPersisted()) {
+          next.setPersisted(true);
+          persisted.add(next);
+          String ufsPath = mMountTable.resolve(getPath(next)).getPath();
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           ufs.mkdirs(ufsPath, false);
         }

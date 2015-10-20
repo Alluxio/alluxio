@@ -291,6 +291,10 @@ public final class FileSystemMaster extends MasterBase {
       needLog = true;
     }
 
+    if (!file.isPersisted()) {
+      file.setPersisted(true);
+      needLog = true;
+    }
     file.setLastModificationTimeMs(opTimeMs);
     file.setCompleted(length);
     MasterContext.getMasterSource().incFilesCheckpointed();
@@ -487,7 +491,6 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
-      List<Inode> modified = createResult.getModified();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
       journalCreatePathResult(createResult);

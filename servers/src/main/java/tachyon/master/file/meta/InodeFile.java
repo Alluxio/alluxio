@@ -104,7 +104,7 @@ public final class InodeFile extends Inode {
   private long mBlockSizeBytes;
 
   // list of block ids.
-  private List<Long> mBlocks;
+  private List<Long> mBlocks = new ArrayList<Long>(3);
 
   // length of inode file in bytes.
   private long mLength = 0;
