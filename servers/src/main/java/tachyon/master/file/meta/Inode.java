@@ -22,7 +22,7 @@ import tachyon.thrift.FileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
-  public abstract static class Builder {
+  public abstract static class Builder<T> {
     private long mCreationTimeMs;
     protected boolean mDirectory;
     protected long mId;
@@ -38,29 +38,29 @@ public abstract class Inode implements JournalEntryRepresentable {
       mParentId = InodeTree.NO_PARENT;
     }
 
-    public Builder setCreationTimeMs(long creationTimeMs) {
+    public T setCreationTimeMs(long creationTimeMs) {
       mCreationTimeMs = creationTimeMs;
-      return this;
+      return (T) this;
     }
 
-    public Builder setId(long id) {
+    public T setId(long id) {
       mId = id;
-      return this;
+      return (T) this;
     }
 
-    public Builder setName(String name) {
+    public T setName(String name) {
       mName = name;
-      return this;
+      return (T) this;
     }
 
-    public Builder setParentId(long parentId) {
+    public T setParentId(long parentId) {
       mParentId = parentId;
-      return this;
+      return (T) this;
     }
 
-    public Builder setPersisted(boolean persisted) {
+    public T setPersisted(boolean persisted) {
       mPersisted = persisted;
-      return this;
+      return (T) this;
     }
 
     /**

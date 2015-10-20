@@ -934,7 +934,7 @@ public final class FileSystemMaster extends MasterBase {
    * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
    * Synchronization is required outside of this method.
    *
-   * @param createResult a {@link InodeTree.CreatePathResult} to journal
+   * @param createResult the {@link InodeTree.CreatePathResult} to journal
    */
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
     for (Inode inode : createResult.getModified()) {
