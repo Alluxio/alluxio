@@ -134,7 +134,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     if (args.length != 4) {
       System.out.println("java -cp " + Constants.TACHYON_JAR
           + " tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>"
-          + "<TachyonStorageType(STORE|NO_STORE)> <UnderStorageType(SYNC_PERSIST|NO_PERSIST)");
+          + " <TachyonStorageType(STORE|NO_STORE)> <UnderStorageType(SYNC_PERSIST|NO_PERSIST)");
       System.exit(-1);
     }
     Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
