@@ -38,6 +38,7 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -345,7 +346,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the RawTable's path
    * @param columns number of columns it has
    * @param metadata the meta data of the RawTable
-   * @return the id if succeed, -1 otherwise
+   * @return the id if succeed, {@link tachyon.util.IdUtils#INVALID_FILE_ID} otherwise
    * @throws IOException if the number of columns is invalid or the underlying master RPC fails
    */
   public synchronized long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
@@ -356,7 +357,14 @@ public class TachyonFS extends AbstractTachyonFS {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
     }
-    return mRawTableMasterClient.createRawTable(path, columns, metadata);
+    long tableId = mRawTableMasterClient.createRawTable(path, columns, metadata);
+    if (tableId != IdUtils.INVALID_FILE_ID) {
+      mkdirs(path, true);
+      for (int i = 0; i < columns; i ++) {
+        mkdirs(new TachyonURI(RawColumn.getColumnPath(path.toString(), i)), true);
+      }
+    }
+    return tableId;
   }
 
   /**
