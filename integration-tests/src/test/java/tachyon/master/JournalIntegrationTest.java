@@ -594,13 +594,13 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void TableTest() throws Exception {
+  public void tableTest() throws Exception {
     mOldTfs.createRawTable(new TachyonURI("/xyz"), 10);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     mLocalTachyonCluster.stopTFS();
-    TableTestUtil(fInfo);
+    tableTestUtil(fInfo);
     deleteFsMasterJournalLogs();
-    TableTestUtil(fInfo);
+    tableTestUtil(fInfo);
   }
 
   private List<FileInfo> lsr(FileSystemMaster fsMaster, long fileId)
@@ -613,7 +613,7 @@ public class JournalIntegrationTest {
     return ret;
   }
 
-  private void TableTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
+  private void tableTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
