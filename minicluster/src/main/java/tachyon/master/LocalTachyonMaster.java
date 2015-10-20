@@ -18,6 +18,7 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Random;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -42,6 +43,8 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public final class LocalTachyonMaster {
   // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
+
+  private static Random sRandomGenerator = new Random();
 
   private final String mTachyonHome;
   private final String mHostname;
@@ -77,10 +80,13 @@ public final class LocalTachyonMaster {
     // "hdfs://xxx:xxx/tachyon*".
     mUfsCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
     mUfsDirectory = mUfsCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
+
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
-    mJournalFolder =
-        mUfsCluster.getUnderFilesystemAddress() + "/journal" + System.currentTimeMillis();
+    synchronized (sRandomGenerator) {
+      mJournalFolder =
+          mUfsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
+    }
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
     String[] masterServiceNames = new String[] {
