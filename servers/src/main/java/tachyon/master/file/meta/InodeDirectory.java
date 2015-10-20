@@ -30,41 +30,11 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
-  public static class Builder extends Inode.Builder {
+  public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
 
     public Builder() {
       super();
       mDirectory = true;
-    }
-
-    @Override
-    public Builder setCreationTimeMs(long creationTimeMs) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setCreationTimeMs(creationTimeMs);
-    }
-
-    @Override
-    public Builder setId(long id) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setId(id);
-    }
-
-    @Override
-    public Builder setParentId(long parentId) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setParentId(parentId);
-    }
-
-    @Override
-    public Builder setPersisted(boolean persisted) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setPersisted(persisted);
-    }
-
-    @Override
-    public Builder setName(String name) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setName(name);
     }
 
     /**

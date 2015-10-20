@@ -33,7 +33,7 @@ import tachyon.util.IdUtils;
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
-  public static class Builder extends Inode.Builder {
+  public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
     private long mTTL;
@@ -55,34 +55,10 @@ public final class InodeFile extends Inode {
     }
 
     @Override
-    public Builder setCreationTimeMs(long creationTimeMs) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setCreationTimeMs(creationTimeMs);
-    }
-
-    @Override
     public Builder setId(long id) {
       // id is computed using the block container id
       // TODO(jiri): Should we throw an exception to warn the caller?
       return this;
-    }
-
-    @Override
-    public Builder setParentId(long parentId) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setParentId(parentId);
-    }
-
-    @Override
-    public Builder setPersisted(boolean persisted) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setPersisted(persisted);
-    }
-
-    @Override
-    public Builder setName(String name) {
-      // needed to prevent upcast when chaining
-      return (Builder) super.setName(name);
     }
 
     public Builder setTTL(long ttl) {
