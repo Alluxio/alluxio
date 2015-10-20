@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 
 public final class JsonJournalFormatter implements JournalFormatter {
@@ -63,23 +65,31 @@ public final class JsonJournalFormatter implements JournalFormatter {
       @Override
       public JournalEntry getNextEntry() throws IOException {
         JsonNode entryNode;
+        JsonNode parametersNode;
+        String entryTypeStr;
         try {
           entryNode = mParser.readValueAs(JsonNode.class);
+          mLatestSequenceNumber = Preconditions
+              .checkNotNull(entryNode.get(Constants.JOURNAL_JSON_ENTRY_SEQUENCE_NUMBER_KEY))
+              .asLong();
+          Preconditions.checkNotNull(
+              parametersNode = entryNode.get(Constants.JOURNAL_JSON_ENTRY_PARAMETER_KEY));
+          Preconditions.checkNotNull(
+              entryTypeStr = entryNode.get(Constants.JOURNAL_JSON_ENTRY_TYPE_KEY).asText());
+
         } catch (JsonProcessingException e) {
           return null;
+        } catch (NullPointerException e) {
+          return null;
         }
-        mLatestSequenceNumber =
-            entryNode.get(Constants.JOURNAL_JSON_ENTRY_SEQUENCE_NUMBER_KEY).asLong();
-        JsonNode parametersNode = entryNode.get(Constants.JOURNAL_JSON_ENTRY_PARAMETER_KEY);
-        String entryTypeStr = entryNode.get(Constants.JOURNAL_JSON_ENTRY_TYPE_KEY).asText();
 
         JournalEntryType entryType;
         try {
           entryType = JournalEntryType.valueOf(entryTypeStr);
+          return mObjectMapper.convertValue(parametersNode, entryType.getClazz());
         } catch (IllegalArgumentException e) {
-          throw new IOException("Unknown journal entry type: " + entryTypeStr);
+          throw new IOException("Unknown or malformed journal entry for type: " + entryTypeStr);
         }
-        return mObjectMapper.convertValue(parametersNode, entryType.getClazz());
       }
 
       @Override
