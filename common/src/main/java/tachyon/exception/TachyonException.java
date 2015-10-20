@@ -55,10 +55,10 @@ public abstract class TachyonException extends Exception {
   }
 
   /**
-   * Construct a TachyonException from a TachyonTException.
+   * Constructs a {@link TachyonException} from a {@link TachyonTException}.
    *
-   * @param e The TachyonTException to convert to a TachyonException
-   * @return A TachyonException of the type specified in e, with the message specified in e
+   * @param e the {link TachyonTException} to convert to a {@link TachyonException}
+   * @return a {@link TachyonException} of the type specified in e, with the message specified in e
    */
   public static TachyonException of(TachyonTException e) {
     TachyonExceptionType exceptionType = TachyonExceptionType.valueOf(e.type);
@@ -85,11 +85,11 @@ public abstract class TachyonException extends Exception {
   }
 
   /**
-   * If the given TachyonException is of the given class, throw it.
+   * If the given {@link TachyonException} is of the given class, throw it.
    *
-   * @param e The TachyonException
-   * @param throwClass The type of exception to throw e is of the right type
-   * @throws T If e is of type T
+   * @param e the {@link TachyonException}
+   * @param throwClass the type of exception to throw e is of the right type
+   * @throws T if e is of type T
    */
   public static <T extends TachyonException> void unwrap(TachyonException e, Class<T> throwClass)
       throws T {

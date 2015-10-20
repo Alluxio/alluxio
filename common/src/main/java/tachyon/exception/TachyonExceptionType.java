@@ -37,7 +37,7 @@ public enum TachyonExceptionType {
   private final Class<? extends TachyonException> mExceptionClass;
 
   /**
-   * Construct a TachyonExceptionType along with its corresponding TachyonException
+   * Constructs a {@link TachyonExceptionType} with its corresponding {@link TachyonException}.
    */
   TachyonExceptionType(Class<? extends TachyonException> exceptionClass) {
     mExceptionClass = exceptionClass;
