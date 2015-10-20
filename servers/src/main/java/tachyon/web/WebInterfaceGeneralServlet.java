@@ -18,6 +18,7 @@ package tachyon.web;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
-import tachyon.StorageLevelAlias;
+import tachyon.StorageTierAssoc;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
@@ -40,15 +41,15 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    * Class to make referencing tiered storage information more intuitive.
    */
   public static class StorageTierInfo {
-    private final StorageLevelAlias mStorageLevelAlias;
+    private final String mStorageTierAlias;
     private final long mCapacityBytes;
     private final long mUsedBytes;
     private final int mUsedPercent;
     private final long mFreeBytes;
     private final int mFreePercent;
 
-    private StorageTierInfo(int storageLevelAliasValue, long capacityBytes, long usedBytes) {
-      mStorageLevelAlias = StorageLevelAlias.values()[storageLevelAliasValue - 1];
+    private StorageTierInfo(String storageTierAlias, long capacityBytes, long usedBytes) {
+      mStorageTierAlias = storageTierAlias;
       mCapacityBytes = capacityBytes;
       mUsedBytes = usedBytes;
       mFreeBytes = mCapacityBytes - mUsedBytes;
@@ -57,7 +58,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     public String getStorageLevelAlias() {
-      return mStorageLevelAlias.name();
+      return mStorageTierAlias;
     }
 
     public String getCapacity() {
@@ -115,17 +116,20 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * List the StorageTierInfo objects of each storage level(alias).
    *
-   * @return the list of StorageTierInfo objects
+   * @return the list of StorageTierInfo objects, in order from highest tier to lowest
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
+    StorageTierAssoc globalStorageTierAssoc = mMaster.getBlockMaster().getGlobalStorageTierAssoc();
     List<StorageTierInfo> infos = new ArrayList<StorageTierInfo>();
-    List<Long> totalBytesOnTiers = mMaster.getBlockMaster().getTotalBytesOnTiers();
-    List<Long> usedBytesOnTiers = mMaster.getBlockMaster().getUsedBytesOnTiers();
+    Map<String, Long> totalBytesOnTiers = mMaster.getBlockMaster().getTotalBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = mMaster.getBlockMaster().getUsedBytesOnTiers();
 
-    for (int i = 0; i < totalBytesOnTiers.size(); i ++) {
-      if (totalBytesOnTiers.get(i) > 0) {
+    for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal ++) {
+      String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
+      if (totalBytesOnTiers.get(tierAlias) > 0) {
         StorageTierInfo info =
-            new StorageTierInfo(i + 1, totalBytesOnTiers.get(i), usedBytesOnTiers.get(i));
+            new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
+                usedBytesOnTiers.get(tierAlias));
         infos.add(info);
       }
     }

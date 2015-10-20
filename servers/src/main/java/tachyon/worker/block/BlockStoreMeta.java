@@ -24,7 +24,6 @@ import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.StorageLevelAlias;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
@@ -36,56 +35,48 @@ import tachyon.worker.block.meta.StorageTier;
 public final class BlockStoreMeta {
   // TODO(bin): The following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
-  /**
-   * Capacity bytes on each tier alias (MEM, SSD and HDD). E.g., for two tiers [MEM: 1GB][HDD:
-   * 10GB], this list will be [0:1GB][1:0][2:10GB].
-   */
-  private final List<Long> mCapacityBytesOnTiers =
-      new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+
+  /** Mapping from storage tier alias to capacity bytes */
+  private final Map<String, Long> mCapacityBytesOnTiers = new HashMap<String, Long>();
   private final Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
 
-  /**
-   * Used bytes on each tier alias (MEM, SSD and HDD). This list has the same format with
-   * <code>mCapacityBytesOnTiers</code>.
-   */
-  private final List<Long> mUsedBytesOnTiers =
-      new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
-  private final Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
+  /** Mapping from storage tier alias to used bytes */
+  private final Map<String, Long> mUsedBytesOnTiers = new HashMap<String, Long>();
+  private final Map<String, List<Long>> mBlockIdsOnTiers = new HashMap<String, List<Long>>();
   private final Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
   private final Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
-  private final List<Integer> mAliasOnTiers;
 
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
-    mAliasOnTiers = new ArrayList<Integer>(Collections.nCopies(manager.getTiers().size(), 0));
     for (StorageTier tier : manager.getTiers()) {
-      mAliasOnTiers.set(tier.getTierLevel(), tier.getTierAlias());
-      int aliasIndex = tier.getTierAlias() - 1;
-      mCapacityBytesOnTiers.set(aliasIndex,
-          mCapacityBytesOnTiers.get(aliasIndex) + tier.getCapacityBytes());
-      mUsedBytesOnTiers.set(aliasIndex,
-          mUsedBytesOnTiers.get(aliasIndex) + (tier.getCapacityBytes() - tier.getAvailableBytes()));
+      mCapacityBytesOnTiers.put(tier.getTierAlias(),
+          mCapacityBytesOnTiers.getOrDefault(tier.getTierAlias(), 0L) + tier.getCapacityBytes());
+      mUsedBytesOnTiers.put(
+          tier.getTierAlias(),
+          mUsedBytesOnTiers.getOrDefault(tier.getTierAlias(), 0L)
+              + (tier.getCapacityBytes() - tier.getAvailableBytes()));
+      List<Long> blockIdsOnTier = new ArrayList<Long>();
       for (StorageDir dir : tier.getStorageDirs()) {
-        mBlockIdsOnDirs.put(dir.getStorageDirId(), dir.getBlockIds());
+        blockIdsOnTier.addAll(dir.getBlockIds());
         mCapacityBytesOnDirs.put(dir.getStorageDirId(), dir.getCapacityBytes());
         mUsedBytesOnDirs.put(dir.getStorageDirId(),
             dir.getCapacityBytes() - dir.getAvailableBytes());
         mDirPaths.put(dir.getStorageDirId(), dir.getDirPath());
       }
+      mBlockIdsOnTiers.put(tier.getTierAlias(), blockIdsOnTier);
     }
   }
 
-  public List<Integer> getAliasOnTiers() {
-    return mAliasOnTiers;
-  }
-
-  public Map<Long, List<Long>> getBlockList() {
-    return mBlockIdsOnDirs;
+  /**
+   * @return A mapping from storage tier alias to blocks
+   */
+  public Map<String, List<Long>> getBlockList() {
+    return mBlockIdsOnTiers;
   }
 
   public long getCapacityBytes() {
     long capacityBytes = 0L;
-    for (long capacityBytesOnTier : mCapacityBytesOnTiers) {
+    for (long capacityBytesOnTier : mCapacityBytesOnTiers.values()) {
       capacityBytes += capacityBytesOnTier;
     }
     return capacityBytes;
@@ -95,7 +86,7 @@ public final class BlockStoreMeta {
     return mCapacityBytesOnDirs;
   }
 
-  public List<Long> getCapacityBytesOnTiers() {
+  public Map<String, Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
   }
 
@@ -105,7 +96,7 @@ public final class BlockStoreMeta {
 
   public int getNumberOfBlocks() {
     int numberOfBlocks = 0;
-    for (List<Long> blockIds : mBlockIdsOnDirs.values()) {
+    for (List<Long> blockIds : mBlockIdsOnTiers.values()) {
       numberOfBlocks += blockIds.size();
     }
     return numberOfBlocks;
@@ -113,7 +104,7 @@ public final class BlockStoreMeta {
 
   public long getUsedBytes() {
     long usedBytes = 0L;
-    for (long usedBytesOnTier : mUsedBytesOnTiers) {
+    for (long usedBytesOnTier : mUsedBytesOnTiers.values()) {
       usedBytes += usedBytesOnTier;
     }
     return usedBytes;
@@ -123,7 +114,7 @@ public final class BlockStoreMeta {
     return Collections.unmodifiableMap(mUsedBytesOnDirs);
   }
 
-  public List<Long> getUsedBytesOnTiers() {
-    return Collections.unmodifiableList(mUsedBytesOnTiers);
+  public Map<String, Long> getUsedBytesOnTiers() {
+    return Collections.unmodifiableMap(mUsedBytesOnTiers);
   }
 }

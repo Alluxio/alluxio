@@ -35,7 +35,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, 2, 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, "SDD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -45,7 +45,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, 2, 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, "SDD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -55,7 +55,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, 1, 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "MEM", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700   <--- alloc
@@ -65,7 +65,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, 2, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, "SDD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700

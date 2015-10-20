@@ -34,6 +34,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.StorageTierAssoc;
 import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockAlreadyExistsException;
@@ -73,8 +74,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * coordinates different threads (clients) when accessing the same block concurrently.</li>
  * <li>Any metadata operation (read or write) must go through {@link TieredBlockStore#mMetaManager}
  * and guarded by {@link TieredBlockStore#mMetadataLock}. This is also a read/write lock and
- * coordinates different threads (clients) when accessing the shared data structure for
- * metadata.</li>
+ * coordinates different threads (clients) when accessing the shared data structure for metadata.
+ * </li>
  * <li>Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a
  * temp block which is only visible to its writer before committed (thus no concurrent access).</li>
  * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
@@ -101,27 +102,30 @@ public final class TieredBlockStore implements BlockStore {
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
   /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
+  /** Association between storage tier aliases and ordinals */
+  private final StorageTierAssoc mStorageTierAssoc;
 
   public TieredBlockStore() {
     mTachyonConf = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
-    BlockMetadataManagerView initManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
-            Collections.<Long>emptySet());
+    BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
+        Collections.<Long>emptySet(), Collections.<Long>emptySet());
     mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    initManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
-            Collections.<Long>emptySet());
+    initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
+        Collections.<Long>emptySet());
     mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
+
+    mStorageTierAssoc = new StorageTierAssoc(mTachyonConf, Constants.WORKER_TIERED_STORAGE_LEVELS,
+        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
   @Override
@@ -270,9 +274,9 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) throws BlockDoesNotExistException,
-      BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
-      IOException {
+      BlockStoreLocation newLocation)
+          throws BlockDoesNotExistException, BlockAlreadyExistsException,
+          InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
       if (moveResult.success()) {
@@ -293,8 +297,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
-      BlockDoesNotExistException, IOException {
+  public void removeBlock(long sessionId, long blockId)
+      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     removeBlock(sessionId, blockId, BlockStoreLocation.anyTier());
   }
 
@@ -547,7 +551,7 @@ public final class TieredBlockStore implements BlockStore {
    */
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId,
       BlockStoreLocation location, long initialBlockSize, boolean newBlock)
-      throws BlockAlreadyExistsException {
+          throws BlockAlreadyExistsException {
     // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
     // block lock here since no sharing
     mMetadataWriteLock.lock();
@@ -606,8 +610,8 @@ public final class TieredBlockStore implements BlockStore {
       }
       // Increase the size of this temp block
       try {
-        mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize()
-            + additionalBytes);
+        mMetaManager.resizeTempBlockMeta(tempBlockMeta,
+            tempBlockMeta.getBlockSize() + additionalBytes);
       } catch (InvalidWorkerStateException ise) {
         throw Throwables.propagate(ise); // we shall never reach here
       }
@@ -662,21 +666,19 @@ public final class TieredBlockStore implements BlockStore {
     }
     // 2. transfer blocks among tiers.
     // 2.1. group blocks move plan by the destination tier.
-    Map<Integer, Set<BlockTransferInfo>> blocksGroupedByDestTier =
-        new HashMap<Integer, Set<BlockTransferInfo>>();
+    Map<String, Set<BlockTransferInfo>> blocksGroupedByDestTier =
+        new HashMap<String, Set<BlockTransferInfo>>();
     for (BlockTransferInfo entry : plan.toMove()) {
-      int alias = entry.getDstLocation().tierAlias();
+      String alias = entry.getDstLocation().tierAlias();
       if (!blocksGroupedByDestTier.containsKey(alias)) {
         blocksGroupedByDestTier.put(alias, new HashSet<BlockTransferInfo>());
       }
       blocksGroupedByDestTier.get(alias).add(entry);
     }
-    // 2.2. sort tiers according in reversed order: bottom tier first and top tier last.
-    List<Integer> dstTierAlias = new ArrayList<Integer>(blocksGroupedByDestTier.keySet());
-    Collections.sort(dstTierAlias, Collections.reverseOrder());
-    // 2.3. move blocks in the order of their dst tiers.
-    for (int alias : dstTierAlias) {
-      Set<BlockTransferInfo> toMove = blocksGroupedByDestTier.get(alias);
+    // 2.2. move blocks in the order of their dst tiers, from bottom to top
+    for (int tierOrdinal = mStorageTierAssoc.size() - 1; tierOrdinal >= 0; --tierOrdinal) {
+      Set<BlockTransferInfo> toMove = blocksGroupedByDestTier
+          .getOrDefault(mStorageTierAssoc.getAlias(tierOrdinal), new HashSet<BlockTransferInfo>());
       for (BlockTransferInfo entry : toMove) {
         long blockId = entry.getBlockId();
         BlockStoreLocation oldLocation = entry.getSrcLocation();
@@ -736,8 +738,8 @@ public final class TieredBlockStore implements BlockStore {
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
       BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException {
+          throws BlockDoesNotExistException, BlockAlreadyExistsException,
+          InvalidWorkerStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       long blockSize;

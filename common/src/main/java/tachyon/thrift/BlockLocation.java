@@ -40,7 +40,7 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
 
   private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField WORKER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("workerAddress", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-  private static final org.apache.thrift.protocol.TField TIER_FIELD_DESC = new org.apache.thrift.protocol.TField("tier", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField TIER_ALIAS_FIELD_DESC = new org.apache.thrift.protocol.TField("tierAlias", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,13 +50,13 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
 
   public long workerId; // required
   public NetAddress workerAddress; // required
-  public int tier; // required
+  public String tierAlias; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     WORKER_ID((short)1, "workerId"),
     WORKER_ADDRESS((short)2, "workerAddress"),
-    TIER((short)3, "tier");
+    TIER_ALIAS((short)3, "tierAlias");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -75,8 +75,8 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
           return WORKER_ID;
         case 2: // WORKER_ADDRESS
           return WORKER_ADDRESS;
-        case 3: // TIER
-          return TIER;
+        case 3: // TIER_ALIAS
+          return TIER_ALIAS;
         default:
           return null;
       }
@@ -118,7 +118,6 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
 
   // isset id assignments
   private static final int __WORKERID_ISSET_ID = 0;
-  private static final int __TIER_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -126,9 +125,9 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.WORKER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("workerAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "NetAddress")));
-    tmpMap.put(_Fields.TIER, new org.apache.thrift.meta_data.FieldMetaData("tier", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class)));
+    tmpMap.put(_Fields.TIER_ALIAS, new org.apache.thrift.meta_data.FieldMetaData("tierAlias", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BlockLocation.class, metaDataMap);
   }
@@ -139,14 +138,13 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
   public BlockLocation(
     long workerId,
     NetAddress workerAddress,
-    int tier)
+    String tierAlias)
   {
     this();
     this.workerId = workerId;
     setWorkerIdIsSet(true);
     this.workerAddress = workerAddress;
-    this.tier = tier;
-    setTierIsSet(true);
+    this.tierAlias = tierAlias;
   }
 
   /**
@@ -156,9 +154,11 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     __isset_bitfield = other.__isset_bitfield;
     this.workerId = other.workerId;
     if (other.isSetWorkerAddress()) {
-      this.workerAddress = other.workerAddress;
+      this.workerAddress = new NetAddress(other.workerAddress);
     }
-    this.tier = other.tier;
+    if (other.isSetTierAlias()) {
+      this.tierAlias = other.tierAlias;
+    }
   }
 
   public BlockLocation deepCopy() {
@@ -170,8 +170,7 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     setWorkerIdIsSet(false);
     this.workerId = 0;
     this.workerAddress = null;
-    setTierIsSet(false);
-    this.tier = 0;
+    this.tierAlias = null;
   }
 
   public long getWorkerId() {
@@ -221,27 +220,28 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     }
   }
 
-  public int getTier() {
-    return this.tier;
+  public String getTierAlias() {
+    return this.tierAlias;
   }
 
-  public BlockLocation setTier(int tier) {
-    this.tier = tier;
-    setTierIsSet(true);
+  public BlockLocation setTierAlias(String tierAlias) {
+    this.tierAlias = tierAlias;
     return this;
   }
 
-  public void unsetTier() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TIER_ISSET_ID);
+  public void unsetTierAlias() {
+    this.tierAlias = null;
   }
 
-  /** Returns true if field tier is set (has been assigned a value) and false otherwise */
-  public boolean isSetTier() {
-    return EncodingUtils.testBit(__isset_bitfield, __TIER_ISSET_ID);
+  /** Returns true if field tierAlias is set (has been assigned a value) and false otherwise */
+  public boolean isSetTierAlias() {
+    return this.tierAlias != null;
   }
 
-  public void setTierIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TIER_ISSET_ID, value);
+  public void setTierAliasIsSet(boolean value) {
+    if (!value) {
+      this.tierAlias = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -262,11 +262,11 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
       }
       break;
 
-    case TIER:
+    case TIER_ALIAS:
       if (value == null) {
-        unsetTier();
+        unsetTierAlias();
       } else {
-        setTier((Integer)value);
+        setTierAlias((String)value);
       }
       break;
 
@@ -281,8 +281,8 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     case WORKER_ADDRESS:
       return getWorkerAddress();
 
-    case TIER:
-      return Integer.valueOf(getTier());
+    case TIER_ALIAS:
+      return getTierAlias();
 
     }
     throw new IllegalStateException();
@@ -299,8 +299,8 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
       return isSetWorkerId();
     case WORKER_ADDRESS:
       return isSetWorkerAddress();
-    case TIER:
-      return isSetTier();
+    case TIER_ALIAS:
+      return isSetTierAlias();
     }
     throw new IllegalStateException();
   }
@@ -336,12 +336,12 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
         return false;
     }
 
-    boolean this_present_tier = true;
-    boolean that_present_tier = true;
-    if (this_present_tier || that_present_tier) {
-      if (!(this_present_tier && that_present_tier))
+    boolean this_present_tierAlias = true && this.isSetTierAlias();
+    boolean that_present_tierAlias = true && that.isSetTierAlias();
+    if (this_present_tierAlias || that_present_tierAlias) {
+      if (!(this_present_tierAlias && that_present_tierAlias))
         return false;
-      if (this.tier != that.tier)
+      if (!this.tierAlias.equals(that.tierAlias))
         return false;
     }
 
@@ -362,10 +362,10 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     if (present_workerAddress)
       list.add(workerAddress);
 
-    boolean present_tier = true;
-    list.add(present_tier);
-    if (present_tier)
-      list.add(tier);
+    boolean present_tierAlias = true && (isSetTierAlias());
+    list.add(present_tierAlias);
+    if (present_tierAlias)
+      list.add(tierAlias);
 
     return list.hashCode();
   }
@@ -398,12 +398,12 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTier()).compareTo(other.isSetTier());
+    lastComparison = Boolean.valueOf(isSetTierAlias()).compareTo(other.isSetTierAlias());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTier()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tier, other.tier);
+    if (isSetTierAlias()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tierAlias, other.tierAlias);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -440,8 +440,12 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("tier:");
-    sb.append(this.tier);
+    sb.append("tierAlias:");
+    if (this.tierAlias == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.tierAlias);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -450,6 +454,9 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (workerAddress != null) {
+      workerAddress.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -505,10 +512,10 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // TIER
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.tier = iprot.readI32();
-              struct.setTierIsSet(true);
+          case 3: // TIER_ALIAS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.tierAlias = iprot.readString();
+              struct.setTierAliasIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -536,9 +543,11 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
         struct.workerAddress.write(oprot);
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(TIER_FIELD_DESC);
-      oprot.writeI32(struct.tier);
-      oprot.writeFieldEnd();
+      if (struct.tierAlias != null) {
+        oprot.writeFieldBegin(TIER_ALIAS_FIELD_DESC);
+        oprot.writeString(struct.tierAlias);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -563,7 +572,7 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
       if (struct.isSetWorkerAddress()) {
         optionals.set(1);
       }
-      if (struct.isSetTier()) {
+      if (struct.isSetTierAlias()) {
         optionals.set(2);
       }
       oprot.writeBitSet(optionals, 3);
@@ -573,8 +582,8 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
       if (struct.isSetWorkerAddress()) {
         struct.workerAddress.write(oprot);
       }
-      if (struct.isSetTier()) {
-        oprot.writeI32(struct.tier);
+      if (struct.isSetTierAlias()) {
+        oprot.writeString(struct.tierAlias);
       }
     }
 
@@ -592,8 +601,8 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
         struct.setWorkerAddressIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.tier = iprot.readI32();
-        struct.setTierIsSet(true);
+        struct.tierAlias = iprot.readString();
+        struct.setTierAliasIsSet(true);
       }
     }
   }

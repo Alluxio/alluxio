@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.StorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
@@ -50,10 +51,10 @@ import tachyon.worker.block.meta.TempBlockMeta;
 public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** A list of managed StorageTier */
+  /** A list of managed StorageTier, in order from lowest tier ordinal to greatest */
   private List<StorageTier> mTiers;
   /** A map from tier alias to StorageTier */
-  private Map<Integer, StorageTier> mAliasToTiers;
+  private Map<String, StorageTier> mAliasToTiers;
 
   private BlockMetadataManager() {}
 
@@ -78,14 +79,15 @@ public class BlockMetadataManager {
     return ret;
   }
 
-  private void initBlockMetadataManager() throws BlockAlreadyExistsException, IOException,
-      WorkerOutOfSpaceException {
+  private void initBlockMetadataManager()
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     // Initialize storage tiers
-    int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
-    mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
-    mTiers = new ArrayList<StorageTier>(totalTiers);
-    for (int level = 0; level < totalTiers; level ++) {
-      StorageTier tier = StorageTier.newStorageTier(level);
+    StorageTierAssoc storageTierAssoc = new StorageTierAssoc(WorkerContext.getConf(),
+        Constants.WORKER_TIERED_STORAGE_LEVELS, Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    mAliasToTiers = new HashMap<String, StorageTier>(storageTierAssoc.size());
+    mTiers = new ArrayList<StorageTier>(storageTierAssoc.size());
+    for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal ++) {
+      StorageTier tier = StorageTier.newStorageTier(storageTierAssoc.getAlias(tierOrdinal));
       mTiers.add(tier);
       mAliasToTiers.put(tier.getTierAlias(), tier);
     }
@@ -109,8 +111,8 @@ public class BlockMetadataManager {
    * @throws WorkerOutOfSpaceException when no more space left to hold the block
    * @throws BlockAlreadyExistsException when the block already exists
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws WorkerOutOfSpaceException, BlockAlreadyExistsException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.addTempBlockMeta(tempBlockMeta);
   }
@@ -123,8 +125,8 @@ public class BlockMetadataManager {
    * @throws BlockAlreadyExistsException when the block already exists in committed blocks
    * @throws BlockDoesNotExistException when temp block can not be found
    */
-  public void commitTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
-      BlockAlreadyExistsException, BlockDoesNotExistException {
+  public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws WorkerOutOfSpaceException, BlockAlreadyExistsException, BlockDoesNotExistException {
     BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
@@ -166,7 +168,7 @@ public class BlockMetadataManager {
       return spaceAvailable;
     }
 
-    int tierAlias = location.tierAlias();
+    String tierAlias = location.tierAlias();
     StorageTier tier = getTier(tierAlias);
     // TODO(calvin): This should probably be max of the capacity bytes in the dirs?
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
@@ -259,7 +261,7 @@ public class BlockMetadataManager {
    * @return the StorageTier object associated with the alias
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public StorageTier getTier(int tierAlias) {
+  public StorageTier getTier(String tierAlias) {
     StorageTier tier = mAliasToTiers.get(tierAlias);
     if (tier == null) {
       throw new IllegalArgumentException(
@@ -284,9 +286,9 @@ public class BlockMetadataManager {
    * @return the list of StorageTier
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public List<StorageTier> getTiersBelow(int tierAlias) {
-    int level = getTier(tierAlias).getTierLevel();
-    return mTiers.subList(level + 1, mTiers.size());
+  public List<StorageTier> getTiersBelow(String tierAlias) {
+    int ordinal = getTier(tierAlias).getTierOrdinal();
+    return mTiers.subList(ordinal + 1, mTiers.size());
   }
 
   /**
@@ -386,7 +388,7 @@ public class BlockMetadataManager {
     }
 
     long blockSize = blockMeta.getBlockSize();
-    int newTierAlias = newLocation.tierAlias();
+    String newTierAlias = newLocation.tierAlias();
     StorageTier newTier = getTier(newTierAlias);
     StorageDir newDir = null;
     if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {

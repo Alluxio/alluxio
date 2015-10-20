@@ -113,6 +113,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
+    request.setAttribute("highestTierAlias", mMaster.getBlockMaster().getGlobalStorageTierAssoc()
+        .getAlias(0));
   }
 
   /**
