@@ -31,15 +31,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public final class JsonJournalFormatter implements JournalFormatter {
 
   /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
-  public static ObjectMapper createObjectMapper() {
+  private ObjectMapper createObjectMapper() {
     // TODO(cc): Could disable field name quoting, though this would produce technically invalid
     // JSON. See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
     return new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
             .configure(SerializationFeature.CLOSE_CLOSEABLE, false);
   }
 
-  public static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
-  public static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writer();
+  private final ObjectMapper mObjectMapper = createObjectMapper();
+  private final ObjectWriter mObjectWriter = mObjectMapper.writer();
 
   @Override
   public void serialize(SerializableJournalEntry entry, OutputStream outputStream)
@@ -48,14 +48,14 @@ public final class JsonJournalFormatter implements JournalFormatter {
   }
 
   private void writeEntry(SerializableJournalEntry entry, OutputStream os) throws IOException {
-    OBJECT_WRITER.writeValue(os, entry);
+    mObjectWriter.writeValue(os, entry);
     (new DataOutputStream(os)).write('\n');
   }
 
   @Override
   public JournalInputStream deserialize(final InputStream inputStream) throws IOException {
     return new JournalInputStream() {
-      private JsonParser mParser = OBJECT_MAPPER.getFactory().createParser(inputStream);
+      private JsonParser mParser = mObjectMapper.getFactory().createParser(inputStream);
       private long mLatestSequenceNumber = 0;
 
       @Override
@@ -76,7 +76,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
         } catch (IllegalArgumentException e) {
           throw new IOException("Unknown journal entry type: " + entryTypeStr);
         }
-        return OBJECT_MAPPER.convertValue(parametersNode, entryType.getClazz());
+        return mObjectMapper.convertValue(parametersNode, entryType.getClazz());
       }
 
       @Override
