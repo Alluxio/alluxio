@@ -239,6 +239,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
     List<Inode> createdInodes = Lists.newArrayList();
+    List<Inode> modifiedInodes = Lists.newArrayList();
+    if (pathIndex < parentPath.length || currentInodeDirectory.getChild(name) == null) {
+      // (1) There are components in parent paths that need to be created. Or
+      // (2) The last component of the path needs to be created.
+      // In these two cases, the last traversed Inode will be modified.
+      modifiedInodes.add(currentInodeDirectory);
+    }
+
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir =
@@ -274,8 +282,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           ufs.mkdirs(ufsPath, false);
         }
-        return new CreatePathResult(Collections.<Inode>emptyList(), createdInodes,
-            traversalResult.getPersisted());
+        return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
       }
       LOG.info("FileAlreadyExistsException: " + path);
       throw new FileAlreadyExistsException(path.toString());
@@ -310,8 +317,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
-    return new CreatePathResult(Lists.newArrayList(traversalResult.getInode()), createdInodes,
-        traversalResult.getPersisted());
+    return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
   }
 
   /**
