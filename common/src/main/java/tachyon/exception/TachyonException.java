@@ -85,7 +85,8 @@ public abstract class TachyonException extends Exception {
   }
 
   /**
-   * If the given {@link TachyonException} is of the given class, throw it.
+   * Checks if the given exception is an instance of the given derived class and if so, downcasts
+   * the exception and throws it.
    *
    * @param e the {@link TachyonException}
    * @param throwClass the type of exception to throw e is of the right type
