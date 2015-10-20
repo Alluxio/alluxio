@@ -25,14 +25,14 @@ public interface DataBuffer {
   /**
    * Returns an object for writing to a netty channel.
    *
-   * @return the object to output to Netty. Must be ByteBuf or FileRegion.
+   * @return the object to output to Netty. Must be ByteBuf or FileRegion
    */
   public Object getNettyOutput();
 
   /**
    * Returns the length of the data.
    *
-   * @return the length of the data in bytes.
+   * @return the length of the data in bytes
    */
   public long getLength();
 

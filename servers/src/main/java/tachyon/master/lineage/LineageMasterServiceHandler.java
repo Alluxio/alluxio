@@ -15,6 +15,7 @@
 
 package tachyon.master.lineage;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -28,6 +29,7 @@ import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
   private final LineageMaster mLineageMaster;
@@ -38,7 +40,7 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
   @Override
   public long createLineage(List<String> inputFiles, List<String> outputFiles,
-      CommandLineJobInfo jobInfo) throws TachyonTException {
+      CommandLineJobInfo jobInfo) throws TachyonTException, ThriftIOException {
     // deserialization
     List<TachyonURI> inputFilesUri = Lists.newArrayList();
     for (String inputFile : inputFiles) {
@@ -55,6 +57,8 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
       return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 
@@ -78,11 +82,13 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
   @Override
   public long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws TachyonTException {
+      throws TachyonTException, ThriftIOException {
     try {
       return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 

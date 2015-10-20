@@ -21,13 +21,13 @@ import java.util.Map;
 public interface JournalEntry {
 
   /**
-   * @return the {@link JournalEntryType} of this entry.
+   * @return the {@link JournalEntryType} of this entry
    */
   JournalEntryType getType();
 
   /**
    *
-   * @return parameters of this entry which is a map from parameter name to parameter value.
+   * @return parameters of this entry which is a map from parameter name to parameter value
    */
   Map<String, Object> getParameters();
 }

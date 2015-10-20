@@ -44,7 +44,7 @@ public final class TachyonFSTestUtils {
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName, int len,
       OutStreamOptions options) throws IOException {
     return createByteFile(tfs, fileName, options.getTachyonStorageType(),
-        options.getUnderStorageType(), len, options.getBlockSize());
+        options.getUnderStorageType(), len, options.getBlockSizeBytes());
   }
 
   /**
@@ -116,7 +116,7 @@ public final class TachyonFSTestUtils {
       OutStreamOptions options =
           new OutStreamOptions.Builder(ClientContext.getConf())
               .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
-              .setBlockSize(blockCapacityByte).build();
+              .setBlockSizeBytes(blockCapacityByte).build();
       FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
 
       for (int k = 0; k < len; k ++) {
@@ -167,7 +167,7 @@ public final class TachyonFSTestUtils {
    * @return an InStreamOptions object with a matching Tachyon storage type
    */
   public static InStreamOptions toInStreamOptions(OutStreamOptions op) {
-    return new InStreamOptions.Builder(new TachyonConf())
+    return new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(op.getTachyonStorageType()).build();
   }
 

@@ -49,7 +49,7 @@ public class Sessions {
   /**
    * Get the sessions that timed out.
    *
-   * @return the list of session ids of sessions that timed out.
+   * @return the list of session ids of sessions that timed out
    */
   public List<Long> getTimedOutSessions() {
     LOG.debug("Worker is checking all sessions' status for timeouts.");
