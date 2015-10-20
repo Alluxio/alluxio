@@ -427,17 +427,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets a ClientBlockInfo by the block id.
+   * Gets a ClientBlockInfo by the file and index.
    *
-   * Currently unsupported.
-   *
-   * @param blockId the id of the block
+   * @param fileId the id of the file
+   * @param blockIndex the index of the block in the file, starting from 0
    * @return the ClientBlockInfo of the specified block
    * @throws IOException if the underlying master RPC fails
    */
-  synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
-    throw new UnsupportedOperationException("FileBlockInfo is no longer supported, use FileInfo "
-        + "and/or BlockInfo");
+  synchronized FileBlockInfo getClientBlockInfo(long fileId, int blockIndex) throws IOException {
+    try {
+      return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
+    } catch (TachyonException e) {
+      // TODO: Should not cast this to Tachyon Exception
+      throw new IOException(e);
+    }
   }
 
   /**
