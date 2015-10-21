@@ -15,7 +15,6 @@
 
 package tachyon.client.file.options;
 
-import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
@@ -46,9 +45,9 @@ public class SetStateOptions {
     }
 
     /**
-     * @param ttl the ttl(time to live) value (in milliseconds) to use; it specifies how long should
-     *            the file be deleted after creation, if it is set to {@link Constants#NO_TTL} and
-     *            the file originally has a ttl value, then it means remove the original ttl value
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+     *        created file should be kept around before it is automatically deleted, no matter
+     *        whether the file is pinned
      * @return the builder
      */
     public Builder setTTL(long ttl) {
@@ -89,10 +88,9 @@ public class SetStateOptions {
   }
 
   /**
-   * @return the ttl value, null if it is not set in builder; it specifies how long should the file
-   *         be deleted after creation, if it is equal to {@link Constants#NO_TTL}, it means that
-   *         no valid TTL value should be set for the file and the file won't be deleted due to
-   *         expiration later
+   * @return the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *         created file should be kept around before it is automatically deleted, no matter
+   *         whether the file is pinned
    */
   public Long getTTL() {
     return mTTL;

@@ -354,6 +354,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * file originally has a valid TTL, it means remove the original TTL value and the file won't be
    * deleted due to expiration later.
    *
+   * @param fileId the file id
    * @param ttl the new TTL value
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
