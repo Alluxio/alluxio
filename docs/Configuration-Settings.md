@@ -583,14 +583,17 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.file.writetype.default [DEPRECATED]</td>
-  <td>MUST_CACHE</td>
-  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
+  <td>No default</td>
+  <td>Default write type when creating Tachyon files.
     Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
     `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
     UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
     asynchronously, or synchronous write to UnderFS). This flag is deprecated, please use the
     combination of `tachyon.user.file.tachyonstoragetype.default` and
-    `tachyon.user.file.understoragetype.default` instead.</td>
+    `tachyon.user.file.understoragetype.default` instead; In case this flag is specified, it
+    will overwrite the values of `tachyon.user.file.tachyonstoragetype.default` and
+    `tachyon.user.file.understoragetype.default`. See <a href="File-System-API.html#io-options">IO
+    Options</a> for the correspondence.</td>
 </tr>
 <tr>
   <td>tachyon.user.heartbeat.interval.ms</td>
