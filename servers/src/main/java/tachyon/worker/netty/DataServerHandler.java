@@ -42,7 +42,6 @@ import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
 import tachyon.network.protocol.RPCErrorResponse;
 import tachyon.network.protocol.RPCMessage;
-import tachyon.network.protocol.RPCRequest;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 import tachyon.network.protocol.databuffer.DataByteBuffer;
@@ -52,8 +51,8 @@ import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 
 /**
- * This class has the main logic of the read path to process {@link RPCRequest} messages and return
- * {@link RPCResponse} messages.
+ * This class has the main logic of the read path to process
+ * {@link tachyon.network.protocol.RPCRequest} messages and return {@link RPCResponse} messages.
  */
 @ChannelHandler.Sharable
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {

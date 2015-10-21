@@ -17,15 +17,14 @@ package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
 
-import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
  * An authentication provider implementation that allows {@link AuthenticationProvider} to be
  * customized at configuration time. This authentication provider is created if authentication type
- * specified in {@link TachyonConf} is {@link AuthType#CUSTOM CUSTOM}. It requires the property
- * {@code tachyon.security.authentication.custom.provider} to be set in {@link TachyonConf
- * Configuration} to determine which provider to load.
+ * specified in {@link tachyon.conf.TachyonConf} is {@link AuthType#CUSTOM CUSTOM}. It requires the
+ * property {@code tachyon.security.authentication.custom.provider} to be set in
+ * {@link tachyon.conf.TachyonConf Configuration} to determine which provider to load.
  */
 public class CustomAuthenticationProviderImpl implements AuthenticationProvider {
 

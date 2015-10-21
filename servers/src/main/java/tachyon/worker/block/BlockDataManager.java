@@ -22,7 +22,6 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 import tachyon.Sessions;
-import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
@@ -34,7 +33,6 @@ import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.test.Testable;
 import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
@@ -146,14 +144,15 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * Completes the process of persisting a file by renaming it to its final destination.
    *
    * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isPersist()} ()} is true. The current implementation of
-   * persistence is that through {@link tachyon.client.UnderStorageType} operations write to
-   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
+   * only if {@link tachyon.client.UnderStorageType#isPersist()} ()} is true. The current
+   * implementation of persistence is that through {@link tachyon.client.UnderStorageType}
+   * operations write to {@link tachyon.underfs.UnderFileSystem} on the client's write path, but
+   * under a temporary file.
    *
    * @param fileId a file id
    * @param nonce a nonce used for temporary file creation
    * @param ufsPath the UFS path of the file
-   * @throws TachyonTException if the file does not exist or cannot be renamed
+   * @throws TachyonException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
    */
   public void persistFile(long fileId, long nonce, String ufsPath)

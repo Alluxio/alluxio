@@ -26,17 +26,15 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.lineage.LineageMasterClient;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.LineageCommand;
 import tachyon.worker.WorkerIdRegistry;
-import tachyon.worker.block.BlockMasterSync;
 
 /**
  * Class that communicates to lineage master via heartbeat. This class manages its own
- * {@link LineageMasterClient}.
+ * {@link tachyon.client.lineage.LineageMasterClient}.
  *
  * When running, this class pulls from the master to check which file to persist for lineage
  * checkpointing.
@@ -44,7 +42,8 @@ import tachyon.worker.block.BlockMasterSync;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  *
- * TODO(yupeng): merge this with {@link BlockMasterSync} to use a central command pattern.
+ * TODO(yupeng): merge this with {@link tachyon.worker.block.BlockMasterSync} to use a central
+ * command pattern.
  */
 final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

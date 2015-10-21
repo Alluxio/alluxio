@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.Collections;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -185,7 +184,7 @@ public class TieredBlockStoreTestUtils {
    * @param baseDir The directory path as prefix for all the paths in the array 'dirs'.
    * @param dirs 1-D array of directory paths.
    * @return New joined and created paths array
-   * @throws IOException When error happens during creating temporary folder.
+   * @throws Exception When error happens during creating temporary folder.
    */
   private static String[] createDirHierarchy(String baseDir, final String[] dirs)
       throws Exception {

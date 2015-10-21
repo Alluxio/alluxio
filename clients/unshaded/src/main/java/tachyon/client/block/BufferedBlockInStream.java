@@ -16,7 +16,6 @@
 package tachyon.client.block;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
@@ -33,8 +32,8 @@ import tachyon.util.io.BufferUtils;
  * set through configuration. Multiple BufferedBlockInStreams can be opened for a block. This class
  * is not thread safe and should only be used by one thread.
  *
- * This class provides the same methods as a Java {@link InputStream} with additional methods from
- * Tachyon Stream interfaces.
+ * This class provides the same methods as a Java {@link java.io.InputStream} with additional
+ * methods from Tachyon Stream interfaces.
  */
 public abstract class BufferedBlockInStream extends BlockInStream {
   // Error strings for preconditions in order to improve performance
