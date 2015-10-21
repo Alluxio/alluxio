@@ -17,8 +17,8 @@ set up Tachyon and Hadoop in accordance to these guides [Local Mode](Running-Tac
 
 ## Using Hadoop 1.x
 
-If running a Hadoop 1.x cluster, ensure that the `hadoop/conf/core-site.xml` file in your Hadoop
-installation `conf` directory has the following properties added:
+If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Hadoop installation
+`conf` directory has the following properties added:
 
 ```xml
 <property>
