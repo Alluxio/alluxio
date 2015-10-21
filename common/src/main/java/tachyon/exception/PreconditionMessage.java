@@ -22,24 +22,24 @@ package tachyon.exception;
  */
 public class PreconditionMessage {
 
-  public static final String CANNOT_READ_FOLDER = "Cannot read froma  folder";
+  public static final String CANNOT_READ_FOLDER = "Cannot read from a folder";
   public static final String CLIENT_CONTEXT_NOT_INITIALIZED = "Client Context not initialized";
   public static final String COMMAND_LINE_LINEAGE_ONLY =
-      "createLineage only supports command line jobs";
-  public static final String ERR_BLOCK_INDEX = "Current block index exceeds max index.";
+      "Only command line jobs are supported by createLineage";
+  public static final String ERR_BLOCK_INDEX = "Current block index exceeds max index";
   public static final String ERR_BLOCK_REMAINING =
-      "The current block still has space left, no need to get new block.";
+      "The current block still has space left, no need to get new block";
   public static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
   public static final String ERR_CLOSED_BLOCK_IN_STREAM =
       "Cannot do operations on a closed BlockInStream";
   public static final String ERR_CLOSED_BLOCK_OUT_STREAM =
-      "Cannot do operations on a closed BlockOutStream.";
-  public static final String ERR_END_OF_BLOCK = "Cannot write past end of block.";
+      "Cannot do operations on a closed BlockOutStream";
+  public static final String ERR_END_OF_BLOCK = "Cannot write past end of block";
   public static final String ERR_READ_BUFFER_NULL = "Read buffer cannot be null";
   public static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
   public static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
   public static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
-  public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer.";
+  public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
 }
