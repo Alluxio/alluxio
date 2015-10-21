@@ -63,85 +63,58 @@ public final class LineageMasterClient extends MasterClientBase {
     mClient = new LineageMasterService.Client(mProtocol);
   }
 
-  public synchronized long createLineage(List<String> inputFiles, List<String> outputFiles,
-      CommandLineJob job) throws IOException, TachyonException {
-    // prepare for RPC
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized long createLineage(final List<String> inputFiles,
+      final List<String> outputFiles, final CommandLineJob job) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
         return mClient.createLineage(inputFiles, outputFiles,
             job.generateCommandLineJobInfo());
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
-  public synchronized boolean deleteLineage(long lineageId, boolean cascade)
+  public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
         return mClient.deleteLineage(lineageId, cascade);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
-  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
+      final long ttl) throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
-  public synchronized void asyncCompleteFile(long fileId) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.asyncCompleteFile(fileId);
-        return;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized void asyncCompleteFile(final long fileId) throws IOException {
+    try {
+      retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+        @Override
+        public Void call() throws TachyonTException, TException {
+          mClient.asyncCompleteFile(fileId);
+          return null;
+        }
+      });
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<List<LineageInfo>>() {
+      @Override
+      public List<LineageInfo> call() throws TException {
         return mClient.getLineageInfoList();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }
