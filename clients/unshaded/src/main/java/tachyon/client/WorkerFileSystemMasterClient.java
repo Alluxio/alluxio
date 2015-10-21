@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.TachyonTException;
@@ -69,20 +70,18 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean persistFile(long fileId, long length) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.persistFile(fileId, length);
-      } catch (TachyonTException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized boolean persistFile(final long fileId, final long length)
+      throws IOException {
+    try {
+      return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+        @Override
+        public Boolean call() throws TachyonTException, TException {
+          return mClient.persistFile(fileId, length);
+        }
+      });
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -91,20 +90,17 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Factor this method out to a common client.
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileInfo(fileId);
-      } catch (TachyonTException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
+    try {
+      return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
+        @Override
+        public FileInfo call() throws TException {
+          return mClient.getFileInfo(fileId);
+        }
+      });
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -112,18 +108,11 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized Set<Long> getPinList() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<Set<Long>>() {
+      @Override
+      public Set<Long> call() throws TException {
         return mClient.workerGetPinIdList();
-      } catch (TachyonTException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

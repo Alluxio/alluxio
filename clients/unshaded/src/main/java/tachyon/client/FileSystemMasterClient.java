@@ -185,8 +185,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long create(final String path, final CreateOptions options) throws IOException,
-      TachyonException {
+  public synchronized long create(final String path, final CreateOptions options)
+      throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
@@ -278,8 +278,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean mkdir(final String path, final MkdirOptions options) throws IOException,
-      TachyonException {
+  public synchronized boolean mkdir(final String path, final MkdirOptions options)
+      throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {

@@ -35,6 +35,7 @@ import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 /**
  * The base class for clients.
@@ -218,14 +219,14 @@ public abstract class ClientBase implements Closeable {
      *
      * @return RPC result
      * @throws TachyonTException when any {@link TachyonException} happens during RPC and is wrapped
-     *                           into {@link TachyonTException}
+     *         into {@link TachyonTException}
      * @throws TException when any exception defined in thrift happens
      */
     V call() throws TachyonTException, TException;
   }
 
   /**
-   * Tries to execute a RPC defined as a {@link RpcCallable}, if error
+   * Tries to execute an RPC defined as a {@link RpcCallable}, if error
    * happens in one execution, a reconnection will be tried through {@link #connect()} and the
    * action will be re-executed.
    *
@@ -233,7 +234,7 @@ public abstract class ClientBase implements Closeable {
    * @param <V> type of return value of the RPC call
    * @return the return value of the RPC call
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
-   *                     been called before calling this method or during the retry
+   *         been called before calling this method or during the retry
    */
   protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
     int retry = 0;
@@ -241,6 +242,8 @@ public abstract class ClientBase implements Closeable {
       connect();
       try {
         return rpc.call();
+      } catch (ThriftIOException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -259,7 +262,7 @@ public abstract class ClientBase implements Closeable {
    * @return the return value of the RPC call
    * @throws TachyonException when {@link TachyonTException} is thrown by the RPC call
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
-   *                     been called before calling this method or during the retry
+   *         been called before calling this method or during the retry
    */
   protected <V> V retryRPC(RpcCallableThrowsTachyonTException<V> rpc)
       throws TachyonException, IOException {
@@ -270,6 +273,8 @@ public abstract class ClientBase implements Closeable {
         return rpc.call();
       } catch (TachyonTException e) {
         throw new TachyonException(e);
+      } catch (ThriftIOException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
