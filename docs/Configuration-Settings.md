@@ -1,47 +1,140 @@
 ---
 layout: global
 title: Configuration Settings
-group: More
+group: Features
+priority: 1
 ---
 
-### toc
-* [Configuration Properties](#configuration-properties)
-    * [Common Config](#common-configuration)
-    * [Master Config](#master-configuration)
-    * [Worker Config](#worker-configuration)
-    * [User Config](#user-configuration)
-    * [MapReduce Config](#working-with-apache-hadoop-mapreduce-configuration)
-* [System Environment](#system-environment-properties)
+* Table of Contents
+{:toc}
 
 There are two types of configuration parameters for Tachyon:
 
-1. Configuration properties, which are used to configure the runtime settings of Tachyon
-2. System environment properties, which control the Tachyon Java VM options
+1. [Configuration properties](#configuration-properties) are used to configure the runtime settings
+of Tachyon system, and
+2. [System environment properties](#system-environment-properties) control the Java VM options to
+run Tachyon as well as some basic very setting.
 
 # Configuration properties
 
-Tachyon introduces default and site specific configuration properties files to set the configuration
-properties.
+On startup, Tachyon loads the default (and optionally a site specific) configuration properties file
+to set the configuration properties.
 
-Each site deployment and application client can override the default via tachyon-site.properties
-file. This file has to be located in the classpath of the Java VM where Tachyon is running.
+1. The default values of configuration properties of Tachyon are defined in
+`tachyon-default.properties`. This file can be found in Tachyon source tree and is typically
+distributed with Tachyon binaries. We do not recommend beginner users to edit this file directly.
 
-The easiest way is to put the site properties file in a directory specified by `$TACHYON_CONF_DIR`,
-which by default is set to `$TACHYON_HOME/conf`.
+2. Each site deployment and application client can also override the default property values via
+`tachyon-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
+which Tachyon is running. The easiest way is to put the site properties file in directory
+`$TACHYON_HOME/conf`.
 
-The Tachyon configuration properties fall into four categories: Master, Worker, Common (Master and
-Worker), and User configurations.
+All Tachyon configuration properties fall into one of the four categories:
+[Common](#common-configuration) (shared by Master and Worker),
+[Master specific](#master-configuration), [Worker specific](#worker-configuration), and
+[User specific](#user-configuration).
 
 ## Common Configuration
 
-The common configuration contains constants which specify paths and the log appender name.
+The common configuration contains constants shared by different components.
 
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
+  <td>tachyon.debug</td>
+  <td>false</td>
+  <td>Set to true to enable debug mode which has additional logging and info in the Web UI.</td>
+</tr>
+<tr>
   <td>tachyon.home</td>
-  <td>"/mnt/tachyon_default_home"</td>
+  <td>/mnt/tachyon_default_home</td>
   <td>Tachyon installation folder.</td>
+</tr>
+<tr>
+  <td>tachyon.logs.dir</td>
+  <td>${tachyon.home}/logs</td>
+  <td>The path to store log files.</td>
+</tr>
+<tr>
+  <td>tachyon.max.columns</td>
+  <td>1000</td>
+  <td>Maximum number of columns allowed in RawTable, must be set on the client and server side.</td>
+</tr>
+<tr>
+  <td>tachyon.max.table.metadata.byte</td>
+  <td>5MB</td>
+  <td>Maximum allowable size (in bytes) of RawTable metadata, must be set on the server side.</td>
+</tr>
+<tr>
+  <td>tachyon.metrics.conf.file</td>
+  <td>${tachyon.home}/conf/metrics.properties</td>
+  <td>The file path of the metrics system configuration file. By default it is `metrics.properties`
+  in the `conf` directory.</td>
+</tr>
+<tr>
+  <td>tachyon.network.host.resolution.timeout.ms</td>
+  <td>5000</td>
+  <td>During startup of the Master and Worker processes Tachyon needs to ensure that they are
+    listening on externally resolvable and reachable host names.  To do this, Tachyon will
+    automatically attempt to select an appropriate host name if one was not explicitly specified.
+    This represents the maximum amount of time spent waiting to determine if a candidate host name
+    is resolvable over the network.</td>
+</tr>
+<tr>
+  <td>tachyon.test.mode</td>
+  <td>false</td>
+  <td>Flag used only during tests to allow special behavior.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.address</td>
+  <td>${tachyon.home}/underFSStorage</td>
+  <td>Tachyon folder in the underlayer file system.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.impl</td>
+  <td>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</td>
+  <td>Glusterfs hook with hadoop.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
+  <td>glusterfs:///mapred/system</td>
+  <td>Optionally, specify subdirectory under GlusterFS for intermediary MapReduce data.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.hdfs.configuration</td>
+  <td>${tachyon.home}/conf/core-site.xml</td>
+  <td>Location of the hdfs configuration file.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.hdfs.impl</td>
+  <td>org.apache.hadoop.hdfs.DistributedFileSystem</td>
+  <td>The implementation class of the HDFS as the under storage system.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.hdfs.prefixes</td>
+  <td>hdfs://,glusterfs:///</td>
+  <td>Optionally, specify which prefixes should run through the Apache Hadoop implementation of
+    UnderFileSystem. The delimiter is any whitespace and/or ','.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.host</td>
+  <td>No default</td>
+  <td>Optionally, specify a proxy host for communicating with S3.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.https.only</td>
+  <td>true</td>
+  <td>If using a proxy to communicate with S3, determine whether to talk to the proxy using https.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.s3.proxy.port</td>
+  <td>No default</td>
+  <td>Optionally, specify a proxy port for communicating with S3.</td>
+</tr>
+<tr>
+  <td>tachyon.web.resources</td>
+  <td>${tachyon.home}/servers/src/main/webapp</td>
+  <td>Path to the web application resources.</td>
 </tr>
 <tr>
   <td>tachyon.web.threads</td>
@@ -49,123 +142,55 @@ The common configuration contains constants which specify paths and the log appe
   <td>How many threads to use for the web server.</td>
 </tr>
 <tr>
-  <td>tachyon.logs.dir</td>
-  <td>$tachyon.home + "/logs"</td>
-  <td>Where log files are stored.</td>
+  <td>tachyon.zookeeper.election.path</td>
+  <td>/election</td>
+  <td>Election folder in ZooKeeper.</td>
 </tr>
 <tr>
-  <td>tachyon.underfs.address</td>
-  <td>$tachyon.home + "/underFSStorage"</td>
-  <td>Tachyon folder in the underlayer file system.</td>
-</tr>
-<tr>
-  <td>tachyon.data.folder</td>
-  <td>$tachyon.underfs.address + "/tmp/tachyon/data"</td>
-  <td>Tachyon's data folder in the underlayer file system.</td>
-</tr>
-<tr>
-  <td>tachyon.workers.folder</td>
-  <td>$tachyon.underfs.address + "/tmp/tachyon/workers"</td>
-  <td>Tachyon's workers folders in the underlayer file system.</td>
-</tr>
-<tr>
-  <td>tachyon.usezookeeper</td>
+  <td>tachyon.zookeeper.enabled</td>
   <td>false</td>
   <td>If true, setup master fault tolerant mode using ZooKeeper.</td>
 </tr>
 <tr>
-  <td>tachyon.zookeeper.address</td>
-  <td>null</td>
-  <td>ZooKeeper address for master fault tolerance.</td>
-</tr>
-<tr>
-  <td>tachyon.zookeeper.election.path</td>
-  <td>"/election"</td>
-  <td>Election folder in ZooKeeper.</td>
-</tr>
-<tr>
   <td>tachyon.zookeeper.leader.path</td>
-  <td>"/leader"</td>
+  <td>/leader</td>
   <td>Leader folder in ZooKeeper.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.hdfs.impl</td>
-  <td>"org.apache.hadoop.hdfs.DistributedFileSystem"</td>
-  <td>The implementation class of the HDFS, if using it as the under FS.</td>
-</tr>
-<tr>
-  <td>tachyon.max.columns</td>
-  <td>1000</td>
-  <td>Maximum number of columns allowed in RawTable, must be set on the client and server side</td>
-</tr>
-<tr>
-  <td>tachyon.table.metadata.byte</td>
-  <td>5242880</td>
-  <td>Maximum allowable size (in bytes) of RawTable metadata, must be set on the server side</td>
-</tr>
-<tr>
-  <td>fs.s3n.awsAccessKeyId</td>
-  <td>null</td>
-  <td>S3 aws access key id if using S3 as the under FS.</td>
-</tr>
-<tr>
-  <td>fs.s3n.awsSecretAccessKey</td>
-  <td>null</td>
-  <td>S3 aws secret access key id if using S3 as the under FS.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.glusterfs.mounts</td>
-  <td>null</td>
-  <td>Glusterfs volume mount points, e.g. /vol</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.glusterfs.volumes</td>
-  <td>null</td>
-  <td>Glusterfs volume names, e.g. tachyon_vol</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
-  <td>glusterfs:///mapred/system</td>
-  <td>Optionally specify subdirectory under Glusterfs for intermediary MapReduce data.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.hadoop.prefixes</td>
-  <td>hdfs:// s3:// s3n:// glusterfs:///</td>
-  <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of
-    UnderFileSystem. The delimiter is any whitespace and/or ','</td>
-</tr>
-<tr>
-  <td>tachyon.master.retry</td>
-  <td>29</td>
-  <td>How many times to try to reconnect with master.</td>
-</tr>
-<tr>
-  <td>tachyon.metrics.conf.file</td>
-  <td>$tachyon.home + "/conf/metrics.properties"</td>
-  <td>The file path of the metrics system configuration file. By default it is metrics.properties in the conf directory.</td>
-</tr>
-<tr>
-  <td>tachyon.host.resolution.timeout.ms</td>
-  <td>5000</td>
-  <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening
-    on externally resolvable and reachable host names.  To do this Tachyon will automatically attempt
-    to select an appropriate host name if one was not explicitly specified.  This represents the
-    maximum amount of time spent waiting to determine if a candidate host name is resolvable over
-    the network.</td>
 </tr>
 </table>
 
 ## Master Configuration
 
-The master configuration specifies information regarding the master node, such as address and port
-number.
+The master configuration specifies information regarding the master node, such as the address and
+the port number.
 
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
+  <td>tachyon.master.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname that Tachyon master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+</tr>
+<tr>
+  <td>tachyon.master.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>The interval (in milliseconds) between Tachyon master's heartbeats</td>
+</tr>
+<tr>
+  <td>tachyon.master.hostname</td>
+  <td>localhost</td>
+  <td>The hostname of Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.master.format.file_prefix</td>
+  <td>"_format_"</td>
+  <td>The file prefix of the file generated in the journal directory when the journal is
+    formatted. The master will search for a file with this prefix when determining of the journal
+    was once formatted.</td>
+</tr>
+<tr>
   <td>tachyon.master.journal.folder</td>
-  <td>$tachyon.home + "/journal/"</td>
-  <td>The folder to store master journal log.</td>
+  <td>${tachyon.home}/journal/</td>
+  <td>The path to store master journal logs.</td>
 </tr>
 <tr>
   <td>tachyon.master.journal.formatter.class</td>
@@ -173,138 +198,192 @@ number.
   <td>The class to serialize the journal in a specified format.</td>
 </tr>
 <tr>
-  <td>tachyon.master.journal.tailer.sleep.time.ms</td>
-  <td>1000</td>
-  <td>Time(in milliseconds) to sleep for standby master when it cannot find anything new from leader
-    master's journal.</td>
+  <td>tachyon.master.journal.log.size.bytes.max</td>
+  <td>10MB</td>
+  <td>If a log file is bigger than this value, it will rotate to next file</td>
 </tr>
 <tr>
   <td>tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms</td>
   <td>5000</td>
   <td>Before the standby master shuts down its tailer thread, there should be no update to the
-    leader master's journal in this specified time period(in milliseconds).</td>
+    leader master's journal in this specified time period (in milliseconds).</td>
 </tr>
 <tr>
-  <td>tachyon.master.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of Tachyon's master address.</td>
+  <td>tachyon.master.journal.tailer.sleep.time.ms</td>
+  <td>1000</td>
+  <td>Time (in milliseconds) the standby master sleeps for when it cannot find anything new in leader
+    master's journal.</td>
 </tr>
 <tr>
-  <td>tachyon.master.hostname.listening</td>
-  <td></td>
-  <td>(optional) The address the master will listen on. If set to the wildcard address, "*", the
-    master will listen on all addresses. If unspecified, the master will listen on the address
-    specified for `tachyon.master.hostname`.</td>
+  <td>tachyon.master.lineage.checkpoint.interval.ms</td>
+  <td>600000</td>
+  <td>
+  The interval (in milliseconds) between Tachyon's checkpoint scheduling.
+  </td>
 </tr>
 <tr>
-  <td>tachyon.master.bind.host</td>
-  <td>0.0.0.0</td>
-  <td>The hostname Tachyon's master node binds to.</td>
+  <td>tachyon.master.lineage.checkpoint.class</td>
+  <td>tachyon.master.lineage.checkpoint.CheckpointLatestScheduler</td>
+  <td>
+  The class name of the checkpoint strategy for lineage output files. The default strategy is to
+  checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.master.lineage.recompute.interval.ms</td>
+  <td>600000</td>
+  <td>
+  The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the
+  all the lost files tracked by lineage, and re-executes the corresponding jobs.
+  every 10 minutes.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.master.lineage.recompute.log.path</td>
+  <td>${tachyon.home}/logs/recompute.log</td>
+  <td>
+  The path to the log that the recompute executor redirects the job's stdout into.
+  </td>
 </tr>
 <tr>
   <td>tachyon.master.port</td>
   <td>19998</td>
-  <td>The port Tachyon's master node runs on.</td>
+  <td>The port that Tachyon master node runs on.</td>
 </tr>
 <tr>
-  <td>tachyon.master.web.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of master's web service that a client uses to communicate with the service.</td>
+  <td>tachyon.master.retry</td>
+  <td>29</td>
+  <td>The number of retries that the client connects to master</td>
+</tr>
+<tr>
+  <td>tachyon.master.ttlchecker.interval.ms</td>
+  <td>3600000</td>
+  <td>Time interval (in milliseconds) to periodically delete the files with expired ttl value.</td>
 </tr>
 <tr>
   <td>tachyon.master.web.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's master's web server binds to.</td>
+  <td>The hostname Tachyon master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+</tr>
+<tr>
+  <td>tachyon.master.web.hostname</td>
+  <td>localhost</td>
+  <td>The hostname of Tachyon Master web UI.</td>
 </tr>
 <tr>
   <td>tachyon.master.web.port</td>
   <td>19999</td>
-  <td>The port Tachyon's web interface runs on.</td>
+  <td>The port Tachyon web UI runs on.</td>
 </tr>
 <tr>
   <td>tachyon.master.whitelist</td>
   <td>/</td>
-  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by
-    semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
+  <td>A comma-separated list of prefixes of the paths which are cacheable, separated by
+    semi-colons. Tachyon will try to cache the cacheable file when it is read for the first
+    time.</td>
+</tr>
+<tr>
+  <td>tachyon.master.worker.threads.max</td>
+  <td>2048</td>
+  <td>The max number of workers that connect to master</td>
 </tr>
 <tr>
   <td>tachyon.master.worker.timeout.ms</td>
   <td>10000</td>
-  <td>Timeout between master and worker indicating a lost worker.  Specified in milliseconds</td>
-</tr>
-<tr>
-  <td>tachyon.master.keytab.file</td>
-  <td></td>
-  <td>Kerberos keytab file for Tachyon master.</td>
-</tr>
-<tr>
-  <td>tachyon.master.principal</td>
-  <td></td>
-  <td>Kerberos principal for Tachyon master.</td>
-</tr>
-<tr>
-  <td>tachyon.master.ttlchecker.interval.ms=3600000
-  <td>3600000</td>
-  <td>Time interval(in milliseconds) to periodically delete the files with expired ttl value.</td>
+  <td>Timeout (in milliseconds) between master and worker indicating a lost worker.</td>
 </tr>
 </table>
 
 ## Worker Configuration
 
-The worker configuration specifies information regarding the worker nodes, such as address and port
-number.
+The worker configuration specifies information regarding the worker nodes, such as the address and
+the port number.
 
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
-  <td>tachyon.worker.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of worker's RPC service that an client uses to communicate with the service.</td>
+  <td>tachyon.worker.allocator.class</td>
+  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
+  <td>The strategy that a worker uses to allocate space among storage directories in certain storage
+  layer. Valid options include: `tachyon.worker.block.allocator.MaxFreeAllocator`,
+  `tachyon.worker.block.allocator.GreedyAllocator`,
+  `tachyon.worker.block.allocator.RoundRobinAllocator`.</td>
 </tr>
 <tr>
   <td>tachyon.worker.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker node binds to.</td>
+  <td>The hostname Tachyon's worker node binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
 </tr>
 <tr>
-  <td>tachyon.worker.port</td>
-  <td>29998</td>
-  <td>The port Tachyon's worker node runs on.</td>
+  <td>tachyon.worker.block.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>The interval (in milliseconds) between block worker's heartbeats</td>
 </tr>
 <tr>
-  <td>tachyon.worker.data.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of worker's data service that a client uses to communicate with the service.</td>
+  <td>tachyon.worker.block.heartbeat.timeout.ms</td>
+  <td>10000</td>
+  <td>The timeout value (in milliseconds) of block worker's heartbeat</td>
+</tr>
+<tr>
+  <td>tachyon.worker.block.threads.max</td>
+  <td>2048</td>
+  <td>The maximum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.block.threads.min</td>
+  <td>1</td>
+  <td>The minimum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's data server binds to.</td>
+  <td>The hostname that the Tachyon worker's data server runs on. See
+    <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+</tr>
+<tr>
+  <td>tachyon.worker.data.folder</td>
+  <td>/tachyonworker/</td>
+  <td>A relative path within each storage directory used as the data folder for Tachyon worker to put data for tiered store.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.port</td>
   <td>29999</td>
   <td>The port Tachyon's worker's data server runs on.</td>
 </tr>
+<tr> <td>tachyon.worker.data.server.class</td>
+  <td>tachyon.worker.netty.NettyDataServer</td>
+  <td>Selects the networking stack to run the worker with. Valid options are:
+  `tachyon.worker.netty.NettyDataServer`, `tachyon.worker.nio.NIODataServer`.</td>
+</tr>
 <tr>
-  <td>tachyon.worker.web.hostname</td>
+  <td>tachyon.worker.evictor.class</td>
+  <td>tachyon.worker.block.evictor.LRUEvictor</td>
+  <td>The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid
+  options include `tachyon.worker.block.evictor.LRFUEvictor`,
+  `tachyon.worker.block.evictor.GreedyEvictor`, `tachyon.worker.block.evictor.LRUEvictor`.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.evictor.lrfu.attenuation.factor</td>
+  <td>2.0</td>
+  <td>A attenuation factor in [2, INF) to control the behavior of LRFU.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.evictor.lrfu.step.factor</td>
+  <td>0.25</td>
+  <td>A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to
+  LFU; and larger value makes LRFU closer to LRU.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.hostname</td>
   <td>localhost</td>
-  <td>The externally resolvable hostname of worker's web service that a client uses to communicate with the service.</td>
+  <td>The hostname of Tachyon worker.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.web.bind.host</td>
-  <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker's web server binds to.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.web.port</td>
-  <td>30000</td>
-  <td>The port Tachyon's worker's web server runs on.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.data.folder</td>
-  <td>/tachyonworker/</td>
-  <td>The relative path in each storage directory as the data folder for Tachyon's worker nodes.</td>
+  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
+  </td>
 </tr>
 <tr>
   <td>tachyon.worker.memory.size</td>
@@ -312,83 +391,33 @@ number.
   <td>Memory capacity of each worker node.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level.max</td>
-  <td>1</td>
-  <td>The max level of storage layers.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level0.alias</td>
-  <td>MEM</td>
-  <td>The alias of top storage layer.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level0.dirs.path</td>
-  <td>/mnt/ramdisk/</td>
-  <td>The path of storage directory path for top storage layer. Note for macs the value should be "/Volumes/"</td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level0.dirs.quota</td>
-  <td>${tachyon.worker.memory.size}</td>
-  <td>The capacity of top storage layer.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.level0.reserved.ratio</td>
-  <td>0.1</td>
-  <td>Value is between 0 and 1, it sets the portion of space reserved on top storage layer.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.space.reserver.enable</td>
-  <td>false</td>
-  <td>Whether enabling space reserver service or not.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.space.reserver.interval.ms</td>
-  <td>1000</td>
-  <td>The period of space reserver service, which keeps certain portion of available space on each
-  layer. Specified in milliseconds.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.allocate.strategy.class</td>
-  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
-  <td>The strategy that worker allocate space among storage directories in certain storage layer. Valid options
-  are: tachyon.worker.block.allocator.MaxFreeAllocator, tachyon.worker.block.allocator.GreedyAllocator,
-  tachyon.worker.block.allocator.RoundRobinAllocator.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.evict.strategy.class</td>
-  <td>tachyon.worker.block.evictor.LRUEvictor</td>
-  <td>The strategy that worker evict block files when a storage layer runs out of space.</td>
-</tr>
-<tr> <td>tachyon.worker.data.server.class</td>
-  <td>tachyon.worker.netty.NettyDataServer</td>
-  <td>Selects networking stack to run the worker with. Valid options are: tachyon.worker.netty.NettyDataServer,
-  tachyon.worker.nio.NIODataServer.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.channel</td>
-  <td>EPOLL</td>
-  <td>Selects netty's channel implementation.  On linux, epoll is used; valid options are NIO and EPOLL.</td>
-</tr>
-<tr>
   <td>tachyon.worker.network.netty.boss.threads</td>
   <td>1</td>
   <td>How many threads to use for accepting new requests.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.network.netty.worker.threads</td>
-  <td>0</td>
-  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2</td>
-</tr>
-<tr>
   <td>tachyon.worker.network.netty.file.transfer</td>
   <td>MAPPED</td>
   <td>When returning files to the user, select how the data is transferred; valid options are
-    MAPPED (uses java MappedByteBuffer) and TRANSFER (uses Java FileChannel.transferTo).</td>
+    `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.shutdown.quiet.period</td>
+  <td>2</td>
+  <td>The quiet period (in seconds). When the netty server is shutting down, it will ensure that no
+    RPCs occur during the quiet period. If an RPC occurs, then the quiet period will restart before
+    shutting down the netty server.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.shutdown.timeout</td>
+  <td>15</td>
+  <td>Maximum amount of time to wait (in seconds) until the netty server is shutdown (regardless of
+    the quiet period).</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.watermark.high</td>
   <td>32768</td>
-  <td>Determines how many bytes can be in the write queue before channels isWritable is set to false.</td>
+  <td>Determines how many bytes can be in the write queue before switching to non-writable.</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.watermark.low</td>
@@ -397,43 +426,81 @@ number.
     before switching back to writable.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.network.netty.backlog</td>
-  <td>128 on linux</td>
-  <td>How many requests can be queued up before new requests are rejected; this value is platform
-    dependent.</td>
+  <td>tachyon.worker.network.netty.worker.threads</td>
+  <td>0</td>
+  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.network.netty.buffer.send</td>
-  <td>platform specific</td>
-  <td>Sets SO_SNDBUF for the socket; more details can be found in the socket man page.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.buffer.receive</td>
-  <td>platform specific</td>
-  <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.keytab.file</td>
-  <td></td>
-  <td>Kerberos keytab file for Tachyon worker.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.principal</td>
-  <td></td>
-  <td>Kerberos principal for Tachyon worker.</td>
+  <td>tachyon.worker.port</td>
+  <td>29998</td>
+  <td>The port Tachyon's worker node runs on.</td>
 </tr>
 <tr>
   <td>tachyon.worker.session.timeout.ms</td>
   <td>10000</td>
-  <td>Timeout between worker and client connection indicating a lost session connection.  Specified in milliseconds</td>
+  <td>Timeout (in milliseconds) between worker and client connection indicating a lost session
+  connection.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.block.lock.count</td>
+  <td>tachyon.worker.tieredstore.block.locks</td>
   <td>1000</td>
-  <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking granularity, but more space</td>
+  <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking
+  granularity, but uses more space.</td>
 </tr>
-
+<tr>
+  <td>tachyon.worker.tieredstore.level.max</td>
+  <td>1</td>
+  <td>The maximum level of storage layers.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.level0.alias</td>
+  <td>MEM</td>
+  <td>The alias of the top storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.level0.dirs.path</td>
+  <td>/mnt/ramdisk/</td>
+  <td>The path of storage directory path for the top storage layer. Note for MacOS the value
+  should be `/Volumes/`</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.level0.dirs.quota</td>
+  <td>${tachyon.worker.memory.size}</td>
+  <td>The capacity of the top storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.level0.reserved.ratio</td>
+  <td>0.1</td>
+  <td>The portion of space reserved in the top storage layer (a value between 0 and 1).</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.reserver.enable</td>
+  <td>false</td>
+  <td>Whether to enable tiered store reserver service or not.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.reserver.interval.ms</td>
+  <td>1000</td>
+  <td>The time period (in milliseconds) of space reserver service, which keeps certain portion of
+  available space on each layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.hostname</td>
+  <td>localhost</td>
+  <td>The hostname Tachyon worker's web UI binds to.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.port</td>
+  <td>30000</td>
+  <td>The port Tachyon worker's web UI runs on.</td>
+</tr>
 </table>
+
 
 ## User Configuration
 
@@ -442,23 +509,41 @@ The user configuration specifies values regarding file system access.
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
+  <td>tachyon.user.block.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for block master client to talk to block master.</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.worker.client.threads</td>
+  <td>10000</td>
+  <td>How many threads to use for block worker client pool to read from a local block worker.</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.remote.read.buffer.size.bytes</td>
+  <td>8 MB</td>
+  <td>The size of the file buffer to read data from remote Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.remote.reader.class</td>
+  <td>tachyon.client.netty.NettyRemoteBlockReader</td>
+  <td>Selects networking stack to run the client with. Valid options are
+    `tachyon.client.netty.NettyRemoteBlockReader` (read remote data using netty) and
+    [DEPRECATED] `tachyon.client.tcp.TCPRemoteBlockReader`</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.remote.writer.class</td>
+  <td>tachyon.client.netty.NettyRemoteBlockWriter</td>
+  <td>Selects networking stack to run the client with for block writes.</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.size.bytes.default</td>
+  <td>512MB</td>
+  <td>Default block size for Tachyon files.</td>
+</tr>
+<tr>
   <td>tachyon.user.failed.space.request.limits</td>
   <td>3</td>
-  <td>The number of times to request space from the file system before aborting</td>
-</tr>
-<tr>
-  <td>tachyon.user.file.writetype.default</td>
-  <td>CACHE_THROUGH</td>
-  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
-    Valid options are MUST_CACHE (write must cache), TRY_CACHE (write will try to cache),
-    CACHE_THROUGH (try to cache, write to UnderFS synchronously), THROUGH (no cache, write to
-    UnderFS synchronously), ASYNC_THROUGH (Experimental, must cache and write to UnderFS asynchronously,
-    or synchronous write to UnderFS).</td>
-</tr>
-<tr>
-  <td>tachyon.user.quota.unit.bytes</td>
-  <td>8 MB</td>
-  <td>The minimum number of bytes that will be requested from a client to a worker at a time</td>
+  <td>The number of times to request space from the file system before aborting.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.buffer.bytes</td>
@@ -466,115 +551,155 @@ The user configuration specifies values regarding file system access.
   <td>The size of the file buffer to use for file system reads/writes.</td>
 </tr>
 <tr>
-  <td>tachyon.user.default.block.size.byte</td>
-  <td>1 GB</td>
-  <td>Default block size for Tachyon files.</td>
-</tr>
-<tr>
-  <td>tachyon.user.remote.read.buffer.size.byte</td>
-  <td>8 MB</td>
-  <td>The size of the file buffer to read data from remote Tachyon worker.</td>
-</tr>
-<tr>
-  <td>tachyon.user.remote.block.reader.class</td>
-  <td>tachyon.client.netty.NettyRemoteBlockReader</td>
-  <td>Selects networking stack to run the client with. Valid options are
-    tachyon.client.netty.NettyRemoteBlockReader (read remote data using netty) and
-    [DEPRECATED] tachyon.client.tcp.TCPRemoteBlockReader</td>
-</tr>
-<tr>
-  <td>tachyon.user.remote.block.writer.class</td>
-  <td>tachyon.client.netty.NettyRemoteBlockWriter</td>
-  <td>Selects networking stack to run the client with for block writes.</td>
-</tr>
-<tr>
-  <td>tachyon.user.network.netty.timeout.ms</td>
-  <td>3000</td>
-  <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to wait for a response from the data server.</td>
-</tr>
-<tr>
-  <td>tachyon.user.remote.block.worker.client.threads</td>
-  <td>10</td>
-  <td>How many threads to use for remote block worker client to read from remote block workers.</td>
-</tr>
-<tr>
-  <td>tachyon.user.local.block.worker.client.threads</td>
-  <td>10000</td>
-  <td>How many threads to use for block worker client pool to read from a local block worker.</td>
-</tr>
-<tr>
-  <td>tachyon.user.block.master.client.threads</td>
-  <td>10</td>
-  <td>How many threads to use for block master client to talk to block master.</td>
-</tr>
-<tr>
   <td>tachyon.user.file.master.client.threads</td>
   <td>10</td>
   <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
+<tr>
+  <td>tachyon.user.file.tachyonstoragetype.default</td>
+  <td>PROMOTE</td>
+  <td>The default interaction with Tachyon. Possible values are PROMOTE, STORE, and NO_STORE.
+  STORE will attempt to write data to Tachyon if the local worker does not have the data. This
+  applies to writing new data as well as reading data which is not already on the local worker.
+  PROMOTE behaves the same as STORE, except if the data is on the local worker, PROMOTE will
+  migrate the data to the highest tier. NO_STORE will never attempt to write data into Tachyon
+  storage. The latter is useful for preventing one-time data access from interfering with Tachyon.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.user.file.understoragetype.default</td>
+  <td>NO_PERSIST</td>
+  <td>The default interaction with the under storage. Possible values are SYNC_PERSIST, NO_PERSIST,
+  and ASYNC_PERSIST. This value only affects writes in Tachyon. SYNC_PERSIST will attempt to write
+  data to the under storage as the data is written to Tachyon. When the write completes, the data
+  will be available in both locations. ASYNC_PERSIST will only write the data to the under storage
+  after the files is completed. See the lineage documentation for more details. NO_PERSIST will
+  bypass the under storage, only writing to Tachyon.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.waitcompleted.poll.ms</td>
+  <td>1000</td>
+  <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.writetype.default [DEPRECATED]</td>
+  <td>MUST_CACHE</td>
+  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
+    Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
+    `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
+    UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
+    asynchronously, or synchronous write to UnderFS). This flag is deprecated, please use the
+    combination of `tachyon.user.file.tachyonstoragetype.default` and
+    `tachyon.user.file.understoragetype.default` instead.</td>
+</tr>
+<tr>
+  <td>tachyon.user.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>The interval (in milliseconds) between Tachyon worker's heartbeats</td>
+</tr>
+<tr>
+  <td>tachyon.user.lineage.enabled</td>
+  <td>false</td>
+  <td>Flag to enable lineage feature.</td>
+</tr>
+<tr>
+  <td>tachyon.user.network.netty.timeout.ms</td>
+  <td>3000</td>
+  <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to
+  wait for a response from the data server.</td>
+</tr>
+<tr>
+  <td>tachyon.user.network.netty.worker.threads</td>
+  <td>0</td>
+  <td>How many threads to use for remote block worker client to read from remote block workers.</td>
+</tr>
+<tr>
+  <td>tachyon.user.quota.unit.bytes</td>
+  <td>8 MB</td>
+  <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
+</tr>
 </table>
 
-## Working with Apache Hadoop MapReduce Configuration
+## Cluster Management
 
-In certain deployments there could be situation where client needs to send configuration property
-override to Hadoop MapReduce (MR) for Tachyon Hadoop compatible file system (TFS) when the
-tachyon-site.properties file is not available in nodes where the MR is running.
+When running Tachyon with cluster managers like Mesos and YARN, Tachyon has additional
+configuration options.
 
-To support this, the MR application client needs to do these steps:
+<table class="table">
+<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr>
+  <td>tachyon.integration.master.resource.cpu</td>
+  <td>1</td>
+  <td>CPU resource in terms of number of cores required to run a Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.master.resource.mem</td>
+  <td>1024 MB</td>
+  <td>Memory resource required to run a Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.executor.dependency.path</td>
+  <td>https://s3.amazonaws.com/tachyon-mesos</td>
+  <td>The URL from which Mesos executor can download Tachyon dependencies.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.jre.path</td>
+  <td>jre1.7.0_79</td>
+  <td>The relative path to the JRE directory included in the tarball available at the JRE URL.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.jre.url</td>
+  <td>https://s3.amazonaws.com/tachyon-mesos/jre-7u79-linux-x64.tar.gz</td>
+  <td>The URL from which Mesos executor can download the JRE to use.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.worker.resource.cpu</td>
+  <td>1</td>
+  <td>CPU resource in terms of number of cores required to run a Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.master.resource.mem</td>
+  <td>1024 MB</td>
+  <td>Memory resource required to run a Tachyon worker. This memory does not include the memory
+  configured for tiered storage.</td>
+</tr>
+</table>
 
-1. Get the TachyonConf instance by calling `TachyonConf.get()`.
-2. Store the encoded TachyonConf object into Hadoop MR job’s Configuration using `ConfUtils.storeToHadoopConfiguration` call.
-3. During initialization of the TFS, it will check if the key exists from the job’s Configuration
-and if it does it will merge the override properties to the current TachyonConf instance via `ConfUtil.loadFromHadoopConfiguration`.
+## Configure multihomed networks
+
+Tachyon configuration provides a way to take advantage of multi-homed networks. If you have more
+than one NICs and you want your Tachyon master to listen on all NICs, you can specify
+`tachyon.master.bind.host` to be `0.0.0.0`. As a result, Tachyon clients can reach the master node
+from connecting to any of its NIC. This is also the same case for other properties suffixed with
+`bind.host`.
 
 # System environment properties
 
-The system environment variables are configured using the configuration file
-(located under `conf/tachyon-env.sh`), which is responsible for setting system properties.
+To run Tachyon, it also requires some system environment variables being set which by default are
+configured in file `conf/tachyon-env.sh`. If this file does not exist yet, you can create one from a
+template we provided in the source code using:
 
-The location of the `tachyon-env.sh` can be set by environment variable `TACHYON_CONF_DIR`.
+```bash
+$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```
 
-These variables should be set as variables under the `TACHYON_JAVA_OPTS` definition.
+There are a few frequently used Tachyon configuration properties that can be set via environment
+variables. One can either set these variables through shell or modify their default values specified
+in `conf/tachyon-env.sh`.
 
-A template is provided with the zip: `conf/tachyon-env.sh.template`.
+* `$TACHYON_MASTER_ADDRESS`: Tachyon master address, default to localhost.
+* `$TACHYON_UNDERFS_ADDRESS`: under storage system address, default to
+`${TACHYON_HOME}/underFSStorage` which is a local file system.
+* `$TACHYON_JAVA_OPTS`: Java VM options for both Master and Worker.
+* `$TACHYON_MASTER_JAVA_OPTS`: additional Java VM options for Master configuration.
+* `$TACHYON_WORKER_JAVA_OPTS`: additional Java VM options for Worker configuration. Note that, by
+default `TACHYON_JAVA_OPTS` is included in both `TACHYON_MASTER_JAVA_OPTS` and
+`TACHYON_WORKER_JAVA_OPTS`.
 
-Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master, and
-`TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
-included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
+For example, if you would like to connect Tachyon to HDFS running at localhost and enable Java
+remote debugging at port 7001, you can do so using:
 
-For example, if you would like to enable Java remote debugging at port 7001 in the Master, you can modify
-`TACHYON_MASTER_JAVA_OPTS` like this:
-
-`export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
-
-# Configuration of multihomed networks
-
-<table>
-  <tbody>
-    <tr>
-      <th>Specified Hostname</th>
-      <th>Specified Bind Host</th>
-      <th>Returned Connect Host</th>
-    </tr>
-    <tr>
-      <td>hostname</td>
-      <td>hostname</td>
-      <td>hostname</td>
-    </tr>
-    <tr>
-      <td>not defined</td>
-      <td>hostname</td>
-      <td>hostname</td>
-    </tr>
-    <tr>
-      <td>hostname</td>
-      <td>0.0.0.0 or not defined</td>
-      <td>hostname</td>
-    </tr>
-    <tr>
-      <td>not defined</td>
-      <td>0.0.0.0 or not defined</td>
-      <td>localhost</td>
-    </tr>
-  </tbody>
-</table>
+```bash
+$ export TACHYON_UNDERFS_ADDRESS="hdfs://localhost:9000"
+$ export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001“
+```

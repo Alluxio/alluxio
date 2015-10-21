@@ -540,7 +540,7 @@ public class TfsShellTest {
   @Test
   public void rmNotExistingFileTest() throws IOException {
     mFsShell.run(new String[] {"rm", "/testFile"});
-    String expected = "rm: cannot remove '/testFile': No such file or directory\n";
+    String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
