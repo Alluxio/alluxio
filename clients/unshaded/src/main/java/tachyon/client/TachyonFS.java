@@ -312,8 +312,8 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       if (blockSizeBytes > 0) {
         UnderStorageType underStorageType =
-            mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-                .isThrough() ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+            mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+                UnderStorageType.class);
         CreateOptions options =
             new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
                 .setRecursive(recursive).setUnderStorageType(underStorageType).build();
@@ -855,8 +855,8 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       UnderStorageType underStorageType =
-          mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough()
-              ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+          mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+              UnderStorageType.class);
       MkdirOptions options =
           new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
               .setUnderStorageType(underStorageType).build();
