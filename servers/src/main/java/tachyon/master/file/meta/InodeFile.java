@@ -27,7 +27,6 @@ import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.FileInfo;
-import tachyon.util.IdUtils;
 
 /**
  * Tachyon file system's file representation in the file system master.
