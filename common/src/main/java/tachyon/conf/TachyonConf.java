@@ -193,7 +193,8 @@ public final class TachyonConf {
         mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
         mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "ASYNC_PERSIST");
       } else {
-        throw new IllegalArgumentException("Unknown property for " + Constants.USER_FILE_WRITE_TYPE_DEFAULT + " " + writeType);
+        throw new IllegalArgumentException("Unknown property for "
+            + Constants.USER_FILE_WRITE_TYPE_DEFAULT + " " + writeType);
       }
     }
   }
