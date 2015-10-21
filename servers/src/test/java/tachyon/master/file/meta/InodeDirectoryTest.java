@@ -59,9 +59,12 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
 
   @Test
   public void equalsTest() {
-    InodeDirectory inode1 = new InodeDirectory("test1", 1, 0, System.currentTimeMillis());
-    InodeDirectory inode2 = new InodeDirectory("test2", 1, 0, System.currentTimeMillis());
-    InodeDirectory inode3 = new InodeDirectory("test3", 3, 0, System.currentTimeMillis());
+    InodeDirectory inode1 =
+        new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0).build();
+    InodeDirectory inode2 =
+        new InodeDirectory.Builder().setName("test2").setId(1).setParentId(0).build();
+    InodeDirectory inode3 =
+        new InodeDirectory.Builder().setName("test3").setId(3).setParentId(0).build();
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertTrue(inode1.equals(inode1));
     Assert.assertFalse(inode1.equals(inode3));

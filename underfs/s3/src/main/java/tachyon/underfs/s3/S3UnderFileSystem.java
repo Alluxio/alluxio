@@ -20,10 +20,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
@@ -59,6 +62,16 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   private final String mBucketPrefix;
 
+  private static final byte[] DIR_HASH;
+
+  static {
+    try {
+      DIR_HASH = MessageDigest.getInstance("MD5").digest(new byte[0]);
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
     Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_ACCESS_KEY),
@@ -69,8 +82,25 @@ public class S3UnderFileSystem extends UnderFileSystem {
         new AWSCredentials(tachyonConf.get(Constants.S3_ACCESS_KEY), tachyonConf.get(
             Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
-    mClient = new RestS3Service(awsCredentials);
+
+    Jets3tProperties props = new Jets3tProperties();
+    if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+      props.setProperty("httpclient.proxy-autodetect", "false");
+      props.setProperty("httpclient.proxy-host", tachyonConf.get(Constants.UNDERFS_S3_PROXY_HOST));
+      props.setProperty("httpclient.proxy-port", tachyonConf.get(Constants.UNDERFS_S3_PROXY_PORT));
+    }
+    if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+      props.setProperty("s3service.https-only",
+          Boolean.toString(tachyonConf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
+    }
+    LOG.debug("Initializing S3 underFs with properties: " + props.getProperties());
+    mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
+  }
+
+  @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.S3;
   }
 
   @Override
@@ -482,6 +512,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       S3Object obj = new S3Object(keyAsFolder);
       obj.setDataInputStream(new ByteArrayInputStream(new byte[0]));
       obj.setContentLength(0);
+      obj.setMd5Hash(DIR_HASH);
       obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       mClient.putObject(mBucketName, obj);
       return true;

@@ -25,9 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -42,28 +42,17 @@ import tachyon.util.FormatUtils;
 
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
-
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
   private final OutStreamOptions mClientOptions;
   private final int mNumbers = 20;
 
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType storageType) {
+      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(storageType).build();
+        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
   }
 
   @Override
@@ -71,10 +60,7 @@ public class BasicOperations implements Callable<Boolean> {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(tachyonConf);
+    ClientContext.reset(tachyonConf);
     TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     long fileId = createFile(tFS);
     writeFile(fileId);
@@ -86,7 +72,7 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
     CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
-        .setBlockSize(mClientOptions.getBlockSize()).setRecursive(true)
+        .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
         .setTTL(mClientOptions.getTTL()).build();
     TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
     long fileId = tFile.getFileId();
@@ -135,14 +121,13 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   public static void main(String[] args) throws IllegalArgumentException {
-    if (args.length != 3) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR
-          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> "
-          + "<WriteType(STORE|NO_STORE)>");
+    if (args.length != 4) {
+      System.out.println("java -cp " + Constants.TACHYON_JAR + " " + BasicOperations.class.getName()
+          + " <under storage type for writes (SYNC_PERSIST|NO_PERSIST)>");
       System.exit(-1);
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2])));
+        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
   }
 }

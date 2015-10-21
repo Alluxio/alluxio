@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
@@ -178,19 +180,17 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a new file.
    *
    * @param path the file path
-   * @param blockSizeBytes the file size
-   * @param recursive whether parent directories should be created if not present yet
-   * @param ttl TTL for file expiration
+   * @param options method options
    * @return the file id
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long create(final String path, final long blockSizeBytes,
-      final boolean recursive, final long ttl) throws IOException, TachyonException {
+  public synchronized long create(final String path, final CreateOptions options) throws IOException,
+      TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        return mClient.create(path, blockSizeBytes, recursive, ttl);
+        return mClient.create(path, options.toThrift());
       }
     });
   }
@@ -273,17 +273,17 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a new directory.
    *
    * @param path the directory path
-   * @param recursive whether parent directories should be created if they don't exist yet
+   * @param options method options
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean mkdir(final String path, final boolean recursive) throws IOException,
+  public synchronized boolean mkdir(final String path, final MkdirOptions options) throws IOException,
       TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
-        return mClient.mkdir(path, recursive);
+        return mClient.mkdir(path, options.toThrift());
       }
     });
   }

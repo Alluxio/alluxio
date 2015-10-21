@@ -131,7 +131,7 @@ public class TachyonFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
+                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-master-mesos.sh"))
@@ -155,7 +155,7 @@ public class TachyonFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
+                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-worker-mesos.sh"))

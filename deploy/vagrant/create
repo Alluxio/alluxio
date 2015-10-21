@@ -176,18 +176,18 @@ fi
 masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
 
 if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
-  info ">>> Tachyon is in Fault Tolerant mode, waiting 5 seconds for leader to be selected and web UI to be available <<<"
+  info "Tachyon is in Fault Tolerant mode, waiting 5 seconds for leader to be selected and web UI to be available"
   sleep 5
+  for master in ${masters[@]}; do
+    info "Tachyon master: ${master}"
+    info "Trying to curl Tachyon web UI at ${master}:19999"
+    curl "${master}:19999" >/dev/null
+    if [[ "$?" == "0" ]]; then
+      info "Master public IP for Tachyon is ${master}, visit ${master}:19999 for Tachyon web UI"
+      break
+    fi
+  done
+else
+  info "TachyonMaster public IP is ${main_master}, visit ${main_master}:19999 for Tachyon web UI"
 fi
-for master in ${masters[@]}; do
-  info "Tachyon master: ${master}"
-  info "Trying to curl Tachyon web UI at ${master}:19999"
-  curl "${master}:19999" >/dev/null
-  if [[ "$?" == "0" ]]; then
-    info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
-    break
-  fi
-done
-
-info ">>> Master public IP for other software is ${main_master} <<<"
-info ">>> Please visit default port of the web UI of what you deployed <<<"
+info "visit default port of the web UI of what you deployed"

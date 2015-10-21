@@ -124,7 +124,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public synchronized FileBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+    return mTachyonFS.getClientBlockInfo(mFileId, blockIndex);
   }
 
   /**
@@ -175,16 +175,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
-    tachyon.client.file.TachyonFile newFile;
     try {
-      newFile = mTFS.open(uri);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
-    if (newFile == null) {
-      throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
-    }
-    try {
+      tachyon.client.file.TachyonFile newFile = mTFS.open(uri);
       return mTFS.getInStream(newFile, optionsBuilder.build());
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -269,7 +261,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
+    optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
