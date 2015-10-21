@@ -246,7 +246,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Returns the {@code OutStream} of this file, use the specified write type. Always return a
    * {@code FileOutStream}.
    *
+   * @param writeType the OutStream's write type which is unused
+   *
    * @return the OutStream
+   * @throws IOException when an event that prevents the operation from completing is encountered
+   */
+  public FileOutStream getOutStream(WriteType writeType) throws IOException {
+    return getOutStream();
+  }
+
+  /**
+   * @return the {@code OutStream} of this file
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public FileOutStream getOutStream() throws IOException {
@@ -264,7 +274,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
-
     optionsBuilder.setTachyonStorageType(tachyonStorageType);
     optionsBuilder.setUnderStorageType(underStorageType);
     return mTFS.getOutStream(mFileId, optionsBuilder.build());
