@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-underfs</artifactId>
-    <version>0.8.0</version>
+    <version>0.8.1-SNAPSHOT</version>
   </parent>
   <artifactId>tachyon-underfs-local</artifactId>
   <name>Tachyon Under File System - Local FS</name>

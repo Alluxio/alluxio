@@ -2,7 +2,7 @@
   <parent>
     <artifactId>tachyon-parent</artifactId>
     <groupId>org.tachyonproject</groupId>
-    <version>0.8.0</version>
+    <version>0.8.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
