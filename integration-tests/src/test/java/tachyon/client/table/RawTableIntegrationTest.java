@@ -28,7 +28,6 @@ import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.master.LocalTachyonCluster;
@@ -171,7 +170,7 @@ public class RawTableIntegrationTest {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
       TachyonFile file = rawCol.getPartition(0);
-      FileOutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
+      FileOutStream outStream = file.getOutStream();
       outStream.write(BufferUtils.getIncreasingByteArray(10));
       outStream.close();
     }
