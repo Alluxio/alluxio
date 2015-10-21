@@ -124,7 +124,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      FileOutStream os = tFile.getOutStream(mWriteType);
+      FileOutStream os = tFile.getOutStream();
       os.write(buf.array());
       os.close();
     }
