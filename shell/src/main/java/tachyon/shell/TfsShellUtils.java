@@ -67,7 +67,7 @@ public class TfsShellUtils {
    * @return the verified path in a form like tachyon://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         tachyon.master.hostname and tachyon.master.port, respectively.
-   * @throws IOException if the given path is not valid.
+   * @throws IOException if the given path is not valid
    */
   public static String validatePath(String path, TachyonConf tachyonConf) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
