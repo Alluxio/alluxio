@@ -246,33 +246,36 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Returns the {@code OutStream} of this file, use the specified write type. Always return a
    * {@code FileOutStream}.
    *
-   * @param writeType the OutStream's write type
+   * @param writeType the OutStream's write type which is unused
+   *
    * @return the OutStream
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public FileOutStream getOutStream(WriteType writeType) throws IOException {
+    return getOutStream();
+  }
+
+  /**
+   * @return the {@code OutStream} of this file
+   * @throws IOException when an event that prevents the operation from completing is encountered
+   */
+  public FileOutStream getOutStream() throws IOException {
     if (isCompleted()) {
       throw new IOException("Overriding after completion not supported.");
     }
 
-    if (writeType == null) {
-      throw new IOException("WriteType can not be null.");
-    }
+    TachyonStorageType tachyonStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
+            TachyonStorageType.class);
+    UnderStorageType underStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+            UnderStorageType.class);
 
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
-
-    if (writeType.isCache()) {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
-    } else {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
-    }
-    if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
-    } else {
-      optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
-    }
+    optionsBuilder.setTachyonStorageType(tachyonStorageType);
+    optionsBuilder.setUnderStorageType(underStorageType);
     return mTFS.getOutStream(mFileId, optionsBuilder.build());
   }
 
