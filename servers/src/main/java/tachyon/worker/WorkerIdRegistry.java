@@ -19,21 +19,18 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import tachyon.client.WorkerBlockMasterClient;
-import tachyon.master.block.BlockMaster;
-import tachyon.thrift.Command;
-import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.block.BlockMasterSync;
 
 /**
  * The single place to get, set, and update worker ID.
  *
- * When worker process starts in {@link TachyonWorker}, worker is temporarily lost from master,
- * or when leader master is down in fault tolerant mode, this class will try to get a new worker ID
- * from {@link BlockMaster}.
+ * When worker process starts in {@link TachyonWorker}, worker is temporarily lost from master, or
+ * when leader master is down in fault tolerant mode, this class will try to get a new worker ID
+ * from {@link tachyon.master.block.}.
  *
- * Worker ID will only be regained in {@link BlockMasterSync} when it receives {@link Command} with
- * type {@link CommandType#Register} from {@link BlockMaster}.
+ * Worker ID will only be regained in {@link tachyon.worker.block.BlockMasterSync} when it receives
+ * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Register} from
+ * {@link tachyon.master.block.}.
  *
  * This class should be the only source of current worker ID within the same worker process.
  */
@@ -48,7 +45,7 @@ public final class WorkerIdRegistry {
   private WorkerIdRegistry() {}
 
   /**
-   * Registers with {@link BlockMaster} to get a new worker ID.
+   * Registers with {@link tachyon.master.block.BlockMaster} to get a new worker ID.
    *
    * @param masterClient the master client to be used for RPC
    * @param workerAddress current worker address

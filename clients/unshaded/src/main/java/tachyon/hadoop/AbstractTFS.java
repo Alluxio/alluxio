@@ -40,9 +40,6 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -298,6 +295,7 @@ abstract class AbstractTFS extends FileSystem {
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
+  @Override
   public abstract String getScheme();
 
   /**

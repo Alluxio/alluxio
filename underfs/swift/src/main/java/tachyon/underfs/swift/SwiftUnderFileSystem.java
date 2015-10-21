@@ -16,7 +16,6 @@
 package tachyon.underfs.swift;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,17 +41,19 @@ public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   /**
-   * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
-   * instance that can access the provided path
+   * Prepares the Hadoop configuration necessary to successfully obtain a
+   * {@link org.apache.hadoop.fs.FileSystem} instance that can access the provided path
    * <p>
-   * Derived implementations that work with specialised Hadoop {@linkplain FileSystem} API
-   * compatible implementations can override this method to add implementation specific
-   * configuration necessary for obtaining a usable {@linkplain FileSystem} instance.
+   * Derived implementations that work with specialised Hadoop
+   * {@linkplain org.apache.hadoop.fs.FileSystem} API compatible implementations can override this
+   * method to add implementation specific configuration necessary for obtaining a usable
+   * {@linkplain org.apache.hadoop.fs.FileSystem} instance.
    * </p>
    *
    * @param path File system path
    * @param config Hadoop Configuration
    */
+  @Override
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
     // To disable the instance cache for hdfs client, otherwise it causes the FileSystem closed
     // exception. Being configurable for unit/integration test only, and not expose to the end-user

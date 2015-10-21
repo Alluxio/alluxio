@@ -27,7 +27,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**

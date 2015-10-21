@@ -51,6 +51,7 @@
   </module>
 
   <module name="TreeWalker">
+    <module name="UnusedImports"/>
     <module name="OuterTypeFilename"/>
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>
@@ -206,5 +207,5 @@
     <property name="format" value="\s+$"/>
     <property name="message" value="Trailing whitespace found."/>
     <property name="fileExtensions" value=".java"/>
-  </module>
+  </module>  
 </module>

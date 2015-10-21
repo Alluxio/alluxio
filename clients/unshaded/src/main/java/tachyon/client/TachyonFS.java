@@ -38,7 +38,6 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
-import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
