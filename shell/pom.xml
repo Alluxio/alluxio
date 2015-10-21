@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.8.0</version>
   </parent>
   <artifactId>tachyon-shell</artifactId>
   <packaging>jar</packaging>
