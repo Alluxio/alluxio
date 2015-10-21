@@ -138,7 +138,10 @@ public class RawTableMaster extends MasterBase {
 
     // Create a directory at path to hold the columns
     MkdirOptions options =
-        new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+        new MkdirOptions.Builder(MasterContext.getConf())
+            .setPersisted(true)
+            .setRecursive(true)
+            .build();
     mFileSystemMaster.mkdir(path, options);
     long id = mFileSystemMaster.getFileId(path);
 

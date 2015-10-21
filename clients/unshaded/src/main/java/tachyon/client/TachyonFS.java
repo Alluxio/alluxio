@@ -357,14 +357,7 @@ public class TachyonFS extends AbstractTachyonFS {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
     }
-    long tableId = mRawTableMasterClient.createRawTable(path, columns, metadata);
-    if (tableId != IdUtils.INVALID_FILE_ID) {
-      mkdirs(path, true);
-      for (int i = 0; i < columns; i ++) {
-        mkdirs(new TachyonURI(RawColumn.getColumnPath(path.toString(), i)), true);
-      }
-    }
-    return tableId;
+    return mRawTableMasterClient.createRawTable(path, columns, metadata);
   }
 
   /**
