@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-parent</artifactId>
-  <version>0.8.0-SNAPSHOT</version>
+  <version>0.8.0</version>
   <packaging>pom</packaging>
   <name>Tachyon Parent</name>
   <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
@@ -18,7 +18,7 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>HEAD</tag>
+    <tag>v0.8.0</tag>
   </scm>
   <developers>
     <developer>
