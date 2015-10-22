@@ -244,5 +244,13 @@
         2
       ]
     }
+  },
+  "SET_TTL":{
+    "mSequenceNumber":1945,
+    "mType":"SET_TTL",
+    "mParameters":{
+      "id":0,
+      "ttl":1
+    }
   }
 }
