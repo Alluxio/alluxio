@@ -202,7 +202,7 @@ When you know the IP of Tachyon master container, you can modify the `conf/tachy
  up environment variable `TACHYON_MASTER_ADDRESS` on each EC2 machine:
 
 ```
-export TACHYON_MASTER_ADDRESS=Your_Master_IP
+export TACHYON_MASTER_ADDRESS=TACHYON_MASTER_IP
 ```
 
 You can run tests against Tachyon to check its health:
@@ -211,17 +211,17 @@ You can run tests against Tachyon to check its health:
 $ /tachyon/bin/tachyon runTests
 ```
 
-After the tests finish, visit Tachyon web UI at `http://{Your_Master_IP}:19999` again. Click `Browse
-File System` in the navigation bar, and you should see the files written to Tachyon by the above
+After the tests finish, visit Tachyon web UI at `http://TACHYON_MASTER_IP:19999` again. Click
+`Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
 
 # Stop Tachyon
 
 Tachyon can be stopped by using the following YARN command where the application ID of Tachyon can
-be retrieved from either YARN web UI or the output of `tachyon-yarn.sh` as mentioned above. In 
-our case, the application Id is `application_1445469376652_0002`, so we can kill the application 
-to stop Tachyon by:
+be retrieved from either YARN web UI or the output of `tachyon-yarn.sh` as mentioned above. For
+instance, if the application Id is `application_1445469376652_0002`, you can stop Tachyon by killing
+the application using:
 
 ```bash
 $ /hadoop/bin/yarn application -kill application_1445469376652_0002
