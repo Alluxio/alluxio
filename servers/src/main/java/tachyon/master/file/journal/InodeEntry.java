@@ -54,12 +54,12 @@ public abstract class InodeEntry extends JournalEntry {
     return mName;
   }
 
-  @JsonGetter("persisted")
+  @JsonGetter
   public boolean isPersisted() {
     return mPersisted;
   }
 
-  @JsonGetter("pinned")
+  @JsonGetter
   public boolean isPinned() {
     return mPinned;
   }
