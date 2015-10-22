@@ -106,6 +106,9 @@ public final class Constants {
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
   public static final String UNDERFS_GLUSTERFS_MR_DIR =
       "tachyon.underfs.glusterfs.mapred.system.dir";
+  public static final String UNDERFS_S3_PROXY_HOST = "tachyon.underfs.s3.proxy.host";
+  public static final String UNDERFS_S3_PROXY_PORT = "tachyon.underfs.s3.proxy.port";
+  public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "tachyon.underfs.s3.proxy.https.only";
   public static final String ZOOKEEPER_ENABLED = "tachyon.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "tachyon.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "tachyon.zookeeper.election.path";
@@ -120,9 +123,9 @@ public final class Constants {
       "tachyon.integration.master.resource.mem";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
+  public static final String INTEGRATION_MESOS_JRE_PATH =
+      "tachyon.integration.mesos.jre.path";
   public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
-  public static final String INTEGRATION_MESOS_JRE_VERSION =
-      "tachyon.integration.mesos.jre.version";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
       "tachyon.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =

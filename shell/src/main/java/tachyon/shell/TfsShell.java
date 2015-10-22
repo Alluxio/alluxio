@@ -110,13 +110,9 @@ public class TfsShell implements Closeable {
     FileInfo tFile;
     try {
       fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.print(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       tFile = mTfs.getInfo(fd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     if (!tFile.isFolder) {
@@ -168,15 +164,11 @@ public class TfsShell implements Closeable {
     FileInfo fInfo;
     try {
       fd = mTfs.open(filePath);
-      if (fd == null) {
-        System.out.print(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(filePath));
-        return -1;
-      }
       fInfo = mTfs.getInfo(fd);
     } catch (IOException ioe) {
       return -1;
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     try {
@@ -240,13 +232,9 @@ public class TfsShell implements Closeable {
     FileInfo dstFileInfo;
     try {
       TachyonFile dstFd = mTfs.open(dstPath);
-      if (dstFd == null) {
-        System.out.print(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(dstPath));
-        return -1;
-      }
       dstFileInfo = mTfs.getInfo(dstFd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
     if (!dstFileInfo.isFolder) {
       System.out.println("The destination cannot be an existent file when the src contains "
@@ -290,7 +278,7 @@ public class TfsShell implements Closeable {
       // If the dstPath is a directory, then it should be updated to be the path of the file where
       // src will be copied to
       try {
-        TachyonFile fd = tachyonClient.open(dstPath);
+        TachyonFile fd = tachyonClient.openIfExists(dstPath);
         if (fd != null) {
           FileInfo tFile = tachyonClient.getInfo(fd);
           if (tFile.isFolder) {
@@ -298,7 +286,7 @@ public class TfsShell implements Closeable {
           }
         }
       } catch (TachyonException e) {
-        throw new IOException(e);
+        throw new IOException(e.getMessage());
       }
 
       Closer closer = Closer.create();
@@ -313,7 +301,7 @@ public class TfsShell implements Closeable {
           os.write(buf.array(), 0, buf.limit());
         }
       } catch (TachyonException e) {
-        throw new IOException(e);
+        throw new IOException(e.getMessage());
       } finally {
         closer.close();
       }
@@ -322,7 +310,7 @@ public class TfsShell implements Closeable {
       try {
         tachyonClient.mkdir(dstPath);
       } catch (TachyonException e) {
-        throw new IOException(e);
+        throw new IOException(e.getMessage());
       }
       for (String file : src.list()) {
         TachyonURI newPath = new TachyonURI(dstPath, new TachyonURI(file));
@@ -383,13 +371,9 @@ public class TfsShell implements Closeable {
     FileInfo srcFileInfo;
     try {
       srcFd = mTfs.open(srcPath);
-      if (srcFd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
-        return -1;
-      }
       srcFileInfo = mTfs.getInfo(srcFd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     if (srcFileInfo.isFolder) {
@@ -435,12 +419,8 @@ public class TfsShell implements Closeable {
     TachyonFile srcFd;
     try {
       srcFd = mTfs.open(srcPath);
-      if (srcFd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
-        return -1;
-      }
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     Closer closer = Closer.create();
@@ -484,9 +464,6 @@ public class TfsShell implements Closeable {
     FileInfo fInfo;
     try {
       fd = mTfs.open(path);
-      if (fd == null) {
-        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-      }
       fInfo = mTfs.getInfo(fd);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
@@ -502,7 +479,7 @@ public class TfsShell implements Closeable {
     try {
       files = mTfs.listStatus(fd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
     Collections.sort(files);
     for (FileInfo file : files) {
@@ -526,13 +503,9 @@ public class TfsShell implements Closeable {
     FileInfo fInfo;
     try {
       fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       fInfo = mTfs.getInfo(fd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     if (fInfo.isFolder) {
@@ -559,13 +532,9 @@ public class TfsShell implements Closeable {
     FileInfo fInfo;
     try {
       fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       fInfo = mTfs.getInfo(fd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     System.out.println(path + " with file id " + fd.getFileId() + " is on nodes: ");
@@ -582,9 +551,6 @@ public class TfsShell implements Closeable {
     List<FileInfo> files = null;
     try {
       TachyonFile fd = mTfs.open(path);
-      if (fd == null) {
-        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-      }
       files = mTfs.listStatus(fd);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
@@ -735,10 +701,6 @@ public class TfsShell implements Closeable {
   public int pin(TachyonURI path) {
     try {
       TachyonFile fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       SetStateOptions options = new SetStateOptions.Builder(mTachyonConf).setPinned(true).build();
       mTfs.setState(fd, options);
       System.out.println("File '" + path + "' was successfully pinned.");
@@ -899,10 +861,6 @@ public class TfsShell implements Closeable {
     TachyonURI dstPath = new TachyonURI(argv[2]);
     try {
       TachyonFile fd = mTfs.open(srcPath);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
-        return -1;
-      }
       if (mTfs.rename(fd, dstPath)) {
         System.out.println("Renamed " + srcPath + " to " + dstPath);
         return 0;
@@ -918,10 +876,6 @@ public class TfsShell implements Closeable {
   public int report(TachyonURI path) throws IOException {
     try {
       TachyonFile fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       mTfs.reportLostFile(fd);
       System.out
           .println(path + " with file id " + fd.getFileId() + " has reported been report lost.");
@@ -944,13 +898,9 @@ public class TfsShell implements Closeable {
     FileInfo fInfo;
     try {
       fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println("rm: cannot remove '" + path + "': No such file or directory");
-        return -1;
-      }
       fInfo = mTfs.getInfo(fd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     if (fInfo.isFolder) {
@@ -965,7 +915,7 @@ public class TfsShell implements Closeable {
     } catch (IOException ioe) {
       return -1;
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -980,10 +930,6 @@ public class TfsShell implements Closeable {
     try {
       DeleteOptions options = new DeleteOptions.Builder(mTachyonConf).setRecursive(true).build();
       TachyonFile fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       mTfs.delete(fd, options);
       System.out.println(path + " has been removed");
       return 0;
@@ -1169,13 +1115,9 @@ public class TfsShell implements Closeable {
     FileInfo fInfo;
     try {
       fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       fInfo = mTfs.getInfo(fd);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
 
     if (!fInfo.isFolder) {
@@ -1198,7 +1140,7 @@ public class TfsShell implements Closeable {
         }
         return 0;
       } catch (TachyonException e) {
-        throw new IOException(e);
+        throw new IOException(e.getMessage());
       } finally {
         is.close();
       }
@@ -1238,10 +1180,6 @@ public class TfsShell implements Closeable {
     try {
       SetStateOptions options = new SetStateOptions.Builder(mTachyonConf).setPinned(false).build();
       TachyonFile fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       mTfs.setState(fd, options);
       System.out.println("File '" + path + "' was successfully unpinned.");
       return 0;
@@ -1263,10 +1201,6 @@ public class TfsShell implements Closeable {
     try {
       FreeOptions options = new FreeOptions.Builder(mTachyonConf).setRecursive(true).build();
       TachyonFile fd = mTfs.open(path);
-      if (fd == null) {
-        System.out.println(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-        return -1;
-      }
       mTfs.free(fd, options);
       System.out.println(path + " was successfully freed from memory.");
       return 0;
@@ -1289,9 +1223,6 @@ public class TfsShell implements Closeable {
     List<FileInfo> files;
     try {
       TachyonFile inputFile = tachyonFS.open(path);
-      if (inputFile == null) {
-        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-      }
       files = tachyonFS.listStatus(inputFile);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
@@ -1335,7 +1266,7 @@ public class TfsShell implements Closeable {
     try {
       lineageId = tl.createLineage(inputFiles, outputFiles, job);
     } catch (TachyonException e) {
-      throw new IOException(e);
+      throw new IOException(e.getMessage());
     }
     System.out.println("Lineage " + lineageId + " has been created.");
     return 0;

@@ -124,7 +124,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public synchronized FileBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+    return mTachyonFS.getClientBlockInfo(mFileId, blockIndex);
   }
 
   /**
@@ -175,16 +175,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
-    tachyon.client.file.TachyonFile newFile;
     try {
-      newFile = mTFS.open(uri);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
-    if (newFile == null) {
-      throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
-    }
-    try {
+      tachyon.client.file.TachyonFile newFile = mTFS.open(uri);
       return mTFS.getInStream(newFile, optionsBuilder.build());
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -254,33 +246,36 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Returns the {@code OutStream} of this file, use the specified write type. Always return a
    * {@code FileOutStream}.
    *
-   * @param writeType the OutStream's write type
+   * @param writeType the OutStream's write type which is unused
+   *
    * @return the OutStream
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public FileOutStream getOutStream(WriteType writeType) throws IOException {
+    return getOutStream();
+  }
+
+  /**
+   * @return the {@code OutStream} of this file
+   * @throws IOException when an event that prevents the operation from completing is encountered
+   */
+  public FileOutStream getOutStream() throws IOException {
     if (isCompleted()) {
       throw new IOException("Overriding after completion not supported.");
     }
 
-    if (writeType == null) {
-      throw new IOException("WriteType can not be null.");
-    }
+    TachyonStorageType tachyonStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
+            TachyonStorageType.class);
+    UnderStorageType underStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+            UnderStorageType.class);
 
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
-
-    if (writeType.isCache()) {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
-    } else {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
-    }
-    if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
-    } else {
-      optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
-    }
+    optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
+    optionsBuilder.setTachyonStorageType(tachyonStorageType);
+    optionsBuilder.setUnderStorageType(underStorageType);
     return mTFS.getOutStream(mFileId, optionsBuilder.build());
   }
 

@@ -38,6 +38,7 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
@@ -215,15 +216,12 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
       TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
-          IOException, TachyonException {
+      InvalidPathException, IOException, TachyonException {
     TachyonFile file = null;
     if (fileId != -1) {
       file = new TachyonFile(fileId);
     } else {
       file = tachyonFileSystem.open(filePath);
-      if (file == null) {
-        throw new FileDoesNotExistException(filePath.toString());
-      }
     }
     FileInfo fileInfo;
     try {

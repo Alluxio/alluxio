@@ -29,7 +29,8 @@ public enum JournalEntryType {
   COMPLETE_FILE,
   DELETE_FILE,
   DELETE_MOUNTPOINT,
-  FREE,
+  //it is never used
+//  FREE,
   INODE_FILE,
   INODE_DIRECTORY,
   INODE_DIRECTORY_ID_GENERATOR,
