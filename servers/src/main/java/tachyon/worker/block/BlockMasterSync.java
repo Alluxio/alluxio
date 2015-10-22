@@ -28,6 +28,7 @@ import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -100,6 +101,9 @@ public final class BlockMasterSync implements Runnable {
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);
       throw ioe;
+    } catch (TachyonException e) {
+      LOG.error("Failed to register with master.", e);
+      throw new IOException(e);
     }
   }
 
