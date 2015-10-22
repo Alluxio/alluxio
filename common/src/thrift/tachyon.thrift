@@ -158,13 +158,11 @@ service BlockMasterService {
 
   void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i32 tier, 4: i64 blockId,
       5: i64 length)
-    throws (1: TachyonTException e)
 
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
   Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
-    throws (1: TachyonTException e)
 
   void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
       3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
@@ -178,10 +176,10 @@ service FileSystemMasterService {
     throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   i64 create(1: string path, 2: CreateTOptions options)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: TachyonTException e)
@@ -211,7 +209,7 @@ service FileSystemMasterService {
    */
    // TODO(jiri): Get rid of this.
   i64 loadMetadata(1: string ufsPath, 2: bool recursive)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
@@ -224,7 +222,7 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   bool renameFile(1: i64 fileId, 2: string dstPath)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   void reportLostFile(1: i64 fileId)
     throws (1: TachyonTException e)
@@ -245,7 +243,7 @@ service FileSystemMasterService {
 service LineageMasterService {
   // for client
   i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
     throws (1: TachyonTException e)
@@ -260,6 +258,7 @@ service LineageMasterService {
 
   // for workers
   LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
+    throws (1: TachyonTException e)
 }
 
 service RawTableMasterService {
