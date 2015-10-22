@@ -21,7 +21,7 @@ this="$config_bin/$script"
 # This will set the default installation for a tarball installation while os distributors can create
 # their own tachyon-layout.sh file to set system installation locations.
 if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
-  VERSION=0.8.1-SNAPSHOT
+  VERSION=0.9.0-SNAPSHOT
   export TACHYON_PREFIX=`dirname $(dirname "$this")`
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
@@ -29,7 +29,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_JARS="$TACHYON_HOME/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
-# Make sure tachyon-env.sh exists  
+# Make sure tachyon-env.sh exists
 if [ ! -e $TACHYON_CONF_DIR/tachyon-env.sh ]; then
   echo "Cannot find tachyon-env.sh in $TACHYON_CONF_DIR."
   echo "Please create one manually or using '$TACHYON_HOME/bin/tachyon bootstrap-conf'."
