@@ -15,15 +15,11 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonGetter;
 
 import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryType;
 
-public abstract class InodeEntry implements JournalEntry {
+public abstract class InodeEntry extends JournalEntry {
   protected final long mId;
   protected final long mParentId;
   protected final String mName;
@@ -43,38 +39,38 @@ public abstract class InodeEntry implements JournalEntry {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
-  @Override
-  public abstract JournalEntryType getType();
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(6);
-    parameters.put("id", mId);
-    parameters.put("parentId", mParentId);
-    parameters.put("name", mName);
-    parameters.put("persisted", mPersisted);
-    parameters.put("pinned", mPinned);
-    parameters.put("creationTimeMs", mCreationTimeMs);
-    parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
-    return parameters;
+  @JsonGetter
+  public long getmId() {
+    return mId;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mId, mParentId, mName, mPinned, mPersisted, mCreationTimeMs,
-        mLastModificationTimeMs);
+  @JsonGetter
+  public long getmParentId() {
+    return mParentId;
   }
 
-  @Override
-  public boolean equals(Object object) {
-    if (object instanceof InodeEntry) {
-      InodeEntry that = (InodeEntry) object;
-      return Objects.equal(mId, that.mId) && Objects.equal(mParentId, that.mParentId)
-          && Objects.equal(mName, that.mName) && Objects.equal(mPersisted, that.mPersisted)
-          && Objects.equal(mPinned, that.mPinned)
-          && Objects.equal(mCreationTimeMs, that.mCreationTimeMs)
-          && Objects.equal(mLastModificationTimeMs, that.mLastModificationTimeMs);
-    }
-    return false;
+  @JsonGetter
+  public String getName() {
+    return mName;
+  }
+
+  @JsonGetter
+  public boolean isPersisted() {
+    return mPersisted;
+  }
+
+  @JsonGetter
+  public boolean isPinned() {
+    return mPinned;
+  }
+
+  @JsonGetter
+  public long getCreationTimeMs() {
+    return mCreationTimeMs;
+  }
+
+  @JsonGetter
+  public long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
   }
 }

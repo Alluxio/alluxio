@@ -16,8 +16,10 @@
 package tachyon.master.file.journal;
 
 import java.util.List;
-import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
@@ -32,9 +34,15 @@ public class InodeFileEntry extends InodeEntry {
   private final List<Long> mBlocks;
   private final long mTTL;
 
-  public InodeFileEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean persisted, boolean pinned, long lastModificationTimeMs, long blockSizeBytes,
-      long length, boolean completed, boolean cacheable, List<Long> blocks, long ttl) {
+  @JsonCreator
+  public InodeFileEntry(@JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("id") long id, @JsonProperty("name") String name,
+      @JsonProperty("parentId") long parentId, @JsonProperty("persisted") boolean persisted,
+      @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
+      @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("length") long length,
+      @JsonProperty("completed") boolean completed, @JsonProperty("cacheable") boolean cacheable,
+      @JsonProperty("blocks") List<Long> blocks, @JsonProperty("ttl") long ttl) {
     super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
@@ -69,15 +77,33 @@ public class InodeFileEntry extends InodeEntry {
     return JournalEntryType.INODE_FILE;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = super.getParameters();
-    parameters.put("blockSizeBytes", mBlockSizeBytes);
-    parameters.put("length", mLength);
-    parameters.put("completed", mCompleted);
-    parameters.put("cacheable", mCacheable);
-    parameters.put("blocks", mBlocks);
-    parameters.put("ttl", mTTL);
-    return parameters;
+  @JsonGetter
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
+  }
+
+  @JsonGetter
+  public long getLength() {
+    return mLength;
+  }
+
+  @JsonGetter
+  public boolean isCompleted() {
+    return mCompleted;
+  }
+
+  @JsonGetter
+  public boolean isCacheable() {
+    return mCacheable;
+  }
+
+  @JsonGetter
+  public List<Long> getBlocks() {
+    return mBlocks;
+  }
+
+  @JsonGetter
+  public long getTtl() {
+    return mTTL;
   }
 }
