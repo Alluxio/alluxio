@@ -1,13 +1,13 @@
 ---
 layout: global
-title: Running Tachyon with Yarn on EC2
-nickname: Tachyon on EC2 with Yarn
+title: Running Tachyon with YARN on EC2
+nickname: Tachyon on EC2 with YARN
 group: User Guide
 priority: 5
 ---
 
-Tachyon can be started and managed by Apache Yarn. This guide demonstrates how to launch Tachyon
-with Yarn on EC2 machines using the
+Tachyon can be started and managed by Apache YARN. This guide demonstrates how to launch Tachyon
+with YARN on EC2 machines using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
 Tachyon.
 
@@ -126,11 +126,12 @@ $ vagrant ssh TachyonMaster
 All software is installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
 installed in `/hadoop`.
 
-# Configure Tachyon integration with Yarn
+# Configure Tachyon integration with YARN
 
-Yarn has been installed as a part of Hadoop version 2.4.1. Notice that, by default Tachyon binaries 
+On our EC2 machines, YARN has been installed as a part of Hadoop version 2.4.1. Notice that, by 
+default Tachyon binaries 
 built by vagrant script do not include this YARN integration. You should first stop the default 
-Tachyon service, re-compile Tachyon with profile yarn specified to have the Yarn client and
+Tachyon service, re-compile Tachyon with profile "yarn" specified to have the YARN client and
 ApplicationMaster for Tachyon.
 
 ```bash
@@ -146,26 +147,54 @@ master/workers, put `tachyon-site.properties` under `${TACHYON_HOME}/conf` on ea
 
 # Start Tachyon
 
-Use script `integration/bin/tachyon-yarn.sh` to start Tachyon. This script requires three parameters:
-1. A path pointing to `${TACHYON_HOME}` on each machine so Yarn NodeManager can access Tachyon
+Use script `integration/bin/tachyon-yarn.sh` to start Tachyon. This script requires three arguments:
+1. A path pointing to `${TACHYON_HOME}` on each machine so YARN NodeManager can access Tachyon
 scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/tachyon`.
 2. The total number of Tachyon workers to start.
 3. A HDFS path to distribute the binaries for Tachyon ApplicationMaster.
 
 For example, here we launch a Tachyon cluster with 3 worker nodes, where an HDFS temp directory is
-`hdfs://TachyonMaster:9000/tmp/` and each Yarn container can access Tachyon in `/tachyon`
+`hdfs://TachyonMaster:9000/tmp/` and each YARN container can access Tachyon in `/tachyon`
 
 ```bash
+$ /hadoop/bin/hadoop fs -mkdir hdfs://TachyonMaster:9000/tmp
 $ /tachyon/integration/bin/tachyon-yarn.sh /tachyon 3 hdfs://TachyonMaster:9000/tmp/
 ```
 
-This script will first upload the binaries with Yarn client and ApplicationMaster to the HDFS path
-specified, then inform Yarn to run the client binary jar. The script will keep running with
+This script will first upload the binaries with YARN client and ApplicationMaster to the HDFS path
+specified, then inform YARN to run the client binary jar. The script will keep running with
 ApplicationMaster status reported. You can also check `http://TachyonMaster:8088` in the browser to
 access the Web UIs and watch the status of the Tachyon job as well as the application ID.
 
-NOTE: currently Tachyon Yarn framework does not guarantee to start the Tachyon master on the
-TachyonMaster machine; use the Yarn Web UI to find out which machine is Tachyon master running on.
+The output of the above script may produce output like the following:
+
+```bash
+Using $HADOOP_HOME set to '/hadoop'
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/hadoop/share/hadoop/common/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/tachyon/clients/client/target/tachyon-client-0.8.1-SNAPSHOT-jar-with-dependencies.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+Initializing Client
+Starting Client
+15/10/22 00:01:17 INFO client.RMProxy: Connecting to ResourceManager at TachyonMaster/172.31.22.124:8050
+SLF4J: Class path contains multiple SLF4J bindings.
+SLF4J: Found binding in [jar:file:/hadoop/share/hadoop/common/lib/slf4j-log4j12-1.7.5.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: Found binding in [jar:file:/tachyon/clients/client/target/tachyon-client-0.8.1-SNAPSHOT-jar-with-dependencies.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.
+SLF4J: Actual binding is of type [org.slf4j.impl.Log4jLoggerFactory]
+ApplicationMaster command: {{JAVA_HOME}}/bin/java -Xmx256M tachyon.yarn.ApplicationMaster 3 /tachyon localhost 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr 
+Submitting application of id application_1445469376652_0002 to ResourceManager
+15/10/22 00:01:19 INFO impl.YarnClientImpl: Submitted application application_1445469376652_0002
+2015/10/22 00:01:29 Got application report from ASM for appId=2, clientToAMToken=null, appDiagnostics=, appMasterHost=, appQueue=default, appMasterRpcPort=0, appStartTime=1445472079196, yarnAppState=RUNNING, distributedFinalState=UNDEFINED, appTrackingUrl=http://TachyonMaster:8088/proxy/application_1445469376652_0002/A, appUser=ec2-user
+2015/10/22 00:01:39 Got application report from ASM for appId=2, clientToAMToken=null, appDiagnostics=, appMasterHost=, appQueue=default, appMasterRpcPort=0, appStartTime=1445472079196, yarnAppState=RUNNING, distributedFinalState=UNDEFINED, appTrackingUrl=http://TachyonMaster:8088/proxy/application_1445469376652_0002/A, appUser=ec2-user
+```
+
+From the output, we know the application ID to run Tachyon is 
+**`application_1445469376652_0002`**. This application ID is needed to kill the application.
+
+NOTE: currently Tachyon YARN framework does not guarantee to start the Tachyon master on the
+TachyonMaster machine; use the YARN Web UI to find out which machine is Tachyon master running on.
 
 # Test Tachyon
 
@@ -182,16 +211,18 @@ tests.
 
 # Stop Tachyon
 
-Tachyon can be stopped by using the following Yarn command where the application ID of Tachyon can
-be retrieved from either Yarn web UI or the output of `tachyon-yarn.sh`:
+Tachyon can be stopped by using the following YARN command where the application ID of Tachyon can
+be retrieved from either YARN web UI or the output of `tachyon-yarn.sh` as mentioned above. In 
+our case, the application Id is `application_1445469376652_0002`, so we can kill the application 
+to stop Tachyon by:
 
 ```bash
-$ /hadoop/bin/yarn application -kill TACHYON_APPLICATION_ID
+$ /hadoop/bin/yarn application -kill application_1445469376652_0002
 ```
 
 # Destroy the cluster
 
-Under `deploy/vagrant` directory, you can run:
+Under `deploy/vagrant` directory in your local machine where EC2 machines are launched, you can run:
 
 ```bash
 $ ./destroy
