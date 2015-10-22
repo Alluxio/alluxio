@@ -133,7 +133,7 @@ please refer to [MvnRepository](http://mvnrepository.com/).
 
 If you are using a Tachyon client that is running separately from the Tachyon Master and Workers (in a
 separate JVM), then you need to make sure that your AWS credentials are provided to the application
-JVM processes as well. The easiest way to do this is to add them as command line options when starting 
+JVM processes as well. The easiest way to do this is to add them as command line options when starting
 your client JVM process. For example:
 
 ```bash
@@ -155,13 +155,13 @@ This should start a Tachyon master and a Tachyon worker. You can see the master 
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/tachyon runTest Basic CACHE_THROUGH
+$ ./bin/tachyon runTests
 ```
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
-and directories created by Tachyon exist. For this test, you should see a file named:
+and directories created by Tachyon exist. For this test, you should see files named like:
 
-    S3_BUCKET/S3_DIRECTORY/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH
+    S3_BUCKET/S3_DIRECTORY/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST
 
 To stop Tachyon, you can run:
 
