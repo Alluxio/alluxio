@@ -152,7 +152,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the inode with the given path
    * @throws InvalidPathException if the path is invalid
    */
-  public Inode getInodeByPath(TachyonURI path) throws InvalidPathException, IOException {
+  public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.toString()), false);
     if (!traversalResult.isFound()) {
@@ -276,48 +276,53 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (lastInode != null) {
       if (lastInode.isDirectory() && options.isDirectory()) {
         if (!lastInode.isPersisted() && options.isPersisted()) {
-          lastInode.setPersisted(true);
-          traversalResult.getPersisted().add(lastInode);
+          traversalResult.getToBePersisted().add(lastInode);
+        }
+      } else {
+        LOG.info("FileAlreadyExistsException: " + path);
+        throw new FileAlreadyExistsException(path.toString());
+      }
+    } else {
+      if (options.isDirectory()) {
+        lastInode =
+            new InodeDirectory.Builder().setName(name)
+                .setId(mDirectoryIdGenerator.getNewDirectoryId())
+                .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
+                .build();
+        if (options.isPersisted()) {
           String ufsPath = mMountTable.resolve(getPath(lastInode)).toString();
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           ufs.mkdirs(ufsPath, false);
         }
-        return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
+      } else {
+        lastInode =
+            new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
+                .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL())
+                .setName(name).setParentId(currentInodeDirectory.getId())
+                .setPersisted(options.isPersisted()).setCreationTimeMs(options.getOperationTimeMs())
+                .build();
+        if (currentInodeDirectory.isPinned()) {
+          // Update set of pinned file ids.
+          mPinnedInodeFileIds.add(lastInode.getId());
+        }
       }
-      LOG.info("FileAlreadyExistsException: " + path);
-      throw new FileAlreadyExistsException(path.toString());
-    }
-    if (options.isDirectory()) {
-      lastInode =
-          new InodeDirectory.Builder().setName(name)
-              .setId(mDirectoryIdGenerator.getNewDirectoryId())
-              .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
-              .build();
-      if (options.isPersisted()) {
-        String ufsPath = mMountTable.resolve(getPath(lastInode)).toString();
-        UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-        ufs.mkdirs(ufsPath, false);
-      }
-    } else {
-      lastInode =
-          new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
-              .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL()).setName(name)
-              .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
-              .setCreationTimeMs(options.getOperationTimeMs()).build();
-      if (currentInodeDirectory.isPinned()) {
-        // Update set of pinned file ids.
-        mPinnedInodeFileIds.add(lastInode.getId());
-      }
-    }
-    lastInode.setPinned(currentInodeDirectory.isPinned());
+      lastInode.setPinned(currentInodeDirectory.isPinned());
 
-    createdInodes.add(lastInode);
-    mInodes.add(lastInode);
-    currentInodeDirectory.addChild(lastInode);
-    currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
+      createdInodes.add(lastInode);
+      mInodes.add(lastInode);
+      currentInodeDirectory.addChild(lastInode);
+      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
+    }
+
+    for (Inode inode : traversalResult.getToBePersisted()) {
+      String ufsPath = mMountTable.resolve(getPath(inode)).toString();
+      UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+      ufs.mkdirs(ufsPath, false);
+      inode.setPersisted(true);
+    }
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
-    return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
+    return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getToBePersisted());
   }
 
   /**
@@ -330,7 +335,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws InvalidPathException if the paht is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException {
     // TODO(yupeng): add validation
     InodeFile file = (InodeFile) getInodeByPath(path);
     file.setBlockSize(blockSizeBytes);
@@ -518,7 +523,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   private TraversalResult traverseToInode(String[] pathComponents, boolean persist)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException {
     List<Inode> persisted = Lists.newArrayList();
 
     if (pathComponents == null) {
@@ -555,11 +560,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       } else {
         // next is a directory and keep navigating
         if (persist && !next.isPersisted()) {
-          next.setPersisted(true);
           persisted.add(next);
-          String ufsPath = mMountTable.resolve(getPath(next)).toString();
-          UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-          ufs.mkdirs(ufsPath, false);
         }
         current = next;
       }
@@ -579,21 +580,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     private final Inode mInode;
 
-    private final List<Inode> mPersisted;
+    /**
+     * A list of existing Inodes that are found to be persisted during traversal.
+     */
+    private final List<Inode> mToBePersisted;
 
-    static TraversalResult createFoundResult(Inode inode, List<Inode> persisted) {
-      return new TraversalResult(true, -1, inode, persisted);
+    static TraversalResult createFoundResult(Inode inode, List<Inode> toBePersisted) {
+      return new TraversalResult(true, -1, inode, toBePersisted);
     }
 
-    static TraversalResult createNotFoundResult(Inode inode, int index, List<Inode> persisted) {
-      return new TraversalResult(false, index, inode, persisted);
+    static TraversalResult createNotFoundResult(Inode inode, int index, List<Inode> toBePersisted) {
+      return new TraversalResult(false, index, inode, toBePersisted);
     }
 
-    private TraversalResult(boolean found, int index, Inode inode, List<Inode> persisted) {
+    private TraversalResult(boolean found, int index, Inode inode, List<Inode> toBePersisted) {
       mFound = found;
       mNonexistentIndex = index;
       mInode = inode;
-      mPersisted = persisted;
+      mToBePersisted = toBePersisted;
     }
 
     boolean isFound() {
@@ -611,8 +615,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
       return mInode;
     }
 
-    List<Inode> getPersisted() {
-      return mPersisted;
+    /**
+     * @return a list of existing Inodes that are found to be persisted during traversal.
+     */
+    List<Inode> getToBePersisted() {
+      return mToBePersisted;
     }
   }
 
