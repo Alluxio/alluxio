@@ -24,7 +24,7 @@ of Tachyon source code.
 
 * Modify the `hadoop.version` tag defined in `${TACHYON_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
-"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source useing maven.
+"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
 
 ```bash
 $ mvn clean package
