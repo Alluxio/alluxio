@@ -23,8 +23,8 @@ Hadoop version set by either of following approaches. Assume `${TACHYON_HOME}` i
 of Tachyon source code.
 
 * Modify the `hadoop.version` tag defined in `${TACHYON_HOME}/pom.xml`. E.g., to work with Hadoop
-`2.6.0`, modify this pom file to set `<hadoop.version>2.6.0</hadoop.version>` instead of
-`<hadoop.version>2.2.0</hadoop.version>`. Then recompiling the source using maven.
+`2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
+"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
 
 ```bash
 $ mvn clean package
@@ -50,10 +50,11 @@ template:
 $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 ```
 
-Then edit `tachyon-env.sh` file to set the HDFS Namenode address:
+Then edit `tachyon-env.sh` file to set the under storage address to the HDFS namenode address
+(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
 
 ```bash
-TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT
+export TACHYON_UNDERFS_ADDRESS=hdfs://NAMENODE:PORT
 ```
 
 # Running Tachyon Locally with HDFS
@@ -78,9 +79,8 @@ After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http:
 to verify the files and directories created by Tachyon exist. For this test, you should see
 files named like: `/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
 
-To stop Tachyon, you can run:
+You can stop Tachyon any time by running:
 
 ```bash
 $ ./bin/tachyon-stop.sh
 ```
-
