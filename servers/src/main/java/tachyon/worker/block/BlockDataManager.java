@@ -243,20 +243,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
-   *         uncommitted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
-  // now,
-  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
-  // more general exception.
   public String createBlock(long sessionId, long blockId, int tierAlias, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
-      IOException, InvalidWorkerStateException {
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc =
         tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
@@ -276,20 +266,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
-   *         uncommitted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
-  // now,
-  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
-  // more general exception.
   public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
-      IOException, InvalidWorkerStateException {
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
@@ -470,20 +450,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws BlockAlreadyExistsException if blocks to move in
-   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
-   *         location
-   * @throws InvalidWorkerStateException if the space requested is less than current space or blocks
-   *         to move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO(cc): Exceptions like IOException BlockAlreadyExistsException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockDoesNotExistException has two semantic now, revisit
-  // this
-  // with a more general exception.
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     mBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 

@@ -25,6 +25,7 @@ import com.google.common.base.Joiner;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
+import tachyon.client.WriteType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
@@ -52,16 +53,6 @@ public final class LocalTachyonCluster {
     cluster.stop();
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
-
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
   private long mWorkerCapacityBytes;
@@ -141,11 +132,16 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     mMasterConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
-
     mMasterConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
+    // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
+    // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
+    // TODO(binfan): eliminate this setting after updating integration tests
+    mMasterConf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    mMasterConf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+    mMasterConf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
 
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
@@ -217,10 +213,7 @@ public final class LocalTachyonCluster {
     mWorkerThread.start();
     // waiting for worker web server startup
     CommonUtils.sleepMs(100);
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(mWorkerConf);
+    ClientContext.reset(mWorkerConf);
   }
 
   /**
