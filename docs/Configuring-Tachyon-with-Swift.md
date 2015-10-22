@@ -45,7 +45,7 @@ $ mvn -Dhadoop.version=2.4.0 clean package
 
 # Configuring Hadoop
 
-After the build is successful, the `core-sites.xml` configuration file needs to be changed. The 
+After the build is successful, the `core-sites.xml` configuration file needs to be changed. The
 configuration template can be found in the `conf/core-sites.xml.template` file; it
 contains three example sections: local Swift based on Keystone authentication model, local Swift
 based on temp authentication model, and SoftLayer public object store. The general structure of the
@@ -104,11 +104,11 @@ This should start a Tachyon master and a Tachyon worker. You can see the master 
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/tachyon runTest Basic STORE SYNC_PERSIST
+$ ./bin/tachyon runTests
 ```
 
 After this succeeds, you can visit your Swift container to verify the files and directories created
-by Tachyon exist. For this test, you should see a file named:
+by Tachyon exist. For this test, you should see files named like:
 
     swift://<SWIFT CONTAINER>.swift1/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST
 
