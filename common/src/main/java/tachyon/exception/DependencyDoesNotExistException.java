@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class DependencyDoesNotExistException extends TachyonException {
+  private static final long serialVersionUID = -8411287237224325573L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.DEPENDENCY_DOES_NOT_EXIST;
 
