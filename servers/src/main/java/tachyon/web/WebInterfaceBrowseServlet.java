@@ -273,7 +273,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws InvalidPathException
    */
   private void setPathDirectories(TachyonURI path, HttpServletRequest request)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException {
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;

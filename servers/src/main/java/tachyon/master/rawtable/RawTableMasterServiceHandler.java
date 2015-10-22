@@ -46,13 +46,11 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public long getRawTableId(String path) throws TachyonTException, ThriftIOException {
+  public long getRawTableId(String path) throws TachyonTException {
     try {
       return mRawTableMaster.getRawTableId(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 
@@ -66,14 +64,11 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public RawTableInfo getClientRawTableInfoByPath(String path) throws TachyonTException,
-      ThriftIOException {
+  public RawTableInfo getClientRawTableInfoByPath(String path) throws TachyonTException {
     try {
       return mRawTableMaster.getClientRawTableInfo(new TachyonURI(path));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 

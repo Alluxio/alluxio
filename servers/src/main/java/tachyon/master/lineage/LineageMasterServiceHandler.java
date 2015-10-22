@@ -82,13 +82,11 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
   @Override
   public long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws TachyonTException, ThriftIOException {
+      throws TachyonTException {
     try {
       return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 

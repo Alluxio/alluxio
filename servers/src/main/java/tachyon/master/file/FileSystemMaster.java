@@ -337,7 +337,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    */
-  public long getFileId(TachyonURI path) throws IOException {
+  public long getFileId(TachyonURI path) {
     synchronized (mInodeTree) {
       Inode inode;
       try {
@@ -532,7 +532,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException {
     // TODO(yupeng): add validation
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
@@ -542,7 +542,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) throws IOException {
+  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try {
       mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
           entry.getTTL());
@@ -759,7 +759,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException {
     long fileId = getFileId(path);
     return getFileBlockInfoList(fileId);
   }
