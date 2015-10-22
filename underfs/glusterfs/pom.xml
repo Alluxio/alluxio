@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-underfs</artifactId>
-    <version>0.8.1-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>tachyon-underfs-glusterfs</artifactId>
   <name>Tachyon Under File System - Gluster FS</name>
