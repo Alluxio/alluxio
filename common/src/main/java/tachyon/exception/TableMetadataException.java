@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class TableMetadataException extends TachyonException {
+  private static final long serialVersionUID = -5226347103667897017L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.TABLE_METADATA;
 
   public TableMetadataException(String message) {
