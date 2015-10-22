@@ -71,12 +71,12 @@ This should start one Tachyon master and one Tachyon worker locally. You can see
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/tachyon runTest Basic CACHE_THROUGH
+$ ./bin/tachyon runTests
 ```
 
-After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070) 
-to verify the files and directories created by Tachyon exist. For this test, you should see a 
-file named: `/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH`
+After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
+to verify the files and directories created by Tachyon exist. For this test, you should see
+files named like: `/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST`
 
 To stop Tachyon, you can run:
 
