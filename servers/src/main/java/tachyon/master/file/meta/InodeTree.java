@@ -616,7 +616,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     /**
-     * @return a list of existing Inodes that are found to be persisted during traversal.
+     * @return a list of existing Inodes that are found to be persisted during traversal
      */
     List<Inode> getToBePersisted() {
       return mToBePersisted;

@@ -28,6 +28,7 @@ import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FailedToCheckpointException;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
@@ -504,6 +505,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws IOException if an I/O error occurs
    */
   public FileInfo getFileInfo(long fileId) throws IOException {
-    return mFileSystemMasterClient.getFileInfo(fileId);
+    try {
+      return mFileSystemMasterClient.getFileInfo(fileId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 }
