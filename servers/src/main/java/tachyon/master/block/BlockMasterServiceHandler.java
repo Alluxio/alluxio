@@ -18,8 +18,6 @@ package tachyon.master.block;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.thrift.TException;
-
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
@@ -36,7 +34,7 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
   }
 
   @Override
-  public long workerGetWorkerId(NetAddress workerNetAddress) throws TException {
+  public long workerGetWorkerId(NetAddress workerNetAddress) {
     return mBlockMaster.getWorkerId(workerNetAddress);
   }
 

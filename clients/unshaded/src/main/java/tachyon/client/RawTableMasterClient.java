@@ -27,8 +27,10 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the raw table master, used by tachyon clients.
@@ -68,13 +70,14 @@ public final class RawTableMasterClient extends MasterClientBase {
    * @param columns the number of columns in the table, must be in range (0, tachyon.max.columns)
    * @param metadata additional metadata about the table, cannot be null
    * @return the id of the table
-   * @throws IOException when creation fails
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
    */
   public synchronized long createRawTable(final TachyonURI path, final int columns,
-      final ByteBuffer metadata) throws IOException {
-    return retryRPC(new RpcCallable<Long>() {
+      final ByteBuffer metadata) throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
-      public Long call() throws TException {
+      public Long call() throws TachyonTException, TException {
         return mClient.createRawTable(path.getPath(), columns, metadata);
       }
     });
@@ -85,12 +88,14 @@ public final class RawTableMasterClient extends MasterClientBase {
    *
    * @param id the id of the table
    * @return the table info
-   * @throws IOException when operation fails
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
    */
-  public synchronized RawTableInfo getClientRawTableInfo(final long id) throws IOException {
-    return retryRPC(new RpcCallable<RawTableInfo>() {
+  public synchronized RawTableInfo getClientRawTableInfo(final long id)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<RawTableInfo>() {
       @Override
-      public RawTableInfo call() throws TException {
+      public RawTableInfo call() throws TachyonTException, TException {
         return mClient.getClientRawTableInfoById(id);
       }
     });
@@ -101,12 +106,14 @@ public final class RawTableMasterClient extends MasterClientBase {
    *
    * @param path the path of the table
    * @return the table info
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException when operation fails
    */
-  public synchronized RawTableInfo getClientRawTableInfo(final TachyonURI path) throws IOException {
-    return retryRPC(new RpcCallable<RawTableInfo>() {
+  public synchronized RawTableInfo getClientRawTableInfo(final TachyonURI path)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<RawTableInfo>() {
       @Override
-      public RawTableInfo call() throws TException {
+      public RawTableInfo call() throws TachyonTException, TException {
         return mClient.getClientRawTableInfoByPath(path.getPath());
       }
     });
@@ -117,13 +124,14 @@ public final class RawTableMasterClient extends MasterClientBase {
    *
    * @param tableId The id of the table to update
    * @param metadata The new metadata to update the table with
-   * @throws IOException when the operation fails
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException when operation fails
    */
   public void updateRawTableMetadata(final long tableId, final ByteBuffer metadata)
-      throws IOException {
-    retryRPC(new RpcCallable<Void>() {
+      throws TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Void call() throws TException {
+      public Void call() throws TachyonTException, TException {
         mClient.updateRawTableMetadata(tableId, metadata);
         return null;
       }

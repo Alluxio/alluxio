@@ -27,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
@@ -128,15 +130,16 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
    *        dir
-   * @throws IOException if an I/O error occurs or the workerId doesn't exist
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException if an I/O error occurs
    */
   // TODO: rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<Long> totalBytesOnTiers,
       final List<Long> usedBytesOnTiers, final Map<Long, List<Long>> currentBlocksOnTiers)
-          throws IOException {
-    retryRPC(new RpcCallable<Void>() {
+          throws TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Void call() throws TException {
+      public Void call() throws TachyonTException, TException {
         mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers);
         return null;
       }
