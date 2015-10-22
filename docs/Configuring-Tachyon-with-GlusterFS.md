@@ -45,13 +45,13 @@ This should start a Tachyon master and a Tachyon worker. You can see the master 
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/tachyon runTest Basic CACHE_THROUGH
+$ ./bin/tachyon runTests
 ```
 
 After this succeeds, you can visit your GlusterFS volume to verify the files and directories created
-by Tachyon exist. For this test, you should see a file named:
+by Tachyon exist. For this test, you should see files named like:
 
-    /tachyon_vol/default_tests_files/BasicFile_CACHE_THROUGH
+    /tachyon_vol/default_tests_files/BasicFile_STORE_SYNC_PERSIST
 
 To stop Tachyon, you can run:
 

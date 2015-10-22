@@ -94,7 +94,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
       FileInStream is = tFile.getInStream(ReadType.CACHE);
-      ByteBuffer buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
@@ -116,7 +116,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
             + " under column " + column);
       }
 
-      ByteBuffer buf = ByteBuffer.allocate(80);
+      ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
         buf.putInt(k);
