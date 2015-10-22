@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class BlockInfoException extends TachyonException {
+  private static final long serialVersionUID = 3516332549351705198L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.BLOCK_INFO;
 
   public BlockInfoException(String message) {
