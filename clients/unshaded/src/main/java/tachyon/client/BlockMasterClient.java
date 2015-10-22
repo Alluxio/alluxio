@@ -26,8 +26,10 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
 
 /**
@@ -81,12 +83,14 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the BlockInfo
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
-    return retryRPC(new RpcCallable<BlockInfo>() {
+  public synchronized BlockInfo getBlockInfo(final long blockId)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
       @Override
-      public BlockInfo call() throws TException {
+      public BlockInfo call() throws TachyonTException, TException {
         return mClient.getBlockInfo(blockId);
       }
     });

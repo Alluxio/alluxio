@@ -348,13 +348,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param tachyonPath the Tachyon path
    * @param ufsPath the UFS path
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
   public synchronized boolean mount(final TachyonURI tachyonPath, final TachyonURI ufsPath)
-      throws IOException {
-    return retryRPC(new RpcCallable<Boolean>() {
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Boolean call() throws TException {
+      public Boolean call() throws TachyonTException, TException {
         return mClient.mount(tachyonPath.toString(), ufsPath.toString());
       }
     });
@@ -364,12 +365,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Unmounts the given Tachyon path.
    *
    * @param tachyonPath the Tachyon path
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized boolean unmount(final TachyonURI tachyonPath) throws IOException {
-    return retryRPC(new RpcCallable<Boolean>() {
+  public synchronized boolean unmount(final TachyonURI tachyonPath)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public Boolean call() throws TException {
+      public Boolean call() throws TachyonTException, TException {
         return mClient.unmount(tachyonPath.toString());
       }
     });

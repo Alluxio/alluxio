@@ -68,39 +68,33 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param length the checkpoint length
    * @return whether operation succeeded or not
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean persistFile(final long fileId, final long length)
-      throws IOException {
-    try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-        @Override
-        public Boolean call() throws TachyonTException, TException {
-          return mClient.persistFile(fileId, length);
-        }
-      });
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.persistFile(fileId, length);
+      }
+    });
   }
 
   /**
    * @param fileId the file id
    * @return the file info for the given file id
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Factor this method out to a common client.
-  public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
-        @Override
-        public FileInfo call() throws TException {
-          return mClient.getFileInfo(fileId);
-        }
-      });
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+  public synchronized FileInfo getFileInfo(final long fileId) throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
+      @Override
+      public FileInfo call() throws TException {
+        return mClient.getFileInfo(fileId);
+      }
+    });
   }
 
   /**
