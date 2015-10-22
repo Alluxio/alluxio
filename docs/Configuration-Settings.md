@@ -656,6 +656,21 @@ configuration options.
   <td>The URL from which Mesos executor can download the JRE to use.</td>
 </tr>
 <tr>
+  <td>tachyon.integration.mesos.master.name</td>
+  <td>TachyonMaster</td>
+  <td>The Mesos task name for the Tachyon master task.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.master.node.count</td>
+  <td>1</td>
+  <td>The number of Tachyon master processes to start.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.worker.name</td>
+  <td>TachyonMaster</td>
+  <td>The Mesos task name for the Tachyon worker task.</td>
+</tr>
+<tr>
   <td>tachyon.integration.worker.resource.cpu</td>
   <td>1</td>
   <td>CPU resource in terms of number of cores required to run a Tachyon worker.</td>
