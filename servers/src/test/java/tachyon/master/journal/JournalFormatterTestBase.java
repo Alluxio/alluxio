@@ -58,6 +58,7 @@ import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.SetTTLEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
@@ -143,7 +144,8 @@ public abstract class JournalFormatterTestBase {
       .put(JournalEntryType.LINEAGE_ID_GENERATOR, new LineageIdGeneratorEntry(TEST_LINEAGE_ID))
       .put(JournalEntryType.PERSIST_FILES, new PersistFilesEntry(Arrays.asList(1L, 2L)))
       .put(JournalEntryType.REQUEST_FILE_PERSISTENCE,
-          new RequestFilePersistenceEntry(Arrays.asList(1L, 2L))).build();
+          new RequestFilePersistenceEntry(Arrays.asList(1L, 2L)))
+      .put(JournalEntryType.SET_TTL, new SetTTLEntry(0L, 1L)).build();
 
   /**
    * Returns the implementation of {@link JournalFormatter} that wants to be tested.
