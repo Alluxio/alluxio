@@ -161,7 +161,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setTTLForFileWithNoTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTTLCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -175,7 +178,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setSmallerTTLForFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, Constants.HOUR_MS);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).setTTL(Constants.HOUR_MS).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     executeTTLCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -189,7 +195,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setLargerTTLForFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).setTTL(0).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
     mFileSystemMaster.setTTL(fileId, Constants.HOUR_MS);
@@ -200,7 +209,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void setNoTTLForFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).setTTL(0).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
     mFileSystemMaster.setTTL(fileId, Constants.NO_TTL);

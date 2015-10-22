@@ -32,7 +32,7 @@ public class TTLBucketTest {
     for (long i = 0; i < 10; i ++) {
       mBucket = new TTLBucket(i);
       Assert.assertEquals(mBucket.getTTLIntervalEndTimeMs(), mBucket.getTTLIntervalStartTimeMs()
-              + TTLBucket.getTTLIntervalMs());
+          + TTLBucket.getTTLIntervalMs());
     }
   }
 
@@ -59,8 +59,10 @@ public class TTLBucketTest {
 
   @Test
   public void addAndRemoveFileTest() {
-    InodeFile mFileTTL1 = new InodeFile("ttl1", 0, 0, 0, 0, 1);
-    InodeFile mFileTTL2 = new InodeFile("ttl2", 1, 0, 0, 0, 2);
+    InodeFile mFileTTL1 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(0)
+        .setTTL(1).build();
+    InodeFile mFileTTL2 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(1)
+        .setTTL(2).build();
     Assert.assertTrue(mBucket.getFiles().isEmpty());
 
     mBucket.addFile(mFileTTL1);
