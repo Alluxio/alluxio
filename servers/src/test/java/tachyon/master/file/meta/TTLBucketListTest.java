@@ -30,9 +30,12 @@ public class TTLBucketListTest {
   private static final long BUCKET1_END = BUCKET1_START + TTLBucket.getTTLIntervalMs();
   private static final long BUCKET2_START = BUCKET1_END + 1;
   private static final long BUCKET2_END =  BUCKET2_START + TTLBucket.getTTLIntervalMs();
-  private static final InodeFile BUCKET1_FILE1 = new InodeFile("/f11", 0, 0, 0, 0, BUCKET1_START);
-  private static final InodeFile BUCKET1_FILE2 = new InodeFile("/f12", 1, 0, 0, 0, BUCKET1_END - 1);
-  private static final InodeFile BUCKET2_FILE = new InodeFile("/f21", 2, 0, 0, 0, BUCKET2_START);
+  private static final InodeFile BUCKET1_FILE1 = new InodeFile.Builder().setCreationTimeMs(0)
+      .setBlockContainerId(0).setTTL(BUCKET1_START).build();
+  private static final InodeFile BUCKET1_FILE2 = new InodeFile.Builder().setCreationTimeMs(0)
+      .setBlockContainerId(1).setTTL(BUCKET1_END - 1).build();
+  private static final InodeFile BUCKET2_FILE = new InodeFile.Builder().setCreationTimeMs(0)
+      .setBlockContainerId(2).setTTL(BUCKET2_START).build();
 
   private TTLBucketList mBucketList;
 
