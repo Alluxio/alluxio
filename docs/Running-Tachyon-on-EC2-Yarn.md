@@ -137,7 +137,7 @@ ApplicationMaster for Tachyon.
 ```bash
 $ cd /tachyon
 $ ./bin/tachyon-stop.sh
-$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn
+$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn -DskipTests
 ```
 
 To customize Tachyon master and worker with specific properties (e.g., tiered storage setup on each
@@ -157,6 +157,7 @@ For example, here we launch a Tachyon cluster with 3 worker nodes, where an HDFS
 `hdfs://TachyonMaster:9000/tmp/` and each YARN container can access Tachyon in `/tachyon`
 
 ```bash
+$ export HADOOP_HOME=/hadoop
 $ /hadoop/bin/hadoop fs -mkdir hdfs://TachyonMaster:9000/tmp
 $ /tachyon/integration/bin/tachyon-yarn.sh /tachyon 3 hdfs://TachyonMaster:9000/tmp/
 ```
@@ -194,7 +195,12 @@ From the output, we know the application ID to run Tachyon is
 **`application_1445469376652_0002`**. This application ID is needed to kill the application.
 
 NOTE: currently Tachyon YARN framework does not guarantee to start the Tachyon master on the
-TachyonMaster machine; use the YARN Web UI to find out which machine is Tachyon master running on.
+TachyonMaster machine; use the YARN Web UI to read the logs of this YARN application. The log
+of this application records which machine is used to launch a Tachyon master container like:
+
+```
+15/10/22 21:50:23 INFO : Launching container container_1445550205172_0001_01_000002 for Tachyon master on TachyonMaster:8042 with master command: [/tachyon/integration/bin/tachyon-master-yarn.sh 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ]
+```
 
 # Test Tachyon
 
