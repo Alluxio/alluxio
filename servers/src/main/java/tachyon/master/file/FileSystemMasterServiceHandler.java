@@ -54,12 +54,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long getFileId(String path) throws ThriftIOException {
-    try {
-      return mFileSystemMaster.getFileId(new TachyonURI(path));
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+  public long getFileId(String path) {
+    return mFileSystemMaster.getFileId(new TachyonURI(path));
   }
 
   @Override

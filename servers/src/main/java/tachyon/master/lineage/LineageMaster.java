@@ -300,7 +300,7 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException the file path is invalid
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, LineageDoesNotExistException, IOException {
+      throws InvalidPathException, LineageDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
     if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {
