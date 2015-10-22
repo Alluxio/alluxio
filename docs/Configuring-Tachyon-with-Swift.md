@@ -104,13 +104,13 @@ This should start a Tachyon master and a Tachyon worker. You can see the master 
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/tachyon runTest Basic CACHE_THROUGH
+$ ./bin/tachyon runTest Basic STORE SYNC_PERSIST
 ```
 
 After this succeeds, you can visit your Swift container to verify the files and directories created
 by Tachyon exist. For this test, you should see a file named:
 
-    swift://<SWIFT CONTAINER>.swift1/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH
+    swift://<SWIFT CONTAINER>.swift1/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST
 
 To stop Tachyon, you can run:
 
