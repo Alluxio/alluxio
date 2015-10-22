@@ -127,6 +127,7 @@
     <findbugs.path>build/findbugs/</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <hadoop.version>2.2.0</hadoop.version>
+    <jacoco.version>0.7.4.201502262128</jacoco.version>
     <java.version>1.6</java.version>
     <jetty.version>7.6.15.v20140411</jetty.version>
     <junit.version>4.12</junit.version>
@@ -139,6 +140,13 @@
     <slf4j.version>1.7.2</slf4j.version>
     <test.output.redirect>true</test.output.redirect>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
+    <!-- Sonar -->
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+    <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco-it.exec</sonar.jacoco.reportPath>
+    <sonar.language>java</sonar.language>
+    <sonar.host.url>http://localhost:9010</sonar.host.url>
+    <sonar.exclusions>**/tachyon/thrift/**</sonar.exclusions>
   </properties>
 
   <modules>
@@ -307,7 +315,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.14</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc= ${surefireArgLine}</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
           </configuration>
         </plugin>
@@ -476,7 +484,25 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>      
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+                <execution>
+                    <id>agent</id>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                     <configuration>
+                        <destFile>${sonar.jacoco.reportPath}</destFile>
+                        <append>true</append>
+                        <propertyName>surefireArgLine</propertyName>
+                    </configuration>
+                </execution>
+            </executions>
+          </plugin>
     </plugins>
   </build>
 
@@ -572,5 +598,35 @@
         <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
+
+    <!-- sonar
+    <profile>
+      <id>sonar-coverage</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+                <execution>
+                    <id>agent</id>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                     <configuration>
+                        <destFile>${sonar.jacoco.reportPath}</destFile>
+                        <append>true</append>
+                        <propertyName>surefireArgLine</propertyName>
+                    </configuration>
+                </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>-->
   </profiles>
 </project>
