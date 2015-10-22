@@ -198,13 +198,20 @@ TachyonMaster machine; use the YARN Web UI to find out which machine is Tachyon 
 
 # Test Tachyon
 
+When you know the IP of Tachyon master container, you can modify the `conf/tachyon-env.sh` to set
+ up environment variable `TACHYON_MASTER_ADDRESS` on each EC2 machine:
+
+```
+export TACHYON_MASTER_ADDRESS=Your_Master_IP
+```
+
 You can run tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
 ```
 
-After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
+After the tests finish, visit Tachyon web UI at `http://{Your_Master_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
