@@ -17,8 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -27,7 +25,6 @@ import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
