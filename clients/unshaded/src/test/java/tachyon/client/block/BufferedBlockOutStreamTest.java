@@ -83,11 +83,12 @@ public class BufferedBlockOutStreamTest {
 
     // Test writing more than half the buffer limit. This causes an unbuffered write and flush
     Assert.assertFalse(mTestStream.mHasFlushed);
-    mTestStream.write(INCREASING_BYTES, 30, mTestStream.getBuffer().limit() / 2 + 1);
+    int bytesToWrite = mTestStream.getBuffer().limit() / 2 + 1;
+    mTestStream.write(INCREASING_BYTES, 30, bytesToWrite);
     Assert.assertTrue(mTestStream.mHasFlushed);
     Assert.assertSame(INCREASING_BYTES, mTestStream.mLastBufferedWriteArray);
     Assert.assertEquals(30, mTestStream.mLastBufferedWriteOffset);
-    Assert.assertEquals(mTestStream.getBuffer().limit(), mTestStream.mLastBufferedWriteLen);
+    Assert.assertEquals(bytesToWrite, mTestStream.mLastBufferedWriteLen);
     Assert.assertEquals(50 + mTestStream.mLastBufferedWriteLen, mTestStream.getBytesWritten());
   }
 
