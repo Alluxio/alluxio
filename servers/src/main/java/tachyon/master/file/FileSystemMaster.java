@@ -304,7 +304,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void persistFileFromEntry(PersistFileEntry entry) {
     try {
-      persistFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+      persistFileInternal(entry.getFileId(), entry.getLength(), entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     } catch (SuspectedFileSizeException sfse) {
@@ -468,7 +468,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
     try {
-      completeFileInternal(entry.getBlockIds(), entry.getFileId(), entry.getFileLength(), true,
+      completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(), true,
           entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
@@ -1335,10 +1335,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonPath = entry.getTachyonPath();
-    TachyonURI ufsPath = entry.getUfsPath();
-    if (!mountInternal(tachyonPath, ufsPath)) {
-      LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
+    TachyonURI tachyonURI = entry.getTachyonURI();
+    TachyonURI ufsURI = entry.getUfsURI();
+    if (!mountInternal(tachyonURI, ufsURI)) {
+      LOG.error("Failed to mount " + ufsURI + " at " + tachyonURI);
     }
   }
 
@@ -1366,9 +1366,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonPath = entry.getTachyonPath();
-    if (!unmountInternal(tachyonPath)) {
-      LOG.error("Failed to unmount " + tachyonPath);
+    TachyonURI tachyonURI = entry.getTachyonURI();
+    if (!unmountInternal(tachyonURI)) {
+      LOG.error("Failed to unmount " + tachyonURI);
     }
   }
 

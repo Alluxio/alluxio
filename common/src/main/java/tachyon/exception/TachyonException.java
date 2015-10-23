@@ -26,6 +26,8 @@ import tachyon.thrift.TachyonTException;
  * framework and convert back without losing any necessary information.
  */
 public class TachyonException extends Exception {
+  private static final long serialVersionUID = 2243833925609642384L;
+
   private TachyonExceptionType mType;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

@@ -71,9 +71,11 @@ public class BasicOperations implements Callable<Boolean> {
       throws IOException, TachyonException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
-        .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
-        .setTTL(mClientOptions.getTTL()).build();
+    CreateOptions createOptions =
+        (new CreateOptions.Builder(ClientContext.getConf()))
+            .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
+            .setTTL(mClientOptions.getTTL())
+            .setUnderStorageType(mClientOptions.getUnderStorageType()).build();
     TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
     long fileId = tFile.getFileId();
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
