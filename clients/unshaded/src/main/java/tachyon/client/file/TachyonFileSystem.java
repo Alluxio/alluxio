@@ -43,6 +43,7 @@ import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -128,7 +129,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   public FileInStream getInStream(TachyonFile file, InStreamOptions options)
       throws IOException, TachyonException, FileDoesNotExistException {
     FileInfo info = getInfo(file, GetInfoOptions.defaults());
-    Preconditions.checkState(!info.isIsFolder(), "Cannot read from a folder");
+    Preconditions.checkState(!info.isIsFolder(), PreconditionMessage.CANNOT_READ_FOLDER);
     return new FileInStream(info, options);
   }
 

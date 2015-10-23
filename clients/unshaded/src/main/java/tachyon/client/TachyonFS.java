@@ -38,7 +38,6 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
-import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -312,8 +311,8 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       if (blockSizeBytes > 0) {
         UnderStorageType underStorageType =
-            mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-                .isThrough() ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+            mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+                UnderStorageType.class);
         CreateOptions options =
             new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
                 .setRecursive(recursive).setUnderStorageType(underStorageType).build();
@@ -357,14 +356,7 @@ public class TachyonFS extends AbstractTachyonFS {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
     }
-    long tableId = mRawTableMasterClient.createRawTable(path, columns, metadata);
-    if (tableId != IdUtils.INVALID_FILE_ID) {
-      mkdirs(path, true);
-      for (int i = 0; i < columns; i ++) {
-        mkdirs(new TachyonURI(RawColumn.getColumnPath(path.toString(), i)), true);
-      }
-    }
-    return tableId;
+    return mRawTableMasterClient.createRawTable(path, columns, metadata);
   }
 
   /**
@@ -862,8 +854,8 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       UnderStorageType underStorageType =
-          mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough()
-              ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+          mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+              UnderStorageType.class);
       MkdirOptions options =
           new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
               .setUnderStorageType(underStorageType).build();

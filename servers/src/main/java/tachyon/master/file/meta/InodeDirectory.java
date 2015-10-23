@@ -46,6 +46,11 @@ public final class InodeDirectory extends Inode {
     public InodeDirectory build() {
       return new InodeDirectory(this);
     }
+
+    @Override
+    protected Builder getThis() {
+      return this;
+    }
   }
 
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {

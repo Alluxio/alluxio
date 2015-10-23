@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -37,13 +38,6 @@ import tachyon.util.io.BufferUtils;
  * Tachyon Stream interfaces.
  */
 public abstract class BufferedBlockInStream extends BlockInStream {
-  // Error strings for preconditions in order to improve performance
-  private static final String ERR_BUFFER_NULL = "Read buffer cannot be null";
-  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
-  private static final String ERR_CLOSED = "Cannot do operations on a closed BlockInStream";
-  private static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
-  private static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
-
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
   /** Flag indicating if the buffer has valid data. */
@@ -109,9 +103,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     checkIfClosed();
-    Preconditions.checkArgument(b != null, ERR_BUFFER_NULL);
-    Preconditions.checkArgument(
-        off >= 0 && len >= 0 && len + off <= b.length, ERR_BUFFER_STATE, b.length, off, len);
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (remaining() == 0) { // End of block
@@ -148,8 +142,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     checkIfClosed();
-    Preconditions.checkArgument(pos >= 0, ERR_SEEK_NEGATIVE, pos);
-    Preconditions.checkArgument(pos <= mBlockSize, ERR_SEEK_PAST_END_OF_BLOCK, mBlockSize);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
+    Preconditions.checkArgument(pos <= mBlockSize, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK,
+        mBlockSize);
     mBufferIsValid = false;
     mPos = pos;
   }
@@ -220,7 +215,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * Convenience method to ensure the stream is not closed.
    */
   private void checkIfClosed() {
-    Preconditions.checkState(!mClosed, ERR_CLOSED);
+    Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
   }
 
   /**

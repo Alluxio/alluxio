@@ -33,6 +33,7 @@ import tachyon.client.lineage.options.GetLineageInfoListOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
@@ -56,7 +57,8 @@ public abstract class AbstractLineageClient implements LineageClient {
       CreateLineageOptions options)
           throws FileDoesNotExistException, TachyonException, IOException {
     // TODO(yupeng): relax this to support other type of jobs
-    Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
+    Preconditions.checkState(job instanceof CommandLineJob,
+        PreconditionMessage.COMMAND_LINE_LINEAGE_ONLY);
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long lineageId = masterClient.createLineage(stripURIList(inputFiles),

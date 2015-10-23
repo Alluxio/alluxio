@@ -15,9 +15,9 @@
 
 package tachyon.master.block.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -26,13 +26,15 @@ import tachyon.master.journal.JournalEntryType;
  * The {@link JournalEntry} representing the state of the block container id generator for the block
  * master.
  */
-public class BlockContainerIdGeneratorEntry implements JournalEntry {
+public class BlockContainerIdGeneratorEntry extends JournalEntry {
   private final long mNextContainerId;
 
-  public BlockContainerIdGeneratorEntry(long nextContainerId) {
+  @JsonCreator
+  public BlockContainerIdGeneratorEntry(@JsonProperty("nextContainerId") long nextContainerId) {
     mNextContainerId = nextContainerId;
   }
 
+  @JsonGetter
   public long getNextContainerId() {
     return mNextContainerId;
   }
@@ -40,12 +42,5 @@ public class BlockContainerIdGeneratorEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("nextContainerId", mNextContainerId);
-    return parameters;
   }
 }
