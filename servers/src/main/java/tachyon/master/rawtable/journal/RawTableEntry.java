@@ -16,19 +16,31 @@
 package tachyon.master.rawtable.journal;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class RawTableEntry implements JournalEntry {
+/**
+ * The <code>JournalEntry</code> to represent an entry in RawTable.
+ */
+public class RawTableEntry extends JournalEntry {
   public final long mId;
   public final int mColumns;
   public final ByteBuffer mMetadata;
 
-  public RawTableEntry(long id, int columns, ByteBuffer metadata) {
+  /**
+   * @param id table id.
+   * @param columns the columns to be set for the table.
+   * @param metadata the metadata to be set for the table.
+   */
+
+  @JsonCreator
+  public RawTableEntry(@JsonProperty("id") long id, @JsonProperty("columns") int columns,
+      @JsonProperty("metadata") ByteBuffer metadata) {
     mId = id;
     mColumns = columns;
     mMetadata = metadata;
@@ -39,12 +51,18 @@ public class RawTableEntry implements JournalEntry {
     return JournalEntryType.RAW_TABLE;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
-    parameters.put("id", mId);
-    parameters.put("columns", mColumns);
-    parameters.put("metadata", mMetadata);
-    return parameters;
+  @JsonGetter
+  public long getId() {
+    return mId;
+  }
+
+  @JsonGetter
+  public int getColumns() {
+    return mColumns;
+  }
+
+  @JsonGetter
+  public ByteBuffer getMetadata() {
+    return mMetadata;
   }
 }

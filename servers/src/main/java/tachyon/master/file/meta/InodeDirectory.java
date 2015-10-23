@@ -32,6 +32,29 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
+  public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
+
+    public Builder() {
+      super();
+      mDirectory = true;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeDirectory}.
+     *
+     * @return a {@link InodeDirectory} instance
+     */
+    @Override
+    public InodeDirectory build() {
+      return new InodeDirectory(this);
+    }
+
+    @Override
+    protected Builder getThis() {
+      return this;
+    }
+  }
+
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
@@ -47,30 +70,8 @@ public final class InodeDirectory extends Inode {
   @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
-  /**
-   * Creates a new InodeFolder.
-   *
-   * @param name The name of the folder
-   * @param id The inode id of the folder
-   * @param parentId The inode id of the parent of the folder
-   * @param creationTimeMs The creation time of the folder, in milliseconds
-   */
-  public InodeDirectory(String name, long id, long parentId, long creationTimeMs) {
-    this(name, id, parentId, creationTimeMs, PermissionStatus.getDirDefault());
-  }
-
-  /**
-   * Creates a new InodeFolder.
-   *
-   * @param name The name of the folder
-   * @param id The inode id of the folder
-   * @param parentId The inode id of the parent of the folder
-   * @param creationTimeMs The creation time of the folder, in milliseconds
-   * @param ps the directory permissionStatus information
-   */
-  public InodeDirectory(String name, long id, long parentId, long creationTimeMs,
-      PermissionStatus ps) {
-    super(name, id, parentId, true, creationTimeMs, ps);
+  private InodeDirectory(InodeDirectory.Builder builder) {
+    super(builder);
   }
 
   /**
@@ -114,7 +115,6 @@ public final class InodeDirectory extends Inode {
     ret.isCacheable = false;
     ret.isPersisted = isPersisted();
     ret.blockIds = null;
-    ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = Constants.NO_TTL;
     ret.username = getUsername();
@@ -140,7 +140,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @return an unmodifiable set of the children inodes.
+   * @return an unmodifiable set of the children inodes
    */
   public synchronized Set<Inode> getChildren() {
     return ImmutableSet.copyOf(mChildren.iterator());
@@ -158,7 +158,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @return the number of children in the directory.
+   * @return the number of children in the directory
    */
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
@@ -168,7 +168,7 @@ public final class InodeDirectory extends Inode {
    * Removes the given inode from the directory.
    *
    * @param child The Inode to remove
-   * @return true if the inode was removed, false otherwise.
+   * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(Inode child) {
     return mChildren.remove(child);
@@ -178,7 +178,7 @@ public final class InodeDirectory extends Inode {
    * Removes the given child by its name from the directory.
    *
    * @param name The name of the Inode to remove.
-   * @return true if the inode was removed, false otherwise.
+   * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(String name) {
     return mChildren.removeByField(mNameIndex, name);

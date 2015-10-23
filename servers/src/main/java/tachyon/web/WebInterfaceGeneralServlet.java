@@ -18,7 +18,6 @@ package tachyon.web;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -30,7 +29,6 @@ import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
-import tachyon.master.file.meta.DependencyVariables;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 
@@ -110,15 +108,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    DependencyVariables.VARIABLES.clear();
-    for (String key : (Set<String>) request.getParameterMap().keySet()) {
-      if (key.startsWith("varName")) {
-        String value = request.getParameter("varVal" + key.substring(7));
-        if (value != null) {
-          DependencyVariables.VARIABLES.put(request.getParameter(key), value);
-        }
-      }
-    }
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
@@ -126,7 +115,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * List the StorageTierInfo objects of each storage level(alias).
    *
-   * @return the list of StorageTierInfo objects.
+   * @return the list of StorageTierInfo objects
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
     List<StorageTierInfo> infos = new ArrayList<StorageTierInfo>();
@@ -179,31 +168,29 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     // TODO(jiri): Should we use MasterContext here instead?
     TachyonConf conf = new TachyonConf();
-    String ufsDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, conf);
+    String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, conf);
 
-    long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
+    long sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {
       request.setAttribute("diskCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskCapacity", "UNKNOWN");
     }
 
-    sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
+    sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_USED);
     if (sizeBytes >= 0) {
       request.setAttribute("diskUsedCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskUsedCapacity", "UNKNOWN");
     }
 
-    sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
+    sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
     if (sizeBytes >= 0) {
       request.setAttribute("diskFreeCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
-
-    request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
 
     StorageTierInfo[] infos = generateOrderedStorageTierInfo();
     request.setAttribute("storageTierInfos", infos);

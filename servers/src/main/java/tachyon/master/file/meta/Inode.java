@@ -23,8 +23,62 @@ import tachyon.thrift.FileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
+  public abstract static class Builder<T extends Builder<T>> {
+    private long mCreationTimeMs;
+    protected boolean mDirectory;
+    protected long mId;
+    private String mName;
+    private long mParentId;
+    private boolean mPersisted;
+
+    public Builder() {
+      mCreationTimeMs = System.currentTimeMillis();
+      mDirectory = false;
+      mId = 0;
+      mName = null;
+      mParentId = InodeTree.NO_PARENT;
+    }
+
+    public T setCreationTimeMs(long creationTimeMs) {
+      mCreationTimeMs = creationTimeMs;
+      return getThis();
+    }
+
+    public T setId(long id) {
+      mId = id;
+      return getThis();
+    }
+
+    public T setName(String name) {
+      mName = name;
+      return getThis();
+    }
+
+    public T setParentId(long parentId) {
+      mParentId = parentId;
+      return getThis();
+    }
+
+    public T setPersisted(boolean persisted) {
+      mPersisted = persisted;
+      return getThis();
+    }
+
+    /**
+     * Builds a new instance of {@link Inode}.
+     *
+     * @return a {@link Inode} instance
+     */
+    public abstract Inode build();
+
+    /**
+     * Returns `this` so that the abstract class can use the fluent builder pattern.
+     */
+    protected abstract T getThis();
+  }
+
   private final long mCreationTimeMs;
-  protected final boolean mIsFolder;
+  protected final boolean mDirectory;
 
   private final long mId;
   private String mName;
@@ -52,27 +106,15 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   private boolean mDeleted = false;
 
-  /**
-   * Creates an inode.
-   *
-   * @param name the name of the inode.
-   * @param id the id of the inode, which is globally unique.
-   * @param parentId the id of the parent inode. -1 if there is no parent.
-   * @param isFolder if the inode presents a folder
-   * @param creationTimeMs the creation time of the inode, in milliseconds.
-   * @param ps the inode permissionStatus information
-   */
-  protected Inode(String name, long id, long parentId, boolean isFolder, long creationTimeMs,
-      PermissionStatus ps) {
-    mCreationTimeMs = creationTimeMs;
-    mIsFolder = isFolder;
-    mId = id;
-    mName = name;
-    mParentId = parentId;
-    mLastModificationTimeMs = creationTimeMs;
-    mUsername = ps.getUserName();
-    mGroupname = ps.getGroupName();
-    mPermission = ps.getPermission().toShort();
+  protected Inode(Builder<?> builder) {
+    mCreationTimeMs = builder.mCreationTimeMs;
+    mDirectory = builder.mDirectory;
+    mLastModificationTimeMs = builder.mCreationTimeMs;
+    mId = builder.mId;
+    mName = builder.mName;
+    mPersisted = builder.mPersisted;
+    mParentId = builder.mParentId;
+    mPermission = builder.mPs.getPermission().toShort();
   }
 
   /**
@@ -149,14 +191,14 @@ public abstract class Inode implements JournalEntryRepresentable {
    * @return true if the inode is a directory, false otherwise
    */
   public boolean isDirectory() {
-    return mIsFolder;
+    return mDirectory;
   }
 
   /**
    * @return true if the inode is a file, false otherwise
    */
   public boolean isFile() {
-    return !mIsFolder;
+    return !mDirectory;
   }
 
   /**

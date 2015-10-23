@@ -69,12 +69,12 @@ public class LRFUEvictorTest {
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     TachyonConf conf = WorkerContext.getConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRFUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
-    mStepFactor = conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
+    mStepFactor = conf.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR);
+        conf.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     mEvictor = Evictor.Factory.createEvictor(conf, mManagerView, mAllocator);
   }
 

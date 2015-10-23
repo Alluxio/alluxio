@@ -179,7 +179,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      BlockDoesNotExistException, IOException {
+      IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
@@ -326,8 +326,7 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
-      BlockAlreadyExistsException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     // TODO(bin): Consider whether to retry here.
     freeSpaceInternal(sessionId, availableBytes, location);
   }
@@ -711,7 +710,7 @@ public final class TieredBlockStore implements BlockStore {
    * Get the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
-   * @return BlockMetadataManagerView, an updated view with most recent information.
+   * @return BlockMetadataManagerView, an updated view with most recent information
    */
   private BlockMetadataManagerView getUpdatedView() {
     // TODO(calvin): Update the view object instead of creating new one every time.

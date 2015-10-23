@@ -15,9 +15,9 @@
 
 package tachyon.master.block.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -25,19 +25,23 @@ import tachyon.master.journal.JournalEntryType;
 /**
  * The {@link JournalEntry} representing the state of a block in the block master.
  */
-public class BlockInfoEntry implements JournalEntry {
+public class BlockInfoEntry extends JournalEntry {
   private final long mBlockId;
   private final long mLength;
 
-  public BlockInfoEntry(long blockId, long length) {
+  @JsonCreator
+  public BlockInfoEntry(@JsonProperty("blockId") long blockId,
+      @JsonProperty("length") long length) {
     mBlockId = blockId;
     mLength = length;
   }
 
+  @JsonGetter
   public long getBlockId() {
     return mBlockId;
   }
 
+  @JsonGetter
   public long getLength() {
     return mLength;
   }
@@ -45,13 +49,5 @@ public class BlockInfoEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.BLOCK_INFO;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("blockId", mBlockId);
-    parameters.put("length", mLength);
-    return parameters;
   }
 }

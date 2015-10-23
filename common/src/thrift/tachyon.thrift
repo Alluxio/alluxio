@@ -45,6 +45,10 @@ struct FileBlockInfo {
   3: list<NetAddress> ufsLocations
 }
 
+// deprecated
+struct DependencyInfo {
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
@@ -59,21 +63,12 @@ struct FileInfo {
   11: bool isCacheable
   12: bool isPersisted
   13: list<i64> blockIds
-  14: i32 dependencyId
   15: i32 inMemoryPercentage
   16: i64 lastModificationTimeMs
   17: i64 ttl
   18: string username
   19: string groupname
   20: i32 permission
-}
-
-// Information about lineage.
-struct DependencyInfo {
-  1: i32 id
-  2: list<i64> parents
-  3: list<i64> children
-  4: list<binary> data
 }
 
 // Information about raw tables.
@@ -143,6 +138,18 @@ exception ThriftIOException {
   1: string message
 }
 
+struct CreateTOptions {
+  1: optional i64 blockSizeBytes
+  2: optional bool persisted
+  3: optional bool recursive
+  4: optional i64 ttl
+}
+
+struct MkdirTOptions {
+  1: optional bool persisted
+  2: optional bool recursive
+}
+
 service BlockMasterService {
   BlockInfo getBlockInfo(1: i64 blockId) throws (1: TachyonTException e)
 
@@ -170,25 +177,16 @@ service BlockMasterService {
 service FileSystemMasterService {
   void completeFile(1: i64 fileId) throws (1: TachyonTException e)
 
-  // Lineage Features
-  i32 createDependency(1: list<string> parents, 2: list<string> children,
-      3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
-      7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
-    throws (1: TachyonTException e)
+  bool mkdir(1: string path, 2: MkdirTOptions options)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
-  bool mkdir(1: string path, 2: bool recursive)
-    throws (1: TachyonTException e)
-
-  i64 create(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
+  i64 create(1: string path, 2: CreateTOptions options)
     throws (1: TachyonTException e)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
     throws (1: TachyonTException e)
 
   bool free(1: i64 fileId, 2: bool recursive)
-    throws (1: TachyonTException e)
-
-  DependencyInfo getDependencyInfo(1: i32 dependencyId)
     throws (1: TachyonTException e)
 
   FileBlockInfo getFileBlockInfo(1: i64 fileId, 2: i32 fileBlockIndex)
@@ -198,7 +196,6 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   i64 getFileId(1: string path)
-    throws (1: TachyonTException e)
 
   FileInfo getFileInfo(1: i64 fileId)
     throws (1: TachyonTException e)
@@ -213,9 +210,11 @@ service FileSystemMasterService {
   string getUfsAddress()
 
   /**
-   * Loads metadata for the file identified by the given Tachyon path from UFS into Tachyon.
+   * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
    */
-  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive) throws (1: TachyonTException e)
+   // TODO(jiri): Get rid of this.
+  i64 loadMetadata(1: string ufsPath, 2: bool recursive)
+    throws (1: TachyonTException e)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
@@ -233,9 +232,6 @@ service FileSystemMasterService {
   void reportLostFile(1: i64 fileId)
     throws (1: TachyonTException e)
 
-  void requestFilesInDependency(1: i32 depId)
-    throws (1: TachyonTException e)
-
   void setPinned(1: i64 fileId, 2: bool pinned)
     throws (1: TachyonTException e)
 
@@ -247,8 +243,6 @@ service FileSystemMasterService {
   bool unmount(1: string tachyonPath) throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   set<i64> workerGetPinIdList()
-
-  list<i32> workerGetPriorityDependencyList()
 }
 
 service LineageMasterService {
@@ -285,7 +279,7 @@ service RawTableMasterService {
     throws (1: TachyonTException e)
 
   void updateRawTableMetadata(1: i64 tableId, 2: binary metadata)
-    throws (1: TachyonTException e, 2: ThriftIOException ioe)
+    throws (1: TachyonTException e)
 }
 
 service WorkerService {

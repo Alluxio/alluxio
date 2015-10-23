@@ -16,15 +16,15 @@
 package tachyon.web;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.common.collect.Ordering;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -40,7 +40,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  public static class NodeInfo {
+  public static class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
     private final String mLastContactSec;
     private final String mWorkerState;
@@ -56,7 +56,11 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
       mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
       mUsedBytes = workerInfo.getUsedBytes();
-      mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
+      if (mCapacityBytes != 0) {
+        mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
+      } else {
+        mUsedPercent = 0;
+      }
       mFreePercent = 100 - mUsedPercent;
       mUptimeClockTime =
           Utils.convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStartTimeMs());
@@ -93,6 +97,21 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     public int getUsedSpacePercent() {
       return mUsedPercent;
     }
+
+    /**
+     * Compare NodeInfo by lexicographical order of their associated host
+     * @param o the comparison term
+     * @return a positive value if {@code this.getHost} is lexcographically "bigger" than
+     *         {@code o.getHost}, 0 if the hosts are equal, a negative value otherwise.
+     */
+    @Override
+    public int compareTo(NodeInfo o) {
+      if (o == null) {
+        return 1;
+      } else {
+        return this.getHost().compareTo(o.getHost());
+      }
+    }
   }
 
   private static final long serialVersionUID = -7454493761603179826L;
@@ -126,18 +145,13 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @param workerInfos The list of WorkerInfo objects
    * @return The list of NodeInfo objects
    */
-  private NodeInfo[] generateOrderedNodeInfos(List<WorkerInfo> workerInfos) {
+  private NodeInfo[] generateOrderedNodeInfos(Collection<WorkerInfo> workerInfos) {
     NodeInfo[] ret = new NodeInfo[workerInfos.size()];
-    Collections.sort(workerInfos, new Ordering<WorkerInfo>() {
-      @Override
-      public int compare(WorkerInfo info0, WorkerInfo info1) {
-        return info0.getAddress().getHost().compareTo(info1.getAddress().getHost());
-      }
-    });
     int index = 0;
     for (WorkerInfo workerInfo : workerInfos) {
       ret[index ++] = new NodeInfo(workerInfo);
     }
+    Arrays.sort(ret);
 
     return ret;
   }
@@ -155,7 +169,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 
-    List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
+    Set<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 

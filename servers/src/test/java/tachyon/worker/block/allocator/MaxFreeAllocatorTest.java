@@ -24,7 +24,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
     //
     // idx | tier1 | tier2 | tier3

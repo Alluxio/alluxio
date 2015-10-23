@@ -27,14 +27,19 @@ public class DeleteOptionsTest {
   public void builderTest() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
+
     DeleteOptions options =
-        new DeleteOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
+        new DeleteOptions.Builder(new TachyonConf())
+            .setRecursive(recursive)
+            .build();
+
     Assert.assertEquals(recursive, options.isRecursive());
   }
 
   @Test
   public void defaultsTest() {
     DeleteOptions options = DeleteOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+
+    Assert.assertFalse(options.isRecursive());
   }
 }

@@ -4,7 +4,10 @@
 - name: set tachyon/conf/workers tachyon/conf/slaves
   script: slave.sh
 
-- name: set tachyon-env.sh
+- name: set TACHYON_MASTER_ADDRESS in tachyon-env.sh
+  script: set_master_address.sh
+
+- name: set ufs related info in tachyon-env.sh
   script: roles/ufs_{{ ufs }}/files/config_tachyon.sh
   environment:
     S3_BUCKET: "{{ s3_bucket }}"
@@ -15,11 +18,19 @@
   script: zookeeper.sh
   when: tachyon_masters > 1
 
+- name: set journal folder as a shared folder in underfs for fault tolerance
+  script: set_journal_folder.sh
+  when: tachyon_masters > 1
+
+- name: set longer worker heartbeat timeout to wait for leader selection
+  script: set_worker_heartbeat_timeout.sh
+  when: tachyon_masters > 1
+
 - name: set worker memory in tachyon-env.sh
   replace: >
     dest=/tachyon/conf/tachyon-env.sh
-    regexp='TACHYON_WORKER_MEMORY_SIZE=1GB'
-    replace='TACHYON_WORKER_MEMORY_SIZE={{ tachyon_memory }}'
+    regexp='^export TACHYON_WORKER_MEMORY_SIZE=.*'
+    replace='export TACHYON_WORKER_MEMORY_SIZE={{ tachyon_memory }}'
 
 - name: let tachyon ssh to workers in parallel when start
   replace: >

@@ -52,6 +52,7 @@ public class FileUtilsTest {
     Assert.assertFalse(tempFile.canExecute());
     // expect a file permission error when we open it for writing
     mException.expect(IOException.class);
+    @SuppressWarnings({"unused", "resource"})
     FileWriter fw = new FileWriter(tempFile);
     Assert.fail("opening a read-only file for writing should have failed");
   }

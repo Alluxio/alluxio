@@ -39,6 +39,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
@@ -281,7 +282,8 @@ public class TfsShellTest {
   @Test
   public void countNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"count", "/NotExistFile"});
-    Assert.assertEquals("Could not find path: /NotExistFile\n", mOutput.toString());
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -304,7 +306,8 @@ public class TfsShellTest {
   @Test
   public void fileinfoNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"fileinfo", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -374,7 +377,8 @@ public class TfsShellTest {
   @Test
   public void locationNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"location", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -556,7 +560,7 @@ public class TfsShellTest {
   @Test
   public void rmNotExistingFileTest() throws IOException {
     mFsShell.run(new String[] {"rm", "/testFile"});
-    String expected = "rm: cannot remove '/testFile': No such file or directory\n";
+    String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -685,7 +689,7 @@ public class TfsShellTest {
             UnderStorageType.NO_PERSIST, 10);
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS));
+    CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     Assert.assertFalse(mTfs.getInfo(file).getInMemoryPercentage() == 100);
   }
 
@@ -701,7 +705,7 @@ public class TfsShellTest {
     String expected = "";
     // du a non-existing file
     mFsShell.run(new String[] {"du", "/testRoot/noneExisting"});
-    expected += "Could not find path: /testRoot/noneExisting\n";
+    expected += ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testRoot/noneExisting") + "\n";
     // du a file
     mFsShell.run(new String[] {"du", "/testRoot/testFileA"});
     expected += "/testRoot/testFileA is 10 bytes\n";
@@ -736,7 +740,7 @@ public class TfsShellTest {
 
     int ret = mFsShell.run(new String[] {"free", "/testWild*/foo/*"});
     CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
@@ -745,7 +749,7 @@ public class TfsShellTest {
 
     ret = mFsShell.run(new String[] {"free", "/testWild*/*/"});
     CommonUtils.sleepMs(null,
-            tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+            tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
@@ -803,7 +807,7 @@ public class TfsShellTest {
 
   private boolean fileExist(TachyonURI path) {
     try {
-      return (mTfs.open(path) != null);
+      return mTfs.open(path) != null;
     } catch (IOException e) {
       return false;
     } catch (TachyonException e) {
