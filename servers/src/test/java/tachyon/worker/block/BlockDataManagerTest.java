@@ -118,27 +118,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
   }
 
   @Test
-  public void addCheckpointTest() throws Exception {
-    long fileId = mHarness.mRandom.nextLong();
-    long fileSize = mHarness.mRandom.nextLong();
-    long nonce = mHarness.mRandom.nextLong();
-    String dstPath = "/tmp/foo/bar";
-    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setUfsPath(dstPath);
-    LocalUnderFileSystem ufs = PowerMockito.mock(LocalUnderFileSystem.class);
-
-    // TODO(jiri): Test error cases.
-    Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
-    PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystem.get(srcPath, WorkerContext.getConf())).thenReturn(ufs);
-    Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
-    Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
-    mHarness.mManager.persistFile(fileId, nonce, dstPath);
-    Mockito.verify(mHarness.mFileSystemMasterClient).persistFile(fileId, fileSize);
-  }
-
-  @Test
   public void cleanupSessionsTest() throws Exception {
     long sessionId = 1;
     LinkedList<Long> sessions = new LinkedList<Long>();

@@ -110,11 +110,11 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   @Test
-  public void setCompleteTest() {
+  public void setCompletedTest() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertFalse(inode1.isCompleted());
 
-    inode1.setCompleted(LENGTH);
+    inode1.setCompleted(true);
     Assert.assertTrue(inode1.isCompleted());
   }
 }

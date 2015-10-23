@@ -38,6 +38,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -171,7 +172,7 @@ public final class FileSystemMasterTest {
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 2, blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId);
+    mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
 
     createFileWithSingleBlock(ROOT_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(ROOT_FILE_URI), mFileSystemMaster.getInMemoryFiles());
@@ -246,7 +247,9 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId);
+    CompleteFileOptions options =
+        new CompleteFileOptions.Builder(MasterContext.getConf()).setLength(Constants.KB).build();
+    mFileSystemMaster.completeFile(fileId, options);
     return blockId;
   }
 }

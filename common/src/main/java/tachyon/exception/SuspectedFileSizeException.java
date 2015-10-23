@@ -15,6 +15,7 @@
 
 package tachyon.exception;
 
+// TODO(jiri): Rename this to InvalidFileLengthException
 public class SuspectedFileSizeException extends TachyonException {
   private static final long serialVersionUID = -4913703614829472342L;
 

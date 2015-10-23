@@ -62,30 +62,6 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Persists a file.
-   *
-   * @param fileId the file id
-   * @param length the checkpoint length
-   * @return whether operation succeeded or not
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized boolean persistFile(long fileId, long length) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.persistFile(fileId, length);
-      } catch (TachyonTException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
    * @param fileId the file id
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs

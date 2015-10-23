@@ -54,7 +54,6 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
@@ -116,8 +115,6 @@ public abstract class JournalFormatterTestBase {
       .put(JournalEntryType.INODE_MTIME,
           new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_PERSISTED, new PersistDirectoryEntry(TEST_FILE_ID, true))
-      .put(JournalEntryType.ADD_CHECKPOINT,
-          new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS))
       .put(JournalEntryType.COMPLETE_FILE,
           new CompleteFileEntry(Arrays.asList(1L, 2L, 3L), TEST_FILE_ID, TEST_LENGTH_BYTES,
               TEST_OP_TIME_MS))

@@ -58,12 +58,11 @@ public class InodeFileEntry extends InodeEntry {
             .setParentId(mParentId).setBlockSizeBytes(mBlockSizeBytes)
             .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted).build();
 
-    if (mCompleted) {
-      inode.setCompleted(mLength);
-    }
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
+    inode.setCompleted(mCompleted);
+    inode.setLength(mLength);
     inode.setPersisted(mPersisted);
     inode.setPinned(mPinned);
     inode.setCacheable(mCacheable);

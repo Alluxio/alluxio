@@ -36,6 +36,7 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.table.RawColumn;
@@ -266,7 +267,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized void completeFile(long fid) throws IOException {
     try {
-      mFSMasterClient.completeFile(fid);
+      mFSMasterClient.completeFile(fid, CompleteFileOptions.defaults());
     } catch (TachyonException e) {
       throw new IOException(e);
     }

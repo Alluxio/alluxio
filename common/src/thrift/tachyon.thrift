@@ -135,6 +135,10 @@ exception ThriftIOException {
   1: string message
 }
 
+struct CompleteFileTOptions {
+  1: optional i64 length
+}
+
 struct CreateTOptions {
   1: optional i64 blockSizeBytes
   2: optional bool persisted
@@ -172,7 +176,8 @@ service BlockMasterService {
 }
 
 service FileSystemMasterService {
-  void completeFile(1: i64 fileId) throws (1: TachyonTException e)
+  void completeFile(1: i64 fileId, 2: CompleteFileTOptions options)
+   throws (1: TachyonTException e)
 
   bool mkdir(1: string path, 2: MkdirTOptions options)
     throws (1: TachyonTException e, 2: ThriftIOException ioe)
@@ -219,9 +224,6 @@ service FileSystemMasterService {
    */
   bool mount(1: string tachyonPath, 2: string ufsPath)
     throws (1: TachyonTException e, 2: ThriftIOException ioe)
-
-  bool persistFile(1: i64 fileId, 2: i64 length)
-    throws (1: TachyonTException e)
 
   bool renameFile(1: i64 fileId, 2: string dstPath)
     throws (1: TachyonTException e)
@@ -306,9 +308,6 @@ service WorkerService {
    * thrown.
    */
   string lockBlock(1: i64 blockId, 2: i64 sessionId)
-    throws (1: TachyonTException e)
-
-  void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
     throws (1: TachyonTException e)
 
   /**

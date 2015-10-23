@@ -214,30 +214,34 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Sets the complete flag true, and sets the length.
-   *
-   * @param length the length of the complete file
+   * @param completed the complete flag value to use
    */
-  public synchronized void setCompleted(long length) {
-    mCompleted = true;
+  public synchronized void setCompleted(boolean completed) {
+    mCompleted = completed;
+  }
+
+  /**
+   * @param length the length to use
+   */
+  public synchronized void setLength(long length) {
     mLength = length;
   }
 
   /**
-   * Sets the length of the file. Cannot set the length if the file is complete or the length is
+   * Completes the file. Cannot set the length if the file is complete or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws SuspectedFileSizeException
+   * @throws SuspectedFileSizeException if the file length is invalid
    */
-  public synchronized void setLength(long length)
-      throws SuspectedFileSizeException {
+  public synchronized void complete(long length) throws SuspectedFileSizeException {
     if (mCompleted) {
-      throw new SuspectedFileSizeException("InodeFile has been completed.");
+      throw new SuspectedFileSizeException("File has already been completed.");
     }
     if (length < 0) {
-      throw new SuspectedFileSizeException("InodeFile new length " + length + " is negative.");
+      throw new SuspectedFileSizeException("File length " + length + " cannot be negative.");
     }
+    mCompleted = true;
     mLength = length;
     mBlocks.clear();
     while (length > 0) {
@@ -245,7 +249,6 @@ public final class InodeFile extends Inode {
       getNewBlockId();
       length -= blockSize;
     }
-    setCompleted(mLength);
   }
 
   @Override

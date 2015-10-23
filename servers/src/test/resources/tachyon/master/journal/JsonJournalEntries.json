@@ -85,15 +85,6 @@
       "persisted":true
     }
   },
-  "ADD_CHECKPOINT":{
-    "mSequenceNumber":1945,
-    "mType":"ADD_CHECKPOINT",
-    "mParameters":{
-      "operationTimeMs":1409349750338,
-      "length":256,
-      "fileId":1
-    }
-  },
   "COMPLETE_FILE":{
     "mSequenceNumber":1945,
     "mType":"COMPLETE_FILE",
