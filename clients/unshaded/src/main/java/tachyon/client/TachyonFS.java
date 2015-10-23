@@ -38,7 +38,6 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
-import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -377,7 +376,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     fileId = getValidFileId(fileId, path.getPath());
     try {
-      return mFSMasterClient.deleteFile(fileId, recursive);
+      return mFSMasterClient.delete(fileId, recursive);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -932,7 +931,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(dstPath);
     fileId = getValidFileId(fileId, srcPath.getPath());
     try {
-      return mFSMasterClient.renameFile(fileId, dstPath.getPath());
+      return mFSMasterClient.rename(fileId, dstPath.getPath());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
