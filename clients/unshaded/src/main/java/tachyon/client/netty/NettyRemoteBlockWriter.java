@@ -28,6 +28,7 @@ import io.netty.channel.ChannelFuture;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockWriter;
+import tachyon.exception.ExceptionMessage;
 import tachyon.network.protocol.RPCBlockWriteRequest;
 import tachyon.network.protocol.RPCBlockWriteResponse;
 import tachyon.network.protocol.RPCErrorResponse;
@@ -64,8 +65,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   @Override
   public void open(InetSocketAddress address, long blockId, long sessionId) throws IOException {
     if (mOpen) {
-      throw new IOException("This writer is already open for address: " + mAddress + ", blockId: "
-          + mBlockId + ", sessionId: " + mSessionId);
+      throw new IOException(
+          ExceptionMessage.WRITER_ALREADY_OPEN.getMessage(mAddress, mBlockId, mSessionId));
     }
     mAddress = address;
     mBlockId = blockId;
@@ -104,8 +105,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
           LOG.info("status: {} from remote machine {} received", status, mAddress);
 
           if (status != RPCResponse.Status.SUCCESS) {
-            throw new IOException("error writing blockId: " + mBlockId + ", sessionId: "
-                + mSessionId + ", address: " + mAddress + ", message: " + status.getMessage());
+            throw new IOException(ExceptionMessage.BLOCK_WRITE_ERROR.getMessage(mBlockId,
+                mSessionId, mAddress, status.getMessage()));
           }
           mWrittenBytes += length;
           break;
@@ -113,8 +114,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
           RPCErrorResponse error = (RPCErrorResponse) response;
           throw new IOException(error.getStatus().getMessage());
         default:
-          throw new IOException("Unexpected response message type: " + response.getType()
-              + " (expected: " + RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE + ")");
+          throw new IOException(ExceptionMessage.UNEXPECTED_RPC_RESPONSE
+              .getMessage(response.getType(), RPCMessage.Type.RPC_BLOCK_WRITE_RESPONSE));
       }
     } catch (Exception e) {
       throw new IOException(e);
