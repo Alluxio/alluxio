@@ -145,7 +145,6 @@
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco-it.exec</sonar.jacoco.reportPath>
     <sonar.language>java</sonar.language>
-    <sonar.host.url>http://localhost:9010</sonar.host.url>
     <sonar.exclusions>**/tachyon/thrift/**</sonar.exclusions>
   </properties>
 
@@ -334,6 +333,10 @@
             </excludes>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.codehous.mojo</groupId>
+          <artifacts>sonar-maven-plugin</artifacts>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -485,24 +488,24 @@
           </execution>
         </executions>
       </plugin>      
-          <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>${jacoco.version}</version>
-            <executions>
-                <execution>
-                    <id>agent</id>
-                    <goals>
-                        <goal>prepare-agent</goal>
-                    </goals>
-                     <configuration>
-                        <destFile>${sonar.jacoco.reportPath}</destFile>
-                        <append>true</append>
-                        <propertyName>surefireArgLine</propertyName>
-                    </configuration>
-                </execution>
-            </executions>
-          </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+            <execution>
+                <id>agent</id>
+                <goals>
+                    <goal>prepare-agent</goal>
+                </goals>
+                 <configuration>
+                    <destFile>${sonar.jacoco.reportPath}</destFile>
+                    <append>true</append>
+                    <propertyName>surefireArgLine</propertyName>
+                </configuration>
+            </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -598,35 +601,5 @@
         <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
-
-    <!-- sonar
-    <profile>
-      <id>sonar-coverage</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>${jacoco.version}</version>
-            <executions>
-                <execution>
-                    <id>agent</id>
-                    <goals>
-                        <goal>prepare-agent</goal>
-                    </goals>
-                     <configuration>
-                        <destFile>${sonar.jacoco.reportPath}</destFile>
-                        <append>true</append>
-                        <propertyName>surefireArgLine</propertyName>
-                    </configuration>
-                </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>-->
   </profiles>
 </project>
