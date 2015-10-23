@@ -1394,7 +1394,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * This class represent the executor for periodic inode TTL check.
+   * This class represents the executor for periodic inode TTL check.
    */
   private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     @Override
