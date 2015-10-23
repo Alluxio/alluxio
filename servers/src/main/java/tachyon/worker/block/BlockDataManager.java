@@ -19,13 +19,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.thrift.TException;
+import com.google.common.base.Preconditions;
 
 import tachyon.Sessions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FailedToCheckpointException;
@@ -35,10 +34,12 @@ import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.test.Testable;
 import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -64,9 +65,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
   private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
-  private Sessions mSessions;
-  /** Id of this worker */
-  private long mWorkerId;
+  private Sessions mSessions = new Sessions();
 
   class PrivateAccess {
     private PrivateAccess() {}
@@ -77,6 +76,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
 
     public void setMetricsReporter(BlockMetricsReporter reporter) {
       mMetricsReporter = reporter;
+    }
+
+    public void setSessions(Sessions sessions) {
+      mSessions = Preconditions.checkNotNull(sessions);
     }
   }
 
@@ -105,7 +108,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
-
 
   @Override
   public void grantAccess(Tester<BlockDataManager> tester) {
@@ -220,7 +222,8 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier, tier, blockId,
+          length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
@@ -240,20 +243,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
-   *         uncommitted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
-  // now,
-  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
-  // more general exception.
   public String createBlock(long sessionId, long blockId, int tierAlias, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
-      IOException, InvalidWorkerStateException {
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc =
         tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
@@ -273,20 +266,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
-   *         uncommitted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
-  // now,
-  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
-  // more general exception.
   public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
-      IOException, InvalidWorkerStateException {
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
@@ -467,40 +450,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws BlockAlreadyExistsException if blocks to move in
-   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
-   *         location
-   * @throws InvalidWorkerStateException if the space requested is less than current space or blocks
-   *         to move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO(cc): Exceptions like IOException BlockAlreadyExistsException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockDoesNotExistException has two semantic now, revisit
-  // this
-  // with a more general exception.
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     mBlockStore.requestSpace(sessionId, blockId, additionalBytes);
-  }
-
-  /**
-   * Instantiates the session metadata object. This should only be called once and is a temporary
-   * work around.
-   *
-   * @param sessions The session metadata object
-   */
-  public void setSessions(Sessions sessions) {
-    mSessions = sessions;
-  }
-
-  /**
-   * Sets the workerId. This should only be called once and is a temporary work around.
-   *
-   * @param workerId Worker id to update to
-   */
-  public void setWorkerId(long workerId) {
-    mWorkerId = workerId;
   }
 
   /**

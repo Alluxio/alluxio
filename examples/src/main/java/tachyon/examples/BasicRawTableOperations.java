@@ -25,10 +25,11 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -49,10 +50,14 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
-      WriteType writeType) {
+      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
-    mWriteType = writeType;
+    if (tachyonWriteType.isStore()) {
+      mWriteType = ufsWriteType.isSyncPersist() ? WriteType.CACHE_THROUGH : WriteType.MUST_CACHE;
+    } else {
+      mWriteType = WriteType.THROUGH;
+    }
   }
 
   @Override
@@ -89,7 +94,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
       FileInStream is = tFile.getInStream(ReadType.CACHE);
-      ByteBuffer buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
@@ -111,7 +116,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
             + " under column " + column);
       }
 
-      ByteBuffer buf = ByteBuffer.allocate(80);
+      ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
         buf.putInt(k);
@@ -119,20 +124,21 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      FileOutStream os = tFile.getOutStream(mWriteType);
+      FileOutStream os = tFile.getOutStream();
       os.write(buf.array());
       os.close();
     }
   }
 
   public static void main(String[] args) throws IllegalArgumentException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION
-          + "-jar-with-dependencies.jar "
-          + "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
+    if (args.length != 4) {
+      System.out.println("java -cp " + Constants.TACHYON_JAR + " "
+          + BasicRawTableOperations.class.getName() + " <master address> <file path> "
+          + "<tachyon storage type for writes (STORE|NO_STORE)> "
+          + "<under storage type for writes (SYNC_PERSIST|NO_PERSIST)");
       System.exit(-1);
     }
     Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        WriteType.valueOf(args[2])));
+        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
   }
 }

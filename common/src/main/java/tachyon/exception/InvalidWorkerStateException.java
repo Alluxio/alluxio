@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class InvalidWorkerStateException extends TachyonException {
+  private static final long serialVersionUID = -5416224494611880597L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.INVALID_WORKER_STATE;
 

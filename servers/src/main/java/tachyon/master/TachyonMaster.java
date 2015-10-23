@@ -22,7 +22,6 @@ import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
@@ -43,6 +42,7 @@ import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.LineageUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.MasterUIWebServer;
@@ -56,8 +56,7 @@ public class TachyonMaster {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.Master");
+      LOG.info("java -cp " + Constants.TACHYON_JAR + " tachyon.Master");
       System.exit(-1);
     }
 
@@ -122,7 +121,7 @@ public class TachyonMaster {
      *         return {@link TachyonMaster}.
      */
     public static TachyonMaster createMaster() {
-      if (MasterContext.getConf().getBoolean(Constants.USE_ZOOKEEPER)) {
+      if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return new TachyonMasterFaultTolerant();
       }
       return new TachyonMaster();
@@ -132,12 +131,12 @@ public class TachyonMaster {
   protected TachyonMaster() {
     TachyonConf conf = MasterContext.getConf();
 
-    mMinWorkerThreads = conf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
-    mMaxWorkerThreads = conf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
+    mMinWorkerThreads = conf.getInt(Constants.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = conf.getInt(Constants.MASTER_WORKER_THREADS_MAX);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
-            + Constants.MASTER_MIN_WORKER_THREADS);
+        Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
+            + Constants.MASTER_WORKER_THREADS_MIN);
 
     try {
       // Extract the port from the generated socket.
@@ -172,7 +171,9 @@ public class TachyonMaster {
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
-      mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+      }
 
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
@@ -184,14 +185,14 @@ public class TachyonMaster {
   }
 
   /**
-   * @return the externally resolvable address of this master.
+   * @return the externally resolvable address of this master
    */
   public InetSocketAddress getMasterAddress() {
     return mMasterAddress;
   }
 
   /**
-   * @return the actual bind hostname on RPC service (used by unit test only).
+   * @return the actual bind hostname on RPC service (used by unit test only)
    */
   public String getRPCBindHost() {
     return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
@@ -205,7 +206,7 @@ public class TachyonMaster {
   }
 
   /**
-   * @return the actual bind hostname on web service (used by unit test only).
+   * @return the actual bind hostname on web service (used by unit test only)
    */
   public String getWebBindHost() {
     return mWebServer.getBindHost();
@@ -219,35 +220,35 @@ public class TachyonMaster {
   }
 
   /**
-   * @return internal {@link FileSystemMaster}, for unit test only.
+   * @return internal {@link FileSystemMaster}, for unit test only
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * @return internal {@link RawTableMaster}, for unit test only.
+   * @return internal {@link RawTableMaster}, for unit test only
    */
   public RawTableMaster getRawTableMaster() {
     return mRawTableMaster;
   }
 
   /**
-   * @return internal {@link BlockMaster}, for unit test only.
+   * @return internal {@link BlockMaster}, for unit test only
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
 
   /**
-   * @return the millisecond when Tachyon Master starts serving, return -1 when not started.
+   * @return the millisecond when Tachyon Master starts serving, return -1 when not started
    */
   public long getStarttimeMs() {
     return mStartTimeMs;
   }
 
   /**
-   * @return true if the system is the leader (serving the rpc server), false otherwise.
+   * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing() {
     return mIsServing;
@@ -281,7 +282,9 @@ public class TachyonMaster {
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
-      mLineageMaster.start(isLeader);
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+        mLineageMaster.start(isLeader);
+      }
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -291,7 +294,9 @@ public class TachyonMaster {
 
   protected void stopMasters() {
     try {
-      mLineageMaster.stop();
+      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+        mLineageMaster.stop();
+      }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -333,7 +338,9 @@ public class TachyonMaster {
     processor.registerProcessor(mFileSystemMaster.getServiceName(),
         mFileSystemMaster.getProcessor());
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
-    processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
+    if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+      processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
+    }
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;

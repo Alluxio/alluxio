@@ -18,15 +18,18 @@ package tachyon.client.file.options;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
+import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.CreateTOptions;
 
 @PublicApi
 public final class CreateOptions {
   public static class Builder {
     // TODO(calvin): Should this just be an int?
-    private long mBlockSize;
+    private long mBlockSizeBytes;
     private boolean mRecursive;
     private long mTTL;
+    private UnderStorageType mUnderStorageType;
 
     /**
      * Creates a new builder for {@link CreateOptions}.
@@ -34,17 +37,19 @@ public final class CreateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mTTL = Constants.NO_TTL;
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mRecursive = false;
+      mTTL = Constants.NO_TTL;
+      mUnderStorageType =
+          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
     }
 
     /**
-     * @param blockSize the block size to use
+     * @param blockSizeBytes the block size to use
      * @return the builder
      */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
@@ -70,6 +75,15 @@ public final class CreateOptions {
     }
 
     /**
+     * @param underStorageType the under storage type to use
+     * @return the builder
+     */
+    public Builder setUnderStorageType(UnderStorageType underStorageType) {
+      mUnderStorageType = underStorageType;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@code CreateOptions}.
      *
      * @return a {@code CreateOptions} instance
@@ -86,21 +100,23 @@ public final class CreateOptions {
     return new Builder(ClientContext.getConf()).build();
   }
 
-  private final long mBlockSize;
+  private final long mBlockSizeBytes;
   private final boolean mRecursive;
   private final long mTTL;
+  private final UnderStorageType mUnderStorageType;
 
   private CreateOptions(CreateOptions.Builder builder) {
-    mBlockSize = builder.mBlockSize;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
+    mUnderStorageType = builder.mUnderStorageType;
   }
 
   /**
    * @return the block size
    */
-  public long getBlockSize() {
-    return mBlockSize;
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
   }
 
   /**
@@ -117,5 +133,24 @@ public final class CreateOptions {
    */
   public long getTTL() {
     return mTTL;
+  }
+
+  /**
+   * @return the under storage type
+   */
+  public UnderStorageType getUnderStorageType() {
+    return mUnderStorageType;
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public CreateTOptions toThrift() {
+    CreateTOptions options = new CreateTOptions();
+    options.setBlockSizeBytes(mBlockSizeBytes);
+    options.setPersisted(mUnderStorageType.isSyncPersist());
+    options.setRecursive(mRecursive);
+    options.setTtl(mTTL);
+    return options;
   }
 }

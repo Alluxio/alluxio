@@ -29,7 +29,9 @@ public class LoadMetadataOptionsTest {
     boolean recursive = random.nextBoolean();
 
     LoadMetadataOptions options =
-        new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
+        new LoadMetadataOptions.Builder(new TachyonConf())
+            .setRecursive(recursive)
+            .build();
 
     Assert.assertEquals(recursive, options.isRecursive());
   }
@@ -37,6 +39,7 @@ public class LoadMetadataOptionsTest {
   @Test
   public void defaultsTest() {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+
+    Assert.assertFalse(options.isRecursive());
   }
 }

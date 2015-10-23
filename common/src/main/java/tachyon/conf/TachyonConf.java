@@ -17,7 +17,6 @@ package tachyon.conf;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -121,13 +120,13 @@ public final class TachyonConf {
 
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_MIN_WORKER_THREADS,
+    defaultProps.setProperty(Constants.WORKER_WORKER_BLOCK_THREADS_MIN,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
-    defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
+    defaultProps.setProperty(Constants.MASTER_WORKER_THREADS_MIN,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
-    defaultProps.setProperty(Constants.USER_NETTY_CHANNEL,
+    defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
     InputStream defaultInputStream =
@@ -167,10 +166,37 @@ public final class TachyonConf {
     // Update tachyon.master_address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
-    boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.USE_ZOOKEEPER));
+    boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+
+    // tachyon.user.file.writetype.default has been deprecated. So by default it is not defined.
+    // In case it is defined, it overwrites tachyon.user.file.tachyonstoragetype.default and
+    // tachyon.user.file.understoragetype.default. Essentially, we want to make sure that
+    // tachyon.user.file.writetype.default is consistent with the other two parameters.
+    if (mProperties.containsKey(Constants.USER_FILE_WRITE_TYPE_DEFAULT)) {
+      String writeType = mProperties.getProperty(Constants.USER_FILE_WRITE_TYPE_DEFAULT);
+      if (writeType.equals("MUST_CACHE")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
+      } else if (writeType.equals("TRY_CACHE")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
+      } else if (writeType.equals("CACHE_THROUGH")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
+      } else if (writeType.equals("THROUGH")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "NO_STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
+      } else if (writeType.equals("ASYNC_THROUGH")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "ASYNC_PERSIST");
+      } else {
+        throw new IllegalArgumentException("Unknown property for "
+            + Constants.USER_FILE_WRITE_TYPE_DEFAULT + " " + writeType);
+      }
+    }
   }
 
   @Override
@@ -195,7 +221,7 @@ public final class TachyonConf {
   }
 
   /**
-   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance.
+   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance
    */
   public Properties getInternalProperties() {
     return SerializationUtils.clone(mProperties);
@@ -375,7 +401,7 @@ public final class TachyonConf {
    *
    * @param base the String to look for.
    * @param found {@link Map} of String that already seen in this path.
-   * @return resolved String value.
+   * @return resolved String value
    */
   private String lookupRecursively(final String base, Map<String, String> found) {
     // check argument

@@ -110,8 +110,8 @@ public class RemoteBlockInStreamIntegrationTest {
     TachyonConf conf = WorkerContext.getConf();
     conf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     conf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    conf.set(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
-    conf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "100");
+    conf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);
+    conf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
 
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
     mLocalTachyonCluster.start();
@@ -411,7 +411,7 @@ public class RemoteBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest2() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
+    mThrown.expectMessage("Seek position past end of file: 1");
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =

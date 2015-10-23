@@ -38,12 +38,12 @@ public abstract class AbstractInodeTest {
   }
 
   protected static InodeDirectory createInodeDirectory() {
-    return new InodeDirectory("test1", 1, 0, System.currentTimeMillis(),
-        sPermisionStatus);
+    return new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0)
+        .setPermissionStatus(sPermissionStatus).build();
   }
 
   protected InodeFile createInodeFile(long id) {
-    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis(),
-        Constants.NO_TTL, sPermisionStatus);
+    return new InodeFile.Builder().setName("testFile" + id).setBlockContainerId(id).setParentId(1)
+        .setBlockSizeBytes(Constants.KB).setPermissionStatus(sPermissionStatus).build();
   }
 }

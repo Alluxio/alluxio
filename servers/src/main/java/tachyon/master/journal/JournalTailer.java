@@ -52,14 +52,14 @@ public final class JournalTailer {
   }
 
   /**
-   * @return true if this tailer is valid, false otherwise.
+   * @return true if this tailer is valid, false otherwise
    */
   public boolean isValid() {
     return mReader.isValid();
   }
 
   /**
-   * @return true if the checkpoint exists.
+   * @return true if the checkpoint exists
    */
   public boolean checkpointExists() {
     try {
@@ -71,7 +71,7 @@ public final class JournalTailer {
   }
 
   /**
-   * @return the sequence number of the latest entry in the journal read so far.
+   * @return the sequence number of the latest entry in the journal read so far
    */
   public long getLatestSequenceNumber() {
     return mLatestSequenceNumber;
@@ -107,7 +107,7 @@ public final class JournalTailer {
    *
    * {@link #processJournalCheckpoint(boolean)} must have been called previously.
    *
-   * @return the number of completed log files processed.
+   * @return the number of completed log files processed
    * @throws IOException
    */
   public int processNextJournalLogFiles() throws IOException {

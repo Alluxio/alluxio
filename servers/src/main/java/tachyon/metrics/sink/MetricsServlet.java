@@ -57,6 +57,8 @@ public class MetricsServlet implements Sink {
 
   private HttpServlet createServlet() {
     return new HttpServlet() {
+      private static final long serialVersionUID = -2761243531478788172L;
+
       @Override
       protected void doGet(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException {
@@ -72,7 +74,7 @@ public class MetricsServlet implements Sink {
   /***
    * Get the ServletContextHandler of the metrics servlet.
    *
-   * @return the ServletContextHandler object.
+   * @return the ServletContextHandler object
    */
   public ServletContextHandler getHandler() {
     ServletContextHandler contextHandler = new ServletContextHandler();

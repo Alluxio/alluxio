@@ -28,10 +28,10 @@ import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -49,6 +49,7 @@ public class RawTableIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getOldClient();
@@ -169,7 +170,7 @@ public class RawTableIntegrationTest {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
       TachyonFile file = rawCol.getPartition(0);
-      FileOutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
+      FileOutStream outStream = file.getOutStream();
       outStream.write(BufferUtils.getIncreasingByteArray(10));
       outStream.close();
     }

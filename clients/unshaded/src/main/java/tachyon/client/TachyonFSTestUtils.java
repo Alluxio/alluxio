@@ -25,7 +25,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -43,7 +43,7 @@ public final class TachyonFSTestUtils {
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName, int len,
       OutStreamOptions options) throws IOException {
     return createByteFile(tfs, fileName, options.getTachyonStorageType(),
-        options.getUnderStorageType(), len, options.getBlockSize());
+        options.getUnderStorageType(), len, options.getBlockSizeBytes());
   }
 
   /**
@@ -115,7 +115,7 @@ public final class TachyonFSTestUtils {
       OutStreamOptions options =
           new OutStreamOptions.Builder(ClientContext.getConf())
               .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
-              .setBlockSize(blockCapacityByte).build();
+              .setBlockSizeBytes(blockCapacityByte).build();
       FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
 
       for (int k = 0; k < len; k ++) {
@@ -138,7 +138,11 @@ public final class TachyonFSTestUtils {
    */
   public static List<String> listFiles(TachyonFileSystem tfs, String path) throws IOException {
     try {
-      List<FileInfo> infos = tfs.listStatus(tfs.open(new TachyonURI(path)));
+      TachyonFile file = tfs.open(new TachyonURI(path));
+      if (file == null) {
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
+      List<FileInfo> infos = tfs.listStatus(file);
       List<String> res = new ArrayList<String>();
       for (FileInfo info : infos) {
         res.add(info.getPath());
@@ -162,7 +166,7 @@ public final class TachyonFSTestUtils {
    * @return an InStreamOptions object with a matching Tachyon storage type
    */
   public static InStreamOptions toInStreamOptions(OutStreamOptions op) {
-    return new InStreamOptions.Builder(new TachyonConf())
+    return new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(op.getTachyonStorageType()).build();
   }
 

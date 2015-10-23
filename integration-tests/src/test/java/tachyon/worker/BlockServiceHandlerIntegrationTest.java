@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.thrift.TException;
 import org.junit.After;
@@ -47,7 +45,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
@@ -59,9 +56,6 @@ public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-
-  private final ExecutorService mExecutorService =
-      Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private BlockServiceHandler mWorkerServiceHandler = null;
@@ -90,13 +84,13 @@ public class BlockServiceHandlerIntegrationTest {
 
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
+            mLocalTachyonCluster.getMasterPort()), mWorkerTachyonConf);
   }
 
   // Tests that persisting a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
-    TachyonFile file = new TachyonFile(mTfs.create(new TachyonURI("/testFile")));
+    TachyonFile file = mTfs.create(new TachyonURI("/testFile"));
     FileInfo fileInfo = mLocalTachyonCluster.getClient().getInfo(file);
     long nonce = 10;
 
@@ -171,7 +165,7 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
     OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
             .setTachyonStorageType(TachyonStorageType.STORE).build();
     FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
@@ -260,12 +254,12 @@ public class BlockServiceHandlerIntegrationTest {
     boolean result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
 
     // Initial request and first additional request should succeed
-    Assert.assertEquals(true, result);
+    Assert.assertTrue(result);
 
     result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, WORKER_CAPACITY_BYTES);
 
     // Impossible request should fail
-    Assert.assertEquals(false, result);
+    Assert.assertFalse(result);
 
     // Request for space on a nonexistent block should fail
     Assert.assertFalse(mWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
@@ -313,6 +307,6 @@ public class BlockServiceHandlerIntegrationTest {
   // Sleeps for a duration so that the worker heartbeat to master can be processed
   private void waitForHeartbeat() {
     CommonUtils
-        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 3);
+        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 3);
   }
 }
