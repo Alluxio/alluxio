@@ -87,11 +87,11 @@ public class RawTableMaster extends MasterBase {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof RawTableEntry) {
       RawTableEntry tableEntry = (RawTableEntry) entry;
-      mRawTables.add(tableEntry.mId, tableEntry.mColumns, tableEntry.mMetadata);
+      mRawTables.add(tableEntry.getId(), tableEntry.getColumns(), tableEntry.getMetadata());
     } else if (entry instanceof UpdateMetadataEntry) {
       UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) entry;
       try {
-        mRawTables.updateMetadata(updateEntry.mId, updateEntry.mMetadata);
+        mRawTables.updateMetadata(updateEntry.getId(), updateEntry.getMetadata());
       } catch (TableDoesNotExistException tdnee) {
         // should not reach here since before writing the journal, the same operation succeeded
         throw new IOException(tdnee);
