@@ -23,6 +23,8 @@ import com.google.common.base.Throwables;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
@@ -139,7 +141,7 @@ public enum BlockStoreContext {
       client = acquireLocalWorkerClient();
       if (client == null) {
         // TODO(calvin): Recover from initial worker failure.
-        throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+        throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
       }
     } else {
       client = acquireRemoteWorkerClient(hostname);
@@ -174,13 +176,13 @@ public enum BlockStoreContext {
   private synchronized WorkerClient acquireRemoteWorkerClient(String hostname) {
     Preconditions.checkArgument(
         !hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
-        "Acquire Remote Worker Client cannot not be called with local hostname");
+        PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     NetAddress workerAddress = getWorkerAddress(hostname);
 
     // If we couldn't find a worker, crash.
     if (workerAddress == null) {
       // TODO(calvin): Better exception usage.
-      throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
     }
     long clientId = ClientContext.getRandomNonNegativeLong();
     return new WorkerClient(workerAddress, ClientContext.getExecutorService(),
