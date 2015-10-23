@@ -557,22 +557,23 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.file.tachyonstoragetype.default</td>
-  <td>STORE</td>
+  <td>PROMOTE</td>
   <td>The default interaction with Tachyon. Possible values are PROMOTE, STORE, and NO_STORE.
-  Store will attempt to write data to Tachyon if the local worker does not have the data. This
+  STORE will attempt to write data to Tachyon if the local worker does not have the data. This
   applies to writing new data as well as reading data which is not already on the local worker.
-  Promote behaves the same as store, except if the data is on the local worker, promote will
-  migrate the data to the highest tier. No store will never attempt to write data into Tachyon
-  storage. This is useful to prevent one-time data access from interfering with Tachyon.</td>
+  PROMOTE behaves the same as STORE, except if the data is on the local worker, PROMOTE will
+  migrate the data to the highest tier. NO_STORE will never attempt to write data into Tachyon
+  storage. The latter is useful for preventing one-time data access from interfering with Tachyon.
+  </td>
 </tr>
 <tr>
   <td>tachyon.user.file.understoragetype.default</td>
   <td>NO_PERSIST</td>
   <td>The default interaction with the under storage. Possible values are SYNC_PERSIST, NO_PERSIST,
-  and ASYNC_PERSIST. This value only affects writes in Tachyon. Sync persist will attempt to write
+  and ASYNC_PERSIST. This value only affects writes in Tachyon. SYNC_PERSIST will attempt to write
   data to the under storage as the data is written to Tachyon. When the write completes, the data
-  will be available in both locations. Async persist will only write the data to the under storage
-  after the files is completed. See the lineage documentation for more details. No persist will
+  will be available in both locations. ASYNC_PERSIST will only write the data to the under storage
+  after the files is completed. See the lineage documentation for more details. NO_PERSIST will
   bypass the under storage, only writing to Tachyon.</td>
 </tr>
 <tr>
@@ -581,15 +582,13 @@ The user configuration specifies values regarding file system access.
   <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
 </tr>
 <tr>
-  <td>tachyon.user.file.writetype.default [DEPRECATED]</td>
-  <td>MUST_CACHE</td>
-  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
+  <td>tachyon.user.file.writetype.default</td>
+  <td>No default</td>
+  <td>Default write type when creating Tachyon files.
     Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
     `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
     UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
-    asynchronously, or synchronous write to UnderFS). This flag is deprecated, please use the
-    combination of `tachyon.user.file.tachyonstoragetype.default` and
-    `tachyon.user.file.understoragetype.default` instead.</td>
+    asynchronously, or synchronous write to UnderFS).</td>
 </tr>
 <tr>
   <td>tachyon.user.heartbeat.interval.ms</td>
@@ -650,6 +649,21 @@ configuration options.
   <td>tachyon.integration.mesos.jre.url</td>
   <td>https://s3.amazonaws.com/tachyon-mesos/jre-7u79-linux-x64.tar.gz</td>
   <td>The URL from which Mesos executor can download the JRE to use.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.master.name</td>
+  <td>TachyonMaster</td>
+  <td>The Mesos task name for the Tachyon master task.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.master.node.count</td>
+  <td>1</td>
+  <td>The number of Tachyon master processes to start.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.worker.name</td>
+  <td>TachyonMaster</td>
+  <td>The Mesos task name for the Tachyon worker task.</td>
 </tr>
 <tr>
   <td>tachyon.integration.worker.resource.cpu</td>

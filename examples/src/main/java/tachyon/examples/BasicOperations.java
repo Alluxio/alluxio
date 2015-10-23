@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -47,11 +48,11 @@ public class BasicOperations implements Callable<Boolean> {
   private final int mNumbers = 20;
 
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType storageType) {
+      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(storageType).build();
+        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
   }
 
   @Override
@@ -70,9 +71,11 @@ public class BasicOperations implements Callable<Boolean> {
       throws IOException, TachyonException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
-        .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
-        .setTTL(mClientOptions.getTTL()).build();
+    CreateOptions createOptions =
+        (new CreateOptions.Builder(ClientContext.getConf()))
+            .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
+            .setTTL(mClientOptions.getTTL())
+            .setUnderStorageType(mClientOptions.getUnderStorageType()).build();
     TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
     long fileId = tFile.getFileId();
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
@@ -120,14 +123,13 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   public static void main(String[] args) throws IllegalArgumentException {
-    if (args.length != 3) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR
-          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> "
-          + "<WriteType(STORE|NO_STORE)>");
+    if (args.length != 4) {
+      System.out.println("java -cp " + Constants.TACHYON_JAR + " " + BasicOperations.class.getName()
+          + " <under storage type for writes (SYNC_PERSIST|NO_PERSIST)>");
       System.exit(-1);
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2])));
+        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
   }
 }

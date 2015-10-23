@@ -311,8 +311,8 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       if (blockSizeBytes > 0) {
         UnderStorageType underStorageType =
-            mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-                .isThrough() ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+            mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+                UnderStorageType.class);
         CreateOptions options =
             new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
                 .setRecursive(recursive).setUnderStorageType(underStorageType).build();
@@ -345,7 +345,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the RawTable's path
    * @param columns number of columns it has
    * @param metadata the meta data of the RawTable
-   * @return the id if succeed, -1 otherwise
+   * @return the id if succeed, {@link tachyon.util.IdUtils#INVALID_FILE_ID} otherwise
    * @throws IOException if the number of columns is invalid or the underlying master RPC fails
    */
   public synchronized long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
@@ -854,8 +854,8 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       UnderStorageType underStorageType =
-          mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class).isThrough()
-              ? UnderStorageType.SYNC_PERSIST : UnderStorageType.NO_PERSIST;
+          mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+              UnderStorageType.class);
       MkdirOptions options =
           new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
               .setUnderStorageType(underStorageType).build();

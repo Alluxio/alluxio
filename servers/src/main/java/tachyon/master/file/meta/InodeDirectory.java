@@ -42,8 +42,14 @@ public final class InodeDirectory extends Inode {
      *
      * @return a {@link InodeDirectory} instance
      */
+    @Override
     public InodeDirectory build() {
       return new InodeDirectory(this);
+    }
+
+    @Override
+    protected Builder getThis() {
+      return this;
     }
   }
 
