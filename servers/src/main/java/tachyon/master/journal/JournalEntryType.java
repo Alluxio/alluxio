@@ -26,7 +26,6 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
@@ -49,7 +48,6 @@ public enum JournalEntryType {
   BLOCK_INFO(BlockInfoEntry.class) ,
 
   // File system master entries
-  ADD_CHECKPOINT(PersistFileEntry.class),
   ADD_MOUNTPOINT(AddMountPointEntry.class),
   COMPLETE_FILE(CompleteFileEntry.class),
   DELETE_FILE(DeleteFileEntry.class),

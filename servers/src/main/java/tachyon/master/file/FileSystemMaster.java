@@ -60,7 +60,6 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
@@ -73,6 +72,7 @@ import tachyon.master.file.meta.MountTable;
 import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
@@ -168,9 +168,9 @@ public final class FileSystemMaster extends MasterBase {
         completeFileFromEntry((CompleteFileEntry) entry);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new RuntimeException(e);
       }
-    } else if (entry instanceof PersistFileEntry) {
-      persistFileFromEntry((PersistFileEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
       setPinnedFromEntry((SetPinnedEntry) entry);
     } else if (entry instanceof DeleteFileEntry) {
@@ -232,83 +232,6 @@ public final class FileSystemMaster extends MasterBase {
     super.stop();
     if (mTTLCheckerService != null) {
       mTTLCheckerService.cancel(true);
-    }
-  }
-
-  /**
-   * Persists a file in UFS.
-   *
-   * @param fileId the file id
-   * @param length the length of the file
-   * @return true on success
-   * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
-   * @throws FileDoesNotExistException
-   */
-  public boolean persistFile(long fileId, long length)
-      throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      long opTimeMs = System.currentTimeMillis();
-      if (persistFileInternal(fileId, length, opTimeMs)) {
-        writeJournalEntry(new PersistFileEntry(fileId, length, opTimeMs));
-        flushJournal();
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Internal implementation of persisting a file to ufs.
-   *
-   * @return true if the operation should be written to the journal
-   */
-  boolean persistFileInternal(long fileId, long length, long opTimeMs)
-      throws SuspectedFileSizeException, FileDoesNotExistException {
-
-    Inode inode = mInodeTree.getInodeById(fileId);
-    if (inode.isDirectory()) {
-      throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
-    }
-
-    InodeFile file = (InodeFile) inode;
-    boolean needLog = false;
-
-    if (file.isCompleted()) {
-      if (file.getLength() != length) {
-        throw new SuspectedFileSizeException(fileId + ". Original Size: " + file.getLength()
-            + ". New Size: " + length);
-      }
-    } else {
-      file.setLength(length);
-      // Commit all the file blocks (without locations) so the metadata for the block exists.
-      long currLength = length;
-      for (long blockId : file.getBlockIds()) {
-        long blockSize = Math.min(currLength, file.getBlockSizeBytes());
-        mBlockMaster.commitBlockInUFS(blockId, blockSize);
-        currLength -= blockSize;
-      }
-
-      needLog = true;
-    }
-
-    if (!file.isPersisted()) {
-      file.setPersisted(true);
-      needLog = true;
-    }
-    file.setLastModificationTimeMs(opTimeMs);
-    file.setCompleted(length);
-    MasterContext.getMasterSource().incFilesCheckpointed();
-    // TODO(calvin): This probably should always be true since the last mod time is updated.
-    return needLog;
-  }
-
-  private void persistFileFromEntry(PersistFileEntry entry) {
-    try {
-      persistFileInternal(entry.getFileId(), entry.getLength(), entry.getOperationTimeMs());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
-    } catch (SuspectedFileSizeException sfse) {
-      throw new RuntimeException(sfse);
     }
   }
 
@@ -420,8 +343,8 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
-  public void completeFile(long fileId)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
+  public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
+      FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -450,25 +373,36 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
 
-      completeFileInternal(fileInode.getBlockIds(), fileId, fileLength, false, opTimeMs);
+      completeFileInternal(fileInode.getBlockIds(), fileId, fileLength, opTimeMs);
       writeJournalEntry(
           new CompleteFileEntry(fileInode.getBlockIds(), fileId, fileLength, opTimeMs));
       flushJournal();
     }
   }
 
-  void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, boolean replayed,
-      long opTimeMs) throws FileDoesNotExistException, InvalidPathException {
+  void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
+      throws FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
-    InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
-    inodeFile.setBlockIds(blockIds);
-    inodeFile.setCompleted(fileLength);
-    inodeFile.setLastModificationTimeMs(opTimeMs);
+    InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+    inode.setBlockIds(blockIds);
+    inode.setLastModificationTimeMs(opTimeMs);
+    inode.complete(length);
+
+    if (inode.isPersisted()) {
+      // Commit all the file blocks (without locations) so the metadata for the block exists.
+      long currLength = length;
+      for (long blockId : inode.getBlockIds()) {
+        long blockSize = Math.min(currLength, inode.getBlockSizeBytes());
+        mBlockMaster.commitBlockInUFS(blockId, blockSize);
+        currLength -= blockSize;
+      }
+    }
   }
 
-  private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
+  private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException,
+      SuspectedFileSizeException {
     try {
-      completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(), true,
+      completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(),
           entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
@@ -1295,11 +1229,14 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long fileSizeByte = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        CreateOptions options =
+        CreateOptions createOptions =
             new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
                 .setRecursive(recursive).setPersisted(true).build();
-        long fileId = create(path, options);
-        persistFile(fileId, fileSizeByte);
+        long fileId = create(path, createOptions);
+        CompleteFileOptions completeOptions =
+            new CompleteFileOptions.Builder(MasterContext.getConf()).setLength(fileSizeByte)
+                .build();
+        completeFile(fileId, completeOptions);
         return fileId;
       } else {
         MkdirOptions options =

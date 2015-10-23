@@ -34,7 +34,9 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.FailedToCheckpointException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -124,13 +126,13 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
     Boolean canComplete = false;
     if (mUnderStorageType.isSyncPersist()) {
+      String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+      UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+      FileInfo fileInfo = getFileInfo();
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
-        String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
         if (!ufs.exists(tmpPath)) {
-          FileInfo fileInfo = getFileInfo();
           mUfsPath = fileInfo.getUfsPath();
           tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
         }
@@ -138,12 +140,13 @@ public class FileOutStream extends OutputStream implements Cancelable {
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
-        WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-        try {
-          // TODO(yupeng): Investigate if this RPC can be moved to master.
-          workerClient.persistFile(mFileId, mNonce, mUfsPath);
-        } finally {
-          BlockStoreContext.INSTANCE.releaseWorkerClient(workerClient);
+        if (!ufs.exists(tmpPath)) {
+          // Location of the temporary file has changed, recompute it.
+          mUfsPath = fileInfo.getUfsPath();
+          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+        }
+        if (!ufs.rename(tmpPath, mUfsPath)) {
+          throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
         canComplete = true;
       }
@@ -169,7 +172,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.completeFile(mFileId);
+        CompleteFileOptions options = CompleteFileOptions.defaults();
+        masterClient.completeFile(mFileId, options);
       } catch (TachyonException e) {
         throw new IOException(e);
       } finally {
@@ -287,7 +291,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
       return client.getFileInfo(mFileId);
-    } catch (TachyonException   e) {
+    } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     } finally {
       mContext.releaseMasterClient(client);
