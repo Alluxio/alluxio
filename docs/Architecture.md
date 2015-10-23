@@ -34,7 +34,7 @@ divided into three components, the [master](#master), [workers](#worker), and [c
 The master and workers together make up the Tachyon servers, which are the components a system admin
 would maintain and manage. The clients are generally the applications, such as Spark or MapReduce
 jobs, or Tachyon command-line users. Users of Tachyon will usually only need to interact with the
-client  portion of Tachyon.
+client portion of Tachyon.
 
 ### Master
 
