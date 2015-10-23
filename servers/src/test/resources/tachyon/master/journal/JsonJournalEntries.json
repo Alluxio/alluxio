@@ -222,9 +222,9 @@
       ]
     }
   },
-  "REQUEST_FILE_PERSISTENCE":{
+  "PERSIST_FILES_REQUEST":{
     "mSequenceNumber":1945,
-    "mType":"REQUEST_FILE_PERSISTENCE",
+    "mType":"PERSIST_FILES_REQUEST",
     "mParameters":{
       "fileIds":[
         1,

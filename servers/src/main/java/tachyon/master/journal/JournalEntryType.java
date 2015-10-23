@@ -35,7 +35,7 @@ import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
+import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 
@@ -75,7 +75,7 @@ public enum JournalEntryType {
   LINEAGE(LineageEntry.class),
   LINEAGE_ID_GENERATOR(LineageIdGeneratorEntry.class),
   PERSIST_FILES(PersistFilesEntry.class),
-  REQUEST_FILE_PERSISTENCE(RequestFilePersistenceEntry.class);
+  PERSIST_FILES_REQUEST(PersistFilesRequestEntry.class);
 
   private Class<? extends JournalEntry> mClass;
 
