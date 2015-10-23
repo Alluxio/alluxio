@@ -23,47 +23,57 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for renaming a file.
+ * This class represents a journal entry for renaming a file or a directory.
  */
 public class RenameEntry extends JournalEntry {
-  public final long mFileId;
-  public final String mDstPath;
-  public final long mOpTimeMs;
+  private final long mId;
+  private final String mDstPath;
+  private final long mOpTimeMs;
 
   /**
-   * Creates a new instance of <code>RenameEntry</code>.
+   * Creates a new instance of {@link RenameEntry}.
    *
-   * @param fileId the file id.
-   * @param dstPath the destination path.
-   * @param opTimeMs the operation timestamp (in millisecs).
+   * @param id the id
+   * @param dstPath the destination path
+   * @param opTimeMs the operation time (in milliseconds)
    */
   @JsonCreator
-  public RenameEntry(@JsonProperty("fileId") long fileId,
+  public RenameEntry(
+      @JsonProperty("id") long id,
       @JsonProperty("destinationPath") String dstPath,
-      @JsonProperty("operationTimeMs") long opTimeMs) {
+      @JsonProperty("opTimeMs") long opTimeMs) {
 
-    mFileId = fileId;
+    mId = id;
     mDstPath = dstPath;
     mOpTimeMs = opTimeMs;
+  }
+
+  /**
+   * @return the id
+   */
+  @JsonGetter
+  public long getId() {
+    return mId;
+  }
+
+  /**
+   * @return the destination path
+   */
+  @JsonGetter
+  public String getDestinationPath() {
+    return mDstPath;
+  }
+
+  /**
+   * @return the operation time (in milliseconds)
+   */
+  @JsonGetter
+  public long getOpTimeMs() {
+    return mOpTimeMs;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.RENAME;
-  }
-
-  @JsonGetter
-  public long getFileId() {
-    return mFileId;
-  }
-
-  @JsonGetter
-  public long getOperationTimeMs() {
-    return mOpTimeMs;
-  }
-
-  @JsonGetter
-  public String getDestinationPath() {
-    return mDstPath;
   }
 }

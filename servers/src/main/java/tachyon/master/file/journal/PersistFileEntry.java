@@ -22,31 +22,52 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for persisting a file.
+ */
 public class PersistFileEntry extends JournalEntry {
-  private final long mFileId;
+  private final long mId;
   private final long mLength;
   private final long mOpTimeMs;
 
+  /**
+   * Creates a new instance {@link PersistFileEntry}.
+   *
+   * @param id the id
+   * @param length the length
+   * @param opTimeMs the operation time (in milliseconds)
+   */
   @JsonCreator
-  public PersistFileEntry(@JsonProperty("fileId") long fileId, @JsonProperty("length") long length,
-      @JsonProperty("operationTimeMs") long opTimeMs) {
-    mFileId = fileId;
+  public PersistFileEntry(
+      @JsonProperty("id") long id,
+      @JsonProperty("length") long length,
+      @JsonProperty("opTimeMs") long opTimeMs) {
+    mId = id;
     mLength = length;
     mOpTimeMs = opTimeMs;
   }
 
+  /**
+   * @return the file id
+   */
   @JsonGetter
-  public long getFileId() {
-    return mFileId;
+  public long getId() {
+    return mId;
   }
 
+  /**
+   * @return the length
+   */
   @JsonGetter
   public long getLength() {
     return mLength;
   }
 
+  /**
+   * @return the operation time (in milliseconds)
+   */
   @JsonGetter
-  public long getOperationTimeMs() {
+  public long getOpTimeMs() {
     return mOpTimeMs;
   }
 

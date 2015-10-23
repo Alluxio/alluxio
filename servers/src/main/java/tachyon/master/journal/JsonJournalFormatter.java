@@ -86,9 +86,10 @@ public final class JsonJournalFormatter implements JournalFormatter {
         JournalEntryType entryType;
         try {
           entryType = JournalEntryType.valueOf(entryTypeStr);
-          return mObjectMapper.convertValue(parametersNode, entryType.getClazz());
+          return mObjectMapper.convertValue(parametersNode, entryType.getEntryClass());
         } catch (IllegalArgumentException e) {
-          throw new IOException("Unknown or malformed journal entry for type: " + entryTypeStr);
+          throw new IOException("Unknown or malformed journal entry for type: " + entryTypeStr
+              + " " + parametersNode);
         }
       }
 

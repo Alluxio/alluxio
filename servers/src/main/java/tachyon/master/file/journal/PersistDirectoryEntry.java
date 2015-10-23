@@ -22,25 +22,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for persisting a directory.
+ */
 public final class PersistDirectoryEntry extends JournalEntry {
-  protected final long mId;
-  protected final boolean mPersisted;
+  private final long mId;
 
+  /**
+   * Creates a new instance of {@link PersistDirectoryEntry}.
+   *
+   * @param id the id
+   */
   @JsonCreator
-  public PersistDirectoryEntry(@JsonProperty("id") long id,
-      @JsonProperty("persisted") boolean persisted) {
+  public PersistDirectoryEntry(
+      @JsonProperty("id") long id) {
     mId = id;
-    mPersisted = persisted;
   }
 
+  /**
+   * @return the id
+   */
   @JsonGetter
   public long getId() {
     return mId;
-  }
-
-  @JsonGetter
-  public boolean isPersisted() {
-    return mPersisted;
   }
 
   @Override

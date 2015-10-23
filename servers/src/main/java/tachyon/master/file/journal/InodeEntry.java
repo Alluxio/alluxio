@@ -15,10 +15,15 @@
 
 package tachyon.master.file.journal;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 
+/**
+ * This abstract class represents a journal entry for an inode.
+ */
 public abstract class InodeEntry extends JournalEntry {
   protected final long mId;
   protected final long mParentId;
@@ -28,8 +33,26 @@ public abstract class InodeEntry extends JournalEntry {
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
 
-  public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean persisted,
-      boolean pinned, long lastModificationTimeMs) {
+  /**
+   * Creates a new instance of {@link InodeEntry}.
+   *
+   * @param creationTimeMs the creation time (in milliseconds)
+   * @param id the id
+   * @param name the name
+   * @param parentId the parent id
+   * @param persisted the persisted flag
+   * @param pinned the pinned flag
+   * @param lastModificationTimeMs the last modification time (in milliseconds)
+   */
+  @JsonCreator
+  public InodeEntry(
+      @JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("id") long id,
+      @JsonProperty("name") String name,
+      @JsonProperty("parentId") long parentId,
+      @JsonProperty("persisted") boolean persisted,
+      @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs) {
     mId = id;
     mParentId = parentId;
     mName = name;
@@ -39,38 +62,60 @@ public abstract class InodeEntry extends JournalEntry {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
-  @JsonGetter
-  public long getmId() {
-    return mId;
-  }
-
-  @JsonGetter
-  public long getmParentId() {
-    return mParentId;
-  }
-
-  @JsonGetter
-  public String getName() {
-    return mName;
-  }
-
-  @JsonGetter
-  public boolean isPersisted() {
-    return mPersisted;
-  }
-
-  @JsonGetter
-  public boolean isPinned() {
-    return mPinned;
-  }
-
+  /**
+   * @return the creation time (in milliseconds)
+   */
   @JsonGetter
   public long getCreationTimeMs() {
     return mCreationTimeMs;
   }
 
+  /**
+   * @return the id
+   */
+  @JsonGetter
+  public long getId() {
+    return mId;
+  }
+
+  /**
+   * @return the parent id
+   */
+  @JsonGetter
+  public long getParentId() {
+    return mParentId;
+  }
+
+  /**
+   * @return the name
+   */
+  @JsonGetter
+  public String getName() {
+    return mName;
+  }
+
+  /**
+   * @return the persisted flag
+   */
+  @JsonGetter
+  public boolean getPersisted() {
+    return mPersisted;
+  }
+
+  /**
+   * @return the pinned flag
+   */
+  @JsonGetter
+  public boolean getPinned() {
+    return mPinned;
+  }
+
+  /**
+   * @return the last modification time (in milliseconds)
+   */
   @JsonGetter
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
   }
 }
+

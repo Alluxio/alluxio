@@ -183,6 +183,6 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPersisted(), isPinned(), getLastModificationTimeMs(), getChildrenIds());
+        isPersisted(), isPinned(), getLastModificationTimeMs());
   }
 }
