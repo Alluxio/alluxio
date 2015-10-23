@@ -63,7 +63,7 @@ public final class ReinitializeFileEntry extends JournalEntry {
   }
 
   /**
-   * @return the TLL
+   * @return the TTL
    */
   @JsonGetter
   public long getTTL() {
