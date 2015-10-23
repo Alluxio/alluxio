@@ -25,14 +25,25 @@ import com.google.common.base.Preconditions;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class RequestFilePersistenceEntry extends JournalEntry {
+/**
+ * This class represents a journal entry for requesting to persist files.
+ */
+public final class PersistFilesRequestEntry extends JournalEntry {
   private final List<Long> mFileIds;
 
+  /**
+   * Creates a new instance of {@link PersistFilesRequestEntry}
+   * @param fileIds
+   */
   @JsonCreator
-  public RequestFilePersistenceEntry(@JsonProperty("fileIds") List<Long> fileIds) {
+  public PersistFilesRequestEntry(
+      @JsonProperty("fileIds") List<Long> fileIds) {
     mFileIds = Preconditions.checkNotNull(fileIds);
   }
 
+  /**
+   * @return the file ids
+   */
   @JsonGetter
   public List<Long> getFileIds() {
     return mFileIds;
@@ -40,6 +51,6 @@ public final class RequestFilePersistenceEntry extends JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.REQUEST_FILE_PERSISTENCE;
+    return JournalEntryType.PERSIST_FILES_REQUEST;
   }
 }

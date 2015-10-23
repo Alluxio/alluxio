@@ -22,14 +22,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for asynchronous file completion.
+ */
 public class AsyncCompleteFileEntry extends JournalEntry {
   private long mFileId;
 
+  /**
+   * Creates a new instance of {@link AsyncCompleteFileEntry}.
+   *
+   * @param fileId the file id
+   */
   @JsonCreator
-  public AsyncCompleteFileEntry(@JsonProperty("fileId") long fileId) {
+  public AsyncCompleteFileEntry(
+      @JsonProperty("fileId") long fileId) {
     mFileId = fileId;
   }
 
+  /**
+   * @return the file id
+   */
   @JsonGetter
   public long getFileId() {
     return mFileId;

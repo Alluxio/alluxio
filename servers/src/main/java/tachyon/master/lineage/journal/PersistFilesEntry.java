@@ -25,14 +25,24 @@ import com.google.common.base.Preconditions;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for persisting files.
+ */
 public class PersistFilesEntry extends JournalEntry {
   private final List<Long> mFileIds;
 
+  /**
+   * @param fileIds the file ids
+   */
   @JsonCreator
-  public PersistFilesEntry(@JsonProperty("fileIds") List<Long> fileIds) {
+  public PersistFilesEntry(
+      @JsonProperty("fileIds") List<Long> fileIds) {
     mFileIds = Preconditions.checkNotNull(fileIds);
   }
 
+  /**
+   * @return get file ids
+   */
   @JsonGetter
   public List<Long> getFileIds() {
     return mFileIds;

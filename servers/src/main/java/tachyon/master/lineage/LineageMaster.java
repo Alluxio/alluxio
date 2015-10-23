@@ -59,7 +59,7 @@ import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
+import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
@@ -145,8 +145,8 @@ public final class LineageMaster extends MasterBase {
       asyncCompleteFileFromEntry((AsyncCompleteFileEntry) entry);
     } else if (entry instanceof PersistFilesEntry) {
       persistFilesFromEntry((PersistFilesEntry) entry);
-    } else if (entry instanceof RequestFilePersistenceEntry) {
-      requestFilePersistenceFromEntry((RequestFilePersistenceEntry) entry);
+    } else if (entry instanceof PersistFilesRequestEntry) {
+      requestFilePersistenceFromEntry((PersistFilesRequestEntry) entry);
     } else if (entry instanceof DeleteLineageEntry) {
       deleteLineageFromEntry((DeleteLineageEntry) entry);
     } else {
@@ -456,11 +456,11 @@ public final class LineageMaster extends MasterBase {
     for (long fileId : fileIds) {
       mLineageStore.requestFilePersistence(fileId);
     }
-    writeJournalEntry(new RequestFilePersistenceEntry(fileIds));
+    writeJournalEntry(new PersistFilesRequestEntry(fileIds));
     flushJournal();
   }
 
-  private synchronized void requestFilePersistenceFromEntry(RequestFilePersistenceEntry entry) {
+  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry) {
     for (long fileId : entry.getFileIds()) {
       mLineageStore.requestFilePersistence(fileId);
     }
