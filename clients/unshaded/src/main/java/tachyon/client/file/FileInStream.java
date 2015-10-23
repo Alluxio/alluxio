@@ -36,6 +36,8 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.master.block.BlockId;
+import tachyon.test.Testable;
+import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -50,7 +52,8 @@ import tachyon.util.network.NetworkAddressUtils;
  * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
-public final class FileInStream extends InputStream implements BoundedStream, Seekable {
+public final class FileInStream extends InputStream
+    implements BoundedStream, Seekable, Testable<FileInStream> {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -83,10 +86,14 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param options the client options
    */
   public FileInStream(FileInfo info, InStreamOptions options) {
+    this(info, options, FileSystemContext.INSTANCE);
+  }
+
+  FileInStream(FileInfo info, InStreamOptions options, FileSystemContext context) {
     mFileInfo = info;
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
-    mContext = FileSystemContext.INSTANCE;
+    mContext = context;
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mClosed = false;
@@ -224,9 +231,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mShouldCacheCurrentBlock) {
         try {
           // TODO(calvin): Specify the location to be local.
-          mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
-                     NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+          mCurrentCacheStream = mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
+              NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to get TachyonStore stream, the block " + currentBlockId
               + " will not be in TachyonStorage", ioe);
@@ -285,9 +291,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
-                      NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+          mCurrentCacheStream = mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
+              NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to write to TachyonStore stream, block " + getCurrentBlockId()
               + " will not be in TachyonStorage.", ioe);
@@ -334,5 +339,25 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
       mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
+  }
+
+  class PrivateAccess {
+    public boolean isClosed() {
+      return mClosed;
+    }
+
+    public boolean shouldCacheCurrentBlock() {
+      return mShouldCacheCurrentBlock;
+    }
+
+    public void setCurrentInstream(BlockInStream inStream) {
+      mCurrentBlockInStream = inStream;
+    }
+  }
+
+  /** Grants access to private members to testers of this class. */
+  @Override
+  public void grantAccess(Tester<FileInStream> tester) {
+    tester.receiveAccess(new PrivateAccess());
   }
 }
