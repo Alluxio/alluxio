@@ -15,9 +15,9 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -25,7 +25,7 @@ import tachyon.master.journal.JournalEntryType;
 /**
  * This class represents a journal entry for recording the entry of setting a pin.
  */
-public class SetPinnedEntry implements JournalEntry {
+public class SetPinnedEntry extends JournalEntry {
   private final long mId;
   private final boolean mPinned;
   private final long mOpTimeMs;
@@ -37,20 +37,25 @@ public class SetPinnedEntry implements JournalEntry {
      * @param pinned whether the entry is pinned or not.
      * @param opTimeMs the operation timestamp (in millisecs).
      */
-  public SetPinnedEntry(long id, boolean pinned, long opTimeMs) {
+  @JsonCreator
+  public SetPinnedEntry(@JsonProperty("id") long id, @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("operationTimeMs") long opTimeMs) {
     mId = id;
     mPinned = pinned;
     mOpTimeMs = opTimeMs;
   }
 
+  @JsonGetter
   public long getId() {
     return mId;
   }
 
+  @JsonGetter
   public boolean getPinned() {
     return mPinned;
   }
 
+  @JsonGetter
   public long getOperationTimeMs() {
     return mOpTimeMs;
   }
@@ -60,12 +65,4 @@ public class SetPinnedEntry implements JournalEntry {
     return JournalEntryType.SET_PINNED;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
-    parameters.put("id", mId);
-    parameters.put("pinned", mPinned);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
-  }
 }
