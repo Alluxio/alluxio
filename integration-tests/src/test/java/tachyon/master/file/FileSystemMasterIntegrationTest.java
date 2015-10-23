@@ -496,7 +496,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeAddCheckpointTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = getTimeMs();
     mFsMaster.persistFileInternal(fileId, 1, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
@@ -505,7 +505,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = getTimeMs();
     mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, false, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
@@ -514,7 +514,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCreateFileTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = getTimeMs();
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setOperationTimeMs(opTimeMs).build();
     mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"), options);
@@ -530,7 +530,7 @@ public class FileSystemMasterIntegrationTest {
     long folderId = mFsMaster.getFileId(new TachyonURI("/testFolder"));
     Assert.assertEquals(1, folderId);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = getTimeMs();
     Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, true, opTimeMs));
     FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -541,7 +541,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     long fileId =
         mFsMaster.create(new TachyonURI("/testFolder/testFile1"), CreateOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = getTimeMs();
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true, opTimeMs);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -675,10 +675,15 @@ public class FileSystemMasterIntegrationTest {
     CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTTL(ttl).build();
     long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true,
-        System.currentTimeMillis());
+        getTimeMs());
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.ttl);
+  }
+
+  private long getTimeMs() {
+    // Modify current time to make sure setOperationTimeMs is respected
+    return System.currentTimeMillis() - 1000;
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
