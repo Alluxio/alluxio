@@ -65,7 +65,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
   @Override
   public void cancel() throws IOException {
     mCanceled = true;
-    mClosed = true;
+    close();
   }
 
   @Override
