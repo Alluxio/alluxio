@@ -399,7 +399,7 @@ public abstract class UnderFileSystem {
    * Sets the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete underfs's implementation.
    *
-   * @param conf The configuration object accepted by ufs
+   * @param conf the configuration object accepted by ufs
    */
   public abstract void setConf(Object conf);
 

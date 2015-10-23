@@ -138,7 +138,7 @@ public final class FileUtils {
    * Creates the local block path and all the parent directories. Also, sets the appropriate
    * permissions.
    *
-   * @param path The path of the block
+   * @param path the path of the block
    * @throws IOException when fails to create block path and parent directories with appropriate
    *         permissions.
    */

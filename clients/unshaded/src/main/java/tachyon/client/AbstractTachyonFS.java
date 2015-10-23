@@ -113,7 +113,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Create a directory if it does not exist. The method also creates necessary non-existing parent
    * folders.
    *
-   * @param path Directory path
+   * @param path directory path
    * @return true if the folder is created successfully or already existing. false otherwise
    * @throws IOException if the operation fails
    */
@@ -136,8 +136,8 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
    * Renames the srcPath to the dstPath.
    *
-   * @param srcPath The path of the source file / folder
-   * @param dstPath The path of the destination file / folder
+   * @param srcPath the path of the source file / folder
+   * @param dstPath the path of the destination file / folder
    * @return true if succeed, false otherwise
    * @throws IOException if the operation fails
    */

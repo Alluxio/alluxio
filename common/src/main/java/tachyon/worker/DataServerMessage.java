@@ -96,7 +96,7 @@ public final class DataServerMessage {
    * Creates a block response message specified by the block's id. If <code>toSend</code> is true,
    * it will prepare the data to be sent, otherwise the message is used to receive data.
    *
-   * @param toSend If true the message is to send the data, otherwise it's used to receive data
+   * @param toSend if true the message is to send the data, otherwise it's used to receive data
    * @param blockId The id of the block
    * @param data The data of the message
    * @return The created block response message

@@ -35,9 +35,9 @@ public final class HeartbeatThread implements Runnable {
   private HeartbeatTimer mTimer;
 
   /**
-   * @param threadName Identifies the heartbeat thread name
-   * @param executor Identifies the heartbeat thread executor; an instance of a class that
-   *        implements the HeartbeatExecutor interface.
+   * @param threadName identifies the heartbeat thread name
+   * @param executor identifies the heartbeat thread executor; an instance of a class that
+   *        implements the HeartbeatExecutor interface
    * @param intervalMs Sleep time between different heartbeat
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {

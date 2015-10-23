@@ -42,6 +42,7 @@ public final class InodeDirectory extends Inode {
      *
      * @return a {@link InodeDirectory} instance
      */
+    @Override
     public InodeDirectory build() {
       return new InodeDirectory(this);
     }
@@ -166,7 +167,7 @@ public final class InodeDirectory extends Inode {
   /**
    * Removes the given child by its name from the directory.
    *
-   * @param name The name of the Inode to remove
+   * @param name the name of the Inode to remove
    * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(String name) {
