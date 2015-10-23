@@ -494,17 +494,17 @@
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>${jacoco.version}</version>
         <executions>
-            <execution>
-                <id>agent</id>
-                <goals>
-                    <goal>prepare-agent</goal>
-                </goals>
-                 <configuration>
-                    <destFile>${sonar.jacoco.reportPath}</destFile>
-                    <append>true</append>
-                    <propertyName>surefireArgLine</propertyName>
-                </configuration>
-            </execution>
+          <execution>
+            <id>agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+             <configuration>
+              <destFile>${sonar.jacoco.reportPath}</destFile>
+              <append>true</append>
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>
