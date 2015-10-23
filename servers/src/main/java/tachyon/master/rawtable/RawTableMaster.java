@@ -48,6 +48,7 @@ import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.util.IdUtils;
 
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -121,7 +122,7 @@ public class RawTableMaster extends MasterBase {
    * @param path the path where the table is placed
    * @param columns the number of columns in the table
    * @param metadata additional metadata about the table
-   * @return the id of the table
+   * @return the id of the table or {@link IdUtils#INVALID_FILE_ID} if path does not exist
    * @throws FileAlreadyExistsException when the path already represents a file
    * @throws InvalidPathException when path is invalid
    * @throws TableColumnException when number of columns is out of range
@@ -137,7 +138,10 @@ public class RawTableMaster extends MasterBase {
 
     // Create a directory at path to hold the columns
     MkdirOptions options =
-        new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+        new MkdirOptions.Builder(MasterContext.getConf())
+            .setPersisted(true)
+            .setRecursive(true)
+            .build();
     mFileSystemMaster.mkdir(path, options);
     long id = mFileSystemMaster.getFileId(path);
 

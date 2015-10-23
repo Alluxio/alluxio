@@ -18,7 +18,10 @@ package tachyon.worker.block.evictor;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
 
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -61,7 +64,8 @@ public class LRUEvictor extends EvictorBase {
 
   @Override
   protected Iterator<Long> getBlockIterator() {
-    return mLRUCache.keySet().iterator();
+    List<Long> blocks = Lists.newArrayList(mLRUCache.keySet());
+    return blocks.iterator();
   }
 
   @Override
@@ -82,6 +86,11 @@ public class LRUEvictor extends EvictorBase {
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
+    mLRUCache.remove(blockId);
+  }
+
+  @Override
+  protected void onRemoveBlockFromIterator(long blockId) {
     mLRUCache.remove(blockId);
   }
 }

@@ -30,7 +30,6 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
-import tachyon.client.file.options.OutStreamOptions;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
