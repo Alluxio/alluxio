@@ -24,7 +24,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
   // Shouldn't need more than this for unit tests
   private static final int MAX_DATA = 1000;
   private ByteBuffer mDataWritten;
-  private boolean mCancelled;
+  private boolean mCanceled;
 
   public byte[] mLastBufferedWriteArray;
   public int mLastBufferedWriteOffset;
@@ -34,7 +34,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
   public TestBufferedBlockOutStream(long blockId, long blockSize) {
     super(blockId, blockSize);
     mDataWritten = ByteBuffer.allocate(MAX_DATA);
-    mCancelled = false;
+    mCanceled = false;
   }
 
   public byte[] getDataWritten() {
@@ -54,8 +54,8 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
     return mBuffer;
   }
 
-  public boolean isCancelled() {
-    return mCancelled;
+  public boolean isCanceled() {
+    return mCanceled;
   }
 
   public boolean isClosed() {
@@ -64,7 +64,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
 
   @Override
   public void cancel() throws IOException {
-    mCancelled = true;
+    mCanceled = true;
     mClosed = true;
   }
 
