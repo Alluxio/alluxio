@@ -23,17 +23,25 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * The {@link JournalEntry} representing the state of the block container id generator for the block
- * master.
+ * This class represents a journal entry for block container id generator.
  */
 public class BlockContainerIdGeneratorEntry extends JournalEntry {
   private final long mNextContainerId;
 
+  /**
+   * Creates a new instance of {@link BlockContainerIdGeneratorEntry}.
+   *
+   * @param nextContainerId the next container id
+   */
   @JsonCreator
-  public BlockContainerIdGeneratorEntry(@JsonProperty("nextContainerId") long nextContainerId) {
+  public BlockContainerIdGeneratorEntry(
+      @JsonProperty("nextContainerId") long nextContainerId) {
     mNextContainerId = nextContainerId;
   }
 
+  /**
+   * @return the next container id
+   */
   @JsonGetter
   public long getNextContainerId() {
     return mNextContainerId;
