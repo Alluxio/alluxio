@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+/**
+ * Test class for mocking BufferedBlockOutStream and exposing internal state.
+ */
 public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
 
   // Shouldn't need more than this for unit tests
@@ -37,6 +40,9 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
     mCanceled = false;
   }
 
+  /**
+   * @return all data which has even been written through the stream via write()
+   */
   public byte[] getDataWritten() {
     flush();
     return Arrays.copyOfRange(mDataWritten.array(), 0, (int) mWrittenBytes);
@@ -82,6 +88,10 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
     mHasFlushed = true;
   }
 
+  /**
+   * These writes are generally really large, so instead of doing the write, just record the
+   * parameters so that they can be verified by tests.
+   */
   @Override
   protected void unBufferedWrite(byte[] b, int off, int len) throws IOException {
     mLastBufferedWriteArray = b;
