@@ -104,8 +104,8 @@ The workers page gives an overview of all Tachyon worker nodes divided into two 
 
 Each Tachyon worker also serves a web interface to show worker information. The default port for the
 worker web interface is 30000 so the web interface can be viewed by visiting
-`http://<WORKER IP>:30000`. For instance, if you started Tachyon locally, the worker web interface can 
-be viewed by visiting [localhost:30000](http://localhost:30000).
+`http://<WORKER IP>:30000`. For instance, if you started Tachyon locally, the worker web interface
+can  be viewed by visiting [localhost:30000](http://localhost:30000).
 
 ## Home Page
 
