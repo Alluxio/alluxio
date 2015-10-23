@@ -25,44 +25,56 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * The <code>JournalEntry</code> to represent an entry in RawTable.
+ * This class represents a journal entry for a raw table.
  */
 public class RawTableEntry extends JournalEntry {
-  public final long mId;
-  public final int mColumns;
-  public final ByteBuffer mMetadata;
+  private final long mId;
+  private final int mColumns;
+  private final ByteBuffer mMetadata;
 
   /**
-   * @param id table id.
-   * @param columns the columns to be set for the table.
-   * @param metadata the metadata to be set for the table.
+   * Creates a new instance of {@link RawTableEntry}.
+   *
+   * @param id table id
+   * @param columns the columns to be set for the table
+   * @param metadata the metadata to be set for the table
    */
-
   @JsonCreator
-  public RawTableEntry(@JsonProperty("id") long id, @JsonProperty("columns") int columns,
+  public RawTableEntry(
+      @JsonProperty("id") long id,
+      @JsonProperty("columns") int columns,
       @JsonProperty("metadata") ByteBuffer metadata) {
     mId = id;
     mColumns = columns;
     mMetadata = metadata;
   }
 
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.RAW_TABLE;
-  }
-
+  /**
+   * @return the id
+   */
   @JsonGetter
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the columns
+   */
   @JsonGetter
   public int getColumns() {
     return mColumns;
   }
 
+  /**
+   * @return the metadata
+   */
   @JsonGetter
   public ByteBuffer getMetadata() {
     return mMetadata;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.RAW_TABLE;
   }
 }
