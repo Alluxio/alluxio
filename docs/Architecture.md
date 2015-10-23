@@ -11,19 +11,19 @@ priority: 1
 
 # Where Tachyon Fits
 
-Because of Tachyon's memory centric design and being the central point of access,
-Tachyon holds a unique place in the big data ecosystem, residing between traditional storage (e.g
-., S3, HDFS and etc) and computation frameworks and applications (e.g., Spark, Hadoop MapReduce). 
-For user applications and computation frameworks, Tachyon is the underlayer that
+Because of Tachyon's memory centric design and being the central point of access, Tachyon holds a
+unique place in the big data ecosystem, residing between traditional storage (e.g ., Amazon S3,
+Apache HDFS and OpenStack Swift, etc.) and computation frameworks and applications (e.g., Spark,
+Hadoop MapReduce).  For user applications and computation frameworks, Tachyon is the underlayer that
 manages data access and fast storage, facilitating data sharing and locality between jobs,
-regardless of whether they are running with the same computation engine. As a result,
-Tachyon can bring an order of magnitude speed up for those big data applications while providing a 
-common interface of data access. For under storage systems,
-Tachyon connects the gap between big data applications and traditional storage systems, and
-redefines the set of workloads available to utilize the data. Since Tachyon hides the
-integration of under storage systems to applications, any under storage can back all the
-applications and frameworks running on top of Tachyon. Coupled with the potential to mount multiple
-under storage systems, Tachyon can serve as a unifying layer for any number of varied data sources.
+regardless of whether they are running with the same computation engine. As a result, Tachyon can
+bring an order of magnitude speed up for those big data applications while providing a  common
+interface of data access. For under storage systems, Tachyon connects the gap between big data
+applications and traditional storage systems, and redefines the set of workloads available to
+utilize the data. Since Tachyon hides the integration of under storage systems to applications, any
+under storage can back all the applications and frameworks running on top of Tachyon. Coupled with
+the potential to mount multiple under storage systems, Tachyon can serve as a unifying layer for any
+number of varied data sources.
 
 ![Stack](./img/stack.png)
 
