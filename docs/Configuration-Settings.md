@@ -38,7 +38,7 @@ All Tachyon configuration properties fall into one of the four categories:
 
 The common configuration contains constants shared by different components.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.debug</td>
@@ -163,7 +163,7 @@ The common configuration contains constants shared by different components.
 The master configuration specifies information regarding the master node, such as the address and
 the port number.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.master.bind.host</td>
@@ -299,7 +299,7 @@ the port number.
 The worker configuration specifies information regarding the worker nodes, such as the address and
 the port number.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.worker.allocator.class</td>
@@ -506,7 +506,7 @@ the port number.
 
 The user configuration specifies values regarding file system access.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.user.block.master.client.threads</td>
@@ -623,7 +623,7 @@ The user configuration specifies values regarding file system access.
 When running Tachyon with cluster managers like Mesos and YARN, Tachyon has additional
 configuration options.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.integration.master.resource.cpu</td>
