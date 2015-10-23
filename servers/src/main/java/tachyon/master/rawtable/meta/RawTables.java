@@ -36,6 +36,8 @@ public class RawTables implements JournalCheckpointStreamable {
     }
   };
   /** A set of TableInfo indexed by table id */
+  // This warning cannot be avoided when passing generics into varargs
+  @SuppressWarnings("unchecked")
   private final IndexedSet<RawTable> mTables = new IndexedSet<RawTable>(mIdIndex);
 
   /**
