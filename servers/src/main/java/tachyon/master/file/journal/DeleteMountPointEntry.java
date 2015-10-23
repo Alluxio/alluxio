@@ -25,29 +25,25 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for recording deletion of an existing mount point.
+ * This class represents a journal entry for deletion of an existing mount point.
  */
 public class DeleteMountPointEntry extends JournalEntry {
   private final String mTachyonPath;
 
   /**
-   * Creates a new instance of <code>DeleteMountPointEntry</code>.
+   * Creates a new instance of {@link DeleteMountPointEntry}.
    *
    * @param tachyonPath the Tachyon path
    */
   @JsonCreator
-  public DeleteMountPointEntry(@JsonProperty("tachyonPath") TachyonURI tachyonPath) {
+  public DeleteMountPointEntry(
+      @JsonProperty("tachyonPath") TachyonURI tachyonPath) {
     mTachyonPath = tachyonPath.toString();
   }
 
   /**
    * @return the Tachyon path
    */
-  @JsonIgnore
-  public TachyonURI getTachyonURI() {
-    return new TachyonURI(mTachyonPath);
-  }
-
   @JsonGetter
   public String getTachyonPath() {
     return mTachyonPath;

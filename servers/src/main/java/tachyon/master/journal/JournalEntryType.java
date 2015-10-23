@@ -79,11 +79,11 @@ public enum JournalEntryType {
 
   private Class<? extends JournalEntry> mClass;
 
-  JournalEntryType(Class<? extends JournalEntry> clazz) {
-    mClass = clazz;
+  JournalEntryType(Class<? extends JournalEntry> entryClass) {
+    mClass = entryClass;
   }
 
-  public Class<? extends JournalEntry> getClazz() {
+  public Class<? extends JournalEntry> getEntryClass() {
     return mClass;
   }
 }

@@ -23,11 +23,21 @@ import com.google.common.base.Preconditions;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for reinitializing a file.
+ */
 public final class ReinitializeFileEntry extends JournalEntry {
   private final String mPath;
   private final long mBlockSizeBytes;
   private final long mTTL;
 
+  /**
+   * Creates a new instance of {@link ReinitializeFileEntry}.
+   *
+   * @param path the path
+   * @param blockSizeBytes the block size (in bytes)
+   * @param ttl the TTL
+   */
   @JsonCreator
   public ReinitializeFileEntry(@JsonProperty("path") String path,
       @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("ttl") long ttl) {
@@ -36,16 +46,25 @@ public final class ReinitializeFileEntry extends JournalEntry {
     mTTL = ttl;
   }
 
+  /**
+   * @return the path
+   */
   @JsonGetter
   public String getPath() {
     return mPath;
   }
 
+  /**
+   * @return the block size (in bytes)
+   */
   @JsonGetter
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
+  /**
+   * @return the TLL
+   */
   @JsonGetter
   public long getTTL() {
     return mTTL;

@@ -159,7 +159,7 @@ public final class FileSystemMaster extends MasterBase {
       PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) entry;
       try {
         Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersisted(typedEntry.isPersisted());
+        inode.setPersisted(true);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -304,7 +304,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void persistFileFromEntry(PersistFileEntry entry) {
     try {
-      persistFileInternal(entry.getFileId(), entry.getLength(), entry.getOperationTimeMs());
+      persistFileInternal(entry.getId(), entry.getLength(), entry.getOpTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     } catch (SuspectedFileSizeException sfse) {
@@ -469,7 +469,7 @@ public final class FileSystemMaster extends MasterBase {
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
     try {
       completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(), true,
-          entry.getOperationTimeMs());
+          entry.getOpTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     }
@@ -617,7 +617,7 @@ public final class FileSystemMaster extends MasterBase {
   private void deleteFileFromEntry(DeleteFileEntry entry) {
     MasterContext.getMasterSource().incDeleteFileOps();
     try {
-      deleteFileInternal(entry.mFileId, entry.mRecursive, true, entry.mOpTimeMs);
+      deleteFileInternal(entry.getId(), entry.getRecursive(), true, entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -945,7 +945,7 @@ public final class FileSystemMaster extends MasterBase {
       writeJournalEntry(inode.toJournalEntry());
     }
     for (Inode inode : createResult.getPersisted()) {
-      writeJournalEntry(new PersistDirectoryEntry(inode.getId(), true));
+      writeJournalEntry(new PersistDirectoryEntry(inode.getId()));
     }
   }
 
@@ -954,7 +954,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the source file to rename.
    * @param dstPath the destination path to rename the file to.
-   * @return true if the rename was successful
+   * @return true if the operation was successful and false otherwise
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
@@ -1032,7 +1032,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param dstPath the path to the rename destionation
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return
+   * @return true if the operation was successful and false otherwise
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
@@ -1081,7 +1081,8 @@ public final class FileSystemMaster extends MasterBase {
   private void renameFromEntry(RenameEntry entry) {
     MasterContext.getMasterSource().incRenameOps();
     try {
-      renameInternal(entry.mFileId, new TachyonURI(entry.mDstPath), true, entry.mOpTimeMs);
+      renameInternal(entry.getId(), new TachyonURI(entry.getDestinationPath()), true,
+          entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -1114,7 +1115,7 @@ public final class FileSystemMaster extends MasterBase {
       }
       handle.setPersisted(true);
       if (!replayed) {
-        writeJournalEntry(new PersistDirectoryEntry(inode.getId(), inode.isPersisted()));
+        writeJournalEntry(new PersistDirectoryEntry(inode.getId()));
       }
     }
   }
@@ -1146,7 +1147,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void setPinnedFromEntry(SetPinnedEntry entry) {
     try {
-      setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOperationTimeMs());
+      setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOpTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     }
@@ -1366,7 +1367,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonURI = entry.getTachyonURI();
+    TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
     if (!unmountInternal(tachyonURI)) {
       LOG.error("Failed to unmount " + tachyonURI);
     }
@@ -1393,7 +1394,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * MasterInodeTTL periodic check.
+   * This class represent the executor for periodic inode TTL check.
    */
   private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     @Override

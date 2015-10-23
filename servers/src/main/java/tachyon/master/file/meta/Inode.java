@@ -258,9 +258,12 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   @Override
   public synchronized String toString() {
-    return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
-        .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
-        .append(mCreationTimeMs).append(", PINNED:").append(mPinned).append("DELETED:")
+    return new StringBuilder("Inode(")
+        .append("ID:").append(mId)
+        .append(", NAME:").append(mName)
+        .append(", PARENT_ID:").append(mParentId)
+        .append(", CREATION_TIME_MS:").append(mCreationTimeMs)
+        .append(", PINNED:").append(mPinned).append("DELETED:")
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
         .append(")").toString();
   }

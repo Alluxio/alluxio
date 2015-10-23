@@ -23,7 +23,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for recording the entry of setting a pin.
+ * This class represents a journal entry for setting the pinned flag.
  */
 public class SetPinnedEntry extends JournalEntry {
   private final long mId;
@@ -31,32 +31,43 @@ public class SetPinnedEntry extends JournalEntry {
   private final long mOpTimeMs;
 
     /**
-     * Creates a new instance of <code>SetPinnedEntry</code>
+     * Creates a new instance of {@link SetPinnedEntry}.
      *
-     * @param id the id of the entry.
-     * @param pinned whether the entry is pinned or not.
-     * @param opTimeMs the operation timestamp (in millisecs).
+     * @param id the id
+     * @param pinned the pinned flag
+     * @param opTimeMs the operation time (in milliseconds)
      */
   @JsonCreator
-  public SetPinnedEntry(@JsonProperty("id") long id, @JsonProperty("pinned") boolean pinned,
-      @JsonProperty("operationTimeMs") long opTimeMs) {
+  public SetPinnedEntry(
+      @JsonProperty("id") long id,
+      @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("opTimeMs") long opTimeMs) {
     mId = id;
     mPinned = pinned;
     mOpTimeMs = opTimeMs;
   }
 
+  /**
+   * @return the id
+   */
   @JsonGetter
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the pinned flag
+   */
   @JsonGetter
   public boolean getPinned() {
     return mPinned;
   }
 
+  /**
+   * @return the operation time (in milliseconds)
+   */
   @JsonGetter
-  public long getOperationTimeMs() {
+  public long getOpTimeMs() {
     return mOpTimeMs;
   }
 

@@ -26,13 +26,14 @@ import tachyon.master.journal.JournalEntryType;
  * This class represents a journal entry for the last time an inode was modified.
  */
 public final class InodeLastModificationTimeEntry extends JournalEntry {
-  protected final long mId;
-  protected final long mLastModificationTimeMs;
+  private final long mId;
+  private final long mLastModificationTimeMs;
 
   /**
-   * Creates a new instance of <code>InodeLastModificationTimeEntry</code>
-   * @param id the id of the entry.
-   * @param lastModificationTimeMs the modification timestamp (in millisecs).
+   * Creates a new instance of {@link InodeLastModificationTimeEntry}.
+   *
+   * @param id the id
+   * @param lastModificationTimeMs the last modification time (in milliseconds)
    */
   @JsonCreator
   public InodeLastModificationTimeEntry(@JsonProperty("id") long id,
@@ -41,11 +42,17 @@ public final class InodeLastModificationTimeEntry extends JournalEntry {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
+  /**
+   * @return the id
+   */
   @JsonGetter
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the last modification time (in milliseconds)
+   */
   @JsonGetter
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;

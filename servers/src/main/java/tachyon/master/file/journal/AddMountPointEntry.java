@@ -25,20 +25,21 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for recording the addition of a new mount point.
+ * This class represents a journal entry for addition of a new mount point.
  */
 public class AddMountPointEntry extends JournalEntry {
   private final String mTachyonPath;
   private final String mUfsPath;
 
   /**
-   * Creates a new instance of <code>AddMountPointEntry</code>.
+   * Creates a new instance of {@link AddMountPointEntry}.
    *
    * @param tachyonPath the Tachyon path
    * @param ufsPath the UFS path
    */
   @JsonCreator
-  public AddMountPointEntry(@JsonProperty("tachyonPath") TachyonURI tachyonPath,
+  public AddMountPointEntry(
+      @JsonProperty("tachyonPath") TachyonURI tachyonPath,
       @JsonProperty("ufsPath") TachyonURI ufsPath) {
     mTachyonPath = tachyonPath.toString();
     mUfsPath = ufsPath.toString();
