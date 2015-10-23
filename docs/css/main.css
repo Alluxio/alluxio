@@ -316,3 +316,7 @@ h1, h2, h3, h4 {
         display: block;
     }
 }
+table {
+    table-layout: fixed;
+    word-wrap:break-word;
+}
