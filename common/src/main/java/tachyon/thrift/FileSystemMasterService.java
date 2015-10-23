@@ -59,23 +59,10 @@ public class FileSystemMasterService {
 
     public String getUfsAddress() throws org.apache.thrift.TException;
 
-    /**
-     * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
-     * 
-     * @param ufsPath
-     * @param recursive
-     */
     public long loadMetadata(String ufsPath, boolean recursive) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     public boolean mkdir(String path, MkdirTOptions options) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
-    /**
-     * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
-     * path. The path should not exist and should not be nested under any existing mount point.
-     * 
-     * @param tachyonPath
-     * @param ufsPath
-     */
     public boolean mount(String tachyonPath, String ufsPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     public boolean persistFile(long fileId, long length) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -88,13 +75,6 @@ public class FileSystemMasterService {
 
     public void setPinned(long fileId, boolean pinned) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
-    /**
-     * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
-     * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
-     * will be persisted before they are removed from the Tachyon namespace.
-     * 
-     * @param tachyonPath
-     */
     public boolean unmount(String tachyonPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     public Set<Long> workerGetPinIdList() throws org.apache.thrift.TException;

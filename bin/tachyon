@@ -281,8 +281,8 @@ elif [[ ${COMMAND} == "copyDir" ]]; then
   exit 0
 elif [[ ${COMMAND} == "thriftGen" ]]; then
   rm -rf ${bin}/../common/src/main/java/tachyon/thrift
-  for service in common exception block_master file_master lineage_master raw_table_master worker; do
-    thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${service}.thrift
+  for src_file in $(ls ${bin}/../common/src/thrift); do
+    thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
   done
   exit 0
 elif [[ ${COMMAND} == "clearCache" ]]; then
