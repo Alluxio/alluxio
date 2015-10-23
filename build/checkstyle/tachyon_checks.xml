@@ -42,11 +42,6 @@
     <property name="fileExtensions" value=".java"/>
   </module>
   <module name="RegexpSingleline">
-    <property name="format" value="@param(\s)+[^A-Z].*$"/>
-    <property name="message" value="the @param description should start with lowercase."/>
-    <property name="fileExtensions" value=".java"/>
-  </module>
-  <module name="RegexpSingleline">
     <property name="format" value="&gt;&gt;&gt;&gt;&gt;&gt;&gt;"/>
     <property name="message" value="Merge conflicts unresolved."/>
   </module>
