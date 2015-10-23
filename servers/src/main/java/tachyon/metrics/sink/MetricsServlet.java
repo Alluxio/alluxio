@@ -57,6 +57,8 @@ public class MetricsServlet implements Sink {
 
   private HttpServlet createServlet() {
     return new HttpServlet() {
+      private static final long serialVersionUID = -2761243531478788172L;
+
       @Override
       protected void doGet(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException {

@@ -86,8 +86,7 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    WriteType type = getWriteType();
-    return new FSDataOutputStream(file.getOutStream(type), mStatistics);
+    return new FSDataOutputStream(file.getOutStream(), mStatistics);
   }
 
   @Override
@@ -139,8 +138,7 @@ abstract class AbstractTFS extends FileSystem {
     TachyonFile file = mTFS.getFile(fileId);
     file.setUFSConf(getConf());
 
-    WriteType type = getWriteType();
-    return new FSDataOutputStream(file.getOutStream(type), mStatistics);
+    return new FSDataOutputStream(file.getOutStream(), mStatistics);
   }
 
   /**
@@ -465,30 +463,5 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       mWorkingDir = new Path(mWorkingDir, path);
     }
-  }
-
-  private WriteType getWriteType() {
-    TachyonStorageType defaultTachyonStorageType =
-        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
-            TachyonStorageType.class);
-    UnderStorageType defaultUnderStorageType =
-        mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
-            UnderStorageType.class);
-
-    if (defaultTachyonStorageType.isStore()) {
-      if (defaultUnderStorageType.isSyncPersist()) { // STORE, SYNC_PERSIST
-        return WriteType.CACHE_THROUGH;
-      }
-      if (defaultUnderStorageType.isAsyncPersist()) { // STORE, ASYNC_PERSIST
-        return WriteType.ASYNC_THROUGH;
-      }
-      // STORE, NO_PERSIST
-      return WriteType.MUST_CACHE;
-    }
-    if (defaultUnderStorageType.isSyncPersist()) { // NO_STORE, SYNC_PERSIST
-      return WriteType.THROUGH;
-    }
-    // Invalid tachyon/under storage setup, use default to write type
-    return mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
 }
