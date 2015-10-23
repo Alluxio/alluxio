@@ -121,6 +121,8 @@ public final class BlockMaster extends MasterBase
    * Keeps track of workers which are no longer in communication with the master. Access must be
    * synchronized on mWorkers.
    */
+  // This warning cannot be avoided when passing generics into varargs
+  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /** The service that detects lost worker nodes, and tries to restart the failed workers. */
