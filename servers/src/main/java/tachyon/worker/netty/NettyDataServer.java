@@ -28,7 +28,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
@@ -134,7 +133,7 @@ public final class NettyDataServer implements DataServer {
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
    * preset.
    *
-   * @param type The channel type. Current channel types supported are nio and epoll
+   * @param type the channel type. Current channel types supported are nio and epoll
    * @return an instance of ServerBootstrap
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {

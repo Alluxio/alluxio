@@ -587,8 +587,8 @@ public final class BlockMaster extends MasterBase
    *
    * mBlocks should already be locked before calling this method.
    *
-   * @param workerInfo The worker metadata object
-   * @param addedBlockIds Mapping from StorageDirId to a list of block ids added to the directory
+   * @param workerInfo the worker metadata object
+   * @param addedBlockIds mapping from StorageDirId to a list of block ids added to the directory
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<Long, List<Long>> addedBlockIds) {
