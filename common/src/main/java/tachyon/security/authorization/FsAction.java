@@ -16,10 +16,9 @@
 package tachyon.security.authorization;
 
 /**
- * File system actions, e.g. read, write, etc.
+ * POSIX style file system actions, e.g. read, write, etc.
  */
 public enum FsAction {
-  // POSIX style
   NONE("---"),
   EXECUTE("--x"),
   WRITE("-w-"),
@@ -35,7 +34,7 @@ public enum FsAction {
   /** Retain reference to value array. */
   private static final FsAction[] SVALS = values();
 
-  private FsAction(String s) {
+  FsAction(String s) {
     mSymbol = s;
   }
 
@@ -44,7 +43,7 @@ public enum FsAction {
   }
 
   /**
-   * Return true if this action implies that action.
+   * Returns true if this action implies that action.
    * @param that
    */
   public boolean implies(FsAction that) {
