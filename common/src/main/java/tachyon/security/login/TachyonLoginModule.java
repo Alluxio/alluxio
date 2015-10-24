@@ -133,7 +133,11 @@ public final class TachyonLoginModule implements LoginModule {
 
     Class<? extends Principal> clazz = null;
     try {
-      clazz = (Class<? extends Principal>) loader.loadClass(className);
+      // Declare a temp variable so that we can suppress warnings locally
+      @SuppressWarnings("unchecked")
+      Class<? extends Principal> tmpClazz =
+          (Class<? extends Principal>) loader.loadClass(className);
+      clazz = tmpClazz;
     } catch (ClassNotFoundException e) {
       throw new LoginException("Unable to find JAAS principal class:" + e.getMessage());
     }
