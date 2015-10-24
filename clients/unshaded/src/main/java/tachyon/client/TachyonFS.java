@@ -376,7 +376,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     fileId = getValidFileId(fileId, path.getPath());
     try {
-      return mFSMasterClient.deleteFile(fileId, recursive);
+      return mFSMasterClient.delete(fileId, recursive);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -931,7 +931,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(dstPath);
     fileId = getValidFileId(fileId, srcPath.getPath());
     try {
-      return mFSMasterClient.renameFile(fileId, dstPath.getPath());
+      return mFSMasterClient.rename(fileId, dstPath.getPath());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
