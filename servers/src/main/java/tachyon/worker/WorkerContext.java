@@ -44,7 +44,7 @@ public final class WorkerContext {
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
   public static void reset() {
-    sTachyonConf = new TachyonConf();
+    reset(new TachyonConf());
   }
 
   /**
