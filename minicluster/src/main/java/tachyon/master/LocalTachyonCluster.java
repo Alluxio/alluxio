@@ -65,6 +65,7 @@ public final class LocalTachyonCluster {
   private TachyonConf mMasterConf;
   private TachyonConf mWorkerConf;
   private TachyonConf mClientConf;
+  private TachyonConf mTestConf;
   private boolean mInitialized;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
@@ -118,6 +119,10 @@ public final class LocalTachyonCluster {
     return mWorker.getWorkerNetAddress();
   }
 
+  public TachyonConf getTestConf() {
+    return mTestConf;
+  }
+
   public void init() throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
@@ -129,63 +134,56 @@ public final class LocalTachyonCluster {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
-    TachyonConf testConf = new TachyonConf();
-    testConf.set(Constants.IN_TEST_MODE, "true");
-    testConf.set(Constants.TACHYON_HOME, mTachyonHome);
-    testConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
-    testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
-    testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
-    testConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
-    testConf.set(Constants.MASTER_PORT, Integer.toString(0));
-    testConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
-    testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
-    testConf.set(Constants.WORKER_PORT, Integer.toString(0));
-    testConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
-    testConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
-    testConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
-    testConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
-    testConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    testConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    testConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
-    testConf.set(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
+    mTestConf = new TachyonConf();
+    mTestConf.set(Constants.IN_TEST_MODE, "true");
+    mTestConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    mTestConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
+    mTestConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
+    mTestConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+    mTestConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
+    mTestConf.set(Constants.MASTER_PORT, Integer.toString(0));
+    mTestConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
+    mTestConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
+    mTestConf.set(Constants.WORKER_PORT, Integer.toString(0));
+    mTestConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    mTestConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
+    mTestConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mTestConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    mTestConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
+    mTestConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
+    mTestConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
+    mTestConf.set(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
+    mTestConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    mTestConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    testConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, Integer.toString(250));
+    mTestConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, Integer.toString(250));
 
     String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
-    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
+    mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
-    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+    mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         Long.toString(mWorkerCapacityBytes));
-    UnderFileSystemUtils.mkdirIfNotExists(ramdiskPath, testConf);
+    UnderFileSystemUtils.mkdirIfNotExists(ramdiskPath, mTestConf);
 
-    int maxLevel = testConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
+    int maxLevel = mTestConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = testConf.get(tierLevelDirPath).split(",");
+      String[] dirPaths = mTestConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
         String newPath = mTachyonHome + dirPath;
         newPaths.add(newPath);
-        UnderFileSystemUtils.mkdirIfNotExists(newPath, testConf);
+        UnderFileSystemUtils.mkdirIfNotExists(newPath, mTestConf);
       }
-      testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
+      mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
           Joiner.on(',').join(newPaths));
     }
-
-    mMasterConf = new TachyonConf(testConf.getInternalProperties());
-    mWorkerConf = new TachyonConf(testConf.getInternalProperties());
-    mClientConf = new TachyonConf(testConf.getInternalProperties());
-    MasterContext.reset(mMasterConf);
-    WorkerContext.reset(mWorkerConf);
-    ClientContext.reset(mClientConf);
     mInitialized = true;
   }
 
@@ -195,13 +193,13 @@ public final class LocalTachyonCluster {
    * @throws IOException when the operation fails
    */
   private void startMaster() throws IOException {
+    mMasterConf = new TachyonConf(mTestConf.getInternalProperties());
+    MasterContext.reset(mMasterConf);
+
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
-    // Update worker and client conf with actual RPC port.
-    mWorkerConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
-    mClientConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
-    WorkerContext.reset(mWorkerConf);
-    ClientContext.reset(mClientConf);
+    // Update the test conf with actual RPC port.
+    mTestConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
   }
 
   /**
@@ -211,6 +209,11 @@ public final class LocalTachyonCluster {
    */
   private void startWorker() throws IOException {
     // We need to update the client with the most recent configuration so it knows the correct ports
+    mWorkerConf = new TachyonConf(mTestConf.getInternalProperties());
+    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
+    WorkerContext.reset(mWorkerConf);
+    ClientContext.reset(mClientConf);
+
     mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
       @Override
