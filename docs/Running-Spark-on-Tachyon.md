@@ -16,7 +16,7 @@ data to those systems.
 If the versions of Spark and Tachyon form one of the the following pairs, they will work together
 out-of-the-box.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Spark Version</th><th>Tachyon Version</th></tr>
 <tr>
   <td> 1.0.x and Below </td>

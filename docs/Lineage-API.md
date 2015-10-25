@@ -100,7 +100,7 @@ tl.deleteLineage(1, options);
 
 These are the configuration parameters related to Tachyon's lineage feature.
 
-<table class="table-striped">
+<table class="table table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.interval.ms</td>

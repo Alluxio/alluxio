@@ -22,7 +22,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
 
 # List of Operations
 
-<table class="table">
+<table class="table table-striped">
   <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
   <tr>
     <td>cat</td>
