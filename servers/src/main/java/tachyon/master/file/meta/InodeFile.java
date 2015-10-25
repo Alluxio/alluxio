@@ -27,17 +27,65 @@ import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.FileInfo;
-import tachyon.util.IdUtils;
 
 /**
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
+  public static class Builder extends Inode.Builder<InodeFile.Builder> {
+    private long mBlockContainerId;
+    private long mBlockSizeBytes;
+    private long mTTL;
+
+    public Builder() {
+      super();
+      mDirectory = false;
+    }
+
+    public Builder setBlockContainerId(long blockContainerId) {
+      mBlockContainerId = blockContainerId;
+      mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
+      return this;
+    }
+
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
+      return this;
+    }
+
+    @Override
+    public Builder setId(long id) {
+      // id is computed using the block container id
+      // TODO(jiri): Should we throw an exception to warn the caller?
+      return this;
+    }
+
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeFile}.
+     *
+     * @return a {@link InodeFile} instance
+     */
+    @Override
+    public InodeFile build() {
+      return new InodeFile(this);
+    }
+
+    @Override
+    protected InodeFile.Builder getThis() {
+      return this;
+    }
+  }
+
   private final long mBlockContainerId;
   private long mBlockSizeBytes;
 
   // list of block ids.
-  private List<Long> mBlocks;
+  private List<Long> mBlocks = new ArrayList<Long>(3);
 
   // length of inode file in bytes.
   private long mLength = 0;
@@ -46,24 +94,11 @@ public final class InodeFile extends Inode {
   private boolean mCacheable = false;
   private long mTTL;
 
-  /**
-   * Creates a new InodeFile.
-   *
-   * @param name The name of the file
-   * @param blockContainerId The block container id for this file. All blocks for this file will
-   *        belong to this block container.
-   * @param parentId The inode id of the parent of the file
-   * @param blockSizeBytes The block size of the file, in bytes
-   * @param creationTimeMs The creation time of the file, in milliseconds
-   * @param ttl The TTL for file expiration
-   */
-  public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
-      long creationTimeMs, long ttl) {
-    super(name, IdUtils.createFileId(blockContainerId), parentId, false, creationTimeMs);
-    mBlocks = new ArrayList<Long>(3);
-    mBlockContainerId = blockContainerId;
-    mBlockSizeBytes = blockSizeBytes;
-    mTTL = ttl;
+  private InodeFile(InodeFile.Builder builder) {
+    super(builder);
+    mBlockContainerId = builder.mBlockContainerId;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
+    mTTL = builder.mTTL;
   }
 
   @Override
@@ -128,7 +163,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @return the length of the file in bytes. This is not accurate before the file is closed.
+   * @return the length of the file in bytes. This is not accurate before the file is closed
    */
   public synchronized long getLength() {
     return mLength;

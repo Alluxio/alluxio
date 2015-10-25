@@ -20,7 +20,6 @@
 
     # Ufs
     - include: roles/ufs_{{ ufs }}/tasks/download_release.yml
-    - include: roles/ufs_{{ ufs }}/tasks/config.yml
 
     # Tachyon
     - include: roles/tachyon/tasks/download_release.yml
@@ -40,6 +39,9 @@
 
     - include: roles/lib/tasks/tachyon_tiered.yml
       when: (ufs != "hadoop1") and (ufs != "hadoop2")
+
+    # some ufs configurations depend on tachyon like tachyon client jar path for hdfs
+    - include: roles/ufs_{{ ufs }}/tasks/config.yml
 
     # Spark
     - include: roles/spark/tasks/download_release.yml

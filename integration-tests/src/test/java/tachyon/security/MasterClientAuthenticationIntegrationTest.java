@@ -17,8 +17,6 @@ package tachyon.security;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -31,6 +29,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
+import tachyon.client.file.options.CreateOptions;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.security.authentication.AuthType;
@@ -48,7 +47,6 @@ import tachyon.worker.WorkerContext;
  */
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private ExecutorService mExecutorService = null;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -56,7 +54,6 @@ public class MasterClientAuthenticationIntegrationTest {
   @Before
   public void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
-    mExecutorService = Executors.newFixedThreadPool(2);
     clearLoginUser();
   }
 
@@ -156,11 +153,14 @@ public class MasterClientAuthenticationIntegrationTest {
     clearLoginUser();
     mThrown.expect(IOException.class);
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
-            mLocalTachyonCluster.getMasterTachyonConf());
-    Assert.assertFalse(masterClient.isConnected());
-    masterClient.connect();
+    FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalTachyonCluster.getMaster().getAddress(), mLocalTachyonCluster.getMasterTachyonConf());
+    try {
+      Assert.assertFalse(masterClient.isConnected());
+      masterClient.connect();
+    } finally {
+      masterClient.close();
+    }
   }
 
   /**
@@ -171,13 +171,12 @@ public class MasterClientAuthenticationIntegrationTest {
    * @throws Exception
    */
   private void authenticationOperationTest(String filename) throws Exception {
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
-            mLocalTachyonCluster.getMasterTachyonConf());
+    FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalTachyonCluster.getMaster().getAddress(), mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.create(filename, Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
+    masterClient.create(filename, CreateOptions.defaults());
     Assert.assertNotNull(masterClient.getFileId(filename));
     masterClient.disconnect();
     masterClient.close();
@@ -189,7 +188,6 @@ public class MasterClientAuthenticationIntegrationTest {
     field.setAccessible(true);
     field.set(null, null);
   }
-
 
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override

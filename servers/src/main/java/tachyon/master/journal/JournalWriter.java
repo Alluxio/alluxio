@@ -17,6 +17,7 @@ package tachyon.master.journal;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public final class JournalWriter {
   private final long mMaxLogSize;
 
   /** The log number to assign to the next complete log. */
-  private int mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+  private long mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /** The output stream singleton for the checkpoint file. */
   private CheckpointOutputStream mCheckpointOutputStream = null;
@@ -74,7 +75,7 @@ public final class JournalWriter {
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
     TachyonConf conf = MasterContext.getConf();
     mUfs = UnderFileSystem.get(mJournalDirectory, conf);
-    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES);
+    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
   }
 
   /**
@@ -100,7 +101,7 @@ public final class JournalWriter {
    * @param latestSequenceNumber the sequence number of the latest journal entry. This sequence
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
-   * @return the output stream for the journal checkpoint.
+   * @return the output stream for the journal checkpoint
    * @throws IOException
    */
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
@@ -124,7 +125,7 @@ public final class JournalWriter {
    * Returns an output stream for the journal entries. The returned output stream is a singleton for
    * this writer.
    *
-   * @return the output stream for the journal entries.
+   * @return the output stream for the journal entries
    * @throws IOException
    */
   public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
@@ -154,11 +155,11 @@ public final class JournalWriter {
    * @return the output stream for the current log file
    * @throws IOException
    */
-  private DataOutputStream openCurrentLog() throws IOException {
+  private OutputStream openCurrentLog() throws IOException {
     String currentLogFile = mJournal.getCurrentLogFilePath();
-    DataOutputStream dos = new DataOutputStream(mUfs.create(currentLogFile));
+    OutputStream os = mUfs.create(currentLogFile);
     LOG.info("Opened current log file: " + currentLogFile);
-    return dos;
+    return os;
   }
 
   /**
@@ -170,7 +171,7 @@ public final class JournalWriter {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
     // TODO(gpang): should the deletes start from the end?
-    int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+    long logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
       LOG.info("Deleting completed log: " + logFilename);
@@ -290,11 +291,15 @@ public final class JournalWriter {
    * handles rotating full log files, and creating the next log file.
    */
   private class EntryOutputStream implements JournalOutputStream {
-    private DataOutputStream mOutputStream;
+    /** The direct output stream created by {@link UnderFileSystem} */
+    private OutputStream mRawOutputStream;
+    /** The output stream that wraps around {@link #mRawOutputStream} */
+    private DataOutputStream mDataOutputStream;
     private boolean mIsClosed = false;
 
-    EntryOutputStream(DataOutputStream outputStream) {
-      mOutputStream = outputStream;
+    EntryOutputStream(OutputStream outputStream) {
+      mRawOutputStream = outputStream;
+      mDataOutputStream = new DataOutputStream(outputStream);
     }
 
     @Override
@@ -303,7 +308,7 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
+          new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mDataOutputStream);
     }
 
     @Override
@@ -311,9 +316,9 @@ public final class JournalWriter {
       if (mIsClosed) {
         return;
       }
-      if (mOutputStream != null) {
+      if (mDataOutputStream != null) {
         // Close the current log file.
-        mOutputStream.close();
+        mDataOutputStream.close();
       }
 
       mIsClosed = true;
@@ -324,16 +329,28 @@ public final class JournalWriter {
       if (mIsClosed) {
         return;
       }
-      mOutputStream.flush();
-      if (mOutputStream instanceof FSDataOutputStream) {
-        ((FSDataOutputStream) mOutputStream).sync();
+      mDataOutputStream.flush();
+      if (mRawOutputStream instanceof FSDataOutputStream) {
+        // The output stream directly created by {@link UnderFileSystem} may be
+        // {@link FSDataOutputStream}, which means the under filesystem is HDFS, but
+        // {@link DataOutputStream#flush} won't flush the data to HDFS, so we need to call
+        // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
+        ((FSDataOutputStream) mRawOutputStream).sync();
       }
-      if (mOutputStream.size() > mMaxLogSize) {
-        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + mMaxLogSize);
+      boolean overSize = mDataOutputStream.size() > mMaxLogSize;
+      if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3) {
+        // (1) The log file is oversize, needs to be rotated. Or
+        // (2) Underfs is S3, flush on S3OutputStream will only flush to local temporary file,
+        //     call close and complete the log to sync the journal entry to S3.
+        if (overSize) {
+          LOG.info("Rotating log file. size: " + mDataOutputStream.size() + " maxSize: "
+              + mMaxLogSize);
+        }
         // rotate the current log.
-        mOutputStream.close();
+        mDataOutputStream.close();
         completeCurrentLog();
-        mOutputStream = openCurrentLog();
+        mRawOutputStream = openCurrentLog();
+        mDataOutputStream = new DataOutputStream(mRawOutputStream);
       }
     }
   }

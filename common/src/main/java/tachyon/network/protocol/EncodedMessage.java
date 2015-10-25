@@ -22,7 +22,7 @@ public interface EncodedMessage {
   /**
    * Returns the number bytes for the message when it is encoded.
    *
-   * @return the length of the encoded message, in bytes.
+   * @return the length of the encoded message, in bytes
    */
   int getEncodedLength();
 

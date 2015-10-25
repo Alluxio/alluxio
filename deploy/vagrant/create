@@ -90,13 +90,11 @@ rm -f files/workers
 for i in `seq 1 $((TOTAL-TACHYON_MASTERS))`; do
   echo "TachyonWorker${i}" >> files/workers
 done
-for i in `seq $TACHYON_MASTERS 1`; do
-  if [[ "$i" == "1" ]]; then
-    echo "TachyonMaster" >> files/workers
-  else
-    echo "TachyonMaster$i" >> files/workers
-  fi
+for ((i=2; i<=TACHYON_MASTERS; i++)); do
+  echo "TachyonMaster$i" >> files/workers
 done
+echo "TachyonMaster" >> files/workers
+
 # create virtual machine without provisioning
 [[ "$PROVIDER" == "aws" ]] && sgid=$(python bin/init_aws.py | tail -n 1)
 # pass security group id to vagrant up
@@ -104,7 +102,8 @@ export AWS_SECURITY_GROUP_ID_TACH=$sgid
 if [[ "$PROVIDER" == "aws" && "$(python bin/is_aws_spot.py)" == "0" ]]; then
   # register handler to be run when exit 1
   trap "python bin/spot_request.py --cancel" ERR
-  python bin/spot_request.py --submit
+  python bin/spot_request.py --submit --masters ${TACHYON_MASTERS}
+  trap - ERR
 else
   FULL_PROVIDER_NAME=$PROVIDER
   if [[ "$FULL_PROVIDER_NAME" == "vb" ]]; then
@@ -178,16 +177,19 @@ fi
 masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
 
 if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
-  info ">>> Tachyon is in Fault Tolerant mode, all Tachyon masters: <<<"
+  info "Tachyon is in Fault Tolerant mode, waiting 5 seconds for leader to be selected and web UI to be available"
+  sleep 5
+  for master in ${masters[@]}; do
+    info "Tachyon master: ${master}"
+    info "Trying to curl Tachyon web UI at ${master}:19999"
+    curl "${master}:19999" >/dev/null
+    if [[ "$?" == "0" ]]; then
+      info "Master public IP for Tachyon is ${master}, visit ${master}:19999 for Tachyon web UI"
+      break
+    fi
+  done
+  info "Master public IP for other softwares is ${main_master}"
+else
+  info "TachyonMaster public IP is ${main_master}, visit ${main_master}:19999 for Tachyon web UI"
 fi
-for master in ${masters[@]}; do
-  info "Tachyon master: ${master}"
-  info "Trying to curl Tachyon web UI at ${master}:19999"
-  curl "${master}:19999" >/dev/null
-  if [[ "$?" == "0" ]]; then
-    info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
-  fi
-done
-
-info ">>> Master public IP for other software is ${main_master} <<<"
-info ">>> Please visit default port of the web UI of what you deployed <<<"
+info "visit default port of the web UI of what you deployed"

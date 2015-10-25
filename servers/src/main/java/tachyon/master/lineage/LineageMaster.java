@@ -32,7 +32,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.HeartbeatThread;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -43,10 +42,13 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -73,6 +75,7 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
@@ -156,14 +159,16 @@ public final class LineageMaster extends MasterBase {
     super.start(isLeader);
     if (isLeader) {
       mCheckpointExecutionService =
-          getExecutorService().submit(new HeartbeatThread("Checkpoint scheduling service",
-              new CheckpointSchedulingExcecutor(this),
-              mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
+                  new CheckpointSchedulingExcecutor(this), mTachyonConf
+                      .getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
-          getExecutorService().submit(new HeartbeatThread("Recompute service",
-              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
-                  mFileSystemMaster),
-              mTachyonConf.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
+                  new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+                      mFileSystemMaster), mTachyonConf
+                      .getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
@@ -204,21 +209,28 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if fails to create the output file
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
-    // TODO: validate input files exist
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      IOException {
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
       fileId = mFileSystemMaster.getFileId(inputFile);
+      if (fileId == IdUtils.INVALID_FILE_ID) {
+        throw new InvalidPathException(
+            ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage(inputFile));
+      }
       inputTachyonFiles.add(new TachyonFile(fileId));
     }
     // create output files
     List<LineageFile> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
-      // TODO: delete the placeholder files if the creation fails.
-      // create the file initialized with block size 1 as placeholder
-      fileId = mFileSystemMaster.create(outputFile, 1, true);
+      // TODO(yupeng): delete the placeholder files if the creation fails.
+      // Create the file initialized with block size 1KB as placeholder.
+      CreateOptions options =
+          new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true)
+              .setBlockSizeBytes(Constants.KB).build();
+      fileId = mFileSystemMaster.create(outputFile, options);
       outputTachyonFiles.add(new LineageFile(fileId));
     }
 
@@ -288,7 +300,7 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException the file path is invalid
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, LineageDoesNotExistException {
+      throws InvalidPathException, LineageDoesNotExistException, IOException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
     if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {
@@ -336,8 +348,10 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
       List<Long> persistedFiles) throws FileDoesNotExistException, InvalidPathException {
-    // notify checkpoint manager the persisted files
-    persistFiles(workerId, persistedFiles);
+    if (!persistedFiles.isEmpty()) {
+      // notify checkpoint manager the persisted files
+      persistFiles(workerId, persistedFiles);
+    }
 
     // get the files for the given worker to checkpoint
     List<CheckpointFile> filesToCheckpoint = null;
@@ -349,7 +363,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * @return the list of all the {@link LineageInfo}s.
+   * @return the list of all the {@link LineageInfo}s
    */
   public synchronized List<LineageInfo> getLineageInfoList() {
     List<LineageInfo> lineages = Lists.newArrayList();
@@ -458,7 +472,7 @@ public final class LineageMaster extends MasterBase {
    * @param workerId the worker id
    * @param persistedFiles the persisted files
    */
-  public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {

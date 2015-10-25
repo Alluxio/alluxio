@@ -70,7 +70,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
     workerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
-        workerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+        workerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
         new OutStreamOptions.Builder(workerTachyonConf)
             .setTachyonStorageType(TachyonStorageType.STORE)

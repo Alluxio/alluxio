@@ -25,7 +25,7 @@ import tachyon.conf.TachyonConf;
 @PublicApi
 public final class OutStreamOptions {
   public static class Builder {
-    private long mBlockSize;
+    private long mBlockSizeBytes;
     private String mHostname;
     private TachyonStorageType mTachyonStorageType;
     private long mTTL;
@@ -37,21 +37,21 @@ public final class OutStreamOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mHostname = null;
       mTachyonStorageType =
-          conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
+          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
       mUnderStorageType =
-          conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
+          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
       mTTL = Constants.NO_TTL;
     }
 
     /**
-     * @param blockSize the block size to use
+     * @param blockSizeBytes the block size to use
      * @return the builder
      */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
@@ -103,7 +103,7 @@ public final class OutStreamOptions {
     }
   }
 
-  private final long mBlockSize;
+  private final long mBlockSizeBytes;
   private final String mHostname;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
@@ -117,7 +117,7 @@ public final class OutStreamOptions {
   }
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
-    mBlockSize = builder.mBlockSize;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
     mHostname = builder.mHostname;
     mTachyonStorageType = builder.mTachyonStorageType;
     mTTL = builder.mTTL;
@@ -127,8 +127,8 @@ public final class OutStreamOptions {
   /**
    * @return the block size
    */
-  public long getBlockSize() {
-    return mBlockSize;
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
   }
 
   /**

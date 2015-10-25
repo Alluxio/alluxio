@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
@@ -36,6 +35,8 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -80,7 +81,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
-    mBlockSize = options.getBlockSize();
+    mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
@@ -90,10 +91,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUfsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
-      String parentPath = (new TachyonURI(mUfsPath)).getParent().getPath();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException("Failed to create " + parentPath);
-      }
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
     } else {
@@ -212,9 +209,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
 
     if (mShouldCacheCurrentBlock) {
       try {
@@ -248,7 +245,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
       Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          "The current block still has space left, no need to get new block");
+          PreconditionMessage.ERR_BLOCK_REMAINING);
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
@@ -273,7 +270,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected void handleCacheWriteException(IOException ioe) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
       // TODO(yupeng): Handle this exception better.
-      throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
     }
 
     LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);

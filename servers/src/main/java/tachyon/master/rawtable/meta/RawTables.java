@@ -36,6 +36,8 @@ public class RawTables implements JournalCheckpointStreamable {
     }
   };
   /** A set of TableInfo indexed by table id */
+  // This warning cannot be avoided when passing generics into varargs
+  @SuppressWarnings("unchecked")
   private final IndexedSet<RawTable> mTables = new IndexedSet<RawTable>(mIdIndex);
 
   /**
@@ -67,7 +69,7 @@ public class RawTables implements JournalCheckpointStreamable {
    * Whether the raw table exists.
    *
    * @param tableId the id of the raw table
-   * @return true if the table exists, false otherwise.
+   * @return true if the table exists, false otherwise
    */
   public synchronized boolean contains(long tableId) {
     return mTables.contains(mIdIndex, tableId);
@@ -77,7 +79,7 @@ public class RawTables implements JournalCheckpointStreamable {
    * Get the number of the columns of a raw table.
    *
    * @param tableId the id of the raw table
-   * @return the number of the columns, -1 if the table does not exist.
+   * @return the number of the columns, -1 if the table does not exist
    */
   public synchronized int getColumns(long tableId) {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
@@ -99,7 +101,7 @@ public class RawTables implements JournalCheckpointStreamable {
    * Get the raw table info.
    *
    * @param tableId the raw table id.
-   * @return the raw table info if the table exists, null otherwise.
+   * @return the raw table info if the table exists, null otherwise
    */
   public synchronized RawTable getTableInfo(long tableId) {
     return mTables.getFirstByField(mIdIndex, tableId);

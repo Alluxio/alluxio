@@ -17,6 +17,7 @@ package tachyon.collections;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -59,7 +60,10 @@ public class IndexedSetTest {
         return o.longValue();
       }
     };
-    mSet = new IndexedSet<Pair>(mIntIndex, mLongIndex);
+    // This warning cannot be avoided when passing generics into varargs
+    @SuppressWarnings("unchecked")
+    IndexedSet<Pair> set = new IndexedSet<Pair>(mIntIndex, mLongIndex);
+    mSet = set;
     for (int i = 0; i < 3; i ++) {
       for (long l = 0; l < 3; l ++) {
         mSet.add(new Pair(i, l));
@@ -151,5 +155,17 @@ public class IndexedSetTest {
       Assert.assertEquals(9, mSet.size());
       Assert.assertEquals(3, mSet.getByField(mIntIndex, i).size());
     }
+  }
+
+  @Test
+  public void iteratorRemoveTest() {
+    Iterator<Pair> it =  mSet.iterator();
+    Assert.assertTrue(it.hasNext());
+    final Pair first = it.next();
+    Set<Pair> allWithSameIntValue = mSet.getByField(mIntIndex, first.intValue());
+    Assert.assertTrue("Element should be in the set", allWithSameIntValue.contains(first));
+    it.remove();
+    allWithSameIntValue = mSet.getByField(mIntIndex, first.intValue());
+    Assert.assertFalse("Element should not be in the set", allWithSameIntValue.contains(first));
   }
 }

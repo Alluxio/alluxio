@@ -41,6 +41,7 @@ import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 
 /**
  * Unit tests for tachyon.master.block.BlockMaster.
@@ -90,12 +91,36 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, new NetAddress("localhost", 80, 81));
     MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, new NetAddress("localhost", 82, 83));
     mPrivateAccess.addLostWorker(workerInfo1);
-    Assert.assertEquals(ImmutableList.of(workerInfo1.generateClientWorkerInfo()),
+    Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
         mMaster.getLostWorkersInfo());
     mPrivateAccess.addLostWorker(workerInfo2);
-    Assert.assertEquals(
-        ImmutableList.of(workerInfo1.generateClientWorkerInfo(),
-            workerInfo2.generateClientWorkerInfo()), mMaster.getLostWorkersInfo());
+
+    final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
+        workerInfo2.generateClientWorkerInfo());
+
+    Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
+  }
+
+  @Test
+  public void registerLostWorkerTest() throws Exception {
+    final NetAddress na = new NetAddress("localhost", 80, 81);
+    final long expectedId = 1;
+    final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
+    workerInfo1.addBlock(1L);
+
+    mPrivateAccess.addLostWorker(workerInfo1);
+    final long workerId = mMaster.getWorkerId(na);
+    Assert.assertEquals(expectedId, workerId);
+
+    final List<Long> blocks = ImmutableList.of(42L);
+    mMaster.workerRegister(workerId, ImmutableList.of(1024L), ImmutableList.of(1024L),
+        ImmutableMap.of(1L,blocks));
+
+    final Set<Long> expectedBlocks = ImmutableSet.of(42L);
+    final Set<Long> actualBlocks = workerInfo1.getBlocks();
+
+    Assert.assertEquals("The master should reflect the blocks declared at registration",
+        expectedBlocks, actualBlocks);
   }
 
   @Test

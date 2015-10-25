@@ -17,6 +17,8 @@ package tachyon.client;
 
 import java.net.InetSocketAddress;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 
@@ -24,92 +26,103 @@ import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
- * configuration and master address. All members of this class are immutable. This class is
- * thread safe.
+ * configuration and master address. This class is thread safe.
  */
 public final class ClientContext {
-  /**
-   * The static configuration object. There is only one TachyonConf object shared within the same
-   * client.
-   */
+  private static ExecutorService sExecutorService;
   private static TachyonConf sTachyonConf;
-
   private static InetSocketAddress sMasterAddress;
-
   private static ClientMetrics sClientMetrics;
-
   private static Random sRandom;
+  private static boolean sInitialized;
 
   static {
-    sTachyonConf = new TachyonConf();
+    sInitialized = false;
+    reset();
+  }
+
+  /**
+   * Initializes the client context singleton.
+   */
+  public static synchronized void reset() {
+    if (sInitialized) {
+      return;
+    }
+    reset(new TachyonConf());
+  }
+
+  /**
+   * Initializes the client context singleton with a given conf.
+   */
+  public static synchronized void reset(TachyonConf conf) {
+    sTachyonConf = conf;
 
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
     int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-
     sClientMetrics = new ClientMetrics();
-
     sRandom = new Random();
+
+    if (sExecutorService != null) {
+      sExecutorService.shutdown();
+    }
+    sExecutorService = Executors.newFixedThreadPool(
+        sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+    // We must set sInitialized to true before resetting BlockStoreContext and FileSystemContext
+    // as they need ClientContext initialized.
+    sInitialized = true;
+    BlockStoreContext.INSTANCE.reset();
+    FileSystemContext.INSTANCE.reset();
   }
 
   /**
    * @return the tachyonConf for the client process
    */
-  public static TachyonConf getConf() {
+  public static synchronized TachyonConf getConf() {
+    checkContextInitialized();
     return sTachyonConf;
   }
 
   /**
    * @return the ClientMetrics for this client
    */
-  public static ClientMetrics getClientMetrics() {
+  public static synchronized ClientMetrics getClientMetrics() {
+    checkContextInitialized();
     return sClientMetrics;
   }
 
   /**
    * @return the master address
    */
-  public static InetSocketAddress getMasterAddress() {
+  public static synchronized InetSocketAddress getMasterAddress() {
+    checkContextInitialized();
     return sMasterAddress;
   }
 
   /**
    * @return a random non-negative long
    */
-  public static long getRandomNonNegativeLong() {
+  public static synchronized long getRandomNonNegativeLong() {
+    checkContextInitialized();
     return Math.abs(sRandom.nextLong());
   }
 
-  /**
-   * Reset the TachyonConf instance in worker context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
-   */
-  public static void reset() {
-    reset(new TachyonConf());
+  public static synchronized ExecutorService getExecutorService() {
+    checkContextInitialized();
+    return sExecutorService;
   }
 
-  /**
-   * Reset the TachyonConf instance in master context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
-   */
-  public static void reset(TachyonConf conf) {
-    sTachyonConf = conf;
-    String masterHostname =
-        Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
-
-    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-
-    sRandom = new Random();
-
-    BlockStoreContext.INSTANCE.reset();
-    FileSystemContext.INSTANCE.reset();
+  private static void checkContextInitialized() {
+    Preconditions.checkState(sInitialized, PreconditionMessage.CLIENT_CONTEXT_NOT_INITIALIZED);
   }
 
-  private ClientContext() {} // to prevent initialization
+  private ClientContext() {} // prevent instantiation
 }

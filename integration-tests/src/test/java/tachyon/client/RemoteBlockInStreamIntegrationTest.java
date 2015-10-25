@@ -42,6 +42,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
@@ -112,8 +113,8 @@ public class RemoteBlockInStreamIntegrationTest {
     TachyonConf conf = WorkerContext.getConf();
     conf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     conf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    conf.set(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
-    conf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "100");
+    conf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);
+    conf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
 
     mLocalTachyonCluster.start();
 
@@ -387,7 +388,7 @@ public class RemoteBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Seek position is negative: -1");
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -412,7 +413,7 @@ public class RemoteBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest2() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, 1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =

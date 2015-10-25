@@ -91,18 +91,17 @@ public final class FileOutStreamIntegrationTest {
     sMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth = new OutStreamOptions.Builder(sMasterTachyonConf)
         .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
     sWriteTachyon = new OutStreamOptions.Builder(sMasterTachyonConf)
         .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
     sWriteUnderStore = new OutStreamOptions.Builder(sMasterTachyonConf)
         .setTachyonStorageType(TachyonStorageType.NO_STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
     sWriteLocal = new OutStreamOptions.Builder(sMasterTachyonConf)
         .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
         .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
-
   }
 
   /**
