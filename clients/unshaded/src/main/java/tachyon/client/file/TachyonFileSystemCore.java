@@ -50,13 +50,13 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file to create in Tachyon space
    * @param options method options
-   * @return the file id that identifies the newly created file
+   * @return the {@link TachyonFile} instance that identifies the newly created file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  long create(TachyonURI path, CreateOptions options) throws IOException,
+  TachyonFile create(TachyonURI path, CreateOptions options) throws IOException,
       FileAlreadyExistsException, InvalidPathException, TachyonException;
 
   /**
@@ -114,12 +114,12 @@ interface TachyonFileSystemCore {
    *
    * @param path the path for which to load metadat from UFS
    * @param options method options
-   * @return the file id of the resulting file in Tachyon
+   * @return the {@link TachyonFile} instance identifying the resulting file in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  long loadMetadata(TachyonURI path, LoadMetadataOptions options)
+  TachyonFile loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws IOException, FileDoesNotExistException, TachyonException;
 
   /**
@@ -157,11 +157,13 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param options method options
-   * @return a TachyonFile which acts as a file handler for the path
+   * @return a TachyonFile which acts as a file handler for the path or null if there is no file at
+             the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, TachyonException;
+  TachyonFile openIfExists(TachyonURI path, OpenOptions options) throws IOException,
+      TachyonException;
 
   /**
    * Renames an existing Tachyon file to another Tachyon path in Tachyon.

@@ -26,6 +26,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
 @RunWith(PowerMockRunner.class)
@@ -37,22 +38,35 @@ public class CreateOptionsTest {
     long blockSize = random.nextLong();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+
     CreateOptions options =
-        new CreateOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
-            .setRecursive(recursive).setTTL(ttl).build();
-    Assert.assertEquals(blockSize, options.getBlockSize());
+        new CreateOptions.Builder(new TachyonConf())
+            .setBlockSizeBytes(blockSize)
+            .setRecursive(recursive)
+            .setTTL(ttl)
+            .setUnderStorageType(ufsType)
+            .build();
+
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, "64MB");
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+
     CreateOptions options = CreateOptions.defaults();
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
-    Assert.assertEquals(false, options.isRecursive());
+
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
+    Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 }

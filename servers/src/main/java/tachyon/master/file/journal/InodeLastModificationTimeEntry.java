@@ -15,26 +15,38 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class InodeLastModificationTimeEntry implements JournalEntry {
+/**
+ * This class represents a journal entry for the last time an inode was modified.
+ */
+public final class InodeLastModificationTimeEntry extends JournalEntry {
   protected final long mId;
   protected final long mLastModificationTimeMs;
 
-  public InodeLastModificationTimeEntry(long id, long lastModificationTimeMs) {
+  /**
+   * Creates a new instance of <code>InodeLastModificationTimeEntry</code>
+   * @param id the id of the entry.
+   * @param lastModificationTimeMs the modification timestamp (in millisecs).
+   */
+  @JsonCreator
+  public InodeLastModificationTimeEntry(@JsonProperty("id") long id,
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs) {
     mId = id;
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
+  @JsonGetter
   public long getId() {
     return mId;
   }
 
+  @JsonGetter
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
   }
@@ -42,13 +54,5 @@ public final class InodeLastModificationTimeEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.INODE_MTIME;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("id", mId);
-    parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
-    return parameters;
   }
 }

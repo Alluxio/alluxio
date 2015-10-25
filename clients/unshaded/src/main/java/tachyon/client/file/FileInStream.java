@@ -33,6 +33,8 @@ import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.client.file.options.InStreamOptions;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.PreconditionMessage;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.util.network.NetworkAddressUtils;
@@ -129,9 +131,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (mPos >= mFileLength) {
@@ -179,9 +181,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     if (mPos == pos) {
       return;
     }
-    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos < mFileLength, "Seek position is past EOF: " + pos
-        + ", fileSize = " + mFileLength);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
+    Preconditions.checkArgument(pos < mFileLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
+        pos);
 
     seekBlockInStream(pos);
     checkAndAdvanceBlockInStream();
@@ -200,7 +202,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     seekBlockInStream(newPos);
     checkAndAdvanceBlockInStream();
     if (toSkipInBlock != mCurrentBlockInStream.skip(toSkipInBlock)) {
-      throw new IOException("The underlying BlockInStream could not skip " + toSkip);
+      throw new IOException(ExceptionMessage.INSTREAM_CANNOT_SKIP.getMessage(toSkip));
     }
     return toSkip;
   }
@@ -217,8 +219,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getCurrentBlockId();
     if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
-      updateBlockInStream(currentBlockId);
       closeCacheStream();
+      updateBlockInStream(currentBlockId);
       if (mShouldCacheCurrentBlock) {
         try {
           // TODO(calvin): Specify the location to be local.
@@ -261,7 +263,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     }
     int index = (int) (mPos / mBlockSize);
     Preconditions.checkState(index < mFileInfo.blockIds.size(),
-        "Current block index exceeds max index.");
+        PreconditionMessage.ERR_BLOCK_INDEX);
     return mFileInfo.blockIds.get(index);
   }
 

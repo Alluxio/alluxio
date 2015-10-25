@@ -21,7 +21,7 @@ import tachyon.client.block.TachyonBlockStore;
 
 /**
  * A shared context in each client JVM for common File System client functionality such as a pool
- * of master clients.
+ * of master clients. This class is thread safe.
  */
 public enum FileSystemContext {
   INSTANCE;
@@ -43,7 +43,7 @@ public enum FileSystemContext {
    *
    * @return the acquired block master client
    */
-  public FileSystemMasterClient acquireMasterClient() {
+  public synchronized FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
   }
 
@@ -52,22 +52,22 @@ public enum FileSystemContext {
    *
    * @param masterClient a block master client to release
    */
-  public void releaseMasterClient(FileSystemMasterClient masterClient) {
+  public synchronized void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
   }
 
   /**
    * @return the Tachyon block store
    */
-  public TachyonBlockStore getTachyonBlockStore() {
+  public synchronized TachyonBlockStore getTachyonBlockStore() {
     return mTachyonBlockStore;
   }
 
   /**
-   * Resets the Block Store context. This method should only be used in
+   * Re-initializes the Block Store context. This method should only be used in
    * {@link ClientContext}.
    */
-  public void reset() {
+  public synchronized void reset() {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());

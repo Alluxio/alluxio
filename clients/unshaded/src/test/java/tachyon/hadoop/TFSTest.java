@@ -93,7 +93,7 @@ public class TFSTest {
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
     mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.USE_ZOOKEEPER, "true");
+    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     mockTachyonFSGet();
 
     final FileSystem fs = FileSystem.get(uri, conf);
@@ -116,7 +116,7 @@ public class TFSTest {
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
     mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.USE_ZOOKEEPER, "false");
+    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "false");
     mockTachyonFSGet();
 
     final FileSystem fs = FileSystem.get(uri, conf);
@@ -145,7 +145,7 @@ public class TFSTest {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
-    Mockito.when(ugi.getCurrentUser()).thenReturn(ugi);
+    Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
   }
 
   @Before

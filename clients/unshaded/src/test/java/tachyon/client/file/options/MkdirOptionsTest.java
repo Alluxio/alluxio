@@ -19,24 +19,44 @@ import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
+import tachyon.Constants;
+import tachyon.client.ClientContext;
+import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ClientContext.class)
 public class MkdirOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
 
     MkdirOptions options =
-        new MkdirOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
+        new MkdirOptions.Builder(new TachyonConf())
+            .setRecursive(recursive)
+            .setUnderStorageType(ufsType)
+            .build();
 
     Assert.assertEquals(recursive, options.isRecursive());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
   @Test
   public void defaultsTest() {
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
+    Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+
     MkdirOptions options = MkdirOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+
+    Assert.assertFalse(options.isRecursive());
   }
 }

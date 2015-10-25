@@ -16,14 +16,21 @@
 package tachyon.client.lineage;
 
 import java.io.IOException;
+import java.util.List;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
+import tachyon.client.lineage.options.CreateLineageOptions;
 import tachyon.client.lineage.options.DeleteLineageOptions;
+import tachyon.client.lineage.options.GetLineageInfoListOptions;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
+import tachyon.job.Job;
+import tachyon.thrift.LineageInfo;
 
 /**
  * A LineageClient implementation. This class does not access the master client directly but goes
@@ -48,10 +55,27 @@ public final class TachyonLineage extends AbstractLineageClient {
   }
 
   /**
+   * Convenience method for {@link #createLineage(List, List, Job, CreateLineageOptions)} with
+   * default options.
+   */
+  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
+      throws FileDoesNotExistException, TachyonException, IOException {
+    return createLineage(inputFiles, outputFiles, job, CreateLineageOptions.defaults());
+  }
+
+  /**
    * Convenience method for {@link #deleteLineage(long, DeleteLineageOptions)} with default options.
    */
-  public boolean deleteLineage(long lineageId) throws IOException, LineageDoesNotExistException,
-      LineageDeletionException, TachyonException {
-    return super.deleteLineage(lineageId, DeleteLineageOptions.defaults());
+  public boolean deleteLineage(long lineageId)
+      throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException {
+    return deleteLineage(lineageId, DeleteLineageOptions.defaults());
+  }
+
+  /**
+   * Convenience method for {@link #getLineageInfoList(GetLineageInfoListOptions)} with default
+   * options.
+   */
+  public List<LineageInfo> getLineageInfoList() throws IOException {
+    return getLineageInfoList(GetLineageInfoListOptions.defaults());
   }
 }

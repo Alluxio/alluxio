@@ -37,18 +37,23 @@ import tachyon.thrift.JobConfInfo;
  */
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final String mCommand;
 
+  /**
+   * Constructor.
+   *
+   * @param command the command that can run in shell
+   * @param jobConf the job configuration
+   */
   public CommandLineJob(String command, JobConf jobConf) {
     super(jobConf);
     mCommand = command;
   }
 
   /**
-   * @return the {@link CommandLineJobInfo} for RPC.
+   * @return the {@link CommandLineJobInfo} for RPC
    */
   public CommandLineJobInfo generateCommandLineJobInfo() {
     return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));
