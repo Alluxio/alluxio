@@ -157,7 +157,7 @@ public final class LocalTachyonCluster {
     // people running with strange network configurations will see very slow tests
     testConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, Integer.toString(250));
 
-    String ramdiskPath = PathUtils.concatPath(mTachyonHome, "/ramdisk");
+    String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
