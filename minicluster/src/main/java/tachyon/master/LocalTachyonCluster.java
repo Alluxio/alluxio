@@ -66,13 +66,12 @@ public final class LocalTachyonCluster {
   private TachyonConf mWorkerConf;
   private TachyonConf mClientConf;
   private TachyonConf mTestConf;
-  private boolean mInitialized;
 
-  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
+  public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) throws IOException {
     mWorkerCapacityBytes = workerCapacityBytes;
     mQuotaUnitBytes = quotaUnitBytes;
     mUserBlockSize = userBlockSize;
-    mInitialized = false;
+    init();
   }
 
   public TachyonFS getOldClient() throws IOException {
@@ -184,7 +183,6 @@ public final class LocalTachyonCluster {
       mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
           Joiner.on(',').join(newPaths));
     }
-    mInitialized = true;
   }
 
   /**
@@ -236,11 +234,7 @@ public final class LocalTachyonCluster {
    * @throws IOException when the operation fails
    */
   public void start() throws IOException {
-    if (!mInitialized) {
-      init();
-    }
     startMaster();
-
     UnderFileSystemUtils.mkdirIfNotExists(mMasterConf.get(Constants.UNDERFS_ADDRESS),
         mMasterConf);
     CommonUtils.sleepMs(10);

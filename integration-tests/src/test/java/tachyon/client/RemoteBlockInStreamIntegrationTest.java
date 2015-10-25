@@ -49,7 +49,6 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 
 /**
  * Integration tests for <code>tachyon.client.RemoteBlockInStream</code>.
@@ -109,8 +108,7 @@ public class RemoteBlockInStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
-    mLocalTachyonCluster.init();
-    TachyonConf conf = WorkerContext.getConf();
+    TachyonConf conf = mLocalTachyonCluster.getTestConf();
     conf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     conf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     conf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);

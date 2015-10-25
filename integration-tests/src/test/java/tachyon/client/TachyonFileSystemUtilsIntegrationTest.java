@@ -18,10 +18,8 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.thrift.TException;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +36,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -49,22 +46,11 @@ public class TachyonFileSystemUtilsIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sHost = null;
-  private static int sPort = -1;
   private static OutStreamOptions sWriteBoth;
   private static TachyonFileSystem sTfs = null;
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-
-  @Before
-  public final void before() throws IOException, TException {
-    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
-    mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
-  }
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -73,14 +59,14 @@ public class TachyonFileSystemUtilsIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
-        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster =
       new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    sLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
+    sLocalTachyonCluster.getTestConf().set(Constants.MAX_COLUMNS, "257");
+
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
-    sHost = sLocalTachyonCluster.getMasterHostname();
-    sPort = sLocalTachyonCluster.getMasterPort();
     sWriteBoth =
       new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
         .setTachyonStorageType(TachyonStorageType.STORE)

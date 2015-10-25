@@ -105,8 +105,7 @@ public final class FileOutStreamIntegrationTest {
   public static final void beforeClass() throws IOException {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
-    sLocalTachyonCluster.init();
-    sMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    sMasterTachyonConf = sLocalTachyonCluster.getTestConf();
   }
 
   /**
