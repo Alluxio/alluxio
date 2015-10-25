@@ -128,4 +128,13 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>maven-jspc-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>
