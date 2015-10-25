@@ -39,7 +39,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
@@ -72,8 +71,7 @@ public class TachyonFileSystemIntegrationTest {
   public static void beforeClass() throws Exception {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    sLocalTachyonCluster.init();
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+    sLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
         USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();

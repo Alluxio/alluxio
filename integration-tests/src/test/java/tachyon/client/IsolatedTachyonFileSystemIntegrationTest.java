@@ -33,7 +33,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -59,8 +58,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
 
-    mLocalTachyonCluster.init();
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+    TachyonConf testConf = mLocalTachyonCluster.getTestConf();
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
         USER_QUOTA_UNIT_BYTES));
     mLocalTachyonCluster.start();
 
