@@ -72,7 +72,7 @@ The common configuration contains constants shared by different components.
   in the `conf` directory.</td>
 </tr>
 <tr>
-  <td>tachyon.network.host.resolution.timeout.ms</td>
+  <td><div>tachyon.network.host.resolution.</div><div>timeout.ms</div></td>
   <td>5000</td>
   <td>During startup of the Master and Worker processes Tachyon needs to ensure that they are
     listening on externally resolvable and reachable host names.  To do this, Tachyon will
@@ -92,11 +92,11 @@ The common configuration contains constants shared by different components.
 </tr>
 <tr>
   <td>tachyon.underfs.glusterfs.impl</td>
-  <td>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</td>
+  <td><div>org.apache.hadoop.fs.glusterfs.</div><div>GlusterFileSystem</div></td>
   <td>Glusterfs hook with hadoop.</td>
 </tr>
 <tr>
-  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
+  <td><div>tachyon.underfs.glusterfs.mapred.</div><div>system.dir</div></td>
   <td>glusterfs:///mapred/system</td>
   <td>Optionally, specify subdirectory under GlusterFS for intermediary MapReduce data.</td>
 </tr>
@@ -107,7 +107,7 @@ The common configuration contains constants shared by different components.
 </tr>
 <tr>
   <td>tachyon.underfs.hdfs.impl</td>
-  <td>org.apache.hadoop.hdfs.DistributedFileSystem</td>
+  <td><div>org.apache.hadoop.hdfs.</div></div>DistributedFileSystem</div></td>
   <td>The implementation class of the HDFS as the under storage system.</td>
 </tr>
 <tr>
@@ -194,7 +194,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.master.journal.formatter.class</td>
-  <td>tachyon.master.journal.JsonJournalFormatter</td>
+  <td><div>tachyon.master.journal.</div><div>JsonJournalFormatter</div></td>
   <td>The class to serialize the journal in a specified format.</td>
 </tr>
 <tr>
@@ -203,7 +203,7 @@ the port number.
   <td>If a log file is bigger than this value, it will rotate to next file</td>
 </tr>
 <tr>
-  <td>tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms</td>
+  <td><div>tachyon.master.journal.tailer.</div><div>shutdown.quiet.wait.time.ms</div></td>
   <td>5000</td>
   <td>Before the standby master shuts down its tailer thread, there should be no update to the
     leader master's journal in this specified time period (in milliseconds).</td>
@@ -223,7 +223,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.class</td>
-  <td>tachyon.master.lineage.checkpoint.CheckpointLatestScheduler</td>
+  <td><div>tachyon.master.lineage.checkpoint.</div><div>CheckpointLatestScheduler</div></td>
   <td>
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
   checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
@@ -303,7 +303,7 @@ the port number.
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.worker.allocator.class</td>
-  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
+  <td><div>tachyon.worker.block.allocator.</div><div>MaxFreeAllocator</div></td>
   <td>The strategy that a worker uses to allocate space among storage directories in certain storage
   layer. Valid options include: `tachyon.worker.block.allocator.MaxFreeAllocator`,
   `tachyon.worker.block.allocator.GreedyAllocator`,
@@ -351,13 +351,13 @@ the port number.
   <td>The port Tachyon's worker's data server runs on.</td>
 </tr>
 <tr> <td>tachyon.worker.data.server.class</td>
-  <td>tachyon.worker.netty.NettyDataServer</td>
+  <td><div>tachyon.worker.netty.</div><div>NettyDataServer</div></td>
   <td>Selects the networking stack to run the worker with. Valid options are:
   `tachyon.worker.netty.NettyDataServer`, `tachyon.worker.nio.NIODataServer`.</td>
 </tr>
 <tr>
   <td>tachyon.worker.evictor.class</td>
-  <td>tachyon.worker.block.evictor.LRUEvictor</td>
+  <td><div>tachyon.worker.block.</div><div>evictor.LRUEvictor</div></td>
   <td>The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid
   options include `tachyon.worker.block.evictor.LRFUEvictor`,
   `tachyon.worker.block.evictor.GreedyEvictor`, `tachyon.worker.block.evictor.LRUEvictor`.</td>
@@ -525,14 +525,14 @@ The user configuration specifies values regarding file system access.
 </tr>
 <tr>
   <td>tachyon.user.block.remote.reader.class</td>
-  <td>tachyon.client.netty.NettyRemoteBlockReader</td>
+  <td><div>tachyon.client.netty.</div><div>NettyRemoteBlockReader</div></td>
   <td>Selects networking stack to run the client with. Valid options are
     `tachyon.client.netty.NettyRemoteBlockReader` (read remote data using netty) and
     [DEPRECATED] `tachyon.client.tcp.TCPRemoteBlockReader`</td>
 </tr>
 <tr>
   <td>tachyon.user.block.remote.writer.class</td>
-  <td>tachyon.client.netty.NettyRemoteBlockWriter</td>
+  <td><div>tachyon.client.netty.</div><div>NettyRemoteBlockWriter</div></td>
   <td>Selects networking stack to run the client with for block writes.</td>
 </tr>
 <tr>
