@@ -185,8 +185,6 @@ public final class LocalTachyonCluster {
     mClientConf = new TachyonConf(testConf.getInternalProperties());
     MasterContext.reset(mMasterConf);
     WorkerContext.reset(mWorkerConf);
-    // waiting for worker web server startup
-    CommonUtils.sleepMs(100);
     ClientContext.reset(mClientConf);
     mInitialized = true;
   }
@@ -199,10 +197,15 @@ public final class LocalTachyonCluster {
   private void startMaster() throws IOException {
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
+    // Update worker and client conf with actual RPC port.
+    mWorkerConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+    mClientConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+    WorkerContext.reset(mWorkerConf);
+    ClientContext.reset(mClientConf);
   }
 
   /**
-   * Configure and start worker.
+   * Configures and starts worker.
    *
    * @throws IOException when the operation fails
    */
