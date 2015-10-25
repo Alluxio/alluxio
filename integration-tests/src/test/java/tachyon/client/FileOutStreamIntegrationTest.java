@@ -79,14 +79,6 @@ public final class FileOutStreamIntegrationTest {
     tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sLocalTachyonCluster.start();
     mTfs = sLocalTachyonCluster.getClient();
-  }
-
-  @BeforeClass
-  public static final void beforeClass() throws IOException {
-    sLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
-    sLocalTachyonCluster.init();
-    sMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
         new OutStreamOptions.Builder(sMasterTachyonConf)
             .setTachyonStorageType(TachyonStorageType.STORE)
@@ -107,6 +99,14 @@ public final class FileOutStreamIntegrationTest {
             .setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
             .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
+  }
+
+  @BeforeClass
+  public static final void beforeClass() throws IOException {
+    sLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+    sLocalTachyonCluster.init();
+    sMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**
