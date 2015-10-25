@@ -64,9 +64,7 @@ public final class FileOutStreamIntegrationTest {
   private static OutStreamOptions sWriteUnderStore;
   private static OutStreamOptions sWriteLocal;
   private static TachyonConf sMasterTachyonConf;
-
   private TachyonFileSystem mTfs = null;
-
 
   @After
   public final void after() throws Exception {
@@ -89,19 +87,26 @@ public final class FileOutStreamIntegrationTest {
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
     sLocalTachyonCluster.init();
     sMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth = new OutStreamOptions.Builder(sMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
-    sWriteTachyon = new OutStreamOptions.Builder(sMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
-    sWriteUnderStore = new OutStreamOptions.Builder(sMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.NO_STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
-    sWriteLocal = new OutStreamOptions.Builder(sMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-        .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
+    sWriteBoth =
+        new OutStreamOptions.Builder(sMasterTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .build();
+    sWriteTachyon =
+        new OutStreamOptions.Builder(sMasterTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .build();
+    sWriteUnderStore =
+        new OutStreamOptions.Builder(sMasterTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .build();
+    sWriteLocal =
+        new OutStreamOptions.Builder(sMasterTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
   }
 
   /**
@@ -161,8 +166,8 @@ public final class FileOutStreamIntegrationTest {
     }
   }
 
-  private void writeTest1Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
-      TachyonException {
+  private void writeTest1Util(TachyonURI filePath, int len, OutStreamOptions op)
+      throws IOException, TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
@@ -184,8 +189,8 @@ public final class FileOutStreamIntegrationTest {
     }
   }
 
-  private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
-      TachyonException {
+  private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op)
+      throws IOException, TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
@@ -205,8 +210,8 @@ public final class FileOutStreamIntegrationTest {
     }
   }
 
-  private void writeTest3Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
-      TachyonException {
+  private void writeTest3Util(TachyonURI filePath, int len, OutStreamOptions op)
+      throws IOException, TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);

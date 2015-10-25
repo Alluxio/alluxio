@@ -66,9 +66,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
     mTfs = mLocalTachyonCluster.getClient();
 
-    TachyonConf workerTachyonConf;
-
-    workerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    TachyonConf workerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         workerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
