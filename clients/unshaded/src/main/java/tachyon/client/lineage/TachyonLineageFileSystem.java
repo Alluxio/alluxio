@@ -26,6 +26,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 
@@ -97,11 +98,11 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     return new LineageFileOutStream(fileId, options);
   }
 
-  public void reportLostFile(TachyonFile file)
-      throws IOException, FileDoesNotExistException, TachyonException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+  public void reportLostFile(TachyonURI path) throws IOException, FileDoesNotExistException,
+      TachyonException {
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.reportLostFile(file.getFileId());
+      masterClient.reportLostFile(path);
     } catch (TachyonException e) {
       TachyonException.unwrap(e, FileDoesNotExistException.class);
       throw e;
