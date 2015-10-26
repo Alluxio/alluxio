@@ -233,7 +233,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Completes the file. Cannot set the length if the file is complete or the length is
+   * Completes the file. Cannot set the length if the file is already completed or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative
