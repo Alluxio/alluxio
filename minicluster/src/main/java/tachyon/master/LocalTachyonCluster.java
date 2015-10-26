@@ -45,7 +45,8 @@ import tachyon.worker.block.BlockWorker;
  * Example to use
  * <pre>
  * // Create a cluster instance
- * localTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+ * localTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES,
+ *     QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
  * // If you have special conf parameter to set for integration tests:
  * TachyonConf testConf = localTachyonCluster.getTestConf();
  * testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
@@ -144,7 +145,18 @@ public final class LocalTachyonCluster {
     mTestConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mTestConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     mTestConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
+    mTestConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
+    mTestConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
 
+    // If tests fail to connect they should fail early rather than using the default ridiculously
+    // high retries
+    mTestConf.set(Constants.MASTER_RETRY_COUNT, "3");
+
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
+    mTestConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
+
+    mTestConf.set(Constants.WEB_THREAD_COUNT, "1");
     mTestConf.set(Constants.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
