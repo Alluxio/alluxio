@@ -73,9 +73,7 @@ public class FileSystemMasterService {
 
     public void reportLostFile(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
-    public void setPinned(long fileId, boolean pinned) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
-
-    public void setTTL(long fileId, long ttl) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
+    public void setState(long fileId, SetStateTOptions options) throws org.apache.thrift.TException;
 
     public boolean unmount(String tachyonPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
@@ -119,9 +117,7 @@ public class FileSystemMasterService {
 
     public void reportLostFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void setPinned(long fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void setTTL(long fileId, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void setState(long fileId, SetStateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void unmount(String tachyonPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -593,51 +589,24 @@ public class FileSystemMasterService {
       return;
     }
 
-    public void setPinned(long fileId, boolean pinned) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    public void setState(long fileId, SetStateTOptions options) throws org.apache.thrift.TException
     {
-      send_setPinned(fileId, pinned);
-      recv_setPinned();
+      send_setState(fileId, options);
+      recv_setState();
     }
 
-    public void send_setPinned(long fileId, boolean pinned) throws org.apache.thrift.TException
+    public void send_setState(long fileId, SetStateTOptions options) throws org.apache.thrift.TException
     {
-      setPinned_args args = new setPinned_args();
+      setState_args args = new setState_args();
       args.setFileId(fileId);
-      args.setPinned(pinned);
-      sendBase("setPinned", args);
+      args.setOptions(options);
+      sendBase("setState", args);
     }
 
-    public void recv_setPinned() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    public void recv_setState() throws org.apache.thrift.TException
     {
-      setPinned_result result = new setPinned_result();
-      receiveBase(result, "setPinned");
-      if (result.e != null) {
-        throw result.e;
-      }
-      return;
-    }
-
-    public void setTTL(long fileId, long ttl) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
-    {
-      send_setTTL(fileId, ttl);
-      recv_setTTL();
-    }
-
-    public void send_setTTL(long fileId, long ttl) throws org.apache.thrift.TException
-    {
-      setTTL_args args = new setTTL_args();
-      args.setFileId(fileId);
-      args.setTtl(ttl);
-      sendBase("setTTL", args);
-    }
-
-    public void recv_setTTL() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
-    {
-      setTTL_result result = new setTTL_result();
-      receiveBase(result, "setTTL");
-      if (result.e != null) {
-        throw result.e;
-      }
+      setState_result result = new setState_result();
+      receiveBase(result, "setState");
       return;
     }
 
@@ -1278,73 +1247,38 @@ public class FileSystemMasterService {
       }
     }
 
-    public void setPinned(long fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void setState(long fileId, SetStateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      setPinned_call method_call = new setPinned_call(fileId, pinned, resultHandler, this, ___protocolFactory, ___transport);
+      setState_call method_call = new setState_call(fileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class setPinned_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class setState_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
-      private boolean pinned;
-      public setPinned_call(long fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private SetStateTOptions options;
+      public setState_call(long fileId, SetStateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-        this.pinned = pinned;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("setPinned", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        setPinned_args args = new setPinned_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("setState", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        setState_args args = new setState_args();
         args.setFileId(fileId);
-        args.setPinned(pinned);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_setPinned();
-      }
-    }
-
-    public void setTTL(long fileId, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      setTTL_call method_call = new setTTL_call(fileId, ttl, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class setTTL_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long fileId;
-      private long ttl;
-      public setTTL_call(long fileId, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.fileId = fileId;
-        this.ttl = ttl;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("setTTL", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        setTTL_args args = new setTTL_args();
-        args.setFileId(fileId);
-        args.setTtl(ttl);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public void getResult() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_setTTL();
+        (new Client(prot)).recv_setState();
       }
     }
 
@@ -1439,8 +1373,7 @@ public class FileSystemMasterService {
       processMap.put("remove", new remove());
       processMap.put("rename", new rename());
       processMap.put("reportLostFile", new reportLostFile());
-      processMap.put("setPinned", new setPinned());
-      processMap.put("setTTL", new setTTL());
+      processMap.put("setState", new setState());
       processMap.put("unmount", new unmount());
       processMap.put("workerGetPinIdList", new workerGetPinIdList());
       return processMap;
@@ -1860,50 +1793,22 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class setPinned<I extends Iface> extends org.apache.thrift.ProcessFunction<I, setPinned_args> {
-      public setPinned() {
-        super("setPinned");
+    public static class setState<I extends Iface> extends org.apache.thrift.ProcessFunction<I, setState_args> {
+      public setState() {
+        super("setState");
       }
 
-      public setPinned_args getEmptyArgsInstance() {
-        return new setPinned_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public setPinned_result getResult(I iface, setPinned_args args) throws org.apache.thrift.TException {
-        setPinned_result result = new setPinned_result();
-        try {
-          iface.setPinned(args.fileId, args.pinned);
-        } catch (tachyon.thrift.TachyonTException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
-    public static class setTTL<I extends Iface> extends org.apache.thrift.ProcessFunction<I, setTTL_args> {
-      public setTTL() {
-        super("setTTL");
-      }
-
-      public setTTL_args getEmptyArgsInstance() {
-        return new setTTL_args();
+      public setState_args getEmptyArgsInstance() {
+        return new setState_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public setTTL_result getResult(I iface, setTTL_args args) throws org.apache.thrift.TException {
-        setTTL_result result = new setTTL_result();
-        try {
-          iface.setTTL(args.fileId, args.ttl);
-        } catch (tachyon.thrift.TachyonTException e) {
-          result.e = e;
-        }
+      public setState_result getResult(I iface, setState_args args) throws org.apache.thrift.TException {
+        setState_result result = new setState_result();
+        iface.setState(args.fileId, args.options);
         return result;
       }
     }
@@ -1985,8 +1890,7 @@ public class FileSystemMasterService {
       processMap.put("remove", new remove());
       processMap.put("rename", new rename());
       processMap.put("reportLostFile", new reportLostFile());
-      processMap.put("setPinned", new setPinned());
-      processMap.put("setTTL", new setTTL());
+      processMap.put("setState", new setState());
       processMap.put("unmount", new unmount());
       processMap.put("workerGetPinIdList", new workerGetPinIdList());
       return processMap;
@@ -2967,20 +2871,20 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class setPinned<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, setPinned_args, Void> {
-      public setPinned() {
-        super("setPinned");
+    public static class setState<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, setState_args, Void> {
+      public setState() {
+        super("setState");
       }
 
-      public setPinned_args getEmptyArgsInstance() {
-        return new setPinned_args();
+      public setState_args getEmptyArgsInstance() {
+        return new setState_args();
       }
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Void>() { 
           public void onComplete(Void o) {
-            setPinned_result result = new setPinned_result();
+            setState_result result = new setState_result();
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -2992,13 +2896,7 @@ public class FileSystemMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            setPinned_result result = new setPinned_result();
-            if (e instanceof tachyon.thrift.TachyonTException) {
-                        result.e = (tachyon.thrift.TachyonTException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
+            setState_result result = new setState_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -3018,64 +2916,8 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, setPinned_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.setPinned(args.fileId, args.pinned,resultHandler);
-      }
-    }
-
-    public static class setTTL<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, setTTL_args, Void> {
-      public setTTL() {
-        super("setTTL");
-      }
-
-      public setTTL_args getEmptyArgsInstance() {
-        return new setTTL_args();
-      }
-
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
-            setTTL_result result = new setTTL_result();
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            setTTL_result result = new setTTL_result();
-            if (e instanceof tachyon.thrift.TachyonTException) {
-                        result.e = (tachyon.thrift.TachyonTException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, setTTL_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.setTTL(args.fileId, args.ttl,resultHandler);
+      public void start(I iface, setState_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.setState(args.fileId, args.options,resultHandler);
       }
     }
 
@@ -17990,25 +17832,25 @@ public class FileSystemMasterService {
 
   }
 
-  public static class setPinned_args implements org.apache.thrift.TBase<setPinned_args, setPinned_args._Fields>, java.io.Serializable, Cloneable, Comparable<setPinned_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setPinned_args");
+  public static class setState_args implements org.apache.thrift.TBase<setState_args, setState_args._Fields>, java.io.Serializable, Cloneable, Comparable<setState_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setState_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField PINNED_FIELD_DESC = new org.apache.thrift.protocol.TField("pinned", org.apache.thrift.protocol.TType.BOOL, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new setPinned_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new setPinned_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new setState_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new setState_argsTupleSchemeFactory());
     }
 
     public long fileId; // required
-    public boolean pinned; // required
+    public SetStateTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       FILE_ID((short)1, "fileId"),
-      PINNED((short)2, "pinned");
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -18025,8 +17867,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
-          case 2: // PINNED
-            return PINNED;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -18068,59 +17910,58 @@ public class FileSystemMasterService {
 
     // isset id assignments
     private static final int __FILEID_ISSET_ID = 0;
-    private static final int __PINNED_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.PINNED, new org.apache.thrift.meta_data.FieldMetaData("pinned", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SetStateTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setPinned_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setState_args.class, metaDataMap);
     }
 
-    public setPinned_args() {
+    public setState_args() {
     }
 
-    public setPinned_args(
+    public setState_args(
       long fileId,
-      boolean pinned)
+      SetStateTOptions options)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
-      this.pinned = pinned;
-      setPinnedIsSet(true);
+      this.options = options;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public setPinned_args(setPinned_args other) {
+    public setState_args(setState_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
-      this.pinned = other.pinned;
+      if (other.isSetOptions()) {
+        this.options = new SetStateTOptions(other.options);
+      }
     }
 
-    public setPinned_args deepCopy() {
-      return new setPinned_args(this);
+    public setState_args deepCopy() {
+      return new setState_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
-      setPinnedIsSet(false);
-      this.pinned = false;
+      this.options = null;
     }
 
     public long getFileId() {
       return this.fileId;
     }
 
-    public setPinned_args setFileId(long fileId) {
+    public setState_args setFileId(long fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -18139,27 +17980,28 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
-    public boolean isPinned() {
-      return this.pinned;
+    public SetStateTOptions getOptions() {
+      return this.options;
     }
 
-    public setPinned_args setPinned(boolean pinned) {
-      this.pinned = pinned;
-      setPinnedIsSet(true);
+    public setState_args setOptions(SetStateTOptions options) {
+      this.options = options;
       return this;
     }
 
-    public void unsetPinned() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __PINNED_ISSET_ID);
+    public void unsetOptions() {
+      this.options = null;
     }
 
-    /** Returns true if field pinned is set (has been assigned a value) and false otherwise */
-    public boolean isSetPinned() {
-      return EncodingUtils.testBit(__isset_bitfield, __PINNED_ISSET_ID);
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
     }
 
-    public void setPinnedIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PINNED_ISSET_ID, value);
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -18172,11 +18014,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case PINNED:
+      case OPTIONS:
         if (value == null) {
-          unsetPinned();
+          unsetOptions();
         } else {
-          setPinned((Boolean)value);
+          setOptions((SetStateTOptions)value);
         }
         break;
 
@@ -18188,8 +18030,8 @@ public class FileSystemMasterService {
       case FILE_ID:
         return Long.valueOf(getFileId());
 
-      case PINNED:
-        return Boolean.valueOf(isPinned());
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -18204,8 +18046,8 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
-      case PINNED:
-        return isSetPinned();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -18214,12 +18056,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof setPinned_args)
-        return this.equals((setPinned_args)that);
+      if (that instanceof setState_args)
+        return this.equals((setState_args)that);
       return false;
     }
 
-    public boolean equals(setPinned_args that) {
+    public boolean equals(setState_args that) {
       if (that == null)
         return false;
 
@@ -18232,12 +18074,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_pinned = true;
-      boolean that_present_pinned = true;
-      if (this_present_pinned || that_present_pinned) {
-        if (!(this_present_pinned && that_present_pinned))
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
           return false;
-        if (this.pinned != that.pinned)
+        if (!this.options.equals(that.options))
           return false;
       }
 
@@ -18253,16 +18095,16 @@ public class FileSystemMasterService {
       if (present_fileId)
         list.add(fileId);
 
-      boolean present_pinned = true;
-      list.add(present_pinned);
-      if (present_pinned)
-        list.add(pinned);
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(setPinned_args other) {
+    public int compareTo(setState_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -18279,12 +18121,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetPinned()).compareTo(other.isSetPinned());
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetPinned()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pinned, other.pinned);
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -18306,15 +18148,19 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("setPinned_args(");
+      StringBuilder sb = new StringBuilder("setState_args(");
       boolean first = true;
 
       sb.append("fileId:");
       sb.append(this.fileId);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("pinned:");
-      sb.append(this.pinned);
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -18323,6 +18169,9 @@ public class FileSystemMasterService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -18343,15 +18192,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class setPinned_argsStandardSchemeFactory implements SchemeFactory {
-      public setPinned_argsStandardScheme getScheme() {
-        return new setPinned_argsStandardScheme();
+    private static class setState_argsStandardSchemeFactory implements SchemeFactory {
+      public setState_argsStandardScheme getScheme() {
+        return new setState_argsStandardScheme();
       }
     }
 
-    private static class setPinned_argsStandardScheme extends StandardScheme<setPinned_args> {
+    private static class setState_argsStandardScheme extends StandardScheme<setState_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, setPinned_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, setState_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -18369,10 +18218,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // PINNED
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.pinned = iprot.readBool();
-                struct.setPinnedIsSet(true);
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new SetStateTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -18388,386 +18238,16 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, setPinned_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, setState_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.fileId);
         oprot.writeFieldEnd();
-        oprot.writeFieldBegin(PINNED_FIELD_DESC);
-        oprot.writeBool(struct.pinned);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class setPinned_argsTupleSchemeFactory implements SchemeFactory {
-      public setPinned_argsTupleScheme getScheme() {
-        return new setPinned_argsTupleScheme();
-      }
-    }
-
-    private static class setPinned_argsTupleScheme extends TupleScheme<setPinned_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, setPinned_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
-          optionals.set(0);
-        }
-        if (struct.isSetPinned()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetFileId()) {
-          oprot.writeI64(struct.fileId);
-        }
-        if (struct.isSetPinned()) {
-          oprot.writeBool(struct.pinned);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, setPinned_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.fileId = iprot.readI64();
-          struct.setFileIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.pinned = iprot.readBool();
-          struct.setPinnedIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class setPinned_result implements org.apache.thrift.TBase<setPinned_result, setPinned_result._Fields>, java.io.Serializable, Cloneable, Comparable<setPinned_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setPinned_result");
-
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new setPinned_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new setPinned_resultTupleSchemeFactory());
-    }
-
-    public tachyon.thrift.TachyonTException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // E
-            return E;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setPinned_result.class, metaDataMap);
-    }
-
-    public setPinned_result() {
-    }
-
-    public setPinned_result(
-      tachyon.thrift.TachyonTException e)
-    {
-      this();
-      this.e = e;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public setPinned_result(setPinned_result other) {
-      if (other.isSetE()) {
-        this.e = new tachyon.thrift.TachyonTException(other.e);
-      }
-    }
-
-    public setPinned_result deepCopy() {
-      return new setPinned_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.e = null;
-    }
-
-    public tachyon.thrift.TachyonTException getE() {
-      return this.e;
-    }
-
-    public setPinned_result setE(tachyon.thrift.TachyonTException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((tachyon.thrift.TachyonTException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case E:
-        return getE();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case E:
-        return isSetE();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof setPinned_result)
-        return this.equals((setPinned_result)that);
-      return false;
-    }
-
-    public boolean equals(setPinned_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      List<Object> list = new ArrayList<Object>();
-
-      boolean present_e = true && (isSetE());
-      list.add(present_e);
-      if (present_e)
-        list.add(e);
-
-      return list.hashCode();
-    }
-
-    @Override
-    public int compareTo(setPinned_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("setPinned_result(");
-      boolean first = true;
-
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class setPinned_resultStandardSchemeFactory implements SchemeFactory {
-      public setPinned_resultStandardScheme getScheme() {
-        return new setPinned_resultStandardScheme();
-      }
-    }
-
-    private static class setPinned_resultStandardScheme extends StandardScheme<setPinned_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, setPinned_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new tachyon.thrift.TachyonTException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, setPinned_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -18776,484 +18256,35 @@ public class FileSystemMasterService {
 
     }
 
-    private static class setPinned_resultTupleSchemeFactory implements SchemeFactory {
-      public setPinned_resultTupleScheme getScheme() {
-        return new setPinned_resultTupleScheme();
+    private static class setState_argsTupleSchemeFactory implements SchemeFactory {
+      public setState_argsTupleScheme getScheme() {
+        return new setState_argsTupleScheme();
       }
     }
 
-    private static class setPinned_resultTupleScheme extends TupleScheme<setPinned_result> {
+    private static class setState_argsTupleScheme extends TupleScheme<setState_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, setPinned_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, setPinned_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.e = new tachyon.thrift.TachyonTException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class setTTL_args implements org.apache.thrift.TBase<setTTL_args, setTTL_args._Fields>, java.io.Serializable, Cloneable, Comparable<setTTL_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setTTL_args");
-
-    private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new setTTL_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new setTTL_argsTupleSchemeFactory());
-    }
-
-    public long fileId; // required
-    public long ttl; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId"),
-      TTL((short)2, "ttl");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // FILE_ID
-            return FILE_ID;
-          case 2: // TTL
-            return TTL;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __FILEID_ISSET_ID = 0;
-    private static final int __TTL_ISSET_ID = 1;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setTTL_args.class, metaDataMap);
-    }
-
-    public setTTL_args() {
-    }
-
-    public setTTL_args(
-      long fileId,
-      long ttl)
-    {
-      this();
-      this.fileId = fileId;
-      setFileIdIsSet(true);
-      this.ttl = ttl;
-      setTtlIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public setTTL_args(setTTL_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.fileId = other.fileId;
-      this.ttl = other.ttl;
-    }
-
-    public setTTL_args deepCopy() {
-      return new setTTL_args(this);
-    }
-
-    @Override
-    public void clear() {
-      setFileIdIsSet(false);
-      this.fileId = 0;
-      setTtlIsSet(false);
-      this.ttl = 0;
-    }
-
-    public long getFileId() {
-      return this.fileId;
-    }
-
-    public setTTL_args setFileId(long fileId) {
-      this.fileId = fileId;
-      setFileIdIsSet(true);
-      return this;
-    }
-
-    public void unsetFileId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILEID_ISSET_ID);
-    }
-
-    /** Returns true if field fileId is set (has been assigned a value) and false otherwise */
-    public boolean isSetFileId() {
-      return EncodingUtils.testBit(__isset_bitfield, __FILEID_ISSET_ID);
-    }
-
-    public void setFileIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
-    }
-
-    public long getTtl() {
-      return this.ttl;
-    }
-
-    public setTTL_args setTtl(long ttl) {
-      this.ttl = ttl;
-      setTtlIsSet(true);
-      return this;
-    }
-
-    public void unsetTtl() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TTL_ISSET_ID);
-    }
-
-    /** Returns true if field ttl is set (has been assigned a value) and false otherwise */
-    public boolean isSetTtl() {
-      return EncodingUtils.testBit(__isset_bitfield, __TTL_ISSET_ID);
-    }
-
-    public void setTtlIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case FILE_ID:
-        if (value == null) {
-          unsetFileId();
-        } else {
-          setFileId((Long)value);
-        }
-        break;
-
-      case TTL:
-        if (value == null) {
-          unsetTtl();
-        } else {
-          setTtl((Long)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case FILE_ID:
-        return Long.valueOf(getFileId());
-
-      case TTL:
-        return Long.valueOf(getTtl());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case FILE_ID:
-        return isSetFileId();
-      case TTL:
-        return isSetTtl();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof setTTL_args)
-        return this.equals((setTTL_args)that);
-      return false;
-    }
-
-    public boolean equals(setTTL_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_fileId = true;
-      boolean that_present_fileId = true;
-      if (this_present_fileId || that_present_fileId) {
-        if (!(this_present_fileId && that_present_fileId))
-          return false;
-        if (this.fileId != that.fileId)
-          return false;
-      }
-
-      boolean this_present_ttl = true;
-      boolean that_present_ttl = true;
-      if (this_present_ttl || that_present_ttl) {
-        if (!(this_present_ttl && that_present_ttl))
-          return false;
-        if (this.ttl != that.ttl)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      List<Object> list = new ArrayList<Object>();
-
-      boolean present_fileId = true;
-      list.add(present_fileId);
-      if (present_fileId)
-        list.add(fileId);
-
-      boolean present_ttl = true;
-      list.add(present_ttl);
-      if (present_ttl)
-        list.add(ttl);
-
-      return list.hashCode();
-    }
-
-    @Override
-    public int compareTo(setTTL_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetTtl()).compareTo(other.isSetTtl());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetTtl()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttl, other.ttl);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("setTTL_args(");
-      boolean first = true;
-
-      sb.append("fileId:");
-      sb.append(this.fileId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ttl:");
-      sb.append(this.ttl);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class setTTL_argsStandardSchemeFactory implements SchemeFactory {
-      public setTTL_argsStandardScheme getScheme() {
-        return new setTTL_argsStandardScheme();
-      }
-    }
-
-    private static class setTTL_argsStandardScheme extends StandardScheme<setTTL_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, setTTL_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // FILE_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.fileId = iprot.readI64();
-                struct.setFileIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // TTL
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.ttl = iprot.readI64();
-                struct.setTtlIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, setTTL_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI64(struct.fileId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(TTL_FIELD_DESC);
-        oprot.writeI64(struct.ttl);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class setTTL_argsTupleSchemeFactory implements SchemeFactory {
-      public setTTL_argsTupleScheme getScheme() {
-        return new setTTL_argsTupleScheme();
-      }
-    }
-
-    private static class setTTL_argsTupleScheme extends TupleScheme<setTTL_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, setTTL_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, setState_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        if (struct.isSetTtl()) {
+        if (struct.isSetOptions()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetFileId()) {
           oprot.writeI64(struct.fileId);
         }
-        if (struct.isSetTtl()) {
-          oprot.writeI64(struct.ttl);
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, setTTL_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, setState_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
@@ -19261,30 +18292,29 @@ public class FileSystemMasterService {
           struct.setFileIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.ttl = iprot.readI64();
-          struct.setTtlIsSet(true);
+          struct.options = new SetStateTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
 
   }
 
-  public static class setTTL_result implements org.apache.thrift.TBase<setTTL_result, setTTL_result._Fields>, java.io.Serializable, Cloneable, Comparable<setTTL_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setTTL_result");
+  public static class setState_result implements org.apache.thrift.TBase<setState_result, setState_result._Fields>, java.io.Serializable, Cloneable, Comparable<setState_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setState_result");
 
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new setTTL_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new setTTL_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new setState_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new setState_resultTupleSchemeFactory());
     }
 
-    public tachyon.thrift.TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+;
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -19299,8 +18329,6 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // E
-            return E;
           default:
             return null;
         }
@@ -19339,87 +18367,37 @@ public class FileSystemMasterService {
         return _fieldName;
       }
     }
-
-    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setTTL_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setState_result.class, metaDataMap);
     }
 
-    public setTTL_result() {
-    }
-
-    public setTTL_result(
-      tachyon.thrift.TachyonTException e)
-    {
-      this();
-      this.e = e;
+    public setState_result() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public setTTL_result(setTTL_result other) {
-      if (other.isSetE()) {
-        this.e = new tachyon.thrift.TachyonTException(other.e);
-      }
+    public setState_result(setState_result other) {
     }
 
-    public setTTL_result deepCopy() {
-      return new setTTL_result(this);
+    public setState_result deepCopy() {
+      return new setState_result(this);
     }
 
     @Override
     public void clear() {
-      this.e = null;
-    }
-
-    public tachyon.thrift.TachyonTException getE() {
-      return this.e;
-    }
-
-    public setTTL_result setE(tachyon.thrift.TachyonTException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((tachyon.thrift.TachyonTException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case E:
-        return getE();
-
       }
       throw new IllegalStateException();
     }
@@ -19431,8 +18409,6 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
-      case E:
-        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -19441,23 +18417,14 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof setTTL_result)
-        return this.equals((setTTL_result)that);
+      if (that instanceof setState_result)
+        return this.equals((setState_result)that);
       return false;
     }
 
-    public boolean equals(setTTL_result that) {
+    public boolean equals(setState_result that) {
       if (that == null)
         return false;
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
 
       return true;
     }
@@ -19466,32 +18433,17 @@ public class FileSystemMasterService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_e = true && (isSetE());
-      list.add(present_e);
-      if (present_e)
-        list.add(e);
-
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(setTTL_result other) {
+    public int compareTo(setState_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -19509,16 +18461,9 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("setTTL_result(");
+      StringBuilder sb = new StringBuilder("setState_result(");
       boolean first = true;
 
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -19544,15 +18489,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class setTTL_resultStandardSchemeFactory implements SchemeFactory {
-      public setTTL_resultStandardScheme getScheme() {
-        return new setTTL_resultStandardScheme();
+    private static class setState_resultStandardSchemeFactory implements SchemeFactory {
+      public setState_resultStandardScheme getScheme() {
+        return new setState_resultStandardScheme();
       }
     }
 
-    private static class setTTL_resultStandardScheme extends StandardScheme<setTTL_result> {
+    private static class setState_resultStandardScheme extends StandardScheme<setState_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, setTTL_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, setState_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -19562,15 +18507,6 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new tachyon.thrift.TachyonTException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -19582,51 +18518,32 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, setTTL_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, setState_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class setTTL_resultTupleSchemeFactory implements SchemeFactory {
-      public setTTL_resultTupleScheme getScheme() {
-        return new setTTL_resultTupleScheme();
+    private static class setState_resultTupleSchemeFactory implements SchemeFactory {
+      public setState_resultTupleScheme getScheme() {
+        return new setState_resultTupleScheme();
       }
     }
 
-    private static class setTTL_resultTupleScheme extends TupleScheme<setTTL_result> {
+    private static class setState_resultTupleScheme extends TupleScheme<setState_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, setTTL_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, setState_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, setTTL_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, setState_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.e = new tachyon.thrift.TachyonTException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
       }
     }
 

@@ -49,10 +49,10 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     schemes.put(TupleScheme.class, new CreateTOptionsTupleSchemeFactory());
   }
 
-  public long blockSizeBytes; // optional
-  public boolean persisted; // optional
-  public boolean recursive; // optional
-  public long ttl; // optional
+  public long blockSizeBytes; // required
+  public boolean persisted; // required
+  public boolean recursive; // required
+  public long ttl; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -127,23 +127,39 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
   private static final int __RECURSIVE_ISSET_ID = 2;
   private static final int __TTL_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.PERSISTED, new org.apache.thrift.meta_data.FieldMetaData("persisted", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.PERSISTED, new org.apache.thrift.meta_data.FieldMetaData("persisted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CreateTOptions.class, metaDataMap);
   }
 
   public CreateTOptions() {
+  }
+
+  public CreateTOptions(
+    long blockSizeBytes,
+    boolean persisted,
+    boolean recursive,
+    long ttl)
+  {
+    this();
+    this.blockSizeBytes = blockSizeBytes;
+    setBlockSizeBytesIsSet(true);
+    this.persisted = persisted;
+    setPersistedIsSet(true);
+    this.recursive = recursive;
+    setRecursiveIsSet(true);
+    this.ttl = ttl;
+    setTtlIsSet(true);
   }
 
   /**
@@ -352,8 +368,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     if (that == null)
       return false;
 
-    boolean this_present_blockSizeBytes = true && this.isSetBlockSizeBytes();
-    boolean that_present_blockSizeBytes = true && that.isSetBlockSizeBytes();
+    boolean this_present_blockSizeBytes = true;
+    boolean that_present_blockSizeBytes = true;
     if (this_present_blockSizeBytes || that_present_blockSizeBytes) {
       if (!(this_present_blockSizeBytes && that_present_blockSizeBytes))
         return false;
@@ -361,8 +377,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
         return false;
     }
 
-    boolean this_present_persisted = true && this.isSetPersisted();
-    boolean that_present_persisted = true && that.isSetPersisted();
+    boolean this_present_persisted = true;
+    boolean that_present_persisted = true;
     if (this_present_persisted || that_present_persisted) {
       if (!(this_present_persisted && that_present_persisted))
         return false;
@@ -370,8 +386,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
         return false;
     }
 
-    boolean this_present_recursive = true && this.isSetRecursive();
-    boolean that_present_recursive = true && that.isSetRecursive();
+    boolean this_present_recursive = true;
+    boolean that_present_recursive = true;
     if (this_present_recursive || that_present_recursive) {
       if (!(this_present_recursive && that_present_recursive))
         return false;
@@ -379,8 +395,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
         return false;
     }
 
-    boolean this_present_ttl = true && this.isSetTtl();
-    boolean that_present_ttl = true && that.isSetTtl();
+    boolean this_present_ttl = true;
+    boolean that_present_ttl = true;
     if (this_present_ttl || that_present_ttl) {
       if (!(this_present_ttl && that_present_ttl))
         return false;
@@ -395,22 +411,22 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_blockSizeBytes = true && (isSetBlockSizeBytes());
+    boolean present_blockSizeBytes = true;
     list.add(present_blockSizeBytes);
     if (present_blockSizeBytes)
       list.add(blockSizeBytes);
 
-    boolean present_persisted = true && (isSetPersisted());
+    boolean present_persisted = true;
     list.add(present_persisted);
     if (present_persisted)
       list.add(persisted);
 
-    boolean present_recursive = true && (isSetRecursive());
+    boolean present_recursive = true;
     list.add(present_recursive);
     if (present_recursive)
       list.add(recursive);
 
-    boolean present_ttl = true && (isSetTtl());
+    boolean present_ttl = true;
     list.add(present_ttl);
     if (present_ttl)
       list.add(ttl);
@@ -486,29 +502,21 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     StringBuilder sb = new StringBuilder("CreateTOptions(");
     boolean first = true;
 
-    if (isSetBlockSizeBytes()) {
-      sb.append("blockSizeBytes:");
-      sb.append(this.blockSizeBytes);
-      first = false;
-    }
-    if (isSetPersisted()) {
-      if (!first) sb.append(", ");
-      sb.append("persisted:");
-      sb.append(this.persisted);
-      first = false;
-    }
-    if (isSetRecursive()) {
-      if (!first) sb.append(", ");
-      sb.append("recursive:");
-      sb.append(this.recursive);
-      first = false;
-    }
-    if (isSetTtl()) {
-      if (!first) sb.append(", ");
-      sb.append("ttl:");
-      sb.append(this.ttl);
-      first = false;
-    }
+    sb.append("blockSizeBytes:");
+    sb.append(this.blockSizeBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("persisted:");
+    sb.append(this.persisted);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("recursive:");
+    sb.append(this.recursive);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("ttl:");
+    sb.append(this.ttl);
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -601,26 +609,18 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.isSetBlockSizeBytes()) {
-        oprot.writeFieldBegin(BLOCK_SIZE_BYTES_FIELD_DESC);
-        oprot.writeI64(struct.blockSizeBytes);
-        oprot.writeFieldEnd();
-      }
-      if (struct.isSetPersisted()) {
-        oprot.writeFieldBegin(PERSISTED_FIELD_DESC);
-        oprot.writeBool(struct.persisted);
-        oprot.writeFieldEnd();
-      }
-      if (struct.isSetRecursive()) {
-        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
-        oprot.writeBool(struct.recursive);
-        oprot.writeFieldEnd();
-      }
-      if (struct.isSetTtl()) {
-        oprot.writeFieldBegin(TTL_FIELD_DESC);
-        oprot.writeI64(struct.ttl);
-        oprot.writeFieldEnd();
-      }
+      oprot.writeFieldBegin(BLOCK_SIZE_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.blockSizeBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(PERSISTED_FIELD_DESC);
+      oprot.writeBool(struct.persisted);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
+      oprot.writeBool(struct.recursive);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(TTL_FIELD_DESC);
+      oprot.writeI64(struct.ttl);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
