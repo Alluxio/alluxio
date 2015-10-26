@@ -282,7 +282,7 @@ elif [[ ${COMMAND} == "copyDir" ]]; then
 elif [[ ${COMMAND} == "thriftGen" ]]; then
   rm -rf ${bin}/../common/src/main/java/tachyon/thrift
   for src_file in $(ls ${bin}/../common/src/thrift); do
-    thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
+    /usr/local/Cellar/thrift/0.9.2/bin/thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
   done
   exit 0
 elif [[ ${COMMAND} == "clearCache" ]]; then
