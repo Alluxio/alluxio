@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
+import tachyon.MasterStorageTierAssoc;
 import tachyon.StorageTierAssoc;
 import tachyon.collections.IndexedSet;
 import tachyon.conf.TachyonConf;
@@ -191,8 +192,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
     mGlobalStorageTierAssoc =
-        new StorageTierAssoc(MasterContext.getConf(), Constants.MASTER_TIERED_STORAGE_GLOBAL_LEVELS,
-            Constants.MASTER_TIERED_STORAGE_GLOBAL_LEVEL_ALIAS_FORMAT);
+        new MasterStorageTierAssoc(MasterContext.getConf());
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
@@ -425,7 +425,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
-          ret.put(entry.getKey(), ret.getOrDefault(entry.getKey(), 0L) + entry.getValue());
+          Long total = ret.get(entry.getKey());
+          ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
         }
       }
     }
@@ -440,7 +441,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
-          ret.put(entry.getKey(), ret.getOrDefault(entry.getKey(), 0L) + entry.getValue());
+          Long used = ret.get(entry.getKey());
+          ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
         }
       }
     }
@@ -603,7 +605,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * mBlocks should already be locked before calling this method.
    *
    * @param workerInfo The worker metadata object
-   * @param addedBlockIds A mapping from storage tier alias to alist of block ids added
+   * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<String, List<Long>> addedBlockIds) {

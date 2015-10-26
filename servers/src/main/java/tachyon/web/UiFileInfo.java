@@ -123,7 +123,8 @@ public final class UiFileInfo {
     }
     blocksOnTier.add(block);
 
-    mSizeOnTier.put(tierAlias, mSizeOnTier.getOrDefault(tierAlias, (long) 0) + blockSize);
+    Long sizeOnTier = mSizeOnTier.get(tierAlias);
+    mSizeOnTier.put(tierAlias, (sizeOnTier == null ? 0L : sizeOnTier) + blockSize);
   }
 
   public String getAbsolutePath() {

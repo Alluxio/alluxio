@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
@@ -44,9 +45,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
 
   public BlockServiceHandler(BlockDataManager worker) {
     mWorker = worker;
-    mStorageTierAssoc =
-        new StorageTierAssoc(WorkerContext.getConf(), Constants.WORKER_TIERED_STORAGE_LEVELS,
-            Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
   /**

@@ -115,7 +115,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param workerId the worker id
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
-   * @param addedBlocks the added blocks for each storage dir
+   * @param addedBlocks a mapping from storage tier alias to added blocks
    * @return an optional command for the worker to execute
    * @throws IOException if an I/O error occurs
    */

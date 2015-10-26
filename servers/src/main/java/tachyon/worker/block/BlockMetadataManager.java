@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
@@ -82,8 +83,7 @@ public class BlockMetadataManager {
   private void initBlockMetadataManager()
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     // Initialize storage tiers
-    StorageTierAssoc storageTierAssoc = new StorageTierAssoc(WorkerContext.getConf(),
-        Constants.WORKER_TIERED_STORAGE_LEVELS, Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
     mAliasToTiers = new HashMap<String, StorageTier>(storageTierAssoc.size());
     mTiers = new ArrayList<StorageTier>(storageTierAssoc.size());
     for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal ++) {

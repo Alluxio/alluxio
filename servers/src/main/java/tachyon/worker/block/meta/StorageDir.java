@@ -32,7 +32,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.StorageDirId;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
@@ -193,13 +192,6 @@ public final class StorageDir {
    */
   public int getDirIndex() {
     return mDirIndex;
-  }
-
-  /**
-   * @return a unique identifier for the storage directory on the worker
-   */
-  public long getStorageDirId() {
-    return StorageDirId.getStorageDirId(mTier.getTierOrdinal(), getDirIndex());
   }
 
   /**

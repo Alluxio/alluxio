@@ -45,7 +45,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 600, true, "SDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 600, true, "SSD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -55,7 +55,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 700, true, "SDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 700, true, "SSD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -65,7 +65,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "SDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "SSD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -75,7 +75,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "SDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "SSD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -85,7 +85,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "SDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "SSD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -135,7 +135,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, "SDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, "SSD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -145,7 +145,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, "SDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, "SSD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200

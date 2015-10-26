@@ -125,7 +125,7 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.WORKER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("workerAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "NetAddress")));
     tmpMap.put(_Fields.TIER_ALIAS, new org.apache.thrift.meta_data.FieldMetaData("tierAlias", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -154,7 +154,7 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     __isset_bitfield = other.__isset_bitfield;
     this.workerId = other.workerId;
     if (other.isSetWorkerAddress()) {
-      this.workerAddress = new NetAddress(other.workerAddress);
+      this.workerAddress = other.workerAddress;
     }
     if (other.isSetTierAlias()) {
       this.tierAlias = other.tierAlias;
@@ -454,9 +454,6 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
-    if (workerAddress != null) {
-      workerAddress.validate();
-    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {

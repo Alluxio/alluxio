@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -39,6 +40,7 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
 import tachyon.worker.block.meta.BlockMeta;
@@ -120,6 +122,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         uiFileInfos.add(getUiFileInfo(tFS, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
+      request.setAttribute("orderedTierAliases",
+          new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("fatalError", "Error: Invalid FileId " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -211,7 +215,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
       TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
-      InvalidPathException, IOException, TachyonException {
+          InvalidPathException, IOException, TachyonException {
     TachyonFile file = null;
     if (fileId != -1) {
       file = new TachyonFile(fileId);

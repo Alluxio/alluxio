@@ -96,7 +96,7 @@ public final class BlockMetadataManagerTest {
 
   @Test
   public void getTierNotExistingTest() throws Exception {
-    String badTierAlias = "SDD";
+    String badTierAlias = "SSD";
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetaManager.getTier(badTierAlias);

@@ -128,7 +128,7 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.UFS_LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("ufsLocations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class))));
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "NetAddress"))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileBlockInfo.class, metaDataMap);
   }
@@ -160,7 +160,7 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
     if (other.isSetUfsLocations()) {
       List<NetAddress> __this__ufsLocations = new ArrayList<NetAddress>(other.ufsLocations.size());
       for (NetAddress other_element : other.ufsLocations) {
-        __this__ufsLocations.add(new NetAddress(other_element));
+        __this__ufsLocations.add(other_element);
       }
       this.ufsLocations = __this__ufsLocations;
     }

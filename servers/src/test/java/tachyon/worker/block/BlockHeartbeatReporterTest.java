@@ -25,7 +25,7 @@ import org.junit.Test;
 public class BlockHeartbeatReporterTest {
   private static final int SESSION_ID = 1;
   private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation("MEM", 0);
-  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation("SDD", 0);
+  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation("SSD", 0);
   private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation("HDD", 0);
   BlockHeartbeatReporter mReporter;
 
@@ -69,7 +69,7 @@ public class BlockHeartbeatReporterTest {
     Assert.assertEquals(block1, addedBlocksMem.get(0));
 
     // Block2 moved to ssd
-    List<Long> addedBlocksSsd = addedBlocks.get("SDD");
+    List<Long> addedBlocksSsd = addedBlocks.get("SSD");
     Assert.assertEquals(1, addedBlocksSsd.size());
     Assert.assertEquals(block2, addedBlocksSsd.get(0));
 

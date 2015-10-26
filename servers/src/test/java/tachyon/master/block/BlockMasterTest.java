@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import tachyon.collections.IndexedSet;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterWorkerInfo;
@@ -69,22 +70,22 @@ public class BlockMasterTest {
     Assert.assertEquals(ImmutableMap.of(), mMaster.getUsedBytesOnTiers());
     long worker1 = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
     long worker2 = mMaster.getWorkerId(new NetAddress("localhost", 82, 83));
-    addWorker(mMaster, worker1, Arrays.asList("MEM", "SDD", "HDD"),
-        ImmutableMap.of("MEM", 100L, "SDD", 200L, "HDD", 30L),
-        ImmutableMap.of("MEM", 20L, "SDD", 50L, "HDD", 10L));
+    addWorker(mMaster, worker1, Arrays.asList("MEM", "SSD", "HDD"),
+        ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
+        ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L));
     Assert.assertEquals(330L, mMaster.getCapacityBytes());
     Assert.assertEquals(80L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 100L, "SDD", 200L, "HDD", 30L),
+    Assert.assertEquals(ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
         mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 20L, "SDD", 50L, "HDD", 10L),
+    Assert.assertEquals(ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L),
         mMaster.getUsedBytesOnTiers());
     addWorker(mMaster, worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 500L),
         ImmutableMap.of("MEM", 300L));
     Assert.assertEquals(830L, mMaster.getCapacityBytes());
     Assert.assertEquals(380L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 600L, "SDD", 200L, "HDD", 30L),
+    Assert.assertEquals(ImmutableMap.of("MEM", 600L, "SSD", 200L, "HDD", 30L),
         mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 320L, "SDD", 50L, "HDD", 10L),
+    Assert.assertEquals(ImmutableMap.of("MEM", 320L, "SSD", 50L, "HDD", 10L),
         mMaster.getUsedBytesOnTiers());
   }
 
@@ -174,8 +175,7 @@ public class BlockMasterTest {
     Assert.assertEquals(expectedBlocks, workerInfo.getBlocks());
     // worker is removed from block info
     Map<Long, MasterBlockInfo> blocks = Whitebox.getInternalState(mMaster, "mBlocks");
-    Assert.assertEquals(ImmutableSet.of(),
-        mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK).getWorkers());
+    Assert.assertEquals(ImmutableSet.of(), blocks.get(REMOVED_BLOCK).getWorkers());
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
 
     // test heartbeat adding back the block
@@ -185,8 +185,7 @@ public class BlockMasterTest {
     // block is restored to worker info
     Assert.assertEquals(ImmutableSet.copyOf(INITIAL_BLOCKS), workerInfo.getBlocks());
     // worker is restored to block info
-    Assert.assertEquals(ImmutableSet.of(workerId),
-        mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK).getWorkers());
+    Assert.assertEquals(ImmutableSet.of(workerId), blocks.get(REMOVED_BLOCK).getWorkers());
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
 
     // test heartbeat where the master tells the worker to remove a block
@@ -207,14 +206,14 @@ public class BlockMasterTest {
 
     MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
     final Map<String, Long> INITIAL_USED_BYTES_ON_TIERS =
-        ImmutableMap.of("MEM", 25L, "SDD", 50L, "HDD", 125L);
-    addWorker(mMaster, workerId, Arrays.asList("MEM", "SDD", "HDD"),
-        ImmutableMap.of("MEM", 50L, "SDD", 100L, "HDD", 500L), INITIAL_USED_BYTES_ON_TIERS);
+        ImmutableMap.of("MEM", 25L, "SSD", 50L, "HDD", 125L);
+    addWorker(mMaster, workerId, Arrays.asList("MEM", "SSD", "HDD"),
+        ImmutableMap.of("MEM", 50L, "SSD", 100L, "HDD", 500L), INITIAL_USED_BYTES_ON_TIERS);
 
     long lastUpdatedTime1 = workerInfo.getLastUpdatedTimeMs();
     Thread.sleep(1); // sleep for 1ms so that lastUpdatedTimeMs is guaranteed to change
     final Map<String, Long> NEW_USED_BYTES_ON_TIERS =
-        ImmutableMap.of("MEM", 50L, "SDD", 100L, "HDD", 500L);
+        ImmutableMap.of("MEM", 50L, "SSD", 100L, "HDD", 500L);
     // test simple heartbeat letting the master know that more bytes are being used
     Command heartBeat = mMaster.workerHeartbeat(workerId, NEW_USED_BYTES_ON_TIERS,
         ImmutableList.<Long>of(), ImmutableMap.<String, List<Long>>of());
