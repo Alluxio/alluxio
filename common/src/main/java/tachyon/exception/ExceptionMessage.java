@@ -28,6 +28,13 @@ public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
 
+  // general block
+  BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
+  BLOCK_UNAVAILABLE("Block {0} is not available in Tachyon"),
+  CANNOT_REQUEST_SPACE("Unable to request space from worker"),
+  NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
+  NO_WORKER_AVAILABLE("No Tachyon worker available for host: {0}"),
+
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
   LOCK_ID_FOR_DIFFERENT_SESSION("lockId {0} is owned by sessionId {1} not {2}"),
@@ -40,6 +47,19 @@ public enum ExceptionMessage {
   TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0}"),
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
+
+  // instream/outstream
+  FAILED_CACHE("Failed to cache: {0}"),
+  FAILED_CREATE("Failed to create {0}"),
+  FAILED_SEEK_FORWARD("Failed to seek forward to {0}"),
+  FAILED_SKIP("Failed to skip {0}"),
+  INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
+
+  // netty
+  BLOCK_WRITE_ERROR("Error writing blockId: {0}, sessionId: {1}, address: {2}, message: {3}"),
+  NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
+  UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
+  WRITER_ALREADY_OPEN("This writer is already open for address: {0}, blockId: {1}, sessionId: {2}"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),

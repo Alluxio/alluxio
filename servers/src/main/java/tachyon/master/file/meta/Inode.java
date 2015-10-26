@@ -22,7 +22,7 @@ import tachyon.thrift.FileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
-  public abstract static class Builder<T> {
+  public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;
     protected boolean mDirectory;
     protected long mId;
@@ -40,27 +40,27 @@ public abstract class Inode implements JournalEntryRepresentable {
 
     public T setCreationTimeMs(long creationTimeMs) {
       mCreationTimeMs = creationTimeMs;
-      return (T) this;
+      return getThis();
     }
 
     public T setId(long id) {
       mId = id;
-      return (T) this;
+      return getThis();
     }
 
     public T setName(String name) {
       mName = name;
-      return (T) this;
+      return getThis();
     }
 
     public T setParentId(long parentId) {
       mParentId = parentId;
-      return (T) this;
+      return getThis();
     }
 
     public T setPersisted(boolean persisted) {
       mPersisted = persisted;
-      return (T) this;
+      return getThis();
     }
 
     /**
@@ -69,6 +69,11 @@ public abstract class Inode implements JournalEntryRepresentable {
      * @return a {@link Inode} instance
      */
     public abstract Inode build();
+
+    /**
+     * Returns `this` so that the abstract class can use the fluent builder pattern.
+     */
+    protected abstract T getThis();
   }
 
   private final long mCreationTimeMs;
@@ -96,7 +101,7 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   private boolean mDeleted = false;
 
-  protected Inode(Builder builder) {
+  protected Inode(Builder<?> builder) {
     mCreationTimeMs = builder.mCreationTimeMs;
     mDirectory = builder.mDirectory;
     mLastModificationTimeMs = builder.mCreationTimeMs;

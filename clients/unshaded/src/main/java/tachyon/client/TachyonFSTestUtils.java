@@ -25,9 +25,8 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
