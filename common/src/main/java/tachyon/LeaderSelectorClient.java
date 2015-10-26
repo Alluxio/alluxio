@@ -62,11 +62,18 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
 
     // Create a leader selector using the given path for management.
     // All participants in a given leader selection must use the same path.
-    // ExampleClient here is also a LeaderSelectorListener but this isn't required.
     CuratorFramework client =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     client.start();
+
+    // Sometimes, if the master crashes and restarts too quickly, zookeeper thinks the new client is
+    // still an old one. Close the "old" client and recreate a new one.
+    client.close();
+    client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    client.start();
+
     mLeaderSelector = new LeaderSelector(client, mElectionPath, this);
     mLeaderSelector.setId(name);
 
@@ -147,8 +154,10 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
+      LOG.info("deleting zk path: " + mLeaderFolder + mName);
       client.delete().forPath(mLeaderFolder + mName);
     }
+    LOG.info("creating zk path: " + mLeaderFolder + mName);
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info(mName + " is now the leader.");
     try {
