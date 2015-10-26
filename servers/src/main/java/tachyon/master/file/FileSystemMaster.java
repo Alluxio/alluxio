@@ -337,7 +337,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Complete a file. After a file is completed, it cannot be written to. Called via RPC.
+   * Completes a file. After a file is completed, it cannot be written to. Called via RPC.
    *
    * @param fileId the file id to complete
    * @throws FileDoesNotExistException if the file does not exist
@@ -374,11 +374,15 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
 
+      // If the file is both persisted and stored in memory, the memory footprint and the UFS file
+      // length should match.
       if (fileInode.isPersisted() && inMemoryLength != 0 && options.getLength() != inMemoryLength) {
         throw new SuspectedFileSizeException("Inconsistent file length: Tachyon " + inMemoryLength
             + " UFS " + options.getLength());
       }
 
+      // If the file is persisted, its length is determined by UFS. Otherwise, its length is
+      // determined by its memory footprint.
       long length = fileInode.isPersisted() ? options.getLength() : inMemoryLength;
 
       completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
