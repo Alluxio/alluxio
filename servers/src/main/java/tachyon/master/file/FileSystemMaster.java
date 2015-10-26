@@ -307,7 +307,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void persistFileFromEntry(PersistFileEntry entry) {
     try {
-      persistFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+      persistFileInternal(entry.getFileId(), entry.getLength(), entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     } catch (SuspectedFileSizeException sfse) {
@@ -419,7 +419,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Marks a file as completed. After a file is complete, it cannot be written to. Called via RPC.
    *
-   * @param fileId the file id to complete.
+   * @param fileId the file id to complete
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
@@ -471,7 +471,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
     try {
-      completeFileInternal(entry.getBlockIds(), entry.getFileId(), entry.getFileLength(), true,
+      completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(), true,
           entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
@@ -505,13 +505,11 @@ public final class FileSystemMaster extends MasterBase {
   InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
-    CreatePathOptions createPathOptions =
-        new CreatePathOptions.Builder(MasterContext.getConf())
-            .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
-            .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-            .setTTL(options.getTTL()).build();
-    InodeTree.CreatePathResult createResult =
-        mInodeTree.createPath(path, createPathOptions);
+    CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
+        .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
+        .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
+        .setRecursive(options.isRecursive()).setTTL(options.getTTL()).build();
+    InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -599,7 +597,7 @@ public final class FileSystemMaster extends MasterBase {
    * Deletes a given file id. Called via RPC.
    *
    * @param fileId the file id to delete
-   * @param recursive if true, will delete all its children.
+   * @param recursive if true, will delete all its children
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
@@ -955,8 +953,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Renames a file to a destination. Called via RPC.
    *
-   * @param fileId the source file to rename.
-   * @param dstPath the destination path to rename the file to.
+   * @param fileId the source file to rename
+   * @param dstPath the destination path to rename the file to
    * @return true if the rename was successful
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
@@ -1200,7 +1198,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId The id of the file to look up
    * @return the path of the file
-   * @throws FileDoesNotExistException raise if the file does not exist.
+   * @throws FileDoesNotExistException raise if the file does not exist
    */
   public TachyonURI getPath(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
@@ -1338,10 +1336,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonPath = entry.getTachyonPath();
-    TachyonURI ufsPath = entry.getUfsPath();
-    if (!mountInternal(tachyonPath, ufsPath)) {
-      LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
+    TachyonURI tachyonURI = entry.getTachyonURI();
+    TachyonURI ufsURI = entry.getUfsURI();
+    if (!mountInternal(tachyonURI, ufsURI)) {
+      LOG.error("Failed to mount " + ufsURI + " at " + tachyonURI);
     }
   }
 
@@ -1369,9 +1367,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonPath = entry.getTachyonPath();
-    if (!unmountInternal(tachyonPath)) {
-      LOG.error("Failed to unmount " + tachyonPath);
+    TachyonURI tachyonURI = entry.getTachyonURI();
+    if (!unmountInternal(tachyonURI)) {
+      LOG.error("Failed to unmount " + tachyonURI);
     }
   }
 

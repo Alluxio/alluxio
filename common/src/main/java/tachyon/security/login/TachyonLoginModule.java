@@ -75,7 +75,7 @@ public final class TachyonLoginModule implements LoginModule {
    * The implementation searches the Kerberos or OS user in the Subject. If existed,
    * convert it to a Tachyon user and add into the Subject.
    * @return true in all cases
-   * @throws LoginException if the user extending a specific Principal is not found.
+   * @throws LoginException if the user extending a specific Principal is not found
    */
   @Override
   public boolean commit() throws LoginException {

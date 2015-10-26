@@ -231,7 +231,7 @@ public final class TachyonConf {
    * Merge the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param alternateConf The source <code>TachyonConf</code> to be merged.
+   * @param alternateConf The source <code>TachyonConf</code> to be merged
    */
   public void merge(TachyonConf alternateConf) {
     if (alternateConf != null) {
@@ -389,7 +389,7 @@ public final class TachyonConf {
   /**
    * Lookup key names to handle ${key} stuff. Set as package private for testing.
    *
-   * @param base string to look for.
+   * @param base string to look for
    * @return the key name with the ${key} substituted
    */
   private String lookup(String base) {
@@ -399,8 +399,8 @@ public final class TachyonConf {
   /**
    * Actual recursive lookup replacement.
    *
-   * @param base the String to look for.
-   * @param found {@link Map} of String that already seen in this path.
+   * @param base the String to look for
+   * @param found {@link Map} of String that already seen in this path
    * @return resolved String value
    */
   private String lookupRecursively(final String base, Map<String, String> found) {

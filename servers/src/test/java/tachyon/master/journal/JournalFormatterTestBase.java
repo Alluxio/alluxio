@@ -180,7 +180,7 @@ public abstract class JournalFormatterTestBase {
   }
 
   protected void assertSameEntry(JournalEntry entry1, JournalEntry entry2) {
-    Assert.assertTrue(entry1.getParameters().equals(entry2.getParameters()));
+    Assert.assertEquals(entry1, entry2);
   }
 
   protected void entryTest(JournalEntry entry) throws IOException {

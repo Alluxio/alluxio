@@ -16,21 +16,34 @@
 package tachyon.exception;
 
 public enum TachyonExceptionType {
-  BLOCK_ALREADY_EXISTS,
-  BLOCK_DOES_NOT_EXIST,
-  BLOCK_INFO,
-  DEPENDENCY_DOES_NOT_EXIST,
-  FAILED_TO_CHECKPOINT,
-  FILE_ALREADY_EXISTS,
-  FILE_DOES_NOT_EXIST,
-  INVALID_PATH,
-  INVALID_WORKER_STATE,
-  LINEAGE_DELETION,
-  LINEAGE_DOES_NOT_EXIST,
-  NO_WORKER,
-  SUSPECTED_FILE_SIZE,
-  TABLE_COLUMN,
-  TABLE_DOES_NOT_EXIST,
-  TABLE_METADATA,
-  WORKER_OUT_OF_SPACE,
+  BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
+  BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
+  BLOCK_INFO(BlockInfoException.class),
+  DEPENDENCY_DOES_NOT_EXIST(DependencyDoesNotExistException.class),
+  FAILED_TO_CHECKPOINT(FailedToCheckpointException.class),
+  FILE_ALREADY_EXISTS(FileAlreadyExistsException.class),
+  FILE_DOES_NOT_EXIST(FileDoesNotExistException.class),
+  INVALID_PATH(InvalidPathException.class),
+  INVALID_WORKER_STATE(InvalidWorkerStateException.class),
+  LINEAGE_DELETION(LineageDeletionException.class),
+  LINEAGE_DOES_NOT_EXIST(LineageDoesNotExistException.class),
+  NO_WORKER(NoWorkerException.class),
+  SUSPECTED_FILE_SIZE(SuspectedFileSizeException.class),
+  TABLE_COLUMN(TableColumnException.class),
+  TABLE_DOES_NOT_EXIST(TableDoesNotExistException.class),
+  TABLE_METADATA(TableMetadataException.class),
+  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class);
+
+  private final Class<? extends TachyonException> mExceptionClass;
+
+  /**
+   * Constructs a {@link TachyonExceptionType} with its corresponding {@link TachyonException}.
+   */
+  TachyonExceptionType(Class<? extends TachyonException> exceptionClass) {
+    mExceptionClass = exceptionClass;
+  }
+
+  public Class<? extends TachyonException> getExceptionClass() {
+    return mExceptionClass;
+  }
 }

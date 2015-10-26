@@ -99,7 +99,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.deleteFile(file.getFileId(), options.isRecursive());
+      masterClient.delete(file.getFileId(), options.isRecursive());
       LOG.info(
           "Deleted file " + file.getFileId() + " from both Tachyon Storage and under file system");
     } catch (TachyonException e) {
@@ -256,7 +256,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      boolean result = masterClient.renameFile(src.getFileId(), dst.getPath());
+      boolean result = masterClient.rename(src.getFileId(), dst.getPath());
       if (result) {
         LOG.info("Renamed file " + src.getFileId() + " to " + dst.getPath());
       }

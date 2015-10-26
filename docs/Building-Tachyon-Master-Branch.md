@@ -30,8 +30,8 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 If you want to build a particular version of Tachyon, for example {{site.TACHYON_RELEASED_VERSION}},
 please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
 
-The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages 
-the system. If this is the first time you are building the project, it can take a while to download 
+The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages
+the system. If this is the first time you are building the project, it can take a while to download
 all the dependencies. Subsequent builds, however, will be much faster.
 
 Once Tachyon is built, you can start it with:
@@ -46,7 +46,7 @@ To verify that Tachyon is running, you can visit [http://localhost:19999](http:/
 check the log in the `tachyon/logs` directory. You can also run a simple program:
 
 ```bash
-$ ./bin/tachyon runTest Basic STORE SYNC_PERSIST
+$ ./bin/tachyon runTests
 ```
 
 You should be able to see results similar to the following:

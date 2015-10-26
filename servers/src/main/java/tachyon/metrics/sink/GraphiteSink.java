@@ -44,8 +44,8 @@ public class GraphiteSink implements Sink {
   /**
    * Creates a GraphiteSink with a Properties and MetricRegistry.
    *
-   * @param properties the properties which may contain polling period and unit properties.
-   * @param registry the metric registry to register.
+   * @param properties the properties which may contain polling period and unit properties
+   * @param registry the metric registry to register
    */
   public GraphiteSink(Properties properties, MetricRegistry registry)
       throws IllegalArgumentException {

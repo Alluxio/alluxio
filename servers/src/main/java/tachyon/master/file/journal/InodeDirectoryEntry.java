@@ -15,10 +15,11 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;
@@ -26,8 +27,13 @@ import tachyon.master.journal.JournalEntryType;
 public class InodeDirectoryEntry extends InodeEntry {
   private Set<Long> mChildrenIds;
 
-  public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean persisted, boolean pinned, long lastModificationTimeMs, Set<Long> childrenIds) {
+  @JsonCreator
+  public InodeDirectoryEntry(@JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("id") long id, @JsonProperty("name") String name,
+      @JsonProperty("parentId") long parentId, @JsonProperty("persisted") boolean persisted,
+      @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
+      @JsonProperty("childrenIds") Set<Long> childrenIds) {
     super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
 
     mChildrenIds = childrenIds;
@@ -48,27 +54,8 @@ public class InodeDirectoryEntry extends InodeEntry {
     return JournalEntryType.INODE_DIRECTORY;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = super.getParameters();
-    parameters.put("childrenIds", mChildrenIds);
-    return parameters;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(super.hashCode(), mChildrenIds);
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (object instanceof InodeDirectoryEntry) {
-      if (!super.equals(object)) {
-        return false;
-      }
-      InodeDirectoryEntry that = (InodeDirectoryEntry) object;
-      return Objects.equal(mChildrenIds, that.mChildrenIds);
-    }
-    return false;
+  @JsonGetter
+  public Set<Long> getChildrenIds() {
+    return mChildrenIds;
   }
 }
