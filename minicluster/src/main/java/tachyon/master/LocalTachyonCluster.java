@@ -276,8 +276,9 @@ public final class LocalTachyonCluster {
    * @throws Exception when the operation fails
    */
   public void stopTFS() throws Exception {
-    mMaster.stop();
+    // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
+    mMaster.stop();
   }
 
   /**
