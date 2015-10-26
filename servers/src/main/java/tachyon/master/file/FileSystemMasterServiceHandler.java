@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
@@ -28,6 +29,7 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.MkdirTOptions;
+import tachyon.thrift.SetStateTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
@@ -185,15 +187,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     }
   }
 
-  @Override
-  public void setTTL(long fileId, long ttl) throws TachyonTException {
-    try {
-      mFileSystemMaster.setTTL(fileId, ttl);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
   public boolean rename(long fileId, String dstPath)
       throws TachyonTException, ThriftIOException {
     try {
@@ -206,9 +199,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void setPinned(long fileId, boolean pinned) throws TachyonTException {
+  public void setState(long fileId, SetStateTOptions options) throws TachyonTException {
     try {
-      mFileSystemMaster.setPinned(fileId, pinned);
+      mFileSystemMaster.setState(fileId, new SetStateOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

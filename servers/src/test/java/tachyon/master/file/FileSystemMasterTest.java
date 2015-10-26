@@ -31,6 +31,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -169,7 +170,8 @@ public final class FileSystemMasterTest {
     // Since no valid TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setTTL(fileId, 0);
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
+        .setTTL(0).build());
     executeTTLCheckOnce();
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -186,7 +188,8 @@ public final class FileSystemMasterTest {
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setTTL(fileId, 0);
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
+        .setTTL(0).build());
     executeTTLCheckOnce();
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -201,7 +204,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setTTL(fileId, Constants.HOUR_MS);
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
+        .setTTL(Constants.HOUR_MS).build());
     executeTTLCheckOnce();
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -215,7 +219,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster.setTTL(fileId, Constants.NO_TTL);
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
+        .setTTL(Constants.NO_TTL).build());
     executeTTLCheckOnce();
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }

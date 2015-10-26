@@ -17,28 +17,39 @@ package tachyon.master.file.journal;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-/**
- * This class represents a journal entry for recording the entry of setting TTL.
- */
-public class SetTTLEntry extends JournalEntry {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SetStateEntry extends JournalEntry {
   private final long mId;
-  private final long mTTL;
+  private final long mOpTimeMs;
+  private final Boolean mPinned;
+  private final Long mTTL;
 
   /**
-   * Creates a new instance of <code>SetTTLEntry</code>.
+   * Creates a new instance of <code>SetStateEntry</code>.
    *
    * @param id  the id of the entry
-   * @param ttl the ttl value to be set
+   * @param opTimeMs the operation timestamp (in millisecs)
+   * @param pinned the pinned flag to be set, otherwise, null
+   * @param ttl the new TTL value to be set, otherwise, null
    */
   @JsonCreator
-  public SetTTLEntry(@JsonProperty("id") long id, @JsonProperty("ttl") long ttl) {
+  public SetStateEntry(@JsonProperty("id") long id, @JsonProperty("operationTimeMs") long opTimeMs,
+      @JsonProperty("pinned") Boolean pinned, @JsonProperty("ttl") Long ttl) {
     mId = id;
+    mOpTimeMs = opTimeMs;
+    mPinned = pinned;
     mTTL = ttl;
+  }
+
+  public SetStateEntry(long id, long opTimeMs, SetStateOptions options) {
+    this(id, opTimeMs, options.getPinned().orNull(), options.getTTL().orNull());
   }
 
   @JsonGetter
@@ -47,12 +58,22 @@ public class SetTTLEntry extends JournalEntry {
   }
 
   @JsonGetter
-  public long getTTL() {
+  public long getOperationTimeMs() {
+    return mOpTimeMs;
+  }
+
+  @JsonGetter
+  public Boolean getPinned() {
+    return mPinned;
+  }
+
+  @JsonGetter
+  public Long getTTL() {
     return mTTL;
   }
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.SET_TTL;
+    return JournalEntryType.SET_STATE;
   }
 }

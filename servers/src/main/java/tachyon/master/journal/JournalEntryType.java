@@ -29,8 +29,7 @@ import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.journal.SetTTLEntry;
+import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
@@ -62,8 +61,7 @@ public enum JournalEntryType {
   INODE_PERSISTED(PersistDirectoryEntry.class),
   REINITIALIZE_FILE(ReinitializeFileEntry.class),
   RENAME(RenameEntry.class),
-  SET_PINNED(SetPinnedEntry.class),
-  SET_TTL(SetTTLEntry.class),
+  SET_STATE(SetStateEntry.class),
 
   // Raw table master entries
   RAW_TABLE(RawTableEntry.class),

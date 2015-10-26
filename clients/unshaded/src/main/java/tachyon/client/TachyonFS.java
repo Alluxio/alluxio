@@ -38,6 +38,7 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -999,7 +1000,8 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void setPinned(long fid, boolean pinned) throws IOException {
     try {
-      mFSMasterClient.setPinned(fid, pinned);
+      mFSMasterClient.setState(fid, new SetStateOptions.Builder(ClientContext.getConf())
+          .setPinned(pinned).build());
     } catch (TachyonException e) {
       throw new IOException(e);
     }

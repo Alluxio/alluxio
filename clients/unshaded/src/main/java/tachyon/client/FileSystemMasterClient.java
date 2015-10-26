@@ -28,6 +28,7 @@ import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
@@ -324,47 +325,20 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Sets the "pinned" status for a file.
+   * Sets the states for a file.
    *
    * @param fileId the file id
-   * @param pinned the pinned status to use
+   * @param options the file state options to be set
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void setPinned(long fileId, boolean pinned) throws IOException,
+  public synchronized void setState(long fileId, SetStateOptions options) throws IOException,
       TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.setPinned(fileId, pinned);
-        return;
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
-   * Sets a new TTL value for the file. If the new TTL value equals {@link Constants#NO_TTL} and the
-   * file originally has a valid TTL, it means remove the original TTL value and the file won't be
-   * deleted due to expiration later.
-   *
-   * @param fileId the file id
-   * @param ttl the new TTL value
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void setTTL(long fileId, long ttl) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.setTTL(fileId, ttl);
+        mClient.setState(fileId, options.toThrift());
         return;
       } catch (TachyonTException e) {
         throw TachyonException.from(e);
