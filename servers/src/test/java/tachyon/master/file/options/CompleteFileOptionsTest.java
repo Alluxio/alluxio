@@ -27,13 +27,16 @@ public class CompleteFileOptionsTest {
   public void builderTest() {
     Random random = new Random();
     long length = random.nextLong();
+    long operationTimeMs = random.nextLong();
 
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(new TachyonConf())
             .setLength(length)
+            .setOperationTimeMs(operationTimeMs)
             .build();
 
     Assert.assertEquals(length, options.getLength());
+    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
   }
 
   @Test
