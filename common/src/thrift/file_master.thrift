@@ -23,15 +23,20 @@ struct FileInfo {
 }
 
 struct CreateTOptions {
-  1: optional i64 blockSizeBytes
-  2: optional bool persisted
-  3: optional bool recursive
-  4: optional i64 ttl
+  1: i64 blockSizeBytes
+  2: bool persisted
+  3: bool recursive
+  4: i64 ttl
 }
 
 struct MkdirTOptions {
-  1: optional bool persisted
-  2: optional bool recursive
+  1: bool persisted
+  2: bool recursive
+}
+
+struct SetStateTOptions {
+  1: optional bool pinned
+  2: optional i64 ttl
 }
 
 service FileSystemMasterService {
@@ -139,14 +144,9 @@ service FileSystemMasterService {
     throws (1: exception.TachyonTException e)
 
   /*
-   * Sets the pinned flag for a file.
+   * Sets states for a file.
    */
-  void setPinned(1: i64 fileId, 2: bool pinned)
-    throws (1: exception.TachyonTException e)
-
-
-  void setTTL(1: i64 fileId, 2: i64 ttl)
-    throws (1: exception.TachyonTException e)
+  void setState(1: i64 fileId, 2: SetStateTOptions options)
 
   /*
    * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
