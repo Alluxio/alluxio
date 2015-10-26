@@ -213,39 +213,39 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Deletes a file.
+   * Deletes a file or a directory.
    *
-   * @param fileId the file id
+   * @param id the id
    * @param recursive whether to delete the file recursively (when it is a directory)
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean deleteFile(final long fileId, final boolean recursive)
+  public synchronized boolean delete(final long id, final boolean recursive)
       throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
-        return mClient.deleteFile(fileId, recursive);
+        return mClient.remove(id, recursive);
       }
     });
   }
 
   /**
-   * Renames a file.
+   * Renames a file or a directory.
    *
-   * @param fileId the file id
+   * @param id the id
    * @param dstPath new file path
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean renameFile(final long fileId, final String dstPath)
+  public synchronized boolean rename(final long id, final String dstPath)
       throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
-        return mClient.renameFile(fileId, dstPath);
+        return mClient.rename(id, dstPath);
       }
     });
   }

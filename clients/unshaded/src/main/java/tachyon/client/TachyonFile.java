@@ -32,7 +32,6 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -246,33 +245,36 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Returns the {@code OutStream} of this file, use the specified write type. Always return a
    * {@code FileOutStream}.
    *
-   * @param writeType the OutStream's write type
+   * @param writeType the OutStream's write type which is unused
+   *
    * @return the OutStream
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public FileOutStream getOutStream(WriteType writeType) throws IOException {
+    return getOutStream();
+  }
+
+  /**
+   * @return the {@code OutStream} of this file
+   * @throws IOException when an event that prevents the operation from completing is encountered
+   */
+  public FileOutStream getOutStream() throws IOException {
     if (isCompleted()) {
       throw new IOException("Overriding after completion not supported.");
     }
 
-    if (writeType == null) {
-      throw new IOException("WriteType can not be null.");
-    }
+    TachyonStorageType tachyonStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
+            TachyonStorageType.class);
+    UnderStorageType underStorageType =
+        mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
+            UnderStorageType.class);
 
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
-
-    if (writeType.isCache()) {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
-    } else {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
-    }
-    if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
-    } else {
-      optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
-    }
+    optionsBuilder.setTachyonStorageType(tachyonStorageType);
+    optionsBuilder.setUnderStorageType(underStorageType);
     return mTFS.getOutStream(mFileId, optionsBuilder.build());
   }
 
@@ -372,7 +374,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex the block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -386,7 +388,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex the block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -399,8 +401,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The id of the block
-   * @param offset The start position to read
+   * @param blockIndex the id of the block
+   * @param offset the start position to read
    * @param len The length to read. -1 represents read the whole block
    * @return <code>TachyonByteBuffer</code> containing the block
    * @throws IOException when the offset is negative is the length is less than -1
@@ -416,7 +418,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockInfo The blockInfo of the block to read
+   * @param blockInfo the blockInfo of the block to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying stream throws IOException during close()
    */
@@ -443,7 +445,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file
+   * @param blockIndex the block index of the current file
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -466,7 +468,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * To set the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete under file system implementation.
    *
-   * @param conf The configuration object accepted by ufs
+   * @param conf the configuration object accepted by ufs
    */
   public void setUFSConf(Object conf) {
     mUFSConf = conf;

@@ -27,7 +27,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -83,8 +82,8 @@ public final class TachyonFileSystemUtils {
    * java property and defaults to a generous 1 second.
    *
    * @param tfs an instance of {@link TachyonFileSystemCore}
-   * @param uri the URI of the file whose completion status is to be watied for.
-   * @param timeout maximum time the calling thread should be blocked on this call.
+   * @param uri the URI of the file whose completion status is to be watied for
+   * @param timeout maximum time the calling thread should be blocked on this call
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.
