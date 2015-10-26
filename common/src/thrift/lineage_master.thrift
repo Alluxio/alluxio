@@ -73,6 +73,12 @@ service LineageMasterService {
   i64 reinitializeFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
     throws (1: exception.TachyonTException e)
 
+  /*
+   * Reports file as lost.
+   */
+  void reportLostFile(1: string path)
+    throws (1: exception.TachyonTException e)
+
   // Tachyon Worker API
 
   /*
