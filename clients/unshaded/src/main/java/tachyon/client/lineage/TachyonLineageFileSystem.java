@@ -26,6 +26,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 
@@ -40,15 +41,15 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   private static TachyonLineageFileSystem sTachyonFileSystem;
   private LineageContext mContext;
 
-  public static synchronized TachyonLineageFileSystem get() {
+  public static synchronized TachyonLineageFileSystem get(TachyonConf conf) {
     if (sTachyonFileSystem == null) {
-      sTachyonFileSystem = new TachyonLineageFileSystem();
+      sTachyonFileSystem = new TachyonLineageFileSystem(conf);
     }
     return sTachyonFileSystem;
   }
 
-  protected TachyonLineageFileSystem() {
-    super();
+  protected TachyonLineageFileSystem(TachyonConf conf) {
+    super(conf);
     mContext = LineageContext.INSTANCE;
   }
 
