@@ -72,7 +72,7 @@ public class BasicOperations implements Callable<Boolean> {
     for (int k = 0; k < mNumbers; k ++) {
       buf.putInt(k);
     }
-
+    LOG.debug("Writing data...");
     long startTimeMs = CommonUtils.getCurrentMs();
     FileOutStream os = tachyonFileSystem.getOutStream(mFilePath, mClientOptions);
     os.write(buf.array());
