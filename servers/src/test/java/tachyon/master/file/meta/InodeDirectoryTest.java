@@ -110,9 +110,9 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   public void deleteInodeTest() {
     InodeDirectory inode1 = createInodeDirectory();
     Assert.assertFalse(inode1.isDeleted());
-    inode1.delete();
+    inode1.setDeleted(true);
     Assert.assertTrue(inode1.isDeleted());
-    inode1.restore();
+    inode1.setDeleted(false);
     Assert.assertFalse(inode1.isDeleted());
   }
 

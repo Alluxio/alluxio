@@ -88,11 +88,14 @@ public class InodeFileEntry extends InodeEntry {
         new InodeFile.Builder()
             .setName(mName)
             .setBlockContainerId(BlockId.getContainerId(mId))
-            .setParentId(mParentId)
             .setBlockSizeBytes(mBlockSizeBytes)
+            .setCacheable(mCacheable)
             .setCreationTimeMs(mCreationTimeMs)
-            .setTTL(mTTL)
+            .setLastModificationTimeMs(mLastModificationTimeMs)
+            .setParentId(mParentId)
             .setPersisted(mPersisted)
+            .setPinned(mPinned)
+            .setTTL(mTTL)
             .build();
 
     if (mCompleted) {
@@ -101,10 +104,6 @@ public class InodeFileEntry extends InodeEntry {
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
-    inode.setPersisted(mPersisted);
-    inode.setPinned(mPinned);
-    inode.setCacheable(mCacheable);
-    inode.setLastModificationTimeMs(mLastModificationTimeMs);
 
     return inode;
   }

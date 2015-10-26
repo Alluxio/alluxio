@@ -26,16 +26,21 @@ public abstract class Inode implements JournalEntryRepresentable {
     private long mCreationTimeMs;
     protected boolean mDirectory;
     protected long mId;
+    private long mLastModificationTimeMs;
     private String mName;
     private long mParentId;
     private boolean mPersisted;
+    private boolean mPinned;
 
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();
       mDirectory = false;
       mId = 0;
+      mLastModificationTimeMs = mCreationTimeMs;
       mName = null;
       mParentId = InodeTree.NO_PARENT;
+      mPersisted = false;
+      mPinned = false;
     }
 
     public T setCreationTimeMs(long creationTimeMs) {
@@ -45,6 +50,11 @@ public abstract class Inode implements JournalEntryRepresentable {
 
     public T setId(long id) {
       mId = id;
+      return getThis();
+    }
+
+    public T setLastModificationTimeMs(long lastModificationTimeMs) {
+      mLastModificationTimeMs = lastModificationTimeMs;
       return getThis();
     }
 
@@ -63,6 +73,11 @@ public abstract class Inode implements JournalEntryRepresentable {
       return getThis();
     }
 
+    public T setPinned(boolean pinned) {
+      mPinned = pinned;
+      return getThis();
+    }
+
     /**
      * Builds a new instance of {@link Inode}.
      *
@@ -77,45 +92,43 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   private final long mCreationTimeMs;
+
+  /**
+   * Indicates whether an inode is deleted or not.
+   */
+  private boolean mDeleted;
+
   protected final boolean mDirectory;
 
   private final long mId;
-  private String mName;
-  private long mParentId;
-
-  /**
-   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
-   * files and folders will inherit this flag from their parents.
-   */
-  private boolean mPinned = false;
-
-  private boolean mPersisted = false;
 
   /**
    * The last modification time of this inode, in milliseconds.
    */
   private long mLastModificationTimeMs;
 
+  private String mName;
+
+  private long mParentId;
   /**
-   * Indicates whether an inode is deleted or not.
+   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
+   * files and folders will inherit this flag from their parents.
    */
-  private boolean mDeleted = false;
+  private boolean mPinned;
+
+  private boolean mPersisted;
 
   protected Inode(Builder<?> builder) {
     mCreationTimeMs = builder.mCreationTimeMs;
+    mDeleted = false;
     mDirectory = builder.mDirectory;
     mLastModificationTimeMs = builder.mCreationTimeMs;
     mId = builder.mId;
+    mLastModificationTimeMs = builder.mLastModificationTimeMs;
     mName = builder.mName;
     mPersisted = builder.mPersisted;
     mParentId = builder.mParentId;
-  }
-
-  /**
-   * Marks the inode as deleted
-   */
-  public synchronized void delete() {
-    mDeleted = true;
+    mPinned = builder.mPinned;
   }
 
   @Override
@@ -210,10 +223,10 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Restores a deleted inode.
+   * Marks the inode as deleted
    */
-  public synchronized void restore() {
-    mDeleted = false;
+  public synchronized void setDeleted(boolean deleted) {
+    mDeleted = deleted;
   }
 
   /**
