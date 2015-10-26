@@ -78,8 +78,8 @@ public class MetricsSystem {
   /**
    * Checks if the poll period is smaller that the minimal poll period which is 1 second.
    *
-   * @param pollUnit the polling unit.
-   * @param pollPeriod the polling period.
+   * @param pollUnit the polling unit
+   * @param pollPeriod the polling period
    * @throws IllegalArgumentException if the polling period is invalid
    */
   public static void checkMinimalPollingPeriod(TimeUnit pollUnit, int pollPeriod)
@@ -95,7 +95,7 @@ public class MetricsSystem {
    * Creates a <code>MetricsSystem</code> using the default metrics config.
    *
    * @param instance the instance name
-   * @param tachyonConf the {@link TachyonConf} instance for configuration properties.
+   * @param tachyonConf the {@link TachyonConf} instance for configuration properties
    */
   public MetricsSystem(String instance, TachyonConf tachyonConf) {
     mInstance = instance;
@@ -111,7 +111,7 @@ public class MetricsSystem {
    * Creates a <code>MetricsSystem</code> using the given <code>MetricsConfig</code>.
    *
    * @param instance the instance name
-   * @param metricsConfig the <code>MetricsConfig</code> object.
+   * @param metricsConfig the <code>MetricsConfig</code> object
    * @param tachyonConf the {@link TachyonConf} instance for configuration properties
    */
   public MetricsSystem(String instance, MetricsConfig metricsConfig, TachyonConf tachyonConf) {

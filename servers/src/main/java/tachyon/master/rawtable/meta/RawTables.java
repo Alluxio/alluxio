@@ -100,7 +100,7 @@ public class RawTables implements JournalCheckpointStreamable {
   /**
    * Get the raw table info.
    *
-   * @param tableId the raw table id.
+   * @param tableId the raw table id
    * @return the raw table info if the table exists, null otherwise
    */
   public synchronized RawTable getTableInfo(long tableId) {
