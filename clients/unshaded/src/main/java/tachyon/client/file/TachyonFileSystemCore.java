@@ -86,7 +86,7 @@ interface TachyonFileSystemCore {
   /**
    * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
    *
-   * @param file the handler for the file.
+   * @param file the handler for the file
    * @param options method options
    * @return the FileInfo of the file
    * @throws IOException if a non-Tachyon exception occurs

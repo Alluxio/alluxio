@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Usage:
-#  tachyon-framework.sh <mesos-master-hostname>
+#  tachyon-mesos.sh <mesos-master-hostname>
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"

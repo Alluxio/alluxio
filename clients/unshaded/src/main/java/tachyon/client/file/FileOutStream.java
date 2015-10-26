@@ -32,16 +32,15 @@ import tachyon.client.ClientContext;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.exception.FailedToCheckpointException;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerClient;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -53,12 +52,6 @@ import tachyon.worker.WorkerClient;
 @PublicApi
 public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  // Error strings for preconditions in order to improve performance
-  private static final String ERR_BLOCK_REMAINING =
-      "The current block still has space left, no need to get new block.";
-  private static final String ERR_BUFFER_NULL = "Cannot write a null input buffer.";
-  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
 
   private final long mBlockSize;
   protected final TachyonStorageType mTachyonStorageType;
@@ -218,9 +211,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, ERR_BUFFER_NULL);
-    Preconditions.checkArgument(
-        off >= 0 && len >= 0 && len + off <= b.length, ERR_BUFFER_STATE, b.length, off, len);
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
 
     if (mShouldCacheCurrentBlock) {
       try {
@@ -253,7 +246,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0, ERR_BLOCK_REMAINING);
+      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
+          PreconditionMessage.ERR_BLOCK_REMAINING);
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
@@ -278,7 +272,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected void handleCacheWriteException(IOException ioe) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
       // TODO(yupeng): Handle this exception better.
-      throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
     }
 
     LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);

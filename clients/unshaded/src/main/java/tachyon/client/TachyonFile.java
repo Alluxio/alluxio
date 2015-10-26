@@ -32,7 +32,6 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -375,7 +374,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex the block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -389,7 +388,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex the block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -402,8 +401,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The id of the block
-   * @param offset The start position to read
+   * @param blockIndex the id of the block
+   * @param offset the start position to read
    * @param len The length to read. -1 represents read the whole block
    * @return <code>TachyonByteBuffer</code> containing the block
    * @throws IOException when the offset is negative is the length is less than -1
@@ -419,7 +418,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockInfo The blockInfo of the block to read
+   * @param blockInfo the blockInfo of the block to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying stream throws IOException during close()
    */
@@ -446,7 +445,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file
+   * @param blockIndex the block index of the current file
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -469,7 +468,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * To set the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete under file system implementation.
    *
-   * @param conf The configuration object accepted by ufs
+   * @param conf the configuration object accepted by ufs
    */
   public void setUFSConf(Object conf) {
     mUFSConf = conf;

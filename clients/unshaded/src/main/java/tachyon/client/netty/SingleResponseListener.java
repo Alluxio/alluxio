@@ -49,8 +49,8 @@ public final class SingleResponseListener implements ClientHandler.ResponseListe
   /**
    * Waits to receive the response for at most a specified time, and returns the response message.
    *
-   * @param timeout the maximum amount of time to wait.
-   * @param unit the {@link TimeUnit} of the timeout parameter.
+   * @param timeout the maximum amount of time to wait
+   * @param unit the {@link TimeUnit} of the timeout parameter
    * @return The {@link RPCResponse} received from the remote server
    * @throws ExecutionException if the computation threw an exception
    * @throws InterruptedException if the current thread was interrupted while waiting
