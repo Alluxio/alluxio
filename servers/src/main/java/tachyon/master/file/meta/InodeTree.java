@@ -521,7 +521,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return false;
   }
 
-  private TraversalResult traverseToInode(String[] pathComponents, boolean persist)
+  private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted)
       throws InvalidPathException {
     List<Inode> nonPersistedInodes = Lists.newArrayList();
 
@@ -557,7 +557,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
               "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
         }
       } else {
-        if (!next.isPersisted() && persist) {
+        if (!next.isPersisted() && collectNonPersisted) {
           // next is a directory and not persisted
           nonPersistedInodes.add(next);
         }
@@ -580,7 +580,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final Inode mInode;
 
     /**
-     * A list of existing Inodes that are found to be persisted during traversal.
+     * The list of non-persisted inodes encountered during the traversal.
      */
     private final List<Inode> mNonPersisted;
 
@@ -615,7 +615,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     /**
-     * @return A list of existing Inodes that are found to be persisted during traversal
+     * @return the list of non-persisted inodes encountered during the traversal
      */
     List<Inode> getNonPersisted() {
       return mNonPersisted;
