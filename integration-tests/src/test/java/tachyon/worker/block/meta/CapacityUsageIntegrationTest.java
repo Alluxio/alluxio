@@ -54,17 +54,16 @@ public class CapacityUsageIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf workerConf = WorkerContext.getConf();
-    workerConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, "2");
-    workerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD");
-    workerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1),
-        "/disk1");
-    workerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-        DISK_CAPACITY_BYTES + "");
-    workerConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
-
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
+    TachyonConf testConf = mLocalTachyonCluster.getTestConf();
+    testConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, "2");
+    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD");
+    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1),
+        "/disk1");
+    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+        DISK_CAPACITY_BYTES + "");
+    testConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
     mLocalTachyonCluster.start();
 
     mTFS = mLocalTachyonCluster.getClient();

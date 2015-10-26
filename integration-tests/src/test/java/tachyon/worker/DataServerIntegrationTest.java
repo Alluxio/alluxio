@@ -43,7 +43,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
@@ -130,16 +129,15 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    // MasterContext will be merged into WorkerContext and ClientContext when starting
-    // LocalTachyonCluster.
+    mLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+
+    TachyonConf tachyonConf = mLocalTachyonCluster.getTestConf();
     tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     tachyonConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
 
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
 
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
