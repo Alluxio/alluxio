@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
@@ -178,8 +179,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     String[] nodes = {mMasterAddress};
 
     // Make container request for Tachyon master to ResourceManager
+    boolean relaxLocality = true;
+    if (StringUtils.isNotEmpty(mMasterAddress) && !mMasterAddress.equals("localhost")) {
+      relaxLocality = false;
+    }
     ContainerRequest masterContainerAsk =
-        new ContainerRequest(masterResource, nodes, null /* any racks */, priority);
+        new ContainerRequest(masterResource, nodes, null /* any racks */, priority, relaxLocality);
     LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
         masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);
