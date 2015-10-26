@@ -73,7 +73,7 @@ public final class CompleteFileOptions {
   private long mOperationTimeMs;
 
   private CompleteFileOptions(CompleteFileOptions.Builder builder) {
-    mLength = 0;
+    mLength = builder.mLength;
     mOperationTimeMs = builder.mOperationTimeMs;
   }
 
