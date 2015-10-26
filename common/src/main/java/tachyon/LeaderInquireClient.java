@@ -70,7 +70,9 @@ public final class LeaderInquireClient {
           LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
-              return masters.get(0);
+              String leader = masters.get(0);
+              LOG.info("The leader master: " + leader);
+              return leader;
             }
 
             long maxTime = 0;
@@ -83,6 +85,7 @@ public final class LeaderInquireClient {
                 leader = master;
               }
             }
+            LOG.info("The leader master: " + leader);
             return leader;
           }
         } else {
