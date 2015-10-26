@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
@@ -38,6 +41,17 @@ import tachyon.worker.block.BlockWorker;
 
 /**
  * Local Tachyon cluster for integration tests.
+ *
+ * Example to use
+ * <pre>
+ * // Create a cluster instance
+ * localTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+ * // If you have special conf parameter to set for integration tests:
+ * TachyonConf testConf = localTachyonCluster.getTestConf();
+ * testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
+ * // After setting up the test conf, start this local cluster:
+ * localTachyonCluster.start();
+ * </pre>
  */
 public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
@@ -54,6 +68,7 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
 
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockWorker mWorker = null;
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
@@ -129,6 +144,10 @@ public final class LocalTachyonCluster {
     mTestConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mTestConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     mTestConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
+
+    mTestConf.set(Constants.WEB_RESOURCES,
+        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
+
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
@@ -209,9 +228,7 @@ public final class LocalTachyonCluster {
    */
   private void startWorker() throws IOException {
     mWorkerConf = new TachyonConf(mTestConf.getInternalProperties());
-    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
     WorkerContext.reset(mWorkerConf);
-    ClientContext.reset(mClientConf);
 
     // We need to update the client with the most recent configuration so it knows the correct ports
     mWorker = new BlockWorker();
@@ -227,6 +244,11 @@ public final class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
+
+    // Update the context conf with actual ports.
+    mTestConf.set(Constants.WORKER_WEB_PORT, String.valueOf(mWorker.getWebLocalPort()));
+    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
+    ClientContext.reset(mClientConf);
   }
 
   /**
@@ -250,6 +272,9 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(10);
 
     startWorker();
+    // wait until worker registered with master
+    // TODO(binfan): use callback to ensure LocalTachyonCluster setup rather than sleep
+    CommonUtils.sleepMs(100);
   }
 
   /**
@@ -261,7 +286,6 @@ public final class LocalTachyonCluster {
     stopTFS();
     stopUFS();
 
-    mTestConf = new TachyonConf();
     MasterContext.reset();
     WorkerContext.reset();
     ClientContext.reset();
@@ -276,6 +300,8 @@ public final class LocalTachyonCluster {
    * @throws Exception when the operation fails
    */
   public void stopTFS() throws Exception {
+    LOG.info("stop Tachyon filesytstem");
+
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
     mMaster.stop();
@@ -287,6 +313,7 @@ public final class LocalTachyonCluster {
    * @throws Exception when the operation fails
    */
   public void stopUFS() throws Exception {
+    LOG.info("stop under storage system");
     mMaster.cleanupUnderfs();
   }
 
