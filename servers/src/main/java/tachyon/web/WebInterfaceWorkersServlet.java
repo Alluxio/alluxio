@@ -26,8 +26,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.collect.Ordering;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;

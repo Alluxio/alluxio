@@ -45,7 +45,7 @@ public class CsvSink implements Sink {
    *
    * @param properties the properties which may contain polling period, unit and  directory
    *                   properties.
-   * @param registry the metric registry to register.
+   * @param registry the metric registry to register
    */
   public CsvSink(Properties properties, MetricRegistry registry) {
     mProperties = properties;
