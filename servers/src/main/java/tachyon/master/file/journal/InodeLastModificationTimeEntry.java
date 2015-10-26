@@ -31,8 +31,8 @@ public final class InodeLastModificationTimeEntry extends JournalEntry {
 
   /**
    * Creates a new instance of <code>InodeLastModificationTimeEntry</code>
-   * @param id the id of the entry.
-   * @param lastModificationTimeMs the modification timestamp (in millisecs).
+   * @param id the id of the entry
+   * @param lastModificationTimeMs the modification timestamp (in millisecs)
    */
   @JsonCreator
   public InodeLastModificationTimeEntry(@JsonProperty("id") long id,

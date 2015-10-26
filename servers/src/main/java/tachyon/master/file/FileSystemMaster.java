@@ -416,7 +416,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Marks a file as completed. After a file is complete, it cannot be written to. Called via RPC.
    *
-   * @param fileId the file id to complete.
+   * @param fileId the file id to complete
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
@@ -594,7 +594,7 @@ public final class FileSystemMaster extends MasterBase {
    * Deletes a given file id. Called via RPC.
    *
    * @param fileId the file id to delete
-   * @param recursive if true, will delete all its children.
+   * @param recursive if true, will delete all its children
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
@@ -950,8 +950,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Renames a file to a destination. Called via RPC.
    *
-   * @param fileId the source file to rename.
-   * @param dstPath the destination path to rename the file to.
+   * @param fileId the source file to rename
+   * @param dstPath the destination path to rename the file to
    * @return true if the rename was successful
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
