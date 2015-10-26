@@ -36,6 +36,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -63,8 +64,7 @@ import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.journal.SetTTLEntry;
+import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -172,10 +172,12 @@ public final class FileSystemMaster extends MasterBase {
       }
     } else if (entry instanceof PersistFileEntry) {
       persistFileFromEntry((PersistFileEntry) entry);
-    } else if (entry instanceof SetPinnedEntry) {
-      setPinnedFromEntry((SetPinnedEntry) entry);
-    } else if (entry instanceof SetTTLEntry) {
-      setTTLFromEntry((SetTTLEntry) entry);
+    } else if (entry instanceof SetStateEntry) {
+      try {
+        setStateFromEntry((SetStateEntry) entry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
     } else if (entry instanceof DeleteFileEntry) {
       deleteFileFromEntry((DeleteFileEntry) entry);
     } else if (entry instanceof RenameEntry) {
@@ -1121,39 +1123,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets the pin status for a file. If the file is a directory, the pin status will be set
-   * recursively to all of its descendants. Called via RPC.
-   *
-   * @param fileId the file id to set the pin status for
-   * @param pinned the pin status
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
-    // TODO(gene): metrics
-    synchronized (mInodeTree) {
-      long opTimeMs = System.currentTimeMillis();
-      setPinnedInternal(fileId, pinned, opTimeMs);
-      writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
-      flushJournal();
-    }
-  }
-
-  private void setPinnedInternal(long fileId, boolean pinned, long opTimeMs)
-      throws FileDoesNotExistException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
-    Inode inode = mInodeTree.getInodeById(fileId);
-    mInodeTree.setPinned(inode, pinned, opTimeMs);
-  }
-
-  private void setPinnedFromEntry(SetPinnedEntry entry) {
-    try {
-      setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOperationTimeMs());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
-    }
-  }
-
-  /**
    * Frees or evicts all of the blocks of the file from tachyon storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed. Called
    * via RPC.
@@ -1394,46 +1363,48 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets TTL of a file no matter whether the file already has a TTL.
-   *
-   * <p>
-   * If the file already has a TTL, and the new TTL doesn't equal {@link Constants#NO_TTL}, the
-   * corresponding {@link InodeFile} in {@link #mTTLBuckets} will be moved to a new appropriate
-   * bucket according to the new TTL.
-   * <p>
-   * If the file already has a TTL, and the new TTL equals {@link Constants#NO_TTL}, the
-   * corresponding {@link InodeFile} will be moved out of {@link #mTTLBuckets}.
-   * <p>
-   * If the file doesn't have a TTL before, and the new TTL doesn't equal {@link Constants#NO_TTL},
-   * then the new TTL will be set and the corresponding {@link InodeFile} will be added to
-   * {@link #mTTLBuckets}.
+   * Sets state of the file.
    *
    * @param fileId the id of the file
-   * @param ttl the new ttl value to be set for the file
+   * @param options state options to be set, see {@link SetStateOptions}
    * @throws FileDoesNotExistException if the file doesn't exist
    */
-  public void setTTL(long fileId, long ttl) throws FileDoesNotExistException {
+  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+    // TODO(gene) Metrics
     synchronized (mInodeTree) {
-      setTTLInternal(fileId, ttl);
-      writeJournalEntry(new SetTTLEntry(fileId, ttl));
+      long opTimeMs = System.currentTimeMillis();
+      setStateInternal(fileId, opTimeMs, options);
+      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, options));
+      flushJournal();
     }
   }
 
-  private void setTTLFromEntry(SetTTLEntry entry) {
-    try {
-      setTTLInternal(entry.getId(), entry.getTTL());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
+  private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
+      throws FileDoesNotExistException {
+    Inode inode = mInodeTree.getInodeById(fileId);
+    if (options.getPinned().isPresent()) {
+      mInodeTree.setPinned(inode, options.getPinned().get(), opTimeMs);
+    }
+    if (options.getTTL().isPresent()) {
+      InodeFile file = (InodeFile) inode;
+      long ttl = options.getTTL().get();
+      if (file.getTTL() != ttl) {
+        mTTLBuckets.remove(file);
+        file.setTTL(ttl);
+        mTTLBuckets.insert(file);
+      }
     }
   }
 
-  private void setTTLInternal(long fileId, long ttl) throws FileDoesNotExistException {
-    InodeFile file = (InodeFile) mInodeTree.getInodeById(fileId);
-    if (file.getTTL() != ttl) {
-      mTTLBuckets.remove(file);
-      file.setTTL(ttl);
-      mTTLBuckets.insert(file);
+  private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
+    SetStateOptions.Builder builder = new SetStateOptions.Builder(MasterContext.getConf());
+    if (entry.getPinned() != null) {
+      builder.setPinned(entry.getPinned());
     }
+    if (entry.getTTL() != null) {
+      builder.setTTL(entry.getTTL());
+    }
+    setStateInternal(entry.getId(), entry.getOperationTimeMs(), builder.build());
   }
 
   /**

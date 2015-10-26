@@ -15,13 +15,16 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Optional;
+
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.SetStateTOptions;
 
 public class SetStateOptions {
   public static class Builder {
-    private Boolean mPinned;
-    private Long mTTL;
+    private Optional<Boolean> mPinned;
+    private Optional<Long> mTTL;
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
@@ -29,8 +32,8 @@ public class SetStateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mPinned = null;
-      mTTL = null;
+      mPinned = Optional.absent();
+      mTTL = Optional.absent();
     }
 
     /**
@@ -40,7 +43,7 @@ public class SetStateOptions {
      * @return the builder
      */
     public Builder setPinned(boolean pinned) {
-      mPinned = pinned;
+      mPinned = Optional.of(pinned);
       return this;
     }
 
@@ -51,7 +54,7 @@ public class SetStateOptions {
      * @return the builder
      */
     public Builder setTTL(long ttl) {
-      mTTL = ttl;
+      mTTL = Optional.of(ttl);
       return this;
     }
 
@@ -72,8 +75,13 @@ public class SetStateOptions {
     return new Builder(ClientContext.getConf()).build();
   }
 
-  private final Boolean mPinned;
-  private final Long mTTL;
+  private final Optional<Boolean> mPinned;
+  private final Optional<Long> mTTL;
+
+  public SetStateOptions(SetStateTOptions options) {
+    mPinned = options.isSetPinned() ? Optional.of(options.isPinned()) : Optional.<Boolean>absent();
+    mTTL = options.isSetTtl() ? Optional.of(options.getTtl()) : Optional.<Long>absent();
+  }
 
   private SetStateOptions(SetStateOptions.Builder builder) {
     mPinned = builder.mPinned;
@@ -83,7 +91,7 @@ public class SetStateOptions {
   /**
    * @return the pinned flag value; it specifies whether the object should be kept in memory
    */
-  public Boolean getPinned() {
+  public Optional<Boolean> getPinned() {
     return mPinned;
   }
 
@@ -92,7 +100,21 @@ public class SetStateOptions {
    *         created file should be kept around before it is automatically deleted, no matter
    *         whether the file is pinned
    */
-  public Long getTTL() {
+  public Optional<Long> getTTL() {
     return mTTL;
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public SetStateTOptions toThrift() {
+    SetStateTOptions options = new SetStateTOptions();
+    if (mPinned.isPresent()) {
+      options.setPinned(mPinned.get());
+    }
+    if (mTTL.isPresent()) {
+      options.setTtl(mTTL.get());
+    }
+    return options;
   }
 }

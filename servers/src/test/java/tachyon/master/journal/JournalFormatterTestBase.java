@@ -57,8 +57,7 @@ import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.journal.SetTTLEntry;
+import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
@@ -122,7 +121,6 @@ public abstract class JournalFormatterTestBase {
       .put(JournalEntryType.COMPLETE_FILE,
           new CompleteFileEntry(Arrays.asList(1L, 2L, 3L), TEST_FILE_ID, TEST_LENGTH_BYTES,
               TEST_OP_TIME_MS))
-      .put(JournalEntryType.SET_PINNED, new SetPinnedEntry(TEST_FILE_ID, false, TEST_OP_TIME_MS))
       .put(JournalEntryType.DELETE_FILE, new DeleteFileEntry(TEST_FILE_ID, true, TEST_OP_TIME_MS))
       .put(JournalEntryType.RENAME, new RenameEntry(TEST_FILE_ID, TEST_FILE_NAME, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_DIRECTORY_ID_GENERATOR,
@@ -145,7 +143,8 @@ public abstract class JournalFormatterTestBase {
       .put(JournalEntryType.PERSIST_FILES, new PersistFilesEntry(Arrays.asList(1L, 2L)))
       .put(JournalEntryType.REQUEST_FILE_PERSISTENCE,
           new RequestFilePersistenceEntry(Arrays.asList(1L, 2L)))
-      .put(JournalEntryType.SET_TTL, new SetTTLEntry(0L, 1L)).build();
+      .put(JournalEntryType.SET_STATE, new SetStateEntry(TEST_FILE_ID, TEST_OP_TIME_MS, true, null))
+      .build();
 
   /**
    * Returns the implementation of {@link JournalFormatter} that wants to be tested.

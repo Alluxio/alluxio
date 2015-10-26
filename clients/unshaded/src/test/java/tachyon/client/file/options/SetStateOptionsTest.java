@@ -33,13 +33,13 @@ public class SetStateOptionsTest {
             .setPinned(recursive)
             .build();
 
-    Assert.assertEquals(recursive, options.getPinned());
+    Assert.assertEquals(recursive, options.getPinned().get());
   }
 
   @Test
   public void defaultsTest() {
     SetStateOptions options = SetStateOptions.defaults();
 
-    Assert.assertNull(options.getPinned());
+    Assert.assertFalse(options.getPinned().isPresent());
   }
 }
