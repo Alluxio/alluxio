@@ -102,7 +102,8 @@ export AWS_SECURITY_GROUP_ID_TACH=$sgid
 if [[ "$PROVIDER" == "aws" && "$(python bin/is_aws_spot.py)" == "0" ]]; then
   # register handler to be run when exit 1
   trap "python bin/spot_request.py --cancel" ERR
-  python bin/spot_request.py --submit
+  python bin/spot_request.py --submit --masters ${TACHYON_MASTERS}
+  trap - ERR
 else
   FULL_PROVIDER_NAME=$PROVIDER
   if [[ "$FULL_PROVIDER_NAME" == "vb" ]]; then
@@ -187,6 +188,7 @@ if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
       break
     fi
   done
+  info "Master public IP for other softwares is ${main_master}"
 else
   info "TachyonMaster public IP is ${main_master}, visit ${main_master}:19999 for Tachyon web UI"
 fi

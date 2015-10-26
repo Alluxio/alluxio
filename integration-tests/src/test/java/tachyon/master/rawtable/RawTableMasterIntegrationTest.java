@@ -26,11 +26,7 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.FileAlreadyExistsException;
-import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidPathException;
 import tachyon.exception.TableColumnException;
-import tachyon.exception.TableMetadataException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.file.FileSystemMaster;
 

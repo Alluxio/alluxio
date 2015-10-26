@@ -35,15 +35,15 @@ public final class HeartbeatThread implements Runnable {
   private HeartbeatTimer mTimer;
 
   /**
-   * @param threadName Identifies the heartbeat thread name.
-   * @param executor Identifies the heartbeat thread executor; an instance of a class that
-   *        implements the HeartbeatExecutor interface.
-   * @param intervalMs Sleep time between different heartbeat.
+   * @param threadName identifies the heartbeat thread name
+   * @param executor identifies the heartbeat thread executor; an instance of a class that
+   *        implements the HeartbeatExecutor interface
+   * @param intervalMs Sleep time between different heartbeat
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {
     mThreadName = threadName;
     mExecutor = Preconditions.checkNotNull(executor);
-    Class<HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
+    Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
     try {
       mTimer =
           CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},

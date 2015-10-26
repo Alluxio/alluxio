@@ -359,7 +359,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @param sessionId The id of the client
    * @param blockId The id of the block to be locked
    * @return the lockId that uniquely identifies the lock obtained
-   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already
    */
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     return mBlockStore.lockBlock(sessionId, blockId);

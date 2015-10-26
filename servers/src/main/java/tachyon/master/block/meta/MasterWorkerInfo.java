@@ -273,7 +273,7 @@ public final class MasterWorkerInfo {
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
    *
-   * @param add true if to add, to remove otherwise.
+   * @param add true if to add, to remove otherwise
    * @param blockId the ID of the block to be added or removed
    */
   public synchronized void updateToRemovedBlock(boolean add, long blockId) {
@@ -303,7 +303,7 @@ public final class MasterWorkerInfo {
    * Set the used space of the worker in bytes.
    *
    * @param aliasValue value of StorageLevelAlias
-   * @param usedBytesOnTier used bytes on certain storage tier.
+   * @param usedBytesOnTier used bytes on certain storage tier
    */
   public synchronized void updateUsedBytes(int aliasValue, long usedBytesOnTier) {
     mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(aliasValue - 1);
