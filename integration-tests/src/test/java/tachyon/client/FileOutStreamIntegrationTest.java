@@ -74,6 +74,16 @@ public final class FileOutStreamIntegrationTest {
   public final void before() throws Exception {
     sLocalTachyonCluster.start();
     mTfs = sLocalTachyonCluster.getClient();
+  }
+
+  @BeforeClass
+  public static void beforeClass() throws IOException {
+    sLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+    sTestConf = sLocalTachyonCluster.getTestConf();
+    sTestConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
+    // Only the Netty data server supports remote writes.
+    sTestConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sWriteBoth =
         new OutStreamOptions.Builder(sTestConf)
             .setTachyonStorageType(TachyonStorageType.STORE)
@@ -94,16 +104,6 @@ public final class FileOutStreamIntegrationTest {
             .setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
             .setHostname(NetworkAddressUtils.getLocalHostName(sTestConf)).build();
-  }
-
-  @BeforeClass
-  public static void beforeClass() throws IOException {
-    sLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
-    sTestConf = sLocalTachyonCluster.getTestConf();
-    sTestConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
-    // Only the Netty data server supports remote writes.
-    sTestConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
   }
 
   /**
@@ -184,12 +184,10 @@ public final class FileOutStreamIntegrationTest {
         writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
       }
     }
-    System.out.println("===========done");
   }
 
   private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op)
       throws IOException, TachyonException {
-    System.out.println("==========aaa" + filePath.getPath());
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();

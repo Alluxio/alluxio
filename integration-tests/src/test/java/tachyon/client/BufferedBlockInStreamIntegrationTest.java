@@ -54,7 +54,6 @@ public class BufferedBlockInStreamIntegrationTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   @BeforeClass
