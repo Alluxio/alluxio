@@ -325,7 +325,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Sets the states for a file.
+   * Sets the file state.
    *
    * @param fileId the file id
    * @param options the file state options to be set

@@ -28,9 +28,9 @@ import tachyon.master.MasterContext;
  * Not thread-safe. Only for use related to {@link TTLBucketList}.
  */
 public final class TTLBucket implements Comparable<TTLBucket> {
-  /** The time interval of this bucket is the same as ttl checker's interval. Be at least 1. */
-  private static final int TTL_INTERVAL_MS = Math.max(MasterContext.getConf().getInt(
-      Constants.MASTER_TTLCHECKER_INTERVAL_MS), 1);
+  /** The time interval of this bucket is the same as ttl checker's interval. */
+  private static long sTTLIntervalMs = MasterContext.getConf().getInt(
+      Constants.MASTER_TTLCHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
@@ -49,11 +49,15 @@ public final class TTLBucket implements Comparable<TTLBucket> {
   }
 
   public long getTTLIntervalEndTimeMs() {
-    return mTTLIntervalStartTimeMs + TTL_INTERVAL_MS;
+    return mTTLIntervalStartTimeMs + sTTLIntervalMs;
   }
 
   public static long getTTLIntervalMs() {
-    return TTL_INTERVAL_MS;
+    return sTTLIntervalMs;
+  }
+
+  public static void setTTlIntervalMs(long intervalMs) {
+    sTTLIntervalMs = intervalMs;
   }
 
   /**

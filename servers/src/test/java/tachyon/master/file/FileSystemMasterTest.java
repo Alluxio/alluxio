@@ -39,6 +39,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -50,6 +51,7 @@ import tachyon.util.IdUtils;
  * Unit tests for tachyon.master.filesystem.FileSystemMaster.
  */
 public final class FileSystemMasterTest {
+  private static final long TTLCHECKER_INTERVAL_MS = 0;
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private static final TachyonURI ROOT_URI = new TachyonURI("/");
@@ -67,9 +69,18 @@ public final class FileSystemMasterTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @BeforeClass
+  public static void beforeClass() {
+    sNestedFileOptions =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).build();
+    TTLBucket.setTTlIntervalMs(TTLCHECKER_INTERVAL_MS);
+  }
+
   @Before
   public void before() throws Exception {
-    MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, "0");
+    MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS,
+        String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
@@ -86,13 +97,6 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId, Lists.newArrayList(Constants.MB * 1L, Constants.MB * 1L),
         Lists.<Long>newArrayList(Constants.KB * 1L, Constants.KB * 1L),
         Maps.<Long, List<Long>>newHashMap());
-  }
-
-  @BeforeClass
-  public static void beforeClass() {
-    sNestedFileOptions =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).build();
   }
 
   @Test
