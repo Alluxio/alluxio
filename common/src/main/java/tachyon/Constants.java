@@ -177,9 +177,9 @@ public final class Constants {
       "tachyon.master.lineage.recompute.interval.ms";
   public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       "tachyon.master.lineage.recompute.log.path";
-  public static final String MASTER_TIERED_STORAGE_GLOBAL_LEVELS =
+  public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
       "tachyon.master.tieredstore.global.levels";
-  public static final String MASTER_TIERED_STORAGE_GLOBAL_LEVEL_ALIAS_FORMAT =
+  public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT =
       "tachyon.master.tieredstore.global.level%d.alias";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
@@ -226,7 +226,7 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.step.factor";
   public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
       "tachyon.worker.evictor.lrfu.attenuation.factor";
-  public static final String WORKER_TIERED_STORAGE_LEVELS =
+  public static final String WORKER_TIERED_STORE_LEVELS =
       "tachyon.worker.tieredstore.levels";
   public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.lineage.heartbeat.interval.ms";

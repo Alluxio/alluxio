@@ -31,6 +31,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
@@ -72,7 +73,7 @@ public final class MasterWorkerInfo {
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
     mIsRegistered = false;
-    mStorageTierAssoc = new StorageTierAssoc(new ArrayList<String>());
+    mStorageTierAssoc = null;
     mTotalBytesOnTiers = new HashMap<String, Long>();
     mUsedBytesOnTiers = new HashMap<String, Long>();
     mBlocks = new HashSet<Long>();
@@ -103,7 +104,7 @@ public final class MasterWorkerInfo {
                 + storageTierAliases.get(i + 1) + " in the hierarchy");
       }
     }
-    mStorageTierAssoc = new StorageTierAssoc(storageTierAliases);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
     // validate the number of tiers
     if (mStorageTierAssoc.size() != totalBytesOnTiers.size()
         || mStorageTierAssoc.size() != usedBytesOnTiers.size()) {
@@ -269,8 +270,9 @@ public final class MasterWorkerInfo {
    */
   public synchronized Map<String, Long> getFreeBytesOnTiers() {
     Map<String, Long> freeCapacityBytes = new HashMap<String, Long>();
-    for (String alias : mTotalBytesOnTiers.keySet()) {
-      freeCapacityBytes.put(alias, mTotalBytesOnTiers.get(alias) - mUsedBytesOnTiers.get(alias));
+    for (Map.Entry<String, Long> entry : mTotalBytesOnTiers.entrySet()) {
+      freeCapacityBytes.put(entry.getKey(),
+          entry.getValue() - mUsedBytesOnTiers.get(entry.getKey()));
     }
     return freeCapacityBytes;
   }
@@ -332,7 +334,7 @@ public final class MasterWorkerInfo {
    * Set the used space of the worker in bytes.
    *
    * @param tierAlias alias of storage tier
-   * @param usedBytesOnTier used bytes on certain storage tier.
+   * @param usedBytesOnTier used bytes on certain storage tier
    */
   public synchronized void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
     mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(tierAlias);

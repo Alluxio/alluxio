@@ -129,7 +129,7 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("locations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, BlockLocation.class))));
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "BlockLocation"))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BlockInfo.class, metaDataMap);
   }
@@ -160,7 +160,7 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     if (other.isSetLocations()) {
       List<BlockLocation> __this__locations = new ArrayList<BlockLocation>(other.locations.size());
       for (BlockLocation other_element : other.locations) {
-        __this__locations.add(new BlockLocation(other_element));
+        __this__locations.add(other_element);
       }
       this.locations = __this__locations;
     }

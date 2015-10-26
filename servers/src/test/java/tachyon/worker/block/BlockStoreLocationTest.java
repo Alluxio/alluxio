@@ -22,7 +22,7 @@ public class BlockStoreLocationTest {
 
   @Test
   public void newLocationTest() throws Exception {
-    String tierAlias = "SDD";
+    String tierAlias = "SSD";
     int dirIndex = 3;
     BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex);
     Assert.assertNotNull(loc);

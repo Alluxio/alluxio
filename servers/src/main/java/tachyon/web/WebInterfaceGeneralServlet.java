@@ -57,7 +57,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       mFreePercent = 100 - mUsedPercent;
     }
 
-    public String getStorageLevelAlias() {
+    public String getStorageTierAlias() {
       return mStorageTierAlias;
     }
 

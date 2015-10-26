@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.collections.Pair;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
@@ -83,10 +84,11 @@ public class BlockStoreMetaTest {
 
   @Test
   public void getCapacityBytesOnDirsTest() {
-    Map<Long, Long> dirsToCapacityBytes = new HashMap<Long, Long>();
+    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<Pair<String, String>, Long>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToCapacityBytes.put(dir.getStorageDirId(), dir.getCapacityBytes());
+        dirsToCapacityBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+            dir.getCapacityBytes());
       }
     }
     Assert.assertEquals(dirsToCapacityBytes, mBlockStoreMeta.getCapacityBytesOnDirs());
@@ -96,19 +98,8 @@ public class BlockStoreMetaTest {
 
   @Test
   public void getCapacityBytesOnTiersTest() {
-    Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SDD", 60000L);
+    Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SSD", 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
-  }
-
-  @Test
-  public void getDirPathsTest() {
-    Map<Long, String> dirToPaths = new HashMap<Long, String>();
-    for (StorageTier tier : mMetadataManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        dirToPaths.put(dir.getStorageDirId(), dir.getDirPath());
-      }
-    }
-    Assert.assertEquals(dirToPaths, mBlockStoreMeta.getDirPaths());
   }
 
   @Test
@@ -124,10 +115,10 @@ public class BlockStoreMetaTest {
 
   @Test
   public void getUsedBytesOnDirsTest() {
-    Map<Long, Long> dirsToUsedBytes = new HashMap<Long, Long>();
+    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<Pair<String, String>, Long>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToUsedBytes.put(dir.getStorageDirId(),
+        dirsToUsedBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes() - dir.getAvailableBytes());
       }
     }
@@ -137,7 +128,7 @@ public class BlockStoreMetaTest {
   @Test
   public void getUsedBytesOnTiersTest() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
-    Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", usedBytes, "SDD", 0L);
+    Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", usedBytes, "SSD", 0L);
     Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());
   }
 }

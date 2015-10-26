@@ -19,6 +19,7 @@ import java.util.List;
 
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
@@ -31,9 +32,7 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
 
   public BlockMetricsReporter(WorkerSource workerSource) {
     mWorkerSource = workerSource;
-    mStorageTierAssoc =
-        new StorageTierAssoc(WorkerContext.getConf(), Constants.WORKER_TIERED_STORAGE_LEVELS,
-            Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
   @Override

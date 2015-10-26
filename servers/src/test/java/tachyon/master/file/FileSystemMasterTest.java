@@ -84,9 +84,9 @@ public final class FileSystemMasterTest {
 
     // set up worker
     mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SDD"),
-        ImmutableMap.of("MEM", Constants.MB * 1L, "SDD", Constants.MB * 1L),
-        ImmutableMap.of("MEM", Constants.KB * 1L, "SDD", Constants.KB * 1L),
+    mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
+        ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
+        ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         Maps.<String, List<Long>>newHashMap());
   }
 
@@ -173,7 +173,7 @@ public final class FileSystemMasterTest {
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "SDD", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "SSD", blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId);
 
     createFileWithSingleBlock(ROOT_FILE_URI);

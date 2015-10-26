@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
 import tachyon.Sessions;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
@@ -50,9 +51,7 @@ public class SpaceReserver implements Runnable {
 
   public SpaceReserver(BlockDataManager blockManager) {
     mBlockManager = blockManager;
-    mStorageTierAssoc =
-        new StorageTierAssoc(WorkerContext.getConf(), Constants.WORKER_TIERED_STORAGE_LEVELS,
-            Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
     Map<String, Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal ++) {

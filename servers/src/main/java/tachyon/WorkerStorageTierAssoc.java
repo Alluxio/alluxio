@@ -15,20 +15,20 @@
 
 package tachyon;
 
+import java.util.List;
+
+import tachyon.conf.TachyonConf;
+
 /**
- * Used to identify StorageDir in tiered store.
+ * StorageTierAssoc for workers
  */
-public class StorageDirId {
-  /**
-   * Generate StorageDirId from given information
-   *
-   * @param tierOrdinal ordinal of the storage tier which contains the StorageDir in the worker
-   * @param dirIndex index of the StorageDir
-   * @return StorageDirId generated
-   */
-  public static long getStorageDirId(int tierOrdinal, int dirIndex) {
-    return ((long) tierOrdinal << 32) + dirIndex;
+public class WorkerStorageTierAssoc extends StorageTierAssoc {
+  public WorkerStorageTierAssoc(TachyonConf conf) {
+    super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
+        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
-  private StorageDirId() {}
+  public WorkerStorageTierAssoc(List<String> storageTierAliases) {
+    super(storageTierAliases);
+  }
 }

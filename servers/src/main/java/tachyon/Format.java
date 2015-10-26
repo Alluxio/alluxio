@@ -83,7 +83,7 @@ public class Format {
           masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(), tachyonConf);
     } else if ("WORKER".equals(args[0].toUpperCase())) {
       String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER);
-      int storageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVELS);
+      int storageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level ++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);

@@ -24,10 +24,9 @@ import tachyon.conf.TachyonConf;
 
 /**
  * Creates a two-way mapping between StorageTier aliases and ordinal numbers from the given
- * TachyonConf. It can be used for both worker and master storage tier mapping. This class is thread
- * safe.
+ * TachyonConf. This class is thread safe.
  */
-public class StorageTierAssoc {
+public abstract class StorageTierAssoc {
   /*
    * An immutable bi-directional mapping between storage level aliases and their ordinals. Immutable
    * maps are thread safe.
@@ -39,12 +38,10 @@ public class StorageTierAssoc {
    * after creation.
    *
    * @param conf the TachyonConf to build the mapping from
-   *
    * @param levelsProperty the property in the conf that specifies how many levels there are
-   *
    * @param aliasFormat the format for the conf that identifies the alias for each level
    */
-  public StorageTierAssoc(TachyonConf conf, String levelsProperty, String aliasFormat) {
+  protected StorageTierAssoc(TachyonConf conf, String levelsProperty, String aliasFormat) {
     int levels = conf.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<String, Integer>();
     for (int i = 0; i < levels; i ++) {
@@ -60,7 +57,7 @@ public class StorageTierAssoc {
    *
    * @param aliases the list of aliases
    */
-  public StorageTierAssoc(List<String> storageTierAliases) {
+  protected StorageTierAssoc(List<String> storageTierAliases) {
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<String, Integer>();
     for (int ordinal = 0; ordinal < storageTierAliases.size(); ordinal ++) {
       builder.put(storageTierAliases.get(ordinal), ordinal);
@@ -84,9 +81,10 @@ public class StorageTierAssoc {
    * @return A list of storage tier aliases in order of their ordinal value
    */
   public List<String> getOrderedStorageAliases() {
-    List<String> ret = new ArrayList<String>(size());
-    for (int i = 0; i < size(); i ++) {
-      ret.add(i, getAlias(i));
+    int size = size();
+    List<String> ret = new ArrayList<String>(size);
+    for (int i = 0; i < size; i ++) {
+      ret.add(getAlias(i));
     }
     return ret;
   }

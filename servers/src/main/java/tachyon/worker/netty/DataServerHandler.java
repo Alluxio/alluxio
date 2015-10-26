@@ -33,6 +33,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
@@ -67,9 +68,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mStorageTierAssoc =
-        new StorageTierAssoc(mTachyonConf, Constants.WORKER_TIERED_STORAGE_LEVELS,
-            Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(mTachyonConf);
     mTransferType = mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
         FileTransferType.class);
   }

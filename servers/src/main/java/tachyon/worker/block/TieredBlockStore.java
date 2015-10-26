@@ -35,6 +35,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockAlreadyExistsException;
@@ -124,8 +125,7 @@ public final class TieredBlockStore implements BlockStore {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
 
-    mStorageTierAssoc = new StorageTierAssoc(mTachyonConf, Constants.WORKER_TIERED_STORAGE_LEVELS,
-        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    mStorageTierAssoc = new WorkerStorageTierAssoc(mTachyonConf);
   }
 
   @Override
@@ -182,8 +182,8 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      IOException {
+      long initialBlockSize)
+          throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
@@ -677,8 +677,11 @@ public final class TieredBlockStore implements BlockStore {
     }
     // 2.2. move blocks in the order of their dst tiers, from bottom to top
     for (int tierOrdinal = mStorageTierAssoc.size() - 1; tierOrdinal >= 0; --tierOrdinal) {
-      Set<BlockTransferInfo> toMove = blocksGroupedByDestTier
-          .getOrDefault(mStorageTierAssoc.getAlias(tierOrdinal), new HashSet<BlockTransferInfo>());
+      Set<BlockTransferInfo> toMove =
+          blocksGroupedByDestTier.get(mStorageTierAssoc.getAlias(tierOrdinal));
+      if (toMove == null) {
+        toMove = new HashSet<BlockTransferInfo>();
+      }
       for (BlockTransferInfo entry : toMove) {
         long blockId = entry.getBlockId();
         BlockStoreLocation oldLocation = entry.getSrcLocation();

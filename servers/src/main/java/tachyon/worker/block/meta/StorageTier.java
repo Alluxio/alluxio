@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import tachyon.Constants;
-import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.FormatUtils;
@@ -46,9 +46,7 @@ public final class StorageTier {
 
   private StorageTier(String tierAlias) {
     mTierAlias = tierAlias;
-    mTierOrdinal =
-        new StorageTierAssoc(WorkerContext.getConf(), Constants.WORKER_TIERED_STORAGE_LEVELS,
-            Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT).getOrdinal(tierAlias);
+    mTierOrdinal = new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrdinal(tierAlias);
   }
 
   private void initStorageTier()

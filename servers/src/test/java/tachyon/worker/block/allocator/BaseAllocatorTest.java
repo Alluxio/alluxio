@@ -44,7 +44,7 @@ public class BaseAllocatorTest {
   public static final long DEFAULT_HDD_SIZE = 3000;
 
   public static final int[] TIER_LEVEL = {0, 1, 2};
-  public static final String[] TIER_ALIAS = {"MEM", "SDD", "HDD"};
+  public static final String[] TIER_ALIAS = {"MEM", "SSD", "HDD"};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
@@ -60,7 +60,7 @@ public class BaseAllocatorTest {
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
   protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier("MEM");
-  protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier("SDD");
+  protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier("SSD");
   protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier("HDD");
 
   @Rule
