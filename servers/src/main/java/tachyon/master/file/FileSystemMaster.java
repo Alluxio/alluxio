@@ -337,11 +337,11 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Marks a file as completed. After a file is complete, it cannot be written to. Called via RPC.
+   * Complete a file. After a file is completed, it cannot be written to. Called via RPC.
    *
-   * @param fileId the file id to complete.
-   * @throws FileDoesNotExistException
-   * @throws BlockInfoException
+   * @param fileId the file id to complete
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws BlockInfoException if a block information exception is encountered
    */
   public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
       FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
@@ -360,12 +360,13 @@ public final class FileSystemMaster extends MasterBase {
         throw new BlockInfoException("Cannot complete file without all the blocks committed");
       }
 
-      // Verify that all the blocks (except the last one) is the same size as the file block size.
-      long fileLength = 0;
+      // Iterate from all in-memory file blocks, computing the length and verify that all the blocks
+      // (except the last one) is the same size as the file block size.
+      long inMemoryLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
       for (int i = 0; i < blockInfoList.size(); i ++) {
         BlockInfo blockInfo = blockInfoList.get(i);
-        fileLength += blockInfo.getLength();
+        inMemoryLength += blockInfo.getLength();
         if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
           throw new BlockInfoException(
               "Block index " + i + " has a block size smaller than the file block size ("
@@ -373,9 +374,16 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
 
-      completeFileInternal(fileInode.getBlockIds(), fileId, fileLength, opTimeMs);
+      if (fileInode.isPersisted() && inMemoryLength != 0 && options.getLength() != inMemoryLength) {
+        throw new SuspectedFileSizeException("Inconsistent file length: Tachyon " + inMemoryLength
+            + " UFS " + options.getLength());
+      }
+
+      long length = fileInode.isPersisted() ? options.getLength() : inMemoryLength;
+
+      completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
       writeJournalEntry(
-          new CompleteFileEntry(fileInode.getBlockIds(), fileId, fileLength, opTimeMs));
+          new CompleteFileEntry(fileInode.getBlockIds(), fileId, length, opTimeMs));
       flushJournal();
     }
   }

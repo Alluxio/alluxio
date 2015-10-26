@@ -381,6 +381,7 @@ public class TfsShellTest {
    * locationsList.iterator(); int i = 3; while (iter.hasNext()) { commandParameters[i ++] =
    * iter.next(); } Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString()); }
    */
+
   @Test
   public void lsrTest() throws IOException, TachyonException {
     FileInfo[] files = new FileInfo[4];
