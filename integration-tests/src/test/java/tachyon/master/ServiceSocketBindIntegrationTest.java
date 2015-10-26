@@ -54,11 +54,11 @@ public class ServiceSocketBindIntegrationTest {
   }
 
   private void startCluster(String bindHost) throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
+    mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
+    TachyonConf tachyonConf = mLocalTachyonCluster.getTestConf();
     for (ServiceType service : ServiceType.values()) {
       tachyonConf.set(service.getBindHostKey(), bindHost);
     }
-    mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
     mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();

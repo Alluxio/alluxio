@@ -29,18 +29,13 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.security.authentication.AuthType;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
-import tachyon.worker.WorkerContext;
 
 /**
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
  * KERBEROS.
- *
- * TODO: the way to set and isolate MasterContext/WorkerContext across testcases is hacky. A better
- * solution is needed.
  */
 public class WorkerClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster;
@@ -62,16 +57,12 @@ public class WorkerClientAuthenticationIntegrationTest {
     mLocalTachyonCluster.stop();
 
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
-    MasterContext.reset();
-    WorkerContext.reset();
   }
 
   @Test
   public void noAuthenticationOpenCloseTest() throws Exception {
     // no authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.NOSASL.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.NOSASL.getAuthName());
 
     // start cluster
@@ -86,9 +77,7 @@ public class WorkerClientAuthenticationIntegrationTest {
   @Test
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     // simple authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.SIMPLE.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.SIMPLE.getAuthName());
 
     // start cluster
@@ -103,14 +92,10 @@ public class WorkerClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationOpenCloseTest() throws Exception {
     // custom authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.CUSTOM.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-        MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
 
     /**
@@ -131,14 +116,10 @@ public class WorkerClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationDenyConnectTest() throws Exception {
     // custom authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.CUSTOM.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-        MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
 
     /**

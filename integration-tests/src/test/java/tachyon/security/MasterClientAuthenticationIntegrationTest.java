@@ -31,19 +31,14 @@ import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
-import tachyon.worker.WorkerContext;
 
 /**
  * Though its name indicates that it provides the tests for Tachyon authentication. This class is
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
  *
  * TODO: add tests for {@link tachyon.master.LocalTachyonClusterMultiMaster} in fault tolerant mode
- *
- * TODO: the way to set and isolate MasterContext/WorkerContext across testcases is hacky. A better
- * solution is needed.
  */
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -63,16 +58,12 @@ public class MasterClientAuthenticationIntegrationTest {
     mLocalTachyonCluster.stop();
 
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
-    MasterContext.reset();
-    WorkerContext.reset();
   }
 
   @Test
   public void noAuthenticationOpenCloseTest() throws Exception {
     // no authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.NOSASL.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.NOSASL.getAuthName());
     // start cluster
     mLocalTachyonCluster.start();
@@ -86,11 +77,8 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     // simple authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.SIMPLE.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.SIMPLE.getAuthName());
-
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -103,14 +91,10 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationOpenCloseTest() throws Exception {
     // custom authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.CUSTOM.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-        NameMatchAuthenticationProvider.class.getName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
 
     /**
@@ -131,14 +115,10 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationDenyConnectTest() throws Exception {
     // custom authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.CUSTOM.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-        NameMatchAuthenticationProvider.class.getName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
 
     /**
