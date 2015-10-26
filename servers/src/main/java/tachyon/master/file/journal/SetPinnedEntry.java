@@ -33,9 +33,9 @@ public class SetPinnedEntry extends JournalEntry {
     /**
      * Creates a new instance of <code>SetPinnedEntry</code>
      *
-     * @param id the id of the entry.
-     * @param pinned whether the entry is pinned or not.
-     * @param opTimeMs the operation timestamp (in millisecs).
+     * @param id the id of the entry
+     * @param pinned whether the entry is pinned or not
+     * @param opTimeMs the operation timestamp (in millisecs)
      */
   @JsonCreator
   public SetPinnedEntry(@JsonProperty("id") long id, @JsonProperty("pinned") boolean pinned,
