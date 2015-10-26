@@ -74,4 +74,12 @@ public final class InStreamOptions {
   public TachyonStorageType getTachyonStorageType() {
     return mTachyonStorageType;
   }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return "InStreamOptions{" + "mTachyonStorageType=" + mTachyonStorageType.toString() + "}";
+  }
 }

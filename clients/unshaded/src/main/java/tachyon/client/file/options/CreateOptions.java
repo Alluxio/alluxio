@@ -143,6 +143,15 @@ public final class CreateOptions {
   }
 
   /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return "CreateTOptions{mBlockSizeBytes=" + mBlockSizeBytes + ",mRecursive=" + mRecursive
+        + ",mTTL=" + mTTL + ",mUnderStorageType=" + mUnderStorageType.toString() + "}";
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public CreateTOptions toThrift() {
