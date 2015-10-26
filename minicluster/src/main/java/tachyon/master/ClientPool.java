@@ -42,15 +42,13 @@ public final class ClientPool implements Closeable {
   }
 
   /**
-   * Returns a {@link tachyon.client.TachyonFS} client. This client does not need to be closed
-   * directly, but can be closed by calling {@link #close()} on this object.
+   * Returns a {@link TachyonFileSystem} client. This client does not need to be closed.
    *
    * @param tachyonConf Tachyon configuration
-   * @return a TachyonFS client
-   * @throws IOException when the operation fails
+   * @return a {@link TachyonFileSystem} client
    */
-  public TachyonFileSystem getClient(TachyonConf tachyonConf) throws IOException {
-    final TachyonFileSystem fs = TachyonFileSystemFactory.get();
+  public TachyonFileSystem getClient(TachyonConf tachyonConf) {
+    final TachyonFileSystem fs = TachyonFileSystemFactory.get(tachyonConf);
     mClients.add(fs);
     return fs;
   }

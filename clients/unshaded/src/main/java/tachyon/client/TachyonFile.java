@@ -65,7 +65,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
-    mTFS = TachyonFileSystemFactory.get();
+    mTFS = TachyonFileSystemFactory.get(tachyonConf);
     mFileId = fid;
     mTachyonConf = tachyonConf;
   }

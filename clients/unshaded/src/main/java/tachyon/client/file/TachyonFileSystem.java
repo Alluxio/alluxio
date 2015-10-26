@@ -40,6 +40,7 @@ import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.client.lineage.TachyonLineageFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -58,19 +59,26 @@ import tachyon.thrift.FileInfo;
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
+  private final TachyonConf mTachyonConf;
+
   public static class TachyonFileSystemFactory {
-    public static synchronized TachyonFileSystem get() {
+    public static TachyonFileSystem get() {
+      return get(ClientContext.getConf());
+    }
+
+    public static synchronized TachyonFileSystem get(TachyonConf conf) {
       if (sTachyonFileSystem == null) {
-        boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
+        boolean enableLineage = conf.getBoolean(Constants.USER_LINEAGE_ENABLED);
         sTachyonFileSystem =
-            enableLineage ? TachyonLineageFileSystem.get() : new TachyonFileSystem();
+            enableLineage ? TachyonLineageFileSystem.get(conf) : new TachyonFileSystem(conf);
       }
       return sTachyonFileSystem;
     }
   }
 
-  protected TachyonFileSystem() {
+  protected TachyonFileSystem(TachyonConf conf) {
     super();
+    mTachyonConf = conf;
   }
 
   /**
@@ -78,7 +86,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public TachyonFile create(TachyonURI path)
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
-    return create(path, CreateOptions.defaults());
+    return create(path, new CreateOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -86,7 +94,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public void delete(TachyonFile file)
       throws IOException, TachyonException, FileDoesNotExistException {
-    delete(file, DeleteOptions.defaults());
+    delete(file, new DeleteOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -94,7 +102,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public void free(TachyonFile file)
       throws IOException, TachyonException, FileDoesNotExistException {
-    free(file, FreeOptions.defaults());
+    free(file, new FreeOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -103,7 +111,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public FileInfo getInfo(TachyonFile file)
       throws FileDoesNotExistException, IOException, TachyonException {
-    return getInfo(file, GetInfoOptions.defaults());
+    return getInfo(file, new GetInfoOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -111,7 +119,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public FileInStream getInStream(TachyonFile file)
       throws IOException, TachyonException, FileDoesNotExistException {
-    return getInStream(file, InStreamOptions.defaults());
+    return getInStream(file, new InStreamOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -128,7 +136,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public FileInStream getInStream(TachyonFile file, InStreamOptions options)
       throws IOException, TachyonException, FileDoesNotExistException {
-    FileInfo info = getInfo(file, GetInfoOptions.defaults());
+    FileInfo info = getInfo(file, new GetInfoOptions.Builder(mTachyonConf).build());
     Preconditions.checkState(!info.isIsFolder(), PreconditionMessage.CANNOT_READ_FOLDER);
     return new FileInStream(info, options);
   }
@@ -139,7 +147,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public FileOutStream getOutStream(TachyonURI path)
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
-    return getOutStream(path, OutStreamOptions.defaults());
+    return getOutStream(path, new OutStreamOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -159,7 +167,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     CreateOptions createOptions =
-        new CreateOptions.Builder(ClientContext.getConf())
+        new CreateOptions.Builder(mTachyonConf)
             .setBlockSizeBytes(options.getBlockSizeBytes())
             .setRecursive(true)
             .setTTL(options.getTTL())
@@ -188,7 +196,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public List<FileInfo> listStatus(TachyonFile file)
       throws IOException, TachyonException, FileDoesNotExistException {
-    return listStatus(file, ListStatusOptions.defaults());
+    return listStatus(file, new ListStatusOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -197,7 +205,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public TachyonFile loadMetadata(TachyonURI path)
       throws IOException, TachyonException, FileDoesNotExistException {
-    return loadMetadata(path, LoadMetadataOptions.defaults());
+    return loadMetadata(path, new LoadMetadataOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -205,7 +213,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public boolean mkdir(TachyonURI path)
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
-    return mkdir(path, MkdirOptions.defaults());
+    return mkdir(path, new MkdirOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -214,7 +222,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws IOException, TachyonException {
-    return mount(tachyonPath, ufsPath, MountOptions.defaults());
+    return mount(tachyonPath, ufsPath, new MountOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -222,14 +230,14 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public TachyonFile open(TachyonURI path)
       throws IOException, InvalidPathException, TachyonException {
-    return open(path, OpenOptions.defaults());
+    return open(path, new OpenOptions.Builder(mTachyonConf).build());
   }
 
   /**
    * Convenience method for {@link #openIfExists(TachyonURI, OpenOptions)} with default options.
    */
   public TachyonFile openIfExists(TachyonURI path) throws IOException, TachyonException {
-    return openIfExists(path, OpenOptions.defaults());
+    return openIfExists(path, new OpenOptions.Builder(mTachyonConf).build());
   }
 
   /**
@@ -238,21 +246,21 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public boolean rename(TachyonFile src, TachyonURI dst)
       throws IOException, TachyonException, FileDoesNotExistException {
-    return rename(src, dst, RenameOptions.defaults());
+    return rename(src, dst, new RenameOptions.Builder(mTachyonConf).build());
   }
 
   /**
    * Convenience method for {@link #setState(TachyonFile, SetStateOptions)} with default options.
    */
   public void setState(TachyonFile file) throws IOException, TachyonException {
-    setState(file, SetStateOptions.defaults());
+    setState(file, new SetStateOptions.Builder(mTachyonConf).build());
   }
 
   /**
    * Convenience method for {@link #unmount(TachyonURI, UnmountOptions)} with default options.
    */
   public boolean unmount(TachyonURI tachyonPath) throws IOException, TachyonException {
-    return unmount(tachyonPath, UnmountOptions.defaults());
+    return unmount(tachyonPath, new UnmountOptions.Builder(mTachyonConf).build());
   }
 
   // TODO: Move this to lineage client
