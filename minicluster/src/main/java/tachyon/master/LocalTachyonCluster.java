@@ -58,7 +58,6 @@ public final class LocalTachyonCluster {
   private int mUserBlockSize;
   private int mQuotaUnitBytes;
   private String mTachyonHome;
-  private String mWorkerDataFolder;
   private Thread mWorkerThread = null;
   private String mLocalhostName = null;
   private LocalTachyonMaster mMaster;
@@ -127,7 +126,6 @@ public final class LocalTachyonCluster {
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
     UnderFileSystemUtils.deleteDir(mTachyonHome, MasterContext.getConf());
-    mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     // Disable hdfs client caching to avoid file system close() affecting other clients
@@ -136,17 +134,25 @@ public final class LocalTachyonCluster {
     mTestConf = new TachyonConf();
     mTestConf.set(Constants.IN_TEST_MODE, "true");
     mTestConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
+    // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
+    // TODO(binfan): eliminate this setting after updating integration tests
+    mTestConf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    mTestConf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+    mTestConf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
     mTestConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     mTestConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     mTestConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+
     mTestConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mTestConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mTestConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     mTestConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
+
     mTestConf.set(Constants.WORKER_PORT, Integer.toString(0));
     mTestConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
     mTestConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
-    mTestConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mTestConf.set(Constants.WORKER_DATA_FOLDER, "/datastore");
     mTestConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     mTestConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
     mTestConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
@@ -161,6 +167,7 @@ public final class LocalTachyonCluster {
     // people running with strange network configurations will see very slow tests
     mTestConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, Integer.toString(250));
 
+    // Setup Tiered Store
     String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
     mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     mTestConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
