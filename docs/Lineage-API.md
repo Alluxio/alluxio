@@ -14,9 +14,9 @@ Tachyon can achieve high throughput writes and reads, without compromising fault
 
 With lineage, applications write output into memory, and Tachyon periodically checkpoints the output
 into the under file system in an asynchronous fashion. In case of failures, Tachyon launches *job
-recomputation* to restore the lost files. Lineage assumes that jobs are deterministic so that the 
-recomputed outputs are identical. If this assumption is not met, it is up to the application to handle
-divergent outputs.
+recomputation* to restore the lost files. Lineage assumes that jobs are deterministic so that the
+recomputed outputs are identical. If this assumption is not met, it is up to the application to
+handle divergent outputs.
 
 # Enable Lineage
 

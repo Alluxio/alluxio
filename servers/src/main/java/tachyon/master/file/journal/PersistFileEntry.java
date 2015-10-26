@@ -15,32 +15,37 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class PersistFileEntry implements JournalEntry {
+public class PersistFileEntry extends JournalEntry {
   private final long mFileId;
   private final long mLength;
   private final long mOpTimeMs;
 
-  public PersistFileEntry(long fileId, long length, long opTimeMs) {
+  @JsonCreator
+  public PersistFileEntry(@JsonProperty("fileId") long fileId, @JsonProperty("length") long length,
+      @JsonProperty("operationTimeMs") long opTimeMs) {
     mFileId = fileId;
     mLength = length;
     mOpTimeMs = opTimeMs;
   }
 
+  @JsonGetter
   public long getFileId() {
     return mFileId;
   }
 
-  public long getFileLength() {
+  @JsonGetter
+  public long getLength() {
     return mLength;
   }
 
+  @JsonGetter
   public long getOperationTimeMs() {
     return mOpTimeMs;
   }
@@ -48,14 +53,5 @@ public class PersistFileEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.ADD_CHECKPOINT;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(5);
-    parameters.put("fileId", mFileId);
-    parameters.put("length", mLength);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
   }
 }

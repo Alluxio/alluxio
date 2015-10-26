@@ -15,26 +15,30 @@
 
 package tachyon.master.lineage.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class DeleteLineageEntry implements JournalEntry {
+public final class DeleteLineageEntry extends JournalEntry {
   private long mLineageId;
   private boolean mCascade;
 
-  public DeleteLineageEntry(long lineageId, boolean cascade) {
+  @JsonCreator
+  public DeleteLineageEntry(@JsonProperty("lineageId") long lineageId,
+      @JsonProperty("cascade") boolean cascade) {
     mLineageId = lineageId;
     mCascade = cascade;
   }
 
+  @JsonGetter
   public long getLineageId() {
     return mLineageId;
   }
 
+  @JsonGetter
   public boolean isCascade() {
     return mCascade;
   }
@@ -42,13 +46,5 @@ public final class DeleteLineageEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.DELETE_LINEAGE;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("lineageId", mLineageId);
-    parameters.put("cascade", mCascade);
-    return parameters;
   }
 }

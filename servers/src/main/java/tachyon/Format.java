@@ -104,4 +104,6 @@ public class Format {
       System.exit(-1);
     }
   }
+
+  private Format() {}  // Prevent instantiation.
 }

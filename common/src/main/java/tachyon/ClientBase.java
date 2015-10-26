@@ -272,7 +272,7 @@ public abstract class ClientBase implements Closeable {
       try {
         return rpc.call();
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.from(e);
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (TException e) {

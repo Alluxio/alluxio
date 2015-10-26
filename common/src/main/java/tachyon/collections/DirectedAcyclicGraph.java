@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * A Directed Acyclic Graph (DAG). This class is NOT thread-safe.
  *
- * @param <T> the payload of each node.
+ * @param <T> the payload of each node
  */
 public class DirectedAcyclicGraph<T> {
   private final List<DirectedAcyclicGraphNode<T>> mRoots;

@@ -170,6 +170,33 @@ public final class TachyonConf {
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+
+    // tachyon.user.file.writetype.default has been deprecated. So by default it is not defined.
+    // In case it is defined, it overwrites tachyon.user.file.tachyonstoragetype.default and
+    // tachyon.user.file.understoragetype.default. Essentially, we want to make sure that
+    // tachyon.user.file.writetype.default is consistent with the other two parameters.
+    if (mProperties.containsKey(Constants.USER_FILE_WRITE_TYPE_DEFAULT)) {
+      String writeType = mProperties.getProperty(Constants.USER_FILE_WRITE_TYPE_DEFAULT);
+      if (writeType.equals("MUST_CACHE")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
+      } else if (writeType.equals("TRY_CACHE")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
+      } else if (writeType.equals("CACHE_THROUGH")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
+      } else if (writeType.equals("THROUGH")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "NO_STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
+      } else if (writeType.equals("ASYNC_THROUGH")) {
+        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "ASYNC_PERSIST");
+      } else {
+        throw new IllegalArgumentException("Unknown property for "
+            + Constants.USER_FILE_WRITE_TYPE_DEFAULT + " " + writeType);
+      }
+    }
   }
 
   @Override
@@ -204,7 +231,7 @@ public final class TachyonConf {
    * Merge the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param alternateConf The source <code>TachyonConf</code> to be merged.
+   * @param alternateConf The source <code>TachyonConf</code> to be merged
    */
   public void merge(TachyonConf alternateConf) {
     if (alternateConf != null) {
@@ -362,7 +389,7 @@ public final class TachyonConf {
   /**
    * Lookup key names to handle ${key} stuff. Set as package private for testing.
    *
-   * @param base string to look for.
+   * @param base string to look for
    * @return the key name with the ${key} substituted
    */
   private String lookup(String base) {
@@ -372,8 +399,8 @@ public final class TachyonConf {
   /**
    * Actual recursive lookup replacement.
    *
-   * @param base the String to look for.
-   * @param found {@link Map} of String that already seen in this path.
+   * @param base the String to look for
+   * @param found {@link Map} of String that already seen in this path
    * @return resolved String value
    */
   private String lookupRecursively(final String base, Map<String, String> found) {

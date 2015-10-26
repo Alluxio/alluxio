@@ -93,7 +93,7 @@ public final class MkdirOptions {
   }
 
   /**
-   * Creates a new instance of {@link MkdirOptions} from {@link MkdirOptions}.
+   * Creates a new instance of {@link MkdirOptions} from {@link MkdirTOptions}.
    *
    * @param options Thrift options
    */

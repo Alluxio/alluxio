@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
@@ -95,7 +96,7 @@ public final class TachyonBlockStore implements Closeable {
       // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
         // TODO(calvin): Maybe this shouldn't be an exception.
-        throw new IOException("No block " + blockId + " is not available in Tachyon");
+        throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
       // TODO(calvin): Investigate making this a Factory method
       NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
@@ -106,7 +107,7 @@ public final class TachyonBlockStore implements Closeable {
         if (mContext.hasLocalWorker()) {
           return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
         } else {
-          throw new IOException("Local read requested but there is no local worker.");
+          throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage("read"));
         }
       } else {
         return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
@@ -154,7 +155,7 @@ public final class TachyonBlockStore implements Closeable {
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
       } else {
-        throw new IOException("Local write requested but there is no local worker.");
+        throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage("write"));
       }
     }
     // Location is specified and it is remote.
