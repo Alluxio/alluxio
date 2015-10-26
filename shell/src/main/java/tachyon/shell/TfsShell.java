@@ -875,10 +875,8 @@ public class TfsShell implements Closeable {
 
   public int report(TachyonURI path) throws IOException {
     try {
-      TachyonFile fd = mTfs.open(path);
-      mTfs.reportLostFile(fd);
-      System.out
-          .println(path + " with file id " + fd.getFileId() + " has reported been report lost.");
+      mTfs.reportLostFile(path);
+      System.out.println(path + " has reported been reported as lost.");
       listLineages();
       return 0;
     } catch (TachyonException e) {
