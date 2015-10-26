@@ -422,7 +422,7 @@ public final class NetworkAddressUtils {
    * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir"
    * @return an address or path string with hostname resolved, or the original path intact if no
    *         hostname is embedded, or null if the given path is null or empty.
-   * @throws UnknownHostException if the hostname cannot be resolved.
+   * @throws UnknownHostException if the hostname cannot be resolved
    */
   public static TachyonURI replaceHostName(TachyonURI path) throws UnknownHostException {
     if (path == null) {
@@ -446,7 +446,7 @@ public final class NetworkAddressUtils {
    *
    * @param hostname the input hostname, which could be an alias
    * @return the canonical form of the hostname, or null if it is null or empty
-   * @throws UnknownHostException if the given hostname cannot be resolved.
+   * @throws UnknownHostException if the given hostname cannot be resolved
    */
   public static String resolveHostName(String hostname) throws UnknownHostException {
     if (hostname == null || hostname.isEmpty()) {

@@ -71,7 +71,7 @@ public class TieredBlockStoreTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY_BYTES}, should be in the same dimension with
    *        tierPath, each element is the capacity of the corresponding dir in tierPath.
    * @param workerDataFolder when specified it sets up the tachyon.worker.data.folder property
-   * @throws Exception when error happens during creating temporary folder.
+   * @throws Exception when error happens during creating temporary folder
    */
   public static void setupTachyonConfWithMultiTier(String baseDir, int[] tierLevel,
       StorageLevelAlias[] tierAlias, String[][] tierPath, long[][] tierCapacity,
@@ -117,7 +117,7 @@ public class TieredBlockStoreTestUtils {
    * @param tierCapacity capacity of this tier
    * @param workerDataFolder when specified it sets up the tachyon.worker.data.folder property
    * @return the created TachyonConf
-   * @throws Exception when error happens during creating temporary folder.
+   * @throws Exception when error happens during creating temporary folder
    */
   public static void setupTachyonConfWithSingleTier(String baseDir, int tierLevel,
       StorageLevelAlias tierAlias, String[] tierPath, long[] tierCapacity, String
@@ -165,7 +165,7 @@ public class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for all the paths in the array 'dirs'
    * @param dirs 2-D array of directory paths
    * @return new joined and created paths array
-   * @throws Exception when error happens during creating temporary folder.
+   * @throws Exception when error happens during creating temporary folder
    */
   private static String[][] createDirHierarchy(String baseDir, final String[][] dirs)
       throws Exception {
@@ -185,7 +185,7 @@ public class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for all the paths in the array 'dirs'
    * @param dirs 1-D array of directory paths
    * @return new joined and created paths array
-   * @throws IOException when error happens during creating temporary folder.
+   * @throws IOException when error happens during creating temporary folder
    */
   private static String[] createDirHierarchy(String baseDir, final String[] dirs)
       throws Exception {
@@ -206,7 +206,7 @@ public class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
    * @return the created metadata manager
-   * @throws Exception when error happens during creating temporary folder.
+   * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
     setupTachyonConfDefault(baseDir);
@@ -219,7 +219,7 @@ public class TieredBlockStoreTestUtils {
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
    * @return the created metadata manager view
-   * @throws Exception when error happens during creating temporary folder.
+   * @throws Exception when error happens during creating temporary folder
    */
   public static BlockMetadataManagerView defaultMetadataManagerView(String baseDir)
       throws Exception {
@@ -234,7 +234,7 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
-   * @throws Exception when error happens during creating temporary folder.
+   * @throws Exception when error happens during creating temporary folder
    */
   public static void setupTachyonConfDefault(String baseDir) throws Exception {
     setupTachyonConfWithMultiTier(baseDir, TIER_LEVEL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,

@@ -1195,7 +1195,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId The id of the file to look up
    * @return the path of the file
-   * @throws FileDoesNotExistException raise if the file does not exist.
+   * @throws FileDoesNotExistException raise if the file does not exist
    */
   public TachyonURI getPath(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
