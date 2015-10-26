@@ -32,8 +32,18 @@
     <property name="eachLine" value="true"/>
   </module>
   <module name="RegexpSingleline">
+    <property name="format" value="@throw.*\.$"/>
+    <property name="message" value="Period is not needed at the end of the @throw tag."/>
+    <property name="fileExtensions" value=".java"/>
+  </module>
+  <module name="RegexpSingleline">
     <property name="format" value="@return.*\.$"/>
     <property name="message" value="Period is not needed at the end of the @return tag."/>
+    <property name="fileExtensions" value=".java"/>
+  </module>
+  <module name="RegexpSingleline">
+    <property name="format" value="@param.*\.$"/>
+    <property name="message" value="Period is not needed at the end of the @param tag."/>
     <property name="fileExtensions" value=".java"/>
   </module>
   <module name="RegexpSingleline">

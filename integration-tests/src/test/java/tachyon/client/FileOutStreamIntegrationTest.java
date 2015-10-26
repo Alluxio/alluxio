@@ -222,7 +222,7 @@ public final class FileOutStreamIntegrationTest {
   /**
    * Test writing to a file and specify the location to be localhost.
    *
-   * @throws IOException if file can not be opened successfully.
+   * @throws IOException if file can not be opened successfully
    */
   @Test
   public void writeSpecifyLocalTest() throws IOException, TachyonException {
