@@ -49,10 +49,10 @@ public interface RemoteBlockReader extends Closeable {
   /**
    * Reads a remote block with a offset and length.
    *
-   * @param address The {@link InetSocketAddress} of the data server.
-   * @param blockId the id of the block trying to read.
-   * @param offset the offset of the block.
-   * @param length the length the client wants to read.
+   * @param address the {@link InetSocketAddress} of the data server
+   * @param blockId the id of the block trying to read
+   * @param offset the offset of the block
+   * @param length the length the client wants to read
    * @return a byte buffer containing the remote data block
    * @throws IOException if the remote server is not reachable or responds with failures
    */

@@ -73,7 +73,7 @@ public final class LineageMasterClient extends MasterClientBase {
         return mClient.createLineage(inputFiles, outputFiles,
             job.generateCommandLineJobInfo());
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.from(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -90,7 +90,7 @@ public final class LineageMasterClient extends MasterClientBase {
       try {
         return mClient.deleteLineage(lineageId, cascade);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.from(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -107,7 +107,7 @@ public final class LineageMasterClient extends MasterClientBase {
       try {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
       } catch (TachyonTException e) {
-        throw new TachyonException(e);
+        throw TachyonException.from(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
