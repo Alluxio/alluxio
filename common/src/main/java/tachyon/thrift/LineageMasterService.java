@@ -39,16 +39,50 @@ public class LineageMasterService {
 
   public interface Iface {
 
+    /**
+     * Marks a file as completed and initiates asynchronous persistence (if applicable).
+     * 
+     * @param fileId
+     */
     public void asyncCompleteFile(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Creates a lineage.
+     * 
+     * @param inputFiles
+     * @param outputFiles
+     * @param job
+     */
     public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Deletes a lineage.
+     * 
+     * @param lineageId
+     * @param cascade
+     */
     public boolean deleteLineage(long lineageId, boolean cascade) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns a list of existing lineages.
+     */
     public List<LineageInfo> getLineageInfoList() throws org.apache.thrift.TException;
 
+    /**
+     * Reinitializes a file.
+     * 
+     * @param path
+     * @param blockSizeBytes
+     * @param ttl
+     */
     public long reinitializeFile(String path, long blockSizeBytes, long ttl) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Periodic lineage worker heartbeat.
+     * 
+     * @param workerId
+     * @param persistedFiles
+     */
     public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws org.apache.thrift.TException;
 
   }

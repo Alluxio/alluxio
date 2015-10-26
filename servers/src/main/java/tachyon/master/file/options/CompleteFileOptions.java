@@ -18,7 +18,6 @@ package tachyon.master.file.options;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.CompleteFileTOptions;
-import tachyon.thrift.MkdirTOptions;
 
 public final class CompleteFileOptions {
   public static class Builder {

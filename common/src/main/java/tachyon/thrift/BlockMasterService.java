@@ -39,20 +39,64 @@ public class BlockMasterService {
 
   public interface Iface {
 
+    /**
+     * Returns the block information for the given block id.
+     * 
+     * @param blockId
+     */
     public tachyon.thrift.BlockInfo getBlockInfo(long blockId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns the capacity (in bytes).
+     */
     public long getCapacityBytes() throws org.apache.thrift.TException;
 
+    /**
+     * Returns the used storage (in bytes).
+     */
     public long getUsedBytes() throws org.apache.thrift.TException;
 
+    /**
+     * Returns a list of workers information.
+     */
     public List<WorkerInfo> getWorkerInfoList() throws org.apache.thrift.TException;
 
+    /**
+     * Marks the given block as committed.
+     * 
+     * @param workerId
+     * @param usedBytesOnTier
+     * @param tier
+     * @param blockId
+     * @param length
+     */
     public void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long blockId, long length) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns a worker id for the given network address.
+     * 
+     * @param workerNetAddress
+     */
     public long workerGetWorkerId(tachyon.thrift.NetAddress workerNetAddress) throws org.apache.thrift.TException;
 
+    /**
+     * Periodic worker heartbeat.
+     * 
+     * @param workerId
+     * @param usedBytesOnTiers
+     * @param removedBlockIds
+     * @param addedBlocksOnTiers
+     */
     public tachyon.thrift.Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers, List<Long> removedBlockIds, Map<Long,List<Long>> addedBlocksOnTiers) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Registers a worker.
+     * 
+     * @param workerId
+     * @param totalBytesOnTiers
+     * @param usedBytesOnTiers
+     * @param currentBlocksOnTiers
+     */
     public void workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers, Map<Long,List<Long>> currentBlocksOnTiers) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
   }
