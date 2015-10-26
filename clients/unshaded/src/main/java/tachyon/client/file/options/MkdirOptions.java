@@ -99,6 +99,15 @@ public final class MkdirOptions {
   }
 
   /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return "MkdirOptions{mRecursive=" + mRecursive + ",mUnderStorageType="
+        + mUnderStorageType.toString() + "}";
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public MkdirTOptions toThrift() {

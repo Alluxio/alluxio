@@ -73,4 +73,12 @@ public class SetStateOptions {
   public Boolean getPinned() {
     return mPinned;
   }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return "SetStateOptions{mPinned=" + mPinned + "}";
+  }
 }
