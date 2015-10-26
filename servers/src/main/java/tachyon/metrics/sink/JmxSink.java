@@ -30,8 +30,8 @@ public class JmxSink implements Sink {
   /**
    * Creates a JmxSink with a Properties and MetricRegistry.
    *
-   * @param properties the properties.
-   * @param registry the metric registry to register.
+   * @param properties the properties
+   * @param registry the metric registry to register
    */
   public JmxSink(Properties properties, MetricRegistry registry) {
     mProperties = properties;

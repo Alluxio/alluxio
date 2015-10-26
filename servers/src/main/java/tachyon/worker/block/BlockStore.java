@@ -316,7 +316,7 @@ interface BlockStore {
   /**
    * Update the pinned inodes.
    *
-   * @param inodes a set of inodes that are currently pinned.
+   * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
 }

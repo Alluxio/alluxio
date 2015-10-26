@@ -42,6 +42,11 @@
     <property name="fileExtensions" value=".java"/>
   </module>
   <module name="RegexpSingleline">
+    <property name="format" value="@param.*\.$"/>
+    <property name="message" value="Period is not needed at the end of the @param tag."/>
+    <property name="fileExtensions" value=".java"/>
+  </module>
+  <module name="RegexpSingleline">
     <property name="format" value="&gt;&gt;&gt;&gt;&gt;&gt;&gt;"/>
     <property name="message" value="Merge conflicts unresolved."/>
   </module>
