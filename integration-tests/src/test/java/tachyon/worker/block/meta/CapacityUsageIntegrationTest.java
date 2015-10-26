@@ -36,7 +36,6 @@ import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerContext;
 
 public class CapacityUsageIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
