@@ -180,7 +180,7 @@ interface TachyonFileSystemCore {
       FileDoesNotExistException, TachyonException;
 
   /**
-   * Sets the state of a file.
+   * Sets the file state.
    *
    * @param file the file handler for the file to pin
    * @param options method options

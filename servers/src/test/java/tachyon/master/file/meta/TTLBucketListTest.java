@@ -20,16 +20,18 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class TTLBucketListTest {
+  private static final long BUCKET_INTERVAL = 10;
   private static final long BUCKET1_START = 0;
-  private static final long BUCKET1_END = BUCKET1_START + TTLBucket.getTTLIntervalMs();
-  private static final long BUCKET2_START = BUCKET1_END + 1;
-  private static final long BUCKET2_END =  BUCKET2_START + TTLBucket.getTTLIntervalMs();
+  private static final long BUCKET1_END = BUCKET1_START + BUCKET_INTERVAL;
+  private static final long BUCKET2_START = BUCKET1_END;
+  private static final long BUCKET2_END =  BUCKET2_START + BUCKET_INTERVAL;
   private static final InodeFile BUCKET1_FILE1 = new InodeFile.Builder().setCreationTimeMs(0)
       .setBlockContainerId(0).setTTL(BUCKET1_START).build();
   private static final InodeFile BUCKET1_FILE2 = new InodeFile.Builder().setCreationTimeMs(0)
@@ -38,6 +40,11 @@ public class TTLBucketListTest {
       .setBlockContainerId(2).setTTL(BUCKET2_START).build();
 
   private TTLBucketList mBucketList;
+
+  @BeforeClass
+  public static void beforeClass() {
+    TTLBucket.setTTlIntervalMs(BUCKET_INTERVAL);
+  }
 
   @Before
   public void before() {

@@ -1363,7 +1363,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets state of the file.
+   * Sets the file state.
    *
    * @param fileId the id of the file
    * @param options state options to be set, see {@link SetStateOptions}
@@ -1374,7 +1374,8 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, options));
+      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, options.getPinnedOrNull(),
+          options.getTTLOrNull()));
       flushJournal();
     }
   }
@@ -1382,12 +1383,13 @@ public final class FileSystemMaster extends MasterBase {
   private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
       throws FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
-    if (options.getPinned().isPresent()) {
-      mInodeTree.setPinned(inode, options.getPinned().get(), opTimeMs);
+    Boolean pinned = options.getPinnedOrNull();
+    Long ttl = options.getTTLOrNull();
+    if (pinned != null) {
+      mInodeTree.setPinned(inode, pinned, opTimeMs);
     }
-    if (options.getTTL().isPresent()) {
+    if (ttl != null) {
       InodeFile file = (InodeFile) inode;
-      long ttl = options.getTTL().get();
       if (file.getTTL() != ttl) {
         mTTLBuckets.remove(file);
         file.setTTL(ttl);

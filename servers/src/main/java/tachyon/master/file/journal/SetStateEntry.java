@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import tachyon.client.file.options.SetStateOptions;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
@@ -46,10 +45,6 @@ public class SetStateEntry extends JournalEntry {
     mOpTimeMs = opTimeMs;
     mPinned = pinned;
     mTTL = ttl;
-  }
-
-  public SetStateEntry(long id, long opTimeMs, SetStateOptions options) {
-    this(id, opTimeMs, options.getPinned().orNull(), options.getTTL().orNull());
   }
 
   @JsonGetter

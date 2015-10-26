@@ -23,15 +23,15 @@ struct FileInfo {
 }
 
 struct CreateTOptions {
-  1: i64 blockSizeBytes
-  2: bool persisted
-  3: bool recursive
-  4: i64 ttl
+  1: optional i64 blockSizeBytes
+  2: optional bool persisted
+  3: optional bool recursive
+  4: optional i64 ttl
 }
 
 struct MkdirTOptions {
-  1: bool persisted
-  2: bool recursive
+  1: optional bool persisted
+  2: optional bool recursive
 }
 
 struct SetStateTOptions {
@@ -144,7 +144,7 @@ service FileSystemMasterService {
     throws (1: exception.TachyonTException e)
 
   /*
-   * Sets states for a file.
+   * Sets file state.
    */
   void setState(1: i64 fileId, 2: SetStateTOptions options)
 
