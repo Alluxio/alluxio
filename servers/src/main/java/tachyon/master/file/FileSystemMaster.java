@@ -1382,12 +1382,12 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file doesn't exist
    */
   public void resetFile(long fileId) throws FileDoesNotExistException {
-    // TODO check the file is not persisted
+    // TODO(yupeng) check the file is not persisted
     synchronized (mInodeTree) {
       // free the file first
       free(fileId, false);
       InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
-      inodeFile.reinit();
+      inodeFile.reset();
     }
   }
 
