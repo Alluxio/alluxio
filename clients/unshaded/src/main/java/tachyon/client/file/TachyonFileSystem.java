@@ -24,7 +24,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
