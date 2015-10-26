@@ -96,4 +96,17 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     }
     return new LineageFileOutStream(fileId, options);
   }
+
+  public void reportLostFile(TachyonFile file)
+      throws IOException, FileDoesNotExistException, TachyonException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.reportLostFile(file.getFileId());
+    } catch (TachyonException e) {
+      TachyonException.unwrap(e, FileDoesNotExistException.class);
+      throw e;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
 }
