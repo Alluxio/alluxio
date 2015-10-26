@@ -39,14 +39,42 @@ public class RawTableMasterService {
 
   public interface Iface {
 
+    /**
+     * Creates a raw table.
+     * 
+     * @param path
+     * @param columns
+     * @param metadata
+     */
     public long createRawTable(String path, int columns, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
+    /**
+     * Returns raw table information for the given id.
+     * 
+     * @param id
+     */
     public RawTableInfo getClientRawTableInfoById(long id) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns raw table information for the given path.
+     * 
+     * @param path
+     */
     public RawTableInfo getClientRawTableInfoByPath(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns raw table id for the given path.
+     * 
+     * @param path
+     */
     public long getRawTableId(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Updates raw table metadata.
+     * 
+     * @param tableId
+     * @param metadata
+     */
     public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
   }

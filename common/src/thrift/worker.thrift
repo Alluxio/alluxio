@@ -32,9 +32,6 @@ service WorkerService {
   string lockBlock(1: i64 blockId, 2: i64 sessionId)
     throws (1: exception.TachyonTException e)
 
-  void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
-    throws (1: exception.TachyonTException e)
-
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
    * storage layers in Tachyon's space. return true if the block is successfully promoted, false
