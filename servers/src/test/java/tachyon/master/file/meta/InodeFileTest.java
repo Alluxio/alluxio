@@ -58,22 +58,22 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   @Test
-  public void setNegativeLengthTest() throws Exception {
+  public void completeWithNegativeTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
-    mThrown.expectMessage("InodeFile new length " + -1 + " is negative.");
+    mThrown.expectMessage("File length " + -1 + " cannot be negative.");
 
     InodeFile inodeFile = createInodeFile(1);
-    inodeFile.setLength(-1);
+    inodeFile.complete(-1);
   }
 
   @Test
-  public void setLengthAfterCompleteTest() throws Exception {
+  public void completeTwiceTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
-    mThrown.expectMessage("InodeFile has been completed.");
+    mThrown.expectMessage("File has already been completed.");
 
     InodeFile inodeFile = createInodeFile(1);
-    inodeFile.setLength(LENGTH);
-    inodeFile.setLength(LENGTH);
+    inodeFile.complete(LENGTH);
+    inodeFile.complete(LENGTH);
   }
 
   @Test
