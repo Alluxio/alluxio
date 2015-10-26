@@ -15,9 +15,9 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -25,25 +25,28 @@ import tachyon.master.journal.JournalEntryType;
 /**
  * This class represents a journal entry for recording the entry of setting TTL.
  */
-public class SetTTLEntry implements JournalEntry {
+public class SetTTLEntry extends JournalEntry {
   private final long mId;
   private final long mTTL;
 
   /**
    * Creates a new instance of <code>SetTTLEntry</code>.
    *
-   * @param id the id of the entry
+   * @param id  the id of the entry
    * @param ttl the ttl value to be set
    */
-  public SetTTLEntry(long id, long ttl) {
+  @JsonCreator
+  public SetTTLEntry(@JsonProperty("id") long id, @JsonProperty("ttl") long ttl) {
     mId = id;
     mTTL = ttl;
   }
 
+  @JsonGetter
   public long getId() {
     return mId;
   }
 
+  @JsonGetter
   public long getTTL() {
     return mTTL;
   }
@@ -51,13 +54,5 @@ public class SetTTLEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.SET_TTL;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("id", mId);
-    parameters.put("ttl", mTTL);
-    return parameters;
   }
 }

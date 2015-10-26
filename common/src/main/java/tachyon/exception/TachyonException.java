@@ -15,19 +15,18 @@
 
 package tachyon.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.lang.reflect.InvocationTargetException;
 
-import tachyon.Constants;
 import tachyon.thrift.TachyonTException;
 
 /**
  * General TachyonException used throughout the system. It must be able serialize itself to the RPC
  * framework and convert back without losing any necessary information.
  */
-public class TachyonException extends Exception {
+public abstract class TachyonException extends Exception {
+  private static final long serialVersionUID = 2243833925609642384L;
+
   private TachyonExceptionType mType;
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public TachyonException(TachyonTException te) {
     super(te.getMessage());
@@ -57,19 +56,48 @@ public class TachyonException extends Exception {
     return new TachyonTException(mType.name(), getMessage());
   }
 
+  /**
+   * Constructs a {@link TachyonException} from a {@link TachyonTException}.
+   *
+   * @param e the {link TachyonTException} to convert to a {@link TachyonException}
+   * @return a {@link TachyonException} of the type specified in e, with the message specified in e
+   */
+  public static TachyonException from(TachyonTException e) {
+    TachyonExceptionType exceptionType = TachyonExceptionType.valueOf(e.type);
+    Class<? extends TachyonException> throwClass = exceptionType.getExceptionClass();
+    Exception reflectError;
+    try {
+      TachyonException throwInstance =
+          throwClass.getConstructor(String.class).newInstance(e.getMessage());
+      return throwInstance;
+      // This will be easier when we move to Java 7, when instead of catching Exception we can catch
+      // ReflectiveOperationException, the Java 7 superclass for these Exceptions
+    } catch (InstantiationException e1) {
+      reflectError = e1;
+    } catch (IllegalAccessException e1) {
+      reflectError = e1;
+    } catch (InvocationTargetException e1) {
+      reflectError = e1;
+    } catch (NoSuchMethodException e1) {
+      reflectError = e1;
+    }
+    String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
+        + "constructor: " + reflectError.getMessage();
+    throw new IllegalStateException(errorMessage);
+  }
+
+  /**
+   * Checks if the given exception is an instance of the given derived class and if so, downcasts
+   * the exception and throws it.
+   *
+   * @param e the {@link TachyonException}
+   * @param throwClass the type of exception to throw e is of the right type
+   * @throws T if e is of type T
+   */
   public static <T extends TachyonException> void unwrap(TachyonException e, Class<T> throwClass)
       throws T {
-    try {
-      T throwInstance =
-          throwClass.getConstructor(String.class, Throwable.class).newInstance(e.getMessage(), e);
-      if (e.getType() == throwInstance.getType()) {
-        throw throwInstance;
-      }
-      // TODO(andrew): Change this to something supported in Java 6
-    } catch (ReflectiveOperationException roe) {
-      // They passed us an exception class that couldn't be instantiated with a string and
-      // throwable, so we can ignore it
-      LOG.error("Class passed to unwrap is invalid: ", throwClass.getName());
+    if (throwClass.isInstance(e)) {
+      throw throwClass.cast(e);
     }
   }
 }

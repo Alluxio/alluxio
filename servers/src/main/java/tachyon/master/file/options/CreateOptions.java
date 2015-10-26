@@ -121,7 +121,7 @@ public final class CreateOptions {
   }
 
   /**
-   * Creates a new instance of {@link CreateOptions} from {@link CreateOptions}.
+   * Creates a new instance of {@link CreateOptions} from {@link CreateTOptions}.
    *
    * @param options Thrift options
    */
