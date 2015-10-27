@@ -49,7 +49,6 @@ import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
-import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
@@ -85,11 +84,14 @@ public class FileSystemMasterIntegrationTest {
         long fileId = mFsMaster.create(path, CreateOptions.defaults());
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
-        Assert.assertEquals(TEST_AUTHENTICATE_USER,fileInfo.getUsername());
+        FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+        Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUsername());
         Assert.assertEquals(0644, (short)fileInfo.getPermission());
       } else {
         mFsMaster.mkdir(path, MkdirOptions.defaults());
-        Assert.assertNotNull(mFsMaster.getFileId(path));
+        long dirId = mFsMaster.getFileId(path);
+        Assert.assertEquals(-1, dirId);
+        FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
         Assert.assertEquals(TEST_AUTHENTICATE_USER,dirInfo.getUsername());
         Assert.assertEquals(0755, (short)dirInfo.getPermission());
       }

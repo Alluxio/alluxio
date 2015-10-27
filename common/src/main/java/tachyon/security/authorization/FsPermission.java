@@ -153,11 +153,11 @@ public class FsPermission {
   public static FsPermission getUMask(TachyonConf conf) {
     int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
     if (conf != null) {
-      String confUmask = conf.get(Constants.TFS_PERMISSIONS_UMASK_KEY);
+      String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK);
       if (confUmask != null) {
         if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
           throw new IllegalArgumentException("Invalid configure value for key:"
-        + Constants.TFS_PERMISSIONS_UMASK_KEY + " e.g. \"0022\"");
+        + Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK + " e.g. \"0022\"");
         }
         int newUmask = 0;
         int lastIndex = confUmask.length() - 1;

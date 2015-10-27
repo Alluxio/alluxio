@@ -24,7 +24,6 @@ import tachyon.Constants;
 import tachyon.collections.IndexedSet;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.security.authorization.FsPermission;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 

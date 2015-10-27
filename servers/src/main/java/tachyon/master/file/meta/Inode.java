@@ -30,6 +30,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private String mName;
     private long mParentId;
     private boolean mPersisted;
+    private PermissionStatus mPs;
 
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();
@@ -61,6 +62,11 @@ public abstract class Inode implements JournalEntryRepresentable {
 
     public T setPersisted(boolean persisted) {
       mPersisted = persisted;
+      return getThis();
+    }
+
+    public T setPermissionStatus(PermissionStatus ps) {
+      mPs = ps;
       return getThis();
     }
 
@@ -276,7 +282,7 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   /**
    * Sets the username of the inode
-   * @param username
+   * @param username the username of the inode
    */
   public synchronized void setUsername(String username) {
     mUsername = username;
@@ -291,7 +297,7 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   /**
    * Sets the groupname of the inode
-   * @param groupname
+   * @param groupname the groupname of the inode
    */
   public synchronized void setGroupname(String groupname) {
     mGroupname = groupname;
@@ -306,9 +312,9 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   /**
    * Sets the permission of the inode
-   * @param permission
+   * @param permission the permission of the inode
    */
-  public synchronized void setmPermission(short permission) {
+  public synchronized void setPermission(short permission) {
     mPermission = permission;
   }
 

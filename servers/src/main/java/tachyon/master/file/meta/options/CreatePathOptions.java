@@ -18,6 +18,7 @@ package tachyon.master.file.meta.options;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
+import tachyon.security.authorization.PermissionStatus;
 
 public class CreatePathOptions {
   public static class Builder {
@@ -27,6 +28,7 @@ public class CreatePathOptions {
     private boolean mPersisted;
     private boolean mRecursive;
     private long mTTL;
+    private PermissionStatus mPs;
 
     /**
      * Creates a new builder for {@link CreatePathOptions}.
@@ -40,6 +42,7 @@ public class CreatePathOptions {
       mRecursive = false;
       mPersisted = false;
       mTTL = Constants.NO_TTL;
+      mPs = PermissionStatus.getDirDefault();
     }
 
     /**
@@ -101,6 +104,15 @@ public class CreatePathOptions {
     }
 
     /**
+     * @param ps the permission status to use
+     * @return the builder
+     */
+    public Builder setPermissionStatus(PermissionStatus ps) {
+      mPs = ps;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@code CreateOptions}.
      *
      * @return a {@code CreateOptions} instance
@@ -123,6 +135,7 @@ public class CreatePathOptions {
   private final boolean mPersisted;
   private final boolean mRecursive;
   private final long mTTL;
+  private PermissionStatus mPs;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
@@ -131,6 +144,7 @@ public class CreatePathOptions {
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
+    mPs = builder.mPs;
   }
 
   /**
@@ -175,5 +189,12 @@ public class CreatePathOptions {
    */
   public long getTTL() {
     return mTTL;
+  }
+
+  /**
+   * @return the permission status of this create option
+   */
+  public PermissionStatus getPermissionStatus() {
+    return mPs;
   }
 }
