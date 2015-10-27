@@ -146,7 +146,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * Completes the process of persisting a file by renaming it to its final destination.
    *
    * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isPersist()} ()} is true. The current implementation of
+   * only if {@link UnderStorageType#isSyncPersist()} ()} is true. The current implementation of
    * persistence is that through {@link tachyon.client.UnderStorageType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
    *
