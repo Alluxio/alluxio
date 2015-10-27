@@ -26,6 +26,8 @@ import org.junit.rules.ExpectedException;
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
@@ -88,5 +90,23 @@ public final class LineageStoreTest {
     mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NOT_EXIST, id));
 
     mLineageStore.deleteLineage(id);
+  }
+
+  @Test
+  public void requestNonexistingFileForPersistenceTest() {
+    long fileId = 1;
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+
+    mLineageStore.requestFilePersistence(fileId);
+  }
+
+  @Test
+  public void reportLostFileTest() {
+    long fileId = 1;
+    mThrown.expect(LineageDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
+
+    mLineageStore.requestFilePersistence(fileId);
   }
 }
