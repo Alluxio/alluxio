@@ -102,7 +102,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
       TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.reportLostFile(path);
+      masterClient.reportLostFile(path.getPath());
     } catch (TachyonException e) {
       TachyonException.unwrap(e, FileDoesNotExistException.class);
       throw e;
