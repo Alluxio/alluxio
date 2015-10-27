@@ -526,9 +526,8 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.block.remote.reader.class</td>
   <td>tachyon.client.netty.NettyRemoteBlockReader</td>
-  <td>Selects networking stack to run the client with. Valid options are
-    `tachyon.client.netty.NettyRemoteBlockReader` (read remote data using netty) and
-    [DEPRECATED] `tachyon.client.tcp.TCPRemoteBlockReader`</td>
+  <td>Selects networking stack to run the client with. Currently only
+    `tachyon.client.netty.NettyRemoteBlockReader` (read remote data using netty) is valid.</td>
 </tr>
 <tr>
   <td>tachyon.user.block.remote.writer.class</td>
