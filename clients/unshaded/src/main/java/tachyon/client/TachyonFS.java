@@ -38,6 +38,8 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.lineage.LineageContext;
+import tachyon.client.lineage.LineageMasterClient;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -151,6 +153,8 @@ public class TachyonFS extends AbstractTachyonFS {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final int mUserFailedSpaceRequestLimits;
 
+  /** The RPC client that talks to the Lineage master. */
+  private final LineageMasterClient mLineageClient;
   /** The RPC client talks to the file system master. */
   private final FileSystemMasterClient mFSMasterClient;
   /** The RPC client talks to the block store master. */
@@ -164,6 +168,8 @@ public class TachyonFS extends AbstractTachyonFS {
   private final Closer mCloser = Closer.create();
   /** Whether to use ZooKeeper or not */
   private final boolean mZookeeperMode;
+  /** Whether to user Lineage or not */
+  private final boolean mLineageEnabled;
   // Cached FileInfo
   private final Map<String, FileInfo> mPathToClientFileInfo = new HashMap<String, FileInfo>();
   private final Map<Long, FileInfo> mIdToClientFileInfo = new HashMap<Long, FileInfo>();
@@ -183,6 +189,9 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
+    mLineageEnabled = mTachyonConf.getBoolean(Constants.USER_LINEAGE_ENABLED);
+    mLineageClient =
+        mLineageEnabled ? mCloser.register(LineageContext.INSTANCE.acquireMasterClient()) : null;
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
     mRawTableMasterClient =
@@ -945,7 +954,8 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void reportLostFile(long fileId) throws IOException {
     try {
-      mFSMasterClient.reportLostFile(fileId);
+      String path = getFile(fileId).getPath();
+      mLineageClient.reportLostFile(path);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
