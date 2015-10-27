@@ -898,8 +898,8 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path the path of the directory
    * @param options method options
-   * @return a {@link InodeTree.CreatePathResult} representing the modified inodes and created
-   *         inodes during path creation
+   * @return an {@link tachyon.master.file.meta.InodeTree.CreatePathResult} representing the
+   *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
