@@ -96,8 +96,7 @@ public abstract class AbstractLineageClient implements LineageClient {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
 
     try {
-      List<LineageInfo> result = masterClient.getLineageInfoList();
-      return result;
+      return masterClient.getLineageInfoList();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -106,7 +105,7 @@ public abstract class AbstractLineageClient implements LineageClient {
   /**
    * Transforms the list of {@link TachyonURI} in a new list of Strings,
    * where each string is {@link TachyonURI#getPath()}
-   * @param uris the list of {@link TacyonUri}s to be stripped
+   * @param uris the list of {@link TachyonURI}s to be stripped
    * @return a new list of strings mapping the input URIs to theri path component
    */
   private List<String> stripURIList(List<TachyonURI> uris) {
