@@ -29,6 +29,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
@@ -119,8 +120,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param lineageId the lineage id
    */
   public synchronized void deleteLineage(long lineageId) {
-    Preconditions.checkState(mIdIndex.containsKey(lineageId),
-        "lineage id " + lineageId + " does not exist");
+    Preconditions.checkState(mIdIndex.containsKey(lineageId), PreconditionMessage.LINEAGE_NOT_EXIST,
+        lineageId);
 
     deleteLineage(lineageId, Sets.<Long>newHashSet());
   }
@@ -174,7 +175,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized List<Lineage> getChildren(Lineage lineage) {
     Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
-        "lineage id " + lineage.getId() + " does not exist");
+        PreconditionMessage.LINEAGE_NOT_EXIST, lineage.getId());
 
     return mLineageDAG.getChildren(lineage);
   }
