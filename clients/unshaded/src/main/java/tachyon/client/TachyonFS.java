@@ -50,6 +50,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.IdUtils;
+import tachyon.util.LineageUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -189,7 +190,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
-    mLineageEnabled = mTachyonConf.getBoolean(Constants.USER_LINEAGE_ENABLED);
+    mLineageEnabled = LineageUtils.isLineageEnabled(mTachyonConf);
     mLineageClient =
         mLineageEnabled ? mCloser.register(LineageContext.INSTANCE.acquireMasterClient()) : null;
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
@@ -953,6 +954,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized void reportLostFile(long fileId) throws IOException {
+    Preconditions.checkState(mLineageEnabled);
     try {
       String path = getFile(fileId).getPath();
       mLineageClient.reportLostFile(path);
