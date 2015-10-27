@@ -28,6 +28,10 @@ public final class Version {
     VERSION = tachyonConf.get(Constants.TACHYON_VERSION);
   }
 
+  // Relative path to Tachyon target jar
+  public static final String TACHYON_JAR = "target/tachyon-" + VERSION
+      + "-jar-with-dependencies.jar";
+
   public static void main(String[] args) {
     System.out.println("Tachyon version: " + VERSION);
   }

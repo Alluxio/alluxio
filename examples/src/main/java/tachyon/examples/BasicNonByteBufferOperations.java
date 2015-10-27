@@ -22,6 +22,7 @@ import java.util.concurrent.Callable;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -150,7 +151,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private static void usage() {
-    System.out.println("java -cp " + Constants.TACHYON_JAR + " "
+    System.out.println("java -cp " + Version.TACHYON_JAR + " "
         + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
         + "<tachyon storage type for writes (STORE | NO_STORE)> "
         + "<under storage type for writes (SYNC_PERSIST | NO_PERSIST)> "
