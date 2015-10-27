@@ -34,6 +34,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -499,7 +500,7 @@ public class Performance {
 
   public static void main(String[] args) throws Exception {
     if (args.length != 9) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR
+      System.out.println("java -cp " + Version.TACHYON_JAR
           + " tachyon.examples.Performance "
           + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "

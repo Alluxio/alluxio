@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -93,7 +94,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 3) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR
+      System.out.println("java -cp " + Version.TACHYON_JAR
           + " tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
       System.exit(-1);
     }
