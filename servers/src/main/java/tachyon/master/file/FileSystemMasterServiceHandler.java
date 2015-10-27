@@ -207,15 +207,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void reportLostFile(long fileId) throws TachyonTException {
-    try {
-      mFileSystemMaster.reportLostFile(fileId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
   public boolean unmount(String tachyonPath) throws TachyonTException, ThriftIOException {
     try {
       return mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
