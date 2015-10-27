@@ -157,7 +157,7 @@ public final class NIODataServer implements Runnable, DataServer {
         socketSelector.close();
       } catch (IOException ex) {
         // ignore, we want the other exception
-        LOG.warn("Unable to close socket selector");
+        LOG.warn("Unable to close socket selector. Exception: " + ex.getMessage());
       }
       throw e;
     } catch (RuntimeException e) {
@@ -167,7 +167,7 @@ public final class NIODataServer implements Runnable, DataServer {
         socketSelector.close();
       } catch (IOException ex) {
         // ignore, we want the other exception
-        LOG.warn("Unable to close socket selector");
+        LOG.warn("Unable to close socket selector. Exception:" +  ex.getMessage());
       }
       throw e;
     }
