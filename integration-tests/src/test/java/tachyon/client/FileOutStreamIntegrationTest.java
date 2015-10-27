@@ -161,7 +161,7 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.toStringBase()), k, op);
       }
     }
   }
@@ -184,7 +184,7 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.toStringBase()), k, op);
       }
     }
   }
@@ -205,7 +205,7 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.toStringBase()), k, op);
       }
     }
   }

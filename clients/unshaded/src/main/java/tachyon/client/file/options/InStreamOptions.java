@@ -82,4 +82,11 @@ public final class InStreamOptions {
   public String toString() {
     return "InStreamOptions{" + "mTachyonStorageType=" + mTachyonStorageType.toString() + "}";
   }
+
+  /**
+   * @return the default String representation for testing purposes
+   */
+  public String toStringBase() {
+    return super.toString();
+  }
 }

@@ -81,4 +81,11 @@ public final class DeleteOptions {
   public String toString() {
     return "DeleteOptions{mRecursive=" + mRecursive + "}";
   }
+
+  /**
+   * @return the default String representation for testing purposes
+   */
+  public String toStringBase() {
+    return super.toString();
+  }
 }

@@ -81,4 +81,11 @@ public final class LoadMetadataOptions {
   public String toString() {
     return "LoadMetadataOptions{mRecursive=" + mRecursive + "}";
   }
+
+  /**
+   * @return the default String representation for testing purposes
+   */
+  public String toStringBase() {
+    return super.toString();
+  }
 }
