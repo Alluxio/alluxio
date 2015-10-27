@@ -240,7 +240,9 @@ public final class LocalTachyonCluster {
    */
   private void startWorker() throws IOException {
     mWorkerConf = new TachyonConf(mTestConf.getInternalProperties());
+    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
     WorkerContext.reset(mWorkerConf);
+    ClientContext.reset(mClientConf);
 
     // We need to update the client with the most recent configuration so it knows the correct ports
     mWorker = new BlockWorker();
@@ -256,11 +258,6 @@ public final class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
-
-    // Update the context conf with actual ports.
-    mTestConf.set(Constants.WORKER_WEB_PORT, String.valueOf(mWorker.getWebLocalPort()));
-    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
-    ClientContext.reset(mClientConf);
   }
 
   /**
