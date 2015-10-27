@@ -144,4 +144,28 @@ public final class LineageMasterClient extends MasterClientBase {
     }
     throw new IOException("Failed after " + retry + " retries.");
   }
+
+  /**
+   * Reports a lost file.
+   *
+   * @param path the file path
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void reportLostFile(String path) throws IOException, TachyonException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        mClient.reportLostFile(path);
+        return;
+      } catch (TachyonTException e) {
+        throw TachyonException.from(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
 }
