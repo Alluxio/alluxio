@@ -197,7 +197,7 @@ if [[ ${COMMAND} == "format" ]]; then
   if [[ $# -eq 1 ]]; then
     if [[ $1 == "-s" ]]; then
       if [[ -e ${TACHYON_UNDERFS_ADDRESS} ]]; then
-        # if ufs is local filesystem and already exists 
+        # if ufs is local filesystem and already exists
         exit 0
       else
         declare -a schemes=(hdfs s3 s3n glusterfs swift)

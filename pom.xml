@@ -495,7 +495,7 @@
 
   <profiles>
     <profile>
-      <!-- Turn of doclint for java8 and later -->
+      <!-- Turn off doclint for java8 and later -->
       <id>doclint-java8-disable</id>
       <activation>
         <jdk>[1.8,)</jdk>

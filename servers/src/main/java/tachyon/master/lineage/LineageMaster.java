@@ -444,6 +444,12 @@ public final class LineageMaster extends MasterBase {
     return files;
   }
 
+  public synchronized void reportListFile(String path) throws FileDoesNotExistException,
+      IOException {
+    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    mFileSystemMaster.reportLostFile(fileId);
+  }
+
   /**
    * Request a list of files as being persisted
    *

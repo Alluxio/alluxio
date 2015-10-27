@@ -93,6 +93,17 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
+  public void reportLostFile(String path) throws TachyonTException, ThriftIOException {
+    try {
+      mLineageMaster.reportListFile(path);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  @Override
   public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles)
       throws TachyonTException {
     try {
