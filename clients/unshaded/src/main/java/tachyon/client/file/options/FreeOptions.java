@@ -81,4 +81,11 @@ public final class FreeOptions {
   public String toString() {
     return "FreeOptions{mRecursive=" + mRecursive + "}";
   }
+
+  /**
+   * @return the default String representation for testing purposes
+   */
+  public String toStringBase() {
+    return super.toString();
+  }
 }

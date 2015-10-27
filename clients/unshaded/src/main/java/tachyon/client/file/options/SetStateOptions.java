@@ -81,4 +81,11 @@ public class SetStateOptions {
   public String toString() {
     return "SetStateOptions{mPinned=" + mPinned + "}";
   }
+
+  /**
+   * @return the default String representation for testing purposes
+   */
+  public String toStringBase() {
+    return super.toString();
+  }
 }
