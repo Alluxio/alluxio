@@ -86,14 +86,12 @@ public class TfsShell implements Closeable {
 
   private final Closer mCloser;
   private final TachyonConf mTachyonConf;
-  private final TachyonLineageFileSystem mTfs;
+  private final TachyonFileSystem mTfs;
 
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTachyonConf.set(Constants.USER_LINEAGE_ENABLED, "true");
-    ClientContext.reset(tachyonConf);
-    mTfs = (TachyonLineageFileSystem) TachyonFileSystemFactory.get();
+    mTfs = TachyonFileSystemFactory.get();
   }
 
   @Override
@@ -878,7 +876,7 @@ public class TfsShell implements Closeable {
 
   public int report(TachyonURI path) throws IOException {
     try {
-      mTfs.reportLostFile(path);
+      TachyonLineageFileSystem.get().reportLostFile(path);
       System.out.println(path + " has reported been reported as lost.");
       listLineages();
       return 0;
