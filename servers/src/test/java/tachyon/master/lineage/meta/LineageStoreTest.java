@@ -19,11 +19,14 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -31,6 +34,9 @@ import tachyon.job.JobConf;
 public final class LineageStoreTest {
   private LineageStore mLineageStore;
   private Job mJob;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() {
@@ -60,5 +66,27 @@ public final class LineageStoreTest {
     mLineageStore.completeFile(1);
     Assert.assertEquals(LineageFileState.COMPLETED,
         mLineageStore.getLineage(id).getOutputFiles().get(0).getState());
+  }
+
+  @Test
+  public void deleteLineageTest() {
+    long l1 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(1)), mJob);
+    long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
+        Lists.newArrayList(new LineageFile(2)), mJob);
+    // delete the root
+    mLineageStore.deleteLineage(l1);
+    // neither exists
+    Assert.assertNull(mLineageStore.getLineage(l1));
+    Assert.assertNull(mLineageStore.getLineage(l2));
+  }
+
+  @Test
+  public void deleteNonexistingLineageTest() {
+    long id = 1;
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NOT_EXIST, id));
+
+    mLineageStore.deleteLineage(id);
   }
 }
