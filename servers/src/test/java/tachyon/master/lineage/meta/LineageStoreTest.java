@@ -15,6 +15,7 @@
 
 package tachyon.master.lineage.meta;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
@@ -22,6 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 
@@ -32,6 +34,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
+import tachyon.master.journal.JournalOutputStream;
 
 public final class LineageStoreTest {
   private LineageStore mLineageStore;
@@ -117,5 +120,18 @@ public final class LineageStoreTest {
     mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
 
     mLineageStore.commitFilePersistence(fileId);
+  }
+
+  @Test
+  public void journalEntrySerializationTest() throws IOException {
+    long l1 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(1)), mJob);
+    long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
+        Lists.newArrayList(new LineageFile(2)), mJob);
+
+    JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
+    mLineageStore.streamToJournalCheckpoint(outputStream);
+    Mockito.verify(outputStream).writeEntry(mLineageStore.getLineage(l1).toJournalEntry());
+    Mockito.verify(outputStream).writeEntry(mLineageStore.getLineage(l2).toJournalEntry());
   }
 }

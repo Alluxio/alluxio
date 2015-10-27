@@ -27,7 +27,7 @@ import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 public final class LineageIdGeneratorTest {
 
   @Test
-  public void JournalEntrySerializationTest() {
+  public void journalEntrySerializationTest() {
     LineageIdGenerator generator = new LineageIdGenerator();
     long id = generator.generateId();
     JournalEntry entry = generator.toJournalEntry();
