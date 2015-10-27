@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.journal.JournalEntryType;
-import tachyon.security.authorization.FsPermission;
 import tachyon.security.authorization.PermissionStatus;
 
 public class InodeFileEntry extends InodeEntry {
@@ -35,6 +34,7 @@ public class InodeFileEntry extends InodeEntry {
   private final boolean mCacheable;
   private final List<Long> mBlocks;
   private final long mTTL;
+  private final PermissionStatus mPs;
 
   @JsonCreator
   public InodeFileEntry(@JsonProperty("creationTimeMs") long creationTimeMs,
@@ -45,7 +45,7 @@ public class InodeFileEntry extends InodeEntry {
       @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("length") long length,
       @JsonProperty("completed") boolean completed, @JsonProperty("cacheable") boolean cacheable,
       @JsonProperty("blocks") List<Long> blocks, @JsonProperty("ttl") long ttl,
-      PermissionStatus ps) {
+      @JsonProperty("PermissionStatus") PermissionStatus ps) {
     super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs, ps);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
@@ -53,13 +53,14 @@ public class InodeFileEntry extends InodeEntry {
     mCacheable = cacheable;
     mBlocks = Preconditions.checkNotNull(blocks);
     mTTL = ttl;
+    mPs = ps;
   }
 
   public InodeFile toInodeFile() {
     InodeFile inode =
         new InodeFile.Builder().setName(mName).setBlockContainerId(BlockId.getContainerId(mId))
             .setParentId(mParentId).setBlockSizeBytes(mBlockSizeBytes)
-            .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted).
+            .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted)
             .setPermissionStatus(mPs).build();
 
     if (mCompleted) {

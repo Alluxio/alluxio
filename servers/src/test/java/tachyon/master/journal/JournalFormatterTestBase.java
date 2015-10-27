@@ -67,6 +67,7 @@ import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -108,11 +109,12 @@ public abstract class JournalFormatterTestBase {
                   true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true,
                   ContiguousSet.create(Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10),
                       DiscreteDomain.longs()).asList(),
-                  Constants.NO_TTL))
+                  Constants.NO_TTL, PermissionStatus.getDirDefault()))
           .put(JournalEntryType.INODE_DIRECTORY,
               new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
                   true, true, TEST_OP_TIME_MS,
-                  ContiguousSet.create(Range.closedOpen(1L, 11L), DiscreteDomain.longs())))
+                  ContiguousSet.create(Range.closedOpen(1L, 11L), DiscreteDomain.longs()),
+                  PermissionStatus.getDirDefault()))
       .put(JournalEntryType.INODE_MTIME,
           new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_PERSISTED, new PersistDirectoryEntry(TEST_FILE_ID, true))

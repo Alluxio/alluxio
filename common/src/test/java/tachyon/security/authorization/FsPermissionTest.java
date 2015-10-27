@@ -63,7 +63,7 @@ public class FsPermissionTest {
   public void umaskTest() throws Exception {
     String umask = "0022";
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, umask);
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     FsPermission umaskPermission = FsPermission.getUMask(conf);
     // after umask 0022, 0777 should change to 0755
     FsPermission permission = FsPermission.getDefault().applyUMask(umaskPermission);
@@ -77,7 +77,7 @@ public class FsPermissionTest {
   public void umaskExceedLengthTest() throws Exception {
     String umask = "00022";
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, umask);
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Invalid configure value for key");
     FsPermission.getUMask(conf);
@@ -87,7 +87,7 @@ public class FsPermissionTest {
   public void umaskNotIntegerTest() throws Exception {
     String umask = "NotInteger";
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, umask);
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Invalid configure value for key");
     FsPermission.getUMask(conf);

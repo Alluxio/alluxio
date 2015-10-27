@@ -28,7 +28,7 @@ import tachyon.security.authorization.PermissionStatus;
  * Abstract class for serving inode tests.
  */
 public abstract class AbstractInodeTest {
-  private static PermissionStatus sPermisionStatus =
+  private static PermissionStatus sPermissionStatus =
       new PermissionStatus("user1", "group1", (short)0755);
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

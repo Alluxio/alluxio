@@ -507,7 +507,7 @@ public final class FileSystemMaster extends MasterBase {
   InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
-   CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
+    CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
         .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
         .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
         .setRecursive(options.isRecursive()).setTTL(options.getTTL())
