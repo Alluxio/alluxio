@@ -51,6 +51,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.lineage.TachyonLineage;
+import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -85,12 +86,14 @@ public class TfsShell implements Closeable {
 
   private final Closer mCloser;
   private final TachyonConf mTachyonConf;
-  private final TachyonFileSystem mTfs;
+  private final TachyonLineageFileSystem mTfs;
 
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTfs = TachyonFileSystemFactory.get();
+    mTachyonConf.set(Constants.USER_LINEAGE_ENABLED, "true");
+    ClientContext.reset(tachyonConf);
+    mTfs = (TachyonLineageFileSystem) TachyonFileSystemFactory.get();
   }
 
   @Override
