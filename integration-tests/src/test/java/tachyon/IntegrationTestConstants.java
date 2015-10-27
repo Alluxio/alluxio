@@ -24,7 +24,6 @@ public class IntegrationTestConstants {
   public static final String NIO_DATA_SERVER = "tachyon.worker.nio.NIODataServer";
 
   // Remote block reader variations.
-  public static final String TCP_BLOCK_READER = "tachyon.client.tcp.TCPRemoteBlockReader";
   public static final String NETTY_BLOCK_READER = "tachyon.client.netty.NettyRemoteBlockReader";
 
   // Netty transfer types.
