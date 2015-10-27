@@ -181,8 +181,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     String[] nodes = {mMasterAddress};
 
     // Make container request for Tachyon master to ResourceManager
+    boolean relaxLocality = true;
+    if (!mMasterAddress.equals("localhost")) {
+      relaxLocality = false;
+    }
     ContainerRequest masterContainerAsk =
-        new ContainerRequest(masterResource, nodes, null /* any racks */, priority);
+        new ContainerRequest(masterResource, nodes, null /* any racks */, priority, relaxLocality);
     LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
         masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);
