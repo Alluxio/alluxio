@@ -38,6 +38,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -104,8 +105,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       LOG.info("Starting Application Master with args " + Arrays.toString(args));
       final int numWorkers = Integer.valueOf(args[0]);
-      final String tachyonHome = args[1];
-      final String masterAddress = args[2];
+      final String tachyonHome = Preconditions.checkArgument(args[1] != null, "Tachyon home " +
+          "cannot be null");
+      final String masterAddress = Preconditions.checkArgument(args[2] != null, "Address of " +
+          "Tachyon master cannot be null");
       ApplicationMaster applicationMaster =
           new ApplicationMaster(numWorkers, tachyonHome, masterAddress);
       applicationMaster.start();
