@@ -109,4 +109,13 @@ public final class LineageStoreTest {
 
     mLineageStore.requestFilePersistence(fileId);
   }
+
+  @Test
+  public void commitNonexistingFilePersistenceTest() {
+    long fileId = 1;
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+
+    mLineageStore.commitFilePersistence(fileId);
+  }
 }
