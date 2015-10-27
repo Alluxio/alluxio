@@ -158,6 +158,7 @@ public final class LineageMasterClient extends MasterClientBase {
       connect();
       try {
         mClient.reportLostFile(path);
+        return;
       } catch (TachyonTException e) {
         throw TachyonException.from(e);
       } catch (TException e) {
