@@ -227,8 +227,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param fileId the file id
    */
   public synchronized void commitFilePersistence(Long fileId) {
-    Preconditions.checkState(mIdIndex.containsKey(fileId), PreconditionMessage.LINEAGE_NOT_EXIST,
-        fileId);
+    Preconditions.checkState(mIdIndex.containsKey(fileId),
+        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
 
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISTED);
