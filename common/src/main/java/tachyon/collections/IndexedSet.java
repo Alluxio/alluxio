@@ -16,6 +16,7 @@
 package tachyon.collections;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,14 +74,14 @@ import tachyon.Constants;
  * First, define the fields to be indexed:
  * <pre>
  *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
- *    @Override
+ *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.id();
  *    }
  *  }
  *
  *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
- *    @Override
+ *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.name();
  *    }
@@ -195,7 +196,7 @@ public class IndexedSet<T> implements Iterable<T> {
               throw new IllegalStateException("Indexed Set is in an illegal state");
             }
           } else {
-            fieldValueToSet.put(fieldValue, Sets.newHashSet(objToAdd));
+            fieldValueToSet.put(fieldValue, Sets.newHashSet(Collections.singleton(objToAdd)));
           }
         }
       }
