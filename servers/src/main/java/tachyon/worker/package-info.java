@@ -19,7 +19,7 @@
  * This is triggered by {@link tachyon.client.WriteType#isThrough()} operations.
  *
  * Implementation can be found at
- * {@link tachyon.worker.block.BlockDataManager#addCheckpoint(long, int)}
+ * {@link tachyon.worker.block.BlockDataManager#persistFile(long, long, String)}
  *
  * <h3>Cache Block</h3>
  *
