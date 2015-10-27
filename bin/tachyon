@@ -197,7 +197,7 @@ if [[ ${COMMAND} == "format" ]]; then
   if [[ $# -eq 1 ]]; then
     if [[ $1 == "-s" ]]; then
       if [[ -e ${TACHYON_UNDERFS_ADDRESS} ]]; then
-        # if ufs is local filesystem and already exists 
+        # if ufs is local filesystem and already exists
         exit 0
       else
         declare -a schemes=(hdfs s3 s3n glusterfs swift)
@@ -282,7 +282,7 @@ elif [[ ${COMMAND} == "copyDir" ]]; then
 elif [[ ${COMMAND} == "thriftGen" ]]; then
   rm -rf ${bin}/../common/src/main/java/tachyon/thrift
   for src_file in $(ls ${bin}/../common/src/thrift); do
-    /usr/local/Cellar/thrift/0.9.2/bin/thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
+    thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
   done
   exit 0
 elif [[ ${COMMAND} == "clearCache" ]]; then
