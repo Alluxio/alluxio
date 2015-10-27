@@ -81,8 +81,8 @@ public final class RecomputePlannerTest {
   @Test
   public void oneCheckointedLineageTest() {
     mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
-        Lists.newArrayList(new LineageFile(1)), mJob);
-    mLineageStore.completeFile(1);
+        Lists.newArrayList(new LineageFile(1L)), mJob);
+    mLineageStore.completeFile(1L);
     mLineageStore.commitFilePersistence(1L);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
