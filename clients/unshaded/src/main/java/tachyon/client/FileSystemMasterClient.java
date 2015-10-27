@@ -402,29 +402,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Reports a lost file.
-   *
-   * @param fileId the file id
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void reportLostFile(long fileId) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.reportLostFile(fileId);
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
    * Loads a file from the under file system.
    *
    * @param path the Tachyon path of the file

@@ -143,7 +143,7 @@ public class MetricsSystem {
     try {
       mMetricRegistry.register(source.getName(), source.getMetricRegistry());
     } catch (IllegalArgumentException e) {
-      LOG.warn("Metrics already registered", e);
+      LOG.warn("Metrics already registered. Exception:" + e.getMessage());
     }
   }
 
