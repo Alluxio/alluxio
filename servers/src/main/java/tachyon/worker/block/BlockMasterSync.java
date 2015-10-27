@@ -166,7 +166,7 @@ public final class BlockMasterSync implements Runnable {
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
    *
-   * @param cmd the command to execute.
+   * @param cmd the command to execute
    * @throws Exception if an error occurs when executing the command
    */
   // TODO(calvin): Evaluate the necessity of each command.

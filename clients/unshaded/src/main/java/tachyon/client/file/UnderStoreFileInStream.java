@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import tachyon.client.ClientContext;
 import tachyon.client.block.BlockInStream;
+import tachyon.exception.ExceptionMessage;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -91,7 +92,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
     } else {
       long toSkip = pos - offset;
       if (skip(toSkip) != toSkip) {
-        throw new IOException("Failed to seek forward to " + pos);
+        throw new IOException(ExceptionMessage.FAILED_SEEK_FORWARD.getMessage(pos));
       }
     }
   }
@@ -106,7 +107,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
     long toSkip = Math.min(mInitPos + mLength - mPos, n);
     long skipped = mUnderStoreStream.skip(toSkip);
     if (toSkip != skipped) {
-      throw new IOException("Failed to skip " + toSkip);
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
     }
     mPos += skipped;
     return skipped;
@@ -120,7 +121,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
     mUnderStoreStream = ufs.open(mUfsPath);
     mPos = 0;
     if (pos != skip(pos)) {
-      throw new IOException("Failed to skip: " + pos);
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
   }
 }

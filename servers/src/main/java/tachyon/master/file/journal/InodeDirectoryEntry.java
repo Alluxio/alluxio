@@ -20,7 +20,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
 
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;

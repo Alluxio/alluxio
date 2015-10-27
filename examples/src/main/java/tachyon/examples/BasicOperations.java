@@ -32,7 +32,6 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -62,50 +61,31 @@ public class BasicOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
     TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
-    long fileId = createFile(tFS);
-    writeFile(fileId);
-    return readFile(tFS, fileId);
+    writeFile(tFS);
+    return readFile(tFS);
   }
 
-  private long createFile(TachyonFileSystem tachyonFileSystem)
-      throws IOException, TachyonException {
-    LOG.debug("Creating file...");
-    long startTimeMs = CommonUtils.getCurrentMs();
-    CreateOptions createOptions =
-        (new CreateOptions.Builder(ClientContext.getConf()))
-            .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
-            .setTTL(mClientOptions.getTTL())
-            .setUnderStorageType(mClientOptions.getUnderStorageType()).build();
-    TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
-    long fileId = tFile.getFileId();
-    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
-    return fileId;
-  }
-
-  private void writeFile(long fileId) throws IOException {
+  private void writeFile(TachyonFileSystem tachyonFileSystem)
+    throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
       buf.putInt(k);
     }
-
-    buf.flip();
     LOG.debug("Writing data...");
-    buf.flip();
-
     long startTimeMs = CommonUtils.getCurrentMs();
-    FileOutStream os = new FileOutStream(fileId, mClientOptions);
+    FileOutStream os = tachyonFileSystem.getOutStream(mFilePath, mClientOptions);
     os.write(buf.array());
     os.close();
 
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
-  private boolean readFile(TachyonFileSystem tachyonFileSystem, long fileId)
+  private boolean readFile(TachyonFileSystem tachyonFileSystem)
       throws IOException, TachyonException {
     boolean pass = true;
     LOG.debug("Reading data...");
-    TachyonFile file = new TachyonFile(fileId);
+    TachyonFile file = tachyonFileSystem.open(mFilePath);
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(TachyonStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
