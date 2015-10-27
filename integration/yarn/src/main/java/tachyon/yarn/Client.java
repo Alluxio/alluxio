@@ -116,19 +116,19 @@ public final class Client {
 
   public Client() {
     mOptions = new Options();
-    mOptions.addOption("appname", true, "Application Name, by default Tachyon");
+    mOptions.addOption("appname", true, "Application Name. Default 'Tachyon'");
     mOptions.addOption("priority", true, "Application Priority. Default 0");
-    mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted");
+    mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted. Default 'default'");
     mOptions.addOption("am_memory", true,
-        "Amount of memory in MB to request to run ApplicationMaster");
+        "Amount of memory in MB to request to run ApplicationMaster. Default 256");
     mOptions.addOption("am_vcores", true,
-        "Amount of virtual cores to request to run ApplicationMaster");
-    mOptions.addOption("jar", true, "Jar file containing the Application Master");
+        "Amount of virtual cores to request to run ApplicationMaster. Default 1");
+    mOptions.addOption("jar", true, "(Required) Jar file containing the Application Master");
     mOptions.addOption("tachyon_home", true,
-        "Path of the home dir of Tachyon deployment on YARN slave machines");
-    mOptions.addOption("master_address", true, "Address to run Tachyon master");
+        "(Required) Path of the home dir of Tachyon deployment on YARN slave machines");
+    mOptions.addOption("master_address", true, "(Required) Address to run Tachyon master");
     mOptions.addOption("help", false, "Print usage");
-    mOptions.addOption("num_workers", true, "Number of Tachyon workers to launch");
+    mOptions.addOption("num_workers", true, "Number of Tachyon workers to launch. Default 1");
   }
 
   /**
