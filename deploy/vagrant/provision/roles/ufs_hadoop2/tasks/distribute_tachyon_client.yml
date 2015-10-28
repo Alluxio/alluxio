@@ -1,0 +1,4 @@
+- name: distribute tachyon client
+  shell: /tachyon/bin/tachyon-workers.sh cp /tachyon/clients/client/target/tachyon-client-*-jar-with-dependencies.jar /hadoop/share/hadoop/common/lib/
+
+# vim :set filetype=ansible.yaml:
