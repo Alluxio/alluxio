@@ -105,12 +105,43 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void reportLostFileTest() throws LineageDoesNotExistException {
+  public void requestFilePersistenceTest() throws Exception {
+    long fileId = 1;
+    mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(fileId)), mJob);
+    mLineageStore.requestFilePersistence(fileId);
+
+    Assert.assertEquals(LineageFileState.PERSISENCE_REQUESTED,
+        mLineageStore.getLineageFileState(fileId));
+  }
+
+  @Test
+  public void reportLostFileTest() throws Exception {
+    long fileId = 1;
+    mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(fileId)), mJob);
+    mLineageStore.reportLostFile(fileId);
+
+    Assert.assertEquals(LineageFileState.LOST, mLineageStore.getLineageFileState(fileId));
+  }
+
+  @Test
+  public void reportLostNonexistingFileTest() throws Exception {
     long fileId = 1;
     mThrown.expect(LineageDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
 
     mLineageStore.reportLostFile(fileId);
+  }
+
+  @Test
+  public void commitFilePersistenceTest() throws Exception {
+    long fileId = 1;
+    mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(fileId)), mJob);
+    mLineageStore.commitFilePersistence(fileId);
+
+    Assert.assertEquals(LineageFileState.PERSISTED, mLineageStore.getLineageFileState(fileId));
   }
 
   @Test
