@@ -75,6 +75,7 @@ public final class UiFileInfo {
   private final int mInMemoryPercent;
   private final boolean mIsDirectory;
   private final boolean mIsPinned;
+  private final boolean mIsPersisted;
   private List<String> mFileLocations;
 
   private final List<List<UiBlockInfo>> mBlocksOnTier = new ArrayList<List<UiBlockInfo>>(
@@ -94,6 +95,7 @@ public final class UiFileInfo {
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
+    mIsPersisted = fileInfo.isPersisted;
     mFileLocations = new ArrayList<String>();
     for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
       mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
@@ -112,6 +114,7 @@ public final class UiFileInfo {
     mInMemoryPercent = 0;
     mIsDirectory = fileInfo.mIsDirectory;
     mIsPinned = false;
+    mIsPersisted = false;
     mFileLocations = new ArrayList<String>();
     for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
       mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
@@ -177,6 +180,10 @@ public final class UiFileInfo {
 
   public boolean getNeedPin() {
     return mIsPinned;
+  }
+
+  public boolean getPersisted() {
+    return mIsPersisted;
   }
 
   public int getOnTierPercentage(StorageLevelAlias storageLevelAlias) {
