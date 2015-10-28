@@ -201,7 +201,7 @@ public final class TachyonBlockStore implements Closeable {
         return;
       }
       // Get the first worker address for now, as this will likely be the location being read from
-      // TODO: Get this location via a policy (possibly location is a parameter to promote)
+      // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
       NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
       try {
