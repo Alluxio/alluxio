@@ -183,6 +183,11 @@ public class TfsShell implements Closeable {
         }
         return 0;
       } else {
+        if (fInfo.getInMemoryPercentage() == 100) {
+          // The file has already been fully loaded into Tachyon memory.
+          return 0;
+        }
+
         Closer closer = Closer.create();
         try {
           InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
