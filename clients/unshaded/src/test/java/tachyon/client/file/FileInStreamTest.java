@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -107,6 +108,11 @@ public class FileInStreamTest implements Tester<FileInStream> {
         .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
     Whitebox.setInternalState(mTestStream, "mContext", mContext);
     mTestStream.grantAccess(FileInStreamTest.this);
+  }
+
+  @After
+  public void after() {
+	  ClientContext.reset();
   }
 
   @Test
@@ -313,7 +319,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
   }
 
   /**
-   * Verify that data was properly written to the cache streams
+   * Verifies that data was properly written to the cache streams.
    */
   private void verifyCacheStreams(long dataRead) {
     for (int streamIndex = 0; streamIndex < NUM_STREAMS; streamIndex ++) {
