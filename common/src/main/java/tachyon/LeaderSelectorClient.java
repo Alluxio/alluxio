@@ -62,19 +62,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
 
     // Create a leader selector using the given path for management.
     // All participants in a given leader selection must use the same path.
-    CuratorFramework client =
-        CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
-            Constants.SECOND_MS, 3));
-    client.start();
-
-    // Sometimes, if the master crashes and restarts too quickly, zookeeper thinks the new client is
-    // still an old one. Close the "old" client and recreate a new one.
-    client.close();
-    client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
-        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
-    client.start();
-
-    mLeaderSelector = new LeaderSelector(client, mElectionPath, this);
+    mLeaderSelector = new LeaderSelector(getNewCuratorClient(), mElectionPath, this);
     mLeaderSelector.setId(name);
 
     // for most cases you will want your instance to requeue when it relinquishes leadership
@@ -175,5 +163,26 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
       LOG.info("All participants: " + mLeaderSelector.getParticipants());
       client.delete().forPath(mLeaderFolder + mName);
     }
+  }
+
+  /**
+   * Returns a new client for the zookeeper connection. The client is already started before
+   * returning.
+   *
+   * @return a new {@link CuratorFramework} client to use for leader selection
+   */
+  private CuratorFramework getNewCuratorClient() {
+    CuratorFramework client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    client.start();
+
+    // Sometimes, if the master crashes and restarts too quickly (faster than the zookeeper
+    // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
+    // state, explicitly close the "old" client recreate a new one.
+    client.close();
+    client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    client.start();
+    return client;
   }
 }
