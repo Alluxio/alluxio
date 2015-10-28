@@ -249,7 +249,8 @@ public class FileInStreamTest {
     mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
     Mockito.verify(stream, Mockito.times(1)).skip(100);
     Mockito.verify(stream, Mockito.times(1)).skip(50);
-    Assert.assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
+    Assert
+        .assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
   }
 
   @Test
