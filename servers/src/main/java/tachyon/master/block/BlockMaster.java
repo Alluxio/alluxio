@@ -681,41 +681,4 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     }
 
   }
-
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    /**
-     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
-     */
-    public void addLostWorker(MasterWorkerInfo worker) {
-      synchronized (mWorkers) {
-        mLostWorkers.add(worker);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
-     *
-     * @param workerId the worker ID to look up
-     * @return the {@link MasterWorkerInfo} for the given workerId
-     */
-    public MasterWorkerInfo getWorkerById(long workerId) {
-      synchronized (mWorkers) {
-        return mWorkers.getFirstByField(mIdIndex, workerId);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterBlockInfo} for the given block ID.
-     *
-     * @param blockId the block ID
-     * @return the {@link MasterBlockInfo}
-     */
-    public MasterBlockInfo getMasterBlockInfo(long blockId) {
-      synchronized (mBlocks) {
-        return mBlocks.get(blockId);
-      }
-    }
-  }
 }
