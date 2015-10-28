@@ -47,14 +47,13 @@ import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, TachyonBlockStore.class, UnderFileSystem.class})
-public class FileInStreamTest implements Tester<FileInStream> {
+public class FileInStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
   private static final long FILE_LENGTH = 350L;
@@ -67,13 +66,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
   private List<BufferedBlockInStream> mInStreams;
   private List<TestBufferedBlockOutStream> mCacheStreams;
 
-  private FileInStream.PrivateAccess mPrivateAccess;
   private FileInStream mTestStream;
-
-  @Override
-  public void receiveAccess(Object access) {
-    mPrivateAccess = (FileInStream.PrivateAccess) access;
-  }
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -107,7 +100,6 @@ public class FileInStreamTest implements Tester<FileInStream> {
     mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
     Whitebox.setInternalState(mTestStream, "mContext", mContext);
-    mTestStream.grantAccess(FileInStreamTest.this);
   }
 
   @After
@@ -123,7 +115,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
     }
     verifyCacheStreams(FILE_LENGTH);
     mTestStream.close();
-    Assert.assertTrue(mPrivateAccess.isClosed());
+    Assert.assertTrue((Boolean) Whitebox.getInternalState(mTestStream, "mClosed"));
   }
 
   @Test
@@ -257,7 +249,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
     mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
     Mockito.verify(stream, Mockito.times(1)).skip(100);
     Mockito.verify(stream, Mockito.times(1)).skip(50);
-    Assert.assertTrue(mPrivateAccess.shouldCacheCurrentBlock());
+    Assert.assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
   }
 
   @Test
@@ -298,7 +290,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
   public void skipInstreamExceptionTest() throws IOException {
     long skipSize = BLOCK_LENGTH / 2;
     BlockInStream blockInStream = Mockito.mock(BlockInStream.class);
-    mPrivateAccess.setCurrentInstream(blockInStream);
+    Whitebox.setInternalState(mTestStream, "mCurrentBlockInStream", blockInStream);
     Mockito.when(blockInStream.skip(skipSize)).thenReturn(0L);
     Mockito.when(blockInStream.remaining()).thenReturn(BLOCK_LENGTH);
 
