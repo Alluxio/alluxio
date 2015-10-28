@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.util.LineageUtils;
 import tachyon.worker.block.BlockWorker;
+import tachyon.worker.lineage.LineageWorker;
 
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
@@ -37,9 +39,16 @@ public final class TachyonWorker {
   public static void main(String[] args) {
     checkArgs(args);
     BlockWorker worker = null;
+    LineageWorker lineageWorker = null;
 
     try {
       worker = new BlockWorker();
+      if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+        // Setup the lineage worker
+        LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+        lineageWorker = new LineageWorker(worker.getBlockDataManager());
+      }
+
     } catch (Exception e) {
       LOG.error("Failed to initialize the block worker, exiting.", e);
       System.exit(-1);
@@ -47,10 +56,18 @@ public final class TachyonWorker {
 
     try {
       worker.process();
+      // Start the lineage worker
+      if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+        lineageWorker.start();
+      }
+
     } catch (Exception e) {
       LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
       try {
         worker.stop();
+        if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+          lineageWorker.stop();
+        }
       } catch (Exception ex) {
         LOG.error("Failed to stop block worker. Exiting.", ex);
       }

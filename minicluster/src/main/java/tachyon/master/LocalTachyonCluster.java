@@ -33,11 +33,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
+import tachyon.util.LineageUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
+import tachyon.worker.lineage.LineageWorker;
 
 /**
  * Local Tachyon cluster for integration tests.
@@ -71,6 +74,7 @@ public final class LocalTachyonCluster {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockWorker mWorker = null;
+  private LineageWorker mLineageWorker = null;
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
   private int mQuotaUnitBytes;
@@ -122,6 +126,10 @@ public final class LocalTachyonCluster {
 
   public BlockWorker getWorker() {
     return mWorker;
+  }
+
+  public LineageWorker getLineageWorker() {
+    return mLineageWorker;
   }
 
   public TachyonConf getWorkerTachyonConf() {
@@ -281,11 +289,22 @@ public final class LocalTachyonCluster {
     WorkerContext.reset(mWorkerConf);
 
     mWorker = new BlockWorker();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      // Setup the lineage worker
+      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
+    }
+
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
           mWorker.process();
+          // Start the lineage worker
+          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+            mLineageWorker.start();
+          }
+
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }
@@ -352,6 +371,9 @@ public final class LocalTachyonCluster {
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      mLineageWorker.stop();
+    }
     mMaster.stop();
   }
 
@@ -373,5 +395,8 @@ public final class LocalTachyonCluster {
   public void stopWorker() throws Exception {
     mMaster.clearClients();
     mWorker.stop();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      mLineageWorker.stop();
+    }
   }
 }
