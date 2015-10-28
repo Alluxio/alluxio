@@ -98,8 +98,9 @@ public final class TachyonBlockStore implements Closeable {
       NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
       InetSocketAddress workerAddr =
           new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
-      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
-          workerAddr.getHostName())) {
+      // Address in BlockInfo is represented as IP address.
+      if (NetworkAddressUtils.getLocalIpAddress(ClientContext.getConf()).equals(
+          workerNetAddress.getHost())) {
         if (mContext.hasLocalWorker()) {
           return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
         } else {
@@ -143,7 +144,8 @@ public final class TachyonBlockStore implements Closeable {
       return new RemoteBlockOutStream(blockId, blockSize);
     }
     // Location is local.
-    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)
+        || NetworkAddressUtils.getLocalIpAddress(ClientContext.getConf()).equals(location)) {
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
       } else {
