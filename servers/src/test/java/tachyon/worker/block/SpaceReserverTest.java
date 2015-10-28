@@ -28,17 +28,17 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
-import tachyon.test.Tester;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({WorkerFileSystemMasterClient.class, WorkerBlockMasterClient.class})
-public class SpaceReserverTest implements Tester<SpaceReserver> {
+public class SpaceReserverTest {
   private static final long SESSION_ID = 1;
   private static final long BLOCK_SIZE = 100;
 
@@ -50,7 +50,6 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
 
   private BlockStore mBlockStore;
   private SpaceReserver mSpaceReserver;
-  private SpaceReserver.PrivateAccess mPrivateAccess;
 
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
@@ -79,12 +78,6 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.3");
     mSpaceReserver = new SpaceReserver(blockDataManager);
-    mSpaceReserver.grantAccess(this);
-  }
-
-  @Override
-  public void receiveAccess(Object access) {
-    mPrivateAccess = (SpaceReserver.PrivateAccess) access;
   }
 
   @Test
@@ -103,7 +96,7 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
     Assert.assertEquals(0, (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
 
     // Reserver kicks in, expect evicting one block from MEM to HHD
-    mPrivateAccess.reserveSpace();
+    Whitebox.invokeMethod(mSpaceReserver, "reserveSpace");
 
     storeMeta = mBlockStore.getBlockStoreMeta();
     usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
@@ -126,7 +119,7 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
         (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
 
     // Reserver kicks in again, expect evicting one block from MEM to HHD and four blocks from HHD
-    mPrivateAccess.reserveSpace();
+    Whitebox.invokeMethod(mSpaceReserver, "reserveSpace");
 
     storeMeta = mBlockStore.getBlockStoreMeta();
     usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
