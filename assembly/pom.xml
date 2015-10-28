@@ -93,7 +93,12 @@
       <dependencies>
         <dependency>
           <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-integration</artifactId>
+          <artifactId>tachyon-integration-mesos</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-integration-yarn</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>
