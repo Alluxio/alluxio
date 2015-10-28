@@ -246,7 +246,7 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
 
     // Set the last updated time for the worker to be old, so it is considered lost.
-    workerInfo.updateLastUpdatedTimeMs(System.currentTimeMillis()
+    workerInfo.setLastUpdatedTimeMs(System.currentTimeMillis()
         - 2 * MasterContext.getConf().getInt(Constants.MASTER_WORKER_TIMEOUT_MS));
 
     // Run the lost worker detector. The worker should be considered lost.
