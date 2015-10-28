@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -230,7 +231,7 @@ public final class UfsUtils {
   }
 
   public static void printUsage() {
-    String cmd = "java -cp " + Constants.TACHYON_JAR + " tachyon.client.UfsUtils ";
+    String cmd = "java -cp " + Version.TACHYON_JAR + " tachyon.client.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
