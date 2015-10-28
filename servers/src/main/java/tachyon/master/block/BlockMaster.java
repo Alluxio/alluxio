@@ -16,6 +16,8 @@
 package tachyon.master.block;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -634,8 +636,15 @@ public final class BlockMaster extends MasterBase
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
-            masterBlockLocation.getTier()));
+        try {
+          // Use IP address for spark's job locality.
+          locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), new NetAddress(
+              InetAddress.getByName(workerInfo.getAddress().getHost()).getHostAddress(),
+              workerInfo.getAddress().getRpcPort(), workerInfo.getAddress().getDataPort()),
+              masterBlockLocation.getTier()));
+        } catch (UnknownHostException e) {
+          LOG.error("IP is not found for block address " + workerInfo.getAddress().getHost(), e);
+        }
       }
     }
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
