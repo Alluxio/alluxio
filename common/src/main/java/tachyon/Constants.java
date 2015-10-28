@@ -305,7 +305,8 @@ public final class Constants {
   public static final String LOGGER_TYPE = System.getProperty(TACHYON_LOGGER_TYPE, "");
   public static final String ACCESS_LOGGER_TYPE =
       System.getProperty(TACHYON_ACCESS_LOGGER_TYPE, "");
-  public static final boolean DEBUG = Boolean.valueOf(System.getProperty(TACHYON_DEBUG, "false"));
+  public static final boolean DEBUG =
+      Boolean.parseBoolean(System.getProperty(TACHYON_DEBUG, "false"));
 
   public static final long CLIENT_METRICS_VERSION = 1L;
   public static final int CLIENT_METRICS_SIZE = 11;
@@ -331,10 +332,6 @@ public final class Constants {
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
-
-  // Relative path to Tachyon target jar
-  public static final String TACHYON_JAR = "target/tachyon-" + Version.VERSION
-      + "-jar-with-dependencies.jar";
 
   private Constants() {} // prevent instantiation
 }

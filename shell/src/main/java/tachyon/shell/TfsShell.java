@@ -51,6 +51,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.lineage.TachyonLineage;
+import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -875,10 +876,8 @@ public class TfsShell implements Closeable {
 
   public int report(TachyonURI path) throws IOException {
     try {
-      TachyonFile fd = mTfs.open(path);
-      mTfs.reportLostFile(fd);
-      System.out
-          .println(path + " with file id " + fd.getFileId() + " has reported been report lost.");
+      TachyonLineageFileSystem.get().reportLostFile(path);
+      System.out.println(path + " has reported been reported as lost.");
       listLineages();
       return 0;
     } catch (TachyonException e) {
