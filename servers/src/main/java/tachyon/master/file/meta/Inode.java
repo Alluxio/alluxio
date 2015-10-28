@@ -30,7 +30,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private String mName;
     private long mParentId;
     private boolean mPersisted;
-    private PermissionStatus mPs;
+    protected PermissionStatus mPs;
 
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();
@@ -120,6 +120,8 @@ public abstract class Inode implements JournalEntryRepresentable {
     mName = builder.mName;
     mPersisted = builder.mPersisted;
     mParentId = builder.mParentId;
+    mUsername = builder.mPs.getUserName();
+    mGroupname = builder.mPs.getGroupName();
     mPermission = builder.mPs.getPermission().toShort();
   }
 
