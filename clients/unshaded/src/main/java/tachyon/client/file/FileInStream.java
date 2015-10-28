@@ -86,14 +86,10 @@ public final class FileInStream extends InputStream
    * @param options the client options
    */
   public FileInStream(FileInfo info, InStreamOptions options) {
-    this(info, options, FileSystemContext.INSTANCE);
-  }
-
-  FileInStream(FileInfo info, InStreamOptions options, FileSystemContext context) {
     mFileInfo = info;
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
-    mContext = context;
+    mContext = FileSystemContext.INSTANCE;
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mClosed = false;
