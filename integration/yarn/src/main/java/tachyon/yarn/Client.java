@@ -118,7 +118,8 @@ public final class Client {
     mOptions = new Options();
     mOptions.addOption("appname", true, "Application Name. Default 'Tachyon'");
     mOptions.addOption("priority", true, "Application Priority. Default 0");
-    mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted. Default 'default'");
+    mOptions.addOption("queue", true,
+        "RM Queue in which this application is to be submitted. Default 'default'");
     mOptions.addOption("am_memory", true,
         "Amount of memory in MB to request to run ApplicationMaster. Default 256");
     mOptions.addOption("am_vcores", true,
