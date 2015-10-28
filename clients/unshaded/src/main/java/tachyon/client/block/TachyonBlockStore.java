@@ -30,8 +30,7 @@ import tachyon.worker.WorkerClient;
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
  * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
- * class are completely opaque to user input (such as {@link ClientOptions}). This class is thread
- * safe.
+ * class are completely opaque to user input. This class is thread safe.
  */
 public final class TachyonBlockStore implements Closeable {
 
