@@ -33,7 +33,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
 
-import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
@@ -43,7 +42,7 @@ import tachyon.client.block.TestBufferedBlockInStream;
 import tachyon.client.block.TestBufferedBlockOutStream;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.util.ClientMockUtils;
-import tachyon.conf.TachyonConf;
+import tachyon.client.util.ClientTestUtils;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.test.Tester;
@@ -81,11 +80,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
   public void before() throws IOException {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
 
-    // Set small buffer sizes so that we don't run out of heap space
-    TachyonConf mConf = new TachyonConf();
-    mConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
-    mConf.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
-    ClientContext.reset(mConf);
+    ClientTestUtils.setSmallBufferSizes();
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     mBlockStore = PowerMockito.mock(TachyonBlockStore.class);
