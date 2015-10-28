@@ -236,12 +236,12 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     Assert.assertNotNull(workerInfo);
 
-    // Run the lost worker detector. No workers will be considered lost.
+    // Run the lost worker detector.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
         TimeUnit.SECONDS));
 
-    // No lost workers should be considered lost.
+    // No workers should be considered lost.
     Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
 
@@ -249,7 +249,7 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     workerInfo.setLastUpdatedTimeMs(System.currentTimeMillis()
         - 2 * MasterContext.getConf().getInt(Constants.MASTER_WORKER_TIMEOUT_MS));
 
-    // Run the lost worker detector. The worker should be considered lost.
+    // Run the lost worker detector.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
         TimeUnit.SECONDS));
@@ -262,12 +262,12 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
 
-    // Run the lost worker detector. No workers will be considered lost.
+    // Run the lost worker detector.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
         TimeUnit.SECONDS));
 
-    // No lost workers should be considered lost.
+    // No workers should be considered lost.
     Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
   }
