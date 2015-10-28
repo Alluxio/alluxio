@@ -15,7 +15,6 @@
 
 package tachyon.client.block;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -32,7 +31,7 @@ import tachyon.worker.WorkerClient;
  * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
  * class are completely opaque to user input. This class is thread safe.
  */
-public final class TachyonBlockStore implements Closeable {
+public final class TachyonBlockStore {
 
   private static TachyonBlockStore sClient = null;
 
@@ -53,12 +52,6 @@ public final class TachyonBlockStore implements Closeable {
    */
   private TachyonBlockStore() {
     mContext = BlockStoreContext.INSTANCE;
-  }
-
-  @Override
-  // TODO(calvin): Evaluate the necessity of this method.
-  public synchronized void close() {
-    sClient = null;
   }
 
   /**
