@@ -18,7 +18,6 @@ package tachyon.master.file.journal;
 import com.fasterxml.jackson.annotation.JsonGetter;
 
 import tachyon.master.journal.JournalEntry;
-import tachyon.security.authorization.PermissionStatus;
 
 public abstract class InodeEntry extends JournalEntry {
   protected final long mId;
@@ -28,10 +27,13 @@ public abstract class InodeEntry extends JournalEntry {
   protected final boolean mPinned;
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
-  protected final PermissionStatus mPs;
+  protected final String mUsername;
+  protected final String mGroupname;
+  protected final short mPermission;
 
   public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean persisted,
-      boolean pinned, long lastModificationTimeMs, PermissionStatus ps) {
+      boolean pinned, long lastModificationTimeMs, String username, String groupname,
+      short permission) {
     mId = id;
     mParentId = parentId;
     mName = name;
@@ -39,7 +41,9 @@ public abstract class InodeEntry extends JournalEntry {
     mPinned = pinned;
     mCreationTimeMs = creationTimeMs;
     mLastModificationTimeMs = lastModificationTimeMs;
-    mPs = ps;
+    mUsername = username;
+    mGroupname = groupname;
+    mPermission = permission;
   }
 
   @JsonGetter
@@ -75,5 +79,20 @@ public abstract class InodeEntry extends JournalEntry {
   @JsonGetter
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
+  }
+
+  @JsonGetter
+  public String getUsername() {
+    return mUsername;
+  }
+
+  @JsonGetter
+  public String getGroupname() {
+    return mGroupname;
+  }
+
+  @JsonGetter
+  public short getPermission() {
+    return mPermission;
   }
 }

@@ -34,7 +34,6 @@ public class InodeFileEntry extends InodeEntry {
   private final boolean mCacheable;
   private final List<Long> mBlocks;
   private final long mTTL;
-  private final PermissionStatus mPs;
 
   @JsonCreator
   public InodeFileEntry(@JsonProperty("creationTimeMs") long creationTimeMs,
@@ -45,15 +44,16 @@ public class InodeFileEntry extends InodeEntry {
       @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("length") long length,
       @JsonProperty("completed") boolean completed, @JsonProperty("cacheable") boolean cacheable,
       @JsonProperty("blocks") List<Long> blocks, @JsonProperty("ttl") long ttl,
-      @JsonProperty("PermissionStatus") PermissionStatus ps) {
-    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs, ps);
+      @JsonProperty("username") String username, @JsonProperty("groupname") String groupname,
+      @JsonProperty("permission") short permission) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned,
+        lastModificationTimeMs, username, groupname, permission);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mCompleted = completed;
     mCacheable = cacheable;
     mBlocks = Preconditions.checkNotNull(blocks);
     mTTL = ttl;
-    mPs = ps;
   }
 
   public InodeFile toInodeFile() {
@@ -61,7 +61,8 @@ public class InodeFileEntry extends InodeEntry {
         new InodeFile.Builder().setName(mName).setBlockContainerId(BlockId.getContainerId(mId))
             .setParentId(mParentId).setBlockSizeBytes(mBlockSizeBytes)
             .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted)
-            .setPermissionStatus(mPs).build();
+            .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
+            .build();
 
     if (mCompleted) {
       inode.setCompleted(mLength);

@@ -85,6 +85,12 @@ public final class InodeFile extends Inode {
     protected InodeFile.Builder getThis() {
       return this;
     }
+
+    @Override
+    public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
+      mPs = ps.applyUMask(SUMASK);
+      return this;
+    }
   }
 
   private final long mBlockContainerId;
@@ -280,7 +286,7 @@ public final class InodeFile extends Inode {
     return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
         isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
         isCacheable(), mBlocks, mTTL,
-        new PermissionStatus(getUsername(), getGroupname(),getPermission()));
+        getUsername(), getGroupname(),getPermission());
   }
 
   /**
