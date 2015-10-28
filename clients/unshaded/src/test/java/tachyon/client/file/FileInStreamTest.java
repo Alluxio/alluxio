@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
@@ -103,7 +104,8 @@ public class FileInStreamTest implements Tester<FileInStream> {
     mInfo.setBlockIds(blockIds);
 
     mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.PROMOTE).build(), mContext);
+        .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
+    Whitebox.setInternalState(mTestStream, "mContext", mContext);
     mTestStream.grantAccess(FileInStreamTest.this);
   }
 
@@ -236,7 +238,8 @@ public class FileInStreamTest implements Tester<FileInStream> {
   @Test
   public void failToUnderFsTest() throws IOException {
     mInfo.setIsPersisted(true).setUfsPath("testUfsPath");
-    mTestStream = new FileInStream(mInfo, InStreamOptions.defaults(), mContext);
+    mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
+    Whitebox.setInternalState(mTestStream, "mContext", mContext);
 
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
     UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
