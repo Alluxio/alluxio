@@ -271,6 +271,15 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * Updates the last updated time of the worker in ms. Should only be called by tests.
+   *
+   * @param timeMillis the time to set as the last updated time, in ms.
+   */
+  public synchronized void updateLastUpdatedTimeMs(long timeMillis) {
+    mLastUpdatedTimeMs = timeMillis;
+  }
+
+  /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
    *
    * @param add true if to add, to remove otherwise.
