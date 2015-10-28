@@ -70,8 +70,7 @@ public final class LeaderInquireClient {
           LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
-              String leader = masters.get(0);
-              return leader;
+              return masters.get(0);
             }
 
             long maxTime = 0;
