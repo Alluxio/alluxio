@@ -429,6 +429,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return true if the given file id is the root id
    */
   public boolean isRootId(long fileId) {
+    if (mRoot == null) {
+      throw new IllegalStateException("Cannot call isRootId() before initializeRoot()");
+    }
     return fileId == mRoot.getId();
   }
 
