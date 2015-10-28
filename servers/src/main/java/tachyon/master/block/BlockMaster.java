@@ -75,8 +75,7 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase
-    implements ContainerIdGenerable, Testable<BlockMaster> {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block metadata management. */
@@ -718,11 +717,5 @@ public final class BlockMaster extends MasterBase
         return mBlocks.get(blockId);
       }
     }
-  }
-
-  /** Grants access to private members to testers of this class. */
-  @Override
-  public void grantAccess(Tester<BlockMaster> tester) {
-    tester.receiveAccess(new PrivateAccess());
   }
 }
