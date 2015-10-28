@@ -60,7 +60,6 @@ public class FileInStreamTest implements Tester<FileInStream> {
   private static final long NUM_STREAMS = ((FILE_LENGTH - 1) / BLOCK_LENGTH) + 1;
 
   private TachyonBlockStore mBlockStore;
-  private TachyonConf mConf;
   private FileSystemContext mContext;
   private FileInfo mInfo;
 
@@ -83,7 +82,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
 
     // Set small buffer sizes so that we don't run out of heap space
-    mConf = new TachyonConf();
+    TachyonConf mConf = new TachyonConf();
     mConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
     mConf.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
     ClientContext.reset(mConf);
@@ -108,7 +107,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
     }
     mInfo.setBlockIds(blockIds);
 
-    mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(mConf)
+    mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(TachyonStorageType.PROMOTE).build(), mContext);
     mTestStream.grantAccess(FileInStreamTest.this);
   }
