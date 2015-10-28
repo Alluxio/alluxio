@@ -112,7 +112,7 @@ public class FileInStreamTest implements Tester<FileInStream> {
 
   @After
   public void after() {
-	  ClientContext.reset();
+    ClientContext.reset();
   }
 
   @Test
