@@ -41,13 +41,12 @@
 	SBSC: Method concatenates strings using + in a loop
 	Se: Transient field of class that isn't Serializable
 	SIC: Could be refactored into a named static inner class
-	ST: Write to static field from instance method
 	UC: Useless non-empty void method
 	UPM: Private method is never called
 	UrF: Unread public/protected field
 	Wa: Condition.await() not in loop
       -->
-    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,ST,UC,UPM,UrF,Wa"/>
+    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF,Wa"/>
   </Match>
 
 </FindBugsFilter>
