@@ -25,7 +25,8 @@ import tachyon.client.Seekable;
  * could be a local Tachyon worker, a remote Tachyon worker, or the under storage system. All
  * block streams provide data access to a sequential region of data of the block size of the block.
  */
-// TODO: Resolve the confusion between BufferedBlockInStream (Tachyon-only stream) and BlockInStream
+// TODO(calvin): Resolve the confusion between BufferedBlockInStream (Tachyon-only stream) and
+// BlockInStream
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
 
 }
