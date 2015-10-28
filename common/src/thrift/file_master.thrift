@@ -133,12 +133,6 @@ service FileSystemMasterService {
     throws (1: exception.TachyonTException e)
 
   /*
-   * Reports file as lost.
-   */
-  void reportLostFile(1: i64 fileId)
-    throws (1: exception.TachyonTException e)
-
-  /*
    * Sets the pinned flag for a file.
    */
   void setPinned(1: i64 fileId, 2: bool pinned)
