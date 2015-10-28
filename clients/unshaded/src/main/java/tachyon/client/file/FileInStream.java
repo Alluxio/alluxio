@@ -36,8 +36,6 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.master.block.BlockId;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -52,8 +50,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
-public final class FileInStream extends InputStream
-    implements BoundedStream, Seekable, Testable<FileInStream> {
+public final class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -335,25 +332,5 @@ public final class FileInStream extends InputStream
           new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
       mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
-  }
-
-  class PrivateAccess {
-    public boolean isClosed() {
-      return mClosed;
-    }
-
-    public boolean shouldCacheCurrentBlock() {
-      return mShouldCacheCurrentBlock;
-    }
-
-    public void setCurrentInstream(BlockInStream inStream) {
-      mCurrentBlockInStream = inStream;
-    }
-  }
-
-  /** Grants access to private members to testers of this class. */
-  @Override
-  public void grantAccess(Tester<FileInStream> tester) {
-    tester.receiveAccess(new PrivateAccess());
   }
 }
