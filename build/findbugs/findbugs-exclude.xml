@@ -28,8 +28,6 @@
 	LI: Incorrect lazy initialization of static field
 	Nm: Very confusing method names
 	NP: Load of known null value
-	OBL: Method may fail to clean up stream or resource on checked exception
-	OS: Method may fail to close stream on exception
 	PT: Absolute path traversal in servlet
 	PZLA: Consider returning a zero length array rather than null
 	RCN: Redundant nullcheck of value known to be null
@@ -47,7 +45,7 @@
 	UwF: Field not initialized in constructor but dereferenced without null check
 	Wa: Condition.await() not in loop
       -->
-    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,ES,GC,IS,JLM,LI,Nm,NP,OBL,OS,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,ST,UC,UL,UPM,UrF,UwF,Wa"/>
+    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,ES,GC,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,ST,UC,UL,UPM,UrF,UwF,Wa"/>
   </Match>
 
 </FindBugsFilter>
