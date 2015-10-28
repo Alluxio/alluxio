@@ -59,7 +59,7 @@ public class Format {
 
     TachyonConf tachyonConf = new TachyonConf();
 
-    if (args[0].toUpperCase().equals("MASTER")) {
+    if ("MASTER".equals(args[0].toUpperCase())) {
 
       String masterJournal =
           tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
@@ -81,7 +81,7 @@ public class Format {
 
       UnderFileSystemUtils.touch(
           masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(), tachyonConf);
-    } else if (args[0].toUpperCase().equals("WORKER")) {
+    } else if ("WORKER".equals(args[0].toUpperCase())) {
       String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER);
       int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
       for (int level = 0; level < maxStorageLevels; level ++) {
