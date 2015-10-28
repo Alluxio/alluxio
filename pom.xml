@@ -124,7 +124,7 @@
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
-    <findbugs.path>build/findbugs/</findbugs.path>
+    <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <hadoop.version>2.2.0</hadoop.version>
     <java.version>1.6</java.version>
@@ -381,8 +381,8 @@
         <artifactId>findbugs-maven-plugin</artifactId>
         <version>3.0.2</version>
         <configuration>
-          <excludeFilterFile>${findbugs.path}findbugs-exclude.xml</excludeFilterFile>
-          <includeFilterFile>${findbugs.path}findbugs-include.xml</includeFilterFile>
+          <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
+          <includeFilterFile>${findbugs.path}/findbugs-include.xml</includeFilterFile>
           <!--
               Enables analysis which takes more memory but finds more bugs.
               If you run out of memory, changes the value of the effort element
