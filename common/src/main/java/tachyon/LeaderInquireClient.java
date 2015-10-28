@@ -71,7 +71,6 @@ public final class LeaderInquireClient {
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
               String leader = masters.get(0);
-              LOG.info("The leader master: " + leader);
               return leader;
             }
 
