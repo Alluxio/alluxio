@@ -445,7 +445,7 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
     } catch (TachyonException e) {
-      // TODO: Should not cast this to Tachyon Exception
+      // TODO(calvin): Should not cast this to Tachyon Exception
       throw new IOException(e);
     }
   }

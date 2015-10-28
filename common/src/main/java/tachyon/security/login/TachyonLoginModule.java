@@ -86,7 +86,7 @@ public final class TachyonLoginModule implements LoginModule {
 
     Principal user = null;
 
-    // TODO: get a Kerberos user if we are using Kerberos.
+    // TODO(dong): get a Kerberos user if we are using Kerberos.
     // user = getKerberosUser();
 
     // get a OS user

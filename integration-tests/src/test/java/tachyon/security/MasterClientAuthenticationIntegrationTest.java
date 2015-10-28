@@ -39,12 +39,9 @@ import tachyon.worker.WorkerContext;
 /**
  * Though its name indicates that it provides the tests for Tachyon authentication. This class is
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
- *
- * TODO: add tests for {@link tachyon.master.LocalTachyonClusterMultiMaster} in fault tolerant mode
- *
- * TODO: the way to set and isolate MasterContext/WorkerContext across testcases is hacky. A better
- * solution is needed.
  */
+// TODO(bin): add tests for {@link LocalTachyonClusterMultiMaster} in fault tolerant mode
+// TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
 

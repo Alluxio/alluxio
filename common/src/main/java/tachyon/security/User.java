@@ -24,7 +24,7 @@ import java.security.Principal;
 public final class User implements Principal {
   private final String mName;
 
-  // TODO: add more attributes and methods for supporting Kerberos
+  // TODO(dong): add more attributes and methods for supporting Kerberos
 
   public User(String name) {
     mName = name;

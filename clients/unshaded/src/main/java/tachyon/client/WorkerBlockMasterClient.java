@@ -94,7 +94,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  // TODO: rename to workerRegister?
+  // TODO(yupeng): rename to workerRegister?
   public synchronized long getId(NetAddress address) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
@@ -145,7 +145,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    *        dir
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
-  // TODO: rename to workerBlockReport or workerInitialize?
+  // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;

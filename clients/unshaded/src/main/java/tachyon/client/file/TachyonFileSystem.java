@@ -255,7 +255,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     return unmount(tachyonPath, UnmountOptions.defaults());
   }
 
-  // TODO: Move this to lineage client
+  // TODO(calvin): Move this to lineage client
   public void reportLostFile(TachyonFile file)
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();

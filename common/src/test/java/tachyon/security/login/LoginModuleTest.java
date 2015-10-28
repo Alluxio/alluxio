@@ -57,5 +57,5 @@ public class LoginModuleTest {
     Assert.assertTrue(subject.getPrincipals(User.class).isEmpty());
   }
 
-  // TODO: Kerberos login test
+  // TODO(dong): Kerberos login test
 }
