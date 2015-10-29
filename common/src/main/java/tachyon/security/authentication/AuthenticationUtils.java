@@ -102,7 +102,7 @@ public final class AuthenticationUtils {
    * @return An unconnected socket
    */
   public static TSocket createTSocket(InetSocketAddress address) {
-    // TODO: make the timeout configurable.
+    // TODO(gpang): make the timeout configurable.
     return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort(),
         30 * Constants.SECOND_MS);
   }
