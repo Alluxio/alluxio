@@ -181,10 +181,6 @@ public final class LocalTachyonCluster {
     mTestConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     mTestConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    mTestConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, Integer.toString(250));
-
     // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
     UnderFileSystemUtils.deleteDir(mTachyonHome, mTestConf);
 
@@ -231,6 +227,11 @@ public final class LocalTachyonCluster {
 
     // Update the test conf with actual RPC port.
     mTestConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+
+    // We need to update client context with the most recent configuration so they know the correct
+    // port to connect to master.
+    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
+    ClientContext.reset(mClientConf);
   }
 
   /**
@@ -239,12 +240,11 @@ public final class LocalTachyonCluster {
    * @throws IOException when the operation fails
    */
   private void startWorker() throws IOException {
+    // We need to update the worker context with the most recent configuration so they know the
+    // correct port to connect to master.
     mWorkerConf = new TachyonConf(mTestConf.getInternalProperties());
-    mClientConf = new TachyonConf(mTestConf.getInternalProperties());
     WorkerContext.reset(mWorkerConf);
-    ClientContext.reset(mClientConf);
 
-    // We need to update the client with the most recent configuration so it knows the correct ports
     mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
       @Override
