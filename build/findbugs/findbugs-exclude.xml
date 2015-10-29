@@ -8,4 +8,46 @@
     <Package name="tachyon.thrift"/>
   </Match>
 
+  <Match>
+    <!--
+	BC: Unchecked/unconfirmed cast
+	Bx: Boxing/unboxing to parse a primitive
+	CI: Class is final but declares protected field
+	Co: compareTo()/compare() incorrectly handles float or double value
+	DC: Possible double check of field
+	DE: Method might ignore exception
+	DLS: Dead store to local variable
+	Dm: Reliance on default encoding
+	DP: Method invoked that should be only be invoked inside a doPrivileged block
+	EI: May expose internal representation by returning reference to mutable object
+	Eq: Class defines compareTo(...) and uses Object.equals()
+	ES: Comparison of String objects using == or !=
+	GC: No relationship between generic parameter and method argument
+	IS: Inconsistent synchronization
+	JLM: Synchronization performed on util.concurrent instance
+	LI: Incorrect lazy initialization of static field
+	Nm: Very confusing method names
+	NP: Load of known null value
+	OBL: Method may fail to clean up stream or resource on checked exception
+	OS: Method may fail to close stream on exception
+	PT: Absolute path traversal in servlet
+	PZLA: Consider returning a zero length array rather than null
+	RCN: Redundant nullcheck of value known to be null
+	REC: Exception is caught when Exception is not thrown
+	RR: Method ignores results of InputStream.skip()
+	RV: Method ignores exceptional return value
+	SBSC: Method concatenates strings using + in a loop
+	Se: Transient field of class that isn't Serializable
+	SIC: Could be refactored into a named static inner class
+	ST: Write to static field from instance method
+	UC: Useless non-empty void method
+	UL: Method does not release lock on all exception paths
+	UPM: Private method is never called
+	UrF: Unread public/protected field
+	UwF: Field not initialized in constructor but dereferenced without null check
+	Wa: Condition.await() not in loop
+      -->
+    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,ES,GC,IS,JLM,LI,Nm,NP,OBL,OS,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,ST,UC,UL,UPM,UrF,UwF,Wa"/>
+  </Match>
+
 </FindBugsFilter>

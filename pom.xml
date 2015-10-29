@@ -382,7 +382,6 @@
         <version>3.0.2</version>
         <configuration>
           <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
-          <includeFilterFile>${findbugs.path}/findbugs-include.xml</includeFilterFile>
           <!--
               Enables analysis which takes more memory but finds more bugs.
               If you run out of memory, changes the value of the effort element
