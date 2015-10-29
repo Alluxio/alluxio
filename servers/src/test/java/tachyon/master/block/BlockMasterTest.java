@@ -18,6 +18,7 @@ package tachyon.master.block;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -25,6 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,11 +35,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
+import tachyon.collections.IndexedSet;
 import tachyon.exception.TachyonException;
+import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
@@ -46,15 +49,9 @@ import tachyon.thrift.WorkerInfo;
 /**
  * Unit tests for tachyon.master.block.BlockMaster.
  */
-public class BlockMasterTest implements Tester<BlockMaster> {
+public class BlockMasterTest {
 
-  private BlockMaster.PrivateAccess mPrivateAccess;
   private BlockMaster mMaster;
-
-  @Override
-  public void receiveAccess(Object access) {
-    mPrivateAccess = (BlockMaster.PrivateAccess) access;
-  }
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -63,7 +60,6 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   public void initialize() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
-    mMaster.grantAccess(BlockMasterTest.this); // initializes mPrivateAccess
   }
 
   @Test
@@ -90,10 +86,11 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   public void getLostWorkersInfoTest() throws Exception {
     MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, new NetAddress("localhost", 80, 81));
     MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, new NetAddress("localhost", 82, 83));
-    mPrivateAccess.addLostWorker(workerInfo1);
+    IndexedSet<MasterWorkerInfo> lostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
+    lostWorkers.add(workerInfo1);
     Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
         mMaster.getLostWorkersInfo());
-    mPrivateAccess.addLostWorker(workerInfo2);
+    lostWorkers.add(workerInfo2);
 
     final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
         workerInfo2.generateClientWorkerInfo());
@@ -106,9 +103,10 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     final NetAddress na = new NetAddress("localhost", 80, 81);
     final long expectedId = 1;
     final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
-    workerInfo1.addBlock(1L);
+    IndexedSet<MasterWorkerInfo> lostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
 
-    mPrivateAccess.addLostWorker(workerInfo1);
+    workerInfo1.addBlock(1L);
+    lostWorkers.add(workerInfo1);
     final long workerId = mMaster.getWorkerId(na);
     Assert.assertEquals(expectedId, workerId);
 
@@ -145,7 +143,10 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   public void workerHeartbeatTest() throws Exception {
     mMaster.start(true);
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
+    IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
+    IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
+
+    MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
     final List<Long> USED_BYTES_ON_TIERS = ImmutableList.of(125L);
     final List<Long> INITIAL_BLOCKS = ImmutableList.of(1L, 2L);
     final int MEM_TIER = StorageLevelAlias.MEM.getValue();
@@ -165,8 +166,8 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     // block is removed from worker info
     Assert.assertEquals(expectedBlocks, workerInfo.getBlocks());
     // worker is removed from block info
-    Assert.assertEquals(ImmutableSet.of(), mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK)
-        .getWorkers());
+    Map<Long, MasterBlockInfo> blocks = Whitebox.getInternalState(mMaster, "mBlocks");
+    Assert.assertEquals(ImmutableSet.<Long>of(), blocks.get(REMOVED_BLOCK).getWorkers());
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
 
     // test heartbeat adding back the block
@@ -177,8 +178,7 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     // block is restored to worker info
     Assert.assertEquals(ImmutableSet.copyOf(INITIAL_BLOCKS), workerInfo.getBlocks());
     // worker is restored to block info
-    Assert.assertEquals(ImmutableSet.of(workerId), mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK)
-        .getWorkers());
+    Assert.assertEquals(ImmutableSet.of(workerId), blocks.get(REMOVED_BLOCK).getWorkers());
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
 
     // test heartbeat where the master tells the worker to remove a block
@@ -195,7 +195,10 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   public void heartbeatStatusTest() throws Exception {
     mMaster.start(true);
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
+    IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
+    IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
+
+    MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
     final List<Long> INITIAL_USED_BYTES_ON_TIERS = ImmutableList.of(25L, 50L, 125L);
     addWorker(mMaster, workerId, ImmutableList.of(50L, 100L, 500L), INITIAL_USED_BYTES_ON_TIERS);
 

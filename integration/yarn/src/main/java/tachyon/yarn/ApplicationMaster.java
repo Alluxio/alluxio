@@ -38,6 +38,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -101,6 +102,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
+    Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
+    Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
       LOG.info("Starting Application Master with args " + Arrays.toString(args));
       final int numWorkers = Integer.valueOf(args[0]);
@@ -178,8 +181,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     String[] nodes = {mMasterAddress};
 
     // Make container request for Tachyon master to ResourceManager
+    boolean relaxLocality = true;
+    if (!mMasterAddress.equals("localhost")) {
+      relaxLocality = false;
+    }
     ContainerRequest masterContainerAsk =
-        new ContainerRequest(masterResource, nodes, null /* any racks */, priority);
+        new ContainerRequest(masterResource, nodes, null /* any racks */, priority, relaxLocality);
     LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
         masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);

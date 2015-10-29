@@ -42,8 +42,7 @@ public final class TachyonFSTestUtils {
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName, int len,
       OutStreamOptions options) throws IOException {
-    return createByteFile(tfs, fileName, options.getTachyonStorageType(),
-        options.getUnderStorageType(), len, options.getBlockSizeBytes());
+    return createByteFile(tfs, new TachyonURI(fileName), options, len);
   }
 
   /**
@@ -77,11 +76,24 @@ public final class TachyonFSTestUtils {
   public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
       throws IOException {
+    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
+        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
+    return createByteFile(tfs, fileURI, options, len);
+  }
+
+  /**
+   * Creates a simple file with <code>len</code> bytes.
+   *
+   * @param tfs a TachyonFileSystem handler
+   * @param fileURI URI of the file
+   * @param options client options to create the file with
+   * @param len file size
+   * @return the TachyonFile of the created file
+   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   */
+  public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
+      OutStreamOptions options, int len) throws IOException {
     try {
-      OutStreamOptions options =
-          new OutStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
-              .build();
       FileOutStream os = tfs.getOutStream(fileURI, options);
 
       byte[] arr = new byte[len];
@@ -111,21 +123,10 @@ public final class TachyonFSTestUtils {
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len,
       long blockCapacityByte) throws IOException {
-    try {
-      OutStreamOptions options =
-          new OutStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
-              .setBlockSizeBytes(blockCapacityByte).build();
-      FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
-
-      for (int k = 0; k < len; k ++) {
-        os.write((byte) k);
-      }
-      os.close();
-      return tfs.open(new TachyonURI(fileName));
-    } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
-    }
+    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
+        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType)
+        .setBlockSizeBytes(blockCapacityByte).build();
+    return createByteFile(tfs, new TachyonURI(fileName), options, len);
   }
 
   /**

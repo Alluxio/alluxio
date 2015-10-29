@@ -33,6 +33,8 @@ public final class HeartbeatScheduler {
   private static Lock sLock =  new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
+  private HeartbeatScheduler() {} // to prevent initialization
+
   /**
    * @param timer a timer to add to the scheduler
    */

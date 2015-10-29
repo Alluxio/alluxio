@@ -66,7 +66,7 @@ public final class LoginUserTest {
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
-    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //TODO(qifan): after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
 
@@ -89,7 +89,7 @@ public final class LoginUserTest {
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
-    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //TODO(qifan): after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
 
@@ -123,7 +123,7 @@ public final class LoginUserTest {
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //TODO(dong): after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
 
@@ -146,7 +146,7 @@ public final class LoginUserTest {
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
-    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //TODO(dong): after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
 
@@ -156,7 +156,7 @@ public final class LoginUserTest {
     Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
   }
 
-  // TODO: getKerberosLoginUserTest()
+  // TODO(dong): getKerberosLoginUserTest()
 
   /**
    * Test whether we can get exception when getting a login user in non-security mode
@@ -164,7 +164,7 @@ public final class LoginUserTest {
    */
   @Test
   public void securityEnabledTest() throws Throwable {
-    // TODO: add Kerberos in the white list when it is supported.
+    // TODO(dong): add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
