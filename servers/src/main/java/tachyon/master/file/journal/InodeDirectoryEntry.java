@@ -35,11 +35,11 @@ public class InodeDirectoryEntry extends InodeEntry {
       @JsonProperty("pinned") boolean pinned,
       @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
       @JsonProperty("childrenIds") Set<Long> childrenIds,
-      @JsonProperty("username") String username, @JsonProperty("groupname") String groupname,
+      @JsonProperty("username") String username,
+      @JsonProperty("groupname") String groupname,
       @JsonProperty("permission") short permission) {
     super(creationTimeMs, id, name, parentId, persisted, pinned,
         lastModificationTimeMs, username, groupname, permission);
-
     mChildrenIds = childrenIds;
   }
 
