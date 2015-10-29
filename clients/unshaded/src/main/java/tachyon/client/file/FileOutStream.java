@@ -142,7 +142,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
         if (!ufs.rename(tmpPath, mUfsPath)) {
           throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
-        builder.setLength(ufs.getFileSize(mUfsPath));
+        builder.setUfsLength(ufs.getFileSize(mUfsPath));
         canComplete = true;
       }
     }

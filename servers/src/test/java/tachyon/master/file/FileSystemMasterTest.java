@@ -248,7 +248,7 @@ public final class FileSystemMasterTest {
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
     CompleteFileOptions options =
-        new CompleteFileOptions.Builder(MasterContext.getConf()).setLength(Constants.KB).build();
+        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
     mFileSystemMaster.completeFile(fileId, options);
     return blockId;
   }

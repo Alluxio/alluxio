@@ -23,7 +23,7 @@ struct FileInfo {
 }
 
 struct CompleteFileTOptions {
-  1: optional i64 length
+  1: optional i64 ufsLength
 }
 
 struct CreateTOptions {

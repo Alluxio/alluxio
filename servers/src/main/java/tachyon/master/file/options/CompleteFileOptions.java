@@ -21,7 +21,7 @@ import tachyon.thrift.CompleteFileTOptions;
 
 public final class CompleteFileOptions {
   public static class Builder {
-    private long mLength;
+    private long mUfsLength;
     private long mOperationTimeMs;
 
     /**
@@ -30,16 +30,16 @@ public final class CompleteFileOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mLength = 0;
+      mUfsLength = 0;
       mOperationTimeMs = System.currentTimeMillis();
     }
 
     /**
-     * @param length the file length to use
+     * @param ufsLength the UFS file length to use
      * @return the builder
      */
-    public Builder setLength(long length) {
-      mLength = length;
+    public Builder setUfsLength(long ufsLength) {
+      mUfsLength = ufsLength;
       return this;
     }
 
@@ -69,11 +69,11 @@ public final class CompleteFileOptions {
     return new Builder(MasterContext.getConf()).build();
   }
 
-  private long mLength;
+  private long mUfsLength;
   private long mOperationTimeMs;
 
   private CompleteFileOptions(CompleteFileOptions.Builder builder) {
-    mLength = builder.mLength;
+    mUfsLength = builder.mUfsLength;
     mOperationTimeMs = builder.mOperationTimeMs;
   }
 
@@ -83,15 +83,15 @@ public final class CompleteFileOptions {
    * @param options Thrift options
    */
   public CompleteFileOptions(CompleteFileTOptions options) {
-    mLength = options.getLength();
+    mUfsLength = options.getUfsLength();
     mOperationTimeMs = System.currentTimeMillis();
   }
 
   /**
-   * @return the file length
+   * @return the UFS file length
    */
-  public long getLength() {
-    return mLength;
+  public long getUfsLength() {
+    return mUfsLength;
   }
 
   /**
