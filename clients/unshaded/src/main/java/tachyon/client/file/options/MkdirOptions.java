@@ -103,15 +103,11 @@ public final class MkdirOptions {
    */
   @Override
   public String toString() {
-    return "MkdirOptions{mRecursive=" + mRecursive + ", mUnderStorageType="
-        + mUnderStorageType.toString() + "}";
-  }
-
-  /**
-   * @return the default String representation for testing purposes
-   */
-  public String toStringBase() {
-    return super.toString();
+    StringBuilder sb = new StringBuilder("MkdirOptions(");
+    sb.append(super.toString()).append(", mRecursive: ").append(mRecursive);
+    sb.append(", mUnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(")");
+    return sb.toString();
   }
 
   /**

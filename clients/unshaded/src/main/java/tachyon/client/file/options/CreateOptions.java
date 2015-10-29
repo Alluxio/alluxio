@@ -147,15 +147,13 @@ public final class CreateOptions {
    */
   @Override
   public String toString() {
-    return "CreateOptions{mBlockSizeBytes=" + mBlockSizeBytes + ", mRecursive=" + mRecursive
-        + ", mTTL=" + mTTL + ", mUnderStorageType=" + mUnderStorageType.toString() + "}";
-  }
-
-  /**
-   * @return the default String representation for testing purposes
-   */
-  public String toStringBase() {
-    return super.toString();
+    StringBuilder sb = new StringBuilder("CreateOptions(");
+    sb.append(super.toString()).append(", mBlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", mRecursive: ").append(mRecursive);
+    sb.append(", mTTL: ").append(mTTL);
+    sb.append(", mUnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(")");
+    return sb.toString();
   }
 
   /**

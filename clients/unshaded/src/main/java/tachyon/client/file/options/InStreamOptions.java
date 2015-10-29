@@ -80,13 +80,10 @@ public final class InStreamOptions {
    */
   @Override
   public String toString() {
-    return "InStreamOptions{" + "mTachyonStorageType=" + mTachyonStorageType.toString() + "}";
-  }
-
-  /**
-   * @return the default String representation for testing purposes
-   */
-  public String toStringBase() {
-    return super.toString();
+    StringBuilder sb = new StringBuilder("InStreamOptions(");
+    sb.append(super.toString()).append(", mTachyonStorageType: ")
+        .append(mTachyonStorageType.toString());
+    sb.append(")");
+    return sb.toString();
   }
 }

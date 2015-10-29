@@ -79,13 +79,9 @@ public final class DeleteOptions {
    */
   @Override
   public String toString() {
-    return "DeleteOptions{mRecursive=" + mRecursive + "}";
-  }
-
-  /**
-   * @return the default String representation for testing purposes
-   */
-  public String toStringBase() {
-    return super.toString();
+    StringBuilder sb = new StringBuilder("DeleteOptions(");
+    sb.append(super.toString()).append(", mRecursive: ").append(mRecursive);
+    sb.append(")");
+    return sb.toString();
   }
 }
