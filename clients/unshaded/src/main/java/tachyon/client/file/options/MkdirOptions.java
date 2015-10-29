@@ -19,6 +19,7 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.MkdirTOptions;
 
@@ -35,8 +36,9 @@ public final class MkdirOptions {
      */
     public Builder(TachyonConf conf) {
       mRecursive = false;
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
+      WriteType defaultWriteType =
+          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      mUnderStorageType = defaultWriteType.getUnderStorageType();
     }
 
     /**
