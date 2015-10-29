@@ -187,7 +187,7 @@ public final class BlockDataManager {
       IOException, WorkerOutOfSpaceException {
     mBlockStore.commitBlock(sessionId, blockId);
 
-    // TODO)(calvin): Reconsider how to do this without heavy locking.
+    // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
     try {
