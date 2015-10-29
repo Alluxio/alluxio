@@ -39,8 +39,10 @@ public final class ReinitializeFileEntry extends JournalEntry {
    * @param ttl the TTL
    */
   @JsonCreator
-  public ReinitializeFileEntry(@JsonProperty("path") String path,
-      @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("ttl") long ttl) {
+  public ReinitializeFileEntry(
+      @JsonProperty("path") String path,
+      @JsonProperty("blockSizeBytes") long blockSizeBytes,
+      @JsonProperty("ttl") long ttl) {
     mPath = Preconditions.checkNotNull(path);
     mBlockSizeBytes = blockSizeBytes;
     mTTL = ttl;
