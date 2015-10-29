@@ -47,6 +47,11 @@
     <property name="fileExtensions" value=".java"/>
   </module>
   <module name="RegexpSingleline">
+    <property name="format" value="TODO[^\(]"/>
+    <property name="message" value="TODO must be annotated with the author in the format TODO(author)"/>
+    <property name="fileExtensions" value=".java"/>
+  </module>
+  <module name="RegexpSingleline">
     <property name="format" value="&gt;&gt;&gt;&gt;&gt;&gt;&gt;"/>
     <property name="message" value="Merge conflicts unresolved."/>
   </module>
