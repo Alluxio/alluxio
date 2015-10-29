@@ -80,15 +80,13 @@ public class HdfsFileInputStreamIntegrationTest {
   public final void before() throws IOException, TachyonException {
     TachyonFile file1 = sTachyonFileSystem.open(new TachyonURI("/testFile1"));
     FileInfo fileInfo1 = sTachyonFileSystem.getInfo(file1);
-    mInMemInputStream = new HdfsFileInputStream(sTachyonFileSystem, fileInfo1.getFileId(),
-        new Path(fileInfo1.getUfsPath()), new Configuration(), BUFFER_SIZE, null,
-        sLocalTachyonCluster.getMasterTachyonConf());
+    mInMemInputStream = new HdfsFileInputStream(fileInfo1.getFileId(),
+        new Path(fileInfo1.getUfsPath()), new Configuration(), BUFFER_SIZE, null);
 
     TachyonFile file2 = sTachyonFileSystem.open(new TachyonURI("/testFile2"));
     FileInfo fileInfo2 = sTachyonFileSystem.getInfo(file2);
-    mUfsInputStream = new HdfsFileInputStream(sTachyonFileSystem, fileInfo2.getFileId(),
-        new Path(fileInfo2.getUfsPath()), new Configuration(), BUFFER_SIZE, null,
-        sLocalTachyonCluster.getMasterTachyonConf());
+    mUfsInputStream = new HdfsFileInputStream(fileInfo2.getFileId(),
+        new Path(fileInfo2.getUfsPath()), new Configuration(), BUFFER_SIZE, null);
   }
 
   /**

@@ -227,8 +227,10 @@ abstract class AbstractTFS extends FileSystem {
       mTFS.delete(file, options);
       return true;
     } catch (InvalidPathException e) {
+      LOG.info("delete failed: " + e.getMessage());
       return false;
     } catch (FileDoesNotExistException e) {
+      LOG.info("delete failed: " + e.getMessage());
       return false;
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -462,8 +464,8 @@ abstract class AbstractTFS extends FileSystem {
     long fileId = file.getFileId();
 
     return new FSDataInputStream(
-        new HdfsFileInputStream(mTFS, fileId, Utils.getHDFSPath(path, mUnderFSAddress), getConf(),
-            bufferSize, mStatistics, mTachyonConf));
+        new HdfsFileInputStream(fileId, Utils.getHDFSPath(path, mUnderFSAddress), getConf(),
+            bufferSize, mStatistics));
   }
 
   @Override
