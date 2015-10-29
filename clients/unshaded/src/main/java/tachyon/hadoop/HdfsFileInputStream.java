@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
@@ -68,24 +69,22 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private final TachyonConf mTachyonConf;
 
   /**
-   * @param tfs the TachyonFS
    * @param fileId the file id
    * @param hdfsPath the HDFS path
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size
    * @param stats filesystem statistics
-   * @param tachyonConf Tachyon configuration
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(TachyonFileSystem tfs, long fileId, Path hdfsPath, Configuration conf,
-      int bufferSize, FileSystem.Statistics stats, TachyonConf tachyonConf) throws IOException {
-    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
+  public HdfsFileInputStream(long fileId, Path hdfsPath, Configuration conf, int bufferSize,
+      FileSystem.Statistics stats) throws IOException {
+    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", fileId, hdfsPath, conf,
         bufferSize, stats);
-    mTachyonConf = tachyonConf;
+    mTachyonConf = ClientContext.getConf();
     long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
-    mTFS = tfs;
+    mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     mFileId = fileId;
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
@@ -93,8 +92,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mStatistics = stats;
     try {
       mFileInfo = mTFS.getInfo(new TachyonFile(mFileId));
-      mTachyonFileInputStream =
-          mTFS.getInStream(new TachyonFile(mFileId), new InStreamOptions.Builder(tachyonConf)
+      mTachyonFileInputStream = mTFS.getInStream(new TachyonFile(mFileId),
+          new InStreamOptions.Builder(ClientContext.getConf())
               .setTachyonStorageType(TachyonStorageType.STORE).build());
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
