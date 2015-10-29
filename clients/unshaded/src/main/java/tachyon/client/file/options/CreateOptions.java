@@ -143,6 +143,20 @@ public final class CreateOptions {
   }
 
   /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("CreateOptions(");
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Recursive: ").append(mRecursive);
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(")");
+    return sb.toString();
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public CreateTOptions toThrift() {

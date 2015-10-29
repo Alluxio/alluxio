@@ -39,7 +39,7 @@ interface BlockStore {
    * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
    * @return the lock ID if the lock is acquired successfully
-   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already
    */
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
@@ -56,7 +56,7 @@ interface BlockStore {
    *
    * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
-   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already
    */
   void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
@@ -316,7 +316,7 @@ interface BlockStore {
   /**
    * Update the pinned inodes.
    *
-   * @param inodes a set of inodes that are currently pinned.
+   * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
 }

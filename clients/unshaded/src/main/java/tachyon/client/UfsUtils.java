@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -65,9 +66,9 @@ public final class UfsUtils {
    *
    * @param tfsAddrRootPath the mTachyonFS address and path to load the src files, like
    *        "tachyon://host:port/dest".
-   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src".
-   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
-   * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used.
+   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src"
+   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS
+   * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
@@ -85,7 +86,7 @@ public final class UfsUtils {
    *
    * @param tfs the mTachyonFS handler created out of address like "tachyon://host:port"
    * @param tachyonPath the destination point in mTachyonFS to load the under FS path onto
-   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir".
+   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir"
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
    *        mTachyonFS.
    * @param tachyonConf instance of TachyonConf
@@ -230,7 +231,7 @@ public final class UfsUtils {
   }
 
   public static void printUsage() {
-    String cmd = "java -cp " + Constants.TACHYON_JAR + " tachyon.client.UfsUtils ";
+    String cmd = "java -cp " + Version.TACHYON_JAR + " tachyon.client.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");

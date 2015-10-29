@@ -74,14 +74,14 @@ import tachyon.Constants;
  * First, define the fields to be indexed:
  * <pre>
  *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
- *    @Override
+ *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.id();
  *    }
  *  }
  *
  *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
- *    @Override
+ *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.name();
  *    }

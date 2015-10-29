@@ -96,7 +96,7 @@ public class RawTable {
    * Update the meta data of the raw table
    *
    * @param metadata the new meta data
-   * @throws IOException if an event that prevents the metadata from being updated is encountered.
+   * @throws IOException if an event that prevents the metadata from being updated is encountered
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {
     mTachyonFS.updateRawTableMetadata(mRawTableInfo.getId(), metadata);

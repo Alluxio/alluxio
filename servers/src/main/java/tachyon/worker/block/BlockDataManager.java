@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.Sessions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
@@ -31,10 +29,7 @@ import tachyon.exception.FailedToCheckpointException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
@@ -50,7 +45,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
  * thread-safe.
  */
-public final class BlockDataManager implements Testable<BlockDataManager> {
+public final class BlockDataManager {
   /** Block store delta reporter for master heartbeat */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
@@ -66,22 +61,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
   private Sessions mSessions = new Sessions();
-
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    public void setHeartbeatReporter(BlockHeartbeatReporter reporter) {
-      mHeartbeatReporter = reporter;
-    }
-
-    public void setMetricsReporter(BlockMetricsReporter reporter) {
-      mMetricsReporter = reporter;
-    }
-
-    public void setSessions(Sessions sessions) {
-      mSessions = Preconditions.checkNotNull(sessions);
-    }
-  }
 
   /**
    * Creates a BlockDataManager based on the configuration values.
@@ -107,11 +86,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-  }
-
-  @Override
-  public void grantAccess(Tester<BlockDataManager> tester) {
-    tester.receiveAccess(new PrivateAccess());
   }
 
   /**
@@ -146,18 +120,18 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * Completes the process of persisting a file by renaming it to its final destination.
    *
    * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isPersist()} ()} is true. The current implementation of
+   * only if {@link UnderStorageType#isSyncPersist()} ()} is true. The current implementation of
    * persistence is that through {@link tachyon.client.UnderStorageType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
    *
    * @param fileId a file id
    * @param nonce a nonce used for temporary file creation
    * @param ufsPath the UFS path of the file
-   * @throws TachyonTException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
+   * @throws TachyonException if the file does not exist or cannot be renamed
    */
   public void persistFile(long fileId, long nonce, String ufsPath)
-      throws TachyonException, IOException {
+      throws IOException, TachyonException {
     String tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
     UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
     try {
@@ -359,7 +333,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @param sessionId The id of the client
    * @param blockId The id of the block to be locked
    * @return the lockId that uniquely identifies the lock obtained
-   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId cannot be found, for example, evicted already
    */
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     return mBlockStore.lockBlock(sessionId, blockId);

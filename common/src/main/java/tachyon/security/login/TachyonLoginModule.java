@@ -75,7 +75,7 @@ public final class TachyonLoginModule implements LoginModule {
    * The implementation searches the Kerberos or OS user in the Subject. If existed,
    * convert it to a Tachyon user and add into the Subject.
    * @return true in all cases
-   * @throws LoginException if the user extending a specific Principal is not found.
+   * @throws LoginException if the user extending a specific Principal is not found
    */
   @Override
   public boolean commit() throws LoginException {
@@ -86,7 +86,7 @@ public final class TachyonLoginModule implements LoginModule {
 
     Principal user = null;
 
-    // TODO: get a Kerberos user if we are using Kerberos.
+    // TODO(dong): get a Kerberos user if we are using Kerberos.
     // user = getKerberosUser();
 
     // get a OS user
@@ -133,7 +133,11 @@ public final class TachyonLoginModule implements LoginModule {
 
     Class<? extends Principal> clazz = null;
     try {
-      clazz = (Class<? extends Principal>) loader.loadClass(className);
+      // Declare a temp variable so that we can suppress warnings locally
+      @SuppressWarnings("unchecked")
+      Class<? extends Principal> tmpClazz =
+          (Class<? extends Principal>) loader.loadClass(className);
+      clazz = tmpClazz;
     } catch (ClassNotFoundException e) {
       throw new LoginException("Unable to find JAAS principal class:" + e.getMessage());
     }
