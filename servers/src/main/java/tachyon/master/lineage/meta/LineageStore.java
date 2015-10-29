@@ -120,7 +120,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param lineageId the lineage id
    */
   public synchronized void deleteLineage(long lineageId) {
-    Preconditions.checkState(mIdIndex.containsKey(lineageId), PreconditionMessage.LINEAGE_NOT_EXIST,
+    Preconditions.checkState(mIdIndex.containsKey(lineageId), PreconditionMessage.LINEAGE_DOES_NOT_EXIST,
         lineageId);
 
     deleteLineage(lineageId, Sets.<Long>newHashSet());
@@ -176,7 +176,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized List<Lineage> getChildren(Lineage lineage) {
     Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
-        PreconditionMessage.LINEAGE_NOT_EXIST, lineage.getId());
+        PreconditionMessage.LINEAGE_DOES_NOT_EXIST, lineage.getId());
 
     return mLineageDAG.getChildren(lineage);
   }
