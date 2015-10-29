@@ -15,12 +15,13 @@
 
 package tachyon.heartbeat;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -31,32 +32,61 @@ public final class HeartbeatThreadTest {
 
   private static final String THREAD_NAME = "heartbeat-thread-test-thread-name";
 
-  private static final int NUMBER_OF_THREADS = 1;
+  private static final int NUMBER_OF_THREADS = 10;
 
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
-  @Before
-  public void setup() {
-    HeartbeatContext.setTimerClass(THREAD_NAME, HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
-
   @Test
-  public void createHeartbeatThreadTest() throws Exception {
-    DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-    HeartbeatThread ht = new HeartbeatThread(THREAD_NAME, executor, 1);
+  public void concurrentHeartbeatThreadTest() throws Exception {
+    List<Thread> mThreads = new LinkedList<Thread>();
 
-    // run the HeartbeatThread
-    mExecutorService.submit(ht);
-
-    // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
-    Assert.assertTrue(HeartbeatScheduler.await(THREAD_NAME, 5, TimeUnit.SECONDS));
-
-    for (int i = 0; i < 100; i ++) {
-      HeartbeatScheduler.schedule(THREAD_NAME);
-      Assert.assertTrue(HeartbeatScheduler.await(THREAD_NAME, 1, TimeUnit.SECONDS));
+    // Start the threads.
+    for (int i = 0; i < NUMBER_OF_THREADS; i ++) {
+      Thread thread = new DummyHeartbeatTestThread(i);
+      thread.start();
+      mThreads.add(thread);
     }
 
-    Assert.assertEquals("The executor counter is wrong", 100, executor.getCounter());
+    // Wait for the threads to finish.
+    for (Thread thread : mThreads) {
+      thread.join();
+    }
+  }
+
+  private class DummyHeartbeatTestThread extends Thread  {
+    private String mThreadName;
+
+    public DummyHeartbeatTestThread(int id) {
+      mThreadName = THREAD_NAME + "-" + id;
+    }
+
+    @Override
+    public void run()  {
+      try {
+        HeartbeatContext.setTimerClass(mThreadName, HeartbeatContext.SCHEDULED_TIMER_CLASS);
+
+        DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
+
+        // Run the HeartbeatThread.
+        mExecutorService.submit(ht);
+
+        // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
+        Assert.assertTrue("Initial wait failed.",
+            HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
+
+        final int numIterations = 100000;
+        for (int i = 0; i < numIterations; i++) {
+          HeartbeatScheduler.schedule(mThreadName);
+          Assert.assertTrue("Iteration " + i + " failed.",
+              HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
+        }
+
+        Assert.assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());
+      } catch (Exception e) {
+        throw new RuntimeException(e.getMessage());
+      }
+    }
   }
 
   private class DummyHeartbeatExecutor implements HeartbeatExecutor {
