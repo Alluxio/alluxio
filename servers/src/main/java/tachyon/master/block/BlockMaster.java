@@ -58,8 +58,6 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -75,8 +73,7 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase
-    implements ContainerIdGenerable, Testable<BlockMaster> {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block metadata management. */
@@ -273,7 +270,7 @@ public final class BlockMaster extends MasterBase
   /**
    * Removes blocks from workers. Called by internal masters.
    *
-   * @param blockIds a list of block ids to remove from Tachyon space.
+   * @param blockIds a list of block ids to remove from Tachyon space
    */
   public void removeBlocks(List<Long> blockIds) {
     synchronized (mBlocks) {
@@ -589,8 +586,8 @@ public final class BlockMaster extends MasterBase
    *
    * mBlocks should already be locked before calling this method.
    *
-   * @param workerInfo The worker metadata object
-   * @param addedBlockIds Mapping from StorageDirId to a list of block ids added to the directory.
+   * @param workerInfo the worker metadata object
+   * @param addedBlockIds mapping from StorageDirId to a list of block ids added to the directory
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<Long, List<Long>> addedBlockIds) {
@@ -681,48 +678,5 @@ public final class BlockMaster extends MasterBase
       }
     }
 
-  }
-
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    /**
-     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
-     */
-    public void addLostWorker(MasterWorkerInfo worker) {
-      synchronized (mWorkers) {
-        mLostWorkers.add(worker);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
-     *
-     * @param workerId the worker ID to look up
-     * @return the {@link MasterWorkerInfo} for the given workerId
-     */
-    public MasterWorkerInfo getWorkerById(long workerId) {
-      synchronized (mWorkers) {
-        return mWorkers.getFirstByField(mIdIndex, workerId);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterBlockInfo} for the given block ID.
-     *
-     * @param blockId the block ID
-     * @return the {@link MasterBlockInfo}
-     */
-    public MasterBlockInfo getMasterBlockInfo(long blockId) {
-      synchronized (mBlocks) {
-        return mBlocks.get(blockId);
-      }
-    }
-  }
-
-  /** Grants access to private members to testers of this class. */
-  @Override
-  public void grantAccess(Tester<BlockMaster> tester) {
-    tester.receiveAccess(new PrivateAccess());
   }
 }

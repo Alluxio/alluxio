@@ -87,7 +87,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Deletes the file denoted by the file id.
    *
    * @param fid file id
-   * @param recursive if delete the path recursively.
+   * @param recursive if delete the path recursively
    * @return true if deletion succeed (including the case the file does not exist in the first
    *         place), false otherwise
    * @throws IOException if the operation fails
@@ -100,7 +100,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Deletes the file denoted by the path.
    *
    * @param path the file path
-   * @param recursive if delete the path recursively.
+   * @param recursive if delete the path recursively
    * @return true if the deletion succeed (including the case that the path does not exist in the
    *         first place), false otherwise
    * @throws IOException if the operation fails
@@ -113,7 +113,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Create a directory if it does not exist. The method also creates necessary non-existing parent
    * folders.
    *
-   * @param path Directory path.
+   * @param path directory path
    * @return true if the folder is created successfully or already existing. false otherwise
    * @throws IOException if the operation fails
    */
@@ -125,7 +125,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Renames the file.
    *
    * @param fileId the file id
-   * @param dstPath the new path of the file in the file system.
+   * @param dstPath the new path of the file in the file system
    * @return true if succeed, false otherwise
    * @throws IOException if the operation fails
    */
@@ -136,8 +136,8 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
    * Renames the srcPath to the dstPath.
    *
-   * @param srcPath The path of the source file / folder.
-   * @param dstPath The path of the destination file / folder.
+   * @param srcPath the path of the source file / folder
+   * @param dstPath the path of the destination file / folder
    * @return true if succeed, false otherwise
    * @throws IOException if the operation fails
    */

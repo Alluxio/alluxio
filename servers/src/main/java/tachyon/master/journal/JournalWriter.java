@@ -229,7 +229,7 @@ public final class JournalWriter {
     /**
      * Writes an entry to the checkpoint file.
      *
-     * @param entry an entry to write to the journal checkpoint file.
+     * @param entry an entry to write to the journal checkpoint file
      * @throws IOException
      */
     @Override

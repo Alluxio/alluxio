@@ -158,7 +158,7 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
@@ -181,7 +181,7 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
@@ -202,7 +202,7 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
@@ -219,7 +219,7 @@ public final class FileOutStreamIntegrationTest {
   /**
    * Test writing to a file and specify the location to be localhost.
    *
-   * @throws IOException if file can not be opened successfully.
+   * @throws IOException if file can not be opened successfully
    */
   @Test
   public void writeSpecifyLocalTest() throws IOException, TachyonException {

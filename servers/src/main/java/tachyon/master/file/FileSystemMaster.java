@@ -394,7 +394,7 @@ public final class FileSystemMaster extends MasterBase {
    * children of the directory. Called via RPC, as well as internal masters.
    *
    * @param fileId
-   * @return
+   * @return the list of {@link FileInfo}s
    * @throws FileDoesNotExistException
    */
   public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
@@ -416,7 +416,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Marks a file as completed. After a file is complete, it cannot be written to. Called via RPC.
    *
-   * @param fileId the file id to complete.
+   * @param fileId the file id to complete
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
@@ -594,7 +594,7 @@ public final class FileSystemMaster extends MasterBase {
    * Deletes a given file id. Called via RPC.
    *
    * @param fileId the file id to delete
-   * @param recursive if true, will delete all its children.
+   * @param recursive if true, will delete all its children
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
@@ -629,7 +629,7 @@ public final class FileSystemMaster extends MasterBase {
    *        directory content should be deleted recursively
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return
+   * @return true if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    */
@@ -898,8 +898,8 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path the path of the directory
    * @param options method options
-   * @return a {@link InodeTree.CreatePathResult} representing the modified inodes and created
-   *         inodes during path creation
+   * @return an {@link tachyon.master.file.meta.InodeTree.CreatePathResult} representing the
+   *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
@@ -950,8 +950,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Renames a file to a destination. Called via RPC.
    *
-   * @param fileId the source file to rename.
-   * @param dstPath the destination path to rename the file to.
+   * @param fileId the source file to rename
+   * @param dstPath the destination path to rename the file to
    * @return true if the rename was successful
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
@@ -1030,7 +1030,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param dstPath the path to the rename destionation
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return
+   * @return true if the renaming is successful
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
@@ -1195,7 +1195,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId The id of the file to look up
    * @return the path of the file
-   * @throws FileDoesNotExistException raise if the file does not exist.
+   * @throws FileDoesNotExistException raise if the file does not exist
    */
   public TachyonURI getPath(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {

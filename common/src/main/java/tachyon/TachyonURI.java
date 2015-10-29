@@ -87,7 +87,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Construct a TachyonURI from components.
    *
-   * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
+   * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
@@ -128,7 +128,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Create the internal URI. Called by all constructors.
    *
-   * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
+   * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @throws IllegalArgumentException when an illegal argument is encountered
@@ -329,7 +329,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * Check if the path is a windows path.
    *
    * @param path the path to check
-   * @param slashed if the path starts with a slash.
+   * @param slashed if the path starts with a slash
    * @return true if it is a windows path, false otherwise
    */
   private boolean hasWindowsDrive(String path, boolean slashed) {

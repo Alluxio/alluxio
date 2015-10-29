@@ -49,8 +49,6 @@ public class TachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sHost = null;
-  private static int sPort = -1;
   private static TachyonFileSystem sTfs = null;
   private static InStreamOptions sReadCache;
   private static OutStreamOptions sWriteBoth;
@@ -75,8 +73,7 @@ public class TachyonFileSystemIntegrationTest {
         USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
-    sHost = sLocalTachyonCluster.getMasterHostname();
-    sPort = sLocalTachyonCluster.getMasterPort();
+
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE)

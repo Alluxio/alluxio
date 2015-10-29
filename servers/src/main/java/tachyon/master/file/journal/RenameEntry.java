@@ -33,9 +33,9 @@ public class RenameEntry extends JournalEntry {
   /**
    * Creates a new instance of <code>RenameEntry</code>.
    *
-   * @param fileId the file id.
-   * @param dstPath the destination path.
-   * @param opTimeMs the operation timestamp (in millisecs).
+   * @param fileId the file id
+   * @param dstPath the destination path
+   * @param opTimeMs the operation timestamp (in millisecs)
    */
   @JsonCreator
   public RenameEntry(@JsonProperty("fileId") long fileId,

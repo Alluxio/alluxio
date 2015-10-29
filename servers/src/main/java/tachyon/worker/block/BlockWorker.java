@@ -279,7 +279,7 @@ public final class BlockWorker {
   /**
    * Stops the block worker. This method should only be called to terminate the worker.
    *
-   * @throws IOException if the data server fails to close.
+   * @throws IOException if the data server fails to close
    */
   public void stop() throws IOException {
     mDataServer.close();

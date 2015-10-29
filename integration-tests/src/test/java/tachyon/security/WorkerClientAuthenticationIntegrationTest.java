@@ -37,6 +37,7 @@ import tachyon.worker.WorkerClient;
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
  * KERBEROS.
  */
+// TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public class WorkerClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster;
   private ExecutorService mExecutorService;

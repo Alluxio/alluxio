@@ -56,7 +56,7 @@ public class TachyonMaster {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp " + Constants.TACHYON_JAR + " tachyon.Master");
+      LOG.info("java -cp " + Version.TACHYON_JAR + " tachyon.Master");
       System.exit(-1);
     }
 

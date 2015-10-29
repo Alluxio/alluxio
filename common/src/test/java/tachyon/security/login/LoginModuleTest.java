@@ -39,6 +39,7 @@ public class LoginModuleTest {
   @Test
   public void simpleLoginTest() throws Exception {
     String clazzName = TachyonJaasProperties.OS_PRINCIPAL_CLASS_NAME;
+    @SuppressWarnings("unchecked")
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();
@@ -57,5 +58,5 @@ public class LoginModuleTest {
     Assert.assertTrue(subject.getPrincipals(User.class).isEmpty());
   }
 
-  // TODO: Kerberos login test
+  // TODO(dong): Kerberos login test
 }

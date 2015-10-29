@@ -29,7 +29,7 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
   /**
    * CheckpointLatestScheduler does not use the lineage store view.
    *
-   * @param storeView view of a lineage store.
+   * @param storeView view of a lineage store
    */
   public CheckpointLatestScheduler(LineageStoreView storeView) {}
 

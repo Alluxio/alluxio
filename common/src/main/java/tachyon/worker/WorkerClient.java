@@ -78,7 +78,7 @@ public final class WorkerClient implements Closeable {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
-   * @param clientMetrics metrics of the lcient.
+   * @param clientMetrics metrics of the lcient
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
