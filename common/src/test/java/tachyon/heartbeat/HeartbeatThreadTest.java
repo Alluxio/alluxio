@@ -36,6 +36,21 @@ public final class HeartbeatThreadTest {
 
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+  /**
+   * This is a basic test of the heartbeat scheduler logic. It steps through the execution of a
+   * single dummy executor.
+   */
+  @Test
+  public void serialHeartbeatThreadTest() throws Exception {
+    Thread thread = new DummyHeartbeatTestThread();
+    thread.start();
+    thread.join();
+  }
+
+  /**
+   * This is a stress test of the heartbeat scheduler logic. It concurrently steps through the
+   * execution of multiple dummy executors.
+   */
   @Test
   public void concurrentHeartbeatThreadTest() throws Exception {
     List<Thread> mThreads = new LinkedList<Thread>();
@@ -55,6 +70,10 @@ public final class HeartbeatThreadTest {
 
   private class DummyHeartbeatTestThread extends Thread  {
     private String mThreadName;
+
+    public DummyHeartbeatTestThread() {
+      mThreadName = THREAD_NAME;
+    }
 
     public DummyHeartbeatTestThread(int id) {
       mThreadName = THREAD_NAME + "-" + id;
