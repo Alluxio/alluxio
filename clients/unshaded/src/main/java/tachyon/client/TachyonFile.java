@@ -263,13 +263,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (isCompleted()) {
       throw new IOException("Overriding after completion not supported.");
     }
+    WriteType writeType =
+        mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
 
-    TachyonStorageType tachyonStorageType =
-        mTachyonConf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT,
-            TachyonStorageType.class);
-    UnderStorageType underStorageType =
-        mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
-            UnderStorageType.class);
+    TachyonStorageType tachyonStorageType = writeType.getTachyonStorageType();
+    UnderStorageType underStorageType = writeType.getUnderStorageType();
 
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);

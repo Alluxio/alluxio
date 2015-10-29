@@ -20,6 +20,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
@@ -39,10 +40,10 @@ public final class OutStreamOptions {
     public Builder(TachyonConf conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mHostname = null;
-      mTachyonStorageType =
-          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
+      WriteType defaultWriteType =
+          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      mTachyonStorageType = defaultWriteType.getTachyonStorageType();
+      mUnderStorageType = defaultWriteType.getUnderStorageType();
       mTTL = Constants.NO_TTL;
     }
 
