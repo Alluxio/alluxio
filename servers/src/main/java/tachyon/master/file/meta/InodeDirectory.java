@@ -66,8 +66,8 @@ public final class InodeDirectory extends Inode {
       return o.getName();
     }
   };
-  @SuppressWarnings("unchecked")
 
+  @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
   private InodeDirectory(InodeDirectory.Builder builder) {
