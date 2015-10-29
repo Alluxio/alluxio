@@ -16,7 +16,10 @@
 package tachyon.client;
 
 /**
- * Different write types for a TachyonFile.
+ * Convenience modes for commonly used write types for a TachyonFile.
+ *
+ * For finer grained control over data storage, advanced users may specify
+ * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
  */
 public enum WriteType {
   /**
