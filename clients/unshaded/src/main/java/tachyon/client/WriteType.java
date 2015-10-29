@@ -58,6 +58,26 @@ public enum WriteType {
   }
 
   /**
+   * @return the {@link TachyonStorageType} which is associated with this mode
+   */
+  public TachyonStorageType getTachyonStorageType() {
+    if (isCache()) {
+      return TachyonStorageType.PROMOTE;
+    }
+    return TachyonStorageType.NO_STORE;
+  }
+
+  /**
+   * @return the {@link tachyon.client.UnderStorageType} which is associated with this mode
+   */
+  public UnderStorageType getUnderStorageType() {
+    if (isThrough()) {
+      return UnderStorageType.SYNC_PERSIST;
+    }
+    return UnderStorageType.NO_PERSIST;
+  }
+
+  /**
    * @return the value of the write type
    */
   public int getValue() {
