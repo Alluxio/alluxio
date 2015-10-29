@@ -112,9 +112,11 @@ public class FileInStreamTest {
     ClientContext.reset();
   }
 
+  /**
+   * Tests that reading through the file one byte at a time will yield the correct data.
+   */
   @Test
   public void singleByteReadTest() throws Exception {
-    // Verify byte by byte read is equal to increasing byte array
     for (int i = 0; i < FILE_LENGTH; i ++) {
       Assert.assertEquals(i & 0xff, mTestStream.read());
     }
@@ -176,6 +178,9 @@ public class FileInStreamTest {
     verifyCacheStreams(FILE_LENGTH);
   }
 
+  /**
+   * Tests that FileInStream.remaining() is correctly updated during reads, skips, and seeks.
+   */
   @Test
   public void testRemaining() throws IOException {
     Assert.assertEquals(FILE_LENGTH, mTestStream.remaining());
@@ -259,6 +264,10 @@ public class FileInStreamTest {
     Mockito.verify(mBlockStore, Mockito.times(1)).promote(1);
   }
 
+  /**
+   * Tests that {@link IOException}s thrown by the {@link TachyonBlockStore} are properly
+   * propagated.
+   */
   @Test
   public void failGetInStreamTest() throws IOException {
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
@@ -290,6 +299,9 @@ public class FileInStreamTest {
     Mockito.verify(stream, Mockito.times(1)).skip(50);
   }
 
+  /**
+   * Tests that seeking into the middle of a block will invalidate caching for that block.
+   */
   @Test
   public void dontCacheMidBlockSeekTest() throws IOException {
     mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
@@ -298,6 +310,9 @@ public class FileInStreamTest {
         .assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
   }
 
+  /**
+   * Tests that reading out of bounds properly returns -1.
+   */
   @Test
   public void readOutOfBoundsTest() throws IOException {
     mTestStream.read(new byte[(int) FILE_LENGTH]);
@@ -305,6 +320,9 @@ public class FileInStreamTest {
     Assert.assertEquals(-1, mTestStream.read(new byte[10]));
   }
 
+  /**
+   * Tests that specifying an invalid offset/length for a buffer read throws the right exception.
+   */
   @Test
   public void readBadBufferTest() throws IOException {
     mThrown.expect(IllegalArgumentException.class);
@@ -312,6 +330,9 @@ public class FileInStreamTest {
     mTestStream.read(new byte[10], 5, 6);
   }
 
+  /**
+   * Tests that seeking to a negative position will throw the right exception.
+   */
   @Test
   public void seekNegativeTest() throws IOException {
     mThrown.expect(IllegalArgumentException.class);
@@ -319,6 +340,9 @@ public class FileInStreamTest {
     mTestStream.seek(-1);
   }
 
+  /**
+   * Tests that seeking past the end of the stream will throw the right exception.
+   */
   @Test
   public void seekPastEndTest() throws IOException {
     mThrown.expect(IllegalArgumentException.class);
@@ -327,6 +351,9 @@ public class FileInStreamTest {
     mTestStream.seek(FILE_LENGTH + 1);
   }
 
+  /**
+   * Tests that skipping a negative amount correctly reports that 0 bytes were skipped.
+   */
   @Test
   public void skipNegativeTest() throws IOException {
     Assert.assertEquals(0, mTestStream.skip(-10));
