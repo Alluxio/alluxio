@@ -27,12 +27,12 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.test.Tester;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerIdRegistry;
@@ -46,14 +46,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
     UnderFileSystem.class})
-public class BlockDataManagerTest implements Tester<BlockDataManager> {
+public class BlockDataManagerTest {
   private TestHarness mHarness;
-  private BlockDataManager.PrivateAccess mPrivateAccess;
-
-  @Override
-  public void receiveAccess(Object access) {
-    mPrivateAccess = (BlockDataManager.PrivateAccess) access;
-  }
 
   private class TestHarness {
     WorkerBlockMasterClient mBlockMasterClient;
@@ -86,10 +80,9 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
           new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient,
               mBlockStore);
 
-      mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
-      mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
-      mPrivateAccess.setMetricsReporter(mMetricsReporter);
-      mPrivateAccess.setSessions(mSessions);
+      Whitebox.setInternalState(mManager, "mHeartbeatReporter", mHeartbeatReporter);
+      Whitebox.setInternalState(mManager, "mMetricsReporter", mMetricsReporter);
+      Whitebox.setInternalState(mManager, "mSessions", mSessions);
     }
   }
 
