@@ -57,7 +57,6 @@ public final class Lineage implements JournalEntryRepresentable {
    *
    * @param id the lineage id
    * @param inputFiles the input files
-   * @param inputFiles the input files
    * @param outputFiles the output files
    * @param job the job
    * @param creationTimeMs the creation time
