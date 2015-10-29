@@ -81,7 +81,7 @@ public class ConfUtils {
     // Load any Tachyon configuration parameters existing in the Hadoop configuration.
     for (Map.Entry<String, String> entry : source) {
       String propertyName = entry.getKey();
-      // TODO: a better way to enumerate every Tachyon configuration parameter
+      // TODO(gene): use a better way to enumerate every Tachyon configuration parameter
       if (propertyName.startsWith("tachyon.")
           || propertyName.equals(Constants.S3_ACCESS_KEY)
           || propertyName.equals(Constants.S3_SECRET_KEY)) {

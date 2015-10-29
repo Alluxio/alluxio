@@ -33,6 +33,7 @@
             <th>Size</th>
             <th>Block Size</th>
             <th>In-Memory</th>
+            <th>Persisted</th>
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
@@ -112,6 +113,7 @@
                       <%= fileInfo.getInMemoryPercentage() %>%
                     <% } %>
                   </th>
+                  <th><%= (fileInfo.getPersisted() ? "YES" : "NO") %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
