@@ -17,32 +17,36 @@ package tachyon.client;
 
 /**
  * Different write types for a TachyonFile.
- *
- * As of 0.8, replaced by {@link TachyonStorageType} and {@link UnderStorageType}
  */
-@Deprecated
 public enum WriteType {
   /**
    * Write the file and must cache it.
    */
+  @Deprecated
   MUST_CACHE(1),
   /**
    * Write the file and try to cache it.
    */
+  @Deprecated
   TRY_CACHE(2),
   /**
-   * Write the file synchronously to the under fs, and also try to cache it.
+   * Write the file synchronously to the under fs, and also try to write to Tachyon storage.
    */
   CACHE_THROUGH(3),
   /**
-   * Write the file synchronously to the under fs, no cache.
+   * Write the file synchronously to the under fs, skipping Tachyon storage.
    */
   THROUGH(4),
   /**
    * [Experimental] Write the file asynchronously to the under fs (either must cache or must
    * through).
    */
-  ASYNC_THROUGH(5);
+  @Deprecated
+  ASYNC_THROUGH(5),
+  /**
+   * Write the file only to Tachyon storage.
+   */
+  CACHE(6);
 
   private final int mValue;
 
@@ -69,7 +73,8 @@ public enum WriteType {
    */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
-        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
+        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue)
+        || (mValue == CACHE.mValue);
   }
 
   /**
