@@ -252,6 +252,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Marks a file as completed.
    *
    * @param fileId the file id
+   * @param options the method options
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */

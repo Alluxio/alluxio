@@ -15,9 +15,11 @@
 
 package tachyon.client.file.options;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+@PublicApi
 public class SetStateOptions {
   public static class Builder {
     private Boolean mPinned;

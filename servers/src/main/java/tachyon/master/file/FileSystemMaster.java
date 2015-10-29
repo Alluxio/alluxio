@@ -376,14 +376,15 @@ public final class FileSystemMaster extends MasterBase {
 
       // If the file is both persisted and stored in memory, the memory footprint and the UFS file
       // length should match.
-      if (fileInode.isPersisted() && inMemoryLength != 0 && options.getLength() != inMemoryLength) {
+      if (fileInode.isPersisted() && inMemoryLength != 0
+          && options.getUfsLength() != inMemoryLength) {
         throw new SuspectedFileSizeException("Inconsistent file length: Tachyon " + inMemoryLength
-            + " UFS " + options.getLength());
+            + " UFS " + options.getUfsLength());
       }
 
       // If the file is persisted, its length is determined by UFS. Otherwise, its length is
       // determined by its memory footprint.
-      long length = fileInode.isPersisted() ? options.getLength() : inMemoryLength;
+      long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
 
       completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
       writeJournalEntry(
@@ -1237,14 +1238,14 @@ public final class FileSystemMaster extends MasterBase {
       }
       if (ufs.isFile(ufsPath.getPath())) {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
-        long fileSizeByte = ufs.getFileSize(ufsPath.toString());
+        long ufsLength = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
         CreateOptions createOptions =
             new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
                 .setRecursive(recursive).setPersisted(true).build();
         long fileId = create(path, createOptions);
         CompleteFileOptions completeOptions =
-            new CompleteFileOptions.Builder(MasterContext.getConf()).setLength(fileSizeByte)
+            new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
                 .build();
         completeFile(fileId, completeOptions);
         return fileId;

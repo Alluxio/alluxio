@@ -26,16 +26,16 @@ public class CompleteFileOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
-    long length = random.nextLong();
+    long ufsLength = random.nextLong();
     long operationTimeMs = random.nextLong();
 
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(new TachyonConf())
-            .setLength(length)
+            .setUfsLength(ufsLength)
             .setOperationTimeMs(operationTimeMs)
             .build();
 
-    Assert.assertEquals(length, options.getLength());
+    Assert.assertEquals(ufsLength, options.getUfsLength());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
   }
 
@@ -43,6 +43,6 @@ public class CompleteFileOptionsTest {
   public void defaultsTest() {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
-    Assert.assertEquals(0, options.getLength());
+    Assert.assertEquals(0, options.getUfsLength());
   }
 }

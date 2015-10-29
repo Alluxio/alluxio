@@ -15,15 +15,13 @@
 
 package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.CompleteFileTOptions;
 
-@PublicApi
 public final class CompleteFileOptions {
   public static class Builder {
-    private long mLength;
+    private long mUfsLength;
 
     /**
      * Creates a new builder for {@link CompleteFileOptions}.
@@ -31,15 +29,15 @@ public final class CompleteFileOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mLength = 0;
+      mUfsLength = 0;
     }
 
     /**
-     * @param length the file length to us
+     * @param ufsLength the UFS file length to us
      * @return the builder
      */
-    public Builder setLength(long length) {
-      mLength = length;
+    public Builder setUfsLength(long ufsLength) {
+      mUfsLength = ufsLength;
       return this;
     }
 
@@ -60,17 +58,17 @@ public final class CompleteFileOptions {
     return new Builder(ClientContext.getConf()).build();
   }
 
-  private final long mLength;
+  private final long mUfsLength;
 
   private CompleteFileOptions(CompleteFileOptions.Builder builder) {
-    mLength = builder.mLength;
+    mUfsLength = builder.mUfsLength;
   }
 
   /**
-   * @return the file length
+   * @return the UFS file length
    */
-  public long getLength() {
-    return mLength;
+  public long getUfsLength() {
+    return mUfsLength;
   }
 
   /**
@@ -78,7 +76,7 @@ public final class CompleteFileOptions {
    */
   public CompleteFileTOptions toThrift() {
     CompleteFileTOptions options = new CompleteFileTOptions();
-    options.setLength(mLength);
+    options.setUfsLength(mUfsLength);
     return options;
   }
 }

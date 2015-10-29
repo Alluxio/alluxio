@@ -26,20 +26,20 @@ public class CompleteFileOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
-    long length = random.nextLong();
+    long ufsLength = random.nextLong();
 
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(new TachyonConf())
-            .setLength(length)
+            .setUfsLength(ufsLength)
             .build();
 
-    Assert.assertEquals(length, options.getLength());
+    Assert.assertEquals(ufsLength, options.getUfsLength());
   }
 
   @Test
   public void defaultsTest() {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
-    Assert.assertEquals(0, options.getLength());
+    Assert.assertEquals(0, options.getUfsLength());
   }
 }
