@@ -19,6 +19,7 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.CreateTOptions;
 
@@ -40,8 +41,9 @@ public final class CreateOptions {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mRecursive = false;
       mTTL = Constants.NO_TTL;
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
+      WriteType defaultWriteType =
+          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      mUnderStorageType = defaultWriteType.getUnderStorageType();
     }
 
     /**

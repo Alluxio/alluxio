@@ -46,6 +46,16 @@ public enum ReadType {
   }
 
   /**
+   * @return the {@link tachyon.client.TachyonStorageType} associated with this read type
+   */
+  public TachyonStorageType getTachyonStorageType() {
+    if (isCache()) {
+      return TachyonStorageType.PROMOTE;
+    }
+    return TachyonStorageType.NO_STORE;
+  }
+
+  /**
    * Return the value of the read type
    *
    * @return the read type value

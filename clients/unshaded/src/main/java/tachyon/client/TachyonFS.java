@@ -311,12 +311,9 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeBytes > 0) {
-        UnderStorageType underStorageType =
-            mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
-                UnderStorageType.class);
         CreateOptions options =
             new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
-                .setRecursive(recursive).setUnderStorageType(underStorageType).build();
+                .setRecursive(recursive).build();
         return mFSMasterClient.create(path.getPath(), options);
       } else {
         return mFSMasterClient.loadMetadata(path.getPath(), recursive);
@@ -854,12 +851,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      UnderStorageType underStorageType =
-          mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
-              UnderStorageType.class);
       MkdirOptions options =
-          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
-              .setUnderStorageType(underStorageType).build();
+          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive).build();
       return mFSMasterClient.mkdir(path.getPath(), options);
     } catch (TachyonException e) {
       throw new IOException(e);
