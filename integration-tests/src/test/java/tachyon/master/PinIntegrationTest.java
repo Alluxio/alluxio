@@ -83,7 +83,7 @@ public class PinIntegrationTest {
 
     mTfs.setState(file, mUnsetPinned);
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Integer>newHashSet());
+    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Long>newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.setState(dir, mSetPinned);
@@ -94,7 +94,7 @@ public class PinIntegrationTest {
     // Same with unpinning.
     mTfs.setState(dir0, mUnsetPinned);
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Integer>newHashSet());
+    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Long>newHashSet());
 
     // The last pin command always wins.
     mTfs.setState(file, mSetPinned);

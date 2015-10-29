@@ -29,8 +29,6 @@ import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.WorkerOutOfSpaceException;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
@@ -38,7 +36,7 @@ import tachyon.worker.WorkerContext;
  * SpaceReserver periodically checks if there is enough space reserved on each storage tier, if
  * there is no enough free space on some tier, free space from it.
  */
-public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
+public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockDataManager mBlockManager;
   /** Mapping from tier alias to space size to be reserved on the tier */
@@ -95,11 +93,6 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
     mRunning = false;
   }
 
-  @Override
-  public void grantAccess(Tester<SpaceReserver> tester) {
-    tester.receiveAccess(new PrivateAccess());
-  }
-
   private void reserveSpace() {
     for (int tierIdx = mBytesToReserveOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
       Pair<Integer, Long> bytesReservedOnTier = mBytesToReserveOnTiers.get(tierIdx);
@@ -118,15 +111,6 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
       } catch (IOException e) {
         LOG.warn(e.getMessage());
       }
-    }
-  }
-
-  /** Grants access to private members to testers of this class. */
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    public void reserveSpace() {
-      SpaceReserver.this.reserveSpace();
     }
   }
 }
