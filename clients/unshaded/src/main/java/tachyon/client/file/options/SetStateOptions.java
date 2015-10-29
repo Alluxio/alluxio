@@ -80,7 +80,7 @@ public class SetStateOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("SetStateOptions(");
-    sb.append(super.toString()).append(", mPinned: ").append(mPinned);
+    sb.append(super.toString()).append(", Pinned: ").append(mPinned);
     sb.append(")");
     return sb.toString();
   }

@@ -104,8 +104,8 @@ public final class MkdirOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("MkdirOptions(");
-    sb.append(super.toString()).append(", mRecursive: ").append(mRecursive);
-    sb.append(", mUnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(")");
     return sb.toString();
   }

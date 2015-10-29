@@ -166,11 +166,11 @@ public final class OutStreamOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("OutStreamOptions(");
-    sb.append(super.toString()).append(", mBlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", mHostname: ").append(mHostname);
-    sb.append(", mTachyonStorageType: ").append(mTachyonStorageType.toString());
-    sb.append(", mUnderStorageType: ").append(mUnderStorageType.toString());
-    sb.append(", mTTL: ").append(mTTL);
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Hostname: ").append(mHostname);
+    sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(", TTL: ").append(mTTL);
     sb.append(")");
     return sb.toString();
   }
