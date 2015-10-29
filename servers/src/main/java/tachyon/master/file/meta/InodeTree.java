@@ -411,6 +411,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         mPinnedInodeFileIds.remove(inode.getId());
       }
     } else {
+      assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
         setPinned(child, pinned, opTimeMs);
