@@ -30,7 +30,6 @@ import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
@@ -128,11 +127,11 @@ public final class BlockDataManager {
    * @param fileId a file id
    * @param nonce a nonce used for temporary file creation
    * @param ufsPath the UFS path of the file
-   * @throws TachyonTException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
+   * @throws TachyonException if the file does not exist or cannot be renamed
    */
   public void persistFile(long fileId, long nonce, String ufsPath)
-      throws TachyonException, IOException {
+      throws IOException, TachyonException {
     String tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
     UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
     try {
