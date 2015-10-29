@@ -148,10 +148,10 @@ public final class CreateOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("CreateOptions(");
-    sb.append(super.toString()).append(", mBlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", mRecursive: ").append(mRecursive);
-    sb.append(", mTTL: ").append(mTTL);
-    sb.append(", mUnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Recursive: ").append(mRecursive);
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(")");
     return sb.toString();
   }

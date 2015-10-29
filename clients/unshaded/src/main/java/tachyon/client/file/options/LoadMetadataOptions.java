@@ -80,7 +80,7 @@ public final class LoadMetadataOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("LoadMetadataOptions(");
-    sb.append(super.toString()).append(", mRecursive: ").append(mRecursive);
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
     sb.append(")");
     return sb.toString();
   }

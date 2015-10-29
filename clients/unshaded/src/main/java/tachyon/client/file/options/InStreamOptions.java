@@ -81,7 +81,7 @@ public final class InStreamOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InStreamOptions(");
-    sb.append(super.toString()).append(", mTachyonStorageType: ")
+    sb.append(super.toString()).append(", TachyonStorageType: ")
         .append(mTachyonStorageType.toString());
     sb.append(")");
     return sb.toString();
