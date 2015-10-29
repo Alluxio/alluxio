@@ -30,14 +30,14 @@ public class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
    * @param masterAddress the master address
    */
   public LineageMasterClientPool(InetSocketAddress masterAddress) {
-    // TODO: Get capacity from configuration.
+    // TODO(yupeng): Get capacity from configuration.
     super(CAPACITY);
     mMasterAddress = masterAddress;
   }
 
   @Override
   public void close() {
-    // TODO: Consider collecting all the clients and shutting them down
+    // TODO(yupeng): Consider collecting all the clients and shutting them down
   }
 
   @Override
