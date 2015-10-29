@@ -17,7 +17,6 @@ package tachyon.client.file;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -28,6 +27,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -63,7 +64,6 @@ public class FileInStreamTest {
   private FileSystemContext mContext;
   private FileInfo mInfo;
 
-  private List<BufferedBlockInStream> mInStreams;
   private List<TestBufferedBlockOutStream> mCacheStreams;
 
   private FileInStream mTestStream;
@@ -82,14 +82,19 @@ public class FileInStreamTest {
     Mockito.when(mContext.getTachyonBlockStore()).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
-    mInStreams = Lists.newArrayList();
     mCacheStreams = Lists.newArrayList();
     List<Long> blockIds = Lists.newArrayList();
     for (int i = 0; i < NUM_STREAMS; i ++) {
       blockIds.add((long) i);
-      mInStreams.add(new TestBufferedBlockInStream(i, (int) (i * BLOCK_LENGTH), BLOCK_LENGTH));
       mCacheStreams.add(new TestBufferedBlockOutStream(i, BLOCK_LENGTH));
-      Mockito.when(mBlockStore.getInStream(i)).thenReturn(mInStreams.get(i));
+      Mockito.when(mBlockStore.getInStream(i)).thenAnswer(new Answer<BufferedBlockInStream>() {
+        @Override
+        public BufferedBlockInStream answer(InvocationOnMock invocation) throws Throwable {
+          long i = (Long) invocation.getArguments()[0];
+          return new TestBufferedBlockInStream(i, (int) (i * BLOCK_LENGTH), BLOCK_LENGTH);
+        }
+      });
+
       Mockito
           .when(
               mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.eq(-1L), Mockito.anyString()))
@@ -119,11 +124,6 @@ public class FileInStreamTest {
   }
 
   @Test
-  public void readFileTest() throws Exception {
-    testReadBuffer((int) FILE_LENGTH);
-  }
-
-  @Test
   public void readHalfFileTest() throws Exception {
     testReadBuffer((int) (FILE_LENGTH / 2));
   }
@@ -139,21 +139,32 @@ public class FileInStreamTest {
   }
 
   @Test
+  public void readFileTest() throws Exception {
+    testReadBuffer((int) FILE_LENGTH);
+  }
+
+  /**
+   * Tests that reading a buffer at an offset writes the bytes to the correct places.
+   */
+  @Test
   public void readOffsetTest() throws IOException {
     int offset = (int) (BLOCK_LENGTH / 3);
     int len = (int) BLOCK_LENGTH;
     byte[] buffer = new byte[offset + len];
-    Arrays.fill(buffer, (byte) 0);
+    // Create expectedBuffer containing `offset` 0's followed by `len` increasing bytes
     byte[] expectedBuffer = new byte[offset + len];
-    Arrays.fill(expectedBuffer, (byte) 0);
     System.arraycopy(BufferUtils.getIncreasingByteArray(len), 0, expectedBuffer, offset, len);
     mTestStream.read(buffer, offset, len);
     Assert.assertArrayEquals(expectedBuffer, buffer);
   }
 
+  /**
+   * Read through the file in small chunks and verify each chunk.
+   */
   @Test
   public void readManyChunks() throws IOException {
     int chunksize = 10;
+    // chunksize must divide FILE_LENGTH evenly for this test to work
     Assert.assertEquals(0, FILE_LENGTH % chunksize);
     byte[] buffer = new byte[chunksize];
     int offset = 0;
@@ -172,14 +183,26 @@ public class FileInStreamTest {
     Assert.assertEquals(FILE_LENGTH - 1, mTestStream.remaining());
     mTestStream.read(new byte[150]);
     Assert.assertEquals(FILE_LENGTH - 151, mTestStream.remaining());
+    mTestStream.skip(140);
+    Assert.assertEquals(FILE_LENGTH - 291, mTestStream.remaining());
+    mTestStream.seek(310);
+    Assert.assertEquals(FILE_LENGTH - 310, mTestStream.remaining());
+    mTestStream.seek(130);
+    Assert.assertEquals(FILE_LENGTH - 130, mTestStream.remaining());
   }
 
+  /**
+   * Tests seek, particularly that seeking over part of a block will cause us not to cache it, and
+   * cancels the existing cache stream.
+   */
   @Test
   public void testSeek() throws IOException {
     int seekAmount = (int) (BLOCK_LENGTH / 2);
     int readAmount = (int) (BLOCK_LENGTH * 2);
     byte[] buffer = new byte[readAmount];
+    // Seek halfway into block 1
     mTestStream.seek(seekAmount);
+    // Read two blocks from 0.5 to 2.5
     mTestStream.read(buffer);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(seekAmount, readAmount), buffer);
     // First block should not be cached since we skipped over it, but the second should be
@@ -188,30 +211,42 @@ public class FileInStreamTest {
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getDataWritten());
 
+    // Seek to current position (does nothing)
     mTestStream.seek(seekAmount + readAmount);
+    // Seek a short way past start of block 3
     mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
     Assert.assertEquals((byte) (BLOCK_LENGTH * 3.1), mTestStream.read());
   }
 
+  /**
+   * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
+   * cancels the existing cache stream.
+   */
   @Test
   public void testSkip() throws IOException {
     int skipAmount = (int) (BLOCK_LENGTH / 2);
     int readAmount = (int) (BLOCK_LENGTH * 2);
     byte[] buffer = new byte[readAmount];
+    // Skip halfway into block 1
     mTestStream.skip(skipAmount);
+    // Read two blocks from 0.5 to 2.5
     mTestStream.read(buffer);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(skipAmount, readAmount), buffer);
-    // First block should not be cached since we skipped over it, but the second should be
+    // First block should not be cached since we skipped into it, but the second should be
     Assert.assertTrue(mCacheStreams.get(0).isCanceled());
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getDataWritten());
 
     Assert.assertEquals(0, mTestStream.skip(0));
+    // Skip the next half block, bringing us to block 3
     Assert.assertEquals(BLOCK_LENGTH / 2, mTestStream.skip(BLOCK_LENGTH / 2));
     Assert.assertEquals((byte) (BLOCK_LENGTH * 3), mTestStream.read());
   }
 
+  /**
+   * Tests that we promote blocks when they are read.
+   */
   @Test
   public void testPromote() throws IOException {
     Mockito.verify(mBlockStore, Mockito.times(0)).promote(0);
@@ -233,6 +268,9 @@ public class FileInStreamTest {
     mTestStream.seek(BLOCK_LENGTH);
   }
 
+  /**
+   * Tests the capability to fall back to a ufs stream when getting a tachyon stream fails.
+   */
   @Test
   public void failToUnderFsTest() throws IOException {
     mInfo.setIsPersisted(true).setUfsPath("testUfsPath");
@@ -247,8 +285,15 @@ public class FileInStreamTest {
     Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
 
     mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
+    Mockito.verify(ufs, Mockito.times(1)).open("testUfsPath");
     Mockito.verify(stream, Mockito.times(1)).skip(100);
     Mockito.verify(stream, Mockito.times(1)).skip(50);
+  }
+
+  @Test
+  public void dontCacheMidBlockSeekTest() throws IOException {
+    mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
+    // Shouldn't cache the current block when we skipped its beginning
     Assert
         .assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
   }
@@ -287,6 +332,10 @@ public class FileInStreamTest {
     Assert.assertEquals(0, mTestStream.skip(-10));
   }
 
+  /**
+   * Tests that an {@link IOException} thrown by a {@link BlockInStream} during a skip will be
+   * handled correctly.
+   */
   @Test
   public void skipInstreamExceptionTest() throws IOException {
     long skipSize = BLOCK_LENGTH / 2;
@@ -300,11 +349,12 @@ public class FileInStreamTest {
     mTestStream.skip(skipSize);
   }
 
+  /**
+   * Tests that reading dataRead bytes into a buffer will properly write those bytes to the cache
+   * streams and that the correct bytes are read from the {@link FileInStream}.
+   */
   private void testReadBuffer(int dataRead) throws Exception {
     byte[] buffer = new byte[dataRead];
-    Arrays.fill(buffer, (byte) 0);
-    byte[] expectedBuffer = new byte[dataRead];
-    Arrays.fill(expectedBuffer, (byte) 0);
     mTestStream.read(buffer);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
 
