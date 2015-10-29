@@ -90,7 +90,7 @@ public final class LineageStoreTest {
   public void deleteNonexistingLineageTest() {
     long id = 1;
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NOT_EXIST, id));
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_DOES_NOT_EXIST, id));
 
     mLineageStore.deleteLineage(id);
   }
