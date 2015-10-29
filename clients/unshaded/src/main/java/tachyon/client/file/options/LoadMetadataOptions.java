@@ -73,4 +73,15 @@ public final class LoadMetadataOptions {
   public boolean isRecursive() {
     return mRecursive;
   }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("LoadMetadataOptions(");
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(")");
+    return sb.toString();
+  }
 }
