@@ -46,8 +46,9 @@ import tachyon.security.User;
  * NOTE: When this SaslServer works on authentication (i.e., in the method evaluateResponse()), it
  * always assigns authentication ID to authorization ID currently.
  *
- * TODO: Authorization ID and authentication ID could be different after supporting impersonation.
  */
+// TODO(dong): Authorization ID and authentication ID could be different after supporting
+// impersonation.
 public final class PlainSaslServer implements SaslServer {
   /**
    * This ID represent the authorized client user, who has been authenticated successfully. It is
@@ -98,7 +99,7 @@ public final class PlainSaslServer implements SaslServer {
       if (authorizationId == null || authorizationId.isEmpty()) {
         authorizationId = authenticationId;
       } else if (!authorizationId.equals(authenticationId)) {
-        // TODO: support impersonation
+        // TODO(dong): support impersonation
         throw new UnsupportedOperationException("Impersonation is not supported now.");
       }
 

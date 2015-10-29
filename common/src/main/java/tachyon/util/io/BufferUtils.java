@@ -296,7 +296,7 @@ public final class BufferUtils {
    */
   public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {
-    // TODO: make the buffer size configurable
+    // TODO(yupeng): make the buffer size configurable
     final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
 
     while (src.read(buffer) != -1) {

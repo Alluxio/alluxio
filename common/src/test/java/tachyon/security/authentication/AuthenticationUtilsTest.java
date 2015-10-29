@@ -306,7 +306,7 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * TODO: In KERBEROS mode, ...
+   * TODO(dong): In KERBEROS mode, ...
    */
   @Test
   public void kerberosAuthenticationTest() throws Exception {
