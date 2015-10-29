@@ -53,7 +53,7 @@ public final class HeartbeatScheduler {
     Preconditions.checkNotNull(timer);
     sLock.lock();
     sTimers.put(timer.getThreadName(), timer);
-    sCondition.signal();
+    sCondition.signalAll();
     sLock.unlock();
   }
 
