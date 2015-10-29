@@ -17,27 +17,24 @@ package tachyon.client;
 
 /**
  * Different read types for a TachyonFile.
- *
- * As of 0.8, replaced by {@link TachyonStorageType} and {@link UnderStorageType}
  */
-@Deprecated
 public enum ReadType {
   /**
-   * Read the file and but do not cache it explicitly.
+   * Read the file and skip Tachyon storage. This mode will not alter any data distribution
+   * in Tachyon storage.
    */
   NO_CACHE(1),
   /**
-   * Read the file and cache it.
+   * Read the file and cache it in a local worker. Additionally, if the file was in Tachyon
+   * storage, it will be promoted to the top storage layer.
    */
-  CACHE(2);
+  CACHE(2),
 
   /**
-   * If the block is on local Tachyon space but not on top storage layer, promote the block to top
-   * storage layer after reading.
-   *
-   * TODO(calvin): Enable this again when lock upgrading is implemented in the worker.
+   * The behavior of this mode is the same as CACHE.
    */
-  //CACHE_PROMOTE(3);
+  @Deprecated
+  CACHE_PROMOTE(3);
 
   private final int mValue;
 
@@ -60,16 +57,13 @@ public enum ReadType {
    * TODO(calvin): Add CACHE_PROMOTE back when it is enabled again.
    */
   public boolean isCache() {
-    return mValue == CACHE.mValue;
-    // return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
+    return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
   }
 
   /**
    * @return true if the read type is CACHE_PROMOTE, false otherwise
-   *
-   * TODO(calvin): Add this function back when CACHE_PROMOTE is enabled again.
    */
-//  public boolean isPromote() {
-//    return mValue == CACHE_PROMOTE.mValue;
-//  }
+  public boolean isPromote() {
+    return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
+  }
 }
