@@ -111,7 +111,7 @@ public class FileInStreamTest {
   public void singleByteReadTest() throws Exception {
     // Verify byte by byte read is equal to increasing byte array
     for (int i = 0; i < FILE_LENGTH; i ++) {
-      Assert.assertEquals((byte) i, (byte) mTestStream.read());
+      Assert.assertEquals(i & 0xff, mTestStream.read());
     }
     verifyCacheStreams(FILE_LENGTH);
     mTestStream.close();
