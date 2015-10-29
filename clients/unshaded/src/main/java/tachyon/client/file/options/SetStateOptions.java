@@ -79,13 +79,9 @@ public class SetStateOptions {
    */
   @Override
   public String toString() {
-    return "SetStateOptions{mPinned=" + mPinned + "}";
-  }
-
-  /**
-   * @return the default String representation for testing purposes
-   */
-  public String toStringBase() {
-    return super.toString();
+    StringBuilder sb = new StringBuilder("SetStateOptions(");
+    sb.append(super.toString()).append(", mPinned: ").append(mPinned);
+    sb.append(")");
+    return sb.toString();
   }
 }

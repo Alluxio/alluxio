@@ -165,15 +165,13 @@ public final class OutStreamOptions {
    */
   @Override
   public String toString() {
-    return "OutStreamOptions{" + "mBlockSizeBytes=" + mBlockSizeBytes + ", mHostname=" + mHostname
-        + ", mTachyonStorageType=" + mTachyonStorageType.toString() + ", mUnderStorageType="
-        + mUnderStorageType.toString() + ", mTTL=" + mTTL + "}";
-  }
-
-  /**
-   * @return the default String representation for testing purposes
-   */
-  public String toStringBase() {
-    return super.toString();
+    StringBuilder sb = new StringBuilder("OutStreamOptions(");
+    sb.append(super.toString()).append(", mBlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", mHostname: ").append(mHostname);
+    sb.append(", mTachyonStorageType: ").append(mTachyonStorageType.toString());
+    sb.append(", mUnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(", mTTL: ").append(mTTL);
+    sb.append(")");
+    return sb.toString();
   }
 }
