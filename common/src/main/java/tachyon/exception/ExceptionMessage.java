@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
  */
 public enum ExceptionMessage {
   // general
+  NOT_SUPPORTED("This method is not supported"),
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
 
   // general block
@@ -54,6 +55,9 @@ public enum ExceptionMessage {
   FAILED_SEEK_FORWARD("Failed to seek forward to {0}"),
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
+  READ_CLOSED_STREAM("Cannot read from a closed stream"),
+  SEEK_NEGATIVE("Seek position is negative: {0}"),
+  SEEK_PAST_EOF("Seek position is past EOF: {0}, fileSize = {1}"),
 
   // netty
   BLOCK_WRITE_ERROR("Error writing blockId: {0}, sessionId: {1}, address: {2}, message: {3}"),
@@ -85,8 +89,9 @@ public enum ExceptionMessage {
 
   // file
   DELETE_FAILED("Failed to delete data at path {0}"),
-  FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   FILE_ALREADY_EXISTS("{0} already exists"),
+  FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
+  HDFS_FILE_NOT_FOUND("File {0} with FID {1} is not found."),
   NO_PARENT_DIRECTORY("Parent directory {0} does not exist"),
 
   // file system master

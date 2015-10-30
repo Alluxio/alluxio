@@ -39,6 +39,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
@@ -97,7 +98,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
               .setTachyonStorageType(TachyonStorageType.STORE).build());
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
-          "File " + hdfsPath + " with FID " + fileId + " is not found.");
+          ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(hdfsPath, fileId));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -111,7 +112,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public int available() throws IOException {
-    throw new IOException("Not supported");
+    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
   @Override
@@ -185,7 +186,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public int read(byte[] b) throws IOException {
-    throw new IOException("Not supported");
+    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
   @Override
@@ -224,7 +225,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public synchronized int read(long position, byte[] buffer, int offset, int length)
       throws IOException {
     if (mClosed) {
-      throw new IOException("Cannot read from a closed stream.");
+      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
     int ret = -1;
     long oldPos = getPos();
@@ -296,7 +297,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
-    throw new IOException("Not supported");
+    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
   /**
@@ -306,7 +307,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    throw new IOException("Not supported");
+    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 
   @Override
@@ -316,11 +317,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     if (pos < 0) {
-      throw new IOException("Seek position is negative: " + pos);
+      throw new IOException(ExceptionMessage.SEEK_NEGATIVE.getMessage(pos));
     }
     if (pos > mFileInfo.getLength()) {
-      throw new IOException(
-          "Seek position is past EOF: " + pos + ", fileSize = " + mFileInfo.getLength());
+      throw new IOException(ExceptionMessage.SEEK_PAST_EOF.getMessage(pos, mFileInfo.getLength()));
     }
 
     if (mTachyonFileInputStream != null) {
@@ -343,6 +343,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
-    throw new IOException("Not supported");
+    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
   }
 }
