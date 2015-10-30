@@ -216,7 +216,7 @@ public class FileOutStreamTest {
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isCanceled());
     }
-    // Don't persist or complete the file if the stream was cancelled
+    // Don't persist or complete the file if the stream was canceled
     Mockito.verify(mWorkerClient, Mockito.times(0)).persistFile(Mockito.anyLong(),
         Mockito.anyLong(), Mockito.anyString());
     Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID);
