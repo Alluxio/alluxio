@@ -57,7 +57,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final long mBlockSize;
   protected final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final BlockStoreContext mBlockStoreContext;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
@@ -80,20 +79,12 @@ public class FileOutStream extends OutputStream implements Cancelable {
    * @throws IOException if an I/O error occurs
    */
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
-    this(fileId, options, FileSystemContext.INSTANCE);
-  }
-
-  // Test-only constructor for mocking the file system context. Whitebox cannot be used here because
-  // the context is used before the constructor finishes.
-  FileOutStream(long fileId, OutStreamOptions options, FileSystemContext context)
-      throws IOException {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
-    mContext = context;
-    mBlockStoreContext = BlockStoreContext.INSTANCE;
+    mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
       FileInfo fileInfo = getFileInfo();
@@ -143,12 +134,12 @@ public class FileOutStream extends OutputStream implements Cancelable {
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
-        WorkerClient workerClient = mBlockStoreContext.acquireWorkerClient();
+        WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
         try {
           // TODO(yupeng): Investigate if this RPC can be moved to master.
           workerClient.persistFile(mFileId, mNonce, mUfsPath);
         } finally {
-          mBlockStoreContext.releaseWorkerClient(workerClient);
+          BlockStoreContext.INSTANCE.releaseWorkerClient(workerClient);
         }
         canComplete = true;
       }

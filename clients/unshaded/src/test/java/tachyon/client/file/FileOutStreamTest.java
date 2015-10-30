@@ -341,10 +341,9 @@ public class FileOutStreamTest {
   }
 
   private FileOutStream createTestStream(long fileId, OutStreamOptions options) throws IOException {
-    // Cannot use Whitebox to set mFileSystemContext because it needs to be mocked during the
-    // constructor
-    FileOutStream stream = new FileOutStream(FILE_ID, options, mFileSystemContext);
-    Whitebox.setInternalState(stream, "mBlockStoreContext", mBlockStoreContext);
+    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
+    FileOutStream stream = new FileOutStream(FILE_ID, options);
     return stream;
   }
 }
