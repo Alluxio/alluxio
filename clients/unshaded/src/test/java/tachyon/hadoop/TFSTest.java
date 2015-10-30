@@ -33,6 +33,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +144,7 @@ public class TFSTest {
     PowerMockito.mockStatic(FileSystemContext.class);
     FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
     FileSystemMasterClient mockMaster = PowerMockito.mock(FileSystemMasterClient.class);
-    Mockito.when(FileSystemContext.get()).thenReturn(mockContext);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
     Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
   }
 
