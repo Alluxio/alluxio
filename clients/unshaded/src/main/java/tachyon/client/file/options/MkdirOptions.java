@@ -99,6 +99,18 @@ public final class MkdirOptions {
   }
 
   /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("MkdirOptions(");
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(")");
+    return sb.toString();
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public MkdirTOptions toThrift() {

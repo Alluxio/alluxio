@@ -40,10 +40,18 @@ public final class WorkerContext {
   }
 
   /**
-   * Reset the TachyonConf instance in worker context, for test only.
+   * Resets the worker context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
-  public static void resetConf() {
-    sTachyonConf = new TachyonConf();
+  public static void reset() {
+    reset(new TachyonConf());
+  }
+
+  /**
+   * Resets the master context, for test only.
+   * TODO(binfan): consider a better way to mock test TachyonConf
+   */
+  public static void reset(TachyonConf conf) {
+    sTachyonConf = conf;
   }
 }
