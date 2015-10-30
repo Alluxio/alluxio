@@ -12,7 +12,7 @@ struct BlockInfo {
 struct BlockLocation {
   1: i64 workerId
   2: NetAddress workerAddress
-  3: i32 tier
+  3: string tierAlias
 }
 
 // Contains the information of a block in a file. In addition to the BlockInfo, it includes the

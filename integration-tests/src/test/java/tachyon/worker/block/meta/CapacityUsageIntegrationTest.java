@@ -36,6 +36,7 @@ import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 public class CapacityUsageIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
@@ -56,7 +57,7 @@ public class CapacityUsageIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
     TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, "2");
+    testConf.set(Constants.WORKER_TIERED_STORE_LEVELS, "2");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1),
         "/disk1");

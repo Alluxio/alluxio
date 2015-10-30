@@ -292,6 +292,26 @@ the port number.
   <td>10000</td>
   <td>Timeout (in milliseconds) between master and worker indicating a lost worker.</td>
 </tr>
+<tr>
+  <td>tachyon.master.tieredstore.global.levels</td>
+  <td>3</td>
+  <td>The total number of storage tiers in the system</td>
+</tr>
+<tr>
+  <td>tachyon.master.tieredstore.global.level0.alias</td>
+  <td>MEM</td>
+  <td>The name of the highest storage tier in the entire system</td>
+</tr>
+<tr>
+  <td>tachyon.master.tieredstore.global.level1.alias</td>
+  <td>SSD</td>
+  <td>The name of the second highest storage tier in the entire system</td>
+</tr>
+<tr>
+  <td>tachyon.master.tieredstore.global.level2.alias</td>
+  <td>HDD</td>
+  <td>The name of the third highest storage tier in the entire system</td>
+</tr>
 </table>
 
 ## Worker Configuration
@@ -448,14 +468,18 @@ the port number.
   granularity, but uses more space.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.level.max</td>
+  <td>tachyon.worker.tieredstore.levels</td>
   <td>1</td>
-  <td>The maximum level of storage layers.</td>
+  <td>The number of storage tiers on the worker</td>
 </tr>
 <tr>
   <td>tachyon.worker.tieredstore.level0.alias</td>
   <td>MEM</td>
-  <td>The alias of the top storage layer.</td>
+  <td>The alias of the highest storage tier on this worker. It must match one of
+  the global storage tiers from the master configuration. We disable placing an
+  alias lower in the global hierarchy before an alias with a higher postion on
+  the worker hierarchy. So by default, SSD cannot come before MEM on any worker.
+  </td>
 </tr>
 <tr>
   <td>tachyon.worker.tieredstore.level0.dirs.path</td>
