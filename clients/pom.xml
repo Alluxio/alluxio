@@ -18,5 +18,6 @@
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
 </project>
