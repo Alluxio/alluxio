@@ -15,7 +15,6 @@
 
 package tachyon.hadoop;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -95,10 +94,6 @@ abstract class AbstractTFS extends FileSystem {
       if (mTFS.getInfo(file).length > 0) {
         LOG.warn("Appending to nonempty file. This may be an error.");
       }
-    } catch (InvalidPathException e) {
-      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -191,7 +186,7 @@ abstract class AbstractTFS extends FileSystem {
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
     TachyonURI parentPath = new TachyonURI(Utils.getPathWithoutScheme(cPath.getParent()));
-    tryOpen(parentPath, ExceptionMessage.NO_PARENT_DIRECTORY.getMessage(parentPath));
+    tryOpen(parentPath);
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
@@ -250,8 +245,7 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
-    TachyonFile fileMetadata =
-        tryOpen(path, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(file.getPath()));
+    TachyonFile fileMetadata = tryOpen(path);
     List<FileBlockInfo> blocks = getFileBlocks(fileMetadata.getFileId());
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
@@ -306,12 +300,6 @@ abstract class AbstractTFS extends FileSystem {
     try {
       TachyonFile file = mTFS.open(tPath);
       fileStatus = mTFS.getInfo(file);
-    } catch (InvalidPathException e) {
-      LOG.info("Invalid path: " + path);
-      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (FileDoesNotExistException e) {
-      LOG.info("File does not exist: " + path);
-      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -399,10 +387,6 @@ abstract class AbstractTFS extends FileSystem {
     try {
       TachyonFile file = mTFS.open(tPath);
       files = mTFS.listStatus(file);
-    } catch (InvalidPathException e) {
-      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -458,7 +442,7 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    TachyonFile file = tryOpen(path, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    TachyonFile file = tryOpen(path);
     long fileId = file.getFileId();
 
     return new FSDataInputStream(new HdfsFileInputStream(fileId,
@@ -474,8 +458,7 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
-    TachyonFile srcFile =
-        tryOpen(srcPath, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
+    TachyonFile srcFile = tryOpen(srcPath);
     FileInfo info;
     try {
       TachyonFile file = mTFS.open(dstPath);
@@ -511,18 +494,15 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Convenience method which opens a {@link TachyonFile} for the given path, throwing
-   * FileNotFoundException with the specified error message if the path doesn't exist.
+   * Convenience method which opens a {@link TachyonFile} for the given path, wrapping any
+   * {@link TachyonException} in {@link IOException}.
    *
    * @param tPath the path to look up
-   * @param errorMessage the message for the FileNotFoundException thrown if the path doesn't exist
-   * @throws IOException if an unexpeced Tachyon exception occurs
+   * @throws {@link IOException} if a Tachyon exception occurs
    */
-  private TachyonFile tryOpen(TachyonURI tPath, String errorMessage) throws IOException {
+  private TachyonFile tryOpen(TachyonURI tPath) throws IOException {
     try {
       return mTFS.open(tPath);
-    } catch (InvalidPathException ipe) {
-      throw new FileNotFoundException(errorMessage);
     } catch (TachyonException te) {
       throw new IOException(te);
     }
