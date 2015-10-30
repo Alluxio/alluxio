@@ -58,6 +58,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
   public static class TachyonFileSystemFactory {
+    private TachyonFileSystemFactory() {} // to prevent initialization
+
     public static synchronized TachyonFileSystem get() {
       if (sTachyonFileSystem == null) {
         boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
