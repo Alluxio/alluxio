@@ -331,7 +331,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException, IOException {
-    // TODO(yupeng): add validation
     InodeFile file = (InodeFile) getInodeByPath(path);
     file.setBlockSize(blockSizeBytes);
     file.setTTL(ttl);;
