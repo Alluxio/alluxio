@@ -174,7 +174,6 @@ public final class BlockMasterSync implements Runnable {
    * @throws Exception if an error occurs when executing the command
    */
   // TODO(calvin): Evaluate the necessity of each command.
-  // TODO(calvin): Do this in a non-blocking way.
   private void handleMasterCommand(Command cmd) throws Exception {
     if (cmd == null) {
       return;

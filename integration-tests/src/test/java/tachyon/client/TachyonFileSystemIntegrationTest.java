@@ -110,17 +110,13 @@ public class TachyonFileSystemIntegrationTest {
     }
   }
 
-  // TODO(calvin): Validate the URI.
-  @Ignore
   @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("URI must be absolute, unless it's empty.");
+    mThrown.expectMessage("Path root/testFile1 is invalid.");
     sTfs.getOutStream(new TachyonURI("root/testFile1"), sWriteBoth);
   }
 
-  // TODO(calvin): Add Raw Table tests.
-  // TODO(calvin): Check worker capacity?
   @Test
   public void deleteFileTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();

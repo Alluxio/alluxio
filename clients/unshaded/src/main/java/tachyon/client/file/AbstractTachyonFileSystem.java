@@ -55,7 +55,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The file system context which contains shared resources, such as the fs master client */
-  // TODO (calvin): Make this private after StreamingTachyonFileSystem is cleaned up
+  // TODO (calvin): Make this private after TachyonFileSystem is cleaned up
   protected FileSystemContext mContext;
 
   /**
