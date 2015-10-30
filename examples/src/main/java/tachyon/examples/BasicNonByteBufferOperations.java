@@ -75,15 +75,16 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    write();
-    return read();
+    TachyonFileSystem tachyonClient = TachyonFileSystem.TachyonFileSystemFactory.get();
+    write(tachyonClient);
+    return read(tachyonClient);
   }
 
-  private void write() throws IOException, TachyonException {
-    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
+  private void write(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
     OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(mTachyonWriteType).setUnderStorageType(mUfsWriteType).build();
-    FileOutStream fileOutStream = getOrCreate(tfs, mFilePath, mDeleteIfExists, clientOptions);
+    FileOutStream fileOutStream =
+        getOrCreate(tachyonClient, mFilePath, mDeleteIfExists, clientOptions);
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(mLength);
@@ -116,12 +117,11 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     throw new FileAlreadyExistsException("File exists and deleteIfExists is false");
   }
 
-  private boolean read() throws IOException, TachyonException {
-    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
+  private boolean read(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(mReadType).build();
-    TachyonFile file = tfs.open(mFilePath);
-    DataInputStream input = new DataInputStream(tfs.getInStream(file, clientOptions));
+    TachyonFile file = tachyonClient.open(mFilePath);
+    DataInputStream input = new DataInputStream(tachyonClient.getInStream(file, clientOptions));
     try {
       int length = input.readInt();
       for (int i = 0; i < length; i ++) {
