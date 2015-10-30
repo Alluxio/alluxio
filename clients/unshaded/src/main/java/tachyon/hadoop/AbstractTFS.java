@@ -43,6 +43,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -101,7 +102,8 @@ abstract class AbstractTFS extends FileSystem {
       throw new IOException(e);
     }
 
-    return new FSDataOutputStream(mTFS.getOutStream(file.getFileId(), OutStreamOptions.defaults()));
+    return new FSDataOutputStream(mTFS.getOutStream(file.getFileId(), OutStreamOptions.defaults()),
+        mStatistics);
   }
 
   @Override
@@ -134,40 +136,34 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     try {
-      TachyonFile file = mTFS.open(path);
-      if (overwrite) {
+      TachyonFile file = mTFS.openIfExists(path);
+      if (file != null) {
+        if (!overwrite) {
+          throw new IOException(cPath.toString() + " already exists.");
+        }
         FileInfo info = mTFS.getInfo(file);
         if (info.isIsFolder()) {
           throw new IOException(cPath.toString() + " already exists. Directories cannot be "
               + "overwritten with create.");
-        } else {
-          try {
-            mTFS.delete(file);
-          } catch (TachyonException e) {
-            throw new IOException("Failed to delete existing data " + cPath, e);
-          }
         }
-      } else {
-        throw new IOException(cPath.toString() + " already exists.");
+        try {
+          mTFS.delete(file);
+        } catch (TachyonException e) {
+          throw new IOException("Failed to delete existing data " + cPath, e);
+        }
       }
-    } catch (InvalidPathException e) {
-      // The file doesn't exist, fall through to create it.
-    } catch (FileDoesNotExistException e) {
-      // The file doesn't exist, fall through to create it.
     } catch (TachyonException e) {
       throw new IOException(e);
     }
 
     OutStreamOptions options =
         new OutStreamOptions.Builder(mTachyonConf).setBlockSizeBytes(blockSize).build();
-    FileOutStream outStream;
     try {
-      outStream = mTFS.getOutStream(path, options);
+      FileOutStream outStream = mTFS.getOutStream(path, options);
+      return new FSDataOutputStream(outStream, mStatistics);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-
-    return new FSDataOutputStream(outStream, mStatistics);
   }
 
   /**
@@ -309,9 +305,9 @@ abstract class AbstractTFS extends FileSystem {
       TachyonFile file = mTFS.open(tPath);
       fileStatus = mTFS.getInfo(file);
     } catch (InvalidPathException e) {
-      LOG.info("File does not exist: " + path);
+      LOG.info("Invalid path: " + path);
       throw new FileNotFoundException("File does not exist: " + path);
-    } catch (FileNotFoundException e) {
+    } catch (FileDoesNotExistException e) {
       LOG.info("File does not exist: " + path);
       throw new FileNotFoundException("File does not exist: " + path);
     } catch (TachyonException e) {
@@ -373,7 +369,7 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 
-    mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+    mTFS = TachyonFileSystemFactory.get();
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = getUfsAddress();
     LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
@@ -513,8 +509,8 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Opens a {@link TachyonFile} for the given path, throwing FileNotFoundException with the
-   * specified error message if the path doesn't exist.
+   * Convenience method which opens a {@link TachyonFile} for the given path, throwing
+   * FileNotFoundException with the specified error message if the path doesn't exist.
    *
    * @param tPath the path to look up
    * @param errorMessage the message for the FileNotFoundException thrown if the path doesn't exist
