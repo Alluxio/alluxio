@@ -102,13 +102,12 @@ public class RemoteBlockInStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
-    TachyonConf conf = mLocalTachyonCluster.getTestConf();
-    conf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    conf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    conf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);
-    conf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
-
-    mLocalTachyonCluster.start();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    testConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    testConf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);
+    testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
+    mLocalTachyonCluster.start(testConf);
 
     mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mTfs = mLocalTachyonCluster.getClient();
