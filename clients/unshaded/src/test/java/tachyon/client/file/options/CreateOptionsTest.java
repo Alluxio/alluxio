@@ -27,6 +27,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
 @RunWith(PowerMockRunner.class)
@@ -59,7 +60,7 @@ public class CreateOptionsTest {
     TachyonConf conf = new TachyonConf();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
+    conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
 
     CreateOptions options = CreateOptions.defaults();

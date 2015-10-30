@@ -61,6 +61,15 @@ public final class MkdirOptions {
     }
 
     /**
+     * @param writeType the write type to use
+     * @return the builder
+     */
+    public Builder setWriteType(WriteType writeType) {
+      mUnderStorageType = writeType.getUnderStorageType();
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@code MkdirOptions}.
      *
      * @return a {@code MkdirOptions} instance
