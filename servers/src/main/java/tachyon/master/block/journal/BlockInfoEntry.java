@@ -18,6 +18,7 @@ package tachyon.master.block.journal;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -50,4 +51,23 @@ public class BlockInfoEntry extends JournalEntry {
   public JournalEntryType getType() {
     return JournalEntryType.BLOCK_INFO;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BlockInfoEntry that = (BlockInfoEntry) o;
+    return Objects.equal(mBlockId, that.mBlockId)
+        && Objects.equal(mLength, that.mLength);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mBlockId, mLength);
+  }
+
 }
