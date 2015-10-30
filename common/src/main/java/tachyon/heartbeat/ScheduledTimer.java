@@ -61,8 +61,11 @@ public final class ScheduledTimer implements HeartbeatTimer {
    */
   protected void schedule() {
     mLock.lock();
-    mCondition.signal();
-    mLock.unlock();
+    try {
+      mCondition.signal();
+    } finally {
+      mLock.unlock();
+    }
   }
 
   /**
@@ -73,7 +76,10 @@ public final class ScheduledTimer implements HeartbeatTimer {
   public synchronized void tick() throws InterruptedException {
     mLock.lock();
     HeartbeatScheduler.addTimer(this);
-    mCondition.await();
-    mLock.unlock();
+    try {
+      mCondition.await();
+    } finally {
+      mLock.unlock();
+    }
   }
 }
