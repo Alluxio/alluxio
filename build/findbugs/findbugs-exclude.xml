@@ -21,8 +21,6 @@
 	DP: Method invoked that should be only be invoked inside a doPrivileged block
 	EI: May expose internal representation by returning reference to mutable object
 	Eq: Class defines compareTo(...) and uses Object.equals()
-	ES: Comparison of String objects using == or !=
-	GC: No relationship between generic parameter and method argument
 	IS: Inconsistent synchronization
 	JLM: Synchronization performed on util.concurrent instance
 	LI: Incorrect lazy initialization of static field
@@ -45,7 +43,7 @@
 	UwF: Field not initialized in constructor but dereferenced without null check
 	Wa: Condition.await() not in loop
       -->
-    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,ES,GC,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,ST,UC,UL,UPM,UrF,UwF,Wa"/>
+    <Bug code="BC,Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,ST,UC,UL,UPM,UrF,UwF,Wa"/>
   </Match>
 
 </FindBugsFilter>
