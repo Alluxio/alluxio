@@ -94,6 +94,12 @@ public final class OutStreamOptions {
       return this;
     }
 
+    public Builder setWriteType(WriteType writeType) {
+      mTachyonStorageType = writeType.getTachyonStorageType();
+      mUnderStorageType = writeType.getUnderStorageType();
+      return this;
+    }
+
     /**
      * Builds a new instance of {@code OutStreamOptions}.
      *

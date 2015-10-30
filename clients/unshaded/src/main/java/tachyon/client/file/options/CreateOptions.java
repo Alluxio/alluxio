@@ -86,6 +86,15 @@ public final class CreateOptions {
     }
 
     /**
+     * @param writeType the write type to use
+     * @return the builder
+     */
+    public Builder setWriteType(WriteType writeType) {
+      mUnderStorageType = writeType.getUnderStorageType();
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@code CreateOptions}.
      *
      * @return a {@code CreateOptions} instance
