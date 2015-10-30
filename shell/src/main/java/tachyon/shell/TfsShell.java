@@ -161,7 +161,7 @@ public class TfsShell implements Closeable {
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
           }
-        } catch (Throwable e) {
+        } catch (Exception e) {
           throw closer.rethrow(e);
         } finally {
           closer.close();
