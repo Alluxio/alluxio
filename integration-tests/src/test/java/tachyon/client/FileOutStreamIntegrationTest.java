@@ -72,7 +72,7 @@ public final class FileOutStreamIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    sLocalTachyonCluster.start();
+    sLocalTachyonCluster.start(sTestConf);
     mTfs = sLocalTachyonCluster.getClient();
   }
 
@@ -80,7 +80,7 @@ public final class FileOutStreamIntegrationTest {
   public static void beforeClass() throws IOException {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
-    sTestConf = sLocalTachyonCluster.getTestConf();
+    sTestConf = sLocalTachyonCluster.newTestConf();
     sTestConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
     // Only the Netty data server supports remote writes.
     sTestConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);

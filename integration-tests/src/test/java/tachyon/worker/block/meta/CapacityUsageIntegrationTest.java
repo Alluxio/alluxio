@@ -55,7 +55,7 @@ public class CapacityUsageIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
-    TachyonConf testConf = mLocalTachyonCluster.getTestConf();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
     testConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, "2");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1),
@@ -63,7 +63,7 @@ public class CapacityUsageIntegrationTest {
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         DISK_CAPACITY_BYTES + "");
     testConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(testConf);
 
     mTFS = mLocalTachyonCluster.getClient();
   }
