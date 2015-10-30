@@ -71,7 +71,7 @@ public final class LineageDataManager {
    * @throws IOException if the file persistence fails
    */
   public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    String dstPath = getDestFilePath(fileId);
+    String dstPath = prepareDestFilePath(fileId);
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
@@ -115,14 +115,14 @@ public final class LineageDataManager {
   }
 
   /**
-   * Gets the destination file path of the given file id. Also creates the parent folder if it does
-   * not exist.
+   * Prepares the destination file path of the given file id. Also creates the parent folder if it
+   * does not exist.
    *
    * @param fileId the file id
    * @return the path for persistence
    * @throws IOException if the folder creation fails
    */
-  private String getDestFilePath(long fileId) throws IOException {
+  private String prepareDestFilePath(long fileId) throws IOException {
     String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo;
     fileInfo = mBlockDataManager.getFileInfo(fileId);
