@@ -177,6 +177,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getCapacityBytes();
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }
@@ -191,6 +193,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getUsedBytes();
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }

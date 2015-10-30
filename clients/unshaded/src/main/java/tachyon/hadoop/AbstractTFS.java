@@ -530,6 +530,8 @@ abstract class AbstractTFS extends FileSystem {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       return master.getUfsAddress();
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(master);
     }

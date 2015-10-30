@@ -103,7 +103,7 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
+  public synchronized List<LineageInfo> getLineageInfoList() throws TachyonException, IOException {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {

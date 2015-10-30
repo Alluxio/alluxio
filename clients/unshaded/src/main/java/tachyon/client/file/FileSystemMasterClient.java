@@ -70,7 +70,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file id for the given path, or -1 if the path does not point to a file
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getFileId(final String path) throws IOException {
+  public synchronized long getFileId(final String path) throws IOException, TachyonException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -166,7 +166,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the under file system address
    * @throws IOException if an I/O error occurs
    */
-  public synchronized String getUfsAddress() throws IOException {
+  public synchronized String getUfsAddress() throws IOException, TachyonException {
     return retryRPC(new RpcCallable<String>() {
       @Override
       public String call() throws TException {

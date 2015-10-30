@@ -81,7 +81,7 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @return the set of pinned file ids
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Set<Long> getPinList() throws IOException {
+  public synchronized Set<Long> getPinList() throws TachyonException, IOException {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {

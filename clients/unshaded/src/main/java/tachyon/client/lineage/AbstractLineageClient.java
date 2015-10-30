@@ -90,6 +90,8 @@ public abstract class AbstractLineageClient implements LineageClient {
 
     try {
       return masterClient.getLineageInfoList();
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
