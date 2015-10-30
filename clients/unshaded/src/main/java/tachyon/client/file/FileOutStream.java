@@ -269,7 +269,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   protected void handleCacheWriteException(IOException ioe) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
-      // TODO(yupeng): Handle this exception better.
       throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(ioe.getMessage()), ioe);
     }
 

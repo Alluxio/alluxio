@@ -339,8 +339,6 @@ public final class LineageMaster extends MasterBase {
   /**
    * Instructs a worker to persist the files for checkpoint.
    *
-   * TODO(yupeng) run the heartbeat in a thread?
-   *
    * @param workerId the id of the worker that heartbeats
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
