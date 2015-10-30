@@ -92,7 +92,6 @@ public enum ExceptionMessage {
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with FID {1} is not found."),
-  NO_PARENT_DIRECTORY("Parent directory {0} does not exist"),
 
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
