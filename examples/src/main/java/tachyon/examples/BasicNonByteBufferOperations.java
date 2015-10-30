@@ -75,23 +75,19 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
-    write(tFS, mFilePath, mTachyonWriteType, mUfsWriteType, mDeleteIfExists, mLength);
-    return read(tFS, mFilePath, mReadType);
+    write();
+    return read();
   }
 
-  private void write(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
-      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType, boolean deleteIfExists,
-      int length) throws IOException, TachyonException {
+  private void write() throws IOException, TachyonException {
+    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
     OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(tachyonWriteType).setUnderStorageType(ufsWriteType).build();
-    // If the file exists already, we will override it.
-    FileOutStream fileOutStream =
-        getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
+        .setTachyonStorageType(mTachyonWriteType).setUnderStorageType(mUfsWriteType).build();
+    FileOutStream fileOutStream = getOrCreate(tfs, mFilePath, mDeleteIfExists, clientOptions);
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
-      os.writeInt(length);
-      for (int i = 0; i < length; i ++) {
+      os.writeInt(mLength);
+      for (int i = 0; i < mLength; i ++) {
         os.writeInt(i);
       }
     } finally {
@@ -117,25 +113,26 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       return tachyonFileSystem.getOutStream(filePath, clientOptions);
     }
     // file exists and deleteIfExists is false
-    throw new FileAlreadyExistsException(" file exists but deleteIfExists is false");
+    throw new FileAlreadyExistsException("File exists and deleteIfExists is false");
   }
 
-  private boolean read(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
-      TachyonStorageType readType) throws IOException, TachyonException {
+  private boolean read() throws IOException, TachyonException {
+    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(readType).build();
-    TachyonFile file = tachyonFileSystem.open(filePath);
-    DataInputStream input = new DataInputStream(tachyonFileSystem.getInStream(file, clientOptions));
-    boolean passes = true;
+        .setTachyonStorageType(mReadType).build();
+    TachyonFile file = tfs.open(mFilePath);
+    DataInputStream input = new DataInputStream(tfs.getInStream(file, clientOptions));
     try {
       int length = input.readInt();
       for (int i = 0; i < length; i ++) {
-        passes &= (input.readInt() == i);
+        if (input.readInt() != i) {
+          return false;
+        }
       }
     } finally {
       input.close();
     }
-    return passes;
+    return true;
   }
 
   public static void main(final String[] args) throws IOException {
