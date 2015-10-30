@@ -204,6 +204,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   @Override
   public void write(byte[] b) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     write(b, 0, b.length);
   }
 
