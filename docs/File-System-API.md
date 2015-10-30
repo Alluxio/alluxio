@@ -70,7 +70,7 @@ interaction with the Tachyon's native storage and under storage through the `Tac
 Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` combinations as well
 as the deprecated `WriteType, ReadType` equivalents.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>TachyonStorageType</th><th>UnderStorageType</th><th>Previously</th>
 <th>Read Behavior</th><th>Write Behavior</th>
 </tr>
