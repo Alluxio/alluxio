@@ -71,7 +71,6 @@ public class RecomputePlanner {
     }
 
     List<Lineage> toRecomputeAfterSort = mLineageStore.sortLineageTopologically(toRecompute);
-    RecomputePlan plan = new RecomputePlan(toRecomputeAfterSort);
-    return plan;
+    return new RecomputePlan(toRecomputeAfterSort);
   }
 }
