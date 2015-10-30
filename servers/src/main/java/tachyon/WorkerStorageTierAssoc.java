@@ -13,33 +13,22 @@
  * the License.
  */
 
-package tachyon.master.block.meta;
+package tachyon;
+
+import java.util.List;
+
+import tachyon.conf.TachyonConf;
 
 /**
- * The location of a Tachyon block.
+ * StorageTierAssoc for workers
  */
-public final class MasterBlockLocation {
-  /** The id of the Tachyon worker. */
-  private final long mWorkerId;
-  /** The tier alias that the block is on in this worker. */
-  private final String mTierAlias;
-
-  MasterBlockLocation(long workerId, String tierAlias) {
-    mWorkerId = workerId;
-    mTierAlias = tierAlias;
+public class WorkerStorageTierAssoc extends StorageTierAssoc {
+  public WorkerStorageTierAssoc(TachyonConf conf) {
+    super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
+        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
-  /**
-   * @return the Tachyon worker id
-   */
-  public long getWorkerId() {
-    return mWorkerId;
-  }
-
-  /**
-   * @return the alias of the tier that the block is on in this worker
-   */
-  public String getTierAlias() {
-    return mTierAlias;
+  public WorkerStorageTierAssoc(List<String> storageTierAliases) {
+    super(storageTierAliases);
   }
 }

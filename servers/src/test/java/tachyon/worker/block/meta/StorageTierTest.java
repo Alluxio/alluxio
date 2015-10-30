@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.StorageLevelAlias;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class StorageTierTest {
@@ -33,8 +32,8 @@ public class StorageTierTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private static final long TEST_DIR1_CAPACITY = 2000;
   private static final long TEST_DIR2_CAPACITY = 3000;
-  private static final int TEST_TIER_LEVEL = 0;
-  private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
+  private static final int TEST_TIER_ORDINAL = 0;
+  private static final String TEST_TIER_ALIAS = "MEM";
 
   private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
 
@@ -56,22 +55,22 @@ public class StorageTierTest {
     mTestDirPath2 = mFolder.newFolder().getAbsolutePath();
     String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
-    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_ORDINAL,
         TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, "");
 
-    mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
+    mTier = StorageTier.newStorageTier("MEM");
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
   }
 
   @Test
   public void getTierAliasTest() {
-    Assert.assertEquals(TEST_TIER_ALIAS.getValue(), mTier.getTierAlias());
+    Assert.assertEquals(TEST_TIER_ALIAS, mTier.getTierAlias());
   }
 
   @Test
   public void getTierLevelTest() {
-    Assert.assertEquals(TEST_TIER_LEVEL, mTier.getTierLevel());
+    Assert.assertEquals(TEST_TIER_ORDINAL, mTier.getTierOrdinal());
   }
 
   @Test
