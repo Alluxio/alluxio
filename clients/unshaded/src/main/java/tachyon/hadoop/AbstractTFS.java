@@ -15,6 +15,7 @@
 
 package tachyon.hadoop;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -300,6 +301,8 @@ abstract class AbstractTFS extends FileSystem {
     try {
       TachyonFile file = mTFS.open(tPath);
       fileStatus = mTFS.getInfo(file);
+    } catch (InvalidPathException e) {
+      throw new FileNotFoundException(e.getMessage());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
