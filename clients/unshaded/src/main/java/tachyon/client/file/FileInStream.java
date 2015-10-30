@@ -32,6 +32,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
+import tachyon.client.block.UnderStoreBlockInStream;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -224,7 +225,6 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       updateBlockInStream(currentBlockId);
       if (mShouldCacheCurrentBlock) {
         try {
-          // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream = mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
               NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
@@ -331,7 +331,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
       mCurrentBlockInStream =
-          new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
+          new UnderStoreBlockInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
       mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
   }

@@ -87,7 +87,6 @@ public final class TachyonBlockStore implements Closeable {
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
