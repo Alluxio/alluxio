@@ -102,9 +102,9 @@ public class FileInStreamTest {
     }
     mInfo.setBlockIds(blockIds);
 
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
-    Whitebox.setInternalState(mTestStream, "mContext", mContext);
   }
 
   @After
@@ -283,8 +283,8 @@ public class FileInStreamTest {
   @Test
   public void failToUnderFsTest() throws IOException {
     mInfo.setIsPersisted(true).setUfsPath("testUfsPath");
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream = new FileInStream(mInfo, InStreamOptions.defaults());
-    Whitebox.setInternalState(mTestStream, "mContext", mContext);
 
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
     UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));

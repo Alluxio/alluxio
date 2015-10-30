@@ -33,7 +33,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -56,23 +55,20 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
-        USER_QUOTA_UNIT_BYTES));
-
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
+
+    mLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
     mLocalTachyonCluster.start();
 
     mTfs = mLocalTachyonCluster.getClient();
 
-    TachyonConf mWorkerTachyonConf;
-
-    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
-    mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
+    TachyonConf workerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
-        mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+        workerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
-        new OutStreamOptions.Builder(mWorkerTachyonConf)
+        new OutStreamOptions.Builder(workerTachyonConf)
             .setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
