@@ -182,17 +182,13 @@ public final class LocalTachyonCluster {
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
-    // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
-    UnderFileSystemUtils.deleteDir(mTachyonHome, testConf);
-
     // Setup tiered store
-    String ramdiskPath = PathUtils.concatPath(mTachyonHome, "/ramdisk");
+    String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         Long.toString(mWorkerCapacityBytes));
-    UnderFileSystemUtils.mkdirIfNotExists(ramdiskPath, testConf);
 
     int numLevel = testConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level ++) {
@@ -203,12 +199,34 @@ public final class LocalTachyonCluster {
       for (String dirPath : dirPaths) {
         String newPath = mTachyonHome + dirPath;
         newPaths.add(newPath);
-        UnderFileSystemUtils.mkdirIfNotExists(newPath, testConf);
       }
       testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
           Joiner.on(',').join(newPaths));
     }
     return testConf;
+  }
+
+  /**
+   * Sets up corresponding directories for tests.
+   *
+   * @param testConf configuration of this test
+   * @throws IOException when creating or deleting dirs failed
+   */
+  private void setupTest(TachyonConf testConf) throws IOException {
+    String tachyonHome = testConf.get(Constants.TACHYON_HOME);
+    // Delete the tachyon home dir for this test from ufs to avoid permission problems
+    UnderFileSystemUtils.deleteDir(tachyonHome, testConf);
+
+    // Create storage dirs for worker
+    int numLevel = testConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+    for (int level = 0; level < numLevel; level ++) {
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      String[] dirPaths = testConf.get(tierLevelDirPath).split(",");
+      for (String dirPath : dirPaths) {
+        UnderFileSystemUtils.mkdirIfNotExists(dirPath, testConf);
+      }
+    }
   }
 
   /**
@@ -275,6 +293,8 @@ public final class LocalTachyonCluster {
   public void start(TachyonConf conf) throws IOException {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
+    setupTest(conf);
 
     startMaster(conf);
 
