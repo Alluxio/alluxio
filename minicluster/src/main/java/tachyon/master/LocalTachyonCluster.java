@@ -217,6 +217,10 @@ public final class LocalTachyonCluster {
     // Delete the tachyon home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(tachyonHome, testConf);
 
+    // Create ufs dir
+    UnderFileSystemUtils.mkdirIfNotExists(testConf.get(Constants.UNDERFS_ADDRESS),
+        testConf);
+
     // Create storage dirs for worker
     int numLevel = testConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level ++) {
@@ -298,8 +302,6 @@ public final class LocalTachyonCluster {
 
     startMaster(conf);
 
-    UnderFileSystemUtils.mkdirIfNotExists(mMasterConf.get(Constants.UNDERFS_ADDRESS),
-        mMasterConf);
     CommonUtils.sleepMs(10);
 
     startWorker(conf);
