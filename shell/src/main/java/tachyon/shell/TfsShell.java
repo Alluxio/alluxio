@@ -179,6 +179,20 @@ public class TfsShell implements Closeable {
   }
 
   /**
+   * Persist a file currently stored only in Tachyon to the UnderFileSystem
+   *
+   * @param filePath the TachyonURI path to persist to the UnderFileSystem
+   * @throws IOException
+   */
+  public void persist(TachyonURI filePath) throws IOException {
+    try {
+      mTfs.persistFile(mTfs.open(filePath));
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  /**
    * Copies a list of files or directories specified by srcFiles from the local filesystem to
    * dstPath in the Tachyon filesystem space. This method is used when the input path contains
    * wildcards.
@@ -733,7 +747,7 @@ public class TfsShell implements Closeable {
         || cmd.equals("touch") || cmd.equals("load") || cmd.equals("fileinfo")
         || cmd.equals("location") || cmd.equals("report") || cmd.equals("pin")
         || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du") || cmd.equals("unmount")
-        || cmd.equals("loadMetadata") || cmd.equals("unsetTTL")) {
+        || cmd.equals("loadMetadata") || cmd.equals("unsetTTL") || cmd.equals("persist")) {
       return 1;
     } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
         || cmd.equals("mount") || cmd.equals("mv") || cmd.equals("deleteLineage")
@@ -944,6 +958,8 @@ public class TfsShell implements Closeable {
         } else if (cmd.equals("unsetTTL")) {
           setTTL(inputPath, Constants.NO_TTL);
           System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
+        } else if (cmd.equals("persist")) {
+          persist(inputPath);
         } else {
           List<TachyonURI> paths = null;
           paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
