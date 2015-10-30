@@ -88,7 +88,6 @@ public enum ExceptionMessage {
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
 
   // file
-  DELETE_FAILED("Failed to delete data at path {0}"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with FID {1} is not found."),
