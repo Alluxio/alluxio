@@ -83,6 +83,12 @@ public enum ExceptionMessage {
   UNEXPECETD_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
 
+  // file
+  DELETE_FAILED("Failed to delete data at path {0}"),
+  FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
+  FILE_ALREADY_EXISTS("{0} already exists"),
+  NO_PARENT_DIRECTORY("Parent directory {0} does not exist"),
+
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
 
