@@ -39,7 +39,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
@@ -53,17 +52,12 @@ public class TachyonFileSystemIntegrationTest {
   private static TachyonFileSystem sTfs = null;
   private static InStreamOptions sReadCache;
   private static OutStreamOptions sWriteBoth;
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws IOException, TException {
-    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
-    mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   @AfterClass
@@ -73,10 +67,10 @@ public class TachyonFileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
-        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    sLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
 
