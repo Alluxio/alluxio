@@ -131,6 +131,7 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
+    // Check whether the file already exists, and delete it if overwrite is true
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     try {
       TachyonFile file = mTFS.openIfExists(path);
@@ -143,16 +144,13 @@ abstract class AbstractTFS extends FileSystem {
           throw new IOException(
               ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(cPath.toString()));
         }
-        try {
-          mTFS.delete(file);
-        } catch (TachyonException e) {
-          throw new IOException(ExceptionMessage.DELETE_FAILED.getMessage(cPath), e);
-        }
+        mTFS.delete(file);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
     }
 
+    // The file no longer exists at this point, so we can create it
     OutStreamOptions options =
         new OutStreamOptions.Builder(mTachyonConf).setBlockSizeBytes(blockSize).build();
     try {
