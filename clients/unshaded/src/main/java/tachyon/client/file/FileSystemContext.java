@@ -72,8 +72,4 @@ public enum FileSystemContext {
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());
   }
-
-  public static FileSystemContext get() {
-    return FileSystemContext.INSTANCE;
-  }
 }

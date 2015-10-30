@@ -509,22 +509,22 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   private List<FileBlockInfo> getFileBlocks(long fileId) throws IOException {
-    FileSystemMasterClient master = FileSystemContext.get().acquireMasterClient();
+    FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       return master.getFileBlockInfoList(fileId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
-      FileSystemContext.get().releaseMasterClient(master);
+      FileSystemContext.INSTANCE.releaseMasterClient(master);
     }
   }
 
   private String getUfsAddress() throws IOException {
-    FileSystemMasterClient master = FileSystemContext.get().acquireMasterClient();
+    FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       return master.getUfsAddress();
     } finally {
-      FileSystemContext.get().releaseMasterClient(master);
+      FileSystemContext.INSTANCE.releaseMasterClient(master);
     }
   }
 }
