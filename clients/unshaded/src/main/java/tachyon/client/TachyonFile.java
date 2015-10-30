@@ -32,7 +32,6 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -170,11 +169,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     FileInfo info = getUnCachedFileStatus();
     TachyonURI uri = new TachyonURI(info.getPath());
     InStreamOptions.Builder optionsBuilder = new InStreamOptions.Builder(mTachyonConf);
-    if (readType.isCache()) {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
-    } else {
-      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
-    }
+    optionsBuilder.setTachyonStorageType(readType.getTachyonStorageType());
     try {
       tachyon.client.file.TachyonFile newFile = mTFS.open(uri);
       return mTFS.getInStream(newFile, optionsBuilder.build());
@@ -266,14 +261,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     WriteType writeType =
         mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
 
-    TachyonStorageType tachyonStorageType = writeType.getTachyonStorageType();
-    UnderStorageType underStorageType = writeType.getUnderStorageType();
-
     FileInfo info = getUnCachedFileStatus();
     OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes());
-    optionsBuilder.setTachyonStorageType(tachyonStorageType);
-    optionsBuilder.setUnderStorageType(underStorageType);
+    optionsBuilder.setBlockSizeBytes(info.getBlockSizeBytes())
+        .setTachyonStorageType(writeType.getTachyonStorageType())
+        .setUnderStorageType(writeType.getUnderStorageType());
     return mTFS.getOutStream(mFileId, optionsBuilder.build());
   }
 
