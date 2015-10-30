@@ -91,7 +91,7 @@ public final class FileUtils {
     try {
       ByteStreams.copy(closer.register(process.getInputStream()), System.out);
       ByteStreams.copy(closer.register(process.getErrorStream()), System.err);
-    } catch (Throwable e) {
+    } catch (Exception e) {
       throw closer.rethrow(e);
     } finally {
       closer.close();
