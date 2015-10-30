@@ -224,7 +224,6 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       updateBlockInStream(currentBlockId);
       if (mShouldCacheCurrentBlock) {
         try {
-          // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream = mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
               NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
