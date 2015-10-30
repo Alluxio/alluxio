@@ -19,12 +19,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
+import tachyon.MasterStorageTierAssoc;
+import tachyon.StorageTierAssoc;
 import tachyon.collections.IndexedSet;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
@@ -108,6 +108,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         }
       };
   @SuppressWarnings("unchecked")
+  /**
+   * Mapping between all possible storage level aliases and their ordinal position. This mapping
+   * forms a total ordering on all storage level aliases in the system, and must be consistent
+   * across masters.
+   */
+  private StorageTierAssoc mGlobalStorageTierAssoc;
+
   /**
    * All worker information. Access must be synchronized on mWorkers. If both block and worker
    * metadata must be locked, mBlocks must be locked first.
@@ -184,12 +191,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
+    mGlobalStorageTierAssoc =
+        new MasterStorageTierAssoc(MasterContext.getConf());
     if (isLeader) {
-      mLostWorkerDetectionService =
-          getExecutorService().submit(
-              new HeartbeatThread(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
-                  new LostWorkerDetectionHeartbeatExecutor(), MasterContext.getConf().getInt(
-                      Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+      mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
+          MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -236,6 +243,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       }
     }
     return ret;
+  }
+
+  /**
+   * @return the global storage tier mapping
+   */
+  public StorageTierAssoc getGlobalStorageTierAssoc() {
+    return mGlobalStorageTierAssoc;
   }
 
   /**
@@ -311,11 +325,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
-   * @param tierAlias the tier alias where the worker is committing the block to
+   * @param tierAlias the alias of the storage tier where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
    */
-  public void commitBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
       long length) {
     LOG.debug("Commit block from worker: {}",
         FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
@@ -406,12 +420,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * @return the total bytes on each storage tier. Called by internal web ui
    */
-  public List<Long> getTotalBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+  public Map<String, Long> getTotalBytesOnTiers() {
+    Map<String, Long> ret = new HashMap<String, Long>();
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
-        for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
+        for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
+          Long total = ret.get(entry.getKey());
+          ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
         }
       }
     }
@@ -421,12 +436,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * @return the used bytes on each storage tier. Called by internal web ui
    */
-  public List<Long> getUsedBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+  public Map<String, Long> getUsedBytesOnTiers() {
+    Map<String, Long> ret = new HashMap<String, Long>();
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
-        for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));
+        for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
+          Long used = ret.get(entry.getKey());
+          ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
         }
       }
     }
@@ -476,14 +492,16 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * Updates metadata when a worker registers with the master. Called by workers via RPC.
    *
    * @param workerId the worker id of the worker registering
-   * @param totalBytesOnTiers list of total bytes on each tier
-   * @param usedBytesOnTiers list of the used byes on each tier
-   * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
+   * @param storageTiers a list of storage tier aliases in order of their position in the worker's
+   *        hierarchy
+   * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
+   * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
+   * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
    * @throws NoWorkerException if workerId cannot be found
    */
-  public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
-        throws NoWorkerException {
+  public void workerRegister(long workerId, List<String> storageTiers,
+      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
@@ -499,7 +517,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         }
 
         // Detect any lost blocks on this worker.
-        Set<Long> removedBlocks = workerInfo.register(totalBytesOnTiers, usedBytesOnTiers, blocks);
+        Set<Long> removedBlocks = workerInfo.register(mGlobalStorageTierAssoc, storageTiers,
+            totalBytesOnTiers, usedBytesOnTiers, blocks);
 
         processWorkerRemovedBlocks(workerInfo, removedBlocks);
         processWorkerAddedBlocks(workerInfo, currentBlocksOnTiers);
@@ -513,14 +532,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * periodically, via RPC.
    *
    * @param workerId the worker id
-   * @param usedBytesOnTiers a list of used bytes on each tier
+   * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
-   * @param addedBlocksOnTiers the added blocks for each storage dir. It maps storage dir id, to a
-   *        list of added block for that storage dir.
+   * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
    * @return an optional command for the worker to execute
    */
-  public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlocksOnTiers) {
+  public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
@@ -586,20 +604,17 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    *
    * mBlocks should already be locked before calling this method.
    *
-   * @param workerInfo the worker metadata object
-   * @param addedBlockIds mapping from StorageDirId to a list of block ids added to the directory
+   * @param workerInfo The worker metadata object
+   * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
-      Map<Long, List<Long>> addedBlockIds) {
-    for (Entry<Long, List<Long>> blockIds : addedBlockIds.entrySet()) {
-      long storageDirId = blockIds.getKey();
-      for (long blockId : blockIds.getValue()) {
+      Map<String, List<Long>> addedBlockIds) {
+    for (Map.Entry<String, List<Long>> entry : addedBlockIds.entrySet()) {
+      for (long blockId : entry.getValue()) {
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo != null) {
           workerInfo.addBlock(blockId);
-          // TODO(gene): Change upper API so that this is tier level or type, not storage dir id.
-          int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
-          masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
+          masterBlockInfo.addWorker(workerInfo.getId(), entry.getKey());
           mLostBlocks.remove(blockId);
         } else {
           LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
@@ -628,16 +643,25 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
-    List<BlockLocation> locations = new ArrayList<BlockLocation>();
-    for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
+    List<BlockLocation> ret = new ArrayList<BlockLocation>();
+    List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();
+    // Sort the block locations by their alias ordinal in the master storage tier mapping
+    Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
+      @Override
+      public int compare(MasterBlockLocation o1, MasterBlockLocation o2) {
+        return mGlobalStorageTierAssoc.getOrdinal(o1.getTierAlias())
+            - mGlobalStorageTierAssoc.getOrdinal(o2.getTierAlias());
+      }
+    });
+    for (MasterBlockLocation masterBlockLocation : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
-            masterBlockLocation.getTier()));
+        ret.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
+            masterBlockLocation.getTierAlias()));
       }
     }
-    return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
+    return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);
   }
 
   /**

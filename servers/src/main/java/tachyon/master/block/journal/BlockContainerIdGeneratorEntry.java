@@ -18,6 +18,7 @@ package tachyon.master.block.journal;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -43,4 +44,19 @@ public class BlockContainerIdGeneratorEntry extends JournalEntry {
   public JournalEntryType getType() {
     return JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BlockContainerIdGeneratorEntry that = (BlockContainerIdGeneratorEntry) o;
+    return Objects.equal(mNextContainerId, that.mNextContainerId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mNextContainerId);
+  }
+
 }

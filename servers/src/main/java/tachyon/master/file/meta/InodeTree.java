@@ -461,7 +461,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else if (entry instanceof InodeDirectoryEntry) {
       InodeDirectory directory = ((InodeDirectoryEntry) entry).toInodeDirectory();
 
-      if (directory.getName() == ROOT_INODE_NAME) {
+      if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
         mInodes.clear();
         mPinnedInodeFileIds.clear();

@@ -40,16 +40,17 @@ public class LRUEvictorTestBase extends EvictorTestBase {
 
   @Test
   public void evictInBottomTierTest() throws Exception {
-    int bottomTierLevel =
-        TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
+    int bottomTierOrdinal =
+        TieredBlockStoreTestUtils.TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
     // capacity increases with index
-    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierLevel];
+    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierOrdinal];
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
     for (int i = nDir - 1; i >= 0; i --) {
-      cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierLevel, i);
+      cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierOrdinal, i);
     }
-    BlockStoreLocation anyDirInBottomTier = BlockStoreLocation.anyDirInTier(bottomTierLevel + 1);
+    BlockStoreLocation anyDirInBottomTier =
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[bottomTierOrdinal]);
     // request smallest capacity and update access time on the evicted block for nDir times, the dir
     // to evict blocks from should be in the same order as caching
     for (int i = nDir - 1; i >= 0; i --) {
@@ -70,13 +71,14 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
-    int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
+    int firstTierOrdinal = TieredBlockStoreTestUtils.TIER_ORDINAL[0];
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     int nDir = firstTierDirCapacity.length;
     for (int i = 0; i < nDir; i ++) {
-      cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierLevel, i);
+      cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierOrdinal, i);
     }
-    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(firstTierLevel + 1);
+    BlockStoreLocation anyDirInFirstTier =
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[firstTierOrdinal]);
     long smallestCapacity = firstTierDirCapacity[0];
     for (int i = 0; i < nDir; i ++) {
       EvictionPlan plan =
@@ -98,16 +100,16 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // first tier, blocks should be moved from the first to the second tier, and some blocks in the
     // second tier should be evicted to hold blocks moved from the first tier.
     long blockId = BLOCK_ID;
-    for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
-      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierLevel];
+    for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
+      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
-        cache(SESSION_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
+        cache(SESSION_ID, blockId, tierCapacity[dirIdx], tierOrdinal, dirIdx);
         blockId ++;
       }
     }
 
     BlockStoreLocation anyDirInFirstTier =
-        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_ALIAS[0]);
     int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length;
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     for (int i = 0; i < nDirInFirstTier; i ++) {
@@ -144,10 +146,10 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // After caching blocks, the free space looks like
     // First Tier 0, 0
     // Second Tier 10000, 20000, 200500
-    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(1);
-    BlockStoreLocation firstDirSecondTier = new BlockStoreLocation(2, 1, 0);
-    BlockStoreLocation secondDirSecondTier = new BlockStoreLocation(2, 1, 1);
-    BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation(2, 1, 2);
+    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier("MEM");
+    BlockStoreLocation firstDirSecondTier = new BlockStoreLocation("SSD", 0);
+    BlockStoreLocation secondDirSecondTier = new BlockStoreLocation("SSD", 1);
+    BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation("SSD", 2);
 
     EvictionPlan plan = mEvictor.freeSpaceWithView(blockSize * 2, anyDirInFirstTier, mManagerView);
     Assert.assertNotNull(plan);

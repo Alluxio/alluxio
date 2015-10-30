@@ -204,6 +204,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   @Override
   public void write(byte[] b) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     write(b, 0, b.length);
   }
 
@@ -284,7 +285,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
       return client.getFileInfo(mFileId);
-    } catch (TachyonException   e) {
+    } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     } finally {
       mContext.releaseMasterClient(client);
