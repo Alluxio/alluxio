@@ -248,10 +248,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
-   *         uncommitted
    */
   // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
   // InvalidWorkerStateException here
@@ -451,20 +448,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws BlockAlreadyExistsException if blocks to move in
-   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
-   *         location
-   * @throws InvalidWorkerStateException if the space requested is less than current space or blocks
-   *         to move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO(cc): Exceptions like IOException BlockAlreadyExistsException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockDoesNotExistException has two semantic now, revisit
-  // this
-  // with a more general exception.
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     mBlockStore.requestSpace(sessionId, blockId, additionalBytes);
   }
 

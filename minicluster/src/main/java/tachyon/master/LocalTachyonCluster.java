@@ -137,8 +137,11 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
+    // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     mMasterConf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    mMasterConf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
+    mMasterConf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
 
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();

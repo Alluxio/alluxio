@@ -40,6 +40,8 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
@@ -84,8 +86,7 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    WriteType type = getWriteType();
-    return new FSDataOutputStream(file.getOutStream(type), mStatistics);
+    return new FSDataOutputStream(file.getOutStream(), mStatistics);
   }
 
   @Override
@@ -137,8 +138,7 @@ abstract class AbstractTFS extends FileSystem {
     TachyonFile file = mTFS.getFile(fileId);
     file.setUFSConf(getConf());
 
-    WriteType type = getWriteType();
-    return new FSDataOutputStream(file.getOutStream(type), mStatistics);
+    return new FSDataOutputStream(file.getOutStream(), mStatistics);
   }
 
   /**
@@ -463,9 +463,5 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       mWorkingDir = new Path(mWorkingDir, path);
     }
-  }
-
-  private WriteType getWriteType() {
-    return mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
 }

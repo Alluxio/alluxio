@@ -50,6 +50,23 @@ contain your credentials.
 After these changes, Tachyon should be configured to work with S3 as its under storage system, and
 you can try [Running Tachyon Locally with S3](#running-tachyon-locally-with-s3).
 
+## Accessing S3 through a proxy
+
+To communicate with S3 through a proxy, modify the `TACHYON_JAVA_OPTS` section of
+`conf/tachyon-env.sh` to include:
+
+	-Dtachyon.underfs.s3.proxy.host=<PROXY_HOST>
+	-Dtachyon.underfs.s3.proxy.port=<PROXY_PORT>
+	-Dtachyon.underfs.s3.proxy.https.only=<USE_HTTPS?>
+
+Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for your proxy, and
+`<USE_HTTPS?>` should be set to either `true` or `false`, depending on whether https should be
+used to communicate with the proxy.
+
+These configuration parameters may also need to be set for the Tachyon client if it is running in
+a separate JVM from the Tachyon Master and Workers. See
+[Configuring Distributed Applications](#configuring-distributed-applications)
+
 # Configuring Your Application
 
 When building your application to use Tachyon, your application will have to include the
@@ -116,7 +133,7 @@ please refer to [MvnRepository](http://mvnrepository.com/).
 
 If you are using a Tachyon client that is running separately from the Tachyon Master and Workers (in a
 separate JVM), then you need to make sure that your AWS credentials are provided to the application
-JVM processes as well. The easiest way to do this is to add them as command line options when starting 
+JVM processes as well. The easiest way to do this is to add them as command line options when starting
 your client JVM process. For example:
 
 ```bash
@@ -138,13 +155,13 @@ This should start a Tachyon master and a Tachyon worker. You can see the master 
 Next, you can run a simple example program:
 
 ```bash
-$ ./bin/tachyon runTest Basic CACHE_THROUGH
+$ ./bin/tachyon runTests
 ```
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
-and directories created by Tachyon exist. For this test, you should see a file named:
+and directories created by Tachyon exist. For this test, you should see files named like:
 
-    S3_BUCKET/S3_DIRECTORY/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH
+    S3_BUCKET/S3_DIRECTORY/tachyon/data/default_tests_files/BasicFile_STORE_SYNC_PERSIST
 
 To stop Tachyon, you can run:
 

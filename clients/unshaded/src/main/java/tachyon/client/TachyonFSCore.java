@@ -25,7 +25,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Interface for Tachyon client APIs
  *
- * As of 0.8, replaced by {@link tachyon.client.file.TachyonFSCore}
+ * As of 0.8, replaced by {@link tachyon.client.file.TachyonFileSystemCore}
  */
 @Deprecated
 interface TachyonFSCore extends Closeable {

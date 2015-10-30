@@ -48,30 +48,26 @@ To verify that Tachyon is running, you can visit
 also run a sample program:
 
 ```bash
-$ ./bin/tachyon runTest Basic CACHE_THROUGH
+$ ./bin/tachyon runTest Basic STORE SYNC_PERSIST
 ```
 
 For the first sample program, you should be able to see something similar to the following:
 
-    /default_tests_files/BasicFile_CACHE_THROUGH has been removed
-    2015-10-06 23:10:43,037 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with BlockMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,050 INFO   (ClientBase.java:connect) - Client registered with BlockMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,070 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with BlockMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,070 INFO   (ClientBase.java:connect) - Client registered with BlockMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,076 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with FileSystemMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,076 INFO   (ClientBase.java:connect) - Client registered with FileSystemMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,085 INFO   (BasicOperations.java:createFile) - createFile with fileId 67108863 took 11 ms.
-    2015-10-06 23:10:43,109 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with FileSystemMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,109 INFO   (ClientBase.java:connect) - Client registered with FileSystemMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,175 INFO   (WorkerClient.java:connect) - Connecting local worker @ /192.168.1.30:29998
-    2015-10-06 23:10:43,197 INFO   (FileUtils.java:createStorageDirPath) - Folder /Volumes/ramdisk/tachyonworker/5140688161268825905 was created!
-    2015-10-06 23:10:43,200 INFO   (LocalBlockOutStream.java:<init>) - LocalBlockOutStream created new file block, block path: /Volumes/ramdisk/tachyonworker/5140688161268825905/50331648
-    2015-10-06 23:10:43,201 INFO   (WorkerClient.java:connect) - Connecting local worker @ /192.168.1.30:29998
-    2015-10-06 23:10:43,240 INFO   (BasicOperations.java:writeFile) - writeFile to file /default_tests_files/BasicFile_CACHE_THROUGH took 155 ms.
-    2015-10-06 23:10:43,443 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with BlockMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,444 INFO   (ClientBase.java:connect) - Client registered with BlockMaster master @ localhost/127.0.0.1:19998
-    2015-10-06 23:10:43,467 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_CACHE_THROUGH took 227 ms.
-    Passed the test!
+```bash
+/default_tests_files/BasicFile_STORE_SYNC_PERSIST has been removed
+2015-10-20 23:02:54,403 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with FileSystemMaster master @ localhost/127.0.0.1:19998
+2015-10-20 23:02:54,422 INFO   (ClientBase.java:connect) - Client registered with FileSystemMaster master @ localhost/127.0.0.1:19998
+2015-10-20 23:02:54,460 INFO   (BasicOperations.java:createFile) - createFile with fileId 1476395007 took 65 ms.
+2015-10-20 23:02:54,557 INFO   (ClientBase.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with BlockMaster master @ localhost/127.0.0.1:19998
+2015-10-20 23:02:54,558 INFO   (ClientBase.java:connect) - Client registered with BlockMaster master @ localhost/127.0.0.1:19998
+2015-10-20 23:02:54,590 INFO   (WorkerClient.java:connect) - Connecting local worker @ /192.168.31.242:29998
+2015-10-20 23:02:54,654 INFO   (FileUtils.java:createStorageDirPath) - Folder /Volumes/ramdisk/tachyonworker/6601007274872912185 was created!
+2015-10-20 23:02:54,657 INFO   (LocalBlockOutStream.java:<init>) - LocalBlockOutStream created new file block, block path: /Volumes/ramdisk/tachyonworker/6601007274872912185/1459617792
+2015-10-20 23:02:54,658 INFO   (WorkerClient.java:connect) - Connecting local worker @ /192.168.31.242:29998
+2015-10-20 23:02:54,754 INFO   (BasicOperations.java:writeFile) - writeFile to file /default_tests_files/BasicFile_STORE_SYNC_PERSIST took 294 ms.
+2015-10-20 23:02:54,803 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_STORE_SYNC_PERSIST took 47 ms.
+Passed the test!
+```
 
 And you can visit Tachyon web UI at **[http://localhost:19999](http://localhost:19999)** again.
 Click `Browse File System` in the navigation bar and you should see the files written to Tachyon by

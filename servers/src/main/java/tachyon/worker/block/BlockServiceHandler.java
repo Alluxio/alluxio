@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageLevelAlias;
-import tachyon.exception.BlockDoesNotExistException;
-import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
@@ -35,7 +33,6 @@ import tachyon.thrift.WorkerService;
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-// TODO(cc): Better exception handling than wrapping into TException.
 public final class BlockServiceHandler implements WorkerService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -134,8 +131,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
 
   /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block
-   * file locked will be returned, if the block file is not found, FileDoesNotExistException will be
-   * thrown.
+   * file locked will be returned.
    *
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
@@ -146,9 +142,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     try {
       long lockId = mWorker.lockBlock(sessionId, blockId);
       return mWorker.readBlock(sessionId, blockId, lockId);
-    } catch (BlockDoesNotExistException nfe) {
-      // TODO(cc): Reconsider this, maybe it is because lockId can not be found.
-      throw new FileDoesNotExistException(nfe.getMessage()).toTachyonTException();
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

@@ -39,7 +39,7 @@ public class RawTableMasterService {
 
   public interface Iface {
 
-    public long createRawTable(String path, int columns, ByteBuffer metadata) throws TachyonTException, org.apache.thrift.TException;
+    public long createRawTable(String path, int columns, ByteBuffer metadata) throws TachyonTException, ThriftIOException, org.apache.thrift.TException;
 
     public RawTableInfo getClientRawTableInfoById(long id) throws TachyonTException, org.apache.thrift.TException;
 
@@ -85,7 +85,7 @@ public class RawTableMasterService {
       super(iprot, oprot);
     }
 
-    public long createRawTable(String path, int columns, ByteBuffer metadata) throws TachyonTException, org.apache.thrift.TException
+    public long createRawTable(String path, int columns, ByteBuffer metadata) throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       send_createRawTable(path, columns, metadata);
       return recv_createRawTable();
@@ -100,7 +100,7 @@ public class RawTableMasterService {
       sendBase("createRawTable", args);
     }
 
-    public long recv_createRawTable() throws TachyonTException, org.apache.thrift.TException
+    public long recv_createRawTable() throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       createRawTable_result result = new createRawTable_result();
       receiveBase(result, "createRawTable");
@@ -109,6 +109,9 @@ public class RawTableMasterService {
       }
       if (result.e != null) {
         throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createRawTable failed: unknown result");
     }
@@ -261,7 +264,7 @@ public class RawTableMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws TachyonTException, org.apache.thrift.TException {
+      public long getResult() throws TachyonTException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -443,6 +446,8 @@ public class RawTableMasterService {
           result.setSuccessIsSet(true);
         } catch (TachyonTException e) {
           result.e = e;
+        } catch (ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -597,6 +602,11 @@ public class RawTableMasterService {
             if (e instanceof TachyonTException) {
                         result.e = (TachyonTException) e;
                         result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.ioe = (ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1438,6 +1448,7 @@ public class RawTableMasterService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1447,11 +1458,13 @@ public class RawTableMasterService {
 
     public long success; // required
     public TachyonTException e; // required
+    public ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1470,6 +1483,8 @@ public class RawTableMasterService {
             return SUCCESS;
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -1519,6 +1534,8 @@ public class RawTableMasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createRawTable_result.class, metaDataMap);
     }
@@ -1528,12 +1545,14 @@ public class RawTableMasterService {
 
     public createRawTable_result(
       long success,
-      TachyonTException e)
+      TachyonTException e,
+      ThriftIOException ioe)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -1544,6 +1563,9 @@ public class RawTableMasterService {
       this.success = other.success;
       if (other.isSetE()) {
         this.e = new TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new ThriftIOException(other.ioe);
       }
     }
 
@@ -1556,6 +1578,7 @@ public class RawTableMasterService {
       setSuccessIsSet(false);
       this.success = 0;
       this.e = null;
+      this.ioe = null;
     }
 
     public long getSuccess() {
@@ -1605,6 +1628,30 @@ public class RawTableMasterService {
       }
     }
 
+    public ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public createRawTable_result setIoe(ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -1623,6 +1670,14 @@ public class RawTableMasterService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -1633,6 +1688,9 @@ public class RawTableMasterService {
 
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -1649,6 +1707,8 @@ public class RawTableMasterService {
         return isSetSuccess();
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -1684,6 +1744,15 @@ public class RawTableMasterService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -1700,6 +1769,11 @@ public class RawTableMasterService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -1728,6 +1802,16 @@ public class RawTableMasterService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -1761,6 +1845,14 @@ public class RawTableMasterService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -1825,6 +1917,15 @@ public class RawTableMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -1848,6 +1949,11 @@ public class RawTableMasterService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1874,19 +1980,25 @@ public class RawTableMasterService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetIoe()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createRawTable_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
@@ -1895,6 +2007,11 @@ public class RawTableMasterService {
           struct.e = new TachyonTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ioe = new ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }

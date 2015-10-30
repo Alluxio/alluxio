@@ -17,8 +17,8 @@ set up Tachyon and Hadoop in accordance to these guides [Local Mode](Running-Tac
 
 ## Using Hadoop 1.x
 
-If running a Hadoop 1.x cluster, ensure that the `hadoop/conf/core-site.xml` file in your Hadoop
-installation `conf` directory has the following properties added:
+If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Hadoop installation
+`conf` directory has the following properties added:
 
 ```xml
 <property>
@@ -162,7 +162,7 @@ This command will copy the `LICENSE` file into the Tachyon namespace with the pa
 Now we can run a MapReduce job for wordcount.
 
 ```bash
-$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
+$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar -Dtachyon.user.file.understoragetype.default=SYNC_PERSIST tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory

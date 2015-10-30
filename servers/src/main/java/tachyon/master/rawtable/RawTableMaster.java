@@ -36,6 +36,7 @@ import tachyon.exception.TableMetadataException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -47,6 +48,7 @@ import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.util.IdUtils;
 
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -120,7 +122,7 @@ public class RawTableMaster extends MasterBase {
    * @param path the path where the table is placed
    * @param columns the number of columns in the table
    * @param metadata additional metadata about the table
-   * @return the id of the table
+   * @return the id of the table or {@link IdUtils#INVALID_FILE_ID} if path does not exist
    * @throws FileAlreadyExistsException when the path already represents a file
    * @throws InvalidPathException when path is invalid
    * @throws TableColumnException when number of columns is out of range
@@ -128,14 +130,19 @@ public class RawTableMaster extends MasterBase {
    */
   public long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistsException, InvalidPathException, TableColumnException,
-      TableMetadataException {
+      TableMetadataException, IOException {
     LOG.info("createRawTable with " + columns + " columns at " + path);
 
     validateColumnSize(columns);
     validateMetadataSize(metadata);
 
     // Create a directory at path to hold the columns
-    mFileSystemMaster.mkdir(path, true);
+    MkdirOptions options =
+        new MkdirOptions.Builder(MasterContext.getConf())
+            .setPersisted(true)
+            .setRecursive(true)
+            .build();
+    mFileSystemMaster.mkdir(path, options);
     long id = mFileSystemMaster.getFileId(path);
 
     // Add the table
@@ -148,7 +155,7 @@ public class RawTableMaster extends MasterBase {
 
     // Create directories in the table directory as columns
     for (int k = 0; k < columns; k ++) {
-      mFileSystemMaster.mkdir(columnPath(path, k), true);
+      mFileSystemMaster.mkdir(columnPath(path, k), options);
     }
 
     writeJournalEntry(new RawTableEntry(id, columns, metadata));
@@ -197,8 +204,8 @@ public class RawTableMaster extends MasterBase {
    * @throws InvalidPathException when path is invalid
    * @throws TableDoesNotExistException when the path does not refer to a table
    */
-  public long getRawTableId(TachyonURI path)
-      throws InvalidPathException, TableDoesNotExistException {
+  public long getRawTableId(TachyonURI path) throws InvalidPathException,
+      TableDoesNotExistException, IOException {
     long tableId = mFileSystemMaster.getFileId(path);
     if (!mRawTables.contains(tableId) || !mFileSystemMaster.isDirectory(tableId)) {
       throw new TableDoesNotExistException(
@@ -251,8 +258,8 @@ public class RawTableMaster extends MasterBase {
    * @throws TableDoesNotExistException when the path does not refer to a table
    * @throws InvalidPathException when path is invalid
    */
-  public RawTableInfo getClientRawTableInfo(TachyonURI path)
-      throws TableDoesNotExistException, InvalidPathException {
+  public RawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
+      InvalidPathException, IOException {
     return getClientRawTableInfo(getRawTableId(path));
   }
 

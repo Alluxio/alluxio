@@ -29,6 +29,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
+import tachyon.client.file.options.CreateOptions;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.security.authentication.AuthType;
@@ -175,7 +176,7 @@ public class MasterClientAuthenticationIntegrationTest {
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.create(filename, Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
+    masterClient.create(filename, CreateOptions.defaults());
     Assert.assertNotNull(masterClient.getFileId(filename));
     masterClient.disconnect();
     masterClient.close();

@@ -118,4 +118,4 @@ $ ./destroy
 ```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
-command succeeds, the EC2 instances are terminated.
+command succeeds, the virtual machines are terminated.

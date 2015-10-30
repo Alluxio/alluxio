@@ -59,23 +59,20 @@ public class RawTableMasterIntegrationTest {
 
   @Ignore
   @Test
-  public void createRawTableTest() throws InvalidPathException, FileAlreadyExistsException,
-      TableColumnException, TableMetadataException, FileDoesNotExistException {
+  public void createRawTableTest() throws Exception {
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, null);
     Assert.assertTrue(
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isFolder);
   }
 
   @Test
-  public void negativeColumnTest() throws InvalidPathException, FileAlreadyExistsException,
-      TableColumnException, TableMetadataException {
+  public void negativeColumnTest() throws Exception {
     mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), -1, null);
   }
 
   @Test
-  public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistsException,
-      TableColumnException, TableMetadataException {
+  public void tooManyColumnsTest() throws Exception {
     mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"),
         mMasterConf.getInt(Constants.MAX_COLUMNS) + 1, null);

@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,8 +33,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.exception.TachyonException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatScheduler;
+import tachyon.master.MasterContext;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -41,6 +46,7 @@ import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 
 /**
  * Unit tests for tachyon.master.block.BlockMaster.
@@ -60,8 +66,11 @@ public class BlockMasterTest implements Tester<BlockMaster> {
 
   @Before
   public void initialize() throws Exception {
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
+    mMaster.start(true);
     mMaster.grantAccess(BlockMasterTest.this); // initializes mPrivateAccess
   }
 
@@ -90,12 +99,36 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, new NetAddress("localhost", 80, 81));
     MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, new NetAddress("localhost", 82, 83));
     mPrivateAccess.addLostWorker(workerInfo1);
-    Assert.assertEquals(ImmutableList.of(workerInfo1.generateClientWorkerInfo()),
+    Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
         mMaster.getLostWorkersInfo());
     mPrivateAccess.addLostWorker(workerInfo2);
-    Assert.assertEquals(
-        ImmutableList.of(workerInfo1.generateClientWorkerInfo(),
-            workerInfo2.generateClientWorkerInfo()), mMaster.getLostWorkersInfo());
+
+    final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
+        workerInfo2.generateClientWorkerInfo());
+
+    Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
+  }
+
+  @Test
+  public void registerLostWorkerTest() throws Exception {
+    final NetAddress na = new NetAddress("localhost", 80, 81);
+    final long expectedId = 1;
+    final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
+    workerInfo1.addBlock(1L);
+
+    mPrivateAccess.addLostWorker(workerInfo1);
+    final long workerId = mMaster.getWorkerId(na);
+    Assert.assertEquals(expectedId, workerId);
+
+    final List<Long> blocks = ImmutableList.of(42L);
+    mMaster.workerRegister(workerId, ImmutableList.of(1024L), ImmutableList.of(1024L),
+        ImmutableMap.of(1L, blocks));
+
+    final Set<Long> expectedBlocks = ImmutableSet.of(42L);
+    final Set<Long> actualBlocks = workerInfo1.getBlocks();
+
+    Assert.assertEquals("The master should reflect the blocks declared at registration",
+        expectedBlocks, actualBlocks);
   }
 
   @Test
@@ -192,6 +225,51 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   public void unknownHeartbeatTest() throws Exception {
     Command heartBeat = mMaster.workerHeartbeat(0, null, null, null);
     Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
+  }
+
+  @Test
+  public void detectLostWorkerTest() throws Exception {
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
+
+    // Get a new worker id.
+    long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
+    Assert.assertNotNull(workerInfo);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+
+    // No workers should be considered lost.
+    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
+
+    // Set the last updated time for the worker to be old, so it is considered lost.
+    workerInfo.setLastUpdatedTimeMs(System.currentTimeMillis()
+        - 2 * MasterContext.getConf().getInt(Constants.MASTER_WORKER_TIMEOUT_MS));
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+
+    // There should be a lost worker.
+    Assert.assertEquals(1, mMaster.getLostWorkersInfo().size());
+    Assert.assertNull(mPrivateAccess.getWorkerById(workerId));
+
+    // Get the worker id again, simulating the lost worker re-registering.
+    workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+
+    // No workers should be considered lost.
+    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
   }
 
   private void addWorker(BlockMaster master, long workerId, List<Long> totalBytesOnTiers,

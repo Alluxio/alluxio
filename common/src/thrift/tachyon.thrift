@@ -135,6 +135,18 @@ exception ThriftIOException {
   1: string message
 }
 
+struct CreateTOptions {
+  1: optional i64 blockSizeBytes
+  2: optional bool persisted
+  3: optional bool recursive
+  4: optional i64 ttl
+}
+
+struct MkdirTOptions {
+  1: optional bool persisted
+  2: optional bool recursive
+}
+
 service BlockMasterService {
   BlockInfo getBlockInfo(1: i64 blockId) throws (1: TachyonTException e)
 
@@ -162,10 +174,10 @@ service BlockMasterService {
 service FileSystemMasterService {
   void completeFile(1: i64 fileId) throws (1: TachyonTException e)
 
-  bool mkdir(1: string path, 2: bool recursive)
-    throws (1: TachyonTException e)
+  bool mkdir(1: string path, 2: MkdirTOptions options)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
-  i64 create(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
+  i64 create(1: string path, 2: CreateTOptions options)
     throws (1: TachyonTException e)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
@@ -252,7 +264,7 @@ service LineageMasterService {
 
 service RawTableMasterService {
   i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   RawTableInfo getClientRawTableInfoById(1: i64 id)
     throws (1: TachyonTException e)
