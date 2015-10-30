@@ -48,6 +48,7 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -95,9 +96,9 @@ abstract class AbstractTFS extends FileSystem {
         LOG.warn("Appending to nonempty file. This may be an error.");
       }
     } catch (InvalidPathException e) {
-      throw new FileNotFoundException("File does not exist: " + path);
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException("File does not exist: " + path);
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -139,17 +140,17 @@ abstract class AbstractTFS extends FileSystem {
       TachyonFile file = mTFS.openIfExists(path);
       if (file != null) {
         if (!overwrite) {
-          throw new IOException(cPath.toString() + " already exists.");
+          throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(cPath.toString()));
         }
         FileInfo info = mTFS.getInfo(file);
         if (info.isIsFolder()) {
-          throw new IOException(cPath.toString() + " already exists. Directories cannot be "
-              + "overwritten with create.");
+          throw new IOException(
+              ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(cPath.toString()));
         }
         try {
           mTFS.delete(file);
         } catch (TachyonException e) {
-          throw new IOException("Failed to delete existing data " + cPath, e);
+          throw new IOException(ExceptionMessage.DELETE_FAILED.getMessage(cPath), e);
         }
       }
     } catch (TachyonException e) {
@@ -190,7 +191,7 @@ abstract class AbstractTFS extends FileSystem {
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
     TachyonURI parentPath = new TachyonURI(Utils.getPathWithoutScheme(cPath.getParent()));
-    tryOpen(parentPath, "Parent directory does not exist!");
+    tryOpen(parentPath, ExceptionMessage.NO_PARENT_DIRECTORY.getMessage(parentPath));
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
@@ -249,7 +250,8 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
-    TachyonFile fileMetadata = tryOpen(path, "File does not exist: " + file.getPath());
+    TachyonFile fileMetadata =
+        tryOpen(path, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(file.getPath()));
     List<FileBlockInfo> blocks = getFileBlocks(fileMetadata.getFileId());
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
@@ -306,10 +308,10 @@ abstract class AbstractTFS extends FileSystem {
       fileStatus = mTFS.getInfo(file);
     } catch (InvalidPathException e) {
       LOG.info("Invalid path: " + path);
-      throw new FileNotFoundException("File does not exist: " + path);
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (FileDoesNotExistException e) {
       LOG.info("File does not exist: " + path);
-      throw new FileNotFoundException("File does not exist: " + path);
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -322,8 +324,8 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Gets the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
-   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot
-   * put {@literal @Override}.
+   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot put
+   * {@literal @Override}.
    *
    * @return schema hadoop should map to
    *
@@ -398,9 +400,9 @@ abstract class AbstractTFS extends FileSystem {
       TachyonFile file = mTFS.open(tPath);
       files = mTFS.listStatus(file);
     } catch (InvalidPathException e) {
-      throw new FileNotFoundException("File does not exist: " + path);
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException("File does not exist: " + path);
+      throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -456,12 +458,11 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    TachyonFile file = tryOpen(path, "Cannot open " + path + " because it does not exist");
+    TachyonFile file = tryOpen(path, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     long fileId = file.getFileId();
 
-    return new FSDataInputStream(
-        new HdfsFileInputStream(fileId, Utils.getHDFSPath(path, mUnderFSAddress), getConf(),
-            bufferSize, mStatistics));
+    return new FSDataInputStream(new HdfsFileInputStream(fileId,
+        Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mStatistics));
   }
 
   @Override
@@ -473,7 +474,8 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
-    TachyonFile srcFile = tryOpen(srcPath, "Cannot move nonexistant file: " + srcPath);
+    TachyonFile srcFile =
+        tryOpen(srcPath, ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath));
     FileInfo info;
     try {
       TachyonFile file = mTFS.open(dstPath);
