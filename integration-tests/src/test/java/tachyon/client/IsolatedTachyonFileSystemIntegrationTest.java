@@ -58,8 +58,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
 
-    TachyonConf testConf = mLocalTachyonCluster.getTestConf();
-    testConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+    mLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
         USER_QUOTA_UNIT_BYTES));
     mLocalTachyonCluster.start();
 

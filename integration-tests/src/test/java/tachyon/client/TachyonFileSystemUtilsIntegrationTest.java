@@ -63,7 +63,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
       new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     sLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
         USER_QUOTA_UNIT_BYTES));
-    sLocalTachyonCluster.getTestConf().set(Constants.MAX_COLUMNS, "257");
 
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
