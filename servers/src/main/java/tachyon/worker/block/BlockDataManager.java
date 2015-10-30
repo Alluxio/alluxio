@@ -250,12 +250,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
-  // now,
-  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
-  // more general exception.
   public String createBlock(long sessionId, long blockId, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
       IOException, InvalidWorkerStateException {
