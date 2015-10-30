@@ -33,6 +33,7 @@ import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
+import tachyon.client.file.options.PersistOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
@@ -223,6 +224,21 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   }
 
   @Override
+  public boolean persistFile(TachyonFile file, PersistOptions options)
+      throws IOException, FileDoesNotExistException, TachyonException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      FileInfo fileInfo = getInfo(file, GetInfoOptions.defaults());
+      return masterClient.persistFile(file.getFileId(), fileInfo.getLength());
+    } catch (TachyonException e) {
+      TachyonException.unwrap(e, FileDoesNotExistException.class);
+      throw e;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
   public boolean rename(TachyonFile src, TachyonURI dst, RenameOptions options)
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -258,5 +274,4 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       mContext.releaseMasterClient(masterClient);
     }
   }
-
 }
