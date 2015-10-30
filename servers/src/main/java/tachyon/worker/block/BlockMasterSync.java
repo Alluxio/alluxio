@@ -95,7 +95,7 @@ public final class BlockMasterSync implements Runnable {
    *
    * @throws IOException when workerId cannot be found
    */
-  private void registerWithMaster() throws IOException {
+  private void registerWithMaster() throws IOException, TachyonException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
@@ -123,6 +123,8 @@ public final class BlockMasterSync implements Runnable {
     } catch (IOException ioe) {
       // If failed to register when the thread starts, no retry will happen.
       throw new RuntimeException("Failed to register with master.", ioe);
+    } catch (TachyonException te) {
+      throw new RuntimeException("Failed to register with master.", te);
     }
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval

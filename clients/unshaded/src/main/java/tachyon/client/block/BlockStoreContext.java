@@ -24,6 +24,7 @@ import com.google.common.base.Throwables;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
@@ -87,6 +88,8 @@ public enum BlockStoreContext {
       }
     } catch (IOException ioe) {
       Throwables.propagate(ioe);
+    } catch (TachyonException te) {
+      Throwables.propagate(te);
     } finally {
       releaseMasterClient(masterClient);
     }

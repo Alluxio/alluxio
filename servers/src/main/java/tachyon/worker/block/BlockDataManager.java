@@ -153,6 +153,8 @@ public final class BlockDataManager {
           loc.tierAlias(), blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }

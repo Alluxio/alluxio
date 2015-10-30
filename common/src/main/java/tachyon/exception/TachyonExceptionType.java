@@ -19,6 +19,7 @@ public enum TachyonExceptionType {
   BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
   BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
   BLOCK_INFO(BlockInfoException.class),
+  CONNECTION_FAILED(ConnectionFailedException.class),
   DEPENDENCY_DOES_NOT_EXIST(DependencyDoesNotExistException.class),
   DIRECTORY_NOT_EMPTY_EXCEPTION(DirectoryNotEmptyException.class),
   FAILED_TO_CHECKPOINT(FailedToCheckpointException.class),

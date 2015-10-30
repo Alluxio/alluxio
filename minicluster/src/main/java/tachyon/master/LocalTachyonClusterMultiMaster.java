@@ -31,6 +31,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
@@ -185,8 +186,9 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public void start() throws IOException {
+  public void start() throws IOException, TachyonException {
     int numLevels = 1;
+
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";

@@ -32,6 +32,8 @@ import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.exception.ConnectionFailedException;
+import tachyon.exception.TachyonException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
@@ -66,7 +68,7 @@ public class ServiceSocketBindIntegrationTest {
     CommonUtils.sleepMs(200);
   }
 
-  private void connectServices() throws IOException {
+  private void connectServices() throws IOException, TachyonException {
     // connect Master RPC service
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
@@ -210,7 +212,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
-    } catch (IOException ie) {
+    } catch (ConnectionFailedException cfe) {
       // This is expected, since Master RPC service is NOT listening on loopback.
     }
 

@@ -15,7 +15,6 @@
 
 package tachyon.security;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 
 import javax.security.sasl.AuthenticationException;
@@ -31,6 +30,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.security.authentication.AuthenticationProvider;
 
 /**
@@ -98,7 +98,7 @@ public class MasterClientAuthenticationIntegrationTest {
     mLocalTachyonClusterResource.start();
     // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
     clearLoginUser();
-    mThrown.expect(IOException.class);
+    mThrown.expect(ConnectionFailedException.class);
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),

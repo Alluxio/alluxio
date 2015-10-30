@@ -66,7 +66,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return A list of worker info returned by master
    * @throws IOException if an I/O error occurs
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
+  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException, TachyonException {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
@@ -99,7 +99,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return total capacity in bytes
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getCapacityBytes() throws IOException {
+  public synchronized long getCapacityBytes() throws TachyonException, IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -114,7 +114,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return amount of used space in bytes
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getUsedBytes() throws IOException {
+  public synchronized long getUsedBytes() throws TachyonException, IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {

@@ -74,7 +74,8 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length) throws IOException {
+      final String tierAlias, final long blockId, final long length)
+          throws IOException, TachyonException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -91,7 +92,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getId(final NetAddress address) throws IOException {
+  public synchronized long getId(final NetAddress address) throws IOException, TachyonException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -112,7 +113,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) throws IOException {
+      final Map<String, List<Long>> addedBlocks) throws IOException, TachyonException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {

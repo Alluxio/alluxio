@@ -29,6 +29,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
@@ -275,7 +276,7 @@ public final class LocalTachyonCluster {
    *
    * @throws IOException when the operation fails
    */
-  private void startWorker(TachyonConf testConf) throws IOException {
+  private void startWorker(TachyonConf testConf) throws IOException, TachyonException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
     mWorkerConf = new TachyonConf(testConf.getInternalProperties());
@@ -312,7 +313,7 @@ public final class LocalTachyonCluster {
    *
    * @throws IOException when the operation fails
    */
-  public void start() throws IOException {
+  public void start() throws IOException, TachyonException {
     start(newTestConf());
   }
 
@@ -321,7 +322,7 @@ public final class LocalTachyonCluster {
    *
    * @throws IOException when the operation fails
    */
-  public void start(TachyonConf conf) throws IOException {
+  public void start(TachyonConf conf) throws IOException, TachyonException {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
