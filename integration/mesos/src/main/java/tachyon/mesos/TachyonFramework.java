@@ -16,6 +16,7 @@
 package tachyon.mesos;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class TachyonFramework {
     public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId,
         Protos.SlaveID slaveId, byte[] data) {
       System.out.println("Executor: " + executorId.getValue() + ", " + "Slave: "
-          + slaveId.getValue() + ", " + "Data: " + data.toString() + ".");
+          + slaveId.getValue() + ", " + "Data: " + Arrays.toString(data) + ".");
     }
 
     @Override
