@@ -247,7 +247,7 @@ public class TachyonFramework {
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
-      System.out.printf("Task %s is in state %s\n", taskId, state);
+      System.out.printf("Task %s is in state %s%n", taskId, state);
       // TODO(jiri): Handle the case when a Tachyon master and/or worker task fails.
       // In particular, we should enable support for the fault tolerant mode of Tachyon to account
       // for Tachyon master process failures and keep track of the running number of Tachyon
