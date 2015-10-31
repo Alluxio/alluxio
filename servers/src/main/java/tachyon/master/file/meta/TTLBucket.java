@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Objects;
+
 import tachyon.Constants;
 import tachyon.master.MasterContext;
 
@@ -79,5 +81,28 @@ public final class TTLBucket implements Comparable<TTLBucket> {
       return 0;
     }
     return 1;
+  }
+
+  /**
+   * Compares to a specific object.
+   *
+   * @param object the object to compare
+   * @return true if object is also {@link TTLBucket} and represents
+   * the same TTLIntervalStartTime and files
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || getClass() != object.getClass()) {
+      return false;
+    }
+
+    TTLBucket that = (TTLBucket) object;
+    return Objects.equal(mTTLIntervalStartTimeMs, that.mTTLIntervalStartTimeMs)
+        && Objects.equal(mFiles, that.mFiles);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mTTLIntervalStartTimeMs, mFiles);
   }
 }
