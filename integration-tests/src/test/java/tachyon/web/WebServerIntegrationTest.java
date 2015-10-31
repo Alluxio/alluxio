@@ -29,6 +29,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.exception.TachyonException;
@@ -70,8 +71,11 @@ public class WebServerIntegrationTest {
     mLocalTachyonCluster.stop();
   }
 
-  @Before
-  public final void before() throws Exception {
+  public final void startCluster(String bindHost) throws Exception {
+    TachyonConf tachyonConf = MasterContext.getConf();
+    for (ServiceType service : ServiceType.values()) {
+      tachyonConf.set(service.getBindHostKey(), bindHost);
+    }
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -79,7 +83,9 @@ public class WebServerIntegrationTest {
   }
 
   @Test
-  public void serverUpTest() throws TachyonException, IOException {
+  public void serverUpTest() throws Exception, IOException, TachyonException {
+    startCluster("");
+
     try {
       InetSocketAddress masterWebAddr =
           NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
