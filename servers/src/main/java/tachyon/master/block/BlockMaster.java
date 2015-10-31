@@ -119,6 +119,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * All worker information. Access must be synchronized on mWorkers. If both block and worker
    * metadata must be locked, mBlocks must be locked first.
    */
+  // This warning cannot be avoided when passing generics into varargs
+  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /**
