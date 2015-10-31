@@ -48,8 +48,13 @@ public class WebServerIntegrationTest {
   private HttpURLConnection mWorkerWebService;
 
   private boolean verifyWebService(HttpURLConnection webService) throws IOException {
+    if (null == webService) {
+      return false;
+    }
+
     Scanner pageScanner = new Scanner(webService.getInputStream());
     boolean verified = false;
+
     while (pageScanner.hasNextLine()) {
       String line = pageScanner.nextLine();
       if (line.equals("<title>Tachyon</title>")) {
@@ -76,7 +81,6 @@ public class WebServerIntegrationTest {
 
   @Test
   public void serverUpTest() throws TachyonException, IOException {
-    /*
     try {
       InetSocketAddress masterWebAddr =
           NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
@@ -84,10 +88,13 @@ public class WebServerIntegrationTest {
           "http://" + masterWebAddr.getAddress().getHostAddress() + ":"
           + mLocalTachyonCluster.getMaster().getWebLocalPort() + "/home")
           .openConnection();
+      Assert.assertNotNull(mMasterWebService);
+      mMasterWebService.connect();
       Assert.assertEquals(200, mMasterWebService.getResponseCode());
       if (!verifyWebService(mMasterWebService)) {
         Assert.fail("Master web server was started but not successfully verified.");
       }
+      mMasterWebService.disconnect();
     } catch (IOException e) {
       Assert.fail("Master web server was not successfully started.");
     }
@@ -99,13 +106,15 @@ public class WebServerIntegrationTest {
           "http://" + workerWebAddr.getAddress().getHostAddress() + ":"
           + mLocalTachyonCluster.getWorker().getWebLocalPort() + "/home")
           .openConnection();
+      Assert.assertNotNull(mWorkerWebService);
+      mWorkerWebService.connect();
       Assert.assertEquals(200, mWorkerWebService.getResponseCode());
       if (!verifyWebService(mWorkerWebService)) {
         Assert.fail("Worker web server was started but not successfully verified.");
       }
+      mWorkerWebService.disconnect();
     } catch (IOException e) {
       Assert.fail("Worker web server was not successfully started.");
     }
-    */
   }
 }
