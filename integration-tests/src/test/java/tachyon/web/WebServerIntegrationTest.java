@@ -27,8 +27,11 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.exception.TachyonException;
+import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Test the web server is up when Tachyon starts.
@@ -66,6 +69,11 @@ public class WebServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    TachyonConf tachyonConf = MasterContext.getConf();
+    for (ServiceType service : ServiceType.values()) {
+      tachyonConf.set(service.getBindHostKey(),
+          NetworkAddressUtils.getLocalHostName(100));
+    }
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
