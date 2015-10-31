@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.network.NetworkAddressUtils;
