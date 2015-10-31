@@ -23,12 +23,12 @@ import java.util.Scanner;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.exception.TachyonException;
@@ -67,14 +67,13 @@ public class WebServerIntegrationTest {
 
   @After
   public final void after() throws Exception {
+    mMasterWebService.disconnect();
+    mWorkerWebService.disconnect();
     mLocalTachyonCluster.stop();
   }
 
-  public final void startCluster(String bindHost) throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    for (ServiceType service : ServiceType.values()) {
-      tachyonConf.set(service.getBindHostKey(), bindHost);
-    }
+  @Before
+  public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -83,12 +82,10 @@ public class WebServerIntegrationTest {
 
   @Test
   public void serverUpTest() throws Exception, IOException, TachyonException {
-    startCluster("");
-
     try {
       InetSocketAddress masterWebAddr =
           NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
-      HttpURLConnection mMasterWebService = (HttpURLConnection) new URL(
+      mMasterWebService = (HttpURLConnection) new URL(
           "http://" + masterWebAddr.getAddress().getHostAddress() + ":"
           + mLocalTachyonCluster.getMaster().getWebLocalPort() + "/home")
           .openConnection();
@@ -98,7 +95,6 @@ public class WebServerIntegrationTest {
       if (!verifyWebService(mMasterWebService)) {
         Assert.fail("Master web server was started but not successfully verified.");
       }
-      mMasterWebService.disconnect();
     } catch (IOException e) {
       Assert.fail("Master web server was not successfully started.");
     }
@@ -106,7 +102,7 @@ public class WebServerIntegrationTest {
     try {
       InetSocketAddress workerWebAddr =
           NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerTachyonConf);
-      HttpURLConnection mWorkerWebService = (HttpURLConnection) new URL(
+      mWorkerWebService = (HttpURLConnection) new URL(
           "http://" + workerWebAddr.getAddress().getHostAddress() + ":"
           + mLocalTachyonCluster.getWorker().getWebLocalPort() + "/home")
           .openConnection();
@@ -116,7 +112,6 @@ public class WebServerIntegrationTest {
       if (!verifyWebService(mWorkerWebService)) {
         Assert.fail("Worker web server was started but not successfully verified.");
       }
-      mWorkerWebService.disconnect();
     } catch (IOException e) {
       Assert.fail("Worker web server was not successfully started.");
     }
