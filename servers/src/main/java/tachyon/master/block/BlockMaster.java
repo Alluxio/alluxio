@@ -107,7 +107,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           return o.getAddress();
         }
       };
-  @SuppressWarnings("unchecked")
   /**
    * Mapping between all possible storage level aliases and their ordinal position. This mapping
    * forms a total ordering on all storage level aliases in the system, and must be consistent
