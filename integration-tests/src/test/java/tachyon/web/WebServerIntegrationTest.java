@@ -17,7 +17,11 @@ package tachyon.web;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.URL;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.Scanner;
 
 import org.junit.After;
@@ -26,12 +30,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.client.BlockMasterClient;
+import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.worker.WorkerClient;
 
 /**
  * Test the web server is up when Tachyon starts.
@@ -40,6 +47,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public class WebServerIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
   private TachyonConf mWorkerTachyonConf = null;
 
@@ -65,6 +73,7 @@ public class WebServerIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    mExecutorService.shutdown();
   }
 
   @Before
@@ -82,6 +91,20 @@ public class WebServerIntegrationTest {
 
   @Test
   public void serverUpTest() throws Exception, IOException, TachyonException {
+    BlockMasterClient blockMasterClient =
+        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
+            mLocalTachyonCluster.getMasterPort()), mExecutorService, mMasterTachyonConf);
+    blockMasterClient.connect();
+    Assert.assertTrue(blockMasterClient.isConnected());
+
+    WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
+    workerClient.mustConnect();
+    Assert.assertTrue(workerClient.isConnected());
+
+    SocketChannel workerDataService = SocketChannel
+        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA, mWorkerTachyonConf));
+    Assert.assertTrue(workerDataService.isConnected());
+
     try {
       HttpURLConnection masterWebService = (HttpURLConnection) new URL(
           "http://" + mLocalTachyonCluster.getMaster().getWebBindHost() + ":"
