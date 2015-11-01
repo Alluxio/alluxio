@@ -27,6 +27,6 @@ public class MountOptionsTest {
 
   @Test
   public void defaultsTest() {
-    MountOptions options = MountOptions.defaults();
+    MountOptions.defaults();
   }
 }

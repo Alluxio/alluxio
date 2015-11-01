@@ -27,6 +27,6 @@ public class GetInfoOptionsTest {
 
   @Test
   public void defaultsTest() {
-    GetInfoOptions options = GetInfoOptions.defaults();
+    GetInfoOptions.defaults();
   }
 }
