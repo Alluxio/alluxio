@@ -33,6 +33,13 @@ public final class OutStreamOptions {
 
     /**
      * Creates a new builder for {@link OutStreamOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link OutStreamOptions}.
      *
      * @param conf a Tachyon configuration
      */

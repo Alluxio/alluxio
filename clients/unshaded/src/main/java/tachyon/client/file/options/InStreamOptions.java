@@ -28,6 +28,13 @@ public final class InStreamOptions {
 
     /**
      * Creates a new builder for {@link InStreamOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link InStreamOptions}.
      *
      * @param conf a Tachyon configuration
      */

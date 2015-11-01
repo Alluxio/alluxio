@@ -30,6 +30,13 @@ public final class MkdirOptions {
 
     /**
      * Creates a new builder for {@link MkdirOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link MkdirOptions}.
      *
      * @param conf a Tachyon configuration
      */
