@@ -24,10 +24,8 @@ public final class ListStatusOptions {
   public static class Builder {
     /**
      * Creates a new builder for {@link ListStatusOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {}
+    public Builder() {}
 
     /**
      * Builds a new instance of {@code ListStatusOptions}.
@@ -43,7 +41,7 @@ public final class ListStatusOptions {
    * @return the default {@code ListStatusOptions}
    */
   public static ListStatusOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private ListStatusOptions(ListStatusOptions.Builder builder) {}

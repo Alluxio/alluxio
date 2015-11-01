@@ -26,10 +26,8 @@ public final class LoadMetadataOptions {
 
     /**
      * Creates a new builder for {@link FreeOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder() {
       mRecursive = false;
     }
 
@@ -57,7 +55,7 @@ public final class LoadMetadataOptions {
    * @return the default {@code LoadMetadataOptions}
    */
   public static LoadMetadataOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;

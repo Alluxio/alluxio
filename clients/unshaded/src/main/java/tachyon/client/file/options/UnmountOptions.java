@@ -24,10 +24,8 @@ public final class UnmountOptions {
   public static class Builder {
     /**
      * Creates a new builder for {@link UnmountOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {}
+    public Builder() {}
 
     /**
      * Builds a new instance of {@code UnmountOptions}.
@@ -43,7 +41,7 @@ public final class UnmountOptions {
    * @return the default {@code UnmountOptions}
    */
   public static UnmountOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private UnmountOptions(UnmountOptions.Builder builder) {}
