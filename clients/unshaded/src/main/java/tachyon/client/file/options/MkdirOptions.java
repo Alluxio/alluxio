@@ -79,7 +79,7 @@ public final class MkdirOptions {
    * @return the default {@code MkdirOptions}
    */
   public static MkdirOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;
