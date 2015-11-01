@@ -17,12 +17,10 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class MountOptionsTest {
   @Test
   public void builderTest() {
-    new MountOptions.Builder(new TachyonConf()).build();
+    new MountOptions.Builder().build();
   }
 
   @Test
