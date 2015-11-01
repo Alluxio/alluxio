@@ -22,7 +22,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -36,6 +35,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
@@ -110,17 +110,13 @@ public class TachyonFileSystemIntegrationTest {
     }
   }
 
-  // TODO(calvin): Validate the URI.
-  @Ignore
   @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("URI must be absolute, unless it's empty.");
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Path root/testFile1 is invalid.");
     sTfs.getOutStream(new TachyonURI("root/testFile1"), sWriteBoth);
   }
 
-  // TODO(calvin): Add Raw Table tests.
-  // TODO(calvin): Check worker capacity?
   @Test
   public void deleteFileTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
