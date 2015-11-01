@@ -27,23 +27,12 @@ import tachyon.conf.TachyonConf;
  */
 @Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
 
   protected final TachyonConf mTachyonConf;
 
   protected AbstractTachyonFS(TachyonConf tachyonConf) {
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(tachyonConf);
     mTachyonConf = tachyonConf;
+    ClientContext.reset(mTachyonConf);
   }
 
   /**
@@ -53,7 +42,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * TODO(hy): It should not create necessary path.
    *
    * @param path the path of the file
-   * @return The unique file id. It returns -1 if the creation failed.
+   * @return The unique file id. It returns -1 if the creation failed
    * @throws IOException if the operation fails
    */
   public synchronized long createFile(TachyonURI path) throws IOException {
@@ -68,7 +57,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    *
    * @param path the path of the file
    * @param blockSizeByte the block size of the file
-   * @return The unique file id. It returns -1 if the creation failed.
+   * @return The unique file id. It returns -1 if the creation failed
    * @throws IOException if the operation fails
    */
   public synchronized long createFile(TachyonURI path, long blockSizeByte) throws IOException {
@@ -87,7 +76,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    *
    * @param path the path of the file in Tachyon
    * @param ufsPath the path of the file in the underfs
-   * @return The unique file id. It returns -1 if the creation failed.
+   * @return The unique file id. It returns -1 if the creation failed
    * @throws IOException if the operation fails
    */
   public synchronized long createFile(TachyonURI path, TachyonURI ufsPath) throws IOException {
@@ -98,9 +87,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Deletes the file denoted by the file id.
    *
    * @param fid file id
-   * @param recursive if delete the path recursively.
+   * @param recursive if delete the path recursively
    * @return true if deletion succeed (including the case the file does not exist in the first
-   *         place), false otherwise.
+   *         place), false otherwise
    * @throws IOException if the operation fails
    */
   public synchronized boolean delete(long fid, boolean recursive) throws IOException {
@@ -111,9 +100,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Deletes the file denoted by the path.
    *
    * @param path the file path
-   * @param recursive if delete the path recursively.
+   * @param recursive if delete the path recursively
    * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
+   *         first place), false otherwise
    * @throws IOException if the operation fails
    */
   public synchronized boolean delete(TachyonURI path, boolean recursive) throws IOException {
@@ -124,8 +113,8 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Create a directory if it does not exist. The method also creates necessary non-existing parent
    * folders.
    *
-   * @param path Directory path.
-   * @return true if the folder is created successfully or already existing. false otherwise.
+   * @param path directory path
+   * @return true if the folder is created successfully or already existing. false otherwise
    * @throws IOException if the operation fails
    */
   public synchronized boolean mkdir(TachyonURI path) throws IOException {
@@ -136,7 +125,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Renames the file.
    *
    * @param fileId the file id
-   * @param dstPath the new path of the file in the file system.
+   * @param dstPath the new path of the file in the file system
    * @return true if succeed, false otherwise
    * @throws IOException if the operation fails
    */
@@ -147,9 +136,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
    * Renames the srcPath to the dstPath.
    *
-   * @param srcPath The path of the source file / folder.
-   * @param dstPath The path of the destination file / folder.
-   * @return true if succeed, false otherwise.
+   * @param srcPath the path of the source file / folder
+   * @param dstPath the path of the destination file / folder
+   * @return true if succeed, false otherwise
    * @throws IOException if the operation fails
    */
   public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws IOException {
@@ -162,7 +151,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   * @param path the file/folder path
   * @param recursive if free the path recursively
   * @return true if the memory free succeed (including the case that the path does not exist in the
-  *         first place), false otherwise.
+  *         first place), false otherwise
   * @throws IOException if the operation fails
   */
   public synchronized boolean freepath(TachyonURI path, boolean recursive) throws IOException {

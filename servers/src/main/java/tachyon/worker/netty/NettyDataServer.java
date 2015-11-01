@@ -112,8 +112,7 @@ public final class NettyDataServer implements DataServer {
   public String getBindHost() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.
-    // TODO(andrew): Avoid using getHostString(), which isn't supported in Java 6
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostName();
   }
 
   /**
@@ -135,7 +134,7 @@ public final class NettyDataServer implements DataServer {
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
    * preset.
    *
-   * @param type The channel type. Current channel types supported are nio and epoll.
+   * @param type the channel type. Current channel types supported are nio and epoll
    * @return an instance of ServerBootstrap
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {

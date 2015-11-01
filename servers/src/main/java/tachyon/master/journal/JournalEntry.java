@@ -15,19 +15,26 @@
 
 package tachyon.master.journal;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 // TODO(cc): In the future, implementations of this interface can be represented as ProtoBuf.
-public interface JournalEntry {
+public abstract class JournalEntry {
 
   /**
-   * @return the {@link JournalEntryType} of this entry.
+   * @return the {@link JournalEntryType} of this entry
    */
-  JournalEntryType getType();
+  @JsonIgnore
+  public abstract JournalEntryType getType();
 
-  /**
-   *
-   * @return parameters of this entry which is a map from parameter name to parameter value.
-   */
-  Map<String, Object> getParameters();
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this, false);
+  }
 }

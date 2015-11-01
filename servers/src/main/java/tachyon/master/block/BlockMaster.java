@@ -19,33 +19,34 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
+
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
+import tachyon.MasterStorageTierAssoc;
+import tachyon.StorageTierAssoc;
 import tachyon.collections.IndexedSet;
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NoWorkerException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
@@ -57,8 +58,6 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -74,8 +73,7 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase
-    implements ContainerIdGenerable, Testable<BlockMaster> {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block metadata management. */
@@ -111,6 +109,13 @@ public final class BlockMaster extends MasterBase
       };
   @SuppressWarnings("unchecked")
   /**
+   * Mapping between all possible storage level aliases and their ordinal position. This mapping
+   * forms a total ordering on all storage level aliases in the system, and must be consistent
+   * across masters.
+   */
+  private StorageTierAssoc mGlobalStorageTierAssoc;
+
+  /**
    * All worker information. Access must be synchronized on mWorkers. If both block and worker
    * metadata must be locked, mBlocks must be locked first.
    */
@@ -120,8 +125,10 @@ public final class BlockMaster extends MasterBase
    * Keeps track of workers which are no longer in communication with the master. Access must be
    * synchronized on mWorkers.
    */
-  private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
-      new LinkedBlockingQueue<MasterWorkerInfo>();
+  // This warning cannot be avoided when passing generics into varargs
+  @SuppressWarnings("unchecked")
+  private final IndexedSet<MasterWorkerInfo> mLostWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /** The service that detects lost worker nodes, and tries to restart the failed workers. */
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
@@ -184,11 +191,12 @@ public final class BlockMaster extends MasterBase
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
+    mGlobalStorageTierAssoc =
+        new MasterStorageTierAssoc(MasterContext.getConf());
     if (isLeader) {
-      mLostWorkerDetectionService =
-          getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
-              new LostWorkerDetectionHeartbeatExecutor(),
-              MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+      mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
+          MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -238,6 +246,13 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
+   * @return the global storage tier mapping
+   */
+  public StorageTierAssoc getGlobalStorageTierAssoc() {
+    return mGlobalStorageTierAssoc;
+  }
+
+  /**
    * @return the total used bytes on all tiers, on all workers of Tachyon. Called via RPC and
    *         internal web ui.
    */
@@ -254,11 +269,11 @@ public final class BlockMaster extends MasterBase
   /**
    * Gets info about the lost workers. Called by the internal web ui.
    *
-   * @return a list of worker info
+   * @return a set of worker info
    */
-  public List<WorkerInfo> getLostWorkersInfo() {
+  public Set<WorkerInfo> getLostWorkersInfo() {
     synchronized (mWorkers) {
-      List<WorkerInfo> ret = new ArrayList<WorkerInfo>(mLostWorkers.size());
+      Set<WorkerInfo> ret = new HashSet<WorkerInfo>(mLostWorkers.size());
       for (MasterWorkerInfo worker : mLostWorkers) {
         ret.add(worker.generateClientWorkerInfo());
       }
@@ -269,7 +284,7 @@ public final class BlockMaster extends MasterBase
   /**
    * Removes blocks from workers. Called by internal masters.
    *
-   * @param blockIds a list of block ids to remove from Tachyon space.
+   * @param blockIds a list of block ids to remove from Tachyon space
    */
   public void removeBlocks(List<Long> blockIds) {
     synchronized (mBlocks) {
@@ -293,7 +308,7 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
-   * @return a new block container id. Called by internal masters.
+   * @return a new block container id. Called by internal masters
    */
   @Override
   public long getNewContainerId() {
@@ -310,11 +325,11 @@ public final class BlockMaster extends MasterBase
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
-   * @param tierAlias the tier alias where the worker is committing the block to
+   * @param tierAlias the alias of the storage tier where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
    */
-  public void commitBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
       long length) {
     LOG.debug("Commit block from worker: {}",
         FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
@@ -363,7 +378,7 @@ public final class BlockMaster extends MasterBase
 
   /**
    * @param blockId the block id to get information for
-   * @return the {@link BlockInfo} for the given block id. Called via RPC.
+   * @return the {@link BlockInfo} for the given block id. Called via RPC
    * @throws BlockInfoException
    */
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
@@ -384,7 +399,7 @@ public final class BlockMaster extends MasterBase
    *
    * @param blockIds A list of block ids to retrieve the information for
    * @return A list of {@link BlockInfo} objects corresponding to the input list of block ids. The
-   *         list is in the same order as the input list.
+   *         list is in the same order as the input list
    */
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
     List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
@@ -403,14 +418,15 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
-   * @return the total bytes on each storage tier. Called by internal web ui.
+   * @return the total bytes on each storage tier. Called by internal web ui
    */
-  public List<Long> getTotalBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+  public Map<String, Long> getTotalBytesOnTiers() {
+    Map<String, Long> ret = new HashMap<String, Long>();
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
-        for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
+        for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
+          Long total = ret.get(entry.getKey());
+          ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
         }
       }
     }
@@ -418,14 +434,15 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
-   * @return the used bytes on each storage tier. Called by internal web ui.
+   * @return the used bytes on each storage tier. Called by internal web ui
    */
-  public List<Long> getUsedBytesOnTiers() {
-    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+  public Map<String, Long> getUsedBytesOnTiers() {
+    Map<String, Long> ret = new HashMap<String, Long>();
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
-        for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
-          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));
+        for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
+          Long used = ret.get(entry.getKey());
+          ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
         }
       }
     }
@@ -447,15 +464,26 @@ public final class BlockMaster extends MasterBase
       if (mWorkers.contains(mAddressIndex, workerAddress)) {
         // This worker address is already mapped to a worker id.
         long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerAddress).getId();
-        LOG.warn("The worker " + workerAddress + " already exists as id " + oldWorkerId + ".");
+        LOG.warn("The worker {} already exists as id {}.", workerAddress, oldWorkerId);
         return oldWorkerId;
+      }
+
+      if (mLostWorkers.contains(mAddressIndex, workerAddress)) { // this is one of the lost workers
+        final MasterWorkerInfo lostWorkerInfo = mLostWorkers.getFirstByField(mAddressIndex,
+            workerAddress);
+        final long lostWorkerId = lostWorkerInfo.getId();
+        LOG.warn("A lost worker {} has requested its old id {}.", workerAddress, lostWorkerId);
+
+        mWorkers.add(lostWorkerInfo);
+        mLostWorkers.remove(lostWorkerInfo);
+        return lostWorkerId;
       }
 
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
 
-      LOG.info("getWorkerId(): WorkerNetAddress: " + workerAddress + " id: " + workerId);
+      LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerAddress, workerId);
       return workerId;
     }
   }
@@ -464,14 +492,16 @@ public final class BlockMaster extends MasterBase
    * Updates metadata when a worker registers with the master. Called by workers via RPC.
    *
    * @param workerId the worker id of the worker registering
-   * @param totalBytesOnTiers list of total bytes on each tier
-   * @param usedBytesOnTiers list of the used byes on each tier
-   * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
+   * @param storageTiers a list of storage tier aliases in order of their position in the worker's
+   *        hierarchy
+   * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
+   * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
+   * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
    * @throws NoWorkerException if workerId cannot be found
    */
-  public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
-        throws NoWorkerException {
+  public void workerRegister(long workerId, List<String> storageTiers,
+      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
@@ -487,11 +517,12 @@ public final class BlockMaster extends MasterBase
         }
 
         // Detect any lost blocks on this worker.
-        Set<Long> removedBlocks = workerInfo.register(totalBytesOnTiers, usedBytesOnTiers, blocks);
+        Set<Long> removedBlocks = workerInfo.register(mGlobalStorageTierAssoc, storageTiers,
+            totalBytesOnTiers, usedBytesOnTiers, blocks);
 
         processWorkerRemovedBlocks(workerInfo, removedBlocks);
         processWorkerAddedBlocks(workerInfo, currentBlocksOnTiers);
-        LOG.info("registerWorker(): " + workerInfo);
+        LOG.info("registerWorker(): {}", workerInfo);
       }
     }
   }
@@ -501,20 +532,20 @@ public final class BlockMaster extends MasterBase
    * periodically, via RPC.
    *
    * @param workerId the worker id
-   * @param usedBytesOnTiers a list of used bytes on each tier
+   * @param usedBytesOnTiers a mapping from tier alias to the used bytes
    * @param removedBlockIds a list of block ids removed from this worker
-   * @param addedBlocksOnTiers the added blocks for each storage dir. It maps storage dir id, to a
-   *        list of added block for that storage dir.
+   * @param addedBlocksOnTiers a mapping from tier alias to the added blocks
    * @return an optional command for the worker to execute
    */
-  public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlocksOnTiers) {
+  public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
-          LOG.warn("Could not find worker id: " + workerId + " for heartbeat.");
+          LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
           return new Command(CommandType.Register, new ArrayList<Long>());
         }
+
         MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         processWorkerRemovedBlocks(workerInfo, removedBlockIds);
         processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
@@ -544,12 +575,12 @@ public final class BlockMaster extends MasterBase
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
-        LOG.warn("Worker " + workerInfo.getId() + " removed block " + removedBlockId
-            + " but block does not exist.");
+        LOG.warn("Worker {} removed block {} but block does not exist.", workerInfo.getId(),
+            removedBlockId);
         // Continue to remove the remaining blocks.
         continue;
       }
-      LOG.info("Block " + removedBlockId + " is removed on worker " + workerInfo.getId());
+      LOG.info("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {
@@ -559,28 +590,34 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
+   * Called by the heartbeat thread whenever a worker is lost.
+   * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
+   */
+  // Synchronized on mBlocks by the caller
+  private void processLostWorker(MasterWorkerInfo latest) {
+    final Set<Long> lostBlocks = latest.getBlocks();
+    processWorkerRemovedBlocks(latest, lostBlocks);
+  }
+
+  /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
    * mBlocks should already be locked before calling this method.
    *
    * @param workerInfo The worker metadata object
-   * @param addedBlockIds Mapping from StorageDirId to a list of block ids added to the directory.
+   * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
-      Map<Long, List<Long>> addedBlockIds) {
-    for (Entry<Long, List<Long>> blockIds : addedBlockIds.entrySet()) {
-      long storageDirId = blockIds.getKey();
-      for (long blockId : blockIds.getValue()) {
+      Map<String, List<Long>> addedBlockIds) {
+    for (Map.Entry<String, List<Long>> entry : addedBlockIds.entrySet()) {
+      for (long blockId : entry.getValue()) {
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo != null) {
           workerInfo.addBlock(blockId);
-          // TODO(gene): Change upper API so that this is tier level or type, not storage dir id.
-          int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
-          masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
+          masterBlockInfo.addWorker(workerInfo.getId(), entry.getKey());
           mLostBlocks.remove(blockId);
         } else {
-          LOG.warn(
-              "failed to register workerId: " + workerInfo.getId() + " to blockId: " + blockId);
+          LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
         }
       }
     }
@@ -590,7 +627,9 @@ public final class BlockMaster extends MasterBase
    * @return the lost blocks in Tachyon Storage
    */
   public Set<Long> getLostBlocks() {
-    return Collections.unmodifiableSet(mLostBlocks);
+    synchronized (mBlocks) {
+      return ImmutableSet.copyOf(mLostBlocks);
+    }
   }
 
   /**
@@ -600,20 +639,29 @@ public final class BlockMaster extends MasterBase
    * mWorkers should already be locked before calling this method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
-   * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations.
+   * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
    */
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
-    List<BlockLocation> locations = new ArrayList<BlockLocation>();
-    for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
+    List<BlockLocation> ret = new ArrayList<BlockLocation>();
+    List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();
+    // Sort the block locations by their alias ordinal in the master storage tier mapping
+    Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
+      @Override
+      public int compare(MasterBlockLocation o1, MasterBlockLocation o2) {
+        return mGlobalStorageTierAssoc.getOrdinal(o1.getTierAlias())
+            - mGlobalStorageTierAssoc.getOrdinal(o2.getTierAlias());
+      }
+    });
+    for (MasterBlockLocation masterBlockLocation : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
-            masterBlockLocation.getTier()));
+        ret.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
+            masterBlockLocation.getTierAlias()));
       }
     }
-    return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
+    return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);
   }
 
   /**
@@ -630,70 +678,29 @@ public final class BlockMaster extends MasterBase
   /**
    * Lost worker periodic check.
    */
-  public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
       TachyonConf conf = MasterContext.getConf();
 
       int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-      synchronized (mWorkers) {
-        Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
-        while (iter.hasNext()) {
-          MasterWorkerInfo worker = iter.next();
-          if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
-            LOG.error("The worker " + worker + " got timed out!");
-            mLostWorkers.add(worker);
-            iter.remove();
-          } else if (mLostWorkers.contains(worker)) {
-            LOG.info("The lost worker " + worker + " is found.");
-            mLostWorkers.remove(worker);
+      synchronized (mBlocks) {
+        synchronized (mWorkers) {
+          Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
+          while (iter.hasNext()) {
+            MasterWorkerInfo worker = iter.next();
+            final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
+            if (lastUpdate > masterWorkerTimeoutMs) {
+              LOG.error("The worker {} got timed out!", worker);
+              mLostWorkers.add(worker);
+              iter.remove();
+              processLostWorker(worker);
+            }
           }
         }
       }
     }
-  }
 
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    /**
-     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
-     */
-    public void addLostWorker(MasterWorkerInfo worker) {
-      synchronized (mWorkers) {
-        mLostWorkers.add(worker);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
-     *
-     * @param workerId the worker ID to look up
-     * @return the {@link MasterWorkerInfo} for the given workerId.
-     */
-    public MasterWorkerInfo getWorkerById(long workerId) {
-      synchronized (mWorkers) {
-        return mWorkers.getFirstByField(mIdIndex, workerId);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterBlockInfo} for the given block ID.
-     *
-     * @param blockId the block ID
-     * @return the {@link MasterBlockInfo}.
-     */
-    public MasterBlockInfo getMasterBlockInfo(long blockId) {
-      synchronized (mBlocks) {
-        return mBlocks.get(blockId);
-      }
-    }
-  }
-
-  /** Grants access to private members to testers of this class. */
-  @Override
-  public void grantAccess(Tester<BlockMaster> tester) {
-    tester.receiveAccess(new PrivateAccess());
   }
 }

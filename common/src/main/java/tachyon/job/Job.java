@@ -45,7 +45,7 @@ public abstract class Job implements Serializable {
   /**
    * Runs the job.
    *
-   * @return true if the run succeeds, false otherwise.
+   * @return true if the run succeeds, false otherwise
    */
   public abstract boolean run();
 }

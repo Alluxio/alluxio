@@ -229,20 +229,23 @@ body {
 
 /*custom font sizes to make content fit nicely*/
 
-#current-features + ul li:nth-child(1) p {
+#current-features + ul li:nth-child(1) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(2) strong {
     font-size: 16px;
 }
 #current-features + ul li:nth-child(3) strong {
-    font-size: 14px;
-}
-#current-features + ul li:nth-child(4) p {
     font-size: 16px;
 }
-#current-features + ul li:nth-child(5) p {
-    font-size: 18px;
+#current-features + ul li:nth-child(4) strong {
+    font-size: 16px;
 }
-#current-features + ul li:nth-child(6) p {
-    font-size: 20px;
+#current-features + ul li:nth-child(5) strong {
+    font-size: 16px;
+}
+#current-features + ul li:nth-child(6) strong {
+    font-size: 16px;
 }
 #current-features + ul li p a {
     text-decoration: underline;

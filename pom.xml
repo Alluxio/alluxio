@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-parent</artifactId>
-  <version>0.8.0-SNAPSHOT</version>
+  <version>0.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Tachyon Parent</name>
   <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
@@ -124,9 +124,9 @@
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
-    <findbugs.path>build/findbugs/</findbugs.path>
+    <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <hadoop.version>1.0.4</hadoop.version>
+    <hadoop.version>2.2.0</hadoop.version>
     <java.version>1.6</java.version>
     <jetty.version>7.6.15.v20140411</jetty.version>
     <junit.version>4.12</junit.version>
@@ -375,17 +375,32 @@
         </executions>
       </plugin>
 
-      <!-- Find Bugs -->
+      <!-- FindBugs -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.5.2</version>
+        <version>3.0.2</version>
         <configuration>
-          <excludeFilterFile>${findbugs.path}findbugs-exclude.xml</excludeFilterFile>
+          <excludeFilterFile>${findbugs.path}/findbugs-exclude.xml</excludeFilterFile>
+          <!--
+              Enables analysis which takes more memory but finds more bugs.
+              If you run out of memory, changes the value of the effort element
+              to 'Low'.
+            -->
+          <effort>Max</effort>
+          <failOnError>true</failOnError>
+          <threshold>Low</threshold>
           <findbugsXmlOutput>true</findbugsXmlOutput>
           <xmlOutput>true</xmlOutput>
-          <effort>Max</effort>
         </configuration>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- Checkstyle -->
@@ -396,7 +411,7 @@
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/tachyon/thrift/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -495,7 +510,7 @@
 
   <profiles>
     <profile>
-      <!-- Turn of doclint for java8 and later -->
+      <!-- Turn off doclint for java8 and later -->
       <id>doclint-java8-disable</id>
       <activation>
         <jdk>[1.8,)</jdk>
@@ -563,7 +578,7 @@
 
     <!-- profile that Tachyon developers should use -->
     <profile>
-      <id>dev</id>
+      <id>developer</id>
       <modules>
         <module>integration</module>
       </modules>
@@ -571,6 +586,33 @@
         <hadoop.version>2.6.0</hadoop.version>
         <yarn.version>${hadoop.version}</yarn.version>
       </properties>
+    </profile>
+
+    <!-- profile that compiles jsp files -->
+    <profile>
+      <id>compileJsp</id>
+      <build>
+        <pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>maven-jspc-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>prepare-package</phase>
+                <id>compile-jsp</id>
+                <goals>
+                  <goal>jspc</goal>
+                </goals>
+                <configuration>
+                  <sourceDirectory>src/main/webapp</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </pluginManagement>
+      </build>
     </profile>
   </profiles>
 </project>

@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 

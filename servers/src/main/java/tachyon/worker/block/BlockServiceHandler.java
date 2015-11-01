@@ -23,27 +23,29 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.StorageLevelAlias;
-import tachyon.exception.BlockDoesNotExistException;
-import tachyon.exception.FileDoesNotExistException;
+import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 import tachyon.thrift.WorkerService;
+import tachyon.worker.WorkerContext;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-// TODO(cc): Better exception handling than wrapping into TException.
 public final class BlockServiceHandler implements WorkerService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager that carries out most of the operations **/
   private final BlockDataManager mWorker;
+  /** Association between storage tier aliases and ordinals ond this worker */
+  private final StorageTierAssoc mStorageTierAssoc;
 
   public BlockServiceHandler(BlockDataManager worker) {
     mWorker = worker;
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
   /**
@@ -134,8 +136,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
 
   /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block
-   * file locked will be returned, if the block file is not found, FileDoesNotExistException will be
-   * thrown.
+   * file locked will be returned.
    *
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
@@ -146,9 +147,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     try {
       long lockId = mWorker.lockBlock(sessionId, blockId);
       return mWorker.readBlock(sessionId, blockId, lockId);
-    } catch (BlockDoesNotExistException nfe) {
-      // TODO(cc): Reconsider this, maybe it is because lockId can not be found.
-      throw new FileDoesNotExistException(nfe.getMessage()).toTachyonTException();
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -168,8 +166,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   public boolean promoteBlock(long blockId) throws TachyonTException, ThriftIOException {
     try {
       // TODO(calvin): Make the top level configurable.
-      mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
-          StorageLevelAlias.MEM.getValue());
+      mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
       return true;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
@@ -195,9 +192,8 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
       throws TachyonTException, ThriftIOException {
     try {
-      // NOTE: right now, we ask allocator to allocate new blocks in MEM tier
-      return mWorker.createBlock(sessionId, blockId, StorageLevelAlias.MEM.getValue(),
-          initialBytes);
+      // NOTE: right now, we ask allocator to allocate new blocks in top tier
+      return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {

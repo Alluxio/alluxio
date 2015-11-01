@@ -22,8 +22,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -45,12 +43,10 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -66,17 +62,11 @@ public class DataServerIntegrationTest {
     // Creates a new instance of DataServerIntegrationTest for different combinations of parameters.
     List<Object[]> list = new ArrayList<Object[]>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
         IntegrationTestConstants.NETTY_BLOCK_READER});
     // The transfer type is not applicable to the NIODataServer.
-    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
     list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
         IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
     return list;
@@ -85,8 +75,6 @@ public class DataServerIntegrationTest {
   private final String mDataServerClass;
   private final String mNettyTransferType;
   private final String mBlockReader;
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
-      ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTFS = null;
@@ -135,16 +123,15 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    // MasterContext will be merged into WorkerContext and ClientContext when starting
-    // LocalTachyonCluster.
+    mLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+
+    TachyonConf tachyonConf = mLocalTachyonCluster.getTestConf();
     tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     tachyonConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
 
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
 
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
@@ -152,7 +139,7 @@ public class DataServerIntegrationTest {
 
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
+            mLocalTachyonCluster.getMasterPort()), mWorkerTachyonConf);
   }
 
   @Test

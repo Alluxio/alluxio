@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>tachyon-integration</artifactId>
   <packaging>pom</packaging>
@@ -18,6 +18,8 @@
   </modules>
 
   <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>

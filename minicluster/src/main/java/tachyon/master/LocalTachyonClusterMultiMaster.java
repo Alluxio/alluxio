@@ -43,16 +43,6 @@ import tachyon.worker.block.BlockWorker;
 public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
-
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
@@ -192,7 +182,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void start() throws IOException {
-    int maxLevel = 1;
+    int numLevels = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
@@ -264,7 +254,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15 + "");
 
     // Setup conf for worker
-    mWorkerConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, Integer.toString(maxLevel));
+    mWorkerConf.set(Constants.WORKER_TIERED_STORE_LEVELS, Integer.toString(numLevels));
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         mTachyonHome + "/ramdisk");
@@ -275,7 +265,7 @@ public class LocalTachyonClusterMultiMaster {
     // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    for (int level = 1; level < maxLevel; level ++) {
+    for (int level = 1; level < numLevels; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
@@ -314,10 +304,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
     // The client context should reflect the updates to the conf.
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(mWorkerConf);
+    ClientContext.reset(mWorkerConf);
   }
 
   public void stop() throws Exception {

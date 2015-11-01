@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class FileDoesNotExistException extends TachyonException {
+  private static final long serialVersionUID = -3162552529145071329L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.FILE_DOES_NOT_EXIST;
 

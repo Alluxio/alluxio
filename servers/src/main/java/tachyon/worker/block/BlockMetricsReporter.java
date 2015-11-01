@@ -18,6 +18,9 @@ package tachyon.worker.block;
 import java.util.List;
 
 import tachyon.Constants;
+import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 /**
@@ -25,9 +28,11 @@ import tachyon.worker.WorkerSource;
  */
 public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   private final WorkerSource mWorkerSource;
+  private final StorageTierAssoc mStorageTierAssoc;
 
   public BlockMetricsReporter(WorkerSource workerSource) {
     mWorkerSource = workerSource;
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
   @Override
@@ -38,9 +43,9 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   @Override
   public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    int oldTier = oldLocation.tierAlias();
-    int newTier = newLocation.tierAlias();
-    if (newTier == 1 && oldTier != newTier) {
+    int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
+    int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
+    if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
       mWorkerSource.incBlocksPromoted();
     }
   }
@@ -53,9 +58,9 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   @Override
   public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    int oldTier = oldLocation.tierAlias();
-    int newTier = newLocation.tierAlias();
-    if (newTier == 1 && oldTier != newTier) {
+    int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
+    int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
+    if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
       mWorkerSource.incBlocksPromoted();
     }
   }

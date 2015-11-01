@@ -16,21 +16,24 @@
 package tachyon.master.lineage.journal;
 
 import java.util.List;
-import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class RequestFilePersistenceEntry implements JournalEntry {
+public final class RequestFilePersistenceEntry extends JournalEntry {
   private final List<Long> mFileIds;
 
-  public RequestFilePersistenceEntry(List<Long> fileIds) {
+  @JsonCreator
+  public RequestFilePersistenceEntry(@JsonProperty("fileIds") List<Long> fileIds) {
     mFileIds = Preconditions.checkNotNull(fileIds);
   }
 
+  @JsonGetter
   public List<Long> getFileIds() {
     return mFileIds;
   }
@@ -39,12 +42,4 @@ public final class RequestFilePersistenceEntry implements JournalEntry {
   public JournalEntryType getType() {
     return JournalEntryType.REQUEST_FILE_PERSISTENCE;
   }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("fileIds", mFileIds);
-    return parameters;
-  }
-
 }

@@ -30,7 +30,7 @@ import tachyon.util.io.PathUtils;
  */
 public class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String USAGE = "java -cp " + Constants.TACHYON_JAR
+  private static final String USAGE = "java -cp " + Version.TACHYON_JAR
       + " tachyon.Format <MASTER/WORKER>";
 
   private static boolean formatFolder(String name, String folder, TachyonConf tachyonConf)
@@ -59,7 +59,7 @@ public class Format {
 
     TachyonConf tachyonConf = new TachyonConf();
 
-    if (args[0].toUpperCase().equals("MASTER")) {
+    if ("MASTER".equals(args[0].toUpperCase())) {
 
       String masterJournal =
           tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
@@ -81,10 +81,10 @@ public class Format {
 
       UnderFileSystemUtils.touch(
           masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(), tachyonConf);
-    } else if (args[0].toUpperCase().equals("WORKER")) {
+    } else if ("WORKER".equals(args[0].toUpperCase())) {
       String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER);
-      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
-      for (int level = 0; level < maxStorageLevels; level ++) {
+      int storageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+      for (int level = 0; level < storageLevels; level ++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
         String[] dirPaths = tachyonConf.get(tierLevelDirPath).split(",");
@@ -104,4 +104,6 @@ public class Format {
       System.exit(-1);
     }
   }
+
+  private Format() {}  // Prevent instantiation.
 }

@@ -145,7 +145,7 @@ public class TFSTest {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
-    Mockito.when(ugi.getCurrentUser()).thenReturn(ugi);
+    Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
   }
 
   @Before

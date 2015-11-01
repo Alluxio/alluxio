@@ -39,7 +39,7 @@ interface BlockStore {
    * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
    * @return the lock ID if the lock is acquired successfully
-   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already
    */
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
@@ -56,7 +56,7 @@ interface BlockStore {
    *
    * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
-   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already
    */
   void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
@@ -79,20 +79,11 @@ interface BlockStore {
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
-   *         uncommitted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
-  // now,
-  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
-  // more general exception.
   TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      BlockDoesNotExistException, IOException, InvalidWorkerStateException;
+      IOException;
 
   /**
    * Gets the metadata of a block given its blockId or throws BlockDoesNotExistException. This
@@ -166,20 +157,9 @@ interface BlockStore {
    * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws BlockAlreadyExistsException if blocks to move in
-   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
-   *         location
-   * @throws InvalidWorkerStateException if the space requested is less than current space or blocks
-   *         to move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO(cc): Exceptions like IOException BlockAlreadyExistsException and
-  // InvalidWorkerStateException here
-  // involves implementation details, also, BlockDoesNotExistException has two semantic now, revisit
-  // this
-  // with a more general exception.
   void requestSpace(long sessionId, long blockId, long additionalBytes)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException;
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -322,20 +302,9 @@ interface BlockStore {
    *         {@link tachyon.worker.block.evictor.EvictionPlan} can not be found
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws BlockAlreadyExistsException if blocks to move in
-   *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
-   *         location
-   * @throws InvalidWorkerStateException if blocks to move/evict in
-   *         {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException BlockAlreadyExistsException
-  // and
-  // InvalidWorkerStateException here involves implementation details, may be removed to a more
-  // general
-  // exception.
   void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException;
+      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.
@@ -347,7 +316,7 @@ interface BlockStore {
   /**
    * Update the pinned inodes.
    *
-   * @param inodes a set of inodes that are currently pinned.
+   * @param inodes a set of inodes that are currently pinned
    */
   void updatePinnedInodes(Set<Long> inodes);
 }

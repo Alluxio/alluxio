@@ -50,7 +50,7 @@ public final class EvictorUtils {
         }
       }
     } else {
-      int tierAlias = location.tierAlias();
+      String tierAlias = location.tierAlias();
       StorageTierView tierView = mManagerView.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
         for (StorageDirView dirView : tierView.getDirViews()) {
@@ -95,7 +95,7 @@ public final class EvictorUtils {
       return null;
     }
 
-    int tierAlias = location.tierAlias();
+    String tierAlias = location.tierAlias();
     StorageTierView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       for (StorageDirView dirView : tierView.getDirViews()) {

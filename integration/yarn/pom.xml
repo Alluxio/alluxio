@@ -6,12 +6,14 @@
   <parent>
     <artifactId>tachyon-integration</artifactId>
     <groupId>org.tachyonproject</groupId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent>
   <name>Tachyon Integration - YARN</name>
   <artifactId>tachyon-integration-yarn</artifactId>
 
   <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>

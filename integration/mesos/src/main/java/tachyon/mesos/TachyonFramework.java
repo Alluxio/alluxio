@@ -95,10 +95,10 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      double masterCpu = sConf.getInt(Constants.MASTER_RESOURCE_CPU);
-      double masterMem = sConf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
-      double workerCpu = sConf.getInt(Constants.WORKER_RESOURCE_CPU);
-      double workerMem = sConf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
+      double masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      double masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+      double workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      double workerMem = sConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -131,11 +131,20 @@ public class TachyonFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
+                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-master-mesos.sh"))
-                      .addAllUris(getExecutorDependencyURIList()));
+                      .addAllUris(getExecutorDependencyURIList())
+                      .setEnvironment(
+                          Protos.Environment
+                              .newBuilder()
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("TACHYON_UNDERFS_ADDRESS")
+                                      .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
+                                      .build())
+                              .build()));
           targetCpu = masterCpu;
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
@@ -145,7 +154,7 @@ public class TachyonFramework {
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
             && offerCpu >= workerCpu && offerMem >= workerMem) {
-          final String MEM_SIZE = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
+          final String memSize = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
               .setName("Tachyon Worker Executor")
               .setSource("worker")
@@ -155,7 +164,7 @@ public class TachyonFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
+                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-worker-mesos.sh"))
@@ -169,8 +178,14 @@ public class TachyonFramework {
                                       .build())
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
-                                      .build()).build()));
+                                      .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(memSize)
+                                      .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("TACHYON_UNDERFS_ADDRESS")
+                                      .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
+                                      .build())
+                              .build()));
           targetCpu = workerCpu;
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());

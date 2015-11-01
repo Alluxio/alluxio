@@ -18,7 +18,6 @@ package tachyon;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -43,7 +42,6 @@ public abstract class ClientBase implements Closeable {
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 
-  protected final ExecutorService mExecutorService;
   protected final TachyonConf mTachyonConf;
   protected final String mMode;
 
@@ -61,15 +59,12 @@ public abstract class ClientBase implements Closeable {
    * Creates a new client base.
    *
    * @param address the address
-   * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
    * @param mode the mode of the client for display
    */
-  public ClientBase(InetSocketAddress address, ExecutorService executorService,
-      TachyonConf tachyonConf, String mode) {
+  public ClientBase(InetSocketAddress address, TachyonConf tachyonConf, String mode) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mAddress = Preconditions.checkNotNull(address);
-    mExecutorService = Preconditions.checkNotNull(executorService);
     mMode = mode;
   }
 

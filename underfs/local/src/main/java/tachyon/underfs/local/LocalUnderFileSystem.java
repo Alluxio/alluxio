@@ -49,6 +49,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.LOCAL;
+  }
+
+  @Override
   public void close() throws IOException {}
 
   @Override

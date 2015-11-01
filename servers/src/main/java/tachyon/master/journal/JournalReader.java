@@ -67,7 +67,7 @@ public class JournalReader {
    * Checks to see if the journal checkpoint has not been updated. If it has been updated since the
    * creation of this reader, this reader is no longer valid.
    *
-   * @return true if the checkpoint file has not been modified.
+   * @return true if the checkpoint file has not been modified
    */
   public boolean isValid() {
     return mCheckpointRead && (mCheckpointOpenedTime == mCheckpointLastModifiedTime);
@@ -122,7 +122,7 @@ public class JournalReader {
   }
 
   /**
-   * @return the last modified time of the checkpoint file in ms.
+   * @return the last modified time of the checkpoint file in ms
    * @throws IOException
    */
   public long getCheckpointLastModifiedTimeMs() throws IOException {

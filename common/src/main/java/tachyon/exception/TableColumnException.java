@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class TableColumnException extends TachyonException {
+  private static final long serialVersionUID = 1096701480942861466L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.TABLE_COLUMN;
 
   public TableColumnException(String message) {

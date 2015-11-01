@@ -65,7 +65,7 @@ public final class TTLBucketList {
       // should be in number (ttlEndTimeMs / interval) interval, so the start time of this interval
       // should be (ttlEndTimeMs / interval) * interval.
       long interval = TTLBucket.getTTLIntervalMs();
-      bucket = new TTLBucket(ttlEndTimeMs / interval * interval);
+      bucket = new TTLBucket(interval == 0 ? ttlEndTimeMs : ttlEndTimeMs / interval * interval);
       mBucketList.add(bucket);
     }
     bucket.addFile(file);

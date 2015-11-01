@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class BlockDoesNotExistException extends TachyonException {
+  private static final long serialVersionUID = -1313208091357063634L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.BLOCK_DOES_NOT_EXIST;
 

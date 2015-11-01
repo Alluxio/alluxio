@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class NoWorkerException extends TachyonException {
+  private static final long serialVersionUID = -4513463729402967717L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.NO_WORKER;
 
   public NoWorkerException(String message) {

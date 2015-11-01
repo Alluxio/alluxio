@@ -168,6 +168,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream.close();
         mTachyonFileInputStream = null;
       }
     }
@@ -196,6 +197,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream.close();
         mTachyonFileInputStream = null;
       }
     }
@@ -255,14 +257,15 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * more data to be read. This method also fills the hdfs buffer with new data if it is empty.
    *
    * @return the next value in the stream from 0 to 255 or -1 if there is no more data to be read
-   * @throws IOException if the bulk read from hdfs fails.
+   * @throws IOException if the bulk read from hdfs fails
    */
   private int readFromHdfsBuffer() throws IOException {
     if (mBufferPosition < mBufferLimit) {
       if (mStatistics != null) {
         mStatistics.incrementBytesRead(1);
       }
-      return mBuffer[mBufferPosition ++];
+      mCurrentPosition ++;
+      return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
     }
     LOG.error("Reading from HDFS directly");
     while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
@@ -275,6 +278,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mStatistics != null) {
       mStatistics.incrementBytesRead(1);
     }
+    mCurrentPosition ++;
     return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
   }
 
@@ -316,6 +320,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mTachyonFileInputStream.seek(pos);
     } else {
       getHdfsInputStream(pos);
+      // TODO(calvin): Optimize for the case when the data is still valid in the buffer
+      // Invalidate buffer
+      mBufferLimit = -1;
     }
 
     mCurrentPosition = pos;

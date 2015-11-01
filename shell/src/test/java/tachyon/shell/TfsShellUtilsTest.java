@@ -95,7 +95,7 @@ public class TfsShellUtilsTest {
      */
     TachyonFile fd;
     try {
-      fd = tfs.open(new TachyonURI("/testWildCards"));
+      fd = tfs.openIfExists(new TachyonURI("/testWildCards"));
     } catch (IOException ioe) {
       fd = null;
     }

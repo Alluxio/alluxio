@@ -32,7 +32,7 @@ public final class TachyonJaasProperties {
   }
 
   /**
-   * @return the OS login module class name.
+   * @return the OS login module class name
    */
   private static String getOSLoginModuleName() {
     if (OSUtils.IBM_JAVA) {

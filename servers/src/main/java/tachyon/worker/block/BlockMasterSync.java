@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
+import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
@@ -32,6 +34,7 @@ import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -62,8 +65,6 @@ public final class BlockMasterSync implements Runnable {
 
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
-  /** The id of the worker */
-  private long mWorkerId;
   /** The thread pool to remove block */
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
@@ -85,25 +86,6 @@ public final class BlockMasterSync implements Runnable {
     mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
-    mWorkerId = 0;
-  }
-
-  /**
-   * Gets the worker id, 0 if registerWithMaster has not been called successfully.
-   *
-   * @return the worker id
-   */
-  public long getWorkerId() {
-    return mWorkerId;
-  }
-
-  public void setWorkerId() throws IOException {
-    try {
-      mWorkerId = mMasterClient.getId(mWorkerAddress);
-    } catch (IOException ioe) {
-      LOG.error("Failed to get new worker id from master.", ioe);
-      throw ioe;
-    }
   }
 
   /**
@@ -115,7 +97,9 @@ public final class BlockMasterSync implements Runnable {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
-      mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+      mMasterClient.register(WorkerIdRegistry.getWorkerId(),
+          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);
@@ -154,8 +138,8 @@ public final class BlockMasterSync implements Runnable {
       Command cmdFromMaster = null;
       try {
         cmdFromMaster = mMasterClient
-            .heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-                blockReport.getAddedBlocks());
+            .heartbeat(WorkerIdRegistry.getWorkerId(), storeMeta.getUsedBytesOnTiers(),
+                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
       } catch (Exception e) {
@@ -167,9 +151,6 @@ public final class BlockMasterSync implements Runnable {
               + cmdFromMaster.toString(), e);
         }
         mMasterClient.resetConnection();
-        // -1 will never be used as legal worker id assigned by master, so re-registration will
-        // be requested from master in next heartbeat.
-        mWorkerId = -1;
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
@@ -189,7 +170,7 @@ public final class BlockMasterSync implements Runnable {
    * Handles a master command. The command is one of Unknown, Nothing, Register, Free, or Delete.
    * This call will block until the command is complete.
    *
-   * @param cmd the command to execute.
+   * @param cmd the command to execute
    * @throws Exception if an error occurs when executing the command
    */
   // TODO(calvin): Evaluate the necessity of each command.
@@ -214,7 +195,7 @@ public final class BlockMasterSync implements Runnable {
         break;
       // Master requests re-registration
       case Register:
-        setWorkerId();
+        WorkerIdRegistry.registerWithBlockMaster(mMasterClient, mWorkerAddress);
         registerWithMaster();
         break;
       // Unknown request

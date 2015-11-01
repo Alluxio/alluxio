@@ -37,9 +37,9 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -66,7 +66,7 @@ abstract class AbstractTFS extends FileSystem {
   private Statistics mStatistics = null;
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
-  private final TachyonConf mTachyonConf = new TachyonConf();
+  private final TachyonConf mTachyonConf = ClientContext.getConf();
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -83,8 +83,7 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    WriteType type = getWriteType();
-    return new FSDataOutputStream(file.getOutStream(type), mStatistics);
+    return new FSDataOutputStream(file.getOutStream(), mStatistics);
   }
 
   @Override
@@ -121,48 +120,22 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED);
-    if (!asyncEnabled) {
-      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-      if (mTFS.exist(path)) {
-        if (overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
-          if (!mTFS.delete(path, false)) {
-            throw new IOException("Failed to delete existing data " + cPath);
-          }
-        } else {
-          throw new IOException(cPath.toString() + " already exists. Directories cannot be "
-              + "overwritten with create.");
-        }
-      }
-      long fileId = mTFS.createFile(path, blockSize);
-      TachyonFile file = mTFS.getFile(fileId);
-      file.setUFSConf(getConf());
-
-      WriteType type = getWriteType();
-      return new FSDataOutputStream(file.getOutStream(type), mStatistics);
-    }
-
-    if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
-      throw new UnsupportedOperationException("operation not supported");
-    }
-
-    if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
-      throw new UnsupportedOperationException("operation not supported");
-    }
-
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    long fileId;
-    WriteType type = getWriteType();
     if (mTFS.exist(path)) {
-      fileId = mTFS.getFileId(path);
-      type = WriteType.MUST_CACHE;
-    } else {
-      fileId = mTFS.createFile(path, blockSize);
+      if (overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
+        if (!mTFS.delete(path, false)) {
+          throw new IOException("Failed to delete existing data " + cPath);
+        }
+      } else {
+        throw new IOException(cPath.toString() + " already exists. Directories cannot be "
+            + "overwritten with create.");
+      }
     }
-
+    long fileId = mTFS.createFile(path, blockSize);
     TachyonFile file = mTFS.getFile(fileId);
     file.setUFSConf(getConf());
-    return new FSDataOutputStream(file.getOutStream(type), mStatistics);
+
+    return new FSDataOutputStream(file.getOutStream(), mStatistics);
   }
 
   /**
@@ -174,9 +147,9 @@ abstract class AbstractTFS extends FileSystem {
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
    *        overwritten, and if false an error will be thrown.
-   * @param bufferSize the size of the buffer to be used.
-   * @param replication required block replication for the file.
-   * @param blockSize the size in bytes of the buffer to be used.
+   * @param bufferSize the size of the buffer to be used
+   * @param replication required block replication for the file
+   * @param blockSize the size in bytes of the buffer to be used
    * @param progress queryable progress
    * @throws IOException if 1) overwrite is not specified and the path already exists, 2) if the
    *         path is a folder, or 3) the parent directory does not exist
@@ -317,7 +290,7 @@ abstract class AbstractTFS extends FileSystem {
    * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot put
    * @Override.
    *
-   * @return schema hadoop should map to.
+   * @return schema hadoop should map to
    *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
@@ -327,7 +300,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Returns an object implementing the Tachyon-specific client API.
    *
-   * @return null if initialize() hasn't been called.
+   * @return null if initialize() hasn't been called
    */
   public TachyonFS getTachyonFS() {
     return mTFS;
@@ -487,9 +460,5 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       mWorkingDir = new Path(mWorkingDir, path);
     }
-  }
-
-  private WriteType getWriteType() {
-    return mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
 }

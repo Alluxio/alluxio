@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class FailedToCheckpointException extends TachyonException {
+  private static final long serialVersionUID = -3192642866222213537L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.FAILED_TO_CHECKPOINT;
 

@@ -25,7 +25,7 @@ public final class CreateLineageOptions {
     /**
      * Creates a new builder for {@link CreateLineageOptions}.
      *
-     * @param conf a Tachyon configuration.
+     * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {}
 
@@ -38,7 +38,7 @@ public final class CreateLineageOptions {
   }
 
   /**
-   * @return the default options.
+   * @return the default options
    */
   public static CreateLineageOptions defaults() {
     return new Builder(ClientContext.getConf()).build();

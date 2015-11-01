@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class FileAlreadyExistsException extends TachyonException {
+  private static final long serialVersionUID = -621175311680977828L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.FILE_ALREADY_EXISTS;
 

@@ -21,12 +21,12 @@ package tachyon.master.block.meta;
 public final class MasterBlockLocation {
   /** The id of the Tachyon worker. */
   private final long mWorkerId;
-  /** The tier that the block is on in this worker. */
-  private int mTier;
+  /** The tier alias that the block is on in this worker. */
+  private final String mTierAlias;
 
-  MasterBlockLocation(long workerId, int tier) {
+  MasterBlockLocation(long workerId, String tierAlias) {
     mWorkerId = workerId;
-    mTier = tier;
+    mTierAlias = tierAlias;
   }
 
   /**
@@ -37,9 +37,9 @@ public final class MasterBlockLocation {
   }
 
   /**
-   * @return the tier that the block is on in this worker
+   * @return the alias of the tier that the block is on in this worker
    */
-  public int getTier() {
-    return mTier;
+  public String getTierAlias() {
+    return mTierAlias;
   }
 }

@@ -39,7 +39,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
@@ -50,22 +49,15 @@ public class TachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sHost = null;
-  private static int sPort = -1;
   private static TachyonFileSystem sTfs = null;
   private static InStreamOptions sReadCache;
   private static OutStreamOptions sWriteBoth;
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws IOException, TException {
-    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
-    mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   @AfterClass
@@ -75,14 +67,13 @@ public class TachyonFileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
-        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    sLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
-    sHost = sLocalTachyonCluster.getMasterHostname();
-    sPort = sLocalTachyonCluster.getMasterPort();
+
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE)
@@ -145,6 +136,7 @@ public class TachyonFileSystemIntegrationTest {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
       TachyonFile f = sTfs.open(fileURI);
       sTfs.delete(f);
+      Assert.assertNull(sTfs.openIfExists(fileURI));
       mThrown.expect(FileDoesNotExistException.class);
       sTfs.getInfo(f);
     }
