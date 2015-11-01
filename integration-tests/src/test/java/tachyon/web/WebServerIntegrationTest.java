@@ -19,9 +19,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.Scanner;
 
 import org.junit.After;
@@ -30,15 +27,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
-import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.worker.WorkerClient;
 
 /**
  * Test the web server is up when Tachyon starts.
@@ -47,7 +40,6 @@ import tachyon.worker.WorkerClient;
  */
 public class WebServerIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
   private TachyonConf mWorkerTachyonConf = null;
 
@@ -73,16 +65,10 @@ public class WebServerIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    mExecutorService.shutdown();
   }
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    for (ServiceType service : ServiceType.values()) {
-      tachyonConf.set(service.getBindHostKey(),
-          NetworkAddressUtils.getLocalHostName(100));
-    }
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -91,25 +77,12 @@ public class WebServerIntegrationTest {
 
   @Test
   public void serverUpTest() throws Exception, IOException, TachyonException {
-    BlockMasterClient blockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mMasterTachyonConf);
-    blockMasterClient.connect();
-    Assert.assertTrue(blockMasterClient.isConnected());
-
-    WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-    workerClient.mustConnect();
-    Assert.assertTrue(workerClient.isConnected());
-
-    SocketChannel workerDataService = SocketChannel
-        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA, mWorkerTachyonConf));
-    Assert.assertTrue(workerDataService.isConnected());
-
     try {
+      InetSocketAddress masterWebAddr =
+          NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterTachyonConf);
       HttpURLConnection masterWebService = (HttpURLConnection) new URL(
-          "http://" + mLocalTachyonCluster.getMaster().getWebBindHost() + ":"
-          + mLocalTachyonCluster.getMaster().getWebLocalPort() + "/home")
-          .openConnection();
+          "http://" + masterWebAddr.getAddress().getHostAddress() + ":"
+          + masterWebAddr.getPort() + "/home").openConnection();
       Assert.assertNotNull(masterWebService);
       masterWebService.connect();
       Assert.assertEquals(200, masterWebService.getResponseCode());
@@ -122,10 +95,11 @@ public class WebServerIntegrationTest {
     }
 
     try {
+      InetSocketAddress workerWebAddr =
+          NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerTachyonConf);
       HttpURLConnection workerWebService = (HttpURLConnection) new URL(
-          "http://" + mLocalTachyonCluster.getWorker().getWebBindHost() + ":"
-          + mLocalTachyonCluster.getWorker().getWebLocalPort() + "/home")
-          .openConnection();
+          "http://" + workerWebAddr.getAddress().getHostAddress() + ":"
+          + workerWebAddr.getPort() + "/home").openConnection();
       Assert.assertNotNull(workerWebService);
       workerWebService.connect();
       Assert.assertEquals(200, workerWebService.getResponseCode());
