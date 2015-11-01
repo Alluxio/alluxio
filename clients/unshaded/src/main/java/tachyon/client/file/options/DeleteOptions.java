@@ -26,10 +26,8 @@ public final class DeleteOptions {
 
     /**
      * Creates a new builder for {@link DeleteOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder() {
       mRecursive = false;
     }
 
@@ -57,7 +55,7 @@ public final class DeleteOptions {
    * @return the default {@code DeleteOptions}
    */
   public static DeleteOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;

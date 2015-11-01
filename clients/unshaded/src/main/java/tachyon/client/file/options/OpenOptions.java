@@ -24,10 +24,8 @@ public final class OpenOptions {
   public static class Builder {
     /**
      * Creates a new builder for {@link OpenOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {}
+    public Builder() {}
 
     /**
      * Builds a new instance of {@code OpenOptions}.
@@ -43,7 +41,7 @@ public final class OpenOptions {
    * @return the default {@code OpenOptions}
    */
   public static OpenOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private OpenOptions(OpenOptions.Builder builder) {}
