@@ -74,8 +74,8 @@ public class TieredStoreIntegrationTest {
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
-    mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
+    mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
+    mSetUnpinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
   // Tests that deletes go through despite failing initially due to concurrent read

@@ -20,8 +20,6 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class DeleteOptionsTest {
   @Test
   public void builderTest() {
@@ -29,7 +27,7 @@ public class DeleteOptionsTest {
     boolean recursive = random.nextBoolean();
 
     DeleteOptions options =
-        new DeleteOptions.Builder(new TachyonConf())
+        new DeleteOptions.Builder()
             .setRecursive(recursive)
             .build();
 
