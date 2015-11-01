@@ -16,8 +16,6 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class LoadMetadataOptions {
