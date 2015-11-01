@@ -243,3 +243,33 @@ $ ./destroy
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.
+
+# Trouble Shooting
+
+1 If you compile Tachyon with YARN integration using maven and see compilation errors like the
+following messages:
+
+ ```
+ [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.2:compile (default-compile) on project tachyon-integration-yarn: Compilation failure: Compilation failure:
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[273,49] cannot find symbol
+ [ERROR] symbol:   method $$()
+ [ERROR] location: variable JAVA_HOME of type org.apache.hadoop.yarn.api.ApplicationConstants.Environment
+ [ERROR] /Work/tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[307,31] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[310,29] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[312,47] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[314,47] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] -> [Help 1]
+ ```
+
+Please make sure you are using the proper hadoop version
+```bash
+$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn
+```
