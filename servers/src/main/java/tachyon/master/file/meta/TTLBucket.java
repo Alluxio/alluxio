@@ -88,7 +88,7 @@ public final class TTLBucket implements Comparable<TTLBucket> {
    *
    * @param object the object to compare
    * @return true if object is also {@link TTLBucket} and represents
-   * the same TTLIntervalStartTime and files
+   * the same TTLIntervalStartTime
    */
   @Override
   public boolean equals(Object object) {
@@ -97,8 +97,7 @@ public final class TTLBucket implements Comparable<TTLBucket> {
     }
 
     TTLBucket that = (TTLBucket) object;
-    return Objects.equal(mTTLIntervalStartTimeMs, that.mTTLIntervalStartTimeMs)
-        && Objects.equal(mFiles, that.mFiles);
+    return Objects.equal(mTTLIntervalStartTimeMs, that.mTTLIntervalStartTimeMs);
   }
 
   @Override
