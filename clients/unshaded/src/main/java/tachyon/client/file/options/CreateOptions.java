@@ -33,6 +33,13 @@ public final class CreateOptions {
 
     /**
      * Creates a new builder for {@link CreateOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link CreateOptions}.
      *
      * @param conf a Tachyon configuration
      */
