@@ -104,7 +104,7 @@ public final class CreateOptions {
    * @return the default {@code CreateOptions}
    */
   public static CreateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final long mBlockSizeBytes;

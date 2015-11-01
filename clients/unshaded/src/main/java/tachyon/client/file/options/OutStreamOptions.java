@@ -120,7 +120,7 @@ public final class OutStreamOptions {
    * @return the default {@code OutStreamOptions}
    */
   public static OutStreamOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
