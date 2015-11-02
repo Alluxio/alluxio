@@ -177,6 +177,10 @@ public final class Constants {
       "tachyon.master.lineage.recompute.interval.ms";
   public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       "tachyon.master.lineage.recompute.log.path";
+  public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
+      "tachyon.master.tieredstore.global.levels";
+  public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT =
+      "tachyon.master.tieredstore.global.level%d.alias";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
@@ -222,8 +226,8 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.step.factor";
   public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
       "tachyon.worker.evictor.lrfu.attenuation.factor";
-  public static final String WORKER_TIERED_STORAGE_LEVEL_MAX =
-      "tachyon.worker.tieredstore.level.max";
+  public static final String WORKER_TIERED_STORE_LEVELS =
+      "tachyon.worker.tieredstore.levels";
   public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.lineage.heartbeat.interval.ms";
 
@@ -332,10 +336,6 @@ public final class Constants {
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
-
-  // Relative path to Tachyon target jar
-  public static final String TACHYON_JAR = "target/tachyon-" + Version.VERSION
-      + "-jar-with-dependencies.jar";
 
   private Constants() {} // prevent instantiation
 }

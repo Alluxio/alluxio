@@ -116,7 +116,7 @@ public class AuthenticationUtilsTest {
     // check case that user is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client = PlainSaslUtils.getPlainClientTransport(null, "whatever", mClientTSocket);
+    PlainSaslUtils.getPlainClientTransport(null, "whatever", mClientTSocket);
   }
 
   /**
@@ -129,7 +129,7 @@ public class AuthenticationUtilsTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("anyone", null, mClientTSocket);
+    PlainSaslUtils.getPlainClientTransport("anyone", null, mClientTSocket);
   }
 
   /**
@@ -239,8 +239,7 @@ public class AuthenticationUtilsTest {
     // check case that user is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client =
-        PlainSaslUtils.getPlainClientTransport(null, "correct-password", mClientTSocket);
+    PlainSaslUtils.getPlainClientTransport(null, "correct-password", mClientTSocket);
   }
 
   /**
@@ -253,7 +252,7 @@ public class AuthenticationUtilsTest {
     // check case that password is null
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
-    TTransport client = PlainSaslUtils.getPlainClientTransport("tachyon", null, mClientTSocket);
+    PlainSaslUtils.getPlainClientTransport("tachyon", null, mClientTSocket);
   }
 
   /**
@@ -306,7 +305,7 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * TODO: In KERBEROS mode, ...
+   * TODO(dong): In KERBEROS mode, ...
    */
   @Test
   public void kerberosAuthenticationTest() throws Exception {

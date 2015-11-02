@@ -38,7 +38,6 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
@@ -67,18 +66,16 @@ public class TieredStoreIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    mLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
-    mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
+    mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
+    mSetUnpinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
   // Tests that deletes go through despite failing initially due to concurrent read

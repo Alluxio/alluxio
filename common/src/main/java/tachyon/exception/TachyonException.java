@@ -26,7 +26,7 @@ import tachyon.thrift.TachyonTException;
 public abstract class TachyonException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;
 
-  private TachyonExceptionType mType;
+  private final TachyonExceptionType mType;
 
   public TachyonException(TachyonTException te) {
     super(te.getMessage());

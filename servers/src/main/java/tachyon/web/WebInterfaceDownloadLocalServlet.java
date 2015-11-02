@@ -91,7 +91,6 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private void downloadLogFile(File file, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
     long len = file.length();
-    InputStream is = new FileInputStream(file);
     String fileName = file.getName();
     response.setContentType("application/octet-stream");
     if (len <= Integer.MAX_VALUE) {
@@ -101,18 +100,20 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
     response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
 
-    ServletOutputStream out = null;
+    InputStream is = new FileInputStream(file);
     try {
-      out = response.getOutputStream();
-      ByteStreams.copy(is, out);
+      ServletOutputStream out = response.getOutputStream();
+      try {
+        ByteStreams.copy(is, out);
+      } finally {
+        try {
+          out.flush();
+        } finally {
+          out.close();
+        }
+      }
     } finally {
-      if (out != null) {
-        out.flush();
-        out.close();
-      }
-      if (is != null) {
-        is.close();
-      }
+      is.close();
     }
   }
 }
