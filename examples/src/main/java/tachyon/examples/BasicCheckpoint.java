@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -39,12 +40,10 @@ import tachyon.thrift.FileInfo;
 public class BasicCheckpoint implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonURI mLocation;
   private final String mFileFolder;
   private final int mNumFiles;
 
-  public BasicCheckpoint(TachyonURI tachyonURI, String fileFolder, int numFiles) {
-    mLocation = tachyonURI;
+  public BasicCheckpoint(String fileFolder, int numFiles) {
     mFileFolder = fileFolder;
     mNumFiles = numFiles;
   }
@@ -92,13 +91,13 @@ public class BasicCheckpoint implements Callable<Boolean> {
   }
 
   public static void main(String[] args) throws IOException {
-    if (args.length != 3) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR
-          + " tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
+    if (args.length != 2) {
+      System.out.println("java -cp " + Version.TACHYON_JAR
+          + " tachyon.examples.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }
 
-    Utils.runExample(new BasicCheckpoint(new TachyonURI(args[0]), args[1], Integer
-        .parseInt(args[2])));
+    Utils.runExample(new BasicCheckpoint(args[0], Integer
+        .parseInt(args[1])));
   }
 }

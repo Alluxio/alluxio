@@ -15,22 +15,33 @@
 
 package tachyon.master.lineage.meta;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
+import tachyon.master.journal.JournalOutputStream;
 
 public final class LineageStoreTest {
   private LineageStore mLineageStore;
   private Job mJob;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() {
@@ -60,5 +71,98 @@ public final class LineageStoreTest {
     mLineageStore.completeFile(1);
     Assert.assertEquals(LineageFileState.COMPLETED,
         mLineageStore.getLineage(id).getOutputFiles().get(0).getState());
+  }
+
+  @Test
+  public void deleteLineageTest() {
+    long l1 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(1)), mJob);
+    long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
+        Lists.newArrayList(new LineageFile(2)), mJob);
+    // delete the root
+    mLineageStore.deleteLineage(l1);
+    // neither exists
+    Assert.assertNull(mLineageStore.getLineage(l1));
+    Assert.assertNull(mLineageStore.getLineage(l2));
+  }
+
+  @Test
+  public void deleteNonexistingLineageTest() {
+    long id = 1;
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_DOES_NOT_EXIST, id));
+
+    mLineageStore.deleteLineage(id);
+  }
+
+  @Test
+  public void requestNonexistingFileForPersistenceTest() {
+    long fileId = 1;
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+
+    mLineageStore.requestFilePersistence(fileId);
+  }
+
+  @Test
+  public void requestFilePersistenceTest() throws Exception {
+    long fileId = 1;
+    mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(fileId)), mJob);
+    mLineageStore.requestFilePersistence(fileId);
+
+    Assert.assertEquals(LineageFileState.PERSISENCE_REQUESTED,
+        mLineageStore.getLineageFileState(fileId));
+  }
+
+  @Test
+  public void reportLostFileTest() throws Exception {
+    long fileId = 1;
+    mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(fileId)), mJob);
+    mLineageStore.reportLostFile(fileId);
+
+    Assert.assertEquals(LineageFileState.LOST, mLineageStore.getLineageFileState(fileId));
+  }
+
+  @Test
+  public void reportLostNonexistingFileTest() throws Exception {
+    long fileId = 1;
+    mThrown.expect(LineageDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
+
+    mLineageStore.reportLostFile(fileId);
+  }
+
+  @Test
+  public void commitFilePersistenceTest() throws Exception {
+    long fileId = 1;
+    mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(fileId)), mJob);
+    mLineageStore.commitFilePersistence(fileId);
+
+    Assert.assertEquals(LineageFileState.PERSISTED, mLineageStore.getLineageFileState(fileId));
+  }
+
+  @Test
+  public void commitNonexistingFilePersistenceTest() {
+    long fileId = 1;
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+
+    mLineageStore.commitFilePersistence(fileId);
+  }
+
+  @Test
+  public void journalEntrySerializationTest() throws IOException {
+    long l1 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(1)), mJob);
+    long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
+        Lists.newArrayList(new LineageFile(2)), mJob);
+
+    JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
+    mLineageStore.streamToJournalCheckpoint(outputStream);
+    Mockito.verify(outputStream).writeEntry(mLineageStore.getLineage(l1).toJournalEntry());
+    Mockito.verify(outputStream).writeEntry(mLineageStore.getLineage(l2).toJournalEntry());
   }
 }

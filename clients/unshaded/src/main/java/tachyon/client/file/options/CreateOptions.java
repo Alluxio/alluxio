@@ -33,6 +33,13 @@ public final class CreateOptions {
 
     /**
      * Creates a new builder for {@link CreateOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link CreateOptions}.
      *
      * @param conf a Tachyon configuration
      */
@@ -97,7 +104,7 @@ public final class CreateOptions {
    * @return the default {@code CreateOptions}
    */
   public static CreateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final long mBlockSizeBytes;
@@ -140,6 +147,20 @@ public final class CreateOptions {
    */
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("CreateOptions(");
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Recursive: ").append(mRecursive);
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(")");
+    return sb.toString();
   }
 
   /**

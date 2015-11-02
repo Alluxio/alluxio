@@ -15,9 +15,6 @@
 
 package tachyon.client.block;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,47 +22,13 @@ import org.junit.Test;
 import tachyon.util.io.BufferUtils;
 
 public class BufferedBlockInStreamTest {
-  private class TestBufferedBlockInStream extends BufferedBlockInStream {
-    private final byte[] mData;
-
-    private int mBytesRead;
-
-    public TestBufferedBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
-      super(blockId, blockSize, location);
-      mData = BufferUtils.getIncreasingByteArray((int) blockSize);
-      mBytesRead = 0;
-    }
-
-    public int getBytesRead() {
-      return mBytesRead;
-    }
-
-    @Override
-    protected void bufferedRead(int len) throws IOException {
-      mBuffer.clear();
-      mBuffer.put(mData, (int) getPosition(), len);
-      mBuffer.flip();
-    }
-
-    @Override
-    protected int directRead(byte[] b, int off, int len) throws IOException {
-      System.arraycopy(mData, (int) getPosition(), b, off, len);
-      return len;
-    }
-
-    @Override
-    protected void incrementBytesReadMetric(int bytes) {
-      mBytesRead += bytes;
-    }
-  }
-
   private static final long BLOCK_LENGTH = 100L;
 
   private TestBufferedBlockInStream mTestStream;
 
   @Before
   public void before() {
-    mTestStream = new TestBufferedBlockInStream(1L, BLOCK_LENGTH, null);
+    mTestStream = new TestBufferedBlockInStream(1L, 0, BLOCK_LENGTH);
   }
 
   @Test

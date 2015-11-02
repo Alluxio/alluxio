@@ -30,8 +30,7 @@ import tachyon.worker.WorkerClient;
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
  * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
- * class are completely opaque to user input (such as {@link ClientOptions}). This class is thread
- * safe.
+ * class are completely opaque to user input. This class is thread safe.
  */
 public final class TachyonBlockStore implements Closeable {
 
@@ -88,7 +87,6 @@ public final class TachyonBlockStore implements Closeable {
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
@@ -201,7 +199,7 @@ public final class TachyonBlockStore implements Closeable {
         return;
       }
       // Get the first worker address for now, as this will likely be the location being read from
-      // TODO: Get this location via a policy (possibly location is a parameter to promote)
+      // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
       NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
       try {

@@ -53,7 +53,7 @@ public class BlockMetadataManagerView {
   /** Indices of locks that are being used */
   private final BitSet mInUseLocks = new BitSet();
   /** A map from tier alias to StorageTierView */
-  private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
+  private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
 
   /**
    * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
@@ -151,7 +151,7 @@ public class BlockMetadataManagerView {
    * @return the StorageTierView object associated with the alias
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public StorageTierView getTierView(int tierAlias) {
+  public StorageTierView getTierView(String tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (tierView == null) {
       throw new IllegalArgumentException(
@@ -177,9 +177,9 @@ public class BlockMetadataManagerView {
    * @return the list of StorageTierView
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public List<StorageTierView> getTierViewsBelow(int tierAlias) {
-    int level = getTierView(tierAlias).getTierViewLevel();
-    return mTierViews.subList(level + 1, mTierViews.size());
+  public List<StorageTierView> getTierViewsBelow(String tierAlias) {
+    int ordinal = getTierView(tierAlias).getTierViewOrdinal();
+    return mTierViews.subList(ordinal + 1, mTierViews.size());
   }
 
   /**
@@ -189,9 +189,9 @@ public class BlockMetadataManagerView {
    * @return the next storage tier view, null if this is the last tier view
    */
   public StorageTierView getNextTier(StorageTierView tierView) {
-    int nextLevel = tierView.getTierViewLevel() + 1;
-    if (nextLevel < mTierViews.size()) {
-      return mTierViews.get(nextLevel);
+    int nextOrdinal = tierView.getTierViewOrdinal() + 1;
+    if (nextOrdinal < mTierViews.size()) {
+      return mTierViews.get(nextOrdinal);
     }
     return null;
   }

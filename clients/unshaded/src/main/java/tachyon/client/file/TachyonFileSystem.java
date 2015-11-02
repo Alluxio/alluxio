@@ -24,7 +24,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
@@ -59,6 +58,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
   public static class TachyonFileSystemFactory {
+    private TachyonFileSystemFactory() {} // to prevent initialization
+
     public static synchronized TachyonFileSystem get() {
       if (sTachyonFileSystem == null) {
         boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
@@ -166,8 +167,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
             .setUnderStorageType(options.getUnderStorageType())
             .build();
     TachyonFile tFile = create(path, createOptions);
-    long fileId = tFile.getFileId();
-    return new FileOutStream(fileId, options);
+    try {
+      return new FileOutStream(tFile.getFileId(), options);
+    } catch (IOException e) {
+      // Delete the file if it still exists
+      TachyonFile file = openIfExists(path);
+      if (file != null) {
+        delete(file);
+      }
+      throw e;
+    }
   }
 
   /**
@@ -253,19 +262,5 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public boolean unmount(TachyonURI tachyonPath) throws IOException, TachyonException {
     return unmount(tachyonPath, UnmountOptions.defaults());
-  }
-
-  // TODO: Move this to lineage client
-  public void reportLostFile(TachyonFile file)
-      throws IOException, FileDoesNotExistException, TachyonException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      masterClient.reportLostFile(file.getFileId());
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
   }
 }

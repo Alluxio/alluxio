@@ -29,6 +29,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
@@ -120,7 +121,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized void deleteLineage(long lineageId) {
     Preconditions.checkState(mIdIndex.containsKey(lineageId),
-        "lineage id " + lineageId + " does not exist");
+        PreconditionMessage.LINEAGE_DOES_NOT_EXIST, lineageId);
 
     deleteLineage(lineageId, Sets.<Long>newHashSet());
   }
@@ -151,7 +152,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param fileId the file id
    */
   public synchronized void requestFilePersistence(long fileId) {
-    Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
+    Preconditions.checkState(mOutputFileIndex.containsKey(fileId),
+        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISENCE_REQUESTED);
   }
@@ -174,7 +176,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized List<Lineage> getChildren(Lineage lineage) {
     Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
-        "lineage id " + lineage.getId() + " does not exist");
+        PreconditionMessage.LINEAGE_DOES_NOT_EXIST, lineage.getId());
 
     return mLineageDAG.getChildren(lineage);
   }
@@ -226,7 +228,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized void commitFilePersistence(Long fileId) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId),
-        "file id " + fileId + " does not belong to any lineage");
+        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
 
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISTED);

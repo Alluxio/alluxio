@@ -22,37 +22,57 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for deletion of a file or a directory.
+ */
 public class DeleteFileEntry extends JournalEntry {
-  public final long mFileId;
-  public final boolean mRecursive;
-  public final long mOpTimeMs;
+  private final long mId;
+  private final boolean mRecursive;
+  private final long mOpTimeMs;
 
+  /**
+   * Creates a new instance of {@link DeleteFileEntry}.
+   *
+   * @param id the id
+   * @param recursive the recursive flag
+   * @param opTimeMs the operation time (in milliseconds)
+   */
   @JsonCreator
-  public DeleteFileEntry(@JsonProperty("fileId") long fileId,
+  public DeleteFileEntry(
+      @JsonProperty("id") long id,
       @JsonProperty("recursive") boolean recursive,
-      @JsonProperty("operationTimeMs") long opTimeMs) {
-    mFileId = fileId;
+      @JsonProperty("opTimeMs") long opTimeMs) {
+    mId = id;
     mRecursive = recursive;
     mOpTimeMs = opTimeMs;
   }
 
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.DELETE_FILE;
-  }
-
+  /**
+   * @return the id
+   */
   @JsonGetter
-  public long getFileId() {
-    return mFileId;
+  public long getId() {
+    return mId;
   }
 
+  /**
+   * @return the recursive flag
+   */
   @JsonGetter
   public boolean getRecursive() {
     return mRecursive;
   }
 
+  /**
+   * @return the operation time (in milliseconds)
+   */
   @JsonGetter
-  public long getOperationTimeMs() {
+  public long getOpTimeMs() {
     return mOpTimeMs;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.DELETE_FILE;
   }
 }

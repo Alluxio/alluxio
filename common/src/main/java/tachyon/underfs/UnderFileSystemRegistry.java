@@ -114,7 +114,7 @@ public final class UnderFileSystemRegistry {
       try {
         // Use the factory to create the actual client for the Under File System
         return factory.create(path, tachyonConf, ufsConf);
-      } catch (Throwable e) {
+      } catch (Exception e) {
         errors.add(e);
       }
     }

@@ -16,18 +16,14 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class MountOptions {
   public static class Builder {
     /**
      * Creates a new builder for {@link MountOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {}
+    public Builder() {}
 
     /**
      * Builds a new instance of {@code MountOptions}.
@@ -43,7 +39,7 @@ public final class MountOptions {
    * @return the default {@code MountOptions}
    */
   public static MountOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private MountOptions(MountOptions.Builder builder) {}
