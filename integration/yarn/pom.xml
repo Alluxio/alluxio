@@ -44,7 +44,6 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-client</artifactId>
-      <version>${yarn.version}</version>
     </dependency>
   </dependencies>
 </project>
