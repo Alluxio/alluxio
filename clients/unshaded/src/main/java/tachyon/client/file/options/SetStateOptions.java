@@ -115,4 +115,16 @@ public class SetStateOptions {
     }
     return options;
   }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("SetStateOptions(");
+    sb.append(super.toString()).append(", Pinned: ").append(mPinned)
+        .append(", TTL: ").append(mTTL);
+    sb.append(")");
+    return sb.toString();
+  }
 }

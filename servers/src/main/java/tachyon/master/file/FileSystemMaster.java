@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.collections.Pair;
@@ -303,7 +302,6 @@ public final class FileSystemMaster extends MasterBase {
     file.setLastModificationTimeMs(opTimeMs);
     file.setCompleted(length);
     MasterContext.getMasterSource().incFilesCheckpointed();
-    // TODO(calvin): This probably should always be true since the last mod time is updated.
     return needLog;
   }
 
@@ -399,7 +397,7 @@ public final class FileSystemMaster extends MasterBase {
    * children of the directory. Called via RPC, as well as internal masters.
    *
    * @param fileId
-   * @return
+   * @return the list of {@link FileInfo}s
    * @throws FileDoesNotExistException
    */
   public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
@@ -634,7 +632,7 @@ public final class FileSystemMaster extends MasterBase {
    *        directory content should be deleted recursively
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return
+   * @return true if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    */
@@ -879,7 +877,7 @@ public final class FileSystemMaster extends MasterBase {
 
     long inMemoryLength = 0;
     for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
-      if (isInMemory(info)) {
+      if (isInTopStorageTier(info)) {
         inMemoryLength += info.getLength();
       }
     }
@@ -887,11 +885,11 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return true if the given block is in some worker's memory, false otherwise
+   * @return true if the given block is in the top storage level in some worker, false otherwise
    */
-  private boolean isInMemory(BlockInfo blockInfo) {
+  private boolean isInTopStorageTier(BlockInfo blockInfo) {
     for (BlockLocation location : blockInfo.getLocations()) {
-      if (location.getTier() == StorageLevelAlias.MEM.getValue()) {
+      if (mBlockMaster.getGlobalStorageTierAssoc().getOrdinal(location.getTierAlias()) == 0) {
         return true;
       }
     }
@@ -1035,7 +1033,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param dstPath the path to the rename destionation
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return
+   * @return true if the renaming is successful
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered

@@ -32,9 +32,9 @@ public abstract class BlockMetaBase {
    * <p>
    * /mnt/mem/0/2/100
    *
-   * @param blockId the block id
-   * @param userId the user id
    * @param dir the parent directory
+   * @param sessionId the session id
+   * @param blockId the block id
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
@@ -79,7 +79,7 @@ public abstract class BlockMetaBase {
    */
   public BlockStoreLocation getBlockLocation() {
     StorageTier tier = mDir.getParentTier();
-    return new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex());
+    return new BlockStoreLocation(tier.getTierAlias(), mDir.getDirIndex());
   }
 
   /**
