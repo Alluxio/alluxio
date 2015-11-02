@@ -71,6 +71,9 @@ public final class InodeFile extends Inode {
       return this;
     }
 
+    /**
+     * Sets the ttl in milliseconds.
+     */
     public Builder setTTL(long ttl) {
       mTTL = ttl;
       return this;
@@ -160,7 +163,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @param ttl the TTL to use
+   * @param ttl the TTL to use, in milliseconds
    */
   public void setTTL(long ttl) {
     mTTL = ttl;
