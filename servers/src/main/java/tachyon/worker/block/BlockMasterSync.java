@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
+import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
@@ -96,7 +98,9 @@ public final class BlockMasterSync implements Runnable {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
-      mMasterClient.register(WorkerIdRegistry.getWorkerId(), storeMeta.getCapacityBytesOnTiers(),
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+      mMasterClient.register(WorkerIdRegistry.getWorkerId(),
+          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);
@@ -174,7 +178,6 @@ public final class BlockMasterSync implements Runnable {
    * @throws Exception if an error occurs when executing the command
    */
   // TODO(calvin): Evaluate the necessity of each command.
-  // TODO(calvin): Do this in a non-blocking way.
   private void handleMasterCommand(Command cmd) throws Exception {
     if (cmd == null) {
       return;

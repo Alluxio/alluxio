@@ -68,17 +68,17 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the amount of used bytes on the tier the block is committing to
-   * @param tier the tier the block is being committed to
+   * @param tierAlias the alias of the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
    * @throws IOException if an I/O error occurs
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final int tier, final long blockId, final long length) throws IOException {
+      final String tierAlias, final long blockId, final long length) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.workerCommitBlock(workerId, usedBytesOnTier, tier, blockId, length);
+        mClient.workerCommitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
         return null;
       }
     });
@@ -105,15 +105,15 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
-   * @param usedBytesOnTiers a list of used bytes on each tier
+   * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
-   * @param addedBlocks the added blocks for each storage dir. It maps storage dir id, to a list of
-   *        added block for that storage dir.
+   * @param addedBlocks a mapping from storage tier alias to added blocks
    * @return an optional command for the worker to execute
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Command heartbeat(final long workerId, final List<Long> usedBytesOnTiers,
-      final List<Long> removedBlocks, final Map<Long, List<Long>> addedBlocks) throws IOException {
+  public synchronized Command heartbeat(final long workerId,
+      final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
+      final Map<String, List<Long>> addedBlocks) throws IOException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
@@ -126,21 +126,21 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * The method the worker should execute to register with the block master.
    *
    * @param workerId the worker id of the worker registering
-   * @param totalBytesOnTiers list of total bytes on each tier
-   * @param usedBytesOnTiers list of the used byes on each tier
-   * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
-   *        dir
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException if an I/O error occurs
+   * @param storageTierAliases a list of storage tier aliases in ordinal order
+   * @param totalBytesOnTiers mapping from storage tier alias to total bytes
+   * @param usedBytesOnTiers mapping from storage tier alias to used bytes
+   * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
-  // TODO: rename to workerBlockReport or workerInitialize?
-  public synchronized void register(final long workerId, final List<Long> totalBytesOnTiers,
-      final List<Long> usedBytesOnTiers, final Map<Long, List<Long>> currentBlocksOnTiers)
-          throws TachyonException, IOException {
+  // TODO(yupeng): rename to workerBlockReport or workerInitialize?
+  public synchronized void register(final long workerId, final List<String> storageTierAliases,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<String, List<Long>> currentBlocksOnTiers) throws TachyonException, IOException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers);
+        mClient.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnTiers);
         return null;
       }
     });
