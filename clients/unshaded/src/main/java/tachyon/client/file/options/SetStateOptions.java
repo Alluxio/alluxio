@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.SetStateTOptions;
@@ -87,10 +89,25 @@ public class SetStateOptions {
   }
 
   /**
+   * @return true if the pinned flag is set, otherwise false
+   */
+  public boolean hasPinned() {
+    return mPinned != null;
+  }
+
+  /**
    * @return the pinned flag value; it specifies whether the object should be kept in memory
    */
-  public Boolean getPinnedOrNull() {
+  public boolean getPinned() {
+    Preconditions.checkState(hasPinned(), "the pinned flag must be set");
     return mPinned;
+  }
+
+  /**
+   * @return true if the TTL value is set, otherwise false
+   */
+  public boolean hasTTL() {
+    return mTTL != null;
   }
 
   /**
@@ -98,7 +115,8 @@ public class SetStateOptions {
    *         created file should be kept around before it is automatically deleted, irrespective of
    *         whether the file is pinned
    */
-  public Long getTTLOrNull() {
+  public long getTTL() {
+    Preconditions.checkState(hasTTL(), "the TTL value must be set");
     return mTTL;
   }
 
