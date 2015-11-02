@@ -212,7 +212,7 @@ abstract class AbstractTFS extends FileSystem {
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     DeleteOptions options =
-        new DeleteOptions.Builder(ClientContext.getConf()).setRecursive(recursive).build();
+        new DeleteOptions.Builder().setRecursive(recursive).build();
     try {
       TachyonFile file = mTFS.open(path);
       mTFS.delete(file, options);
