@@ -498,12 +498,12 @@ abstract class AbstractTFS extends FileSystem {
    * Convenience method which opens a {@link TachyonFile} for the given path, wrapping any
    * {@link TachyonException} in {@link IOException}.
    *
-   * @param tPath the path to look up
+   * @param path the path to look up
    * @throws {@link IOException} if a Tachyon exception occurs
    */
-  private TachyonFile tryOpen(TachyonURI tPath) throws IOException {
+  private TachyonFile tryOpen(TachyonURI path) throws IOException {
     try {
-      return mTFS.open(tPath);
+      return mTFS.open(path);
     } catch (TachyonException te) {
       throw new IOException(te);
     }
