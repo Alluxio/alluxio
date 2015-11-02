@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
@@ -298,7 +297,6 @@ public final class FileSystemMaster extends MasterBase {
     file.setLastModificationTimeMs(opTimeMs);
     file.setCompleted(length);
     MasterContext.getMasterSource().incFilesCheckpointed();
-    // TODO(calvin): This probably should always be true since the last mod time is updated.
     return needLog;
   }
 
@@ -874,7 +872,7 @@ public final class FileSystemMaster extends MasterBase {
 
     long inMemoryLength = 0;
     for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
-      if (isInMemory(info)) {
+      if (isInTopStorageTier(info)) {
         inMemoryLength += info.getLength();
       }
     }
@@ -882,11 +880,11 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return true if the given block is in some worker's memory, false otherwise
+   * @return true if the given block is in the top storage level in some worker, false otherwise
    */
-  private boolean isInMemory(BlockInfo blockInfo) {
+  private boolean isInTopStorageTier(BlockInfo blockInfo) {
     for (BlockLocation location : blockInfo.getLocations()) {
-      if (location.getTier() == StorageLevelAlias.MEM.getValue()) {
+      if (mBlockMaster.getGlobalStorageTierAssoc().getOrdinal(location.getTierAlias()) == 0) {
         return true;
       }
     }

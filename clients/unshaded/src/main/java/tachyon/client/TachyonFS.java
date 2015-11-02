@@ -459,7 +459,6 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
     } catch (TachyonException e) {
-      // TODO(calvin): Should not cast this to Tachyon Exception
       throw new IOException(e);
     }
   }
@@ -807,7 +806,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
-    return mIdToClientFileInfo.get(fid).isFolder;
+    return mIdToClientFileInfo.get(Long.valueOf(fid)).isFolder;
   }
 
   /**

@@ -58,6 +58,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
   public static class TachyonFileSystemFactory {
+    private TachyonFileSystemFactory() {} // to prevent initialization
+
     public static synchronized TachyonFileSystem get() {
       if (sTachyonFileSystem == null) {
         boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
@@ -165,8 +167,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
             .setUnderStorageType(options.getUnderStorageType())
             .build();
     TachyonFile tFile = create(path, createOptions);
-    long fileId = tFile.getFileId();
-    return new FileOutStream(fileId, options);
+    try {
+      return new FileOutStream(tFile.getFileId(), options);
+    } catch (IOException e) {
+      // Delete the file if it still exists
+      TachyonFile file = openIfExists(path);
+      if (file != null) {
+        delete(file);
+      }
+      throw e;
+    }
   }
 
   /**
