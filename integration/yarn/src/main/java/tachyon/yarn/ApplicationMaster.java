@@ -102,13 +102,13 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
+    Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
+    Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
       LOG.info("Starting Application Master with args " + Arrays.toString(args));
       final int numWorkers = Integer.valueOf(args[0]);
-      final String tachyonHome = Preconditions.checkArgument(args[1] != null, "Tachyon home " +
-          "cannot be null");
-      final String masterAddress = Preconditions.checkArgument(args[2] != null, "Address of " +
-          "Tachyon master cannot be null");
+      final String tachyonHome = args[1];
+      final String masterAddress = args[2];
       ApplicationMaster applicationMaster =
           new ApplicationMaster(numWorkers, tachyonHome, masterAddress);
       applicationMaster.start();

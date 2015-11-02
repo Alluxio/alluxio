@@ -45,4 +45,6 @@ public class PreconditionMessage {
   public static final String LINEAGE_DOES_NOT_EXIST = "Lineage id %s does not exist";
   public static final String LINEAGE_NO_OUTPUT_FILE =
       "The output file %s is not associated with any lineage";
+
+  private PreconditionMessage() {} // to prevent initialization
 }
