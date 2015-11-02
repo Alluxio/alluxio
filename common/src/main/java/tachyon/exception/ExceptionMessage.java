@@ -57,7 +57,7 @@ public enum ExceptionMessage {
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
   SEEK_NEGATIVE("Seek position is negative: {0}"),
-  SEEK_PAST_EOF("Seek position is past EOF: {0}, fileSize = {1}"),
+  SEEK_PAST_EOF("Seek position is past EOF: {0}, fileSize: {1}"),
 
   // netty
   BLOCK_WRITE_ERROR("Error writing blockId: {0}, sessionId: {1}, address: {2}, message: {3}"),
@@ -90,7 +90,7 @@ public enum ExceptionMessage {
   // file
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
-  HDFS_FILE_NOT_FOUND("File {0} with FID {1} is not found."),
+  HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
