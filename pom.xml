@@ -150,6 +150,7 @@
     <module>shell</module>
     <module>examples</module>
     <module>integration-tests</module>
+    <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
   </modules>
@@ -586,7 +587,8 @@
     <profile>
       <id>developer</id>
       <modules>
-        <module>integration</module>
+        <module>integration/yarn</module>
+        <module>integration/mesos</module>
       </modules>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
