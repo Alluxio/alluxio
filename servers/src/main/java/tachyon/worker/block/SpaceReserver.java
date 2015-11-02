@@ -16,21 +16,20 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.collections.Pair;
+import tachyon.StorageTierAssoc;
 import tachyon.Sessions;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.WorkerOutOfSpaceException;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
@@ -38,12 +37,13 @@ import tachyon.worker.WorkerContext;
  * SpaceReserver periodically checks if there is enough space reserved on each storage tier, if
  * there is no enough free space on some tier, free space from it.
  */
-public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
+public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockDataManager mBlockManager;
+  /** Association between storage tier aliases and ordinals for the worker */
+  private final StorageTierAssoc mStorageTierAssoc;
   /** Mapping from tier alias to space size to be reserved on the tier */
-  private final List<Pair<Integer, Long>> mBytesToReserveOnTiers =
-      new ArrayList<Pair<Integer, Long>>();
+  private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<String, Long>();
   /** Milliseconds between each check */
   private final int mCheckIntervalMs;
   /** Flag to indicate if the checking should continue */
@@ -51,19 +51,17 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
 
   public SpaceReserver(BlockDataManager blockManager) {
     mBlockManager = blockManager;
-    List<Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();
-    List<Integer> aliasOnTiers = blockManager.getStoreMeta().getAliasOnTiers();
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+    Map<String, Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
-    for (int idx = 0; idx < aliasOnTiers.size(); idx ++) {
+    for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal ++) {
       String tierReservedSpaceProp =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, idx);
-      int tierAlias = aliasOnTiers.get(idx);
-      /** Similar to {@link BlockStoreMeta}, the alias index is the value of alias - 1 */
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
+      String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long reservedSpaceBytes =
-          (long)(capOnTiers.get(tierAlias - 1) * WorkerContext.getConf()
-              .getDouble(tierReservedSpaceProp));
-      mBytesToReserveOnTiers.add(new Pair<Integer, Long>(tierAlias,
-          reservedSpaceBytes + lastTierReservedBytes));
+          (long) (capOnTiers.get(tierAlias) * WorkerContext.getConf().getDouble(
+              tierReservedSpaceProp));
+      mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpaceBytes;
     }
     mCheckIntervalMs =
@@ -95,16 +93,10 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
     mRunning = false;
   }
 
-  @Override
-  public void grantAccess(Tester<SpaceReserver> tester) {
-    tester.receiveAccess(new PrivateAccess());
-  }
-
   private void reserveSpace() {
-    for (int tierIdx = mBytesToReserveOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
-      Pair<Integer, Long> bytesReservedOnTier = mBytesToReserveOnTiers.get(tierIdx);
-      int tierAlias = bytesReservedOnTier.getFirst();
-      long bytesReserved = bytesReservedOnTier.getSecond();
+    for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0 ; ordinal --) {
+      String tierAlias = mStorageTierAssoc.getAlias(ordinal);
+      long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
       try {
         mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
       } catch (WorkerOutOfSpaceException e) {
@@ -118,15 +110,6 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
       } catch (IOException e) {
         LOG.warn(e.getMessage());
       }
-    }
-  }
-
-  /** Grants access to private members to testers of this class. */
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    public void reserveSpace() {
-      SpaceReserver.this.reserveSpace();
     }
   }
 }

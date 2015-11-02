@@ -1,6 +1,4 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.StorageDirId" %>
-<%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.util.*" %>
 <%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiStorageDir" %>
 <%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiWorkerInfo" %>
@@ -69,15 +67,15 @@
                   <th>Total Capacity / Used</th>
                   <th><%= request.getAttribute("capacityBytes") %> / <%= request.getAttribute("usedBytes") %></th>
                 </tr>
-                <% List<Long> capacityBytesOnTiers = (List<Long>) request.getAttribute("capacityBytesOnTiers"); %>
-                <% List<Long> usedBytesOnTiers = (List<Long>) request.getAttribute("usedBytesOnTiers"); %>
-                <% for (int i = 0; i < capacityBytesOnTiers.size(); i ++) { %>
-                  <% if (capacityBytesOnTiers.get(i) > 0) { %>
+                <% Map<String, Long> capacityBytesOnTiers = (Map<String, Long>) request.getAttribute("capacityBytesOnTiers"); %>
+                <% Map<String, Long> usedBytesOnTiers = (Map<String, Long>) request.getAttribute("usedBytesOnTiers"); %>
+                <% for (String tierAlias : capacityBytesOnTiers.keySet()) { %>
+                  <% if (capacityBytesOnTiers.get(tierAlias) > 0) { %>
                   <tr>
-                    <th><%= StorageLevelAlias.values()[i].name() %> Capacity / Used</th>
+                    <th><%= tierAlias %> Capacity / Used</th>
                     <th>
-                      <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(i)) %> /
-                      <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(i)) %>
+                      <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(tierAlias)) %> /
+                      <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(tierAlias)) %>
                     </th>
                   </tr>
                   <% } %>
@@ -110,7 +108,7 @@
               <tbody>
                 <% for (UiStorageDir dir : ((List<UiStorageDir>) request.getAttribute("storageDirs"))) { %>
                   <tr>
-                    <th><%= StorageDirId.getStorageLevelAlias(dir.getStorageDirId()) %></th>
+                    <th><%= dir.getTierAlias() %></th>
                     <th><%= dir.getDirPath() %></th>
                     <th><%= FormatUtils.getSizeFromBytes(dir.getCapacityBytes()) %></th>
                     <th><%= FormatUtils.getSizeFromBytes(dir.getUsedBytes()) %></th>

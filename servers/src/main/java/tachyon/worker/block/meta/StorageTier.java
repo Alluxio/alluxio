@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import tachyon.Constants;
-import tachyon.StorageLevelAlias;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.FormatUtils;
@@ -36,29 +36,24 @@ import tachyon.worker.WorkerContext;
  * This class does not guarantee thread safety.
  */
 public final class StorageTier {
-  /** Alias of this tier, e.g., memory tier is 1, SSD tier is 2 and HDD tier is 3 */
-  private final int mTierAlias;
-  /** Level of this tier in tiered storage, highest level is 0 */
-  private final int mTierLevel;
+  /** Alias value of this tier in tiered storage */
+  private final String mTierAlias;
+  /** Ordinal value of this tier in tiered storage, highest level is 0 */
+  private final int mTierOrdinal;
   /** Total capacity of all StorageDirs in bytes */
   private long mCapacityBytes;
   private List<StorageDir> mDirs;
 
-  private StorageTier(int tierLevel) {
-    mTierLevel = tierLevel;
-
-    String tierLevelAliasProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, tierLevel);
-    StorageLevelAlias alias = WorkerContext.getConf()
-        .getEnum(tierLevelAliasProp, StorageLevelAlias.class);
-    mTierAlias = alias.getValue();
+  private StorageTier(String tierAlias) {
+    mTierAlias = tierAlias;
+    mTierOrdinal = new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrdinal(tierAlias);
   }
 
-  private void initStorageTier() throws BlockAlreadyExistsException, IOException,
-      WorkerOutOfSpaceException {
+  private void initStorageTier()
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     String workerDataFolder = WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER);
     String tierDirPathConf =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierOrdinal);
     String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
@@ -68,7 +63,7 @@ public final class StorageTier {
     }
 
     String tierDirCapacityConf =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
     String[] dirQuotas = WorkerContext.getConf().get(tierDirCapacityConf).split(",");
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);
@@ -86,31 +81,31 @@ public final class StorageTier {
   /**
    * Factory method to create {@link StorageTier}.
    *
-   * @param tierLevel the tier level
+   * @param tierAlias the tier alias
    * @return a new storage tier
    * @throws BlockAlreadyExistsException if the tier already exists
    * @throws IOException if an I/O error occurred
    * @throws WorkerOutOfSpaceException if there is not enough space available
    */
-  public static StorageTier newStorageTier(int tierLevel)
+  public static StorageTier newStorageTier(String tierAlias)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    StorageTier ret = new StorageTier(tierLevel);
+    StorageTier ret = new StorageTier(tierAlias);
     ret.initStorageTier();
     return ret;
   }
 
   /**
-   * @return the tier alias
+   * @return the tier ordinal
    */
-  public int getTierAlias() {
-    return mTierAlias;
+  public int getTierOrdinal() {
+    return mTierOrdinal;
   }
 
   /**
-   * @return the tier level
+   * @return the tier alias
    */
-  public int getTierLevel() {
-    return mTierLevel;
+  public String getTierAlias() {
+    return mTierAlias;
   }
 
   /**

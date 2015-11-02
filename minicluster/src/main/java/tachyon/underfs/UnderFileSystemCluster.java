@@ -84,7 +84,7 @@ public abstract class UnderFileSystemCluster {
         System.out.println("Initialized under file system testing cluster of type "
             + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
-      } catch (Throwable e) {
+      } catch (Exception e) {
         System.err.println("Failed to initialize the ufsCluster of " + sUfsClz
             + " for integration test.");
         throw Throwables.propagate(e);

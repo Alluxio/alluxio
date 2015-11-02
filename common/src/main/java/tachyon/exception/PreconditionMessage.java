@@ -42,4 +42,7 @@ public class PreconditionMessage {
   public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
+
+  private PreconditionMessage() {} // to prevent initialization
+
 }

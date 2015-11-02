@@ -13,13 +13,12 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import tachyon.client.ClientContext;
-import tachyon.client.block.BlockInStream;
 import tachyon.exception.ExceptionMessage;
 import tachyon.underfs.UnderFileSystem;
 
@@ -29,8 +28,7 @@ import tachyon.underfs.UnderFileSystem;
  * system read does not guarantee any locality and is dependent on the implementation of the under
  * storage client.
  */
-// TODO(calvin): This should be treated like a block in stream.
-public final class UnderStoreFileInStream extends BlockInStream {
+public final class UnderStoreBlockInStream extends BlockInStream {
   private final long mInitPos;
   private final long mLength;
   private final String mUfsPath;
@@ -46,7 +44,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
    * @param ufsPath the under file system path
    * @throws IOException if an I/O error occurs
    */
-  public UnderStoreFileInStream(long initPos, long length, String ufsPath) throws IOException {
+  public UnderStoreBlockInStream(long initPos, long length, String ufsPath) throws IOException {
     mInitPos = initPos;
     mLength = length;
     mUfsPath = ufsPath;

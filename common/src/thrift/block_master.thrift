@@ -42,7 +42,7 @@ service BlockMasterService {
   /*
    * Marks the given block as committed.
    */
-  void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i32 tier, 4: i64 blockId,
+  void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: string tierAlias, 4: i64 blockId,
       5: i64 length)
     throws (1: exception.TachyonTException e)
 
@@ -54,14 +54,14 @@ service BlockMasterService {
   /*
    * Periodic worker heartbeat.
    */
-  common.Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
-      3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
+  common.Command workerHeartbeat(1: i64 workerId, 2: map<string, i64> usedBytesOnTiers,
+      3: list<i64> removedBlockIds, 4: map<string, list<i64>> addedBlocksOnTiers)
     throws (1: exception.TachyonTException e)
 
   /*
    * Registers a worker.
    */
-  void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
-      3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
+  void workerRegister(1: i64 workerId, 2: list<string> storageTiers, 3: map<string, i64> totalBytesOnTiers,
+      4: map<string, i64> usedBytesOnTiers, 5: map<string, list<i64>> currentBlocksOnTiers)
     throws (1: exception.TachyonTException e)
 }

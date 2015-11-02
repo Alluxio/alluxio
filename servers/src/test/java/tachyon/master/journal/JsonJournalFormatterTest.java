@@ -15,8 +15,8 @@
 
 package tachyon.master.journal;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 
 import org.junit.Before;
@@ -41,8 +41,8 @@ public class JsonJournalFormatterTest extends JournalFormatterTestBase {
   @Override
   @Before
   public void before() throws Exception {
-    String entriesFile = JsonJournalFormatterTest.class.getResource(JSON_SAMPLE_PATH).getFile();
-    mRootNode = new ObjectMapper().readTree(new File(entriesFile));
+    URL entriesURL = JsonJournalFormatterTest.class.getResource(JSON_SAMPLE_PATH);
+    mRootNode = new ObjectMapper().readTree(entriesURL);
     super.before();
   }
 

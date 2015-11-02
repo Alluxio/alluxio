@@ -26,12 +26,25 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.google.common.base.Preconditions;
 
 /**
- * This class can be used for controlling heartbeat execution.
+ * This class can be used for controlling heartbeat execution of a thread.
+ *
+ * In particular, the {@link #await(String)} method can be used to wait for a thread to start
+ * waiting to be scheduled and the {@link #schedule(String)} method can be used to schedule a thread
+ * that is waiting to be scheduled.
+ *
+ * The contract of this class is that the {@link #schedule(String)} method should only be called for
+ * threads that are in fact waiting to be scheduled. If this contract is not met, concurrent
+ * execution of a thread and the heartbeat scheduler logic to schedule the thread can lead to a
+ * deadlock.
+ *
+ * For an example of how to use the HeartbeatScheduler, see {@link HeartbeatThreadTest}.
  */
 public final class HeartbeatScheduler {
   private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
   private static Lock sLock =  new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
+
+  private HeartbeatScheduler() {} // to prevent initialization
 
   /**
    * @param timer a timer to add to the scheduler
@@ -40,7 +53,7 @@ public final class HeartbeatScheduler {
     Preconditions.checkNotNull(timer);
     sLock.lock();
     sTimers.put(timer.getThreadName(), timer);
-    sCondition.signal();
+    sCondition.signalAll();
     sLock.unlock();
   }
 
