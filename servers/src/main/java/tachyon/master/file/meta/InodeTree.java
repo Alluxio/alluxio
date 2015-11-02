@@ -369,7 +369,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     mInodes.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
-    inode.delete();
+    inode.setDeleted(true);
   }
 
   /**
