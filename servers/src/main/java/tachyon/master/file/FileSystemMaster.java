@@ -1372,8 +1372,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, options.getPinnedOrNull(),
-          options.getTTLOrNull()));
+      Boolean pinned = options.hasPinned() ? options.getPinned() : null;
+      Long ttl = options.hasTTL() ? options.getTTL() : null;
+      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, pinned, ttl));
       flushJournal();
     }
   }
@@ -1381,12 +1382,11 @@ public final class FileSystemMaster extends MasterBase {
   private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
       throws FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
-    Boolean pinned = options.getPinnedOrNull();
-    Long ttl = options.getTTLOrNull();
-    if (pinned != null) {
-      mInodeTree.setPinned(inode, pinned, opTimeMs);
+    if (options.hasPinned()) {
+      mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
     }
-    if (ttl != null) {
+    if (options.hasTTL()) {
+      long ttl = options.getTTL();
       InodeFile file = (InodeFile) inode;
       if (file.getTTL() != ttl) {
         mTTLBuckets.remove(file);
