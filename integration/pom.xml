@@ -12,11 +12,6 @@
   <name>Tachyon Integration</name>
   <description>Parent POM for different integrations with Tachyon</description>
 
-  <modules>
-    <module>mesos</module>
-    <module>yarn</module>
-  </modules>
-
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
