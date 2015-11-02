@@ -159,4 +159,19 @@ public final class OutStreamOptions {
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
   }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("OutStreamOptions(");
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Hostname: ").append(mHostname);
+    sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(")");
+    return sb.toString();
+  }
 }

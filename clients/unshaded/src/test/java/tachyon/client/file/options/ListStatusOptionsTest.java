@@ -27,6 +27,6 @@ public class ListStatusOptionsTest {
 
   @Test
   public void defaultsTest() {
-    ListStatusOptions options = ListStatusOptions.defaults();
+    ListStatusOptions.defaults();
   }
 }

@@ -27,6 +27,6 @@ public class RenameOptionsTest {
 
   @Test
   public void defaultsTest() {
-    OpenOptions options = OpenOptions.defaults();
+    OpenOptions.defaults();
   }
 }

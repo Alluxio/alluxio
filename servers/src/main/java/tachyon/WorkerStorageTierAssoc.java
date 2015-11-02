@@ -13,33 +13,22 @@
  * the License.
  */
 
-package tachyon.master.lineage.journal;
+package tachyon;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Preconditions;
+import tachyon.conf.TachyonConf;
 
-import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryType;
-
-public final class RequestFilePersistenceEntry extends JournalEntry {
-  private final List<Long> mFileIds;
-
-  @JsonCreator
-  public RequestFilePersistenceEntry(@JsonProperty("fileIds") List<Long> fileIds) {
-    mFileIds = Preconditions.checkNotNull(fileIds);
+/**
+ * StorageTierAssoc for workers
+ */
+public class WorkerStorageTierAssoc extends StorageTierAssoc {
+  public WorkerStorageTierAssoc(TachyonConf conf) {
+    super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
+        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
-  @JsonGetter
-  public List<Long> getFileIds() {
-    return mFileIds;
-  }
-
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.REQUEST_FILE_PERSISTENCE;
+  public WorkerStorageTierAssoc(List<String> storageTierAliases) {
+    super(storageTierAliases);
   }
 }

@@ -66,18 +66,18 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the amount of used bytes on the tier the block is committing to
-   * @param tier the tier the block is being committed to
+   * @param tierAlias the alias of the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void commitBlock(long workerId, long usedBytesOnTier, int tier, long blockId,
-      long length) throws IOException {
+  public synchronized void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
+      long blockId, long length) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.workerCommitBlock(workerId, usedBytesOnTier, tier, blockId, length);
+        mClient.workerCommitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
         return;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -94,7 +94,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  // TODO: rename to workerRegister?
+  // TODO(yupeng): rename to workerRegister?
   public synchronized long getId(NetAddress address) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
@@ -113,15 +113,14 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
-   * @param usedBytesOnTiers a list of used bytes on each tier
+   * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
-   * @param addedBlocks the added blocks for each storage dir. It maps storage dir id, to a list of
-   *        added block for that storage dir.
+   * @param addedBlocks a mapping from storage tier alias to added blocks
    * @return an optional command for the worker to execute
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Command heartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
+  public synchronized Command heartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
+      List<Long> removedBlocks, Map<String, List<Long>> addedBlocks) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
@@ -139,20 +138,22 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * The method the worker should execute to register with the block master.
    *
    * @param workerId the worker id of the worker registering
-   * @param totalBytesOnTiers list of total bytes on each tier
-   * @param usedBytesOnTiers list of the used byes on each tier
-   * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
-   *        dir
+   * @param storageTierAliases a list of storage tier aliases in ordinal order
+   * @param totalBytesOnTiers mapping from storage tier alias to total bytes
+   * @param usedBytesOnTiers mapping from storage tier alias to used bytes
+   * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
-  // TODO: rename to workerBlockReport or workerInitialize?
-  public synchronized void register(long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
+  // TODO(yupeng): rename to workerBlockReport or workerInitialize?
+  public synchronized void register(long workerId, List<String> storageTierAliases,
+      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+      Map<String, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers);
+        mClient.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnTiers);
         return;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);

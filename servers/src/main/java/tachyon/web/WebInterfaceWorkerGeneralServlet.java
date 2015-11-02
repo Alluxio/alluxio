@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
 import tachyon.Version;
+import tachyon.collections.Pair;
 import tachyon.util.FormatUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
@@ -37,13 +39,13 @@ import tachyon.worker.block.BlockStoreMeta;
 public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   public static class UiStorageDir {
-    private final long mStorageDirId;
+    private final String mTierAlias;
     private final String mDirPath;
     private final long mCapacityBytes;
     private final long mUsedBytes;
 
-    public UiStorageDir(long storageDirId, String dirPath, long capacityBytes, long usedBytes) {
-      mStorageDirId = storageDirId;
+    public UiStorageDir(String tierAlias, String dirPath, long capacityBytes, long usedBytes) {
+      mTierAlias = tierAlias;
       mDirPath = dirPath;
       mCapacityBytes = capacityBytes;
       mUsedBytes = usedBytes;
@@ -57,8 +59,8 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
       return mDirPath;
     }
 
-    public long getStorageDirId() {
-      return mStorageDirId;
+    public String getTierAlias() {
+      return mTierAlias;
     }
 
     public long getUsedBytes() {
@@ -120,11 +122,13 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     long capacityBytes = 0L;
     long usedBytes = 0L;
-    List<Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
-    List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    for (int i = 0; i < capacityBytesOnTiers.size(); i ++) {
-      capacityBytes += capacityBytesOnTiers.get(i);
-      usedBytes += usedBytesOnTiers.get(i);
+    Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
+    for (long capacity : capacityBytesOnTiers.values()) {
+      capacityBytes += capacity;
+    }
+    for (long used : usedBytesOnTiers.values()) {
+      usedBytes += used;
     }
 
     request.setAttribute("capacityBytes", FormatUtils.getSizeFromBytes(capacityBytes));
@@ -135,10 +139,12 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedBytesOnTiers", usedBytesOnTiers);
 
-    List<UiStorageDir> storageDirs = new ArrayList<UiStorageDir>(storeMeta.getDirPaths().size());
-    for (long dirId : storeMeta.getDirPaths().keySet()) {
-      storageDirs.add(new UiStorageDir(dirId, storeMeta.getDirPaths().get(dirId), storeMeta
-          .getCapacityBytesOnDirs().get(dirId), storeMeta.getUsedBytesOnDirs().get(dirId)));
+    List<UiStorageDir> storageDirs =
+        new ArrayList<UiStorageDir>(storeMeta.getCapacityBytesOnDirs().size());
+    for (Pair<String, String> tierAndDirPath : storeMeta.getCapacityBytesOnDirs().keySet()) {
+      storageDirs.add(new UiStorageDir(tierAndDirPath.getFirst(), tierAndDirPath.getSecond(),
+          storeMeta.getCapacityBytesOnDirs().get(tierAndDirPath), storeMeta.getUsedBytesOnDirs()
+              .get(tierAndDirPath)));
     }
 
     request.setAttribute("storageDirs", storageDirs);
