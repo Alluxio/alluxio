@@ -17,12 +17,10 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class OpenOptionsTest {
   @Test
   public void builderTest() {
-    new OpenOptions.Builder(new TachyonConf()).build();
+    new OpenOptions.Builder().build();
   }
 
   @Test

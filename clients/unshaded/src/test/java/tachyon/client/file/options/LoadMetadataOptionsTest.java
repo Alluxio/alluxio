@@ -20,8 +20,6 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class LoadMetadataOptionsTest {
   @Test
   public void builderTest() {
@@ -29,7 +27,7 @@ public class LoadMetadataOptionsTest {
     boolean recursive = random.nextBoolean();
 
     LoadMetadataOptions options =
-        new LoadMetadataOptions.Builder(new TachyonConf())
+        new LoadMetadataOptions.Builder()
             .setRecursive(recursive)
             .build();
 

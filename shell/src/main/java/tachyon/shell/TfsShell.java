@@ -651,7 +651,7 @@ public class TfsShell implements Closeable {
   public void pin(TachyonURI path) throws IOException {
     try {
       TachyonFile fd = mTfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder(mTachyonConf).setPinned(true).build();
+      SetStateOptions options = new SetStateOptions.Builder().setPinned(true).build();
       mTfs.setState(fd, options);
       System.out.println("File '" + path + "' was successfully pinned.");
     } catch (TachyonException e) {
@@ -766,7 +766,7 @@ public class TfsShell implements Closeable {
   public void loadMetadata(TachyonURI path) throws IOException {
     try {
       LoadMetadataOptions recursive =
-          new LoadMetadataOptions.Builder(mTachyonConf).setRecursive(true).build();
+          new LoadMetadataOptions.Builder().setRecursive(true).build();
       mTfs.loadMetadata(path, recursive);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
@@ -840,7 +840,7 @@ public class TfsShell implements Closeable {
    */
   public void rmr(TachyonURI path) throws IOException {
     try {
-      DeleteOptions options = new DeleteOptions.Builder(mTachyonConf).setRecursive(true).build();
+      DeleteOptions options = new DeleteOptions.Builder().setRecursive(true).build();
       TachyonFile fd = mTfs.open(path);
       mTfs.delete(fd, options);
       System.out.println(path + " has been removed");
@@ -1077,7 +1077,7 @@ public class TfsShell implements Closeable {
    */
   public void unpin(TachyonURI path) throws IOException {
     try {
-      SetStateOptions options = new SetStateOptions.Builder(mTachyonConf).setPinned(false).build();
+      SetStateOptions options = new SetStateOptions.Builder().setPinned(false).build();
       TachyonFile fd = mTfs.open(path);
       mTfs.setState(fd, options);
       System.out.println("File '" + path + "' was successfully unpinned.");
@@ -1094,7 +1094,7 @@ public class TfsShell implements Closeable {
    */
   public void free(TachyonURI path) throws IOException {
     try {
-      FreeOptions options = new FreeOptions.Builder(mTachyonConf).setRecursive(true).build();
+      FreeOptions options = new FreeOptions.Builder().setRecursive(true).build();
       TachyonFile fd = mTfs.open(path);
       mTfs.free(fd, options);
       System.out.println(path + " was successfully freed from memory.");

@@ -17,12 +17,10 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class RenameOptionsTest {
   @Test
   public void builderTest() {
-    new RenameOptions.Builder(new TachyonConf()).build();
+    new RenameOptions.Builder().build();
   }
 
   @Test
