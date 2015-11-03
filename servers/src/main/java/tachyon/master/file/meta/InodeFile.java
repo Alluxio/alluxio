@@ -155,7 +155,7 @@ public final class InodeFile extends Inode {
    * @oaram blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
-    // TODO(yupeng): add validation
+    Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
   }
 
