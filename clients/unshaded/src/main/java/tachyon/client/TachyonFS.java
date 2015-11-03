@@ -1011,8 +1011,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void setPinned(long fid, boolean pinned) throws IOException {
     try {
-      mFSMasterClient.setState(fid, new SetStateOptions.Builder(ClientContext.getConf())
-          .setPinned(pinned).build());
+      mFSMasterClient.setState(fid, new SetStateOptions.Builder().setPinned(pinned).build());
     } catch (TachyonException e) {
       throw new IOException(e);
     }

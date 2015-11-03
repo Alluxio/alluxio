@@ -8,6 +8,12 @@
     <Package name="tachyon.thrift"/>
   </Match>
 
+  <!-- volatile increment is used correctly in this class -->
+  <Match>
+    <Class name="tachyon.yarn.ApplicationMaster"/>
+    <Bug code="VO"/>
+  </Match>
+
   <Match>
     <!--
 	BC: Unchecked/unconfirmed cast

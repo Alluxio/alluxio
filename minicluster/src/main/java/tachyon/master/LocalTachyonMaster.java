@@ -261,10 +261,6 @@ public final class LocalTachyonMaster {
     return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
   }
 
-  private static String path(final String parent, final String child) {
-    return parent + "/" + child;
-  }
-
   public String getJournalFolder() {
     return mJournalFolder;
   }
