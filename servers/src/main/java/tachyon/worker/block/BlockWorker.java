@@ -159,7 +159,8 @@ public final class BlockWorker extends WorkerBase {
    * @throws IOException for other exceptions
    */
   public BlockWorker() throws IOException {
-    super(Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("worker-heartbeat-%d", true)));
+    super(Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 

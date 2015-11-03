@@ -304,11 +304,11 @@ public class LocalTachyonClusterMultiMaster {
       @Override
       public void run() {
         try {
-          mWorker.process();
           // Start the lineage worker
           if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
             mLineageWorker.start();
           }
+          mWorker.process();
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
