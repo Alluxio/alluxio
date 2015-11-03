@@ -15,9 +15,6 @@
 
 package tachyon.client.file.options;
 
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
-
 public class SetStateOptions {
   public static class Builder {
     private Boolean mPinned;
@@ -26,10 +23,8 @@ public class SetStateOptions {
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder() {
       mPinned = null;
     }
 
@@ -58,7 +53,7 @@ public class SetStateOptions {
    * @return the default {@code SetStateOptions}
    */
   public static SetStateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final Boolean mPinned;

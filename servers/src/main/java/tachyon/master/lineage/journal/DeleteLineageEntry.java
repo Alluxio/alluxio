@@ -22,22 +22,38 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for deletion of existing lineage.
+ */
 public final class DeleteLineageEntry extends JournalEntry {
   private long mLineageId;
   private boolean mCascade;
 
+  /**
+   * Creates a new instance of {@link DeleteLineageEntry}.
+   *
+   * @param lineageId the lineage id
+   * @param cascade the cascade flag
+   */
   @JsonCreator
-  public DeleteLineageEntry(@JsonProperty("lineageId") long lineageId,
+  public DeleteLineageEntry(
+      @JsonProperty("lineageId") long lineageId,
       @JsonProperty("cascade") boolean cascade) {
     mLineageId = lineageId;
     mCascade = cascade;
   }
 
+  /**
+   * @return the lineage id
+   */
   @JsonGetter
   public long getLineageId() {
     return mLineageId;
   }
 
+  /**
+   * @return the cascade flag
+   */
   @JsonGetter
   public boolean isCascade() {
     return mCascade;

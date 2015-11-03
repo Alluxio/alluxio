@@ -105,7 +105,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
