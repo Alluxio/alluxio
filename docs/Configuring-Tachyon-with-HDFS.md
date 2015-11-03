@@ -17,7 +17,7 @@ machines. You can either
 [compile the binaries from Tachyon source code](Building-Tachyon-Master-Branch.html), or
 [download the precompiled binaries directly](Running-Tachyon-Locally.html).
 
-Note that, by default, Tachyon binaries are built to work with Hadoop HDFS version `2.2.0`. To use
+Note that, by default, Tachyon binaries are built to work with Hadoop HDFS version `1.0.4`. To use
 another Hadoop version, one needs to recompile Tachyon binaries from source code with the correct
 Hadoop version set by either of following approaches. Assume `${TACHYON_HOME}` is the root directory
 of Tachyon source code.
