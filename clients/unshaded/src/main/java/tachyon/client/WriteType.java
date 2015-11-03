@@ -23,12 +23,12 @@ package tachyon.client;
  */
 public enum WriteType {
   /**
-   * Write the file and must cache it.
+   * Write the file and must cache it. No data will be persisted to the under storage.
    */
-  @Deprecated
   MUST_CACHE(1),
   /**
-   * Write the file and try to cache it.
+   * Write the file and try to cache it. This write type is deprecated and not recommended for
+   * use. Use either MUST_CACHE or CACHE_THROUGH depending on your data persistence requirements.
    */
   @Deprecated
   TRY_CACHE(2),
@@ -42,14 +42,11 @@ public enum WriteType {
   THROUGH(4),
   /**
    * [Experimental] Write the file asynchronously to the under fs (either must cache or must
-   * through).
+   * through). This write type is deprecated and not recommended for use. Use {@link
+   * tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data persistence.
    */
   @Deprecated
-  ASYNC_THROUGH(5),
-  /**
-   * Write the file only to Tachyon storage.
-   */
-  CACHE(6);
+  ASYNC_THROUGH(5);
 
   private final int mValue;
 
@@ -62,7 +59,7 @@ public enum WriteType {
    */
   public TachyonStorageType getTachyonStorageType() {
     if (isCache()) {
-      return TachyonStorageType.PROMOTE;
+      return TachyonStorageType.STORE;
     }
     return TachyonStorageType.NO_STORE;
   }
@@ -85,8 +82,12 @@ public enum WriteType {
   }
 
   /**
+   * This method is deprecated, it is not recommended to use ASYNC_THROUGH. Use {@link
+   * tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data persistence.
+   *
    * @return true if the write type is ASYNC_THROUGH, false otherwise
    */
+  @Deprecated
   public boolean isAsync() {
     return mValue == ASYNC_THROUGH.mValue;
   }
@@ -96,8 +97,7 @@ public enum WriteType {
    */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
-        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue)
-        || (mValue == CACHE.mValue);
+        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
