@@ -34,6 +34,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
@@ -183,14 +184,14 @@ public class HdfsFileInputStreamIntegrationTest {
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals("Seek position is negative: -1", exception.getMessage());
+    Assert.assertEquals(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1), exception.getMessage());
     try {
       mInMemInputStream.seek(FILE_LEN + 1);
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = "
-        + FILE_LEN, exception.getMessage());
+    Assert.assertEquals(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN),
+        exception.getMessage());
 
     mUfsInputStream.seek(0);
     Assert.assertEquals(0, mUfsInputStream.getPos());
@@ -199,13 +200,13 @@ public class HdfsFileInputStreamIntegrationTest {
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals("Seek position is negative: -1", exception.getMessage());
+    Assert.assertEquals(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1), exception.getMessage());
     try {
       mUfsInputStream.seek(FILE_LEN + 1);
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = "
-        + FILE_LEN, exception.getMessage());
+    Assert.assertEquals(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN),
+        exception.getMessage());
   }
 }
