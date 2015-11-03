@@ -62,7 +62,6 @@ public class BlockDataManagerTest {
     BlockMetricsReporter mMetricsReporter;
     Random mRandom;
     Sessions mSessions;
-    TachyonConf mTachyonConf;
     long mWorkerId;
     WorkerSource mWorkerSource;
 
@@ -75,7 +74,6 @@ public class BlockDataManagerTest {
       mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
-      mTachyonConf = PowerMockito.mock(TachyonConf.class);
       mWorkerId = mRandom.nextLong();
       WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
