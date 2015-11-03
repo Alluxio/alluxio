@@ -30,6 +30,13 @@ public final class MkdirOptions {
 
     /**
      * Creates a new builder for {@link MkdirOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link MkdirOptions}.
      *
      * @param conf a Tachyon configuration
      */
@@ -72,7 +79,7 @@ public final class MkdirOptions {
    * @return the default {@code MkdirOptions}
    */
   public static MkdirOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;

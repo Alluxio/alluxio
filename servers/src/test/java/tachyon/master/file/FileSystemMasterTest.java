@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -177,8 +177,7 @@ public final class FileSystemMasterTest {
     // Since no valid TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
-        .setTTL(0).build());
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(0).build());
     executeTTLCheckOnce();
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -195,8 +194,7 @@ public final class FileSystemMasterTest {
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
-        .setTTL(0).build());
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(0).build());
     executeTTLCheckOnce();
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -211,8 +209,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
-        .setTTL(Constants.HOUR_MS).build());
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(Constants.HOUR_MS)
+        .build());
     executeTTLCheckOnce();
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -226,8 +224,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder(MasterContext.getConf())
-        .setTTL(Constants.NO_TTL).build());
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(Constants.NO_TTL)
+        .build());
     executeTTLCheckOnce();
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }

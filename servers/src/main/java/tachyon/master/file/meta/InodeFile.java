@@ -21,6 +21,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
@@ -35,11 +36,16 @@ public final class InodeFile extends Inode {
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
+    private boolean mCacheable;
     private long mTTL;
 
     public Builder() {
       super();
+      mBlockContainerId = 0;
+      mBlockSizeBytes = 0;
+      mCacheable = false;
       mDirectory = false;
+      mTTL = Constants.NO_TTL;
     }
 
     public Builder setBlockContainerId(long blockContainerId) {
@@ -50,6 +56,11 @@ public final class InodeFile extends Inode {
 
     public Builder setBlockSizeBytes(long blockSizeBytes) {
       mBlockSizeBytes = blockSizeBytes;
+      return this;
+    }
+
+    public Builder setCacheable(boolean cacheable) {
+      mCacheable = cacheable;
       return this;
     }
 
@@ -81,23 +92,30 @@ public final class InodeFile extends Inode {
     }
   }
 
-  private final long mBlockContainerId;
+  private long mBlockContainerId;
+
   private long mBlockSizeBytes;
 
   // list of block ids.
-  private List<Long> mBlocks = new ArrayList<Long>(3);
+  private List<Long> mBlocks;
+
+  private boolean mCacheable;
+
+  private boolean mCompleted;
 
   // length of inode file in bytes.
-  private long mLength = 0;
+  private long mLength;
 
-  private boolean mCompleted = false;
-  private boolean mCacheable = false;
   private long mTTL;
 
   private InodeFile(InodeFile.Builder builder) {
     super(builder);
     mBlockContainerId = builder.mBlockContainerId;
     mBlockSizeBytes = builder.mBlockSizeBytes;
+    mBlocks = new ArrayList<Long>(3);
+    mCacheable = builder.mCacheable;
+    mCompleted = false;
+    mLength = 0;
     mTTL = builder.mTTL;
   }
 
@@ -124,9 +142,9 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Reinitializes the inode file.
+   * Resets the file inode.
    */
-  public void reinit() {
+  public void reset() {
     mBlocks = Lists.newArrayList();
     mLength = 0;
     mCompleted = false;
@@ -134,7 +152,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets the block size.
+   * @oaram blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
     // TODO(yupeng): add validation
@@ -142,7 +160,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets the ttl.
+   * @param ttl the TTL to use
    */
   public void setTTL(long ttl) {
     mTTL = ttl;

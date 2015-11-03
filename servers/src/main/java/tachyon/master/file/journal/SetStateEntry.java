@@ -23,6 +23,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for setting the file state.
+ *
+ * {@code null} fields are ignored in json output.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SetStateEntry extends JournalEntry {
   private final long mId;
@@ -34,7 +39,7 @@ public class SetStateEntry extends JournalEntry {
    * Creates a new instance of <code>SetStateEntry</code>.
    *
    * @param id  the id of the entry
-   * @param opTimeMs the operation timestamp (in millisecs)
+   * @param opTimeMs the operation timestamp (in milliseconds)
    * @param pinned the pinned flag to be set, otherwise, null
    * @param ttl the new TTL value to be set, otherwise, null
    */
@@ -47,11 +52,17 @@ public class SetStateEntry extends JournalEntry {
     mTTL = ttl;
   }
 
+  /**
+   * @return the id
+   */
   @JsonGetter
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the pinned flag
+   */
   @JsonGetter
   public long getOperationTimeMs() {
     return mOpTimeMs;
@@ -62,6 +73,9 @@ public class SetStateEntry extends JournalEntry {
     return mPinned;
   }
 
+  /**
+   * @return the operation time (in milliseconds)
+   */
   @JsonGetter
   public Long getTTL() {
     return mTTL;

@@ -13,33 +13,26 @@
  * the License.
  */
 
-package tachyon.master.lineage.journal;
+package tachyon.master.lineage.meta;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Preconditions;
+import org.junit.Assert;
+import org.junit.Test;
 
 import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryType;
+import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 
-public final class RequestFilePersistenceEntry extends JournalEntry {
-  private final List<Long> mFileIds;
+/**
+ * Tests lineage id generator.
+ */
+public final class LineageIdGeneratorTest {
 
-  @JsonCreator
-  public RequestFilePersistenceEntry(@JsonProperty("fileIds") List<Long> fileIds) {
-    mFileIds = Preconditions.checkNotNull(fileIds);
-  }
-
-  @JsonGetter
-  public List<Long> getFileIds() {
-    return mFileIds;
-  }
-
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.REQUEST_FILE_PERSISTENCE;
+  @Test
+  public void journalEntrySerializationTest() {
+    LineageIdGenerator generator = new LineageIdGenerator();
+    long id = generator.generateId();
+    JournalEntry entry = generator.toJournalEntry();
+    generator = new LineageIdGenerator();
+    generator.fromJournalEntry((LineageIdGeneratorEntry) entry);
+    Assert.assertEquals(id + 1, generator.generateId());
   }
 }

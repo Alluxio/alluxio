@@ -17,8 +17,6 @@ package tachyon.client.file.options;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 import tachyon.thrift.SetStateTOptions;
 
 public class SetStateOptions {
@@ -28,10 +26,8 @@ public class SetStateOptions {
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder() {
       mPinned = null;
       mTTL = null;
     }
@@ -72,7 +68,7 @@ public class SetStateOptions {
    * @return the default {@code SetStateOptions}
    */
   public static SetStateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final Boolean mPinned;

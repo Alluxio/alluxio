@@ -22,22 +22,38 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for a directory id generator.
+ */
 public class InodeDirectoryIdGeneratorEntry extends JournalEntry {
   private final long mContainerId;
   private final long mSequenceNumber;
 
+  /**
+   * Creates a new instance of {@link InodeDirectoryIdGeneratorEntry}.
+   *
+   * @param containerId the container id
+   * @param sequenceNumber the sequence number
+   */
   @JsonCreator
-  public InodeDirectoryIdGeneratorEntry(@JsonProperty("containerId") long containerId,
+  public InodeDirectoryIdGeneratorEntry(
+      @JsonProperty("containerId") long containerId,
       @JsonProperty("sequenceNumber") long sequenceNumber) {
     mContainerId = containerId;
     mSequenceNumber = sequenceNumber;
   }
 
+  /**
+   * @return the container id
+   */
   @JsonGetter
   public long getContainerId() {
     return mContainerId;
   }
 
+  /**
+   * @return the sequence number
+   */
   @JsonGetter
   public long getSequenceNumber() {
     return mSequenceNumber;
