@@ -294,8 +294,7 @@ public class TfsShellTest {
     Assert.assertNull(mTfs.openIfExists(tachyonDirPath));
 
     // If we put a copyable file in the directory, we should be able to copy just that file
-    File testFile2 =
-        generateFileContent("/localDir/testFile2", BufferUtils.getIncreasingByteArray(20));
+    generateFileContent("/localDir/testFile2", BufferUtils.getIncreasingByteArray(20));
     try {
       mFsShell.copyFromLocal(testDir, tachyonDirPath);
       Assert.assertTrue(false);

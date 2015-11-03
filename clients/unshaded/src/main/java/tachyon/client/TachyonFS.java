@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
@@ -151,7 +148,6 @@ public class TachyonFS extends AbstractTachyonFS {
     return new TachyonFS(tachyonConf);
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final int mUserFailedSpaceRequestLimits;
 
   /** The RPC client that talks to the Lineage master. */

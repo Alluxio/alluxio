@@ -41,7 +41,6 @@ import tachyon.util.io.PathUtils;
 public class BufferedBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
-  private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = 33;
 
   private static LocalTachyonCluster sLocalTachyonCluster;
