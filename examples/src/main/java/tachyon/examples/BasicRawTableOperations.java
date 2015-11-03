@@ -44,20 +44,18 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   private final TachyonURI mMasterAddress;
   private final TachyonURI mTablePath;
+  private final ReadType mReadType;
   private final WriteType mWriteType;
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
   private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
-      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType) {
+      ReadType readType, WriteType writeType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
-    if (tachyonWriteType.isStore()) {
-      mWriteType = ufsWriteType.isSyncPersist() ? WriteType.CACHE_THROUGH : WriteType.MUST_CACHE;
-    } else {
-      mWriteType = WriteType.THROUGH;
-    }
+    mReadType = readType;
+    mWriteType = writeType;
   }
 
   @Override
@@ -93,7 +91,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      FileInStream is = tFile.getInStream(ReadType.CACHE);
+      FileInStream is = tFile.getInStream(mReadType);
       ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
@@ -124,7 +122,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      FileOutStream os = tFile.getOutStream();
+      FileOutStream os = tFile.getOutStream(mWriteType);
       os.write(buf.array());
       os.close();
     }
@@ -134,11 +132,11 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     if (args.length != 4) {
       System.out.println("java -cp " + Constants.TACHYON_JAR + " "
           + BasicRawTableOperations.class.getName() + " <master address> <file path> "
-          + "<tachyon storage type for writes (STORE|NO_STORE)> "
-          + "<under storage type for writes (SYNC_PERSIST|NO_PERSIST)");
+          + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
+          + " | THROUGH)>");
       System.exit(-1);
     }
     Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
+        ReadType.valueOf(args[2]), WriteType.valueOf(args[3])));
   }
 }
