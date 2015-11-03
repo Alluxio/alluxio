@@ -36,6 +36,12 @@ import tachyon.master.lineage.meta.LineageFileState;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(FileSystemMaster.class)
 public final class TestRecomputeExecutor {
+
+  /**
+   * Tests recompute executor creates a recompute plan and launches the recompute job at heartbeat.
+   *
+   * @throws Exception if anything wrong happens
+   */
   @Test
   public void recomputeLauncherTest() throws Exception {
     long fileId = 5L;
