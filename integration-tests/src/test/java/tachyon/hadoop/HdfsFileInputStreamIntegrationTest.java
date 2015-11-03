@@ -181,7 +181,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   @Test
-  public void seekTest() throws IOException {
+  public void inMemSeekTest() throws IOException {
     seekTest(mInMemInputStream);
   }
 
