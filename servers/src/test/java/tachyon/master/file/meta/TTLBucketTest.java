@@ -21,12 +21,103 @@ import org.junit.Test;
 public class TTLBucketTest {
 
   @Test
-  public void equalsTest() throws Exception {
+  public void compareToTest() {
     TTLBucket firstBucket = new TTLBucket(0);
     TTLBucket secondBucket = new TTLBucket(0);
     TTLBucket thirdBucket = new TTLBucket(1);
 
-    Assert.assertEquals(firstBucket, secondBucket);
-    Assert.assertNotEquals(firstBucket, thirdBucket);
+    Assert.assertTrue(firstBucket.compareTo(firstBucket) == 0);
+    Assert.assertTrue(firstBucket.compareTo(secondBucket) == 0
+        && secondBucket.compareTo(firstBucket) == 0);
+    Assert.assertFalse(firstBucket.compareTo(thirdBucket) == 0);
+  }
+
+  @Test
+  public void equalsTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    TTLBucket secondBucket = new TTLBucket(0);
+    TTLBucket thirdBucket = new TTLBucket(1);
+
+    Assert.assertFalse(firstBucket.equals(null));
+    Assert.assertTrue(firstBucket.equals(firstBucket));
+    Assert.assertTrue(firstBucket.equals(secondBucket) && secondBucket.equals(firstBucket));
+    Assert.assertFalse(firstBucket.equals(thirdBucket));
+  }
+
+  @Test
+  public void hashCodeTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    TTLBucket secondBucket = new TTLBucket(0);
+    TTLBucket thirdBucket = new TTLBucket(1);
+
+    Assert.assertFalse(firstBucket.equals(null));
+    Assert.assertTrue(firstBucket.hashCode() == secondBucket.hashCode());
+    Assert.assertFalse(firstBucket.hashCode() == thirdBucket.hashCode());
+  }
+
+  @Test
+  public void compareToWithFilesTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    firstBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(1)
+        .build());
+    TTLBucket secondBucket = new TTLBucket(0);
+    secondBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(1)
+        .build());
+    TTLBucket thirdBucket = new TTLBucket(0);
+    TTLBucket fourthBucket = new TTLBucket(0);
+    fourthBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(2)
+        .build());
+
+    Assert.assertTrue(firstBucket.compareTo(firstBucket) == 0);
+    Assert.assertTrue(firstBucket.compareTo(secondBucket) == 0
+        && secondBucket.compareTo(firstBucket) == 0);
+    Assert.assertFalse(firstBucket.compareTo(thirdBucket) == 0);
+    Assert.assertFalse(firstBucket.compareTo(fourthBucket) == 0);
+  }
+
+  @Test
+  public void equalsWithFilesTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    firstBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(1)
+        .build());
+    TTLBucket secondBucket = new TTLBucket(0);
+    secondBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(1)
+        .build());
+    TTLBucket thirdBucket = new TTLBucket(0);
+    TTLBucket fourthBucket = new TTLBucket(0);
+    fourthBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(2)
+        .build());
+
+    Assert.assertTrue(firstBucket.equals(firstBucket));
+    Assert.assertTrue(firstBucket.equals(secondBucket) && secondBucket.equals(firstBucket));
+    Assert.assertFalse(firstBucket.equals(thirdBucket));
+    Assert.assertFalse(firstBucket.equals(fourthBucket));
+  }
+
+  @Test
+  public void hashCodeWithFilesTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    firstBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(1)
+        .build());
+    TTLBucket secondBucket = new TTLBucket(0);
+    secondBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(1)
+        .build());
+    TTLBucket thirdBucket = new TTLBucket(0);
+    TTLBucket fourthBucket = new TTLBucket(0);
+    fourthBucket.addFile(new InodeFile.Builder()
+        .setBlockContainerId(2)
+        .build());
+
+    Assert.assertTrue(firstBucket.hashCode() == secondBucket.hashCode());
+    Assert.assertFalse(firstBucket.hashCode() == thirdBucket.hashCode());
+    Assert.assertFalse(firstBucket.hashCode() == fourthBucket.hashCode());
   }
 }
