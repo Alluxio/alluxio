@@ -231,6 +231,38 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void setStateTest() throws Exception {
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
+
+    // No State.
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
+    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
+
+    // Just set pinned flag.
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(true).build());
+    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertTrue(fileInfo.isPinned);
+    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
+
+    // Both pinned flag and ttl value.
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTTL(1)
+        .build());
+    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertEquals(1, fileInfo.getTtl());
+
+    // Set ttl for a directory, raise IllegalArgumentException.
+    mThrown.expect(IllegalArgumentException.class);
+    mFileSystemMaster.setState(mFileSystemMaster.getFileId(NESTED_URI),
+        new SetStateOptions.Builder().setTTL(1).build());
+  }
+
+  @Test
   public void isDirectoryTest() throws Exception {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
