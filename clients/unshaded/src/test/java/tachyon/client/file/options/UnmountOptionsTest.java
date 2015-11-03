@@ -17,12 +17,10 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class UnmountOptionsTest {
   @Test
   public void builderTest() {
-    new UnmountOptions.Builder(new TachyonConf()).build();
+    new UnmountOptions.Builder().build();
   }
 
   @Test

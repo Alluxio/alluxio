@@ -59,5 +59,4 @@ public class JsonJournalFormatterTest extends JournalFormatterTestBase {
       assertSameEntry(entry.getValue(), readEntry);
     }
   }
-
 }
