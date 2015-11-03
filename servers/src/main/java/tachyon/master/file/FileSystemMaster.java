@@ -29,6 +29,7 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -1387,6 +1388,7 @@ public final class FileSystemMaster extends MasterBase {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
     }
     if (options.hasTTL()) {
+      Preconditions.checkArgument(inode.isFile(), "TTL can only be set for files.");
       long ttl = options.getTTL();
       InodeFile file = (InodeFile) inode;
       if (file.getTTL() != ttl) {
