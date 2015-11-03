@@ -15,12 +15,15 @@
 
 package tachyon.client;
 
+import tachyon.annotation.PublicApi;
+
 /**
  * Convenience modes for commonly used read types for a TachyonFile.
  *
  * For finer grained control over data storage, advanced users may specify
  * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
  */
+@PublicApi
 public enum ReadType {
   /**
    * Read the file and skip Tachyon storage. This mode will not alter any data distribution
@@ -28,9 +31,9 @@ public enum ReadType {
    */
   NO_CACHE(1),
   /**
-   * Read the file and cache it in a local worker. This read type will not move data between
-   * tiers of Tachyon Storage. Users should use CACHE_PROMOTE for more optimized performance with
-   * tiered storage.
+   * Read the file and cache it in the highest tier of a local worker. This read type will not move
+   * data between tiers of Tachyon Storage. Users should use CACHE_PROMOTE for more optimized
+   * performance with tiered storage.
    */
   CACHE(2),
   /**

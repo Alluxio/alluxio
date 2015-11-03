@@ -118,7 +118,7 @@ public final class Utils {
       try {
         return WriteType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse ReadType;" + e.getMessage());
+        System.err.println("Unable to parse WriteType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }
