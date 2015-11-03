@@ -40,7 +40,6 @@ public class LineageEntry extends JournalEntry {
   private final long mId;
   private final List<Long> mInputFiles;
   private final List<Long> mOutputFileIds;
-  // TODO(yupeng) allow journal entry to have nested class
   private final List<LineageFileState> mOutputFileStates;
   private final String mJobCommand;
   private final String mJobOutputPath;
