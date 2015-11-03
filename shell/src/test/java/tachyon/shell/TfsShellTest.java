@@ -533,7 +533,7 @@ public class TfsShellTest {
   @Test
   public void mkdirExistingTest() throws IOException {
     Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
-    Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
+    Assert.assertEquals(-1, mFsShell.run("mkdir", "/testFile1"));
   }
 
   @Test

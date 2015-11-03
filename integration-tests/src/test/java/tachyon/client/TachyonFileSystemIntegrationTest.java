@@ -34,6 +34,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -152,7 +153,8 @@ public class TachyonFileSystemIntegrationTest {
     MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
-      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
+      mThrown.expect(FileAlreadyExistsException.class);
+      Assert.assertFalse(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
     }
   }
 

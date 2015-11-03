@@ -272,20 +272,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
-    // directory, update persistence property of the directories if needed, otherwise, nothing needs
-    // to be done.
+    // directory, update persistence property of the directories if needed, otherwise, throw
+    // FileAlreadyExistsException
     Inode lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
-      if (lastInode.isDirectory() && options.isDirectory()) {
-        if (!lastInode.isPersisted() && options.isPersisted()) {
-          // The final path component already exists and is not persisted, so it should be added
-          // to the non-persisted Inodes of traversalResult.
-          traversalResult.getNonPersisted().add(lastInode);
-          toPersistDirectories.add(lastInode);
-        }
+      if (lastInode.isDirectory() && options.isDirectory() && !lastInode.isPersisted()
+          && options.isPersisted()) {
+        // The final path component already exists and is not persisted, so it should be added
+        // to the non-persisted Inodes of traversalResult.
+        traversalResult.getNonPersisted().add(lastInode);
+        toPersistDirectories.add(lastInode);
       } else {
-        LOG.info("FileAlreadyExistsException: {}", path);
-        throw new FileAlreadyExistsException(path.toString());
+        LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
     } else {
       if (options.isDirectory()) {
