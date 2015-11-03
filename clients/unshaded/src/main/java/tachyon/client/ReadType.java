@@ -28,15 +28,15 @@ public enum ReadType {
    */
   NO_CACHE(1),
   /**
+   * Read the file and cache it in a local worker. This read type will not move data between
+   * tiers of Tachyon Storage. Users should use CACHE_PROMOTE for more optimized performance with
+   * tiered storage.
+   */
+  CACHE(2),
+  /**
    * Read the file and cache it in a local worker. Additionally, if the file was in Tachyon
    * storage, it will be promoted to the top storage layer.
    */
-  CACHE(2),
-
-  /**
-   * The behavior of this mode is the same as CACHE.
-   */
-  @Deprecated
   CACHE_PROMOTE(3);
 
   private final int mValue;
@@ -49,15 +49,17 @@ public enum ReadType {
    * @return the {@link tachyon.client.TachyonStorageType} associated with this read type
    */
   public TachyonStorageType getTachyonStorageType() {
-    if (isCache()) {
+    if (isPromote()) { // CACHE_PROMOTE
       return TachyonStorageType.PROMOTE;
     }
+    if (isCache()) { // CACHE
+      return TachyonStorageType.STORE;
+    }
+    // NO_CACHE
     return TachyonStorageType.NO_STORE;
   }
 
   /**
-   * Return the value of the read type
-   *
    * @return the read type value
    */
   public int getValue() {
@@ -66,8 +68,6 @@ public enum ReadType {
 
   /**
    * @return true if the read type is CACHE, false otherwise
-   *
-   * TODO(calvin): Add CACHE_PROMOTE back when it is enabled again.
    */
   public boolean isCache() {
     return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
@@ -77,6 +77,6 @@ public enum ReadType {
    * @return true if the read type is CACHE_PROMOTE, false otherwise
    */
   public boolean isPromote() {
-    return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
+    return mValue == CACHE_PROMOTE.mValue;
   }
 }
