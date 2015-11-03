@@ -61,7 +61,7 @@ public class OutStreamOptionsTest {
 
   @Test
   public void defaultsTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.PROMOTE;
+    TachyonStorageType tachyonType = TachyonStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
