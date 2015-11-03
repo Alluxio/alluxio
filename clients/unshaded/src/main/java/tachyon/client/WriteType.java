@@ -15,25 +15,31 @@
 
 package tachyon.client;
 
+import tachyon.annotation.PublicApi;
+
 /**
  * Convenience modes for commonly used write types for a TachyonFile.
  *
  * For finer grained control over data storage, advanced users may specify
  * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
  */
+@PublicApi
 public enum WriteType {
   /**
-   * Write the file and must cache it. No data will be persisted to the under storage.
+   * Write the file and must cache it. The data will be written to the highest tier in a worker's
+   * storage. Data will not be persisted to the under storage.
    */
   MUST_CACHE(1),
   /**
-   * Write the file and try to cache it. This write type is deprecated and not recommended for
-   * use. Use either MUST_CACHE or CACHE_THROUGH depending on your data persistence requirements.
+   * Write the file and try to cache it. This write type is deprecated as of v0.8 and not
+   * recommended for use. Use either MUST_CACHE or CACHE_THROUGH depending on your data
+   * persistence requirements.
    */
   @Deprecated
   TRY_CACHE(2),
   /**
-   * Write the file synchronously to the under fs, and also try to write to Tachyon storage.
+   * Write the file synchronously to the under fs, and also try to write to the highest tier in a
+   * worker's Tachyon storage.
    */
   CACHE_THROUGH(3),
   /**
@@ -42,7 +48,7 @@ public enum WriteType {
   THROUGH(4),
   /**
    * [Experimental] Write the file asynchronously to the under fs (either must cache or must
-   * through). This write type is deprecated and not recommended for use. Use {@link
+   * through). This write type is deprecated as of v0.8 and not recommended for use. Use {@link
    * tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data persistence.
    */
   @Deprecated
