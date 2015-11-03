@@ -228,11 +228,6 @@
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-yarn-client</artifactId>
-        <version>${yarn.version}</version>
-      </dependency>
 
       <!-- Test Dependencies -->
       <dependency>
