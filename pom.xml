@@ -139,7 +139,6 @@
     <slf4j.version>1.7.2</slf4j.version>
     <test.output.redirect>true</test.output.redirect>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
-    <yarn.version>2.6.0</yarn.version>
   </properties>
 
   <modules>
@@ -567,15 +566,12 @@
       </modules>
     </profile>
 
+    <!-- Requires hadoop.version to be 2.4.0 or later -->
     <profile>
       <id>yarn</id>
       <modules>
         <module>integration/yarn</module>
       </modules>
-      <properties>
-        <!-- Requires hadoop.version to be 2.4.0 or later -->
-        <yarn.version>${hadoop.version}</yarn.version>
-      </properties>
     </profile>
 
     <!-- profile that Tachyon developers should use -->
@@ -587,7 +583,6 @@
       </modules>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
-        <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
 
