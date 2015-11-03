@@ -13,56 +13,44 @@
  * the License.
  */
 
-package tachyon.master.rawtable.journal;
+package tachyon.master.lineage.journal;
 
-import java.nio.ByteBuffer;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Preconditions;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for updating raw table metadata.
+ * This class represents a journal entry for requesting to persist files.
  */
-public class UpdateMetadataEntry extends JournalEntry {
-  private final long mId;
-  private final ByteBuffer mMetadata;
+public final class PersistFilesRequestEntry extends JournalEntry {
+  private final List<Long> mFileIds;
 
   /**
-   * Creates a new instance of {@link UpdateMetadataEntry}.
-   *
-   * @param id table id
-   * @param metadata the metadata to be set for the table
+   * Creates a new instance of {@link PersistFilesRequestEntry}
+   * @param fileIds
    */
   @JsonCreator
-  public UpdateMetadataEntry(
-      @JsonProperty("id") long id,
-      @JsonProperty("metadata") ByteBuffer metadata) {
-    mId = id;
-    mMetadata = metadata;
+  public PersistFilesRequestEntry(
+      @JsonProperty("fileIds") List<Long> fileIds) {
+    mFileIds = Preconditions.checkNotNull(fileIds);
   }
 
   /**
-   * @return the id
+   * @return the file ids
    */
   @JsonGetter
-  public long getId() {
-    return mId;
-  }
-
-  /**
-   * @return the metadata
-   */
-  @JsonGetter
-  public ByteBuffer getMetadata() {
-    return mMetadata;
+  public List<Long> getFileIds() {
+    return mFileIds;
   }
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.UPDATE_METADATA;
+    return JournalEntryType.PERSIST_FILES_REQUEST;
   }
 }

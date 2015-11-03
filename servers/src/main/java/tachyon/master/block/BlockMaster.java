@@ -107,7 +107,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           return o.getAddress();
         }
       };
-  @SuppressWarnings("unchecked")
   /**
    * Mapping between all possible storage level aliases and their ordinal position. This mapping
    * forms a total ordering on all storage level aliases in the system, and must be consistent
@@ -119,6 +118,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * All worker information. Access must be synchronized on mWorkers. If both block and worker
    * metadata must be locked, mBlocks must be locked first.
    */
+  // This warning cannot be avoided when passing generics into varargs
+  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /**
