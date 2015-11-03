@@ -148,6 +148,7 @@ public final class LocalTachyonCluster {
     testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
     testConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
     testConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
+    testConf.set(Constants.THRIFT_STOP_TIMEOUT_SECONDS, "0");
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
