@@ -173,6 +173,7 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // creating the directory path again results in no new inodes.
+    mThrown.expect(FileAlreadyExistsException.class);
     createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     modified = createResult.getModified();
     created = createResult.getCreated();
