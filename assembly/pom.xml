@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.8.1-SNAPSHOT</version>
+    <version>0.8.2-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-assemblies</artifactId>
@@ -93,7 +93,12 @@
       <dependencies>
         <dependency>
           <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-integration</artifactId>
+          <artifactId>tachyon-integration-mesos</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-integration-yarn</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>
