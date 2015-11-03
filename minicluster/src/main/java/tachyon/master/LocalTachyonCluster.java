@@ -299,11 +299,11 @@ public final class LocalTachyonCluster {
       @Override
       public void run() {
         try {
-          mWorker.process();
           // Start the lineage worker
           if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
             mLineageWorker.start();
           }
+          mWorker.process();
 
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);

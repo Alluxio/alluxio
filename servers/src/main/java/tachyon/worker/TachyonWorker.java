@@ -55,11 +55,11 @@ public final class TachyonWorker {
     }
 
     try {
-      worker.process();
       // Start the lineage worker
       if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
         lineageWorker.start();
       }
+      worker.process();
 
     } catch (Exception e) {
       LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
