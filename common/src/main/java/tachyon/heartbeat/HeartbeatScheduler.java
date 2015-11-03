@@ -37,11 +37,11 @@ import com.google.common.base.Preconditions;
  * execution of a thread and the heartbeat scheduler logic to schedule the thread can lead to a
  * deadlock.
  *
- * For an example of how to use the HeartbeatScheduler, see {@link HeartbeatThreadTest}.
+ * For an example of how to use the HeartbeatScheduler, see unit test of {@link HeartbeatThread}.
  */
 public final class HeartbeatScheduler {
   private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
-  private static Lock sLock =  new ReentrantLock();
+  private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
   private HeartbeatScheduler() {} // to prevent initialization
@@ -99,6 +99,7 @@ public final class HeartbeatScheduler {
    * Waits until the given thread can be executed.
    *
    * @param name a name of the thread to wait for
+   * @throws InterruptedException if the waiting thread is interrupted
    */
   public static void await(String name) throws InterruptedException {
     sLock.lock();
@@ -116,6 +117,7 @@ public final class HeartbeatScheduler {
    * @param unit the time unit of the {@code time} argument
    * @return {@code false} if the waiting time detectably elapsed before return from the method,
    *         else {@code true}
+   * @throws InterruptedException if the waiting thread is interrupted
    */
   public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
     sLock.lock();
