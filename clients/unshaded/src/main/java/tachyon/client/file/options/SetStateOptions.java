@@ -17,6 +17,7 @@ package tachyon.client.file.options;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
 public class SetStateOptions {
@@ -95,7 +96,7 @@ public class SetStateOptions {
    * @return the pinned flag value; it specifies whether the object should be kept in memory
    */
   public boolean getPinned() {
-    Preconditions.checkState(hasPinned(), "the pinned flag must be set");
+    Preconditions.checkState(hasPinned(), PreconditionMessage.MUST_SET_PINNED);
     return mPinned;
   }
 
@@ -112,7 +113,7 @@ public class SetStateOptions {
    *         whether the file is pinned
    */
   public long getTTL() {
-    Preconditions.checkState(hasTTL(), "the TTL value must be set");
+    Preconditions.checkState(hasTTL(), PreconditionMessage.MUST_SET_TTL);
     return mTTL;
   }
 
