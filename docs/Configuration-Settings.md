@@ -685,7 +685,7 @@ configuration options.
 </tr>
 <tr>
   <td>tachyon.integration.mesos.worker.name</td>
-  <td>TachyonMaster</td>
+  <td>TachyonWorker</td>
   <td>The Mesos task name for the Tachyon worker task.</td>
 </tr>
 <tr>
