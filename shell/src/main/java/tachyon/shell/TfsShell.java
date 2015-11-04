@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
@@ -36,8 +35,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 
-import org.apache.commons.io.IOUtils;
-
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
@@ -49,6 +46,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.TachyonFileSystemUtils;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.InStreamOptions;
@@ -68,7 +66,6 @@ import tachyon.job.JobConf;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
@@ -186,7 +183,7 @@ public class TfsShell implements Closeable {
    * Persist a file or directory currently stored only in Tachyon to the UnderFileSystem
    *
    * @param filePath the TachyonURI path to persist to the UnderFileSystem
-   * @throws IOException
+   * @throws IOException when a Tachyon or I/O error occurs
    */
   public void persist(TachyonURI filePath) throws IOException {
     try {
@@ -209,28 +206,9 @@ public class TfsShell implements Closeable {
       } else if (fInfo.isIsPersisted()) {
         System.out.println(filePath + " is already persisted");
       } else {
-        Closer closer = Closer.create();
-        try {
-          InStreamOptions inStreamOptions = new InStreamOptions.Builder(mTachyonConf)
-              .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
-          FileInStream in = closer.register(mTfs.getInStream(fd, inStreamOptions));
-
-          TachyonURI dstPath = new TachyonURI(fInfo.getUfsPath());
-          UnderFileSystem ufs = UnderFileSystem.get(dstPath.getPath(), mTachyonConf);
-          String parentPath = dstPath.getParent().getPath();
-          if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-            throw new IOException("Failed to create " + parentPath);
-          }
-          OutputStream out = ufs.create(dstPath.getPath());
-          IOUtils.copy(in, out);
-        } catch (Throwable e) {
-          throw closer.rethrow(e);
-        } finally {
-          closer.close();
-        }
-        // Tell the master to persist the file
-        mTfs.persistFile(fd);
-        System.out.println(filePath + " persisted");
+        long size = TachyonFileSystemUtils.persistFile(fd, new TachyonURI(fInfo.getUfsPath()), mTfs,
+            mTachyonConf);
+        System.out.println("persisted file " + filePath + " with size " + size);
       }
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

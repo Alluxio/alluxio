@@ -363,10 +363,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Persists the given Tachyon file with the given length
+   * Persists the given Tachyon file with the given length.
    *
    * @param fileId file id to persist
-   * @param length the length of the file
+   * @param length the length of the file in bytes
    * @return true if the persist succeeded, false otherwise
    * @throws IOException if an I/O error occurs
    */

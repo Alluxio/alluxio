@@ -1098,7 +1098,7 @@ public class TfsShellTest {
 
     int ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
-    Assert.assertEquals(testFilePath + " persisted\n", mOutput.toString());
+    Assert.assertEquals("persisted file " + testFilePath + " with size 10\n", mOutput.toString());
     checkFilePersisted(testFile, 10);
   }
 
@@ -1113,8 +1113,8 @@ public class TfsShellTest {
     Assert.assertEquals(0, ret);
     ret = mFsShell.run("persist", testFilePath);
     Assert.assertEquals(0, ret);
-    Assert.assertEquals(testFilePath + " persisted\n" + testFilePath + " is already persisted\n",
-        mOutput.toString());
+    Assert.assertEquals("persisted file " + testFilePath + " with size 10\n" + testFilePath
+        + " is already persisted\n", mOutput.toString());
     checkFilePersisted(testFile, 10);
   }
 
