@@ -67,7 +67,10 @@ public class BlockInfoEntry extends JournalEntry {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof BlockInfoEntry)) {
       return false;
     }
     BlockInfoEntry that = (BlockInfoEntry) o;

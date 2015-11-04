@@ -37,11 +37,14 @@ public final class User implements Principal {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    } else {
-      return mName.equals(((User) o).mName);
+    if (this == o) {
+      return true;
     }
+    if (o == null || !(o instanceof User)) {
+      return false;
+    }
+    User that = (User) o;
+    return mName.equals(that.mName);
   }
 
   @Override
