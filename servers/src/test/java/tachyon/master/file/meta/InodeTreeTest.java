@@ -85,16 +85,18 @@ public final class InodeTreeTest {
   public static void beforeClass() {
     sFileOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .build();
+            .setPermissionStatus(TEST_PS).build();
     sDirectoryOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setDirectory(true).build();
+            .setDirectory(true)
+            .setPermissionStatus(TEST_PS)
+            .build();
     sNestedFileOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).build();
+            .setPermissionStatus(TEST_PS).setRecursive(true).build();
     sNestedDirectoryOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setDirectory(true).setRecursive(true).build();
+            .setPermissionStatus(TEST_PS).setDirectory(true).setRecursive(true).build();
   }
 
   @Test
@@ -345,7 +347,8 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1).build();
+    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1)
+        .setPermissionStatus(TEST_PS).build();
     mTree.deleteInode(testFile);
   }
 

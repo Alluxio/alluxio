@@ -93,6 +93,7 @@ public abstract class JournalFormatterTestBase {
   protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
   protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
   protected static final Job TEST_JOB = new CommandLineJob("Command", new JobConf("/test/path"));
+  protected static final PermissionStatus TEST_PERMISSION_STATUS = PermissionStatus.getDirDefault();
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -108,13 +109,15 @@ public abstract class JournalFormatterTestBase {
               new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
                   true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true,
                   ContiguousSet.create(Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10),
-                      DiscreteDomain.longs()).asList(),
-                  Constants.NO_TTL, PermissionStatus.getDirDefault()))
+                      DiscreteDomain.longs()).asList(), Constants.NO_TTL,
+                      TEST_PERMISSION_STATUS.getUserName(),TEST_PERMISSION_STATUS.getGroupName(),
+                      TEST_PERMISSION_STATUS.getPermission().toShort()))
           .put(JournalEntryType.INODE_DIRECTORY,
               new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
                   true, true, TEST_OP_TIME_MS,
                   ContiguousSet.create(Range.closedOpen(1L, 11L), DiscreteDomain.longs()),
-                  PermissionStatus.getDirDefault()))
+                  TEST_PERMISSION_STATUS.getUserName(), TEST_PERMISSION_STATUS.getGroupName(),
+                  TEST_PERMISSION_STATUS.getPermission().toShort()))
       .put(JournalEntryType.INODE_MTIME,
           new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_PERSISTED, new PersistDirectoryEntry(TEST_FILE_ID, true))
@@ -201,5 +204,4 @@ public abstract class JournalFormatterTestBase {
       entryTest(entry.getValue());
     }
   }
-
 }

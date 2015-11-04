@@ -111,7 +111,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (mRoot == null) {
       mRoot =
           new InodeDirectory.Builder().setName(ROOT_INODE_NAME)
-              .setId(mDirectoryIdGenerator.getNewDirectoryId()).setParentId(NO_PARENT).build();
+              .setId(mDirectoryIdGenerator.getNewDirectoryId())
+              .setPermissionStatus(rootPS).setParentId(NO_PARENT).build();
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
@@ -255,7 +256,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
               .setId(mDirectoryIdGenerator.getNewDirectoryId())
               .setParentId(currentInodeDirectory.getId())
               .setPersisted(options.isPersisted())
-              .setCreationTimeMs(options.getOperationTimeMs()).build();
+              .setCreationTimeMs(options.getOperationTimeMs())
+              .setPermissionStatus(options.getPermissionStatus())
+              .build();
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -293,6 +296,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           new InodeDirectory.Builder().setName(name)
               .setId(mDirectoryIdGenerator.getNewDirectoryId())
               .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
+              .setPermissionStatus(options.getPermissionStatus())
               .build();
       if (options.isPersisted()) {
         String ufsPath = mMountTable.resolve(getPath(lastInode)).toString();
@@ -304,7 +308,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
           new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
               .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL()).setName(name)
               .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
-              .setCreationTimeMs(options.getOperationTimeMs()).build();
+              .setCreationTimeMs(options.getOperationTimeMs())
+              .setPermissionStatus(options.getPermissionStatus())
+              .build();
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(lastInode.getId());
