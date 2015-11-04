@@ -209,15 +209,15 @@ public final class TachyonConf {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
+  public boolean equals(Object o) {
+    if (this == o) {
       return true;
     }
-    if (obj instanceof TachyonConf) {
-      Properties props = ((TachyonConf) obj).getInternalProperties();
-      return mProperties.equals(props);
+    if (o == null || !(o instanceof TachyonConf)) {
+      return false;
     }
-    return false;
+    TachyonConf that = (TachyonConf) o;
+    return mProperties.equals(that.mProperties);
   }
 
   /**
