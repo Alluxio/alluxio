@@ -19,6 +19,7 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.MkdirTOptions;
 
@@ -35,8 +36,9 @@ public final class MkdirOptions {
      */
     public Builder(TachyonConf conf) {
       mRecursive = false;
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
+      WriteType defaultWriteType =
+          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      mUnderStorageType = defaultWriteType.getUnderStorageType();
     }
 
     /**
@@ -50,11 +52,22 @@ public final class MkdirOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     *
      * @param underStorageType the under storage type to use
      * @return the builder
      */
     public Builder setUnderStorageType(UnderStorageType underStorageType) {
       mUnderStorageType = underStorageType;
+      return this;
+    }
+
+    /**
+     * @param writeType the write type to use
+     * @return the builder
+     */
+    public Builder setWriteType(WriteType writeType) {
+      mUnderStorageType = writeType.getUnderStorageType();
       return this;
     }
 

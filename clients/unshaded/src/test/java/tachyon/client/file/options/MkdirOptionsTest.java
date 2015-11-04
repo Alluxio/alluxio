@@ -27,6 +27,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
 @RunWith(PowerMockRunner.class)
@@ -52,7 +53,7 @@ public class MkdirOptionsTest {
   public void defaultsTest() {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
+    conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
 
     MkdirOptions options = MkdirOptions.defaults();
