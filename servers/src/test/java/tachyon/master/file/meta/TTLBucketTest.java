@@ -83,4 +83,42 @@ public class TTLBucketTest {
     mBucket.removeFile(mFileTTL2);
     Assert.assertEquals(0, mBucket.getFiles().size());
   }
+
+  @Test
+  public void compareToTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    TTLBucket secondBucket = new TTLBucket(0);
+    TTLBucket thirdBucket = new TTLBucket(1);
+    TTLBucket fourthBucket = new TTLBucket(2);
+
+    Assert.assertEquals(0, firstBucket.compareTo(firstBucket));
+    Assert.assertEquals(0, firstBucket.compareTo(secondBucket));
+    Assert.assertEquals(0, secondBucket.compareTo(firstBucket));
+    Assert.assertEquals(-1, firstBucket.compareTo(thirdBucket));
+    Assert.assertEquals(1, fourthBucket.compareTo(firstBucket));
+  }
+
+  @Test
+  public void equalsTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    TTLBucket secondBucket = new TTLBucket(0);
+    TTLBucket thirdBucket = new TTLBucket(1);
+
+    Assert.assertNotEquals(firstBucket, null);
+    Assert.assertEquals(firstBucket, firstBucket);
+    Assert.assertEquals(firstBucket, secondBucket);
+    Assert.assertEquals(secondBucket, firstBucket);
+    Assert.assertNotEquals(firstBucket, thirdBucket);
+  }
+
+  @Test
+  public void hashCodeTest() {
+    TTLBucket firstBucket = new TTLBucket(0);
+    TTLBucket secondBucket = new TTLBucket(0);
+    TTLBucket thirdBucket = new TTLBucket(1);
+
+    Assert.assertEquals(firstBucket.hashCode(), firstBucket.hashCode());
+    Assert.assertEquals(firstBucket.hashCode(), secondBucket.hashCode());
+    Assert.assertNotEquals(firstBucket.hashCode(), thirdBucket.hashCode());
+  }
 }
