@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -33,6 +32,8 @@ import com.google.common.collect.Lists;
 import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.LineageDeletionException;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -47,9 +48,6 @@ public final class LineageMasterTest {
   private LineageMaster mLineageMaster;
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -74,11 +72,55 @@ public final class LineageMasterTest {
   }
 
   @Test
-  public void createLineageWithNonExistingFileTest()  throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage(ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage("/test1"));
+  public void createLineageWithNonExistingFileTest() throws Exception {
+    TachyonURI missingInput = new TachyonURI("/test1");
+    Mockito.when(mFileSystemMaster.getFileId(missingInput)).thenReturn(-1L);
+    // try catch block used because ExpectedExceptionRule conflicts with Powermock
+    try {
+      mLineageMaster.createLineage(Lists.newArrayList(missingInput),
+          Lists.newArrayList(new TachyonURI("/test2")), mJob);
+      Assert.fail();
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage("/test1"),
+          e.getMessage());
+    }
+  }
 
+  @Test
+  public void deleteLineageTest() throws Exception {
+    long l1 = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
         Lists.newArrayList(new TachyonURI("/test2")), mJob);
+    mLineageMaster.deleteLineage(l1, true);
+    List<LineageInfo> info = mLineageMaster.getLineageInfoList();
+    Assert.assertEquals(0, info.size());
   }
+
+  @Test
+  public void deleteNonexistingLineageTesT() throws Exception {
+    long id = 1L;
+    try {
+      mLineageMaster.deleteLineage(id, false);
+      Assert.fail();
+    } catch (LineageDoesNotExistException e) {
+      Assert.assertEquals(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(id), e.getMessage());
+    }
+  }
+
+  @Test
+  public void deleteLineageWithChildrenTest() throws Exception {
+    long l1 = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
+        Lists.newArrayList(new TachyonURI("/test2")), mJob);
+    try {
+      mLineageMaster.deleteLineage(l1, false);
+      Assert.fail();
+    } catch (LineageDeletionException e) {
+      Assert.assertEquals(ExceptionMessage.DELETE_LINEAGE_WITH_CHILDREN.getMessage(l1),
+          e.getMessage());
+    }
+  }
+
 }

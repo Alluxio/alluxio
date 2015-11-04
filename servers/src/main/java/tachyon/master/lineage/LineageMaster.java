@@ -266,13 +266,13 @@ public final class LineageMaster extends MasterBase {
     Lineage lineage = mLineageStore.getLineage(lineageId);
     if (lineage == null) {
       throw new LineageDoesNotExistException(
-          "the lineage " + lineageId + " to delete does not exist");
+          ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(lineageId));
     }
 
     // there should not be child lineage if not cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
       throw new LineageDeletionException(
-          "the lineage " + lineageId + " to delete has children lineages");
+          ExceptionMessage.DELETE_LINEAGE_WITH_CHILDREN.getMessage(lineageId));
     }
 
     LOG.info("Delete lineage " + lineageId);
