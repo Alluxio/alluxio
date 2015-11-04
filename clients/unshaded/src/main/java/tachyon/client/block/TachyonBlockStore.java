@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
@@ -90,24 +91,36 @@ public final class TachyonBlockStore implements Closeable {
       // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO(calvin): Get location via a policy.
-      if (blockInfo.locations.isEmpty()) {
-        // TODO(calvin): Maybe this shouldn't be an exception.
-        throw new IOException("No block " + blockId + " is not available in Tachyon");
-      }
-      // TODO(calvin): Investigate making this a Factory method
-      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
-      InetSocketAddress workerAddr =
-          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
-      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
-          workerAddr.getHostName())) {
-        if (mContext.hasLocalWorker()) {
-          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+      // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
+      // But when there is no local worker or there are no local blocks, we prefer the first
+      // location in blockInfo.locations which is in the tier that is nearest to or equals MEM.
+      boolean hasLocalWorker = mContext.hasLocalWorker();
+      String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+      NetAddress firstRemoteAddress = null;
+      for (BlockLocation location : blockInfo.locations) {
+        NetAddress workerNetAddress = location.getWorkerAddress();
+        if (workerNetAddress.getHost().equals(localHostName)) {
+          if (hasLocalWorker) {
+            // There is a local worker and the block is local.
+            return new LocalBlockInStream(blockId, blockInfo.getLength(),
+                new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
+          }
         } else {
-          throw new IOException("Local read requested but there is no local worker.");
+          if (firstRemoteAddress == null) {
+            firstRemoteAddress = workerNetAddress;
+          }
+          if (!hasLocalWorker) {
+            break;
+          }
         }
-      } else {
-        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
       }
+      if (firstRemoteAddress != null) {
+        // (1) There is no local worker, or
+        // (2) there is a local worker but there are no local blocks.
+        return new RemoteBlockInStream(blockId, blockInfo.getLength(),
+            new InetSocketAddress(firstRemoteAddress.getHost(), firstRemoteAddress.getDataPort()));
+      }
+      throw new IOException("Block " + blockId + " is not available in Tachyon");
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
