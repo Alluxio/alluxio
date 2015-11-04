@@ -89,7 +89,7 @@ public final class LineageDataManagerTest {
     List<Long> persistedFiles = (List<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
     Assert.assertEquals(Lists.newArrayList(fileId), persistedFiles);
 
-    // verify fastCopy called twice
+    // verify fastCopy called twice, once per block
     PowerMockito.verifyStatic(Mockito.times(2));
     BufferUtils.fastCopy(Mockito.any(ReadableByteChannel.class),
         Mockito.any(WritableByteChannel.class));
