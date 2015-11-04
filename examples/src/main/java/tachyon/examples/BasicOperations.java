@@ -26,8 +26,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -44,15 +45,18 @@ public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final OutStreamOptions mClientOptions;
+  private final InStreamOptions mReadOptions;
+  private final OutStreamOptions mWriteOptions;
   private final int mNumbers = 20;
 
-  public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType) {
+  public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType readType,
+      WriteType writeType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
-    mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
+    mReadOptions =
+        new InStreamOptions.Builder(ClientContext.getConf()).setReadType(readType).build();
+    mWriteOptions =
+        new OutStreamOptions.Builder(ClientContext.getConf()).setWriteType(writeType).build();
   }
 
   @Override
@@ -73,9 +77,9 @@ public class BasicOperations implements Callable<Boolean> {
     long startTimeMs = CommonUtils.getCurrentMs();
     CreateOptions createOptions =
         (new CreateOptions.Builder(ClientContext.getConf()))
-            .setBlockSizeBytes(mClientOptions.getBlockSizeBytes()).setRecursive(true)
-            .setTTL(mClientOptions.getTTL())
-            .setUnderStorageType(mClientOptions.getUnderStorageType()).build();
+            .setBlockSizeBytes(mWriteOptions.getBlockSizeBytes()).setRecursive(true)
+            .setTTL(mWriteOptions.getTTL())
+            .setUnderStorageType(mWriteOptions.getUnderStorageType()).build();
     TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
     long fileId = tFile.getFileId();
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
@@ -94,7 +98,7 @@ public class BasicOperations implements Callable<Boolean> {
     buf.flip();
 
     long startTimeMs = CommonUtils.getCurrentMs();
-    FileOutStream os = new FileOutStream(fileId, mClientOptions);
+    FileOutStream os = new FileOutStream(fileId, mWriteOptions);
     os.write(buf.array());
     os.close();
 
@@ -106,10 +110,8 @@ public class BasicOperations implements Callable<Boolean> {
     boolean pass = true;
     LOG.debug("Reading data...");
     TachyonFile file = new TachyonFile(fileId);
-    InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
-    FileInStream is = tachyonFileSystem.getInStream(file, clientOptions);
+    FileInStream is = tachyonFileSystem.getInStream(file, mReadOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
@@ -125,11 +127,12 @@ public class BasicOperations implements Callable<Boolean> {
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 4) {
       System.out.println("java -cp " + Constants.TACHYON_JAR + " " + BasicOperations.class.getName()
-          + " <under storage type for writes (SYNC_PERSIST|NO_PERSIST)>");
+          + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
+          + " | THROUGH)>");
       System.exit(-1);
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
+        ReadType.valueOf(args[2]), WriteType.valueOf(args[3])));
   }
 }
