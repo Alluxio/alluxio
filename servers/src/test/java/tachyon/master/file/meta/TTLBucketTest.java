@@ -25,11 +25,13 @@ public class TTLBucketTest {
     TTLBucket firstBucket = new TTLBucket(0);
     TTLBucket secondBucket = new TTLBucket(0);
     TTLBucket thirdBucket = new TTLBucket(1);
+    TTLBucket fourthBucket = new TTLBucket(2);
 
-    Assert.assertEquals(firstBucket.compareTo(firstBucket), 0);
-    Assert.assertEquals(firstBucket.compareTo(secondBucket), 0);
-    Assert.assertEquals(secondBucket.compareTo(firstBucket), 0);
-    Assert.assertNotEquals(firstBucket.compareTo(thirdBucket), 0);
+    Assert.assertEquals(0, firstBucket.compareTo(firstBucket));
+    Assert.assertEquals(0, firstBucket.compareTo(secondBucket));
+    Assert.assertEquals(0, secondBucket.compareTo(firstBucket));
+    Assert.assertEquals(-1, firstBucket.compareTo(thirdBucket));
+    Assert.assertEquals(1, fourthBucket.compareTo(firstBucket));
   }
 
   @Test
@@ -38,7 +40,7 @@ public class TTLBucketTest {
     TTLBucket secondBucket = new TTLBucket(0);
     TTLBucket thirdBucket = new TTLBucket(1);
 
-    Assert.assertFalse(firstBucket.equals(null));
+    Assert.assertNotEquals(firstBucket, null);
     Assert.assertEquals(firstBucket, firstBucket);
     Assert.assertEquals(firstBucket, secondBucket);
     Assert.assertEquals(secondBucket, firstBucket);
@@ -51,7 +53,6 @@ public class TTLBucketTest {
     TTLBucket secondBucket = new TTLBucket(0);
     TTLBucket thirdBucket = new TTLBucket(1);
 
-    Assert.assertFalse(firstBucket.equals(null));
     Assert.assertEquals(firstBucket.hashCode(), firstBucket.hashCode());
     Assert.assertEquals(firstBucket.hashCode(), secondBucket.hashCode());
     Assert.assertNotEquals(firstBucket.hashCode(), thirdBucket.hashCode());
