@@ -694,7 +694,7 @@ configuration options.
   <td>CPU resource in terms of number of cores required to run a Tachyon worker.</td>
 </tr>
 <tr>
-  <td>tachyon.integration.master.resource.mem</td>
+  <td>tachyon.integration.worker.resource.mem</td>
   <td>1024 MB</td>
   <td>Memory resource required to run a Tachyon worker. This memory does not include the memory
   configured for tiered storage.</td>
