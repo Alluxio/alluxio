@@ -66,6 +66,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     *
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
      */
@@ -75,6 +77,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     *
      * @param underStorageType the under storage type to use
      * @return the builder
      */
