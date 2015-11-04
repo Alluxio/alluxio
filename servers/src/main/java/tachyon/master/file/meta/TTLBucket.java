@@ -18,6 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Objects;
+
 import tachyon.Constants;
 import tachyon.master.MasterContext;
 
@@ -97,6 +99,7 @@ public final class TTLBucket implements Comparable<TTLBucket> {
   public int compareTo(TTLBucket ttlBucket) {
     long startTime1 = getTTLIntervalStartTimeMs();
     long startTime2 = ttlBucket.getTTLIntervalStartTimeMs();
+
     if (startTime1 < startTime2) {
       return -1;
     }
@@ -104,5 +107,34 @@ public final class TTLBucket implements Comparable<TTLBucket> {
       return 0;
     }
     return 1;
+  }
+
+  /**
+   * Compares to a specific object.
+   *
+   * @param object the object to compare
+   * @return true if object is also {@link TTLBucket} and represents the same TTLIntervalStartTime
+   */
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+
+    if (object == null || getClass() != object.getClass()) {
+      return false;
+    }
+
+    return mTTLIntervalStartTimeMs == ((TTLBucket) object).mTTLIntervalStartTimeMs;
+  }
+
+  /**
+   * Returns the hash code for the {@link TTLBucket}.
+   *
+   * @return The hash code value for this {@link TTLBucket}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mTTLIntervalStartTimeMs);
   }
 }
