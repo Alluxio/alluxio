@@ -273,12 +273,8 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   public void setState(TachyonFile file, SetStateOptions options)
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    Boolean pinned = options.getPinned();
     try {
-      if (pinned != null) {
-        masterClient.setPinned(file.getFileId(), pinned);
-        LOG.info(pinned ? "Pinned" : "Unpinned" + " file " + file.getFileId());
-      }
+      masterClient.setState(file.getFileId(), options);
     } catch (TachyonException e) {
       TachyonException.unwrap(e, FileDoesNotExistException.class);
       throw e;

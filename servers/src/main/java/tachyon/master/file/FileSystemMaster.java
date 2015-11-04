@@ -29,12 +29,14 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -43,6 +45,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.SuspectedFileSizeException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -62,7 +65,7 @@ import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -170,8 +173,12 @@ public final class FileSystemMaster extends MasterBase {
       }
     } else if (entry instanceof PersistFileEntry) {
       persistFileFromEntry((PersistFileEntry) entry);
-    } else if (entry instanceof SetPinnedEntry) {
-      setPinnedFromEntry((SetPinnedEntry) entry);
+    } else if (entry instanceof SetStateEntry) {
+      try {
+        setStateFromEntry((SetStateEntry) entry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
     } else if (entry instanceof DeleteFileEntry) {
       deleteFileFromEntry((DeleteFileEntry) entry);
     } else if (entry instanceof RenameEntry) {
@@ -193,7 +200,7 @@ public final class FileSystemMaster extends MasterBase {
         throw new RuntimeException(e);
       }
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 
@@ -1115,39 +1122,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets the pin status for a file. If the file is a directory, the pin status will be set
-   * recursively to all of its descendants. Called via RPC.
-   *
-   * @param fileId the file id to set the pin status for
-   * @param pinned the pin status
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
-    // TODO(gene): metrics
-    synchronized (mInodeTree) {
-      long opTimeMs = System.currentTimeMillis();
-      setPinnedInternal(fileId, pinned, opTimeMs);
-      writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
-      flushJournal();
-    }
-  }
-
-  private void setPinnedInternal(long fileId, boolean pinned, long opTimeMs)
-      throws FileDoesNotExistException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
-    Inode inode = mInodeTree.getInodeById(fileId);
-    mInodeTree.setPinned(inode, pinned, opTimeMs);
-  }
-
-  private void setPinnedFromEntry(SetPinnedEntry entry) {
-    try {
-      setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOpTimeMs());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
-    }
-  }
-
-  /**
    * Frees or evicts all of the blocks of the file from tachyon storage. If the given file is a
    * directory, and the 'recursive' flag is enabled, all descendant files will also be freed. Called
    * via RPC.
@@ -1385,6 +1359,54 @@ public final class FileSystemMaster extends MasterBase {
       InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
       inodeFile.reset();
     }
+  }
+
+  /**
+   * Sets the file state.
+   *
+   * @param fileId the id of the file
+   * @param options state options to be set, see {@link SetStateOptions}
+   * @throws FileDoesNotExistException if the file doesn't exist
+   */
+  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+    // TODO(gene) Metrics
+    synchronized (mInodeTree) {
+      long opTimeMs = System.currentTimeMillis();
+      setStateInternal(fileId, opTimeMs, options);
+      Boolean pinned = options.hasPinned() ? options.getPinned() : null;
+      Long ttl = options.hasTTL() ? options.getTTL() : null;
+      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, pinned, ttl));
+      flushJournal();
+    }
+  }
+
+  private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
+      throws FileDoesNotExistException {
+    Inode inode = mInodeTree.getInodeById(fileId);
+    if (options.hasPinned()) {
+      mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
+    }
+    if (options.hasTTL()) {
+      Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
+      long ttl = options.getTTL();
+      InodeFile file = (InodeFile) inode;
+      if (file.getTTL() != ttl) {
+        mTTLBuckets.remove(file);
+        file.setTTL(ttl);
+        mTTLBuckets.insert(file);
+      }
+    }
+  }
+
+  private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
+    SetStateOptions.Builder builder = new SetStateOptions.Builder();
+    if (entry.getPinned() != null) {
+      builder.setPinned(entry.getPinned());
+    }
+    if (entry.getTTL() != null) {
+      builder.setTTL(entry.getTTL());
+    }
+    setStateInternal(entry.getId(), entry.getOperationTimeMs(), builder.build());
   }
 
   /**
