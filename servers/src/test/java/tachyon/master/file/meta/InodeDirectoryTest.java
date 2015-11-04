@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -60,11 +61,14 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void equalsTest() {
     InodeDirectory inode1 =
-        new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0).build();
+        new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
     InodeDirectory inode2 =
-        new InodeDirectory.Builder().setName("test2").setId(1).setParentId(0).build();
+        new InodeDirectory.Builder().setName("test2").setId(1).setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
     InodeDirectory inode3 =
-        new InodeDirectory.Builder().setName("test3").setId(3).setParentId(0).build();
+        new InodeDirectory.Builder().setName("test3").setId(3).setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertTrue(inode1.equals(inode1));
     Assert.assertFalse(inode1.equals(inode3));

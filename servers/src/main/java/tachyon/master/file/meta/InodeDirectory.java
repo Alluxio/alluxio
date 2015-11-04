@@ -24,7 +24,6 @@ import tachyon.Constants;
 import tachyon.collections.IndexedSet;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -194,6 +193,6 @@ public final class InodeDirectory extends Inode {
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
         isPersisted(), isPinned(), getLastModificationTimeMs(), getChildrenIds(),
-        new PermissionStatus(getUsername(), getGroupname(),getPermission()));
+        getUsername(), getGroupname(), getPermission());
   }
 }

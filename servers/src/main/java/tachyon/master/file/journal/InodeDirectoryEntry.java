@@ -35,9 +35,11 @@ public class InodeDirectoryEntry extends InodeEntry {
       @JsonProperty("pinned") boolean pinned,
       @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
       @JsonProperty("childrenIds") Set<Long> childrenIds,
-      @JsonProperty("permissionStatus") PermissionStatus ps) {
-    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs, ps);
-
+      @JsonProperty("username") String username,
+      @JsonProperty("groupname") String groupname,
+      @JsonProperty("permission") short permission) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned,
+        lastModificationTimeMs, username, groupname, permission);
     mChildrenIds = childrenIds;
   }
 
@@ -45,7 +47,8 @@ public class InodeDirectoryEntry extends InodeEntry {
     InodeDirectory inode =
         new InodeDirectory.Builder().setName(mName).setId(mId).setParentId(mParentId)
             .setCreationTimeMs(mCreationTimeMs).setPersisted(mPersisted)
-            .setPermissionStatus(mPs).build();
+            .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
+            .build();
     inode.setPersisted(mPersisted);
     inode.setPinned(mPinned);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
