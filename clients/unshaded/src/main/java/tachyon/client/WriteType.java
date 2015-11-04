@@ -26,8 +26,9 @@ import tachyon.annotation.PublicApi;
 @PublicApi
 public enum WriteType {
   /**
-   * Write the file and must cache it. The data will be written to the highest tier in a worker's
-   * storage. Data will not be persisted to the under storage.
+   * Write the file, guaranteeing the data is written to Tachyon storage or failing the operation.
+   * The data will be written to the highest tier in a worker's storage. Data will not be
+   * persisted to the under storage.
    */
   MUST_CACHE(1),
   /**

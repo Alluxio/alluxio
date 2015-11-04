@@ -38,6 +38,11 @@ public final class InStreamOptions {
       mTachyonStorageType = defaultReadType.getTachyonStorageType();
     }
 
+    /**
+     * @param readType the {@link tachyon.client.ReadType} for this operation. Setting this will
+     *                 override the TachyonStorageType.
+     * @return the builder
+     */
     public Builder setReadType(ReadType readType) {
       mTachyonStorageType = readType.getTachyonStorageType();
       return this;

@@ -556,39 +556,27 @@ The user configuration specifies values regarding file system access.
   <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
 <tr>
-  <td>tachyon.user.file.tachyonstoragetype.default</td>
-  <td>PROMOTE</td>
-  <td>The default interaction with Tachyon. Possible values are PROMOTE, STORE, and NO_STORE.
-  STORE will attempt to write data to Tachyon if the local worker does not have the data. This
-  applies to writing new data as well as reading data which is not already on the local worker.
-  PROMOTE behaves the same as STORE, except if the data is on the local worker, PROMOTE will
-  migrate the data to the highest tier. NO_STORE will never attempt to write data into Tachyon
-  storage. The latter is useful for preventing one-time data access from interfering with Tachyon.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.user.file.understoragetype.default</td>
-  <td>NO_PERSIST</td>
-  <td>The default interaction with the under storage. Possible values are SYNC_PERSIST, NO_PERSIST,
-  and ASYNC_PERSIST. This value only affects writes in Tachyon. SYNC_PERSIST will attempt to write
-  data to the under storage as the data is written to Tachyon. When the write completes, the data
-  will be available in both locations. ASYNC_PERSIST will only write the data to the under storage
-  after the files is completed. See the lineage documentation for more details. NO_PERSIST will
-  bypass the under storage, only writing to Tachyon.</td>
-</tr>
-<tr>
   <td>tachyon.user.file.waitcompleted.poll.ms</td>
   <td>1000</td>
   <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
 </tr>
 <tr>
-  <td>tachyon.user.file.writetype.default</td>
-  <td>No default</td>
+  <td>tachyon.user.file.readtype.default</td>
+  <td>CACHE_PROMOTE</td>
   <td>Default write type when creating Tachyon files.
-    Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
+    Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Tachyon storage,
+    write data into highest tier of local Tachyon if data needs to be read from under storage),
+    `CACHE` (write data into highest tier of local Tachyon if data needs to be read from under
+    storage), `NO_CACHE` (no data interaction with Tachyon, if the read is from Tachyon data
+    migration or eviction will not occur).</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.writetype.default</td>
+  <td>MUST_CACHE</td>
+  <td>Default write type when creating Tachyon files.
+    Valid options are `MUST_CACHE` (write will only go to Tachyon and must be stored in Tachyon),
     `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
-    UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
-    asynchronously, or synchronous write to UnderFS).</td>
+    UnderFS synchronously).</td>
 </tr>
 <tr>
   <td>tachyon.user.heartbeat.interval.ms</td>
