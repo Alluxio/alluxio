@@ -866,7 +866,7 @@ public class TfsShell implements Closeable {
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
    */
-  public int run(String[] argv) {
+  public int run(String... argv) {
     if (argv.length == 0) {
       printUsage();
       return -1;

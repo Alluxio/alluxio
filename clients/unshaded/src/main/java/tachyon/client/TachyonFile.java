@@ -18,9 +18,6 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -45,8 +42,6 @@ import tachyon.thrift.NetAddress;
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final TachyonFileSystem mTFS;
 
   final TachyonFS mTachyonFS;
