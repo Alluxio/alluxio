@@ -57,13 +57,13 @@ import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
+import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
@@ -100,28 +100,27 @@ public abstract class JournalFormatterTestBase {
   // map that holds test journal entries
   protected Map<JournalEntryType, JournalEntry> mDataSet =
       ImmutableMap.<JournalEntryType, JournalEntry>builder()
-          .put(JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR,
-              new BlockContainerIdGeneratorEntry(TEST_CONTAINER_ID))
-          .put(JournalEntryType.BLOCK_INFO, new BlockInfoEntry(TEST_BLOCK_ID, TEST_LENGTH_BYTES))
-          .put(JournalEntryType.INODE_FILE,
-              new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
-                  true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true,
-                  ContiguousSet.create(Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10),
-                      DiscreteDomain.longs()).asList(),
-                  Constants.NO_TTL))
-          .put(JournalEntryType.INODE_DIRECTORY,
-              new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
-                  true, true, TEST_OP_TIME_MS,
-                  ContiguousSet.create(Range.closedOpen(1L, 11L), DiscreteDomain.longs())))
+      .put(JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR,
+          new BlockContainerIdGeneratorEntry(TEST_CONTAINER_ID))
+      .put(JournalEntryType.BLOCK_INFO, new BlockInfoEntry(TEST_BLOCK_ID, TEST_LENGTH_BYTES))
+      .put(
+          JournalEntryType.INODE_FILE,
+          new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
+              true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true,
+              ContiguousSet.create(Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10),
+                  DiscreteDomain.longs()).asList(), Constants.NO_TTL))
+      .put(
+          JournalEntryType.INODE_DIRECTORY,
+          new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
+              true, true, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_MTIME,
           new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS))
-      .put(JournalEntryType.INODE_PERSISTED, new PersistDirectoryEntry(TEST_FILE_ID, true))
+      .put(JournalEntryType.INODE_PERSISTED, new PersistDirectoryEntry(TEST_FILE_ID))
       .put(JournalEntryType.ADD_CHECKPOINT,
           new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS))
       .put(JournalEntryType.COMPLETE_FILE,
           new CompleteFileEntry(Arrays.asList(1L, 2L, 3L), TEST_FILE_ID, TEST_LENGTH_BYTES,
               TEST_OP_TIME_MS))
-      .put(JournalEntryType.SET_PINNED, new SetPinnedEntry(TEST_FILE_ID, false, TEST_OP_TIME_MS))
       .put(JournalEntryType.DELETE_FILE, new DeleteFileEntry(TEST_FILE_ID, true, TEST_OP_TIME_MS))
       .put(JournalEntryType.RENAME, new RenameEntry(TEST_FILE_ID, TEST_FILE_NAME, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_DIRECTORY_ID_GENERATOR,
@@ -142,8 +141,10 @@ public abstract class JournalFormatterTestBase {
               Collections.<LineageFile>emptyList(), TEST_JOB, TEST_OP_TIME_MS))
       .put(JournalEntryType.LINEAGE_ID_GENERATOR, new LineageIdGeneratorEntry(TEST_LINEAGE_ID))
       .put(JournalEntryType.PERSIST_FILES, new PersistFilesEntry(Arrays.asList(1L, 2L)))
-      .put(JournalEntryType.REQUEST_FILE_PERSISTENCE,
-          new RequestFilePersistenceEntry(Arrays.asList(1L, 2L))).build();
+      .put(JournalEntryType.PERSIST_FILES_REQUEST,
+          new PersistFilesRequestEntry(Arrays.asList(1L, 2L)))
+      .put(JournalEntryType.SET_STATE, new SetStateEntry(TEST_FILE_ID, TEST_OP_TIME_MS, true, null))
+      .build();
 
   /**
    * Returns the implementation of {@link JournalFormatter} that wants to be tested.

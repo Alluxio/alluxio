@@ -15,22 +15,22 @@
 
 package tachyon.client.file.options;
 
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
+import com.google.common.base.Preconditions;
+
+import tachyon.exception.PreconditionMessage;
+import tachyon.thrift.SetStateTOptions;
 
 public class SetStateOptions {
   public static class Builder {
     private Boolean mPinned;
-    // TODO(cc) Have an option to change TTL, would be used in a shell command like "setTTL", should
-    // also update logic of TTLBucketList when ttl value of an existing file is updated.
+    private Long mTTL;
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {
+    public Builder() {
       mPinned = null;
+      mTTL = null;
     }
 
     /**
@@ -41,6 +41,17 @@ public class SetStateOptions {
      */
     public Builder setPinned(boolean pinned) {
       mPinned = pinned;
+      return this;
+    }
+
+    /**
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+     *        created file should be kept around before it is automatically deleted, irrespective of
+     *        whether the file is pinned
+     * @return the builder
+     */
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
       return this;
     }
 
@@ -58,20 +69,66 @@ public class SetStateOptions {
    * @return the default {@code SetStateOptions}
    */
   public static SetStateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final Boolean mPinned;
+  private final Long mTTL;
+
+  public SetStateOptions(SetStateTOptions options) {
+    mPinned = options.isSetPinned() ? options.isPinned() : null;
+    mTTL = options.isSetTtl() ? options.getTtl() : null;
+  }
 
   private SetStateOptions(SetStateOptions.Builder builder) {
     mPinned = builder.mPinned;
+    mTTL = builder.mTTL;
+  }
+
+  /**
+   * @return true if the pinned flag is set, otherwise false
+   */
+  public boolean hasPinned() {
+    return mPinned != null;
   }
 
   /**
    * @return the pinned flag value; it specifies whether the object should be kept in memory
    */
-  public Boolean getPinned() {
+  public boolean getPinned() {
+    Preconditions.checkState(hasPinned(), PreconditionMessage.MUST_SET_PINNED);
     return mPinned;
+  }
+
+  /**
+   * @return true if the TTL value is set, otherwise false
+   */
+  public boolean hasTTL() {
+    return mTTL != null;
+  }
+
+  /**
+   * @return the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *         created file should be kept around before it is automatically deleted, irrespective of
+   *         whether the file is pinned
+   */
+  public long getTTL() {
+    Preconditions.checkState(hasTTL(), PreconditionMessage.MUST_SET_TTL);
+    return mTTL;
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public SetStateTOptions toThrift() {
+    SetStateTOptions options = new SetStateTOptions();
+    if (mPinned != null) {
+      options.setPinned(mPinned);
+    }
+    if (mTTL != null) {
+      options.setTtl(mTTL);
+    }
+    return options;
   }
 
   /**
@@ -80,7 +137,8 @@ public class SetStateOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("SetStateOptions(");
-    sb.append(super.toString()).append(", Pinned: ").append(mPinned);
+    sb.append(super.toString()).append(", Pinned: ").append(mPinned)
+        .append(", TTL: ").append(mTTL);
     sb.append(")");
     return sb.toString();
   }

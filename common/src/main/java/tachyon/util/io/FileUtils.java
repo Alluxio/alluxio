@@ -28,6 +28,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.InvalidPathException;
 
@@ -37,7 +38,7 @@ import tachyon.exception.InvalidPathException;
  * By convention, methods take file path strings as parameters.
  */
 public final class FileUtils {
-  private static final Logger LOG = LoggerFactory.getLogger("");
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Changes local file's permission.
@@ -118,7 +119,7 @@ public final class FileUtils {
    * This is a security measure to avoid deletion of folders and their content (sub-folders and
    * files), though other users have full permissions.
    *
-   * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
+   * Setting the sticky bit of a file is a no-op.
    *
    * @param dir absolute dir path to set the sticky bit
    */
@@ -130,7 +131,7 @@ public final class FileUtils {
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the direcotry : " + dir);
+      LOG.info("Can not set the sticky bit of the directory: " + dir);
     }
   }
 
@@ -178,8 +179,7 @@ public final class FileUtils {
    */
   public static void delete(String path) throws IOException {
     File file = new File(path);
-    boolean deletionSucceeded = file.delete();
-    if (deletionSucceeded == false) {
+    if (!file.delete()) {
       throw new IOException("Failed to delete " + path);
     }
   }

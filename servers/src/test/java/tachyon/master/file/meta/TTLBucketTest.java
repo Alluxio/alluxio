@@ -16,9 +16,73 @@
 package tachyon.master.file.meta;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TTLBucketTest {
+  private TTLBucket mBucket;
+
+  @Before
+  public void before() {
+    mBucket = new TTLBucket(0);
+  }
+
+  @Test
+  public void intervalTest() {
+    for (long i = 0; i < 10; i ++) {
+      mBucket = new TTLBucket(i);
+      Assert.assertEquals(mBucket.getTTLIntervalEndTimeMs(), mBucket.getTTLIntervalStartTimeMs()
+          + TTLBucket.getTTLIntervalMs());
+    }
+  }
+
+  @Test
+  public void compareIntervalStartTimeTest() {
+    for (long i = 0; i < 10; i ++) {
+      for (long j = i + 1; j < 10; j ++) {
+        TTLBucket bucket1 = new TTLBucket(i);
+        Assert.assertEquals(i, bucket1.getTTLIntervalStartTimeMs());
+
+        TTLBucket bucket2 = new TTLBucket(j);
+        Assert.assertEquals(j, bucket2.getTTLIntervalStartTimeMs());
+
+        Assert.assertEquals(-1, bucket1.compareTo(bucket2));
+        Assert.assertEquals(1, bucket2.compareTo(bucket1));
+
+        TTLBucket bucket3 = new TTLBucket(i);
+        Assert.assertEquals(i, bucket3.getTTLIntervalStartTimeMs());
+
+        Assert.assertEquals(0, bucket1.compareTo(bucket3));
+      }
+    }
+  }
+
+  @Test
+  public void addAndRemoveFileTest() {
+    InodeFile mFileTTL1 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(0)
+        .setTTL(1).build();
+    InodeFile mFileTTL2 = new InodeFile.Builder().setCreationTimeMs(0).setBlockContainerId(1)
+        .setTTL(2).build();
+    Assert.assertTrue(mBucket.getFiles().isEmpty());
+
+    mBucket.addFile(mFileTTL1);
+    Assert.assertEquals(1, mBucket.getFiles().size());
+
+    // The same file, won't be added.
+    mBucket.addFile(mFileTTL1);
+    Assert.assertEquals(1, mBucket.getFiles().size());
+
+    // Different file, will be added.
+    mBucket.addFile(mFileTTL2);
+    Assert.assertEquals(2, mBucket.getFiles().size());
+
+    // Remove files;
+    mBucket.removeFile(mFileTTL1);
+    Assert.assertEquals(1, mBucket.getFiles().size());
+    Assert.assertTrue(mBucket.getFiles().contains(mFileTTL2));
+    mBucket.removeFile(mFileTTL2);
+    Assert.assertEquals(0, mBucket.getFiles().size());
+  }
 
   @Test
   public void compareToTest() {
