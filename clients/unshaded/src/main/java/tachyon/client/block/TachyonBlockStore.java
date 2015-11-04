@@ -97,20 +97,19 @@ public final class TachyonBlockStore implements Closeable {
       // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
       // But when there is no local worker or there are no local blocks, we prefer the first
       // location in blockInfo.locations that is nearest to memory tier.
-      String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
-      for (BlockLocation location : blockInfo.locations) {
-        NetAddress workerNetAddress = location.getWorkerAddress();
-        if (workerNetAddress.getHost().equals(localHostName)) {
-          if (mContext.hasLocalWorker()) {
+      // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
+      if (mContext.hasLocalWorker()) {
+        String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+        for (BlockLocation location : blockInfo.locations) {
+          NetAddress workerNetAddress = location.getWorkerAddress();
+          if (workerNetAddress.getHost().equals(localHostName)) {
             // There is a local worker and the block is local.
             return new LocalBlockInStream(blockId, blockInfo.getLength(),
                 new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
-          } else {
-            throw new IOException("Attempts to read a local block but there is no local worker.");
           }
         }
       }
-      // No local block, get the first location since it's nearest to memory tier.
+      // No local worker/block, get the first location since it's nearest to memory tier.
       NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
       return new RemoteBlockInStream(blockId, blockInfo.getLength(),
           new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
