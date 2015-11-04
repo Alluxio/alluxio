@@ -52,9 +52,12 @@ public final class HeartbeatScheduler {
   public static void addTimer(ScheduledTimer timer) {
     Preconditions.checkNotNull(timer);
     sLock.lock();
-    sTimers.put(timer.getThreadName(), timer);
-    sCondition.signalAll();
-    sLock.unlock();
+    try {
+      sTimers.put(timer.getThreadName(), timer);
+      sCondition.signalAll();
+    } finally {
+      sLock.unlock();
+    }
   }
 
   /**
@@ -63,19 +66,23 @@ public final class HeartbeatScheduler {
   public static synchronized void removeTimer(ScheduledTimer timer) {
     Preconditions.checkNotNull(timer);
     sLock.lock();
-    sTimers.remove(timer.getThreadName());
-    sLock.unlock();
+    try {
+      sTimers.remove(timer.getThreadName());
+    } finally {
+      sLock.unlock();
+    }
   }
 
   /**
    * @return the set of threads present in the scheduler
    */
   public static synchronized Set<String> getThreadNames() {
-    Set<String> result;
     sLock.lock();
-    result = sTimers.keySet();
-    sLock.unlock();
-    return result;
+    try {
+      return sTimers.keySet();
+    } finally {
+      sLock.unlock();
+    }
   }
 
   /**
@@ -85,14 +92,16 @@ public final class HeartbeatScheduler {
    */
   public static void schedule(String threadName) {
     sLock.lock();
-    ScheduledTimer timer = sTimers.get(threadName);
-    if (timer == null) {
+    try {
+      ScheduledTimer timer = sTimers.get(threadName);
+      if (timer == null) {
+        throw new RuntimeException("Timer for thread " + threadName + " not found.");
+      }
+      timer.schedule();
+      sTimers.remove(threadName);
+    } finally {
       sLock.unlock();
-      throw new RuntimeException("Timer for thread " + threadName + " not found.");
     }
-    timer.schedule();
-    sTimers.remove(threadName);
-    sLock.unlock();
   }
 
   /**
@@ -103,10 +112,13 @@ public final class HeartbeatScheduler {
    */
   public static void await(String name) throws InterruptedException {
     sLock.lock();
-    while (!sTimers.containsKey(name)) {
-      sCondition.await();
+    try {
+      while (!sTimers.containsKey(name)) {
+        sCondition.await();
+      }
+    } finally {
+      sLock.unlock();
     }
-    sLock.unlock();
   }
 
   /**
@@ -121,13 +133,15 @@ public final class HeartbeatScheduler {
    */
   public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
     sLock.lock();
-    while (!sTimers.containsKey(name)) {
-      if (!sCondition.await(time, unit)) {
-        sLock.unlock();
-        return false;
+    try {
+      while (!sTimers.containsKey(name)) {
+        if (!sCondition.await(time, unit)) {
+          return false;
+        }
       }
+    } finally {
+      sLock.unlock();
     }
-    sLock.unlock();
     return true;
   }
 }
