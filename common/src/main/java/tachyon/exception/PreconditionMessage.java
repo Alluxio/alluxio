@@ -45,8 +45,11 @@ public class PreconditionMessage {
   public static final String LINEAGE_DOES_NOT_EXIST = "Lineage id %s does not exist";
   public static final String LINEAGE_NO_OUTPUT_FILE =
       "The output file %s is not associated with any lineage";
+  public static final String MUST_SET_PINNED = "The pinned flag must be set";
+  public static final String MUST_SET_TTL = "The TTL value must be set";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
+  public static final String TTL_ONLY_FOR_FILE = "TTL can only be set for files";
 
   private PreconditionMessage() {} // to prevent initialization
 }

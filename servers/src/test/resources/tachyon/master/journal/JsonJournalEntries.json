@@ -95,15 +95,6 @@
       "id":1
     }
   },
-  "SET_PINNED":{
-    "mSequenceNumber":1945,
-    "mType":"SET_PINNED",
-    "mParameters":{
-      "opTimeMs":1409349750338,
-      "pinned":false,
-      "id":1
-    }
-  },
   "DELETE_FILE":{
     "mSequenceNumber":1945,
     "mType":"DELETE_FILE",
@@ -230,6 +221,15 @@
         1,
         2
       ]
+    }
+  },
+  "SET_STATE":{
+    "mSequenceNumber":1945,
+    "mType":"SET_STATE",
+    "mParameters":{
+      "id":1,
+      "operationTimeMs":1409349750338,
+      "pinned":true
     }
   }
 }

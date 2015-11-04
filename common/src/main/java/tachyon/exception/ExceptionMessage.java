@@ -85,7 +85,7 @@ public enum ExceptionMessage {
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
-  UNEXPECETD_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
+  UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
 
   // file
