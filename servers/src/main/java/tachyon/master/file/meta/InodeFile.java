@@ -71,6 +71,9 @@ public final class InodeFile extends Inode {
       return this;
     }
 
+    /**
+     * Sets the ttl in milliseconds.
+     */
     public Builder setTTL(long ttl) {
       mTTL = ttl;
       return this;
@@ -155,12 +158,12 @@ public final class InodeFile extends Inode {
    * @oaram blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
-    // TODO(yupeng): add validation
+    Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
   }
 
   /**
-   * @param ttl the TTL to use
+   * @param ttl the TTL to use, in milliseconds
    */
   public void setTTL(long ttl) {
     mTTL = ttl;

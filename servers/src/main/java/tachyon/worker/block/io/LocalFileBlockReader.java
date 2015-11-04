@@ -21,13 +21,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
-import tachyon.Constants;
 import tachyon.worker.block.meta.BlockMeta;
 
 /**
@@ -36,7 +32,6 @@ import tachyon.worker.block.meta.BlockMeta;
  * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
 public final class LocalFileBlockReader implements BlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;

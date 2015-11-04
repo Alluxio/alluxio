@@ -126,13 +126,12 @@ public class DataServerIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
 
-    TachyonConf tachyonConf = mLocalTachyonCluster.getTestConf();
-    tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    tachyonConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
-
-    mLocalTachyonCluster.start();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    testConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    testConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
+    mLocalTachyonCluster.start(testConf);
 
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();

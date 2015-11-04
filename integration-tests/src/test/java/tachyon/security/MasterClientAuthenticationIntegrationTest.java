@@ -30,6 +30,7 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
@@ -63,10 +64,10 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void noAuthenticationOpenCloseTest() throws Exception {
     // no authentication type configure
-    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.NOSASL.getAuthName());
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     // start cluster
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(testConf);
 
     authenticationOperationTest("/file-nosasl");
 
@@ -77,10 +78,10 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     // simple authentication type configure
-    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.SIMPLE.getAuthName());
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     // start cluster
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(testConf);
 
     authenticationOperationTest("/file-simple");
 
@@ -91,10 +92,10 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationOpenCloseTest() throws Exception {
     // custom authentication type configure
-    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.CUSTOM.getAuthName());
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    testConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
 
     /**
@@ -104,7 +105,7 @@ public class MasterClientAuthenticationIntegrationTest {
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
 
     // start cluster
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(testConf);
 
     authenticationOperationTest("/file-custom");
 
@@ -115,10 +116,10 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationDenyConnectTest() throws Exception {
     // custom authentication type configure
-    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.CUSTOM.getAuthName());
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    mLocalTachyonCluster.getTestConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    testConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
 
     /**
@@ -127,7 +128,7 @@ public class MasterClientAuthenticationIntegrationTest {
      */
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
     // start cluster
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(testConf);
 
     // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
     clearLoginUser();

@@ -535,7 +535,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException, IOException {
-    // TODO(yupeng): add validation
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
       writeJournalEntry(new ReinitializeFileEntry(path.getPath(), blockSizeBytes, ttl));
@@ -608,7 +607,6 @@ public final class FileSystemMaster extends MasterBase {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
-      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
       writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
       flushJournal();

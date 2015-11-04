@@ -45,7 +45,6 @@ public class FileInStreamIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 10 + 1;
-  private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = BLOCK_SIZE / 2;
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
