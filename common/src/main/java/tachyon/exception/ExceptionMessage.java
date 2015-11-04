@@ -108,6 +108,8 @@ public enum ExceptionMessage {
       "The destination cannot be an existent file when the src contains wildcards."),
 
   // lineage
+  DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
+  LINEAGE_DOES_NOT_EXIST("The lineage {0} does not exist"),
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
 
