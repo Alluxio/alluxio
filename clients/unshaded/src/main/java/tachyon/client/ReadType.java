@@ -26,8 +26,8 @@ import tachyon.annotation.PublicApi;
 @PublicApi
 public enum ReadType {
   /**
-   * Read the file and skip Tachyon storage. This mode will not alter any data distribution
-   * in Tachyon storage.
+   * Read the file and skip Tachyon storage. This read type will not cause any data migration or
+   * eviction in Tachyon storage.
    */
   NO_CACHE(1),
   /**

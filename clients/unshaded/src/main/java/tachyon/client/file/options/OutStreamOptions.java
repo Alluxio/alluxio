@@ -94,6 +94,11 @@ public final class OutStreamOptions {
       return this;
     }
 
+    /**
+     * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
+     *                  override both the TachyonStorageType and UnderStorageType.
+     * @return the builder
+     */
     public Builder setWriteType(WriteType writeType) {
       mTachyonStorageType = writeType.getTachyonStorageType();
       mUnderStorageType = writeType.getUnderStorageType();
