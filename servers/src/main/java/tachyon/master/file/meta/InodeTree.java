@@ -61,7 +61,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private static final String ROOT_INODE_NAME = "";
 
   /** The root of the entire file system. */
-  private InodeDirectory mRoot;
+  private InodeDirectory mRoot = null;
 
   /** Mount table manages the file system mount points. */
   private MountTable mMountTable;
@@ -429,9 +429,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return true if the given file id is the root id
    */
   public boolean isRootId(long fileId) {
-    if (mRoot == null) {
-      throw new IllegalStateException("Cannot call isRootId() before initializeRoot()");
-    }
+    Preconditions.checkNotNull(mRoot, "Cannot call isRootId() before initializeRoot()");
     return fileId == mRoot.getId();
   }
 
