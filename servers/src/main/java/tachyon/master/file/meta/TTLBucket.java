@@ -74,16 +74,11 @@ public final class TTLBucket implements Comparable<TTLBucket> {
   public int compareTo(TTLBucket ttlBucket) {
     long startTime1 = getTTLIntervalStartTimeMs();
     long startTime2 = ttlBucket.getTTLIntervalStartTimeMs();
-    List<InodeFile> files1 = getFiles();
-    List<InodeFile> files2 = ttlBucket.getFiles();
 
     if (startTime1 < startTime2) {
       return -1;
     }
-    if (startTime1 == startTime2 && files1.size() < files2.size()) {
-      return -1;
-    }
-    if (startTime1 == startTime2 && files1.equals(files2)) {
+    if (startTime1 == startTime2) {
       return 0;
     }
     return 1;
@@ -93,8 +88,7 @@ public final class TTLBucket implements Comparable<TTLBucket> {
    * Compares to a specific object.
    *
    * @param object the object to compare
-   * @return true if object is also {@link TTLBucket} and represents
-   *         the same TTLIntervalStartTime and files
+   * @return true if object is also {@link TTLBucket} and represents the same TTLIntervalStartTime
    */
   @Override
   public boolean equals(Object object) {
@@ -106,9 +100,7 @@ public final class TTLBucket implements Comparable<TTLBucket> {
       return false;
     }
 
-    TTLBucket that = (TTLBucket) object;
-    return mTTLIntervalStartTimeMs == that.mTTLIntervalStartTimeMs
-        && mFiles.equals(that.mFiles);
+    return mTTLIntervalStartTimeMs == ((TTLBucket) object).mTTLIntervalStartTimeMs;
   }
 
   /**
@@ -118,6 +110,6 @@ public final class TTLBucket implements Comparable<TTLBucket> {
    */
   @Override
   public int hashCode() {
-    return Objects.hashCode(mTTLIntervalStartTimeMs, mFiles);
+    return Objects.hashCode(mTTLIntervalStartTimeMs);
   }
 }
