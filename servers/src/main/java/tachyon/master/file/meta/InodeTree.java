@@ -273,7 +273,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
     // directory, update persistence property of the directories if needed, otherwise, throw
-    // FileAlreadyExistsException
+    // FileAlreadyExistsException.
     Inode lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
       if (lastInode.isDirectory() && options.isDirectory() && !lastInode.isPersisted()
