@@ -45,6 +45,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.SuspectedFileSizeException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -1386,7 +1387,7 @@ public final class FileSystemMaster extends MasterBase {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
     }
     if (options.hasTTL()) {
-      Preconditions.checkArgument(inode.isFile(), "TTL can only be set for files.");
+      Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
       long ttl = options.getTTL();
       InodeFile file = (InodeFile) inode;
       if (file.getTTL() != ttl) {
