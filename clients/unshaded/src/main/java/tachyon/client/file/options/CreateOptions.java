@@ -77,6 +77,8 @@ public final class CreateOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     *
      * @param underStorageType the under storage type to use
      * @return the builder
      */

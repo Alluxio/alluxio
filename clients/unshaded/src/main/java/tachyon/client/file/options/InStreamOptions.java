@@ -49,6 +49,8 @@ public final class InStreamOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setReadType} when possible.
+     *
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
      */
