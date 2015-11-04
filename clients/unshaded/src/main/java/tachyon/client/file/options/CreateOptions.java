@@ -72,7 +72,7 @@ public final class CreateOptions {
 
     /**
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted, no matter
+     *        created file should be kept around before it is automatically deleted, irrespective of
      *        whether the file is pinned
      * @return the builder
      */
@@ -135,8 +135,9 @@ public final class CreateOptions {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
-   *         should be kept around before it is automatically deleted
+   * @return the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *         created file should be kept around before it is automatically deleted, irrespective of
+   *         whether the file is pinned
    */
   public long getTTL() {
     return mTTL;
