@@ -17,6 +17,7 @@ package tachyon.client.netty;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
     void onResponseReceived(RPCResponse response);
   }
 
-  private final HashSet<ResponseListener> mListeners;
+  private final Set<ResponseListener> mListeners;
 
   /**
    * Creates a new <code>ClientHandler</code>.
