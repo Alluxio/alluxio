@@ -15,8 +15,8 @@
 
 package tachyon.master.file.meta;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.google.common.base.Objects;
 
@@ -31,45 +31,70 @@ import tachyon.master.MasterContext;
  */
 public final class TTLBucket implements Comparable<TTLBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
-  private static final int TTL_INTERVAL_MS = MasterContext.getConf().getInt(
+  private static long sTTLIntervalMs = MasterContext.getConf().getInt(
       Constants.MASTER_TTLCHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
    */
   private long mTTLIntervalStartTimeMs;
-  /** A list of InodeFiles whose ttl value is in the range of this bucket's interval. */
-  private List<InodeFile> mFiles;
+  /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */
+  private Set<InodeFile> mFiles;
 
   public TTLBucket(long startTimeMs) {
     mTTLIntervalStartTimeMs = startTimeMs;
-    mFiles = new LinkedList<InodeFile>();
+    mFiles = new HashSet<InodeFile>();
   }
 
   public long getTTLIntervalStartTimeMs() {
     return mTTLIntervalStartTimeMs;
   }
 
-  public void setTTLIntervalStartTimeMs(long startTimeMs) {
-    mTTLIntervalStartTimeMs = startTimeMs;
-  }
-
   public long getTTLIntervalEndTimeMs() {
-    return mTTLIntervalStartTimeMs + TTL_INTERVAL_MS;
+    return mTTLIntervalStartTimeMs + sTTLIntervalMs;
   }
 
   public static long getTTLIntervalMs() {
-    return TTL_INTERVAL_MS;
+    return sTTLIntervalMs;
   }
 
-  public List<InodeFile> getFiles() {
+  public static void setTTlIntervalMs(long intervalMs) {
+    sTTLIntervalMs = intervalMs;
+  }
+
+  /**
+   * @return the set of all files in the bucket backed by the internal set, changes made to the
+   *         returned set will be shown in the internal set, and vice versa
+   */
+  public Set<InodeFile> getFiles() {
     return mFiles;
   }
 
+  /**
+   * Adds a file to the bucket.
+   *
+   * @param file the file to be added
+   */
   public void addFile(InodeFile file) {
     mFiles.add(file);
   }
 
+  /**
+   * Removes a file from the bucket.
+   *
+   * @param file the file to be removed
+   */
+  public void removeFile(InodeFile file) {
+    mFiles.remove(file);
+  }
+
+  /**
+   * Compares this bucket's TTL interval start time to that of another bucket.
+   *
+   * @param ttlBucket the bucket to be compared to
+   * @return 0 when return values of {@link #getTTLIntervalStartTimeMs()} from the two buckets are
+   *         the same, -1 when that value of current instance is smaller, otherwise, 1
+   */
   @Override
   public int compareTo(TTLBucket ttlBucket) {
     long startTime1 = getTTLIntervalStartTimeMs();

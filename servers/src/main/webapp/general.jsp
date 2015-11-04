@@ -111,7 +111,7 @@
                 <th>Space Usage</th>
               </thead>
               <tbody>
-                <% for (WebInterfaceGeneralServlet.StorageTierInfo info : ((WebInterfaceGeneralServlet.StorageTierInfo[]) request.getAttribute("116"))) { %>
+                <% for (WebInterfaceGeneralServlet.StorageTierInfo info : ((WebInterfaceGeneralServlet.StorageTierInfo[]) request.getAttribute("storageTierInfos"))) { %>
                   <tr>
                     <th><%= info.getStorageTierAlias() %></th>
                     <th><%= info.getCapacity() %></th>

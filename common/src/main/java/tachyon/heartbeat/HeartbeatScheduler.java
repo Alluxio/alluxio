@@ -37,11 +37,11 @@ import com.google.common.base.Preconditions;
  * execution of a thread and the heartbeat scheduler logic to schedule the thread can lead to a
  * deadlock.
  *
- * For an example of how to use the HeartbeatScheduler, see {@link HeartbeatThreadTest}.
+ * For an example of how to use the HeartbeatScheduler, see unit test of {@link HeartbeatThread}.
  */
 public final class HeartbeatScheduler {
   private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
-  private static Lock sLock =  new ReentrantLock();
+  private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
   private HeartbeatScheduler() {} // to prevent initialization
@@ -52,9 +52,12 @@ public final class HeartbeatScheduler {
   public static void addTimer(ScheduledTimer timer) {
     Preconditions.checkNotNull(timer);
     sLock.lock();
-    sTimers.put(timer.getThreadName(), timer);
-    sCondition.signalAll();
-    sLock.unlock();
+    try {
+      sTimers.put(timer.getThreadName(), timer);
+      sCondition.signalAll();
+    } finally {
+      sLock.unlock();
+    }
   }
 
   /**
@@ -63,19 +66,23 @@ public final class HeartbeatScheduler {
   public static synchronized void removeTimer(ScheduledTimer timer) {
     Preconditions.checkNotNull(timer);
     sLock.lock();
-    sTimers.remove(timer.getThreadName());
-    sLock.unlock();
+    try {
+      sTimers.remove(timer.getThreadName());
+    } finally {
+      sLock.unlock();
+    }
   }
 
   /**
    * @return the set of threads present in the scheduler
    */
   public static synchronized Set<String> getThreadNames() {
-    Set<String> result;
     sLock.lock();
-    result = sTimers.keySet();
-    sLock.unlock();
-    return result;
+    try {
+      return sTimers.keySet();
+    } finally {
+      sLock.unlock();
+    }
   }
 
   /**
@@ -85,27 +92,33 @@ public final class HeartbeatScheduler {
    */
   public static void schedule(String threadName) {
     sLock.lock();
-    ScheduledTimer timer = sTimers.get(threadName);
-    if (timer == null) {
+    try {
+      ScheduledTimer timer = sTimers.get(threadName);
+      if (timer == null) {
+        throw new RuntimeException("Timer for thread " + threadName + " not found.");
+      }
+      timer.schedule();
+      sTimers.remove(threadName);
+    } finally {
       sLock.unlock();
-      throw new RuntimeException("Timer for thread " + threadName + " not found.");
     }
-    timer.schedule();
-    sTimers.remove(threadName);
-    sLock.unlock();
   }
 
   /**
    * Waits until the given thread can be executed.
    *
    * @param name a name of the thread to wait for
+   * @throws InterruptedException if the waiting thread is interrupted
    */
   public static void await(String name) throws InterruptedException {
     sLock.lock();
-    while (!sTimers.containsKey(name)) {
-      sCondition.await();
+    try {
+      while (!sTimers.containsKey(name)) {
+        sCondition.await();
+      }
+    } finally {
+      sLock.unlock();
     }
-    sLock.unlock();
   }
 
   /**
@@ -116,16 +129,19 @@ public final class HeartbeatScheduler {
    * @param unit the time unit of the {@code time} argument
    * @return {@code false} if the waiting time detectably elapsed before return from the method,
    *         else {@code true}
+   * @throws InterruptedException if the waiting thread is interrupted
    */
   public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
     sLock.lock();
-    while (!sTimers.containsKey(name)) {
-      if (!sCondition.await(time, unit)) {
-        sLock.unlock();
-        return false;
+    try {
+      while (!sTimers.containsKey(name)) {
+        if (!sCondition.await(time, unit)) {
+          return false;
+        }
       }
+    } finally {
+      sLock.unlock();
     }
-    sLock.unlock();
     return true;
   }
 }

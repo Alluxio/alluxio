@@ -16,18 +16,14 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class GetInfoOptions {
   public static class Builder {
     /**
      * Creates a new builder for {@link GetInfoOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {}
+    public Builder() {}
 
     /**
      * Builds a new instance of {@code GetInfoOptions}.
@@ -43,7 +39,7 @@ public final class GetInfoOptions {
    * @return the default {@code GetInfoOptions}
    */
   public static GetInfoOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private GetInfoOptions(GetInfoOptions.Builder builder) {}

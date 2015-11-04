@@ -50,7 +50,6 @@ public final class LocalTachyonMaster {
   private final String mHostname;
 
   private final UnderFileSystemCluster mUfsCluster;
-  private final String mUfsDirectory;
   private final String mJournalFolder;
 
   private final TachyonMaster mTachyonMaster;
@@ -79,7 +78,6 @@ public final class LocalTachyonMaster {
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
     // "hdfs://xxx:xxx/tachyon*".
     mUfsCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
-    mUfsDirectory = mUfsCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
 
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
@@ -103,7 +101,6 @@ public final class LocalTachyonMaster {
         tachyonConf);
 
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
-    tachyonConf.set(Constants.UNDERFS_ADDRESS, mUfsDirectory);
 
     mTachyonMaster = TachyonMaster.Factory.createMaster();
 
@@ -259,10 +256,6 @@ public final class LocalTachyonMaster {
 
   private static String uniquePath() throws IOException {
     return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
-  }
-
-  private static String path(final String parent, final String child) {
-    return parent + "/" + child;
   }
 
   public String getJournalFolder() {

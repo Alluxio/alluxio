@@ -101,7 +101,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @throws TachyonTException if a tachyon error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
-  // TODO(calvin): Reconsider this exception handling.
   @Override
   public void cacheBlock(long sessionId, long blockId) throws TachyonTException, ThriftIOException {
     try {

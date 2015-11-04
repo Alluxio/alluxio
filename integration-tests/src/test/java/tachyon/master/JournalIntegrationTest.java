@@ -157,9 +157,10 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    mLocalTachyonCluster.getTestConf().set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start();
+    mLocalTachyonCluster.start(testConf);
     mTfs = mLocalTachyonCluster.getClient();
     mOldTfs = mLocalTachyonCluster.getOldClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -200,7 +201,7 @@ public class JournalIntegrationTest {
   public void deleteTest() throws Exception {
     MkdirOptions recMkdir = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
     DeleteOptions recDelete =
-        new DeleteOptions.Builder(new TachyonConf()).setRecursive(true).build();
+        new DeleteOptions.Builder().setRecursive(true).build();
     for (int i = 0; i < 10; i ++) {
       String dirPath = "/i" + i;
       mTfs.mkdir(new TachyonURI(dirPath), recMkdir);
@@ -322,9 +323,9 @@ public class JournalIntegrationTest {
   @Test
   public void pinTest() throws Exception {
     SetStateOptions setPinned =
-        new SetStateOptions.Builder(new TachyonConf()).setPinned(true).build();
+        new SetStateOptions.Builder().setPinned(true).build();
     SetStateOptions setUnpinned =
-        new SetStateOptions.Builder(new TachyonConf()).setPinned(false).build();
+        new SetStateOptions.Builder().setPinned(false).build();
     mTfs.mkdir(new TachyonURI("/myFolder"));
     TachyonFile directory = mTfs.open(new TachyonURI("/myFolder"));
     mTfs.setState(directory, setPinned);

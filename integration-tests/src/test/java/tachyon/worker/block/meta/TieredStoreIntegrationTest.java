@@ -68,14 +68,15 @@ public class TieredStoreIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    mLocalTachyonCluster.start();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    mLocalTachyonCluster.start(testConf);
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
-    mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
+    mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
+    mSetUnpinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
   // Tests that deletes go through despite failing initially due to concurrent read
