@@ -254,8 +254,8 @@ public final class LocalTachyonCluster {
     // the cluster's current address. This must happen here because the cluster isn't initialized
     // until mMaster is started.
     UnderFileSystemCluster ufs = UnderFileSystemCluster.get();
-    // TODO(andrew): Move LocalMiniDFSCluster to the integration-tests project so that we can use
-    // instanceof here instead of comparing classnames.
+    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
+    // instead of comparing classnames.
     if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
       testConf.set(Constants.UNDERFS_ADDRESS, ufs.getUnderFilesystemAddress() + mTachyonHome);
       MasterContext.reset(testConf);
