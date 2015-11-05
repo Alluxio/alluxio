@@ -41,7 +41,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.NoForceException;
+import tachyon.exception.ImproperOptionsException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.FileInfo;
@@ -97,7 +97,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
    */
   @Override
   public void delete(TachyonFile file, DeleteOptions options)
-      throws IOException, FileDoesNotExistException, NoForceException, TachyonException {
+      throws IOException, FileDoesNotExistException, ImproperOptionsException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.delete(file.getFileId(), options.isRecursive());
