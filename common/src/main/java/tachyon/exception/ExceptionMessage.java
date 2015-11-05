@@ -89,6 +89,7 @@ public enum ExceptionMessage {
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
 
   // file
+  CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
