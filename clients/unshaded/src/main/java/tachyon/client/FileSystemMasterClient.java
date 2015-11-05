@@ -259,7 +259,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void setState( final long fileId, final SetStateOptions options)
+  public synchronized void setState(final long fileId, final SetStateOptions options)
       throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
