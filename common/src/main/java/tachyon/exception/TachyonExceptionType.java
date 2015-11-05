@@ -27,6 +27,7 @@ public enum TachyonExceptionType {
   INVALID_WORKER_STATE(InvalidWorkerStateException.class),
   LINEAGE_DELETION(LineageDeletionException.class),
   LINEAGE_DOES_NOT_EXIST(LineageDoesNotExistException.class),
+  NO_FORCE_EXCEPTION(NoForceException.class),
   NO_WORKER(NoWorkerException.class),
   SUSPECTED_FILE_SIZE(SuspectedFileSizeException.class),
   TABLE_COLUMN(TableColumnException.class),

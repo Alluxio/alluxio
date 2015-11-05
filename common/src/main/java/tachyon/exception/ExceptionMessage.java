@@ -89,6 +89,8 @@ public enum ExceptionMessage {
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
 
   // file
+  DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
+      "Cannot delete non-empty directory {0} because recursive is set to false"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
