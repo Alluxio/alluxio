@@ -45,9 +45,11 @@ import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.LineageCommand;
@@ -176,5 +178,28 @@ public final class LineageMasterTest {
     Assert.assertEquals(1, command.checkpointFiles.size());
     Assert.assertEquals(fileId, command.checkpointFiles.get(0).fileId);
     Assert.assertEquals(blockId, (long) command.checkpointFiles.get(0).blockIds.get(0));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void queueForCheckpointTest() throws Exception {
+    long workerId = 1;
+    long fileId = 0;
+    long lineageId = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    FileBlockInfo fileBlockInfo = new FileBlockInfo();
+    fileBlockInfo.blockInfo = new BlockInfo();
+    BlockLocation blockLocation = new BlockLocation();
+    blockLocation.workerId = workerId;
+    fileBlockInfo.blockInfo.locations = Lists.newArrayList(blockLocation);
+    Mockito.when(mFileSystemMaster.getFileBlockInfoList(fileId))
+        .thenReturn(Lists.newArrayList(fileBlockInfo));
+
+    CheckpointPlan plan = new CheckpointPlan(Lists.newArrayList(lineageId));
+    mLineageMaster.queueForCheckpoint(plan);
+    Map<Long, Set<LineageFile>> workerToCheckpointFile = (Map<Long, Set<LineageFile>>) Whitebox
+        .getInternalState(mLineageMaster, "mWorkerToCheckpointFile");
+    Assert.assertTrue(workerToCheckpointFile.containsKey(workerId));
+    Assert.assertEquals(fileId, workerToCheckpointFile.get(workerId).iterator().next().getFileId());
   }
 }
