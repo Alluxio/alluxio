@@ -213,7 +213,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient("127.0.0.1");
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
-    } catch (IOException ie) {
+    } catch (RuntimeException rte) {
       // This is expected, since Work RPC service is NOT listening on loopback.
     }
 
