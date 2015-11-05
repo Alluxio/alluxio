@@ -241,7 +241,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     List<Inode> createdInodes = Lists.newArrayList();
     List<Inode> modifiedInodes = Lists.newArrayList();
     // Directory persistence will not happen until the end of this method.
-    List<Inode> toPersistInodes = Lists.newArrayList(traversalResult.getNonPersisted());
+    List<Inode> toPersistDirectories = Lists.newArrayList(traversalResult.getNonPersisted());
     if (pathIndex < parentPath.length || currentInodeDirectory.getChild(name) == null) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
@@ -261,7 +261,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       if (options.isPersisted()) {
-        toPersistInodes.add(dir);
+        toPersistDirectories.add(dir);
       }
       createdInodes.add(dir);
       mInodes.add(dir);
@@ -279,7 +279,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
           traversalResult.getNonPersisted().add(lastInode);
-          toPersistInodes.add(lastInode);
+          toPersistDirectories.add(lastInode);
         }
       } else {
         LOG.info("FileAlreadyExistsException: " + path);
@@ -292,7 +292,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
                 .setId(mDirectoryIdGenerator.getNewDirectoryId())
                 .setParentId(currentInodeDirectory.getId()).build();
         if (options.isPersisted()) {
-          toPersistInodes.add(lastInode);
+          toPersistDirectories.add(lastInode);
         }
       } else {
         lastInode =
@@ -314,12 +314,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
     }
 
-    if (toPersistInodes.size() > 0) {
-      Inode lastToPersistInode = toPersistInodes.get(toPersistInodes.size() - 1);
+    if (toPersistDirectories.size() > 0) {
+      Inode lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
       String ufsPath = mMountTable.resolve(getPath(lastToPersistInode)).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+      // Persists only the last directory, recursively creating necessary parent directories.
       if (ufs.mkdirs(ufsPath, true)) {
-        for (Inode inode : toPersistInodes) {
+        for (Inode inode : toPersistDirectories) {
           inode.setPersisted(true);
         }
       }
