@@ -19,6 +19,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.BlockInfo;
@@ -34,6 +38,7 @@ import tachyon.worker.WorkerClient;
  * safe.
  */
 public final class TachyonBlockStore implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonBlockStore sClient = null;
 
@@ -105,8 +110,14 @@ public final class TachyonBlockStore implements Closeable {
         NetAddress workerNetAddress = location.getWorkerAddress();
         if (workerNetAddress.getHost().equals(localHostName)) {
           // There is a local worker and the block is local.
-          return new LocalBlockInStream(blockId, blockInfo.getLength(),
-              new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
+          try {
+            return new LocalBlockInStream(blockId, blockInfo.getLength(),
+                new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
+          } catch (IOException e) {
+            LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
+            // Getting a local stream failed, do not try again
+            break;
+          }
         }
       }
       // No local worker/block, get the first location since it's nearest to memory tier.
