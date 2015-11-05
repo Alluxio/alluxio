@@ -51,6 +51,16 @@ public abstract class UnderFileSystemCluster {
   private static String sUfsClz;
 
   /**
+   * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet.
+   */
+  public static synchronized UnderFileSystemCluster get() {
+    if (sUnderFSCluster == null) {
+      throw new IllegalStateException("sUnderFSCluster has not been initailized yet");
+    }
+    return sUnderFSCluster;
+  }
+
+  /**
    * Create an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
