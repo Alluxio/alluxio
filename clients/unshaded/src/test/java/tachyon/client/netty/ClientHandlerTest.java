@@ -17,6 +17,7 @@ package tachyon.client.netty;
 
 import java.io.IOException;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -24,6 +25,7 @@ import org.mockito.Mockito;
 
 import io.netty.channel.ChannelHandlerContext;
 
+import tachyon.exception.ExceptionMessage;
 import tachyon.network.protocol.RPCBlockReadRequest;
 import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCMessage;
@@ -32,8 +34,17 @@ import tachyon.network.protocol.databuffer.DataBuffer;
 
 public class ClientHandlerTest {
 
+  private ClientHandler mHandler;
+  private ChannelHandlerContext mContext;
+
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
+
+  @Before
+  public void before() {
+    mHandler = new ClientHandler();
+    mContext = Mockito.mock(ChannelHandlerContext.class);
+  }
 
   /**
    * Makes sure that a {@link NullPointerException} is thrown if a listener is added which is null.
@@ -42,8 +53,7 @@ public class ClientHandlerTest {
   public void addListenerTest() {
     mThrown.expect(NullPointerException.class);
 
-    ClientHandler handler = new ClientHandler();
-    handler.addListener(null);
+    mHandler.addListener(null);
   }
 
   /**
@@ -53,16 +63,14 @@ public class ClientHandlerTest {
    */
   @Test
   public void channelRead0ResponseReceivedTest() throws IOException {
-    ClientHandler handler = new ClientHandler();
     final ClientHandler.ResponseListener listener =
         Mockito.mock(ClientHandler.ResponseListener.class);
-    final ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
-    DataBuffer buffer = Mockito.mock(DataBuffer.class);
+    final DataBuffer buffer = Mockito.mock(DataBuffer.class);
     final RPCResponse response = new RPCBlockReadResponse(0, 0, 0, buffer,
         RPCResponse.Status.SUCCESS);
 
-    handler.addListener(listener);
-    handler.channelRead0(context, response);
+    mHandler.addListener(listener);
+    mHandler.channelRead0(mContext, response);
 
     Mockito.verify(listener, Mockito.times(1)).onResponseReceived(response);
   }
@@ -75,14 +83,11 @@ public class ClientHandlerTest {
    */
   @Test
   public void channelRead0ThrowsExceptionTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("No handler implementation for rpc message type: RPC_BLOCK_READ_REQUEST");
-
-    ClientHandler handler = new ClientHandler();
-    final ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
     final RPCMessage message = new RPCBlockReadRequest(0, 0, 0);
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_RPC_HANDLER.getMessage(message.getType()));
 
-    handler.channelRead0(context, message);
+    mHandler.channelRead0(mContext, message);
   }
 
   /**
@@ -92,11 +97,8 @@ public class ClientHandlerTest {
    */
   @Test
   public void exceptionCaughtClosesContextTest() throws Exception {
-    ClientHandler handler = new ClientHandler();
-    ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
+    mHandler.exceptionCaught(mContext, new Throwable());
 
-    handler.exceptionCaught(context, new Throwable());
-
-    Mockito.verify(context, Mockito.times(1)).close();
+    Mockito.verify(mContext, Mockito.times(1)).close();
   }
 }
