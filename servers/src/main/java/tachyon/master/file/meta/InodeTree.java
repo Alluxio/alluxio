@@ -314,11 +314,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
     }
 
-    for (Inode inode : toPersistInodes) {
-      String ufsPath = mMountTable.resolve(getPath(inode)).toString();
+    if (toPersistInodes.size() > 0) {
+      Inode lastToPersistInode = toPersistInodes.get(toPersistInodes.size() - 1);
+      String ufsPath = mMountTable.resolve(getPath(lastToPersistInode)).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-      ufs.mkdirs(ufsPath, false);
-      inode.setPersisted(true);
+      if (ufs.mkdirs(ufsPath, true)) {
+        for (Inode inode : toPersistInodes) {
+          inode.setPersisted(true);
+        }
+      }
     }
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
