@@ -132,6 +132,7 @@ public enum BlockStoreContext {
    * @param hostname the hostname of the worker to get a client to, empty String indicates all
    *        workers are eligible
    * @return a WorkerClient connected to the worker with the given hostname
+   * @throws IOException if no Tachyon worker is available for the given hostname
    */
   public synchronized WorkerClient acquireWorkerClient(String hostname) throws IOException {
     WorkerClient client;
