@@ -42,7 +42,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.NoForceException;
+import tachyon.exception.ImproperOptionsException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
@@ -439,7 +439,7 @@ public class FileSystemMasterIntegrationTest {
     try {
       mFsMaster.deleteFile(2, false);
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
-    } catch (NoForceException e) {
+    } catch (ImproperOptionsException e) {
       Assert.assertEquals(
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder2"),
           e.getMessage());
@@ -473,7 +473,7 @@ public class FileSystemMasterIntegrationTest {
     try {
       mFsMaster.deleteFile(1, false);
       Assert.fail("Deleting a nonempty directory nonrecursively should fail");
-    } catch (NoForceException e) {
+    } catch (ImproperOptionsException e) {
       Assert.assertEquals(
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder"),
           e.getMessage());

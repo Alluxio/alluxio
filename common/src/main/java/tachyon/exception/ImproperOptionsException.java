@@ -16,28 +16,29 @@
 package tachyon.exception;
 
 /**
- * Exception for situations where an operation will not be done unless it is forced through. An
- * example of this would be deleting a nonempty directory without specifying 'recursive'.
+ * Exception for situations where an operation fails, but would have succeeded if the proper options
+ * were specified. An example of this would be deleting a nonempty directory without specifying
+ * 'recursive'.
  */
-public class NoForceException extends TachyonException {
+public class ImproperOptionsException extends TachyonException {
   private static final long serialVersionUID = -8411287237224325573L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.NO_FORCE_EXCEPTION;
+      TachyonExceptionType.IMPROPER_OPTIONS_EXCEPTION;
 
-  public NoForceException(String message) {
+  public ImproperOptionsException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
-  public NoForceException(String message, Throwable cause) {
+  public ImproperOptionsException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
-  public NoForceException(ExceptionMessage message, Object... params) {
+  public ImproperOptionsException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
-  public NoForceException(ExceptionMessage message, Throwable cause,
+  public ImproperOptionsException(ExceptionMessage message, Throwable cause,
       Object... params) {
     this(message.getMessage(params), cause);
   }
