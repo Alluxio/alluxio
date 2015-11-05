@@ -58,7 +58,7 @@ import tachyon.util.io.PathUtils;
  * followed by the checkpoint.
  */
 // TODO(andrew): Figure out what's going on with these tests in hdfs mode and unignore
-@Ignore
+@Ignore("TACHYON-1226")
 public class JournalIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
