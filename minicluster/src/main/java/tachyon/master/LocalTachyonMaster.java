@@ -72,12 +72,9 @@ public final class LocalTachyonMaster {
     TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
-    // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
-    // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
-    // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
-    // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
-    // "hdfs://xxx:xxx/tachyon*".
-    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
+    // To start the UFS for hdfs integration tests. It starts miniDFSCluster (see also
+    // {@link tachyon.LocalMiniDFScluster} and sets up the folder like "hdfs://xxx:xxx/tachyon*".
+    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, tachyonConf);
 
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
