@@ -27,7 +27,6 @@ import java.util.concurrent.Future;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -291,7 +290,6 @@ public class FileSystemMasterIntegrationTest {
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
   // avoid invalid lease exception. This should be fixed.
-  @Ignore
   @Test
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates
