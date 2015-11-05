@@ -59,7 +59,7 @@ import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
+import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
@@ -145,12 +145,12 @@ public final class LineageMaster extends MasterBase {
       asyncCompleteFileFromEntry((AsyncCompleteFileEntry) entry);
     } else if (entry instanceof PersistFilesEntry) {
       persistFilesFromEntry((PersistFilesEntry) entry);
-    } else if (entry instanceof RequestFilePersistenceEntry) {
-      requestFilePersistenceFromEntry((RequestFilePersistenceEntry) entry);
+    } else if (entry instanceof PersistFilesRequestEntry) {
+      requestFilePersistenceFromEntry((PersistFilesRequestEntry) entry);
     } else if (entry instanceof DeleteLineageEntry) {
       deleteLineageFromEntry((DeleteLineageEntry) entry);
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 
@@ -339,8 +339,6 @@ public final class LineageMaster extends MasterBase {
   /**
    * Instructs a worker to persist the files for checkpoint.
    *
-   * TODO(yupeng) run the heartbeat in a thread?
-   *
    * @param workerId the id of the worker that heartbeats
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
@@ -462,11 +460,11 @@ public final class LineageMaster extends MasterBase {
     for (long fileId : fileIds) {
       mLineageStore.requestFilePersistence(fileId);
     }
-    writeJournalEntry(new RequestFilePersistenceEntry(fileIds));
+    writeJournalEntry(new PersistFilesRequestEntry(fileIds));
     flushJournal();
   }
 
-  private synchronized void requestFilePersistenceFromEntry(RequestFilePersistenceEntry entry) {
+  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry) {
     for (long fileId : entry.getFileIds()) {
       mLineageStore.requestFilePersistence(fileId);
     }

@@ -55,7 +55,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The file system context which contains shared resources, such as the fs master client */
-  // TODO(calvin): Make this private after StreamingTachyonFileSystem is cleaned up
+  // TODO (calvin): Make this private after TachyonFileSystem is cleaned up
   protected FileSystemContext mContext;
 
   /**
@@ -273,12 +273,8 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   public void setState(TachyonFile file, SetStateOptions options)
       throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    Boolean pinned = options.getPinned();
     try {
-      if (pinned != null) {
-        masterClient.setPinned(file.getFileId(), pinned);
-        LOG.info(pinned ? "Pinned" : "Unpinned" + " file " + file.getFileId());
-      }
+      masterClient.setState(file.getFileId(), options);
     } catch (TachyonException e) {
       TachyonException.unwrap(e, FileDoesNotExistException.class);
       throw e;

@@ -19,9 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -39,8 +36,6 @@ import tachyon.worker.block.BlockDataManager;
  * This class is responsible for managing all top level components of the lineage worker.
  */
 public final class LineageWorker {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Threadpool for the lineage master sync */

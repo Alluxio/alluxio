@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.LocalFilesystemCluster;
@@ -49,6 +50,14 @@ public abstract class UnderFileSystemCluster {
   private static final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
 
   private static String sUfsClz;
+
+  /**
+   * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet
+   */
+  public static synchronized UnderFileSystemCluster get() {
+    Preconditions.checkNotNull(sUnderFSCluster, "sUnderFSCluster has not been initailized yet");
+    return sUnderFSCluster;
+  }
 
   /**
    * Create an underfs test bed and register the shutdown hook.
@@ -84,7 +93,7 @@ public abstract class UnderFileSystemCluster {
         System.out.println("Initialized under file system testing cluster of type "
             + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
-      } catch (Throwable e) {
+      } catch (Exception e) {
         System.err.println("Failed to initialize the ufsCluster of " + sUfsClz
             + " for integration test.");
         throw Throwables.propagate(e);

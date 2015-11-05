@@ -47,12 +47,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
   @Override
   public void serialize(SerializableJournalEntry entry, OutputStream outputStream)
       throws IOException {
-    writeEntry(entry, outputStream);
-  }
-
-  private void writeEntry(SerializableJournalEntry entry, OutputStream os) throws IOException {
-    mObjectWriter.writeValue(os, entry);
-    (new DataOutputStream(os)).write('\n');
+    mObjectWriter.writeValue(outputStream, entry);
+    (new DataOutputStream(outputStream)).write('\n');
   }
 
   @Override
@@ -81,13 +77,13 @@ public final class JsonJournalFormatter implements JournalFormatter {
         } catch (NullPointerException e) {
           return null;
         }
-
         JournalEntryType entryType;
         try {
           entryType = JournalEntryType.valueOf(entryTypeStr);
-          return mObjectMapper.convertValue(parametersNode, entryType.getClazz());
+          return mObjectMapper.convertValue(parametersNode, entryType.getEntryClass());
         } catch (IllegalArgumentException e) {
-          throw new IOException("Unknown or malformed journal entry for type: " + entryTypeStr);
+          throw new IOException("Unknown or malformed journal entry for type: " + entryTypeStr
+              + " " + parametersNode);
         }
       }
 

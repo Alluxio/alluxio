@@ -23,11 +23,13 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.StorageLevelAlias;
+import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 import tachyon.thrift.WorkerService;
+import tachyon.worker.WorkerContext;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
@@ -38,9 +40,12 @@ public final class BlockServiceHandler implements WorkerService.Iface {
 
   /** Block data manager that carries out most of the operations **/
   private final BlockDataManager mWorker;
+  /** Association between storage tier aliases and ordinals ond this worker */
+  private final StorageTierAssoc mStorageTierAssoc;
 
   public BlockServiceHandler(BlockDataManager worker) {
     mWorker = worker;
+    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
   /**
@@ -96,7 +101,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @throws TachyonTException if a tachyon error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
-  // TODO(calvin): Reconsider this exception handling.
   @Override
   public void cacheBlock(long sessionId, long blockId) throws TachyonTException, ThriftIOException {
     try {
@@ -161,8 +165,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   public boolean promoteBlock(long blockId) throws TachyonTException, ThriftIOException {
     try {
       // TODO(calvin): Make the top level configurable.
-      mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
-          StorageLevelAlias.MEM.getValue());
+      mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
       return true;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
@@ -188,9 +191,8 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
       throws TachyonTException, ThriftIOException {
     try {
-      // NOTE: right now, we ask allocator to allocate new blocks in MEM tier
-      return mWorker.createBlock(sessionId, blockId, StorageLevelAlias.MEM.getValue(),
-          initialBytes);
+      // NOTE: right now, we ask allocator to allocate new blocks in top tier
+      return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {

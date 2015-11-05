@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -61,7 +62,6 @@ public class BlockDataManagerTest {
     BlockMetricsReporter mMetricsReporter;
     Random mRandom;
     Sessions mSessions;
-    TachyonConf mTachyonConf;
     long mWorkerId;
     WorkerSource mWorkerSource;
 
@@ -74,7 +74,6 @@ public class BlockDataManagerTest {
       mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
-      mTachyonConf = PowerMockito.mock(TachyonConf.class);
       mWorkerId = mRandom.nextLong();
       WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
@@ -150,9 +149,9 @@ public class BlockDataManagerTest {
     long lockId = mHarness.mRandom.nextLong();
     long sessionId = mHarness.mRandom.nextLong();
     long usedBytes = mHarness.mRandom.nextLong();
-    int tierAlias = 1;
-    LinkedList<Long> usedBytesOnTiers = new LinkedList<Long>();
-    usedBytesOnTiers.add(usedBytes);
+    String tierAlias = "MEM";
+    HashMap<String, Long> usedBytesOnTiers = new HashMap<String, Long>();
+    usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
@@ -177,7 +176,7 @@ public class BlockDataManagerTest {
     long blockId = mHarness.mRandom.nextLong();
     long initialBytes = mHarness.mRandom.nextLong();
     long sessionId = mHarness.mRandom.nextLong();
-    int tierAlias = 1;
+    String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);

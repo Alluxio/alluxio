@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
@@ -38,6 +35,7 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.lineage.LineageContext;
 import tachyon.client.lineage.LineageMasterClient;
 import tachyon.client.table.RawTable;
@@ -151,7 +149,6 @@ public class TachyonFS extends AbstractTachyonFS {
     return new TachyonFS(tachyonConf);
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final int mUserFailedSpaceRequestLimits;
 
   /** The RPC client that talks to the Lineage master. */
@@ -455,7 +452,6 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
     } catch (TachyonException e) {
-      // TODO(calvin): Should not cast this to Tachyon Exception
       throw new IOException(e);
     }
   }
@@ -795,7 +791,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
-    return mIdToClientFileInfo.get(fid).isFolder;
+    return mIdToClientFileInfo.get(Long.valueOf(fid)).isFolder;
   }
 
   /**
@@ -1011,7 +1007,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void setPinned(long fid, boolean pinned) throws IOException {
     try {
-      mFSMasterClient.setPinned(fid, pinned);
+      mFSMasterClient.setState(fid, new SetStateOptions.Builder().setPinned(pinned).build());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
