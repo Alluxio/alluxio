@@ -15,10 +15,9 @@
 
 package tachyon.client.file;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-
-import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -39,10 +38,10 @@ import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.client.lineage.TachyonLineageFileSystem;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -58,6 +57,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
   public static class TachyonFileSystemFactory {
+    private TachyonFileSystemFactory() {} // to prevent initialization
+
     public static synchronized TachyonFileSystem get() {
       if (sTachyonFileSystem == null) {
         boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
@@ -128,7 +129,10 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   public FileInStream getInStream(TachyonFile file, InStreamOptions options)
       throws IOException, TachyonException, FileDoesNotExistException {
     FileInfo info = getInfo(file, GetInfoOptions.defaults());
-    Preconditions.checkState(!info.isIsFolder(), PreconditionMessage.CANNOT_READ_FOLDER);
+    if (info.isIsFolder()) {
+      throw new FileNotFoundException(
+          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(info.getName()));
+    }
     return new FileInStream(info, options);
   }
 
@@ -165,8 +169,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
             .setUnderStorageType(options.getUnderStorageType())
             .build();
     TachyonFile tFile = create(path, createOptions);
-    long fileId = tFile.getFileId();
-    return new FileOutStream(fileId, options);
+    try {
+      return new FileOutStream(tFile.getFileId(), options);
+    } catch (IOException e) {
+      // Delete the file if it still exists
+      TachyonFile file = openIfExists(path);
+      if (file != null) {
+        delete(file);
+      }
+      throw e;
+    }
   }
 
   /**

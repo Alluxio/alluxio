@@ -33,6 +33,13 @@ public final class OutStreamOptions {
 
     /**
      * Creates a new builder for {@link OutStreamOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link OutStreamOptions}.
      *
      * @param conf a Tachyon configuration
      */
@@ -113,7 +120,7 @@ public final class OutStreamOptions {
    * @return the default {@code OutStreamOptions}
    */
   public static OutStreamOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
@@ -158,5 +165,20 @@ public final class OutStreamOptions {
    */
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("OutStreamOptions(");
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Hostname: ").append(mHostname);
+    sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(")");
+    return sb.toString();
   }
 }

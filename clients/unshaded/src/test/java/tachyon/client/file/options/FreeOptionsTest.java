@@ -20,8 +20,6 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class FreeOptionsTest {
   @Test
   public void builderTest() {
@@ -29,7 +27,7 @@ public class FreeOptionsTest {
     boolean recursive = random.nextBoolean();
 
     FreeOptions options =
-        new FreeOptions.Builder(new TachyonConf())
+        new FreeOptions.Builder()
             .setRecursive(recursive)
             .build();
 

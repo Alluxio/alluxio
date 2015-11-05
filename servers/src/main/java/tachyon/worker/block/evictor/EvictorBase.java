@@ -90,7 +90,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
         BlockMeta block = mManagerView.getBlockMeta(blockId);
         if (block != null) { // might not present in this view
           if (block.getBlockLocation().belongTo(location)) {
-            int tierAlias = block.getParentDir().getParentTier().getTierAlias();
+            String tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
             dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex), blockId,
                 block.getBlockSize());

@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.StorageLevelAlias;
 
 /**
  * Unit tests for MasterBlockInfo.
@@ -38,15 +37,15 @@ public final class MasterBlockInfoTests {
   @Test
   public void addWorkerTest() {
     Assert.assertEquals(0, mInfo.getWorkers().size());
-    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(1, "MEM");
     Assert.assertTrue(mInfo.getWorkers().contains(1L));
-    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(1, "MEM");
     Assert.assertEquals(1, mInfo.getWorkers().size());
   }
 
   @Test
   public void removeWorkerTest() {
-    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(1, "MEM");
     Assert.assertTrue(mInfo.getWorkers().contains(1L));
     mInfo.removeWorker(1);
     Assert.assertEquals(0, mInfo.getWorkers().size());
@@ -58,17 +57,17 @@ public final class MasterBlockInfoTests {
 
   @Test
   public void getNumLocationsTest() {
-    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
-    mInfo.addWorker(2, StorageLevelAlias.MEM.getValue());
-    mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
+    mInfo.addWorker(1, "MEM");
+    mInfo.addWorker(2, "MEM");
+    mInfo.addWorker(3, "HDD");
     Assert.assertEquals(3, mInfo.getNumLocations());
   }
 
   @Test
   public void getBlockLocationsTest() {
-    mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
-    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
-    mInfo.addWorker(2, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(3, "HDD");
+    mInfo.addWorker(1, "MEM");
+    mInfo.addWorker(2, "MEM");
 
     List<MasterBlockLocation> locations = mInfo.getBlockLocations();
     Assert.assertEquals(3, mInfo.getNumLocations());
@@ -80,9 +79,9 @@ public final class MasterBlockInfoTests {
 
   @Test
   public void isInMemoryTest() {
-    mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
-    Assert.assertFalse(mInfo.isInMemory());
-    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
-    Assert.assertTrue(mInfo.isInMemory());
+    mInfo.addWorker(3, "HDD");
+    Assert.assertFalse(mInfo.isInTier("MEM"));
+    mInfo.addWorker(1, "MEM");
+    Assert.assertTrue(mInfo.isInTier("MEM"));
   }
 }

@@ -34,6 +34,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.exception.ExceptionMessage;
 import tachyon.network.ChannelType;
 import tachyon.util.FormatUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -132,12 +133,13 @@ public final class TachyonConf {
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
     if (defaultInputStream == null) {
-      throw new RuntimeException("The default Tachyon properties file does not exist.");
+      throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
+              .getMessage());
     }
     try {
       defaultProps.load(defaultInputStream);
     } catch (IOException e) {
-      throw new RuntimeException("Unable to load default Tachyon properties file.", e);
+      throw new RuntimeException(ExceptionMessage.UNABLE_TO_LOAD_PROPERTIES_FILE.getMessage(), e);
     }
 
     // Load site specific properties file
@@ -193,8 +195,8 @@ public final class TachyonConf {
         mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
         mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "ASYNC_PERSIST");
       } else {
-        throw new IllegalArgumentException("Unknown property for "
-            + Constants.USER_FILE_WRITE_TYPE_DEFAULT + " " + writeType);
+        throw new IllegalArgumentException(ExceptionMessage.UNKNOWN_PROPERTY
+                .getMessage(Constants.USER_FILE_WRITE_TYPE_DEFAULT, writeType));
       }
     }
   }
@@ -209,15 +211,15 @@ public final class TachyonConf {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
+  public boolean equals(Object o) {
+    if (this == o) {
       return true;
     }
-    if (obj instanceof TachyonConf) {
-      Properties props = ((TachyonConf) obj).getInternalProperties();
-      return mProperties.equals(props);
+    if (o == null || !(o instanceof TachyonConf)) {
+      return false;
     }
-    return false;
+    TachyonConf that = (TachyonConf) o;
+    return mProperties.equals(that.mProperties);
   }
 
   /**
@@ -250,7 +252,7 @@ public final class TachyonConf {
   public String get(String key) {
     if (!mProperties.containsKey(key)) {
       // if key is not found among the default properties
-      throw new RuntimeException("Invalid configuration key " + key + ".");
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
     String raw = mProperties.getProperty(key);
     return lookup(raw);
@@ -266,11 +268,11 @@ public final class TachyonConf {
       try {
         return Integer.parseInt(lookup(rawValue));
       } catch (NumberFormatException e) {
-        throw new RuntimeException("Configuration cannot evaluate key " + key + " as integer.");
+        throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
       }
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   public long getLong(String key) {
@@ -283,7 +285,7 @@ public final class TachyonConf {
       }
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   public double getDouble(String key) {
@@ -292,11 +294,11 @@ public final class TachyonConf {
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
-        throw new RuntimeException("Configuration cannot evaluate key " + key + " as double.");
+        throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
       }
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   public float getFloat(String key) {
@@ -309,7 +311,7 @@ public final class TachyonConf {
       }
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   public boolean getBoolean(String key) {
@@ -318,7 +320,7 @@ public final class TachyonConf {
       return Boolean.parseBoolean(lookup(rawValue));
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   public List<String> getList(String key, String delimiter) {
@@ -329,12 +331,12 @@ public final class TachyonConf {
       return Lists.newLinkedList(Splitter.on(',').trimResults().omitEmptyStrings().split(rawValue));
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   public <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
     if (!mProperties.containsKey(key)) {
-      throw new RuntimeException("Invalid configuration key " + key + ".");
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
     final String val = get(key);
     return Enum.valueOf(enumType, val);
@@ -346,10 +348,10 @@ public final class TachyonConf {
       try {
         return FormatUtils.parseSpaceSize(rawValue);
       } catch (Exception ex) {
-        throw new RuntimeException("Configuration cannot evaluate key " + key + " as bytes.");
+        throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(key));
       }
     }
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   @SuppressWarnings("unchecked")
@@ -364,7 +366,7 @@ public final class TachyonConf {
       }
     }
     // if key is not found among the default properties
-    throw new RuntimeException("Invalid configuration key " + key + ".");
+    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
   /**

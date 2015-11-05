@@ -39,7 +39,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
@@ -72,11 +71,11 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    mLocalTachyonCluster.start(testConf);
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
