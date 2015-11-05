@@ -253,14 +253,14 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   public String createBlock(long sessionId, long blockId, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
       IOException, InvalidWorkerStateException {
-    // add flag check here?
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
+    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
     TempBlockMeta createdBlock;
     try {
-      createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
+      createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes);
       return createdBlock.getPath();
     } catch (WorkerOutOfSpaceException e) {
-      LOG.info("MEM tier is full, try to create block in any tier");
+      LOG.info("MEM tier is full and eviction also fails, try to create block {} of {} bytes in " +
+          "any tier for session {}", blockId, initialBytes, sessionId);
       createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, BlockStoreLocation.anyTier(),
           initialBytes);
       return createdBlock.getPath();
