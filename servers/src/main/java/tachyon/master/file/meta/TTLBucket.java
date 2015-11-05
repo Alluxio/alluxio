@@ -112,20 +112,19 @@ public final class TTLBucket implements Comparable<TTLBucket> {
   /**
    * Compares to a specific object.
    *
-   * @param object the object to compare
+   * @param o the object to compare
    * @return true if object is also {@link TTLBucket} and represents the same TTLIntervalStartTime
    */
   @Override
-  public boolean equals(Object object) {
-    if (this == object) {
+  public boolean equals(Object o) {
+    if (this == o) {
       return true;
     }
-
-    if (object == null || getClass() != object.getClass()) {
+    if (o == null || !(o instanceof TTLBucket)) {
       return false;
     }
-
-    return mTTLIntervalStartTimeMs == ((TTLBucket) object).mTTLIntervalStartTimeMs;
+    TTLBucket that = (TTLBucket) o;
+    return mTTLIntervalStartTimeMs == that.mTTLIntervalStartTimeMs;
   }
 
   /**
