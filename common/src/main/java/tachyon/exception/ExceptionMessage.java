@@ -111,6 +111,14 @@ public enum ExceptionMessage {
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
 
+  // Tachyon Conf
+  DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Tachyon properties file does not exist"),
+  INVALID_CONFIGURATION_KEY("Invalid configuration key {0}"),
+  KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
+  KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
+  KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
+  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Tachyon properties file"),
+  UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
