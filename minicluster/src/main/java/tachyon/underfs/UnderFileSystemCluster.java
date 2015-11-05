@@ -51,7 +51,7 @@ public abstract class UnderFileSystemCluster {
   private static String sUfsClz;
 
   /**
-   * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet.
+   * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet
    */
   public static synchronized UnderFileSystemCluster get() {
     if (sUnderFSCluster == null) {
