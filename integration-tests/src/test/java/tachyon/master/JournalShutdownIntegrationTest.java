@@ -174,8 +174,6 @@ public class JournalShutdownIntegrationTest {
     return cluster;
   }
 
-  // TODO(andrew): Figure out what's going on with this test in hdfs mode and unignore
-  @Ignore("TACHYON-1226")
   @Test
   public void singleMasterJournalCrashIntegrationTest() throws Exception {
     LocalTachyonCluster cluster = setupSingleMasterCluster();
