@@ -113,6 +113,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("downloadLogFile", 1);
     request.setAttribute("baseUrl", "./browseLogs");
     request.setAttribute("currentPath", "");
+    request.setAttribute("viewLog", true);
 
     String logsPath =
         mTachyonConf.get(Constants.LOGS_DIR);
