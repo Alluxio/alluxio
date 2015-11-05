@@ -73,8 +73,9 @@ public class BlockServiceHandlerIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    mLocalTachyonCluster.start();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    mLocalTachyonCluster.start(testConf);
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();

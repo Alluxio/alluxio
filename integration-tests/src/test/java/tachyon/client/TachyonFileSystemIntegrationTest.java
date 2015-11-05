@@ -30,7 +30,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -50,7 +49,6 @@ public class TachyonFileSystemIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static TachyonFileSystem sTfs = null;
-  private static InStreamOptions sReadCache;
   private static OutStreamOptions sWriteBoth;
 
   @Rule
@@ -69,18 +67,16 @@ public class TachyonFileSystemIntegrationTest {
   public static void beforeClass() throws Exception {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    sLocalTachyonCluster.getTestConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+    TachyonConf testConf = sLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
         USER_QUOTA_UNIT_BYTES));
-    sLocalTachyonCluster.start();
+    sLocalTachyonCluster.start(testConf);
     sTfs = sLocalTachyonCluster.getClient();
 
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sReadCache =
-        new InStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE).build();
   }
 
   @Test

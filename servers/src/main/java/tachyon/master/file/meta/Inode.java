@@ -133,10 +133,14 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   @Override
   public synchronized boolean equals(Object o) {
-    if (!(o instanceof Inode)) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof Inode)) {
       return false;
     }
-    return mId == ((Inode) o).mId;
+    Inode that = (Inode) o;
+    return mId == that.mId;
   }
 
   /**

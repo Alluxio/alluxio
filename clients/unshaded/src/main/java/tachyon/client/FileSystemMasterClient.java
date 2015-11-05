@@ -28,6 +28,7 @@ import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
@@ -251,19 +252,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Sets the "pinned" status for a file.
+   * Sets the file state.
    *
    * @param fileId the file id
-   * @param pinned the pinned status to use
+   * @param options the file state options to be set
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void setPinned(final long fileId, final boolean pinned) throws IOException,
-      TachyonException {
+  public synchronized void setState( final long fileId, final SetStateOptions options)
+      throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.setPinned(fileId, pinned);
+        mClient.setState(fileId, options.toThrift());
         return null;
       }
     });
