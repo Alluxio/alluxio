@@ -32,6 +32,9 @@ public abstract class InodeEntry extends JournalEntry {
   protected final boolean mPinned;
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
+  protected final String mUsername;
+  protected final String mGroupname;
+  protected final short mPermission;
 
   /**
    * Creates a new instance of {@link InodeEntry}.
@@ -52,7 +55,10 @@ public abstract class InodeEntry extends JournalEntry {
       @JsonProperty("parentId") long parentId,
       @JsonProperty("persisted") boolean persisted,
       @JsonProperty("pinned") boolean pinned,
-      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs) {
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
+      @JsonProperty("username") String username,
+      @JsonProperty("groupname") String groupname,
+      @JsonProperty("permission") short permission) {
     mId = id;
     mParentId = parentId;
     mName = name;
@@ -60,6 +66,9 @@ public abstract class InodeEntry extends JournalEntry {
     mPinned = pinned;
     mCreationTimeMs = creationTimeMs;
     mLastModificationTimeMs = lastModificationTimeMs;
+    mUsername = username;
+    mGroupname = groupname;
+    mPermission = permission;
   }
 
   /**
@@ -116,6 +125,21 @@ public abstract class InodeEntry extends JournalEntry {
   @JsonGetter
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
+  }
+
+  @JsonGetter
+  public String getUsername() {
+    return mUsername;
+  }
+
+  @JsonGetter
+  public String getGroupname() {
+    return mGroupname;
+  }
+
+  @JsonGetter
+  public short getPermission() {
+    return mPermission;
   }
 }
 

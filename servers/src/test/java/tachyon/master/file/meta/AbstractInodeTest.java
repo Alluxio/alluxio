@@ -20,12 +20,16 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.master.block.BlockId;
+import tachyon.master.file.meta.InodeDirectory;
+import tachyon.master.file.meta.InodeFile;
+import tachyon.security.authorization.PermissionStatus;
 
 /**
  * Abstract class for serving inode tests.
  */
 public abstract class AbstractInodeTest {
-
+  private static PermissionStatus sPermissionStatus =
+      new PermissionStatus("user1", "group1", (short)0755);
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -34,11 +38,12 @@ public abstract class AbstractInodeTest {
   }
 
   protected static InodeDirectory createInodeDirectory() {
-    return new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0).build();
+    return new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0)
+        .setPermissionStatus(sPermissionStatus).build();
   }
 
   protected InodeFile createInodeFile(long id) {
     return new InodeFile.Builder().setName("testFile" + id).setBlockContainerId(id).setParentId(1)
-        .setBlockSizeBytes(Constants.KB).build();
+        .setBlockSizeBytes(Constants.KB).setPermissionStatus(sPermissionStatus).build();
   }
 }

@@ -80,6 +80,11 @@ import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.AuthType;
+import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -217,7 +222,7 @@ public final class FileSystemMaster extends MasterBase {
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       TachyonConf conf = MasterContext.getConf();
-      mInodeTree.initializeRoot();
+      mInodeTree.initializeRoot(createPermissionStatus(false));
       String defaultUFS = conf.get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
@@ -510,7 +515,8 @@ public final class FileSystemMaster extends MasterBase {
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
         .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
         .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
-        .setRecursive(options.isRecursive()).setTTL(options.getTTL()).build();
+        .setRecursive(options.isRecursive()).setTTL(options.getTTL())
+        .setPermissionStatus(createPermissionStatus(true)).build();
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
@@ -915,7 +921,8 @@ public final class FileSystemMaster extends MasterBase {
       try {
         CreatePathOptions createPathOptions =
             new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
-                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
+                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
+                .setPermissionStatus(createPermissionStatus(true)).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -1118,6 +1125,40 @@ public final class FileSystemMaster extends MasterBase {
       if (!replayed) {
         writeJournalEntry(new PersistDirectoryEntry(inode.getId()));
       }
+    }
+  }
+
+  /**
+   * Create the permissionStatus for file or directory.
+   * @param remote true if the request is for creating permission from client side, the
+   * username binding into inode will be gotten from {@code AuthorizedClientUser.get().getName()}.
+   * If the remote is false, the username binding into inode will be gotten from {@link LoginUser}
+   * @return permissionStatus
+   * @throws IOException
+   */
+  private PermissionStatus createPermissionStatus(boolean remote) {
+    TachyonConf conf = MasterContext.getConf();
+    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    if (authType == AuthType.NOSASL) {
+      // no authentication
+      return new PermissionStatus("", "", FsPermission.getNoneFsPermission());
+    }
+    if (remote) {
+      // get the username through the authentication mechanism
+      return new PermissionStatus(AuthorizedClientUser.get().getName(),
+          "",//TODO group permission binding into Inode
+          FsPermission.getDefault().applyUMask(conf));
+    } else {
+      // get the username through the login module
+      String loginUserName;
+      try {
+        loginUserName = LoginUser.get(conf).getName();
+      } catch (IOException ioe) {
+        throw new RuntimeException("failed to get login user: " + ioe.getMessage(), ioe);
+      }
+      return new PermissionStatus(loginUserName,
+          "",//TODO group permission binding into Inode
+          FsPermission.getDefault().applyUMask(conf));
     }
   }
 

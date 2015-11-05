@@ -561,7 +561,7 @@ public class TfsShell implements Closeable {
    */
   public void ls(TachyonURI path) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-5s%n";
+    String format = "%-10s%-25s%-15s%-15s%-5s%n";
     for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -572,7 +572,8 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUsername(),
+          file.getPath());
     }
   }
 
@@ -590,7 +591,7 @@ public class TfsShell implements Closeable {
    */
   public void lsr(TachyonURI path) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-5s%n";
+    String format = "%-10s%-25s%-15s%-15s%-5s%n";
     for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -601,7 +602,8 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUsername(),
+          file.getPath());
       if (file.isFolder) {
         lsr(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()));
       }

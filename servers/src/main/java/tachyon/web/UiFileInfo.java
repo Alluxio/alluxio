@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
+import tachyon.security.authorization.FsPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
@@ -76,6 +77,9 @@ public final class UiFileInfo {
   private final boolean mIsDirectory;
   private final boolean mIsPinned;
   private final boolean mIsPersisted;
+  private final String mUsername;
+  private final String mGroupname;
+  private final int mPermission;
   private List<String> mFileLocations;
 
   private final Map<String, List<UiBlockInfo>> mBlocksOnTier =
@@ -95,6 +99,9 @@ public final class UiFileInfo {
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
     mIsPersisted = fileInfo.isPersisted;
+    mUsername = fileInfo.getUsername();
+    mGroupname = fileInfo.getGroupname();
+    mPermission = fileInfo.getPermission();
     mFileLocations = new ArrayList<String>();
   }
 
@@ -111,6 +118,9 @@ public final class UiFileInfo {
     mIsDirectory = fileInfo.mIsDirectory;
     mIsPinned = false;
     mIsPersisted = false;
+    mUsername = "";
+    mGroupname = "";
+    mPermission = FsPermission.getNoneFsPermission().toShort();
     mFileLocations = new ArrayList<String>();
   }
 
@@ -206,5 +216,17 @@ public final class UiFileInfo {
     for (NetAddress addr : fileLocations) {
       mFileLocations.add(addr.getHost() + ":" + addr.getRpcPort());
     }
+  }
+
+  public String getUsername() {
+    return mUsername;
+  }
+
+  public String getGroupname() {
+    return mGroupname;
+  }
+
+  public int getPermission() {
+    return mPermission;
   }
 }

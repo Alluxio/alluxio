@@ -27,12 +27,17 @@ import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
+  /** The default permission for file is used the directory permission umasked 0111 */
+  private static final FsPermission SUMASK = new FsPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
@@ -93,6 +98,11 @@ public final class InodeFile extends Inode {
     protected InodeFile.Builder getThis() {
       return this;
     }
+
+    @Override
+    public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
+      return super.setPermissionStatus(ps.applyUMask(SUMASK));
+    }
   }
 
   private long mBlockContainerId;
@@ -141,6 +151,9 @@ public final class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = mTTL;
+    ret.username = getUsername();
+    ret.groupname = getGroupname();
+    ret.permission = getPermission();
     return ret;
   }
 
@@ -291,7 +304,7 @@ public final class InodeFile extends Inode {
   public synchronized JournalEntry toJournalEntry() {
     return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
         isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
-        isCacheable(), mBlocks, mTTL);
+        isCacheable(), mBlocks, mTTL, getUsername(), getGroupname(), getPermission());
   }
 
   /**

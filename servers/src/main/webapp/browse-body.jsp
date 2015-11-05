@@ -34,6 +34,9 @@
             <th>Block Size</th>
             <th>In-Memory</th>
             <th>Persisted</th>
+            <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
+              <th>Owner</th>
+            <% } %>
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
@@ -114,6 +117,9 @@
                     <% } %>
                   </th>
                   <th><%= (fileInfo.getPersisted() ? "YES" : "NO") %></th>
+                  <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
+                    <th><%= fileInfo.getUsername() %></th>
+                  <% } %>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
@@ -138,5 +144,5 @@
   <%@ include file="footer.jsp" %>
 </div>
 
-<%@ include file="browse-pagination-header.jsp" %>
+<%@ include file="browse-pagination-er.jsp" %>
 <%@ include file="pagination-control.jsp" %>

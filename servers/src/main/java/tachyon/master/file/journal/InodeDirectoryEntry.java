@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;
+import tachyon.security.authorization.PermissionStatus;
 
 /**
  * This class represents a jounal entry for a directory inode.
@@ -45,8 +46,12 @@ public class InodeDirectoryEntry extends InodeEntry {
       @JsonProperty("parentId") long parentId,
       @JsonProperty("persisted") boolean persisted,
       @JsonProperty("pinned") boolean pinned,
-      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs) {
-    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
+      @JsonProperty("username") String username,
+      @JsonProperty("groupname") String groupname,
+      @JsonProperty("permission") short permission) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs, username,
+        groupname, permission);
   }
 
   /**
@@ -62,6 +67,7 @@ public class InodeDirectoryEntry extends InodeEntry {
             .setParentId(mParentId)
             .setCreationTimeMs(mCreationTimeMs)
             .setPersisted(mPersisted)
+            .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
             .build();
     inode.setPersisted(mPersisted);
     inode.setPinned(mPinned);
