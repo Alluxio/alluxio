@@ -16,6 +16,8 @@
 package tachyon.master.lineage;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,10 +26,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
@@ -40,6 +45,12 @@ import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.master.lineage.meta.LineageFile;
+import tachyon.master.lineage.meta.LineageFileState;
+import tachyon.thrift.BlockInfo;
+import tachyon.thrift.CommandType;
+import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
 
 @RunWith(PowerMockRunner.class)
@@ -138,5 +149,32 @@ public final class LineageMasterTest {
         Lists.newArrayList(new TachyonURI("/test1")), mJob);
     mFileSystemMaster.completeFile(fileId);
     Mockito.verify(mFileSystemMaster).completeFile(fileId);
+  }
+
+  @Test
+  public void heartbeatTest() throws Exception {
+    long fileId = 0;
+    long workerId = 1;
+    long blockId = 2;
+
+    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    Set<LineageFile> checkpointFiles = Sets.newHashSet();
+    checkpointFiles.add(new LineageFile(fileId, LineageFileState.COMPLETED));
+    FileBlockInfo fileBlockInfo = new FileBlockInfo();
+    fileBlockInfo.blockInfo = new BlockInfo();
+    fileBlockInfo.blockInfo.blockId = blockId;
+    Mockito.when(mFileSystemMaster.getFileBlockInfoList(fileId))
+        .thenReturn(Lists.newArrayList(fileBlockInfo));
+    Map<Long, Set<LineageFile>> workerToCheckpointFile = Maps.newHashMap();
+    workerToCheckpointFile.put(workerId, checkpointFiles);
+    Whitebox.setInternalState(mLineageMaster, "mWorkerToCheckpointFile", workerToCheckpointFile);
+
+    LineageCommand command =
+        mLineageMaster.lineageWorkerHeartbeat(workerId, Lists.newArrayList(fileId));
+    Assert.assertEquals(CommandType.Persist, command.commandType);
+    Assert.assertEquals(1, command.checkpointFiles.size());
+    Assert.assertEquals(fileId, command.checkpointFiles.get(0).fileId);
+    Assert.assertEquals(blockId, (long) command.checkpointFiles.get(0).blockIds.get(0));
   }
 }
