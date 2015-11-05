@@ -20,6 +20,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
@@ -39,10 +40,10 @@ public final class OutStreamOptions {
     public Builder(TachyonConf conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mHostname = null;
-      mTachyonStorageType =
-          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
+      WriteType defaultWriteType =
+          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      mTachyonStorageType = defaultWriteType.getTachyonStorageType();
+      mUnderStorageType = defaultWriteType.getUnderStorageType();
       mTTL = Constants.NO_TTL;
     }
 
@@ -65,6 +66,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     *
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
      */
@@ -74,6 +77,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     *
      * @param underStorageType the under storage type to use
      * @return the builder
      */
@@ -90,6 +95,17 @@ public final class OutStreamOptions {
      */
     public Builder setTTL(long ttl) {
       mTTL = ttl;
+      return this;
+    }
+
+    /**
+     * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
+     *                  override both the TachyonStorageType and UnderStorageType.
+     * @return the builder
+     */
+    public Builder setWriteType(WriteType writeType) {
+      mTachyonStorageType = writeType.getTachyonStorageType();
+      mUnderStorageType = writeType.getUnderStorageType();
       return this;
     }
 

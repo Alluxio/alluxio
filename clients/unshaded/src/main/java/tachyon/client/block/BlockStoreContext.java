@@ -17,8 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -27,7 +25,6 @@ import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
@@ -135,14 +132,14 @@ public enum BlockStoreContext {
    * @param hostname the hostname of the worker to get a client to, empty String indicates all
    *        workers are eligible
    * @return a WorkerClient connected to the worker with the given hostname
+   * @throws IOException if no Tachyon worker is available for the given hostname
    */
-  public synchronized WorkerClient acquireWorkerClient(String hostname) {
+  public synchronized WorkerClient acquireWorkerClient(String hostname) throws IOException {
     WorkerClient client;
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       client = acquireLocalWorkerClient();
       if (client == null) {
-        // TODO(calvin): Recover from initial worker failure.
-        throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+        throw new IOException("No Tachyon worker available for host: " + hostname);
       }
     } else {
       client = acquireRemoteWorkerClient(hostname);
@@ -215,7 +212,8 @@ public enum BlockStoreContext {
    * @return true if there was a local worker, false otherwise
    */
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
-  // before the client does.
+  // before the client does. Also, when this is fixed, fix the TODO(cc) in
+  // TachyonBlockStore#getInStream too.
   public synchronized boolean hasLocalWorker() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       initializeLocalBlockWorkerClientPool();

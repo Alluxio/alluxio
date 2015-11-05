@@ -273,10 +273,7 @@ public final class Constants {
   public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       "tachyon.user.block.remote.read.buffer.size.bytes";
   public static final String USER_FILE_WRITE_TYPE_DEFAULT = "tachyon.user.file.writetype.default";
-  public static final String USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT =
-      "tachyon.user.file.tachyonstoragetype.default";
-  public static final String USER_FILE_UNDER_STORAGE_TYPE_DEFAULT =
-      "tachyon.user.file.understoragetype.default";
+  public static final String USER_FILE_READ_TYPE_DEFAULT = "tachyon.user.file.readtype.default";
   public static final String USER_BLOCK_REMOTE_READER =
       "tachyon.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =

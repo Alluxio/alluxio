@@ -19,9 +19,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
@@ -33,6 +38,7 @@ import tachyon.worker.WorkerClient;
  * safe.
  */
 public final class TachyonBlockStore implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonBlockStore sClient = null;
 
@@ -89,25 +95,35 @@ public final class TachyonBlockStore implements Closeable {
     try {
       // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
-      // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
-        // TODO(calvin): Maybe this shouldn't be an exception.
-        throw new IOException("No block " + blockId + " is not available in Tachyon");
+        throw new IOException("Block " + blockId + " is not available in Tachyon");
       }
-      // TODO(calvin): Investigate making this a Factory method
-      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
-      InetSocketAddress workerAddr =
-          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
-      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
-          workerAddr.getHostName())) {
-        if (mContext.hasLocalWorker()) {
-          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
-        } else {
-          throw new IOException("Local read requested but there is no local worker.");
+      // TODO(calvin): Get location via a policy.
+      // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
+      // But when there is no local worker or there are no local blocks, we prefer the first
+      // location in blockInfo.locations that is nearest to memory tier.
+      // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
+      // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
+      // for hasLocalWorker is fixed.
+      String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+      for (BlockLocation location : blockInfo.locations) {
+        NetAddress workerNetAddress = location.getWorkerAddress();
+        if (workerNetAddress.getHost().equals(localHostName)) {
+          // There is a local worker and the block is local.
+          try {
+            return new LocalBlockInStream(blockId, blockInfo.getLength(),
+                new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
+          } catch (IOException e) {
+            LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
+            // Getting a local stream failed, do not try again
+            break;
+          }
         }
-      } else {
-        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
       }
+      // No local worker/block, get the first location since it's nearest to memory tier.
+      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+      return new RemoteBlockInStream(blockId, blockInfo.getLength(),
+          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
