@@ -479,6 +479,10 @@ public final class BlockDataManager {
    * @throws IOException if an I/O error occurs
    */
   public FileInfo getFileInfo(long fileId) throws IOException {
-    return mFileSystemMasterClient.getFileInfo(fileId);
+    try {
+      return mFileSystemMasterClient.getFileInfo(fileId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 }

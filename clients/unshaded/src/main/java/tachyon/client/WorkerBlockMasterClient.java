@@ -27,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
@@ -71,20 +73,15 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param length the length of the block being committed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
-      long blockId, long length) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
+      final String tierAlias, final long blockId, final long length) throws IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
         mClient.workerCommitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-        return;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -94,19 +91,14 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  // TODO(yupeng): rename to workerRegister?
-  public synchronized long getId(NetAddress address) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  // TODO: rename to workerRegister?
+  public synchronized long getId(final NetAddress address) throws IOException {
+    return retryRPC(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws TException {
         return mClient.workerGetWorkerId(address);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -119,19 +111,15 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return an optional command for the worker to execute
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Command heartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlocks, Map<String, List<Long>> addedBlocks) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized Command heartbeat(final long workerId,
+      final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
+      final Map<String, List<Long>> addedBlocks) throws IOException {
+    return retryRPC(new RpcCallable<Command>() {
+      @Override
+      public Command call() throws TException {
         return mClient.workerHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -145,21 +133,16 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
-  public synchronized void register(long workerId, List<String> storageTierAliases,
-      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void register(final long workerId, final List<String> storageTierAliases,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<String, List<Long>> currentBlocksOnTiers) throws TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
         mClient.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
-        return;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

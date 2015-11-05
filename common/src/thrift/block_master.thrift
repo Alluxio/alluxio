@@ -44,7 +44,6 @@ service BlockMasterService {
    */
   void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: string tierAlias, 4: i64 blockId,
       5: i64 length)
-    throws (1: exception.TachyonTException e)
 
   /*
    * Returns a worker id for the given network address.
@@ -56,7 +55,6 @@ service BlockMasterService {
    */
   common.Command workerHeartbeat(1: i64 workerId, 2: map<string, i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<string, list<i64>> addedBlocksOnTiers)
-    throws (1: exception.TachyonTException e)
 
   /*
    * Registers a worker.

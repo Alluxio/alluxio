@@ -41,7 +41,7 @@ public class LineageMasterService {
 
     public void asyncCompleteFile(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
-    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
+    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     public boolean deleteLineage(long lineageId, boolean cascade) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -51,7 +51,7 @@ public class LineageMasterService {
 
     public void reportLostFile(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
-    public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws org.apache.thrift.TException;
+    public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
   }
 
@@ -116,7 +116,7 @@ public class LineageMasterService {
       return;
     }
 
-    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_createLineage(inputFiles, outputFiles, job);
       return recv_createLineage();
@@ -131,7 +131,7 @@ public class LineageMasterService {
       sendBase("createLineage", args);
     }
 
-    public long recv_createLineage() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    public long recv_createLineage() throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
     {
       createLineage_result result = new createLineage_result();
       receiveBase(result, "createLineage");
@@ -140,6 +140,9 @@ public class LineageMasterService {
       }
       if (result.e != null) {
         throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createLineage failed: unknown result");
     }
@@ -244,7 +247,7 @@ public class LineageMasterService {
       return;
     }
 
-    public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws org.apache.thrift.TException
+    public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
     {
       send_workerLineageHeartbeat(workerId, persistedFiles);
       return recv_workerLineageHeartbeat();
@@ -258,12 +261,15 @@ public class LineageMasterService {
       sendBase("workerLineageHeartbeat", args);
     }
 
-    public LineageCommand recv_workerLineageHeartbeat() throws org.apache.thrift.TException
+    public LineageCommand recv_workerLineageHeartbeat() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
     {
       workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
       receiveBase(result, "workerLineageHeartbeat");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "workerLineageHeartbeat failed: unknown result");
     }
@@ -346,7 +352,7 @@ public class LineageMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException {
+      public long getResult() throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -515,7 +521,7 @@ public class LineageMasterService {
         prot.writeMessageEnd();
       }
 
-      public LineageCommand getResult() throws org.apache.thrift.TException {
+      public LineageCommand getResult() throws tachyon.thrift.TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -592,6 +598,8 @@ public class LineageMasterService {
           result.setSuccessIsSet(true);
         } catch (tachyon.thrift.TachyonTException e) {
           result.e = e;
+        } catch (tachyon.thrift.ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -706,7 +714,11 @@ public class LineageMasterService {
 
       public workerLineageHeartbeat_result getResult(I iface, workerLineageHeartbeat_args args) throws org.apache.thrift.TException {
         workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
-        result.success = iface.workerLineageHeartbeat(args.workerId, args.persistedFiles);
+        try {
+          result.success = iface.workerLineageHeartbeat(args.workerId, args.persistedFiles);
+        } catch (tachyon.thrift.TachyonTException e) {
+          result.e = e;
+        }
         return result;
       }
     }
@@ -821,6 +833,11 @@ public class LineageMasterService {
             if (e instanceof tachyon.thrift.TachyonTException) {
                         result.e = (tachyon.thrift.TachyonTException) e;
                         result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof tachyon.thrift.ThriftIOException) {
+                        result.ioe = (tachyon.thrift.ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1098,6 +1115,12 @@ public class LineageMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
+            if (e instanceof tachyon.thrift.TachyonTException) {
+                        result.e = (tachyon.thrift.TachyonTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2525,6 +2548,7 @@ public class LineageMasterService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2534,11 +2558,13 @@ public class LineageMasterService {
 
     public long success; // required
     public tachyon.thrift.TachyonTException e; // required
+    public tachyon.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2557,6 +2583,8 @@ public class LineageMasterService {
             return SUCCESS;
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -2606,6 +2634,8 @@ public class LineageMasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createLineage_result.class, metaDataMap);
     }
@@ -2615,12 +2645,14 @@ public class LineageMasterService {
 
     public createLineage_result(
       long success,
-      tachyon.thrift.TachyonTException e)
+      tachyon.thrift.TachyonTException e,
+      tachyon.thrift.ThriftIOException ioe)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -2631,6 +2663,9 @@ public class LineageMasterService {
       this.success = other.success;
       if (other.isSetE()) {
         this.e = new tachyon.thrift.TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new tachyon.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -2643,6 +2678,7 @@ public class LineageMasterService {
       setSuccessIsSet(false);
       this.success = 0;
       this.e = null;
+      this.ioe = null;
     }
 
     public long getSuccess() {
@@ -2692,6 +2728,30 @@ public class LineageMasterService {
       }
     }
 
+    public tachyon.thrift.ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public createLineage_result setIoe(tachyon.thrift.ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -2710,6 +2770,14 @@ public class LineageMasterService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((tachyon.thrift.ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -2720,6 +2788,9 @@ public class LineageMasterService {
 
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -2736,6 +2807,8 @@ public class LineageMasterService {
         return isSetSuccess();
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -2771,6 +2844,15 @@ public class LineageMasterService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -2787,6 +2869,11 @@ public class LineageMasterService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -2815,6 +2902,16 @@ public class LineageMasterService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2848,6 +2945,14 @@ public class LineageMasterService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -2912,6 +3017,15 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new tachyon.thrift.ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2935,6 +3049,11 @@ public class LineageMasterService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2961,19 +3080,25 @@ public class LineageMasterService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetIoe()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createLineage_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
@@ -2982,6 +3107,11 @@ public class LineageMasterService {
           struct.e = new tachyon.thrift.TachyonTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ioe = new tachyon.thrift.ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }
@@ -6849,6 +6979,7 @@ public class LineageMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("workerLineageHeartbeat_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -6857,10 +6988,12 @@ public class LineageMasterService {
     }
 
     public LineageCommand success; // required
+    public tachyon.thrift.TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6877,6 +7010,8 @@ public class LineageMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -6922,6 +7057,8 @@ public class LineageMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LineageCommand.class)));
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(workerLineageHeartbeat_result.class, metaDataMap);
     }
@@ -6930,10 +7067,12 @@ public class LineageMasterService {
     }
 
     public workerLineageHeartbeat_result(
-      LineageCommand success)
+      LineageCommand success,
+      tachyon.thrift.TachyonTException e)
     {
       this();
       this.success = success;
+      this.e = e;
     }
 
     /**
@@ -6942,6 +7081,9 @@ public class LineageMasterService {
     public workerLineageHeartbeat_result(workerLineageHeartbeat_result other) {
       if (other.isSetSuccess()) {
         this.success = new LineageCommand(other.success);
+      }
+      if (other.isSetE()) {
+        this.e = new tachyon.thrift.TachyonTException(other.e);
       }
     }
 
@@ -6952,6 +7094,7 @@ public class LineageMasterService {
     @Override
     public void clear() {
       this.success = null;
+      this.e = null;
     }
 
     public LineageCommand getSuccess() {
@@ -6978,6 +7121,30 @@ public class LineageMasterService {
       }
     }
 
+    public tachyon.thrift.TachyonTException getE() {
+      return this.e;
+    }
+
+    public workerLineageHeartbeat_result setE(tachyon.thrift.TachyonTException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -6988,6 +7155,14 @@ public class LineageMasterService {
         }
         break;
 
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((tachyon.thrift.TachyonTException)value);
+        }
+        break;
+
       }
     }
 
@@ -6995,6 +7170,9 @@ public class LineageMasterService {
       switch (field) {
       case SUCCESS:
         return getSuccess();
+
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -7009,6 +7187,8 @@ public class LineageMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -7035,6 +7215,15 @@ public class LineageMasterService {
           return false;
       }
 
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
       return true;
     }
 
@@ -7046,6 +7235,11 @@ public class LineageMasterService {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -7064,6 +7258,16 @@ public class LineageMasterService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -7093,6 +7297,14 @@ public class LineageMasterService {
         sb.append("null");
       } else {
         sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -7150,6 +7362,15 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new tachyon.thrift.TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -7168,6 +7389,11 @@ public class LineageMasterService {
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -7191,20 +7417,31 @@ public class LineageMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
+        }
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, workerLineageHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = new LineageCommand();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.e = new tachyon.thrift.TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
