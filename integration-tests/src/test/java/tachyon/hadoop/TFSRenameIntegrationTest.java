@@ -256,7 +256,6 @@ public class TFSRenameIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void errorRenameTest1() throws Exception {
     // Rename /dirA to /dirA/dirB should fail
     Path dirA = new Path("/dirA");
@@ -269,7 +268,7 @@ public class TFSRenameIntegrationTest {
     Assert.assertFalse(sTFS.exists(finalDst));
     Assert.assertTrue(sTFS.exists(dirA));
     Assert.assertFalse(sUfs.exists(PathUtils.concatPath(sUfsRoot, "dirA", "dirB")));
-    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, "dirB")));
+    Assert.assertFalse(sUfs.exists(PathUtils.concatPath(sUfsRoot, "dirB")));
 
     cleanup(sTFS);
 
@@ -278,7 +277,6 @@ public class TFSRenameIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void errorRenameTest2() throws Exception {
     // Rename /fileA to /fileB should fail if /fileB exists
     Path fileA = new Path("/fileA");
@@ -303,7 +301,6 @@ public class TFSRenameIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void errorRenameTest3() throws Exception {
     // Rename /fileA to /dirA/fileA should fail if /dirA/fileA exists
     Path fileA = new Path("/fileA");
@@ -334,7 +331,6 @@ public class TFSRenameIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void errorRenameTest4() throws Exception {
     // Rename /fileA to an nonexistent path should fail
     Path fileA = new Path("/fileA");
