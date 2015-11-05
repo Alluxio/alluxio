@@ -123,4 +123,20 @@ public final class LineageMasterTest {
     }
   }
 
+  @Test
+  public void reinitializeFileTest() throws Exception {
+    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    mLineageMaster.reinitializeFile("/test1", 500L, 10L);
+    Mockito.verify(mFileSystemMaster).reinitializeFile(new TachyonURI("/test1"), 500L, 10L);
+  }
+
+  @Test
+  public void asyncCompleteFileTest() throws Exception {
+    long fileId = 0;
+    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
+        Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    mFileSystemMaster.completeFile(fileId);
+    Mockito.verify(mFileSystemMaster).completeFile(fileId);
+  }
 }
