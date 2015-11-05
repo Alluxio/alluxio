@@ -31,6 +31,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
@@ -248,6 +249,17 @@ public final class LocalTachyonCluster {
 
     // Update the test conf with actual RPC port.
     testConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+
+    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
+    // the cluster's current address. This must happen here because the cluster isn't initialized
+    // until mMaster is started.
+    UnderFileSystemCluster ufs = UnderFileSystemCluster.get();
+    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
+    // instead of comparing classnames.
+    if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+      testConf.set(Constants.UNDERFS_ADDRESS, ufs.getUnderFilesystemAddress() + mTachyonHome);
+      MasterContext.reset(testConf);
+    }
 
     // We need to update client context with the most recent configuration so they know the correct
     // port to connect to master.

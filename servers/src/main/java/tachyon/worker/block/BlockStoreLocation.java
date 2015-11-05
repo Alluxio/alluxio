@@ -114,14 +114,19 @@ public final class BlockStoreLocation {
   /**
    * Compares to a specific object.
    *
-   * @param object the object to compare
+   * @param o the object to compare
    * @return true if object is also {@link BlockStoreLocation} and represents the same tier and dir
    */
   @Override
-  public boolean equals(Object object) {
-    return object instanceof BlockStoreLocation
-        && ((BlockStoreLocation) object).tierAlias().equals(tierAlias())
-        && ((BlockStoreLocation) object).dir() == dir();
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof BlockStoreLocation)) {
+      return false;
+    }
+    BlockStoreLocation that = (BlockStoreLocation) o;
+    return mTierAlias.equals(that.mTierAlias) && mDirIndex == that.mDirIndex;
   }
 
   @Override
