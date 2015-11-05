@@ -259,6 +259,7 @@ public final class LocalTachyonCluster {
     if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
       testConf.set(Constants.UNDERFS_ADDRESS, ufs.getUnderFilesystemAddress() + mTachyonHome);
       MasterContext.reset(testConf);
+      mMasterConf = testConf;
     }
 
     // We need to update client context with the most recent configuration so they know the correct
