@@ -206,8 +206,7 @@ public class TfsShell implements Closeable {
       } else if (fInfo.isIsPersisted()) {
         System.out.println(filePath + " is already persisted");
       } else {
-        long size = TachyonFileSystemUtils.persistFile(fd, new TachyonURI(fInfo.getUfsPath()), mTfs,
-            mTachyonConf);
+        long size = TachyonFileSystemUtils.persistFile(mTfs, fd, fInfo, mTachyonConf);
         System.out.println("persisted file " + filePath + " with size " + size);
       }
     } catch (TachyonException e) {
