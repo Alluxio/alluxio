@@ -150,7 +150,7 @@ public final class LineageMaster extends MasterBase {
     } else if (entry instanceof DeleteLineageEntry) {
       deleteLineageFromEntry((DeleteLineageEntry) entry);
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 

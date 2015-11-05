@@ -17,10 +17,6 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
@@ -36,8 +32,6 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public class TachyonLineageFileSystem extends TachyonFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private static TachyonLineageFileSystem sTachyonFileSystem;
   private LineageContext mContext;
 

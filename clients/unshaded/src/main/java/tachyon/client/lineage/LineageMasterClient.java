@@ -95,18 +95,15 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  public synchronized void asyncCompleteFile(final long fileId) throws IOException {
-    try {
-      retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-        @Override
-        public Void call() throws TachyonTException, TException {
-          mClient.asyncCompleteFile(fileId);
-          return null;
-        }
-      });
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+  public synchronized void asyncCompleteFile(final long fileId)
+      throws TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.asyncCompleteFile(fileId);
+        return null;
+      }
+    });
   }
 
   public synchronized List<LineageInfo> getLineageInfoList() throws IOException {

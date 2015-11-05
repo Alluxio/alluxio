@@ -31,7 +31,6 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.table.RawColumn;
@@ -45,7 +44,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   private final TachyonURI mMasterAddress;
   private final TachyonURI mTablePath;
-  private final WriteType mWriteType;
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
   private long mId;
@@ -54,11 +52,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
-    if (tachyonWriteType.isStore()) {
-      mWriteType = ufsWriteType.isSyncPersist() ? WriteType.CACHE_THROUGH : WriteType.MUST_CACHE;
-    } else {
-      mWriteType = WriteType.THROUGH;
-    }
   }
 
   @Override

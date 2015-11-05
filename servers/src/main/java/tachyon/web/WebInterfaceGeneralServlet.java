@@ -125,7 +125,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal ++) {
       String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
-      if (totalBytesOnTiers.get(tierAlias) > 0) {
+      if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
         StorageTierInfo info =
             new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
                 usedBytesOnTiers.get(tierAlias));

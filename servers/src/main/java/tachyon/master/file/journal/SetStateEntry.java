@@ -17,34 +17,39 @@ package tachyon.master.file.journal;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for setting the pinned flag.
+ * This class represents a journal entry for setting the file state.
+ *
+ * {@code null} fields are ignored in json output.
  */
-public class SetPinnedEntry extends JournalEntry {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SetStateEntry extends JournalEntry {
   private final long mId;
-  private final boolean mPinned;
   private final long mOpTimeMs;
+  private final Boolean mPinned;
+  private final Long mTTL;
 
-    /**
-     * Creates a new instance of {@link SetPinnedEntry}.
-     *
-     * @param id the id
-     * @param pinned the pinned flag
-     * @param opTimeMs the operation time (in milliseconds)
-     */
+  /**
+   * Creates a new instance of <code>SetStateEntry</code>.
+   *
+   * @param id  the id of the entry
+   * @param opTimeMs the operation timestamp (in milliseconds)
+   * @param pinned the pinned flag to be set, otherwise, null
+   * @param ttl the new TTL value to be set, otherwise, null
+   */
   @JsonCreator
-  public SetPinnedEntry(
-      @JsonProperty("id") long id,
-      @JsonProperty("pinned") boolean pinned,
-      @JsonProperty("opTimeMs") long opTimeMs) {
+  public SetStateEntry(@JsonProperty("id") long id, @JsonProperty("operationTimeMs") long opTimeMs,
+      @JsonProperty("pinned") Boolean pinned, @JsonProperty("ttl") Long ttl) {
     mId = id;
-    mPinned = pinned;
     mOpTimeMs = opTimeMs;
+    mPinned = pinned;
+    mTTL = ttl;
   }
 
   /**
@@ -59,7 +64,12 @@ public class SetPinnedEntry extends JournalEntry {
    * @return the pinned flag
    */
   @JsonGetter
-  public boolean getPinned() {
+  public long getOperationTimeMs() {
+    return mOpTimeMs;
+  }
+
+  @JsonGetter
+  public Boolean getPinned() {
     return mPinned;
   }
 
@@ -67,13 +77,12 @@ public class SetPinnedEntry extends JournalEntry {
    * @return the operation time (in milliseconds)
    */
   @JsonGetter
-  public long getOpTimeMs() {
-    return mOpTimeMs;
+  public Long getTTL() {
+    return mTTL;
   }
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.SET_PINNED;
+    return JournalEntryType.SET_STATE;
   }
-
 }

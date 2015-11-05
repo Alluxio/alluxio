@@ -38,6 +38,7 @@ public class SetStateOptionsTest {
   public void defaultsTest() {
     SetStateOptions options = SetStateOptions.defaults();
 
-    Assert.assertNull(options.getPinned());
+    Assert.assertFalse(options.hasPinned());
+    Assert.assertFalse(options.hasTTL());
   }
 }

@@ -25,6 +25,6 @@ public class UnmountOptionsTest {
 
   @Test
   public void defaultsTest() {
-    UnmountOptions options = UnmountOptions.defaults();
+    UnmountOptions.defaults();
   }
 }
