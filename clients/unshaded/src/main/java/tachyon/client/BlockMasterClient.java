@@ -26,16 +26,14 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
- *
- * TODO(jiri): The functions in this wrapper contain very similar boilerplate. It would make sense
- * to have a single "Retry" utility is used to to execute the while () { try ... catch ... } logic,
- * parametrized by the RPC to invoke.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
@@ -72,17 +70,12 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<List<WorkerInfo>>() {
+      @Override
+      public List<WorkerInfo> call() throws TException {
         return mClient.getWorkerInfoList();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -90,20 +83,17 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the BlockInfo
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized BlockInfo getBlockInfo(final long blockId)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
+      @Override
+      public BlockInfo call() throws TachyonTException, TException {
         return mClient.getBlockInfo(blockId);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -113,17 +103,12 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long getCapacityBytes() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws TException {
         return mClient.getCapacityBytes();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -133,16 +118,11 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long getUsedBytes() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws TException {
         return mClient.getUsedBytes();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

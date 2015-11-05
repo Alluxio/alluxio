@@ -363,7 +363,11 @@ public class TachyonFS extends AbstractTachyonFS {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
     }
-    return mRawTableMasterClient.createRawTable(path, columns, metadata);
+    try {
+      return mRawTableMasterClient.createRawTable(path, columns, metadata);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -690,8 +694,12 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized RawTable getRawTable(long id) throws IOException {
-    RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(id);
-    return new RawTable(this, rawTableInfo);
+    try {
+      RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(id);
+      return new RawTable(this, rawTableInfo);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -705,8 +713,12 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
     validateUri(path);
-    RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(path);
-    return new RawTable(this, rawTableInfo);
+    try {
+      RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(path);
+      return new RawTable(this, rawTableInfo);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -1074,7 +1086,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized void updateRawTableMetadata(long id, ByteBuffer metadata) throws IOException {
-    mRawTableMasterClient.updateRawTableMetadata(id, metadata);
+    try {
+      mRawTableMasterClient.updateRawTableMetadata(id, metadata);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
