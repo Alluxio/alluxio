@@ -40,6 +40,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.master.MasterContext;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
@@ -61,7 +62,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private static final String ROOT_INODE_NAME = "";
 
   /** The root of the entire file system. */
-  private InodeDirectory mRoot;
+  private InodeDirectory mRoot = null;
 
   /** Mount table manages the file system mount points. */
   private MountTable mMountTable;
@@ -429,6 +430,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return true if the given file id is the root id
    */
   public boolean isRootId(long fileId) {
+    Preconditions.checkNotNull(mRoot, PreconditionMessage.INODE_TREE_UNINITIALIZED_IS_ROOT_ID);
     return fileId == mRoot.getId();
   }
 
@@ -503,17 +505,21 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   @Override
-  public boolean equals(Object object) {
-    if (object instanceof InodeTree) {
-      InodeTree that = (InodeTree) object;
-      return Objects.equal(mRoot, that.mRoot) && Objects.equal(mIdIndex, that.mIdIndex)
-          && Objects.equal(mInodes, that.mInodes)
-          && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
-          && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
-          && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
-          && Objects.equal(mCachedInode, that.mCachedInode);
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-    return false;
+    if (o == null || !(o instanceof InodeTree)) {
+      return false;
+    }
+    InodeTree that = (InodeTree) o;
+    return Objects.equal(mRoot, that.mRoot)
+        && Objects.equal(mIdIndex, that.mIdIndex)
+        && Objects.equal(mInodes, that.mInodes)
+        && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
+        && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
+        && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
+        && Objects.equal(mCachedInode, that.mCachedInode);
   }
 
   private TraversalResult traverseToInode(String[] pathComponents, boolean persist)

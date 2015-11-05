@@ -55,7 +55,10 @@ public class BlockContainerIdGeneratorEntry extends JournalEntry {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof BlockContainerIdGeneratorEntry)) {
       return false;
     }
     BlockContainerIdGeneratorEntry that = (BlockContainerIdGeneratorEntry) o;

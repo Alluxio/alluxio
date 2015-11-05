@@ -144,10 +144,14 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof TachyonURI)) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof TachyonURI)) {
       return false;
     }
-    return mUri.equals(((TachyonURI) o).mUri);
+    TachyonURI that = (TachyonURI) o;
+    return mUri.equals(that.mUri);
   }
 
   /**
