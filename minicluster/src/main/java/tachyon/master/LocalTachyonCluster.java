@@ -257,9 +257,10 @@ public final class LocalTachyonCluster {
     // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
     // instead of comparing classnames.
     if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
-      testConf.set(Constants.UNDERFS_ADDRESS, ufs.getUnderFilesystemAddress() + mTachyonHome);
-      MasterContext.reset(testConf);
-      mMasterConf = testConf;
+      String ufsAddress = ufs.getUnderFilesystemAddress() + mTachyonHome;
+      testConf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+      MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, ufsAddress);
+      mMasterConf = MasterContext.getConf();
     }
 
     // We need to update client context with the most recent configuration so they know the correct
