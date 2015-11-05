@@ -34,6 +34,7 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
@@ -144,17 +145,18 @@ public final class TachyonFileSystemUtils {
   }
 
   /**
-   * Persist the given file to the under file system
+   * Persist the given file to the under file system.
+   *
+   * @param tfs {@link TachyonFileSystem} to carry out tachyon operations
    * @param file the file to persist
-   * @param dstPath the destination in the under file system
-   * @param tfs TachyonFileSystem to carry out tachyon operations
+   * @param fileInfo the file info of the file
    * @param tachyonConf TachyonConf object
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected Tachyon error occurs
    */
-  public static long persistFile(TachyonFile file, TachyonURI dstPath, TachyonFileSystem tfs,
+  public static long persistFile(TachyonFileSystem tfs, TachyonFile file, FileInfo fileInfo,
       TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
     Closer closer = Closer.create();
     long ret;
@@ -162,6 +164,7 @@ public final class TachyonFileSystemUtils {
       InStreamOptions inStreamOptions = new InStreamOptions.Builder(tachyonConf)
           .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream in = closer.register(tfs.getInStream(file, inStreamOptions));
+      TachyonURI dstPath = new TachyonURI(fileInfo.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.getPath(), tachyonConf);
       String parentPath = dstPath.getParent().getPath();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
