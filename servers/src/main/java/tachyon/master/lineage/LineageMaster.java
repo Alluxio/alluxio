@@ -416,7 +416,7 @@ public final class LineageMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  public synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
+  private synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
       throws FileDoesNotExistException, InvalidPathException {
     List<CheckpointFile> files = Lists.newArrayList();
     if (!mWorkerToCheckpointFile.containsKey(workerId)) {
