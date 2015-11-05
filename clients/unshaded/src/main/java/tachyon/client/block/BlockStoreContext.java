@@ -133,13 +133,12 @@ public enum BlockStoreContext {
    *        workers are eligible
    * @return a WorkerClient connected to the worker with the given hostname
    */
-  public synchronized WorkerClient acquireWorkerClient(String hostname) {
+  public synchronized WorkerClient acquireWorkerClient(String hostname) throws IOException {
     WorkerClient client;
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       client = acquireLocalWorkerClient();
       if (client == null) {
-        // TODO(calvin): Recover from initial worker failure.
-        throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+        throw new IOException("No Tachyon worker available for host: " + hostname);
       }
     } else {
       client = acquireRemoteWorkerClient(hostname);
