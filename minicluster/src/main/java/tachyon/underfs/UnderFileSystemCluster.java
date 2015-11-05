@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.LocalFilesystemCluster;
@@ -54,9 +55,7 @@ public abstract class UnderFileSystemCluster {
    * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet
    */
   public static synchronized UnderFileSystemCluster get() {
-    if (sUnderFSCluster == null) {
-      throw new IllegalStateException("sUnderFSCluster has not been initailized yet");
-    }
+    Preconditions.checkNotNull(sUnderFSCluster, "sUnderFSCluster has not been initailized yet");
     return sUnderFSCluster;
   }
 
