@@ -162,3 +162,16 @@ Check the `spark.externalBlockStore.baseDir` using Tachyon's web UI (the default
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. You should
 see a number of files there; they are the persisted RDD blocks. Currently, the files will be cleaned
 up when the Spark application finishes.
+
+## Data Locality
+
+If Spark task locality is `ANY` while it should be `NODE_LOCAL`, it is probably because Tachyon and
+Spark use different network address representations, maybe one of them uses hostname while
+another uses IP address. Please refer to [this jira ticket](
+https://issues.apache.org/jira/browse/SPARK-10149) for more details, where you can find solutions
+from the Spark community.
+
+Note: Tachyon uses hostname to represent network address except in version 0.7.1 where IP address is
+used. Spark v1.5.x ships with Tachyon v0.7.1 by default, in this case, by default, Spark and Tachyon
+both use IP address to represent network address, so data locality should work out of the box.
+But since release 0.8.0, to be consistent with HDFS, Tachyon represents network address by hostname.
