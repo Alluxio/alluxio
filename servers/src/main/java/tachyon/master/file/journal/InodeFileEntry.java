@@ -27,6 +27,9 @@ import tachyon.master.file.meta.InodeFile;
 import tachyon.master.journal.JournalEntryType;
 import tachyon.security.authorization.PermissionStatus;
 
+/**
+ * This class represents a journal entry for a file inode.
+ */
 public class InodeFileEntry extends InodeEntry {
   private final long mBlockSizeBytes;
   private final long mLength;
@@ -35,19 +38,43 @@ public class InodeFileEntry extends InodeEntry {
   private final List<Long> mBlocks;
   private final long mTTL;
 
+  /**
+   * Creates a new instance of {@link InodeFileEntry}.
+   *
+   * @param creationTimeMs the creation time (in milliseconds)
+   * @param id the id
+   * @param name the name
+   * @param parentId the parent id
+   * @param persisted the persisted flag
+   * @param pinned the pinned flag
+   * @param lastModificationTimeMs the last modification time (in milliseconds)
+   * @param blockSizeBytes the block size (in bytes)
+   * @param length the length
+   * @param completed the completed flag
+   * @param cacheable the cacheable flag
+   * @param blocks the block ids
+   * @param ttl the TTL
+   */
   @JsonCreator
-  public InodeFileEntry(@JsonProperty("creationTimeMs") long creationTimeMs,
-      @JsonProperty("id") long id, @JsonProperty("name") String name,
-      @JsonProperty("parentId") long parentId, @JsonProperty("persisted") boolean persisted,
+  public InodeFileEntry(
+      @JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("id") long id,
+      @JsonProperty("name") String name,
+      @JsonProperty("parentId") long parentId,
+      @JsonProperty("persisted") boolean persisted,
       @JsonProperty("pinned") boolean pinned,
       @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
-      @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("length") long length,
-      @JsonProperty("completed") boolean completed, @JsonProperty("cacheable") boolean cacheable,
-      @JsonProperty("blocks") List<Long> blocks, @JsonProperty("ttl") long ttl,
-      @JsonProperty("username") String username, @JsonProperty("groupname") String groupname,
+      @JsonProperty("blockSizeBytes") long blockSizeBytes,
+      @JsonProperty("length") long length,
+      @JsonProperty("completed") boolean completed,
+      @JsonProperty("cacheable") boolean cacheable,
+      @JsonProperty("blocks") List<Long> blocks,
+      @JsonProperty("ttl") long ttl,
+      @JsonProperty("username") String username,
+      @JsonProperty("groupname") String groupname,
       @JsonProperty("permission") short permission) {
-    super(creationTimeMs, id, name, parentId, persisted, pinned,
-        lastModificationTimeMs, username, groupname, permission);
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs,
+        username, groupname, permission);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mCompleted = completed;
@@ -56,11 +83,24 @@ public class InodeFileEntry extends InodeEntry {
     mTTL = ttl;
   }
 
+  /**
+   * Converts the entry to {@link InodeFile}.
+   *
+   * @return the {@link InodeFile} representation
+   */
   public InodeFile toInodeFile() {
     InodeFile inode =
-        new InodeFile.Builder().setName(mName).setBlockContainerId(BlockId.getContainerId(mId))
-            .setParentId(mParentId).setBlockSizeBytes(mBlockSizeBytes)
-            .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted)
+        new InodeFile.Builder()
+            .setName(mName)
+            .setBlockContainerId(BlockId.getContainerId(mId))
+            .setBlockSizeBytes(mBlockSizeBytes)
+            .setCacheable(mCacheable)
+            .setCreationTimeMs(mCreationTimeMs)
+            .setLastModificationTimeMs(mLastModificationTimeMs)
+            .setParentId(mParentId)
+            .setPersisted(mPersisted)
+            .setPinned(mPinned)
+            .setTTL(mTTL)
             .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
             .build();
 
@@ -70,17 +110,8 @@ public class InodeFileEntry extends InodeEntry {
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
-    inode.setPersisted(mPersisted);
-    inode.setPinned(mPinned);
-    inode.setCacheable(mCacheable);
-    inode.setLastModificationTimeMs(mLastModificationTimeMs);
 
     return inode;
-  }
-
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.INODE_FILE;
   }
 
   @JsonGetter
@@ -94,12 +125,12 @@ public class InodeFileEntry extends InodeEntry {
   }
 
   @JsonGetter
-  public boolean isCompleted() {
+  public boolean getCompleted() {
     return mCompleted;
   }
 
   @JsonGetter
-  public boolean isCacheable() {
+  public boolean getCacheable() {
     return mCacheable;
   }
 
@@ -109,7 +140,12 @@ public class InodeFileEntry extends InodeEntry {
   }
 
   @JsonGetter
-  public long getTtl() {
+  public long getTTL() {
     return mTTL;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.INODE_FILE;
   }
 }

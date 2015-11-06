@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
@@ -38,6 +35,9 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.lineage.LineageContext;
+import tachyon.client.lineage.LineageMasterClient;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -48,6 +48,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.IdUtils;
+import tachyon.util.LineageUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -148,9 +149,10 @@ public class TachyonFS extends AbstractTachyonFS {
     return new TachyonFS(tachyonConf);
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final int mUserFailedSpaceRequestLimits;
 
+  /** The RPC client that talks to the Lineage master. */
+  private final LineageMasterClient mLineageClient;
   /** The RPC client talks to the file system master. */
   private final FileSystemMasterClient mFSMasterClient;
   /** The RPC client talks to the block store master. */
@@ -164,6 +166,8 @@ public class TachyonFS extends AbstractTachyonFS {
   private final Closer mCloser = Closer.create();
   /** Whether to use ZooKeeper or not */
   private final boolean mZookeeperMode;
+  /** Whether to user Lineage or not */
+  private final boolean mLineageEnabled;
   // Cached FileInfo
   private final Map<String, FileInfo> mPathToClientFileInfo = new HashMap<String, FileInfo>();
   private final Map<Long, FileInfo> mIdToClientFileInfo = new HashMap<Long, FileInfo>();
@@ -183,6 +187,9 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
+    mLineageEnabled = LineageUtils.isLineageEnabled(mTachyonConf);
+    mLineageClient =
+        mLineageEnabled ? mCloser.register(LineageContext.INSTANCE.acquireMasterClient()) : null;
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
     mRawTableMasterClient =
@@ -356,7 +363,11 @@ public class TachyonFS extends AbstractTachyonFS {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + maxColumns);
     }
-    return mRawTableMasterClient.createRawTable(path, columns, metadata);
+    try {
+      return mRawTableMasterClient.createRawTable(path, columns, metadata);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -445,7 +456,6 @@ public class TachyonFS extends AbstractTachyonFS {
     try {
       return mFSMasterClient.getFileBlockInfo(fileId, blockIndex);
     } catch (TachyonException e) {
-      // TODO: Should not cast this to Tachyon Exception
       throw new IOException(e);
     }
   }
@@ -684,8 +694,12 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized RawTable getRawTable(long id) throws IOException {
-    RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(id);
-    return new RawTable(this, rawTableInfo);
+    try {
+      RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(id);
+      return new RawTable(this, rawTableInfo);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -699,8 +713,12 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
     validateUri(path);
-    RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(path);
-    return new RawTable(this, rawTableInfo);
+    try {
+      RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(path);
+      return new RawTable(this, rawTableInfo);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -785,7 +803,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
-    return mIdToClientFileInfo.get(fid).isFolder;
+    return mIdToClientFileInfo.get(Long.valueOf(fid)).isFolder;
   }
 
   /**
@@ -944,8 +962,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized void reportLostFile(long fileId) throws IOException {
+    Preconditions.checkState(mLineageEnabled);
     try {
-      mFSMasterClient.reportLostFile(fileId);
+      String path = getFile(fileId).getPath();
+      mLineageClient.reportLostFile(path);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -999,7 +1019,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void setPinned(long fid, boolean pinned) throws IOException {
     try {
-      mFSMasterClient.setPinned(fid, pinned);
+      mFSMasterClient.setState(fid, new SetStateOptions.Builder().setPinned(pinned).build());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -1066,7 +1086,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized void updateRawTableMetadata(long id, ByteBuffer metadata) throws IOException {
-    mRawTableMasterClient.updateRawTableMetadata(id, metadata);
+    try {
+      mRawTableMasterClient.updateRawTableMetadata(id, metadata);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**

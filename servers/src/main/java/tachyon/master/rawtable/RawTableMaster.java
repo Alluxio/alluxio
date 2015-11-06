@@ -87,11 +87,11 @@ public class RawTableMaster extends MasterBase {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof RawTableEntry) {
       RawTableEntry tableEntry = (RawTableEntry) entry;
-      mRawTables.add(tableEntry.mId, tableEntry.mColumns, tableEntry.mMetadata);
+      mRawTables.add(tableEntry.getId(), tableEntry.getColumns(), tableEntry.getMetadata());
     } else if (entry instanceof UpdateMetadataEntry) {
       UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) entry;
       try {
-        mRawTables.updateMetadata(updateEntry.mId, updateEntry.mMetadata);
+        mRawTables.updateMetadata(updateEntry.getId(), updateEntry.getMetadata());
       } catch (TableDoesNotExistException tdnee) {
         // should not reach here since before writing the journal, the same operation succeeded
         throw new IOException(tdnee);
@@ -205,7 +205,7 @@ public class RawTableMaster extends MasterBase {
    * @throws TableDoesNotExistException when the path does not refer to a table
    */
   public long getRawTableId(TachyonURI path) throws InvalidPathException,
-      TableDoesNotExistException, IOException {
+      TableDoesNotExistException {
     long tableId = mFileSystemMaster.getFileId(path);
     if (!mRawTables.contains(tableId) || !mFileSystemMaster.isDirectory(tableId)) {
       throw new TableDoesNotExistException(
@@ -222,8 +222,7 @@ public class RawTableMaster extends MasterBase {
    * @return the table info
    * @throws TableDoesNotExistException when no table has the id
    */
-  public RawTableInfo getClientRawTableInfo(long id) throws InvalidPathException,
-      TableDoesNotExistException {
+  public RawTableInfo getClientRawTableInfo(long id) throws TableDoesNotExistException {
     if (!mRawTables.contains(id)) {
       throw new TableDoesNotExistException(
           ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
@@ -259,7 +258,7 @@ public class RawTableMaster extends MasterBase {
    * @throws InvalidPathException when path is invalid
    */
   public RawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
-      InvalidPathException, IOException {
+      InvalidPathException {
     return getClientRawTableInfo(getRawTableId(path));
   }
 

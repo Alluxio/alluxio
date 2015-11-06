@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.table.RawColumn;
@@ -44,7 +44,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   private final TachyonURI mMasterAddress;
   private final TachyonURI mTablePath;
-  private final WriteType mWriteType;
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
   private long mId;
@@ -53,11 +52,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
-    if (tachyonWriteType.isStore()) {
-      mWriteType = ufsWriteType.isSyncPersist() ? WriteType.CACHE_THROUGH : WriteType.MUST_CACHE;
-    } else {
-      mWriteType = WriteType.THROUGH;
-    }
   }
 
   @Override
@@ -132,7 +126,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 4) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR + " "
+      System.out.println("java -cp " + Version.TACHYON_JAR + " "
           + BasicRawTableOperations.class.getName() + " <master address> <file path> "
           + "<tachyon storage type for writes (STORE|NO_STORE)> "
           + "<under storage type for writes (SYNC_PERSIST|NO_PERSIST)");

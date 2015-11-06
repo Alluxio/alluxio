@@ -60,11 +60,11 @@ public class SessionInfo {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (o == null || !(o instanceof SessionInfo)) {
       return false;
     }
-    SessionInfo sessionInfo = (SessionInfo) o;
-    return mSessionId == sessionInfo.mSessionId;
+    SessionInfo that = (SessionInfo) o;
+    return mSessionId == that.mSessionId;
   }
 
   @Override

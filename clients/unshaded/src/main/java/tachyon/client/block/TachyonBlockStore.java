@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
@@ -30,8 +31,7 @@ import tachyon.worker.WorkerClient;
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
  * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
- * class are completely opaque to user input (such as {@link ClientOptions}). This class is thread
- * safe.
+ * class are completely opaque to user input. This class is thread safe.
  */
 public final class TachyonBlockStore implements Closeable {
 
@@ -73,6 +73,8 @@ public final class TachyonBlockStore implements Closeable {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getBlockInfo(blockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -88,7 +90,6 @@ public final class TachyonBlockStore implements Closeable {
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
@@ -109,6 +110,8 @@ public final class TachyonBlockStore implements Closeable {
       } else {
         return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
       }
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -130,6 +133,8 @@ public final class TachyonBlockStore implements Closeable {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
       try {
         blockSize = blockMasterClient.getBlockInfo(blockId).getLength();
+      } catch (TachyonException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(blockMasterClient);
       }
@@ -201,7 +206,7 @@ public final class TachyonBlockStore implements Closeable {
         return;
       }
       // Get the first worker address for now, as this will likely be the location being read from
-      // TODO: Get this location via a policy (possibly location is a parameter to promote)
+      // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
       NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
       try {
@@ -209,6 +214,8 @@ public final class TachyonBlockStore implements Closeable {
       } finally {
         mContext.releaseWorkerClient(workerClient);
       }
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }

@@ -15,38 +15,58 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;
 import tachyon.security.authorization.PermissionStatus;
 
+/**
+ * This class represents a jounal entry for a directory inode.
+ */
 public class InodeDirectoryEntry extends InodeEntry {
-  private Set<Long> mChildrenIds;
 
+  /**
+   * Creates a new instance of {@link InodeDirectory}.
+   *
+   * @param creationTimeMs the creation time (in milliseconds)
+   * @param id the id
+   * @param name the name
+   * @param parentId the parent id
+   * @param persisted the persisted flag
+   * @param pinned the pinned flag
+   * @param lastModificationTimeMs the last modification time (in milliseconds)
+   */
   @JsonCreator
-  public InodeDirectoryEntry(@JsonProperty("creationTimeMs") long creationTimeMs,
-      @JsonProperty("id") long id, @JsonProperty("name") String name,
-      @JsonProperty("parentId") long parentId, @JsonProperty("persisted") boolean persisted,
+  public InodeDirectoryEntry(
+      @JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("id") long id,
+      @JsonProperty("name") String name,
+      @JsonProperty("parentId") long parentId,
+      @JsonProperty("persisted") boolean persisted,
       @JsonProperty("pinned") boolean pinned,
       @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
-      @JsonProperty("childrenIds") Set<Long> childrenIds,
       @JsonProperty("username") String username,
       @JsonProperty("groupname") String groupname,
       @JsonProperty("permission") short permission) {
-    super(creationTimeMs, id, name, parentId, persisted, pinned,
-        lastModificationTimeMs, username, groupname, permission);
-    mChildrenIds = childrenIds;
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs,
+        username, groupname, permission);
   }
 
+  /**
+   * Converts the entry to {@link InodeDirectory}.
+   *
+   * @return the {@link InodeDirectory} representation
+   */
   public InodeDirectory toInodeDirectory() {
     InodeDirectory inode =
-        new InodeDirectory.Builder().setName(mName).setId(mId).setParentId(mParentId)
-            .setCreationTimeMs(mCreationTimeMs).setPersisted(mPersisted)
+        new InodeDirectory.Builder()
+            .setName(mName)
+            .setId(mId)
+            .setParentId(mParentId)
+            .setCreationTimeMs(mCreationTimeMs)
+            .setPersisted(mPersisted)
             .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
             .build();
     inode.setPersisted(mPersisted);
@@ -58,10 +78,5 @@ public class InodeDirectoryEntry extends InodeEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.INODE_DIRECTORY;
-  }
-
-  @JsonGetter
-  public Set<Long> getChildrenIds() {
-    return mChildrenIds;
   }
 }

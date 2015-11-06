@@ -22,6 +22,7 @@ import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class TachyonMaster {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp " + Constants.TACHYON_JAR + " tachyon.Master");
+      LOG.info("java -cp " + Version.TACHYON_JAR + " tachyon.Master");
       System.exit(-1);
     }
 
@@ -351,11 +352,11 @@ public class TachyonMaster {
     }
 
     // create master thrift service with the multiplexed processor.
-    mMasterServiceServer =
-        new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
-            .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-            .processor(processor).transportFactory(transportFactory)
-            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
+        .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    args.stopTimeoutVal = MasterContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    mMasterServiceServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
     mIsServing = true;

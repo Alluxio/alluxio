@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -104,7 +105,7 @@ public class BasicOperations implements Callable<Boolean> {
 
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 4) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR + " " + BasicOperations.class.getName()
+      System.out.println("java -cp " + Version.TACHYON_JAR + " " + BasicOperations.class.getName()
           + " <under storage type for writes (SYNC_PERSIST|NO_PERSIST)>");
       System.exit(-1);
     }
