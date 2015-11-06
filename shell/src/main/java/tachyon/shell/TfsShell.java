@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 
@@ -659,6 +660,29 @@ public class TfsShell implements Closeable {
     }
   }
 
+  public void setTTL(TachyonURI path, long ttlMs) throws IOException {
+    Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
+    try {
+      TachyonFile fd = mTfs.open(path);
+      SetStateOptions options = new SetStateOptions.Builder().setTTL(ttlMs).build();
+      mTfs.setState(fd, options);
+      System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs + ".");
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  public void unsetTTL(TachyonURI path) throws IOException {
+    try {
+      TachyonFile fd = mTfs.open(path);
+      SetStateOptions options = new SetStateOptions.Builder().setTTL(Constants.NO_TTL).build();
+      mTfs.setState(fd, options);
+      System.out.println("TTL of file '" + path + "' was successfully removed.");
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
   /**
    * Method which prints the method to use all the commands.
    */
@@ -686,6 +710,8 @@ public class TfsShell implements Closeable {
     System.out.println("       [request <tachyonaddress> <dependencyId>]");
     System.out.println("       [rm <path>]");
     System.out.println("       [rmr <path>]");
+    System.out.println("       [setTTL <path> <time to live(in milliseconds)>]");
+    System.out.println("       [unsetTTL <path>]");
     System.out.println("       [tail <path>]");
     System.out.println("       [touch <path>]");
     System.out.println("       [unmount <tachyonPath>]");
@@ -707,10 +733,11 @@ public class TfsShell implements Closeable {
         || cmd.equals("touch") || cmd.equals("load") || cmd.equals("fileinfo")
         || cmd.equals("location") || cmd.equals("report") || cmd.equals("pin")
         || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du") || cmd.equals("unmount")
-        || cmd.equals("loadMetadata")) {
+        || cmd.equals("loadMetadata") || cmd.equals("unsetTTL")) {
       return 1;
     } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
-        || cmd.equals("mount") || cmd.equals("mv") || cmd.equals("deleteLineage")) {
+        || cmd.equals("mount") || cmd.equals("mv") || cmd.equals("deleteLineage")
+        || cmd.equals("setTTL")) {
       return 2;
     } else if (cmd.equals("createLineage")) {
       return 3;
@@ -914,6 +941,8 @@ public class TfsShell implements Closeable {
           unmount(inputPath);
         } else if (cmd.equals("loadMetadata")) {
           loadMetadata(inputPath);
+        } else if (cmd.equals("unsetTTL")) {
+          unsetTTL(inputPath);
         } else {
           List<TachyonURI> paths = null;
           paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
@@ -995,6 +1024,8 @@ public class TfsShell implements Closeable {
           deleteLineage(argv);
         } else if (cmd.equals("mount")) {
           mount(argv);
+        } else if (cmd.equals("setTTL")) {
+          setTTL(new TachyonURI(argv[1]), Long.valueOf(argv[2]));
         }
       } else if (numOfArgs > 2) { // commands need 3 arguments and more
         if (cmd.equals("createLineage")) {
