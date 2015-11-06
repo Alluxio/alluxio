@@ -17,8 +17,6 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -39,12 +37,8 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.util.ThreadFactoryUtils;
 
 public class PinIntegrationTest {
-  private final ExecutorService mExecutorService =
-      Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
-
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
   private WorkerFileSystemMasterClient mFSMasterClient;
@@ -59,9 +53,9 @@ public class PinIntegrationTest {
     mFSMasterClient = new WorkerFileSystemMasterClient(
         new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
             mLocalTachyonCluster.getMasterPort()),
-        mExecutorService, mLocalTachyonCluster.getWorkerTachyonConf());
-    mSetPinned = new SetStateOptions.Builder(new TachyonConf()).setPinned(true).build();
-    mUnsetPinned = new SetStateOptions.Builder(new TachyonConf()).setPinned(false).build();
+        mLocalTachyonCluster.getWorkerTachyonConf());
+    mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
+    mUnsetPinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
   @After
@@ -89,7 +83,7 @@ public class PinIntegrationTest {
 
     mTfs.setState(file, mUnsetPinned);
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Integer>newHashSet());
+    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Long>newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.setState(dir, mSetPinned);
@@ -100,7 +94,7 @@ public class PinIntegrationTest {
     // Same with unpinning.
     mTfs.setState(dir0, mUnsetPinned);
     Assert.assertFalse(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Integer>newHashSet());
+    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Long>newHashSet());
 
     // The last pin command always wins.
     mTfs.setState(file, mSetPinned);

@@ -22,62 +22,125 @@ import tachyon.thrift.FileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
-  private final long mCreationTimeMs;
-  protected final boolean mIsFolder;
+  public abstract static class Builder<T extends Builder<T>> {
+    private long mCreationTimeMs;
+    protected boolean mDirectory;
+    protected long mId;
+    private long mLastModificationTimeMs;
+    private String mName;
+    private long mParentId;
+    private boolean mPersisted;
+    private boolean mPinned;
 
-  private final long mId;
-  private String mName;
-  private long mParentId;
+    public Builder() {
+      mCreationTimeMs = System.currentTimeMillis();
+      mDirectory = false;
+      mId = 0;
+      mLastModificationTimeMs = mCreationTimeMs;
+      mName = null;
+      mParentId = InodeTree.NO_PARENT;
+      mPersisted = false;
+      mPinned = false;
+    }
+
+    public T setCreationTimeMs(long creationTimeMs) {
+      mCreationTimeMs = creationTimeMs;
+      return getThis();
+    }
+
+    public T setId(long id) {
+      mId = id;
+      return getThis();
+    }
+
+    public T setLastModificationTimeMs(long lastModificationTimeMs) {
+      mLastModificationTimeMs = lastModificationTimeMs;
+      return getThis();
+    }
+
+    public T setName(String name) {
+      mName = name;
+      return getThis();
+    }
+
+    public T setParentId(long parentId) {
+      mParentId = parentId;
+      return getThis();
+    }
+
+    public T setPersisted(boolean persisted) {
+      mPersisted = persisted;
+      return getThis();
+    }
+
+    public T setPinned(boolean pinned) {
+      mPinned = pinned;
+      return getThis();
+    }
+
+    /**
+     * Builds a new instance of {@link Inode}.
+     *
+     * @return a {@link Inode} instance
+     */
+    public abstract Inode build();
+
+    /**
+     * Returns `this` so that the abstract class can use the fluent builder pattern.
+     */
+    protected abstract T getThis();
+  }
+
+  private final long mCreationTimeMs;
 
   /**
-   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
-   * files and folders will inherit this flag from their parents.
+   * Indicates whether an inode is deleted or not.
    */
-  private boolean mPinned = false;
+  private boolean mDeleted;
 
-  private boolean mPersisted = false;
+  protected final boolean mDirectory;
+
+  private final long mId;
 
   /**
    * The last modification time of this inode, in milliseconds.
    */
   private long mLastModificationTimeMs;
 
-  /**
-   * Indicates whether an inode is deleted or not.
-   */
-  private boolean mDeleted = false;
+  private String mName;
 
+  private long mParentId;
   /**
-   * Creates an inode.
-   *
-   * @param name the name of the inode.
-   * @param id the id of the inode, which is globally unique.
-   * @param parentId the id of the parent inode. -1 if there is no parent.
-   * @param isFolder if the inode presents a folder
-   * @param creationTimeMs the creation time of the inode, in milliseconds.
+   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
+   * files and folders will inherit this flag from their parents.
    */
-  protected Inode(String name, long id, long parentId, boolean isFolder, long creationTimeMs) {
-    mCreationTimeMs = creationTimeMs;
-    mIsFolder = isFolder;
-    mId = id;
-    mName = name;
-    mParentId = parentId;
-    mLastModificationTimeMs = creationTimeMs;
-  }
+  private boolean mPinned;
 
-  /**
-   * Marks the inode as deleted
-   */
-  public synchronized void delete() {
-    mDeleted = true;
+  private boolean mPersisted;
+
+  protected Inode(Builder<?> builder) {
+    mCreationTimeMs = builder.mCreationTimeMs;
+    mDeleted = false;
+    mDirectory = builder.mDirectory;
+    mLastModificationTimeMs = builder.mCreationTimeMs;
+    mId = builder.mId;
+    mLastModificationTimeMs = builder.mLastModificationTimeMs;
+    mName = builder.mName;
+    mPersisted = builder.mPersisted;
+    mParentId = builder.mParentId;
+    mPinned = builder.mPinned;
   }
 
   @Override
   public synchronized boolean equals(Object o) {
-    if (!(o instanceof Inode)) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof Inode)) {
       return false;
     }
-    return mId == ((Inode) o).mId;
+    Inode that = (Inode) o;
+    return mId == that.mId;
   }
 
   /**
@@ -139,14 +202,14 @@ public abstract class Inode implements JournalEntryRepresentable {
    * @return true if the inode is a directory, false otherwise
    */
   public boolean isDirectory() {
-    return mIsFolder;
+    return mDirectory;
   }
 
   /**
    * @return true if the inode is a file, false otherwise
    */
   public boolean isFile() {
-    return !mIsFolder;
+    return !mDirectory;
   }
 
   /**
@@ -164,10 +227,10 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Restores a deleted inode.
+   * Marks the inode as deleted
    */
-  public synchronized void restore() {
-    mDeleted = false;
+  public synchronized void setDeleted(boolean deleted) {
+    mDeleted = deleted;
   }
 
   /**
@@ -217,9 +280,12 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   @Override
   public synchronized String toString() {
-    return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
-        .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
-        .append(mCreationTimeMs).append(", PINNED:").append(mPinned).append("DELETED:")
+    return new StringBuilder("Inode(")
+        .append("ID:").append(mId)
+        .append(", NAME:").append(mName)
+        .append(", PARENT_ID:").append(mParentId)
+        .append(", CREATION_TIME_MS:").append(mCreationTimeMs)
+        .append(", PINNED:").append(mPinned).append("DELETED:")
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
         .append(")").toString();
   }

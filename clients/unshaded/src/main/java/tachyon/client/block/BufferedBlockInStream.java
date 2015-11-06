@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -62,7 +63,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @param blockSize size of the block in bytes
    * @param location worker address to read the block from
    */
-  // TODO: Get the block lock here when the remote instream locks at a stream level
+  // TODO(calvin): Get the block lock here when the remote instream locks at a stream level
   public BufferedBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
     mBlockId = blockId;
     mBlockSize = blockSize;
@@ -102,9 +103,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     checkIfClosed();
-    Preconditions.checkArgument(b != null, "Read buffer cannot be null");
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (remaining() == 0) { // End of block
@@ -141,9 +142,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     checkIfClosed();
-    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mBlockSize, "Seek position is past end of block: "
-        + mBlockSize);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
+    Preconditions.checkArgument(pos <= mBlockSize, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK,
+        mBlockSize);
     mBufferIsValid = false;
     mPos = pos;
   }
@@ -206,14 +207,15 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    */
   private ByteBuffer allocateBuffer() {
     TachyonConf conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
+    return ByteBuffer.allocate(
+        (int) conf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
   }
 
   /**
    * Convenience method to ensure the stream is not closed.
    */
   private void checkIfClosed() {
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
+    Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
   }
 
   /**

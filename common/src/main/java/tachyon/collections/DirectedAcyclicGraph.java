@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * A Directed Acyclic Graph (DAG). This class is NOT thread-safe.
  *
- * @param <T> the payload of each node.
+ * @param <T> the payload of each node
  */
 public class DirectedAcyclicGraph<T> {
   private final List<DirectedAcyclicGraphNode<T>> mRoots;
@@ -152,7 +152,7 @@ public class DirectedAcyclicGraph<T> {
 
   /**
    * Sorts a given set of payloads topologically based on the DAG. This method requires all the
-   * payloads to be in the DAG. TODO(yupeng): optimize this implementation
+   * payloads to be in the DAG.
    *
    * @param payloads the set of input payloads
    * @return the payloads after topogological sort

@@ -52,7 +52,7 @@ public final class StorageTierView {
   }
 
   /**
-   * @return a list of directory views in this storage tier view.
+   * @return a list of directory views in this storage tier view
    */
   public List<StorageDirView> getDirViews() {
     return Collections.unmodifiableList(mDirViews);
@@ -71,15 +71,15 @@ public final class StorageTierView {
   /**
    * @return the storage tier view alias
    */
-  public int getTierViewAlias() {
+  public String getTierViewAlias() {
     return mTier.getTierAlias();
   }
 
   /**
-   * @return the storage tier view level
+   * @return the ordinal value of the storage tier view
    */
-  public int getTierViewLevel() {
-    return mTier.getTierLevel();
+  public int getTierViewOrdinal() {
+    return mTier.getTierOrdinal();
   }
 
   /**

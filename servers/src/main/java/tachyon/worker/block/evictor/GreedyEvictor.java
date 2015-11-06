@@ -60,7 +60,7 @@ public final class GreedyEvictor implements Evictor {
     if (location.equals(BlockStoreLocation.anyTier())) {
       selectedDirView = selectEvictableDirFromAnyTier(view, availableBytes);
     } else {
-      int tierAlias = location.tierAlias();
+      String tierAlias = location.tierAlias();
       StorageTierView tierView = view.getTierView(tierAlias);
       if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
         selectedDirView = selectEvictableDirFromTier(tierView, availableBytes);
@@ -102,7 +102,7 @@ public final class GreedyEvictor implements Evictor {
     Map<StorageDirView, Long> pendingBytesInDir = new HashMap<StorageDirView, Long>();
     for (BlockMeta block : victimBlocks) {
       // TODO(qifan): Should avoid calling getParentDir.
-      int fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
+      String fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
       List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
       if (dstDir == null) {
@@ -112,8 +112,7 @@ public final class GreedyEvictor implements Evictor {
       } else {
         StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),
-            new BlockStoreLocation(dstTier.getTierViewAlias(), dstTier.getTierViewLevel(),
-                dstDir.getDirViewIndex())));
+            new BlockStoreLocation(dstTier.getTierViewAlias(), dstDir.getDirViewIndex())));
         if (pendingBytesInDir.containsKey(dstDir)) {
           pendingBytesInDir.put(dstDir, pendingBytesInDir.get(dstDir) + block.getBlockSize());
         } else {

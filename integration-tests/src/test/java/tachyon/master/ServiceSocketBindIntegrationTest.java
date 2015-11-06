@@ -20,8 +20,6 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -41,7 +39,6 @@ import tachyon.worker.WorkerClient;
  */
 public class ServiceSocketBindIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mWorkerTachyonConf = null;
   private TachyonConf mMasterTachyonConf = null;
 
@@ -54,16 +51,15 @@ public class ServiceSocketBindIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    mExecutorService.shutdown();
   }
 
   private void startCluster(String bindHost) throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    for (ServiceType service : ServiceType.values()) {
-      tachyonConf.set(service.getBindHostKey(), bindHost);
-    }
     mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
-    mLocalTachyonCluster.start();
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    for (ServiceType service : ServiceType.values()) {
+      testConf.set(service.getBindHostKey(), bindHost);
+    }
+    mLocalTachyonCluster.start(testConf);
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
@@ -72,7 +68,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master RPC service
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mMasterTachyonConf);
+            mLocalTachyonCluster.getMasterPort()), mMasterTachyonConf);
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -151,10 +147,14 @@ public class ServiceSocketBindIntegrationTest {
     // test Worker RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
+    // TODO(andrew) Add this test back when we drop support for Java 6 and can use
+    // InetSocketAddress.getHostString()
     // test Worker data socket bind (session layer)
-    bindHost = mLocalTachyonCluster.getWorker().getDataBindHost();
-    Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address", bindHost,
-        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    // bindHost = mLocalTachyonCluster.getWorker().getDataBindHost();
+    // Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address",
+    // bindHost,
+    // CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
 
@@ -205,7 +205,7 @@ public class ServiceSocketBindIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRPCAddr =
         new InetSocketAddress("127.0.0.1", mLocalTachyonCluster.getMaster().getRPCLocalPort());
-    mBlockMasterClient = new BlockMasterClient(masterRPCAddr, mExecutorService, mMasterTachyonConf);
+    mBlockMasterClient = new BlockMasterClient(masterRPCAddr, mMasterTachyonConf);
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");

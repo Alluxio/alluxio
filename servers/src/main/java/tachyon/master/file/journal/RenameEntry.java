@@ -15,45 +15,65 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for renaming a file.
+ * This class represents a journal entry for renaming a file or a directory.
  */
-public class RenameEntry implements JournalEntry {
-  public final long mFileId;
-  public final String mDstPath;
-  public final long mOpTimeMs;
+public class RenameEntry extends JournalEntry {
+  private final long mId;
+  private final String mDstPath;
+  private final long mOpTimeMs;
 
   /**
-   * Creates a new instance of <code>RenameEntry</code>.
+   * Creates a new instance of {@link RenameEntry}.
    *
-   * @param fileId the file id.
-   * @param dstPath the destination path.
-   * @param opTimeMs the operation timestamp (in millisecs).
+   * @param id the id
+   * @param dstPath the destination path
+   * @param opTimeMs the operation time (in milliseconds)
    */
-  public RenameEntry(long fileId, String dstPath, long opTimeMs) {
-    mFileId = fileId;
+  @JsonCreator
+  public RenameEntry(
+      @JsonProperty("id") long id,
+      @JsonProperty("destinationPath") String dstPath,
+      @JsonProperty("opTimeMs") long opTimeMs) {
+
+    mId = id;
     mDstPath = dstPath;
     mOpTimeMs = opTimeMs;
+  }
+
+  /**
+   * @return the id
+   */
+  @JsonGetter
+  public long getId() {
+    return mId;
+  }
+
+  /**
+   * @return the destination path
+   */
+  @JsonGetter
+  public String getDestinationPath() {
+    return mDstPath;
+  }
+
+  /**
+   * @return the operation time (in milliseconds)
+   */
+  @JsonGetter
+  public long getOpTimeMs() {
+    return mOpTimeMs;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.RENAME;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
-    parameters.put("fileId", mFileId);
-    parameters.put("destinationPath", mDstPath);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
   }
 }

@@ -49,7 +49,7 @@ public class Sessions {
   /**
    * Get the sessions that timed out.
    *
-   * @return the list of session ids of sessions that timed out.
+   * @return the list of session ids of sessions that timed out
    */
   public List<Long> getTimedOutSessions() {
     LOG.debug("Worker is checking all sessions' status for timeouts.");
@@ -67,7 +67,7 @@ public class Sessions {
   /**
    * Remove <code> sessionId </code> from session pool.
    *
-   * @param sessionId The session to be removed.
+   * @param sessionId the session to be removed
    */
   public synchronized void removeSession(long sessionId) {
     LOG.info("Cleaning up session " + sessionId);

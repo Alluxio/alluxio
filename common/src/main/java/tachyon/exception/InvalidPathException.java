@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class InvalidPathException extends TachyonException {
+  private static final long serialVersionUID = 880152286891141665L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.INVALID_PATH;
 
   public InvalidPathException(String message) {

@@ -3,6 +3,8 @@
 *.pyc
 *.swo
 *.swp
+*~
+\#*#
 .DS_STORE
 .checkstyle
 .classpath
@@ -28,6 +30,7 @@
 /docs/serve/
 /journal/
 /logs/
+/underFSStorage/
 dependency-reduced-pom.xml
 target/
 tests.log*

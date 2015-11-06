@@ -41,11 +41,17 @@ public class OutStreamOptionsTest {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+
     OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
-            .setHostname(hostname).setTachyonStorageType(tachyonType).setTTL(ttl)
-            .setUnderStorageType(ufsType).build();
-    Assert.assertEquals(blockSize, options.getBlockSize());
+        new OutStreamOptions.Builder(new TachyonConf())
+            .setBlockSizeBytes(blockSize)
+            .setHostname(hostname)
+            .setTachyonStorageType(tachyonType)
+            .setTTL(ttl)
+            .setUnderStorageType(ufsType)
+            .build();
+
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(hostname, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(ttl, options.getTTL());
@@ -57,12 +63,14 @@ public class OutStreamOptionsTest {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, "64MB");
-    conf.set(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, tachyonType.toString());
-    conf.set(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, ufsType.toString());
+    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+    conf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, tachyonType.toString());
+    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+
     OutStreamOptions options = OutStreamOptions.defaults();
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
+
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(null, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());

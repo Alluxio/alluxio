@@ -16,18 +16,14 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class RenameOptions {
   public static class Builder {
     /**
      * Creates a new builder for {@link RenameOptions}.
-     *
-     * @param conf a Tachyon configuration
      */
-    public Builder(TachyonConf conf) {}
+    public Builder() {}
 
     /**
      * Builds a new instance of {@code RenameOptions}.
@@ -43,7 +39,7 @@ public final class RenameOptions {
    * @return the default {@code RenameOptions}
    */
   public static RenameOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private RenameOptions(RenameOptions.Builder builder) {}

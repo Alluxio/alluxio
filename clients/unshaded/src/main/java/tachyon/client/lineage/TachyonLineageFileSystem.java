@@ -17,15 +17,12 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 
@@ -35,8 +32,6 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public class TachyonLineageFileSystem extends TachyonFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private static TachyonLineageFileSystem sTachyonFileSystem;
   private LineageContext mContext;
 
@@ -66,7 +61,8 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
-          masterClient.reintializeFile(path.getPath(), options.getBlockSize(), options.getTTL());
+          masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
+              options.getTTL());
       return fileId;
     } catch (TachyonException e) {
       TachyonException.unwrap(e, LineageDoesNotExistException.class);
@@ -94,5 +90,18 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
       return new DummyFileOutputStream(fileId, options);
     }
     return new LineageFileOutStream(fileId, options);
+  }
+
+  public void reportLostFile(TachyonURI path) throws IOException, FileDoesNotExistException,
+      TachyonException {
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.reportLostFile(path.getPath());
+    } catch (TachyonException e) {
+      TachyonException.unwrap(e, FileDoesNotExistException.class);
+      throw e;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 }

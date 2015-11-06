@@ -66,7 +66,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       tConf = new Configuration();
     }
     prepareConfiguration(fsDefaultName, tachyonConf, tConf);
-    tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HADOOP_CONFIGURATION)));
+    tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 
     Path path = new Path(mUfsPrefix);
@@ -76,6 +76,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       LOG.error("Exception thrown when trying to get FileSystem for " + mUfsPrefix, e);
       throw Throwables.propagate(e);
     }
+  }
+
+  @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.HDFS;
   }
 
   /**
@@ -106,7 +111,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     config.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
-    HdfsUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
+    HdfsUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HDFS_CONFIGURATION);
   }
 
   @Override

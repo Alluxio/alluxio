@@ -28,24 +28,27 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFS;
+import tachyon.client.ClientContext;
+import tachyon.client.FileSystemMasterClient;
+import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests for TFS
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TachyonFS.class, UserGroupInformation.class})
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
 public class TFSTest {
   private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
 
@@ -93,15 +96,16 @@ public class TFSTest {
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
     mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.USE_ZOOKEEPER, "true");
-    mockTachyonFSGet();
+    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "true");
+    ClientContext.reset(mTachyonConf);
+    mockMasterClient();
 
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFSFT);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get(mTachyonConf);
+    TachyonFileSystem.TachyonFileSystemFactory.get();
   }
 
   @Test
@@ -116,15 +120,16 @@ public class TFSTest {
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
     mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.USE_ZOOKEEPER, "false");
-    mockTachyonFSGet();
+    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "false");
+    ClientContext.reset(mTachyonConf);
+    mockMasterClient();
 
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFS);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get(mTachyonConf);
+    TachyonFileSystem.TachyonFileSystemFactory.get();
   }
 
   private boolean isHadoop1x() {
@@ -135,17 +140,19 @@ public class TFSTest {
     return getHadoopVersion().startsWith("2");
   }
 
-  private void mockTachyonFSGet() throws IOException {
-    PowerMockito.mockStatic(TachyonFS.class);
-    TachyonFS tachyonFS = Mockito.mock(TachyonFS.class);
-    Mockito.when(TachyonFS.get(Matchers.eq(mTachyonConf))).thenReturn(tachyonFS);
+  private void mockMasterClient() {
+    PowerMockito.mockStatic(FileSystemContext.class);
+    FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
+    FileSystemMasterClient mockMaster = PowerMockito.mock(FileSystemMasterClient.class);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
+    Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
   }
 
   private void mockUserGroupInformation() throws IOException {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     PowerMockito.mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
-    Mockito.when(ugi.getCurrentUser()).thenReturn(ugi);
+    Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
   }
 
   @Before

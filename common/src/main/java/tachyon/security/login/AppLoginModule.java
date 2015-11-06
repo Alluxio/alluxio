@@ -45,12 +45,12 @@ public final class AppLoginModule implements LoginModule {
   /**
    * Retrieves the user name by querying the property of Constants.SECURITY_LOGIN_USERNAME.
    *
-   * @return true if user name provided by application is set and not empty.
+   * @return true if user name provided by application is set and not empty
    * @throws javax.security.auth.login.LoginException
    */
   @Override
   public boolean login() throws LoginException {
-    // TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    // TODO(qifan): after TachyonConf is refactored into Singleton, we will use TachyonConf
     // instead of System.getProperty for retrieving user name.
     String userName = System.getProperty(Constants.SECURITY_LOGIN_USERNAME, "");
     if (!userName.isEmpty()) {
@@ -85,8 +85,8 @@ public final class AppLoginModule implements LoginModule {
    * implementation first checks if there is already Tachyon user in the subject. If not, it adds
    * the previously logged in Tachyon user into the subject.
    *
-   * @return true if a Tachyon user if found or created.
-   * @throws LoginException not Tachyon user is found or created.
+   * @return true if a Tachyon user if found or created
+   * @throws LoginException not Tachyon user is found or created
    */
   @Override
   public boolean commit() throws LoginException {

@@ -1,78 +1,162 @@
 ---
 layout: global
 title: Running Tachyon on EC2
-nickname: EC2
-group: Deployment
-priority: 1
+nickname: Tachyon on EC2
+group: User Guide
+priority: 3
 ---
 
-Tachyon can be launched on EC2 using the [Spark EC2
-scripts](https://github.com/mesos/spark/wiki/EC2-Scripts) that come with Spark. These scripts let
-you launch, pause and destroy clusters that come automatically configured with HDFS, Spark, Apache
-Mesos, Shark, and Tachyon.
+Tachyon can be deployed on Amazon EC2 using the
+[Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
+Tachyon. The scripts let you create, configure, and destroy clusters that come automatically
+configured with HDFS.
 
-# Launching a Cluster
+# Prerequisites
+
+**Install Vagrant and the AWS plugins**
+
+Download [Vagrant](https://www.vagrantup.com/downloads.html)
+
+Install AWS Vagrant plugin:
+
+```bash
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
+
+**Install Tachyon**
+
+Download Tachyon to your local machine, and unzip it:
+
+```bash
+$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```
+
+**Install python library dependencies**
+
+Install [python>=2.7](https://www.python.org/), not python3.
+
+Under `deploy/vagrant` directory in your home directory, run:
+
+```bash
+$ sudo bash bin/install.sh
+```
+
+Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
+in `deploy/vagrant` run:
+
+```bash
+$ sudo pip install -r pip-req.txt
+```
+
+# Launch a Cluster
 
 To run a Tachyon cluster on EC2, first sign up for an Amazon EC2 account
-on the [Amazon Web Services site](http://aws.amazon.com/). Then,
-download Spark to your local machine:
+on the [Amazon Web Services site](http://aws.amazon.com/).
 
-    $ wget https://github.com/downloads/mesos/spark/spark-0.6.0-sources.tar.gz
-    $ tar xvfz spark-0.6.0-sources.tar.gz
+Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
+variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-The `ec2` directory contains the scripts to set up a cluster. Detailed instructions are available in
-the [Spark EC2 guide](https://github.com/mesos/spark/wiki/EC2-Scripts). In a nutshell, you will need
-to do:
+```bash
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
-    $ spark-0.6.0/ec2/spark-ec2 -a ami-691d9100 -k <keypair-name> -i <key-file> -s <num-workers> launch <cluster-name>
+Next generate your EC2
+[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
+the permissions of your private key file that only you can read it:
 
-Where `<keypair>` is the name of your EC2 key pair (that you gave it
-when you created it), `<key-file>` is the private key file for your key
-pair, `<num-workers>` is the number of worker nodes to launch (try 1 at
-first), and `<cluster-name>` is the name to give to your cluster. This
-creates a cluster on EC2 using a pre-built machine image that has
-Tachyon, Spark, and Shark.
+```bash
+$ chmod 400 <your key pair>.pem
+```
 
-Login to the master using `spark-ec2 login`:
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 
-    $ ./spark-ec2 -k key -i key.pem login <cluster-name>
+```bash
+$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```
 
-Then, config Tachyon in `tachyon` folder
+In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
+name and `Key_Path` to the path to the pem key.
 
-    $ cd /root/tachyon/conf
-    $ cp tachyon-env.sh.template tachyon-env.sh
+By default, the Vagrant script creates a
+[Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
+named *tachyon-vagrant-test* at
+[Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+The security group will be set up automatically in the region with all inbound/outbound network
+traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`.
 
-Add the line `TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT` to the `tachyon-env.sh` file.
+Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
+the script under `deploy/vagrant`:
 
-Add each of the worker nodes' IP addresses to the `workers` file and sync the configuration to all nodes.
+```bash
+$ ./create <number of machines> aws
+```
 
-    $ cd /root/tachyon/conf
-    $ /root/mesos-ec2/copy-dir .
+Each node of the cluster runs a Tachyon worker, and the `TachyonMaster` runs the Tachyon master.
 
-Add the following lines to `/root/spark/conf/spark-env.sh`:
+# Access the cluster
 
-    export SPARK_CLASSPATH+=/root/tachyon/target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar
-    SPARK_JAVA_OPTS+=" -Dtachyon.hdfs.address=hdfs://HDFS_HOSTNAME:HDFS_PORT -Dspark.default.parallelism=1 "
-    export SPARK_JAVA_OPTS
+**Access through Web UI**
 
-Add the following lines to `hdfs-site.xml`:
+After the command `./create <number of machines> aws` succeeds, you can see two green lines like
+below shown at the end of the shell output:
 
-    <property>
-      <name>fs.tachyon.impl</name>
-      <value>tachyon.hadoop.TachyonFileSystem</value>
-      <description></description>
-    </property>
+    >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
+    >>> visit default port of the web UI of what you deployed <<<
 
-Sync Spark's new configuration to all nodes:
+Default port for Tachyon Web UI is **19999**.
 
-    $ cd /root/spark/conf
-    $ /root/mesos-ec2/copy-dir .
+Default port for Hadoop Web UI is **50070**.
 
-Put some file X into HDFS and run the Spark shell:
+Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
-    $ ./spark-shell
-    $ val s = sc.textFile("tachyon://tachyon_master_host:9999/X")
-    $ s.count()
+You can also monitor the instances state through
+[AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1).
 
-Take a look at `MasterMachineHostName:9998`. There should be a dataset info there. Tachyon will have
-loaded `hdfs://HDFS_HOSTNAME:HDFS_PORT/X` into the system.
+**Access with ssh**
+
+The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2` and so on.
+
+To ssh into a node, run:
+
+```bash
+$ vagrant ssh <node name>
+```
+
+For example, you can ssh into `TachyonMaster` with:
+
+```bash
+$ vagrant ssh TachyonMaster
+```
+
+All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
+and Hadoop is installed in `/hadoop`.
+
+On the `TachyonMaster` node, you can run tests against Tachyon to check its health:
+
+```bash
+$ /tachyon/bin/tachyon runTests
+```
+
+After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
+File System` in the navigation bar, and you should see the files written to Tachyon by the above
+tests.
+
+From a node in the cluster, you can ssh to other nodes in the cluster without password with:
+
+```bash
+$ ssh TachyonWorker1
+```
+
+# Destroy the cluster
+
+Under `deploy/vagrant` directory, you can run:
+
+```bash
+$ ./destroy
+```
+
+to destroy the cluster that you created. Only one cluster can be created at a time. After the
+command succeeds, the EC2 instances are terminated.

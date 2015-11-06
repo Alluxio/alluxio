@@ -1,3 +1,6 @@
 #!/bin/bash
 
-sed -i "s/^export TACHYON_UNDERFS_ADDRESS=.*/export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/\$\{TACHYON_MASTER_ADDRESS\}:9000/g" /tachyon/conf/tachyon-env.sh
+# The last node in /tachyon/conf/workers is the master for under filesystem,
+# this is guaranteed by generation process of /tachyon/conf/workers in script vagrant/create.
+UFS_MASTER=$(tail -n1 /tachyon/conf/workers)
+sed -i "s/^export TACHYON_UNDERFS_ADDRESS=.*/export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/${UFS_MASTER}:9000/g" /tachyon/conf/tachyon-env.sh

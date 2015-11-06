@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,6 +41,7 @@ public class DataFileChannelTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  private FileInputStream mInputStream = null;
   private FileChannel mChannel = null;
 
   @Before
@@ -52,8 +54,13 @@ public class DataFileChannelTest {
     os.write(BufferUtils.getIncreasingByteArray(OFFSET + LENGTH));
     os.close();
 
-    FileInputStream is = new FileInputStream(f);
-    mChannel = is.getChannel();
+    mInputStream = new FileInputStream(f);
+    mChannel = mInputStream.getChannel();
+  }
+
+  @After
+  public final void after() throws IOException {
+    mInputStream.close();
   }
 
   @Test

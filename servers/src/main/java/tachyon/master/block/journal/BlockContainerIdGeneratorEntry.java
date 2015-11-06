@@ -15,24 +15,35 @@
 
 package tachyon.master.block.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * The {@link JournalEntry} representing the state of the block container id generator for the block
- * master.
+ * This class represents a journal entry for block container id generator.
  */
-public class BlockContainerIdGeneratorEntry implements JournalEntry {
+public class BlockContainerIdGeneratorEntry extends JournalEntry {
   private final long mNextContainerId;
 
-  public BlockContainerIdGeneratorEntry(long nextContainerId) {
+  /**
+   * Creates a new instance of {@link BlockContainerIdGeneratorEntry}.
+   *
+   * @param nextContainerId the next container id
+   */
+  @JsonCreator
+  public BlockContainerIdGeneratorEntry(
+      @JsonProperty("nextContainerId") long nextContainerId) {
     mNextContainerId = nextContainerId;
   }
 
+  /**
+   * @return the next container id
+   */
+  @JsonGetter
   public long getNextContainerId() {
     return mNextContainerId;
   }
@@ -43,9 +54,20 @@ public class BlockContainerIdGeneratorEntry implements JournalEntry {
   }
 
   @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("nextContainerId", mNextContainerId);
-    return parameters;
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || !(o instanceof BlockContainerIdGeneratorEntry)) {
+      return false;
+    }
+    BlockContainerIdGeneratorEntry that = (BlockContainerIdGeneratorEntry) o;
+    return Objects.equal(mNextContainerId, that.mNextContainerId);
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mNextContainerId);
+  }
+
 }

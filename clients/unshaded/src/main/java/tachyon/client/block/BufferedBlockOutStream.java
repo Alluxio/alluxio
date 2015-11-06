@@ -25,6 +25,7 @@ import tachyon.Constants;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -70,7 +71,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   @Override
   public void write(int b) throws IOException {
     checkIfClosed();
-    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, "Out of capacity.");
+    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, PreconditionMessage.ERR_END_OF_BLOCK);
     if (mBuffer.position() >= mBuffer.limit()) {
       flush();
     }
@@ -85,11 +86,6 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-    Preconditions.checkState(mWrittenBytes + len <= mBlockSize, "Out of capacity.");
     if (len == 0) {
       return;
     }
@@ -119,7 +115,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * Convenience method for checking the state of the stream.
    */
   protected void checkIfClosed() {
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockOutStream.");
+    Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM);
   }
 
   /**
@@ -134,7 +130,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   protected abstract void unBufferedWrite(byte[] b, int off, int len) throws IOException;
 
   /**
-   * @return a newly allocated byte buffer of the user defined default size.
+   * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuffer allocateBuffer() {
     TachyonConf conf = ClientContext.getConf();

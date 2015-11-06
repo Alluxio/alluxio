@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStore;
@@ -53,7 +54,16 @@ public class RecomputePlanner {
       LOG.info("report lost files " + lostFiles);
       // report lost files
       for (long lostFile : lostFiles) {
-        Lineage lineage = mLineageStore.reportLostFile(lostFile);
+        if (!mLineageStore.hasOutputFile(lostFile)) {
+          continue;
+        }
+
+        Lineage lineage;
+        try {
+          lineage = mLineageStore.reportLostFile(lostFile);
+        } catch (LineageDoesNotExistException e) {
+          throw new IllegalStateException(e); // should not happen
+        }
         if (!lineage.isPersisted()) {
           toRecompute.add(lineage);
         }
@@ -61,7 +71,6 @@ public class RecomputePlanner {
     }
 
     List<Lineage> toRecomputeAfterSort = mLineageStore.sortLineageTopologically(toRecompute);
-    RecomputePlan plan = new RecomputePlan(toRecomputeAfterSort);
-    return plan;
+    return new RecomputePlan(toRecomputeAfterSort);
   }
 }

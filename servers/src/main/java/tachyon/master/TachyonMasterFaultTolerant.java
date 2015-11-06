@@ -47,7 +47,7 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
   public TachyonMasterFaultTolerant() {
     super();
     TachyonConf conf = MasterContext.getConf();
-    Preconditions.checkArgument(conf.getBoolean(Constants.USE_ZOOKEEPER));
+    Preconditions.checkArgument(conf.getBoolean(Constants.ZOOKEEPER_ENABLED));
 
     // Set up zookeeper specific functionality.
     try {

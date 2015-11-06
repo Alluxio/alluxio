@@ -38,6 +38,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -79,12 +80,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private volatile boolean mApplicationDone;
 
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
-    mMasterCpu = mTachyonConf.getInt(Constants.MASTER_RESOURCE_CPU);
-    mMasterMemInMB = (int) mTachyonConf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
-    mWorkerCpu = mTachyonConf.getInt(Constants.WORKER_RESOURCE_CPU);
+    mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+    mMasterMemInMB =
+        (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+    mWorkerCpu = mTachyonConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
-    mWorkerMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
+    mWorkerMemInMB =
+        (int) mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
     // memory for running ramdisk
     mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
     mNumWorkers = numWorkers;
@@ -99,6 +102,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
+    Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
+    Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
       LOG.info("Starting Application Master with args " + Arrays.toString(args));
       final int numWorkers = Integer.valueOf(args[0]);
@@ -176,8 +181,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     String[] nodes = {mMasterAddress};
 
     // Make container request for Tachyon master to ResourceManager
+    boolean relaxLocality = true;
+    if (!mMasterAddress.equals("localhost")) {
+      relaxLocality = false;
+    }
     ContainerRequest masterContainerAsk =
-        new ContainerRequest(masterResource, nodes, null /* any racks */, priority);
+        new ContainerRequest(masterResource, nodes, null /* any racks */, priority, relaxLocality);
     LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
         masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);
@@ -195,7 +204,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
       ContainerRequest containerAsk =
-          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
+          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
+              priority);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes",
           i, workerResource.getVirtualCores(), workerResource.getMemory());
       mRMClient.addContainerRequest(containerAsk);

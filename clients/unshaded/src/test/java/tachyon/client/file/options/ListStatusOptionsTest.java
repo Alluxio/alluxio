@@ -17,16 +17,14 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class ListStatusOptionsTest {
   @Test
   public void builderTest() {
-    new ListStatusOptions.Builder(new TachyonConf()).build();
+    new ListStatusOptions.Builder().build();
   }
 
   @Test
   public void defaultsTest() {
-    ListStatusOptions options = ListStatusOptions.defaults();
+    ListStatusOptions.defaults();
   }
 }

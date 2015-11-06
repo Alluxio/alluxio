@@ -16,8 +16,6 @@
 package tachyon.client.block;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +24,6 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 import tachyon.thrift.NetAddress;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -40,7 +37,6 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.
    */
-  private final ExecutorService mExecutorService;
   private final NetAddress mWorkerNetAddress;
 
   /**
@@ -49,16 +45,13 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * @param workerAddress the worker address
    */
   public BlockWorkerClientPool(NetAddress workerAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS));
-    mExecutorService = Executors.newFixedThreadPool(mMaxCapacity, ThreadFactoryUtils.build(
-        "block-worker-heartbeat-%d", true));
+    super(ClientContext.getConf().getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS));
     mWorkerNetAddress = workerAddress;
   }
 
   @Override
   public void close() {
     // TODO(calvin): Consider collecting all the clients and shutting them down.
-    mExecutorService.shutdown();
   }
 
   @Override
@@ -76,7 +69,7 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   @Override
   protected WorkerClient createNewResource() {
     long clientId = ClientContext.getRandomNonNegativeLong();
-    return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-        clientId, true, ClientContext.getClientMetrics());
+    return new WorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
+        ClientContext.getConf(), clientId, true, ClientContext.getClientMetrics());
   }
 }

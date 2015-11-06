@@ -24,6 +24,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 
 import tachyon.Constants;
+import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
 import tachyon.network.protocol.RPCMessage;
@@ -39,9 +40,9 @@ public final class NettyClient {
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
-  private static final TachyonConf TACHYON_CONF = new TachyonConf();
+  private static final TachyonConf TACHYON_CONF = ClientContext.getConf();
   private static final ChannelType CHANNEL_TYPE =
-      TACHYON_CONF.getEnum(Constants.USER_NETTY_CHANNEL, ChannelType.class);
+      TACHYON_CONF.getEnum(Constants.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
       .getClientChannelClass(CHANNEL_TYPE);
   /**
@@ -50,11 +51,12 @@ public final class NettyClient {
    * 2) threads by default.
    */
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
-      TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS), "netty-client-worker-%d", true);
+      TACHYON_CONF.getInt(Constants.USER_NETWORK_NETTY_WORKER_THREADS), "netty-client-worker-%d",
+      true);
 
   /** The maximum number of milliseconds to wait for a response from the server. */
   public static final long TIMEOUT_MS =
-      TACHYON_CONF.getInt(Constants.USER_NETTY_TIMEOUT_MS);
+      TACHYON_CONF.getInt(Constants.USER_NETWORK_NETTY_TIMEOUT_MS);
 
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.

@@ -24,7 +24,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
     //
     // idx | tier1 | tier2 | tier3
@@ -35,7 +35,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, 2, 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, "SSD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -45,7 +45,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, 2, 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, "SSD", 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -55,7 +55,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, 1, 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "MEM", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700   <--- alloc
@@ -65,7 +65,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, 2, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, "SSD", 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700

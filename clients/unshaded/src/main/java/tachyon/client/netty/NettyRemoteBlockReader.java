@@ -29,6 +29,7 @@ import io.netty.channel.ChannelFuture;
 
 import tachyon.Constants;
 import tachyon.client.RemoteBlockReader;
+import tachyon.exception.ExceptionMessage;
 import tachyon.network.protocol.RPCBlockReadRequest;
 import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCErrorResponse;
@@ -89,8 +90,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
           RPCErrorResponse error = (RPCErrorResponse) response;
           throw new IOException(error.getStatus().getMessage());
         default:
-          throw new IOException("Unexpected response message type: " + response.getType()
-              + " (expected: " + RPCMessage.Type.RPC_BLOCK_READ_RESPONSE + ")");
+          throw new IOException(ExceptionMessage.UNEXPECTED_RPC_RESPONSE
+              .getMessage(response.getType(), RPCMessage.Type.RPC_BLOCK_READ_RESPONSE));
       }
     } catch (Exception e) {
       throw new IOException(e);

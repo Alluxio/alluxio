@@ -44,7 +44,6 @@ import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerContext;
 
 /**
  * Integration tests for <code>tachyon.client.FileOutStream</code>.
@@ -59,13 +58,12 @@ public final class FileOutStreamIntegrationTest {
   private static final int QUOTA_UNIT_BYTES = 128;
   private static final int BLOCK_SIZE_BYTES = 128;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static OutStreamOptions sWriteBoth;
-  private static OutStreamOptions sWriteTachyon;
-  private static OutStreamOptions sWriteUnderStore;
-  private static OutStreamOptions sWriteLocal;
-
+  private OutStreamOptions mWriteBoth;
+  private OutStreamOptions mWriteTachyon;
+  private OutStreamOptions mWriteUnderStore;
+  private OutStreamOptions mWriteLocal;
+  private TachyonConf mTestConf;
   private TachyonFileSystem mTfs = null;
-  private TachyonConf mMasterTachyonConf;
 
   @After
   public final void after() throws Exception {
@@ -74,30 +72,36 @@ public final class FileOutStreamIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
+    mTestConf = sLocalTachyonCluster.newTestConf();
+    mTestConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
     // Only the Netty data server supports remote writes.
-    tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
-    sLocalTachyonCluster.start();
+    mTestConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+    mWriteBoth =
+        new OutStreamOptions.Builder(mTestConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .build();
+    mWriteTachyon =
+        new OutStreamOptions.Builder(mTestConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .build();
+    mWriteUnderStore =
+        new OutStreamOptions.Builder(mTestConf)
+            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .build();
+    mWriteLocal =
+        new OutStreamOptions.Builder(mTestConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
+            .setHostname(NetworkAddressUtils.getLocalHostName(mTestConf)).build();
+    sLocalTachyonCluster.start(mTestConf);
     mTfs = sLocalTachyonCluster.getClient();
-    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteTachyon = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteUnderStore = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.NO_STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteLocal = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
-        .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
   }
 
   @BeforeClass
-  public static final void beforeClass() throws IOException {
+  public static void beforeClass() throws IOException {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
   }
@@ -118,7 +122,7 @@ public final class FileOutStreamIntegrationTest {
       FileInfo info = mTfs.getInfo(file);
       Assert.assertEquals(fileLen, info.getLength());
       InStreamOptions op2 =
-          new InStreamOptions.Builder(mMasterTachyonConf).setTachyonStorageType(
+          new InStreamOptions.Builder(mTestConf).setTachyonStorageType(
               op.getTachyonStorageType()).build();
       FileInStream is = mTfs.getInStream(file, op2);
       byte[] res = new byte[(int) info.getLength()];
@@ -131,7 +135,7 @@ public final class FileOutStreamIntegrationTest {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       String checkpointPath = info.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTestConf);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) info.getLength()];
@@ -154,13 +158,13 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest1Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
-      TachyonException {
+  private void writeTest1Util(TachyonURI filePath, int len, OutStreamOptions op)
+      throws IOException, TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
@@ -177,13 +181,13 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
-      TachyonException {
+  private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op)
+      throws IOException, TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
@@ -198,13 +202,13 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
+        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op.hashCode()), k, op);
       }
     }
   }
 
-  private void writeTest3Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
-      TachyonException {
+  private void writeTest3Util(TachyonURI filePath, int len, OutStreamOptions op)
+      throws IOException, TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
@@ -215,17 +219,17 @@ public final class FileOutStreamIntegrationTest {
   /**
    * Test writing to a file and specify the location to be localhost.
    *
-   * @throws IOException if file can not be opened successfully.
+   * @throws IOException if file can not be opened successfully
    */
   @Test
   public void writeSpecifyLocalTest() throws IOException, TachyonException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteLocal);
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, sWriteLocal.getUnderStorageType(), length, length);
+    checkWrite(filePath, mWriteLocal.getUnderStorageType(), length, length);
   }
 
   /**
@@ -236,16 +240,16 @@ public final class FileOutStreamIntegrationTest {
    * @throws InterruptedException
    */
   @Test
-  public void longWriteChangesSessionId() throws IOException, InterruptedException,
+  public void longWriteTest() throws IOException, InterruptedException,
       TachyonException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
-    FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteUnderStore);
     os.write((byte) 0);
-    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
+    Thread.sleep(mTestConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, sWriteUnderStore.getUnderStorageType(), length, length);
+    checkWrite(filePath, mWriteUnderStore.getUnderStorageType(), length, length);
   }
 
   /**
@@ -258,7 +262,7 @@ public final class FileOutStreamIntegrationTest {
   @Test
   public void outOfOrderWriteTest() throws IOException, TachyonException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    FileOutStream os = mTfs.getOutStream(filePath, sWriteTachyon);
+    FileOutStream os = mTfs.getOutStream(filePath, mWriteTachyon);
 
     // Write something small, so it is written into the buffer, and not directly to the file.
     os.write((byte) 0);
@@ -270,14 +274,14 @@ public final class FileOutStreamIntegrationTest {
     os.write(BufferUtils.getIncreasingByteArray(1, length));
     os.close();
 
-    checkWrite(filePath, sWriteTachyon.getUnderStorageType(), length + 1, length + 1);
+    checkWrite(filePath, mWriteTachyon.getUnderStorageType(), length + 1, length + 1);
   }
 
   private List<OutStreamOptions> getOptionSet() {
     List<OutStreamOptions> ret = new ArrayList<OutStreamOptions>(3);
-    ret.add(sWriteBoth);
-    ret.add(sWriteTachyon);
-    ret.add(sWriteUnderStore);
+    ret.add(mWriteBoth);
+    ret.add(mWriteTachyon);
+    ret.add(mWriteUnderStore);
     return ret;
   }
 }

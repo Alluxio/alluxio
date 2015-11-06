@@ -175,7 +175,7 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   public DFSIOIntegrationTest() {
-    this.mConfig = new Configuration();
+    mConfig = new Configuration();
   }
 
   private static String getBaseDir(Configuration conf) {
@@ -596,7 +596,7 @@ public class DFSIOIntegrationTest implements Tool {
     // IOMapperBase
     public Closeable getIOStream(String name) throws IOException {
       Path filePath = new Path(getDataDir(getConf()), name);
-      this.mFileSize = mFS.getFileStatus(filePath).getLen();
+      mFileSize = mFS.getFileStatus(filePath).getLen();
       InputStream in = mFS.open(filePath);
       if (mCompressionCodec != null) {
         in = new FSDataInputStream(mCompressionCodec.createInputStream(in));
@@ -674,6 +674,7 @@ public class DFSIOIntegrationTest implements Tool {
     for (int i = 0; i < nrFiles; i ++) {
       ioer.doIO(Reporter.NULL, BASE_FILE_NAME + Integer.toString(i), fileSize);
     }
+    ioer.close();
   }
 
   public static void main(String[] args) {
@@ -827,7 +828,7 @@ public class DFSIOIntegrationTest implements Tool {
   @Override
   // Configurable
   public void setConf(Configuration conf) {
-    this.mConfig = conf;
+    mConfig = conf;
   }
 
   /**

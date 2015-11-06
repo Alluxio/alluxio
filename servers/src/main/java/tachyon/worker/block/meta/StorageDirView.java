@@ -143,7 +143,7 @@ public final class StorageDirView {
    * @param sessionId of the owning session
    * @param blockId of the new block
    * @param initialBlockSize of the new block
-   * @return a new TempBlockMeta under the underlying directory.
+   * @return a new TempBlockMeta under the underlying directory
    */
   public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
     return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);

@@ -41,6 +41,11 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.GLUSTERFS;
+  }
+
+  @Override
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
     if (path.startsWith(SCHEME)) {
       // Configure for Gluster FS

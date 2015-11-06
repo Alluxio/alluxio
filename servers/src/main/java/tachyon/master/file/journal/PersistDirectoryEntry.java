@@ -15,40 +15,40 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class PersistDirectoryEntry implements JournalEntry {
-  protected final long mId;
-  protected final boolean mPersisted;
+/**
+ * This class represents a journal entry for persisting a directory.
+ */
+public final class PersistDirectoryEntry extends JournalEntry {
+  private final long mId;
 
-  public PersistDirectoryEntry(long id, boolean persisted) {
+  /**
+   * Creates a new instance of {@link PersistDirectoryEntry}.
+   *
+   * @param id the id
+   */
+  @JsonCreator
+  public PersistDirectoryEntry(
+      @JsonProperty("id") long id) {
     mId = id;
-    mPersisted = persisted;
   }
 
+  /**
+   * @return the id
+   */
+  @JsonGetter
   public long getId() {
     return mId;
-  }
-
-  public boolean isPersisted() {
-    return mPersisted;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.INODE_PERSISTED;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("id", mId);
-    parameters.put("persisted", mPersisted);
-    return parameters;
   }
 }

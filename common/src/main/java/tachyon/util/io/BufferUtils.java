@@ -283,8 +283,11 @@ public final class BufferUtils {
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     FileOutputStream os = new FileOutputStream(path);
-    os.write(buffer);
-    os.close();
+    try {
+      os.write(buffer);
+    } finally {
+      os.close();
+    }
   }
 
   /**
@@ -296,7 +299,7 @@ public final class BufferUtils {
    */
   public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {
-    // TODO: make the buffer size configurable
+    // TODO(yupeng): make the buffer size configurable
     final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
 
     while (src.read(buffer) != -1) {

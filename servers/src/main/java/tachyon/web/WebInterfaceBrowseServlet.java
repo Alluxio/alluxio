@@ -64,9 +64,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   /**
    * This function displays 5KB of a file from a specific offset if it is in ASCII format.
    *
-   * @param path The path of the file to display
-   * @param request The HttpServletRequest object
-   * @param offset Where the file starts to display.
+   * @param path the path of the file to display
+   * @param request the HttpServletRequest object
+   * @param offset where the file starts to display
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
@@ -76,9 +76,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     TachyonFileSystem tFS = TachyonFileSystemFactory.get();
     TachyonFile tFile = tFS.open(path);
     String fileData = null;
-    if (tFile == null) {
-      throw new FileDoesNotExistException(path.toString());
-    }
     FileInfo fileInfo = tFS.getInfo(tFile);
     if (fileInfo.isCompleted) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
@@ -116,6 +113,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
+    request.setAttribute("highestTierAlias", mMaster.getBlockMaster().getGlobalStorageTierAssoc()
+        .getAlias(0));
   }
 
   /**
@@ -123,8 +122,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * will be displayed in an error field. Debugging can be enabled to display additional data. Will
    * eventually redirect the request to a jsp.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * @param request the HttpServletRequest object
+   * @param response the HttpServletResponse object
    * @throws ServletException
    * @throws IOException
    */
@@ -270,8 +269,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   /**
    * This function sets the fileinfos for folders that are in the path to the current directory.
    *
-   * @param path The path of the current directory.
-   * @param request The HttpServletRequest object
+   * @param path the path of the current directory
+   * @param request the HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */

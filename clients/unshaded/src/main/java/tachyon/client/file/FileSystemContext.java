@@ -21,7 +21,7 @@ import tachyon.client.block.TachyonBlockStore;
 
 /**
  * A shared context in each client JVM for common File System client functionality such as a pool
- * of master clients.
+ * of master clients. This class is thread safe.
  */
 public enum FileSystemContext {
   INSTANCE;
@@ -43,7 +43,7 @@ public enum FileSystemContext {
    *
    * @return the acquired block master client
    */
-  public FileSystemMasterClient acquireMasterClient() {
+  public synchronized FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
   }
 
@@ -52,38 +52,24 @@ public enum FileSystemContext {
    *
    * @param masterClient a block master client to release
    */
-  public void releaseMasterClient(FileSystemMasterClient masterClient) {
+  public synchronized void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
   }
 
   /**
    * @return the Tachyon block store
    */
-  public TachyonBlockStore getTachyonBlockStore() {
+  public synchronized TachyonBlockStore getTachyonBlockStore() {
     return mTachyonBlockStore;
   }
 
   /**
-   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
-   * that implement ReinitializeAccess class.
+   * Re-initializes the Block Store context. This method should only be used in
+   * {@link ClientContext}.
    */
-  public class PrivateReinitializer {
-    /**
-     * Re-initializes the Block Store context. This method should only be used in
-     * {@link ClientContext}.
-     */
-    public void resetContext() {
-      mFileSystemMasterClientPool.close();
-      mFileSystemMasterClientPool =
-          new FileSystemMasterClientPool(ClientContext.getMasterAddress());
-    }
-  }
-
-  public interface ReinitializerAccesser {
-    void receiveAccess(PrivateReinitializer access);
-  }
-
-  public void accessReinitializer(ReinitializerAccesser accesser) {
-    accesser.receiveAccess(new PrivateReinitializer());
+  public synchronized void reset() {
+    mFileSystemMasterClientPool.close();
+    mFileSystemMasterClientPool =
+        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
   }
 }
