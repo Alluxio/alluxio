@@ -49,7 +49,6 @@ public class MkdirOptionsTest {
     conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
     ClientContext.reset(conf);
 
-
     MkdirOptions options = MkdirOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
