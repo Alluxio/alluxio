@@ -57,7 +57,7 @@ import tachyon.worker.lineage.LineageWorker;
  * localTachyonCluster.start(testConf);
  * </pre>
  */
-public final class LocalTachyonCluster {
+public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
@@ -75,8 +75,6 @@ public final class LocalTachyonCluster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockWorker mWorker = null;
   private LineageWorker mLineageWorker = null;
-  private long mWorkerCapacityBytes;
-  private int mUserBlockSize;
   private int mQuotaUnitBytes;
   private String mTachyonHome;
   private Thread mWorkerThread = null;
@@ -87,9 +85,8 @@ public final class LocalTachyonCluster {
   private TachyonConf mClientConf;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
-    mWorkerCapacityBytes = workerCapacityBytes;
+    super(workerCapacityBytes, userBlockSize);
     mQuotaUnitBytes = quotaUnitBytes;
-    mUserBlockSize = userBlockSize;
   }
 
   public TachyonFileSystem getClient() throws IOException {

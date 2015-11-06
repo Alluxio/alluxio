@@ -44,7 +44,7 @@ import tachyon.worker.lineage.LineageWorker;
 /**
  * A local Tachyon cluster with Multiple masters
  */
-public class LocalTachyonClusterMultiMaster {
+public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) throws Exception {
@@ -65,8 +65,6 @@ public class LocalTachyonClusterMultiMaster {
   private int mNumOfMasters = 0;
   private BlockWorker mWorker = null;
   private LineageWorker mLineageWorker = null;
-  private long mWorkerCapacityBytes;
-  private int mUserBlockSize;
 
   private String mTachyonHome;
   private String mWorkerDataFolder;
@@ -89,9 +87,8 @@ public class LocalTachyonClusterMultiMaster {
   private TachyonConf mWorkerConf;
 
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
+    super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
-    mWorkerCapacityBytes = workerCapacityBytes;
-    mUserBlockSize = userBlockSize;
 
     try {
       mCuratorServer = new TestingServer();
