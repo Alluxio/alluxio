@@ -60,8 +60,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected ByteBuffer mBuffer;
   /** Flag indicating if the stream is closed, can only go from false to true. */
   protected boolean mClosed;
-  /** Number of bytes already read */
-  protected long mReadBytes;
+  /** Flag indicating if the stream is read */
+  protected boolean mBlockIsRead;
 
   /**
    * Basic constructor for a BufferedBlockInStream. This sets the necessary variables and creates
@@ -100,7 +100,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       updateBuffer();
     }
     mPos ++;
-    mReadBytes ++;
+    mBlockIsRead = true;
     return BufferUtils.byteToInt(mBuffer.get());
   }
 
@@ -125,7 +125,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     if (mBufferIsValid && mBuffer.remaining() > toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
-      mReadBytes += toRead;
+      mBlockIsRead = true;
       return toRead;
     }
 
@@ -133,7 +133,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       mBufferIsValid = false;
       int bytesRead = directRead(b, off, toRead);
       mPos += bytesRead;
-      mReadBytes += bytesRead;
+      mBlockIsRead = true;
       incrementBytesReadMetric(bytesRead);
       return bytesRead;
     }
@@ -142,7 +142,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     updateBuffer();
     mBuffer.get(b, off, toRead);
     mPos += toRead;
-    mReadBytes += toRead;
+    mBlockIsRead = true;
     return toRead;
   }
 
