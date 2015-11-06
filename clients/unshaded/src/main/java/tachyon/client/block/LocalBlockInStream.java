@@ -80,6 +80,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       return;
     }
     try {
+      mWorkerClient.accessBlock(mBlockId);
       mWorkerClient.unlockBlock(mBlockId);
     } finally {
       mContext.releaseWorkerClient(mWorkerClient);
