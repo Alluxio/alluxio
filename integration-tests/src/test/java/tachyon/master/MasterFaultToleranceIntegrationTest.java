@@ -145,7 +145,7 @@ public class MasterFaultToleranceIntegrationTest {
         // node can not be deleted.
         for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
           mTfs.delete(new TachyonFile(file.getFileId()),
-              new DeleteOptions.Builder(ClientContext.getConf()).setRecursive(true).build());
+              new DeleteOptions.Builder().setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);
