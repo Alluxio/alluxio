@@ -37,7 +37,6 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
-import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -72,8 +71,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       final long fileId = masterClient.create(path.getPath(), options);
       return new TachyonFile(fileId);
-    } catch (BlockInfoException e) {
-      throw new FileAlreadyExistsException(e.getMessage(), e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
