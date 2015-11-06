@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.block.BlockWorker;
 
 public abstract class AbstractLocalTachyonCluster {
@@ -38,6 +39,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected BlockWorker mWorker = null;
 
   protected String mTachyonHome;
+  protected String mHostname = null;
 
   protected Thread mWorkerThread = null;
 
@@ -61,6 +63,10 @@ public abstract class AbstractLocalTachyonCluster {
   protected void cleanHDFSCaching() {
     // clear HDFS client caching
     System.clearProperty("fs.hdfs.impl.disable.cache");
+  }
+
+  protected void setHostname() {
+    mHostname = NetworkAddressUtils.getLocalHostName(100);
   }
 
   public void stop() throws Exception {
