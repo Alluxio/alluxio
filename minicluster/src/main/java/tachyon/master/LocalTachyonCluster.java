@@ -33,7 +33,6 @@ import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
@@ -72,7 +71,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   private LineageWorker mLineageWorker = null;
 
   private int mQuotaUnitBytes;
-  private String mLocalhostName = null;
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
 
@@ -91,7 +89,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   }
 
   public String getMasterHostname() {
-    return mLocalhostName;
+    return mHostname;
   }
 
   public String getMasterUri() {
@@ -127,14 +125,14 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     TachyonConf testConf = new TachyonConf();
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-    mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
+    setHostname();
 
     testConf.set(Constants.IN_TEST_MODE, "true");
     testConf.set(Constants.TACHYON_HOME, mTachyonHome);
     testConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
     testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
-    testConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
+    testConf.set(Constants.MASTER_HOSTNAME, mHostname);
     testConf.set(Constants.MASTER_PORT, Integer.toString(0));
     testConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));

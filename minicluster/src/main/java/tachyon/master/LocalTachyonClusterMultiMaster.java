@@ -32,7 +32,6 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
@@ -62,7 +61,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   private LineageWorker mLineageWorker = null;
 
   private String mWorkerDataFolder;
-  private String mHostname;
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
@@ -177,7 +175,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
 
-    mHostname = NetworkAddressUtils.getLocalHostName(100);
+    setHostname();
 
     mMasterConf = MasterContext.getConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
