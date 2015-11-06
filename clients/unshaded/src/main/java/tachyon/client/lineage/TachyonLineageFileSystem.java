@@ -60,9 +60,8 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
       throws LineageDoesNotExistException, IOException, TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long fileId =
-          masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
-              options.getTTL());
+      long fileId = masterClient.reinitializeFile(path.getPath(), options.getBlockSizeBytes(),
+          options.getTTL());
       return fileId;
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -89,8 +88,8 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     return new LineageFileOutStream(fileId, options);
   }
 
-  public void reportLostFile(TachyonURI path) throws IOException, FileDoesNotExistException,
-      TachyonException {
+  public void reportLostFile(TachyonURI path)
+      throws IOException, FileDoesNotExistException, TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.reportLostFile(path.getPath());
