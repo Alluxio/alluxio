@@ -41,10 +41,10 @@ import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.ImproperOptionsException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.SuspectedFileSizeException;
@@ -603,10 +603,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
-   * @throws ImproperOptionsException if recursive is false and the file is a nonempty directory
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   public boolean deleteFile(long fileId, boolean recursive)
-      throws IOException, FileDoesNotExistException, ImproperOptionsException {
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -627,16 +627,16 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Convenience method for avoiding {@link ImproperOptionsException} when calling
+   * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
    * {@link #deleteFileInternal(long, boolean, boolean, long)}.
    */
   boolean deleteFileRecursiveInternal(long fileId, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException {
     try {
       return deleteFileInternal(fileId, true, replayed, opTimeMs);
-    } catch (ImproperOptionsException e) {
+    } catch (DirectoryNotEmptyException e) {
       throw new IllegalStateException(
-          "deleteFileInternal should never throw ImproperOptionsException when recursive is true",
+          "deleteFileInternal should never throw DirectoryNotEmptyException when recursive is true",
           e);
     }
   }
@@ -652,10 +652,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
-   * @throws ImproperOptionsException if recursive is false and the file is a nonempty directory
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
-      throws FileDoesNotExistException, IOException, ImproperOptionsException {
+      throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     //
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
@@ -667,7 +667,7 @@ public final class FileSystemMaster extends MasterBase {
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
-      throw new ImproperOptionsException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE,
+      throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE,
           inode.getName());
     }
     if (mInodeTree.isRootId(inode.getId())) {
