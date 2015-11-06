@@ -38,9 +38,11 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
@@ -434,7 +436,14 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertFalse(mFsMaster.deleteFile(2, false));
+    try {
+      mFsMaster.deleteFile(2, false);
+      Assert.fail("Deleting a nonempty directory nonrecursively should fail");
+    } catch (DirectoryNotEmptyException e) {
+      Assert.assertEquals(
+          ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder2"),
+          e.getMessage());
+    }
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
@@ -461,7 +470,14 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertFalse(mFsMaster.deleteFile(1, false));
+    try {
+      mFsMaster.deleteFile(1, false);
+      Assert.fail("Deleting a nonempty directory nonrecursively should fail");
+    } catch (DirectoryNotEmptyException e) {
+      Assert.assertEquals(
+          ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder"),
+          e.getMessage());
+    }
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
   }
