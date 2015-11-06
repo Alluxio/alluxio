@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class DeleteOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<DeleteOptions> {
     private boolean mRecursive;
 
     /**
@@ -44,6 +44,7 @@ public final class DeleteOptions {
      *
      * @return a {@code DeleteOptions} instance
      */
+    @Override
     public DeleteOptions build() {
       return new DeleteOptions(this);
     }

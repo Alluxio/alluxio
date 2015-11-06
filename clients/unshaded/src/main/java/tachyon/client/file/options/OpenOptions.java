@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class OpenOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<OpenOptions> {
     /**
      * Creates a new builder for {@link OpenOptions}.
      */
@@ -30,6 +30,7 @@ public final class OpenOptions {
      *
      * @return a {@code OpenOptions} instance
      */
+    @Override
     public OpenOptions build() {
       return new OpenOptions(this);
     }

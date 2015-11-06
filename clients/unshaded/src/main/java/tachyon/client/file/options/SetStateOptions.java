@@ -21,7 +21,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
 public class SetStateOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<SetStateOptions> {
     private Boolean mPinned;
     private Long mTTL;
 
@@ -60,6 +60,7 @@ public class SetStateOptions {
      *
      * @return a {@code SetStateOptions} instance
      */
+    @Override
     public SetStateOptions build() {
       return new SetStateOptions(this);
     }

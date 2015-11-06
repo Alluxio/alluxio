@@ -24,7 +24,7 @@ import tachyon.thrift.CreateTOptions;
 
 @PublicApi
 public final class CreateOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<CreateOptions> {
     // TODO(calvin): Should this just be an int?
     private long mBlockSizeBytes;
     private boolean mRecursive;
@@ -95,6 +95,7 @@ public final class CreateOptions {
      *
      * @return a {@code CreateOptions} instance
      */
+    @Override
     public CreateOptions build() {
       return new CreateOptions(this);
     }
