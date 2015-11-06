@@ -15,16 +15,16 @@
 
 package tachyon.master;
 
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import tachyon.Constants;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.worker.block.BlockWorker;
-
-import java.io.IOException;
 
 public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -56,7 +56,21 @@ public abstract class AbstractLocalTachyonCluster {
 
   public abstract void start() throws IOException, ConnectionFailedException;
 
-  public abstract void stop() throws Exception;
+  protected void resetContext() {}
+
+  protected void cleanHDFSCaching() {
+    // clear HDFS client caching
+    System.clearProperty("fs.hdfs.impl.disable.cache");
+  }
+
+  public void stop() throws Exception {
+    stopTFS();
+    stopUFS();
+
+    resetContext();
+
+    cleanHDFSCaching();
+  }
 
   public abstract void stopTFS() throws Exception;
 

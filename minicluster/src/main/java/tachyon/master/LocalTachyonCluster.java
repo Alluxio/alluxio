@@ -328,22 +328,11 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     CommonUtils.sleepMs(100);
   }
 
-  /**
-   * Stop both of the tachyon and underfs service threads.
-   *
-   * @throws Exception when the operation fails
-   */
   @Override
-  public void stop() throws Exception {
-    stopTFS();
-    stopUFS();
-
+  protected void resetContext() {
     MasterContext.reset();
     WorkerContext.reset();
     ClientContext.reset();
-
-    // clear HDFS client caching
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   /**
