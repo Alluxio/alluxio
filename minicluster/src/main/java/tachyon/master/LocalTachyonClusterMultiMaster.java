@@ -15,7 +15,6 @@
 
 package tachyon.master;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,9 +169,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   @Override
   public void start() throws IOException, ConnectionFailedException {
     int numLevels = 1;
-
-    mTachyonHome =
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    setTachyonHome();
     mWorkerDataFolder = "/datastore";
 
     setHostname();

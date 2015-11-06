@@ -15,6 +15,7 @@
 
 package tachyon.master;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -67,6 +68,11 @@ public abstract class AbstractLocalTachyonCluster {
 
   protected void setHostname() {
     mHostname = NetworkAddressUtils.getLocalHostName(100);
+  }
+
+  protected void setTachyonHome() throws IOException {
+    mTachyonHome =
+        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
   }
 
   public void stop() throws Exception {

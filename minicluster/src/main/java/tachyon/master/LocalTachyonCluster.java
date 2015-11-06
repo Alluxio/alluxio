@@ -15,7 +15,6 @@
 
 package tachyon.master;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,8 +122,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
   public TachyonConf newTestConf() throws IOException {
     TachyonConf testConf = new TachyonConf();
-    mTachyonHome =
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    setTachyonHome();
     setHostname();
 
     testConf.set(Constants.IN_TEST_MODE, "true");
