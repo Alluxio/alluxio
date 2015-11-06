@@ -62,7 +62,7 @@ public class RecomputePlanner {
         try {
           lineage = mLineageStore.reportLostFile(lostFile);
         } catch (LineageDoesNotExistException e) {
-          throw new RuntimeException(e); // should not happen
+          throw new IllegalStateException(e); // should not happen
         }
         if (!lineage.isPersisted()) {
           toRecompute.add(lineage);
@@ -71,7 +71,6 @@ public class RecomputePlanner {
     }
 
     List<Lineage> toRecomputeAfterSort = mLineageStore.sortLineageTopologically(toRecompute);
-    RecomputePlan plan = new RecomputePlan(toRecomputeAfterSort);
-    return plan;
+    return new RecomputePlan(toRecomputeAfterSort);
   }
 }

@@ -11,6 +11,8 @@
   <description>Implementation of Tachyon servers including Master and Worker</description>
 
   <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
@@ -134,6 +136,7 @@
       <plugin>
         <groupId>org.apache.sling</groupId>
         <artifactId>maven-jspc-plugin</artifactId>
+        <version>2.0.8</version>
       </plugin>
     </plugins>
   </build>

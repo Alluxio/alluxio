@@ -18,16 +18,10 @@ package tachyon.heartbeat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
-
 /**
  * This is a static class for storing and retrieving heartbeat related information.
  */
 public final class HeartbeatContext {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Map<String, Class<? extends HeartbeatTimer>> sTimerClasses;
 
   // Names of different heartbeat timer classes.

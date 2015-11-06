@@ -37,6 +37,11 @@ struct MkdirTOptions {
   2: optional bool recursive
 }
 
+struct SetStateTOptions {
+  1: optional bool pinned
+  2: optional i64 ttl
+}
+
 service FileSystemMasterService {
 
   // Tachyon Client API
@@ -50,7 +55,7 @@ service FileSystemMasterService {
    * Creates a file.
    */
   i64 create(1: string path, 2: CreateTOptions options)
-    throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /*
    * Frees the given file from Tachyon.
@@ -106,7 +111,7 @@ service FileSystemMasterService {
    */
   // TODO(jiri): Get rid of this.
   i64 loadMetadata(1: string ufsPath, 2: bool recursive)
-    throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   bool mkdir(1: string path, 2: MkdirTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
@@ -133,19 +138,12 @@ service FileSystemMasterService {
    * Renames a file or a directory.
    */
   bool rename(1: i64 fileId, 2: string dstPath)
-    throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /*
-   * Reports file as lost.
+   * Sets file state.
    */
-  void reportLostFile(1: i64 fileId)
-    throws (1: exception.TachyonTException e)
-
-  /*
-   * Sets the pinned flag for a file.
-   */
-  void setPinned(1: i64 fileId, 2: bool pinned)
-    throws (1: exception.TachyonTException e)
+  void setState(1: i64 fileId, 2: SetStateTOptions options)
 
   /*
    * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path

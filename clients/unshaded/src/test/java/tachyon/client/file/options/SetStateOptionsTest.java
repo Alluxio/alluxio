@@ -20,8 +20,6 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class SetStateOptionsTest {
   @Test
   public void builderTest() {
@@ -29,7 +27,7 @@ public class SetStateOptionsTest {
     boolean recursive = random.nextBoolean();
 
     SetStateOptions options =
-        new SetStateOptions.Builder(new TachyonConf())
+        new SetStateOptions.Builder()
             .setPinned(recursive)
             .build();
 
@@ -40,6 +38,7 @@ public class SetStateOptionsTest {
   public void defaultsTest() {
     SetStateOptions options = SetStateOptions.defaults();
 
-    Assert.assertNull(options.getPinned());
+    Assert.assertFalse(options.hasPinned());
+    Assert.assertFalse(options.hasTTL());
   }
 }

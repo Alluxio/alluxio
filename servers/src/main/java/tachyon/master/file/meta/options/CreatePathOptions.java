@@ -94,7 +94,7 @@ public class CreatePathOptions {
     }
 
     /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in seconds) the
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
      *            created file should be kept around before it is automatically deleted
      * @return the builder
      */

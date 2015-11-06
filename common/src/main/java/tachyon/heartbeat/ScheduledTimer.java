@@ -20,7 +20,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This class can be used for controlling when a heartbeat executes.
+ * This class can be used for controlling heartbeat execution of threads.
+ *
+ * In particular, the {@link ScheduledTimer} blocks on the {@link #tick()} method, waiting for
+ * someone to invoke the {@link #schedule()} method.
+ *
+ * The contract of this class is that the {@link #schedule()} method should only be called after the
+ * {@link #tick()} was called and that there is exactly one {@link #schedule()} call per
+ * {@link #tick()} call.
+ *
+ * The {@link #schedule()} method is not meant to be invoked directly. Instead, the
+ * {@link HeartbeatScheduler} class should be used.
  */
 public final class ScheduledTimer implements HeartbeatTimer {
   private final String mThreadName;
@@ -49,10 +59,13 @@ public final class ScheduledTimer implements HeartbeatTimer {
   /**
    * Schedules execution of the heartbeat.
    */
-  public void schedule() {
+  protected void schedule() {
     mLock.lock();
-    mCondition.signal();
-    mLock.unlock();
+    try {
+      mCondition.signal();
+    } finally {
+      mLock.unlock();
+    }
   }
 
   /**
@@ -61,9 +74,12 @@ public final class ScheduledTimer implements HeartbeatTimer {
    * @throws InterruptedException if the thread is interrupted while waiting
    */
   public synchronized void tick() throws InterruptedException {
-    HeartbeatScheduler.addTimer(this);
     mLock.lock();
-    mCondition.await();
-    mLock.unlock();
+    try {
+      HeartbeatScheduler.addTimer(this);
+      mCondition.await();
+    } finally {
+      mLock.unlock();
+    }
   }
 }

@@ -25,35 +25,44 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * The <code>JournalEntry</code> to represent the update of metadata in RawTable.
+ * This class represents a journal entry for updating raw table metadata.
  */
 public class UpdateMetadataEntry extends JournalEntry {
-  public final long mId;
-  public final ByteBuffer mMetadata;
+  private final long mId;
+  private final ByteBuffer mMetadata;
 
   /**
+   * Creates a new instance of {@link UpdateMetadataEntry}.
+   *
    * @param id table id
    * @param metadata the metadata to be set for the table
    */
   @JsonCreator
-  public UpdateMetadataEntry(@JsonProperty("id") long id,
+  public UpdateMetadataEntry(
+      @JsonProperty("id") long id,
       @JsonProperty("metadata") ByteBuffer metadata) {
     mId = id;
     mMetadata = metadata;
   }
 
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.UPDATE_METADATA;
-  }
-
+  /**
+   * @return the id
+   */
   @JsonGetter
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the metadata
+   */
   @JsonGetter
   public ByteBuffer getMetadata() {
     return mMetadata;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.UPDATE_METADATA;
   }
 }
