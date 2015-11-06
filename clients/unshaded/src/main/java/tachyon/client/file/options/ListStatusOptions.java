@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class ListStatusOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<ListStatusOptions> {
     /**
      * Creates a new builder for {@link ListStatusOptions}.
      */
@@ -30,6 +30,7 @@ public final class ListStatusOptions {
      *
      * @return a {@code ListStatusOptions} instance
      */
+    @Override
     public ListStatusOptions build() {
       return new ListStatusOptions(this);
     }
