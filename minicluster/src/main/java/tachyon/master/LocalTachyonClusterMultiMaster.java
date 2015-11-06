@@ -307,15 +307,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  public void stop() throws Exception {
-    stopTFS();
-    stopUFS();
-
-    // clear HDFS client caching
-    System.clearProperty("fs.hdfs.impl.disable.cache");
-  }
-
-  @Override
   public void stopTFS() throws Exception {
     mClientPool.close();
 
