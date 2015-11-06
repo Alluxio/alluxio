@@ -29,7 +29,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidPathException;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.FileInfo;
 

@@ -15,45 +15,41 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for recording deletion of an existing mount point.
+ * This class represents a journal entry for deletion of an existing mount point.
  */
-public class DeleteMountPointEntry implements JournalEntry {
+public class DeleteMountPointEntry extends JournalEntry {
   private final String mTachyonPath;
 
   /**
-   * Creates a new instance of <code>DeleteMountPointEntry</code>.
+   * Creates a new instance of {@link DeleteMountPointEntry}.
    *
    * @param tachyonPath the Tachyon path
    */
-  public DeleteMountPointEntry(TachyonURI tachyonPath) {
+  @JsonCreator
+  public DeleteMountPointEntry(
+      @JsonProperty("tachyonPath") TachyonURI tachyonPath) {
     mTachyonPath = tachyonPath.toString();
   }
 
   /**
    * @return the Tachyon path
    */
-  public TachyonURI getTachyonPath() {
-    return new TachyonURI(mTachyonPath);
+  @JsonGetter
+  public String getTachyonPath() {
+    return mTachyonPath;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.DELETE_MOUNTPOINT;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("tachyonPath", mTachyonPath);
-    return parameters;
   }
 }

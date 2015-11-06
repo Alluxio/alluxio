@@ -17,7 +17,6 @@ package tachyon;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +39,11 @@ public abstract class MasterClientBase extends ClientBase {
    * Creates a new master client base.
    *
    * @param masterAddress the master address
-   * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
    */
-  public MasterClientBase(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
-    super(masterAddress, executorService, tachyonConf, "master");
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
+  public MasterClientBase(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+    super(masterAddress, tachyonConf, "master");
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
   }
 
   /**

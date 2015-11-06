@@ -45,7 +45,7 @@ public class ExponentialBackoffRetryTest {
     }
 
     public void setRetryCount(int retryCount) {
-      this.mRetryCount = retryCount;
+      mRetryCount = retryCount;
     }
   }
 }

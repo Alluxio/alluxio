@@ -95,7 +95,7 @@ public final class PathUtils {
    * Gets the parent of the file at a path.
    *
    * @param path The path
-   * @return the parent path of the file; this is "/" if the given path is the root.
+   * @return the parent path of the file; this is "/" if the given path is the root
    * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
@@ -182,7 +182,7 @@ public final class PathUtils {
    * @return a deterministic temporary file name
    */
   public static final String temporaryFileName(long fileId, long nonce, String path) {
-    return path + ".tachyon." + fileId + "." + String.format("0x%16s", nonce) + ".tmp";
+    return path + ".tachyon." + fileId + "." + String.format("0x%16X", nonce) + ".tmp";
   }
 
   /**

@@ -71,7 +71,7 @@ class EvictionDirCandidates {
   /**
    * The maximum sum of available bytes and total bytes of added blocks in a directory.
    *
-   * @return maximum bytes, if no directory has been added, return 0.
+   * @return maximum bytes, if no directory has been added, return 0
    */
   public long candidateSize() {
     return mMaxBytes;

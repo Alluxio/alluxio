@@ -26,11 +26,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
 import tachyon.client.lineage.LineageMasterClient;
+import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.LineageCommand;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockMasterSync;
 
 /**
@@ -57,12 +58,8 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
-  /** The id of the worker */
-  private final long mWorkerId;
-
   public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
-      LineageMasterWorkerClient masterClient, long workerId) {
-    mWorkerId = workerId;
+      LineageMasterWorkerClient masterClient) {
     mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
   }
@@ -76,7 +73,8 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     LineageCommand command = null;
     try {
-      command = mMasterClient.workerLineageHeartbeat(mWorkerId, persistedFiles);
+      command = mMasterClient.workerLineageHeartbeat(WorkerIdRegistry.getWorkerId(),
+          persistedFiles);
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
     }

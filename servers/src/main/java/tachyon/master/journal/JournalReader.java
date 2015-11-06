@@ -51,7 +51,7 @@ public class JournalReader {
   /** The modified time (in ms) for the latest checkpoint file. */
   private long mCheckpointLastModifiedTime = -1;
   /** The log number for the completed log file. */
-  private int mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+  private long mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /**
    * @param journal the handle to the journal
@@ -67,7 +67,7 @@ public class JournalReader {
    * Checks to see if the journal checkpoint has not been updated. If it has been updated since the
    * creation of this reader, this reader is no longer valid.
    *
-   * @return true if the checkpoint file has not been modified.
+   * @return true if the checkpoint file has not been modified
    */
   public boolean isValid() {
     return mCheckpointRead && (mCheckpointOpenedTime == mCheckpointLastModifiedTime);
@@ -122,7 +122,7 @@ public class JournalReader {
   }
 
   /**
-   * @return the last modified time of the checkpoint file in ms.
+   * @return the last modified time of the checkpoint file in ms
    * @throws IOException
    */
   public long getCheckpointLastModifiedTimeMs() throws IOException {

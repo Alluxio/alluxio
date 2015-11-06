@@ -43,7 +43,7 @@ public final class GreedyAllocator implements Allocator {
   /**
    * Should only be accessed by {@link allocateBlockWithView} inside class. Allocates a block from
    * the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
    *
    * @param sessionId the ID of session to apply for the block allocation
    * @param blockSize the size of block in bytes
@@ -67,7 +67,7 @@ public final class GreedyAllocator implements Allocator {
       return null;
     }
 
-    int tierAlias = location.tierAlias();
+    String tierAlias = location.tierAlias();
     StorageTierView tierView = mManagerView.getTierView(tierAlias);
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       // Loop over all dir views in the given tier

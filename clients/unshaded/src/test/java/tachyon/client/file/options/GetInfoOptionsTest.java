@@ -17,16 +17,14 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-
 public class GetInfoOptionsTest {
   @Test
   public void builderTest() {
-    new GetInfoOptions.Builder(new TachyonConf()).build();
+    new GetInfoOptions.Builder().build();
   }
 
   @Test
   public void defaultsTest() {
-    GetInfoOptions options = GetInfoOptions.defaults();
+    GetInfoOptions.defaults();
   }
 }

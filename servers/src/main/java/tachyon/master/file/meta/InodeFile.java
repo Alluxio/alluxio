@@ -21,49 +21,105 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.FileInfo;
-import tachyon.util.IdUtils;
 
 /**
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
-  private final long mBlockContainerId;
+  public static class Builder extends Inode.Builder<InodeFile.Builder> {
+    private long mBlockContainerId;
+    private long mBlockSizeBytes;
+    private boolean mCacheable;
+    private long mTTL;
+
+    public Builder() {
+      super();
+      mBlockContainerId = 0;
+      mBlockSizeBytes = 0;
+      mCacheable = false;
+      mDirectory = false;
+      mTTL = Constants.NO_TTL;
+    }
+
+    public Builder setBlockContainerId(long blockContainerId) {
+      mBlockContainerId = blockContainerId;
+      mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
+      return this;
+    }
+
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
+      return this;
+    }
+
+    public Builder setCacheable(boolean cacheable) {
+      mCacheable = cacheable;
+      return this;
+    }
+
+    @Override
+    public Builder setId(long id) {
+      // id is computed using the block container id
+      // TODO(jiri): Should we throw an exception to warn the caller?
+      return this;
+    }
+
+    /**
+     * Sets the ttl in milliseconds.
+     */
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeFile}.
+     *
+     * @return a {@link InodeFile} instance
+     */
+    @Override
+    public InodeFile build() {
+      return new InodeFile(this);
+    }
+
+    @Override
+    protected InodeFile.Builder getThis() {
+      return this;
+    }
+  }
+
+  private long mBlockContainerId;
+
   private long mBlockSizeBytes;
 
   // list of block ids.
   private List<Long> mBlocks;
 
-  // length of inode file in bytes.
-  private long mLength = 0;
+  private boolean mCacheable;
 
-  private boolean mCompleted = false;
-  private boolean mCacheable = false;
+  private boolean mCompleted;
+
+  // length of inode file in bytes.
+  private long mLength;
+
   private long mTTL;
 
-  /**
-   * Creates a new InodeFile.
-   *
-   * @param name The name of the file
-   * @param blockContainerId The block container id for this file. All blocks for this file will
-   *        belong to this block container.
-   * @param parentId The inode id of the parent of the file
-   * @param blockSizeBytes The block size of the file, in bytes
-   * @param creationTimeMs The creation time of the file, in milliseconds
-   * @param ttl The TTL for file expiration
-   */
-  public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
-      long creationTimeMs, long ttl) {
-    super(name, IdUtils.createFileId(blockContainerId), parentId, false, creationTimeMs);
+  private InodeFile(InodeFile.Builder builder) {
+    super(builder);
+    mBlockContainerId = builder.mBlockContainerId;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
     mBlocks = new ArrayList<Long>(3);
-    mBlockContainerId = blockContainerId;
-    mBlockSizeBytes = blockSizeBytes;
-    mTTL = ttl;
+    mCacheable = builder.mCacheable;
+    mCompleted = false;
+    mLength = 0;
+    mTTL = builder.mTTL;
   }
 
   @Override
@@ -89,9 +145,9 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Reinitializes the inode file.
+   * Resets the file inode.
    */
-  public void reinit() {
+  public void reset() {
     mBlocks = Lists.newArrayList();
     mLength = 0;
     mCompleted = false;
@@ -99,15 +155,15 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets the block size.
+   * @oaram blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
-    // TODO(yupeng): add validation
+    Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
   }
 
   /**
-   * Sets the ttl.
+   * @param ttl the TTL to use, in milliseconds
    */
   public void setTTL(long ttl) {
     mTTL = ttl;
@@ -128,7 +184,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @return the length of the file in bytes. This is not accurate before the file is closed.
+   * @return the length of the file in bytes. This is not accurate before the file is closed
    */
   public synchronized long getLength() {
     return mLength;

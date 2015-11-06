@@ -32,8 +32,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.StorageDirId;
-import tachyon.StorageLevelAlias;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
@@ -149,7 +147,7 @@ public final class StorageDir {
    * Gets the total capacity of this StorageDir in bytes, which is a constant once this StorageDir
    * has been initialized.
    *
-   * @return the total capacity of this StorageDir in bytes.
+   * @return the total capacity of this StorageDir in bytes
    */
   public long getCapacityBytes() {
     return mCapacityBytes;
@@ -168,7 +166,7 @@ public final class StorageDir {
   /**
    * Gets the total size of committed blocks in this StorageDir in bytes.
    *
-   * @return number of committed bytes.
+   * @return number of committed bytes
    */
   public long getCommittedBytes() {
     return mCommittedBytes.get();
@@ -194,13 +192,6 @@ public final class StorageDir {
    */
   public int getDirIndex() {
     return mDirIndex;
-  }
-
-  // TODO(bin): Deprecate this method.
-  public long getStorageDirId() {
-    int level = mTier.getTierLevel();
-    int storageLevelAliasValue = mTier.getTierAlias();
-    return StorageDirId.getStorageDirId(level, storageLevelAliasValue, mDirIndex);
   }
 
   /**
@@ -285,15 +276,12 @@ public final class StorageDir {
     long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), alias);
+          blockSize, getAvailableBytes(), blockMeta.getBlockLocation().tierAlias());
     }
     if (hasBlockMeta(blockId)) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
+      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, blockMeta
+          .getBlockLocation().tierAlias());
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
@@ -314,15 +302,12 @@ public final class StorageDir {
     long blockSize = tempBlockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
-          blockSize, getAvailableBytes(), alias);
+          blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias());
     }
     if (hasTempBlockMeta(blockId)) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
-      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
+      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId,
+          tempBlockMeta.getBlockLocation().tierAlias());
     }
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
@@ -367,9 +352,8 @@ public final class StorageDir {
     }
     Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
     if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
-      StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
       throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId,
-          alias, sessionId);
+          mTier.getTierAlias(), sessionId);
     }
     Preconditions.checkState(sessionBlocks.remove(blockId));
     if (sessionBlocks.isEmpty()) {
@@ -453,10 +437,10 @@ public final class StorageDir {
   }
 
   /**
-   * @return the block store location of this directory.
+   * @return the block store location of this directory
    */
   public BlockStoreLocation toBlockStoreLocation() {
-    return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
+    return new BlockStoreLocation(mTier.getTierAlias(), mDirIndex);
   }
 
   private void reclaimSpace(long size, boolean committed) {

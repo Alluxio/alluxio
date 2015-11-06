@@ -23,5 +23,4 @@ WorkerMemory: 1GB
 # When it is in fault tolerant mode, the masters will be named as TachyonMaster, TachyonMaster2, etc,
 # currently, zookeeper is installed in /zookeeper and is a single node deployment, its server process runs on TachyonMaster.
 # This option only has effect when Tachyon is run directly on the host instead of on top of frameworks like mesos or yarn.
-# TODO(cc) Make spot instance request support multi-master
-Masters: 3
+Masters: 1

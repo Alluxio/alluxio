@@ -30,57 +30,63 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
+  public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
+
+    public Builder() {
+      super();
+      mDirectory = true;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeDirectory}.
+     *
+     * @return a {@link InodeDirectory} instance
+     */
+    @Override
+    public InodeDirectory build() {
+      return new InodeDirectory(this);
+    }
+
+    @Override
+    protected Builder getThis() {
+      return this;
+    }
+  }
+
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
       return o.getId();
     }
   };
+
   private IndexedSet.FieldIndex<Inode> mNameIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
       return o.getName();
     }
   };
+
   @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
-  /**
-   * Creates a new InodeFolder.
-   *
-   * @param name The name of the folder
-   * @param id The inode id of the folder
-   * @param parentId The inode id of the parent of the folder
-   * @param creationTimeMs The creation time of the folder, in milliseconds
-   */
-  public InodeDirectory(String name, long id, long parentId, long creationTimeMs) {
-    super(name, id, parentId, true, creationTimeMs);
+  private InodeDirectory(InodeDirectory.Builder builder) {
+    super(builder);
   }
 
   /**
    * Adds the given inode to the set of children.
    *
-   * @param child The inode to add
+   * @param child the inode to add
    */
   public synchronized void addChild(Inode child) {
     mChildren.add(child);
   }
 
   /**
-   * Adds the given inodes to the set of children.
-   *
-   * @param children The inodes to add
-   */
-  public synchronized void addChildren(Inode[] children) {
-    for (Inode child : children) {
-      addChild(child);
-    }
-  }
-
-  /**
    * Generates client file info for the folder.
    *
-   * @param path The path of the folder in the filesystem
+   * @param path the path of the folder in the filesystem
    * @return the generated FileInfo
    */
   @Override
@@ -104,7 +110,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @param id The inode id of the child
+   * @param id the inode id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
   public synchronized Inode getChild(long id) {
@@ -112,7 +118,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @param name The name of the child
+   * @param name the name of the child
    * @return the inode with the given name, or null if there is no child with that name
    */
   public synchronized Inode getChild(String name) {
@@ -120,7 +126,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @return an unmodifiable set of the children inodes.
+   * @return an unmodifiable set of the children inodes
    */
   public synchronized Set<Inode> getChildren() {
     return ImmutableSet.copyOf(mChildren.iterator());
@@ -138,7 +144,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @return the number of children in the directory.
+   * @return the number of children in the directory
    */
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
@@ -147,8 +153,8 @@ public final class InodeDirectory extends Inode {
   /**
    * Removes the given inode from the directory.
    *
-   * @param child The Inode to remove
-   * @return true if the inode was removed, false otherwise.
+   * @param child the Inode to remove
+   * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(Inode child) {
     return mChildren.remove(child);
@@ -157,8 +163,8 @@ public final class InodeDirectory extends Inode {
   /**
    * Removes the given child by its name from the directory.
    *
-   * @param name The name of the Inode to remove.
-   * @return true if the inode was removed, false otherwise.
+   * @param name the name of the Inode to remove
+   * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(String name) {
     return mChildren.removeByField(mNameIndex, name);
@@ -174,6 +180,6 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPersisted(), isPinned(), getLastModificationTimeMs(), getChildrenIds());
+        isPersisted(), isPinned(), getLastModificationTimeMs());
   }
 }

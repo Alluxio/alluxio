@@ -80,8 +80,8 @@ public class EvictorTestBase {
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, evictorClassName);
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_EVICTOR_CLASS, evictorClassName);
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
     mEvictor = Evictor.Factory.createEvictor(conf, mManagerView, mAllocator);
   }

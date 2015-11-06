@@ -18,7 +18,6 @@ package tachyon.worker.lineage;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -43,12 +42,10 @@ public final class LineageMasterWorkerClient extends ClientBase {
 
   /**
    * @param masterAddress the master address
-   * @param executorService the executor service
    * @param tachyonConf tachyonConf
    */
-  public LineageMasterWorkerClient(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
-    super(masterAddress, executorService, tachyonConf, "lineage-worker");
+  public LineageMasterWorkerClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+    super(masterAddress, tachyonConf, "lineage-worker");
   }
 
   @Override
@@ -69,18 +66,13 @@ public final class LineageMasterWorkerClient extends ClientBase {
    * @return the command for checkpointing the blocks of a file
    * @throws IOException if file persistence fails
    */
-  public synchronized LineageCommand workerLineageHeartbeat(long workerId,
-      List<Long> persistedFiles) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized LineageCommand workerLineageHeartbeat(final long workerId,
+      final List<Long> persistedFiles) throws IOException {
+    return retryRPC(new RpcCallable<LineageCommand>() {
+      @Override
+      public LineageCommand call() throws TException {
         return mClient.workerLineageHeartbeat(workerId, persistedFiles);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

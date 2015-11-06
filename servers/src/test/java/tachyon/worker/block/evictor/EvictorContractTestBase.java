@@ -49,7 +49,6 @@ import tachyon.worker.block.meta.StorageTier;
  */
 @RunWith(Parameterized.class)
 public class EvictorContractTestBase extends EvictorTestBase {
-  // TODO(cc): Fix the confusing tier alias and tier level concept.
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
 

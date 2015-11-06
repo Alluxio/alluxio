@@ -86,7 +86,7 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
+          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
           UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
         } catch (IOException e) {
@@ -101,7 +101,7 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
+          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
           UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
         } catch (IOException e) {
@@ -116,7 +116,7 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
+          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
           UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
         } catch (IOException e) {

@@ -26,13 +26,26 @@ import com.google.common.base.Preconditions;
 public abstract class Job implements Serializable {
   private final JobConf mJobConf;
 
+  /**
+   * Constructs with job configuration.
+   *
+   * @param jobConf the job configuration
+   */
   public Job(JobConf jobConf) {
     mJobConf = Preconditions.checkNotNull(jobConf);
   }
 
+  /**
+   * @return the job configuration
+   */
   public JobConf getJobConf() {
     return mJobConf;
   }
 
+  /**
+   * Runs the job.
+   *
+   * @return true if the run succeeds, false otherwise
+   */
   public abstract boolean run();
 }

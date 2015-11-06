@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class LineageDoesNotExistException extends TachyonException {
+  private static final long serialVersionUID = 6099440428939973308L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.LINEAGE_DOES_NOT_EXIST;
 

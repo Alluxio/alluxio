@@ -73,14 +73,11 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws TachyonTException,
-      ThriftIOException {
+  public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws TachyonTException {
     try {
       mRawTableMaster.updateRawTableMetadata(tableId, metadata);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 }

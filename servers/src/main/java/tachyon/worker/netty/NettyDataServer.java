@@ -94,13 +94,13 @@ public final class NettyDataServer implements DataServer {
       boot.option(ChannelOption.SO_BACKLOG,
           mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BACKLOG));
     }
-    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_SEND_BUFFER)) {
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
       boot.option(ChannelOption.SO_SNDBUF,
-          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_SEND_BUFFER));
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND));
     }
-    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_RECEIVE_BUFFER)) {
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
       boot.option(ChannelOption.SO_RCVBUF,
-          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_RECEIVE_BUFFER));
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE));
     }
     return boot;
   }
@@ -112,7 +112,9 @@ public final class NettyDataServer implements DataServer {
   public String getBindHost() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
+    // TODO(andrew): Change getHostName() to getHostString() when we drop java 6 support. Also,
+    // update the todo in ServiceSocketBindIntegrationTest
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostName();
   }
 
   /**
@@ -134,7 +136,7 @@ public final class NettyDataServer implements DataServer {
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
    * preset.
    *
-   * @param type The channel type. Current channel types supported are nio and epoll.
+   * @param type the channel type. Current channel types supported are nio and epoll
    * @return an instance of ServerBootstrap
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {

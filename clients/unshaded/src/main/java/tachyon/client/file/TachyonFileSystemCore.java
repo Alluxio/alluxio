@@ -35,6 +35,7 @@ import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -50,14 +51,13 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file to create in Tachyon space
    * @param options method options
-   * @return the file id that identifies the newly created file
+   * @return the {@link TachyonFile} instance that identifies the newly created file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  // (andrea) why doesn't this method return a file.TachyonFile instance instead?
-  long create(TachyonURI path, CreateOptions options) throws IOException,
+  TachyonFile create(TachyonURI path, CreateOptions options) throws IOException,
       FileAlreadyExistsException, InvalidPathException, TachyonException;
 
   /**
@@ -67,10 +67,11 @@ interface TachyonFileSystemCore {
    * @param options method options
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   void delete(TachyonFile file, DeleteOptions options) throws IOException,
-      FileDoesNotExistException, TachyonException;
+      FileDoesNotExistException, DirectoryNotEmptyException, TachyonException;
 
   /**
    * Removes the file from Tachyon, but not from UFS in case it exists there.
@@ -87,7 +88,7 @@ interface TachyonFileSystemCore {
   /**
    * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
    *
-   * @param file the handler for the file.
+   * @param file the handler for the file
    * @param options method options
    * @return the FileInfo of the file
    * @throws IOException if a non-Tachyon exception occurs
@@ -115,12 +116,12 @@ interface TachyonFileSystemCore {
    *
    * @param path the path for which to load metadat from UFS
    * @param options method options
-   * @return the file id of the resulting file in Tachyon
+   * @return the {@link TachyonFile} instance identifying the resulting file in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  long loadMetadata(TachyonURI path, LoadMetadataOptions options)
+  TachyonFile loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws IOException, FileDoesNotExistException, TachyonException;
 
   /**
@@ -158,11 +159,13 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param options method options
-   * @return a TachyonFile which acts as a file handler for the path or null if path doesn't exist
+   * @return a TachyonFile which acts as a file handler for the path or null if there is no file at
+             the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, TachyonException;
+  TachyonFile openIfExists(TachyonURI path, OpenOptions options) throws IOException,
+      TachyonException;
 
   /**
    * Renames an existing Tachyon file to another Tachyon path in Tachyon.
@@ -179,9 +182,9 @@ interface TachyonFileSystemCore {
       FileDoesNotExistException, TachyonException;
 
   /**
-   * Sets the state of a file.
+   * Sets the file state.
    *
-   * @param file the file handler for the file to pin
+   * @param file the file handler for the file
    * @param options method options
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist

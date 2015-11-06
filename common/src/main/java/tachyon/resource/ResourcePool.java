@@ -24,9 +24,9 @@ import com.google.common.base.Preconditions;
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
  * must implement the close method as well as initialize the resources in the constructor. The
  * implemented methods are thread-safe and inheriting classes should also written in a thread-safe
- * manner. See {@link tachyon.client.file.FileSystemMasterClientPool} as an example.
+ * manner. See {@code FileSystemMasterClientPool} as an example.
  *
- * @param <T> The type of resource this pool manages.
+ * @param <T> the type of resource this pool manages
  */
 public abstract class ResourcePool<T> {
   protected final Object mCapacityLock;
@@ -37,7 +37,7 @@ public abstract class ResourcePool<T> {
   /**
    * Creates a {@link ResourcePool} instance with the specified capacity.
    *
-   * @param maxCapacity The maximum of resources in this pool.
+   * @param maxCapacity the maximum of resources in this pool
    */
   public ResourcePool(int maxCapacity) {
     this(maxCapacity, new LinkedBlockingQueue<T>(maxCapacity));
@@ -46,8 +46,8 @@ public abstract class ResourcePool<T> {
   /**
    * Internal constructor that can provide an object to be used for the internal queue.
    *
-   * @param maxCapacity The maximum of resources in this pool.
-   * @param resources Blocking queue to use.
+   * @param maxCapacity bhe maximum of resources in this pool
+   * @param resources blocking queue to use
    */
   protected ResourcePool(int maxCapacity, BlockingQueue<T> resources) {
     Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
@@ -105,7 +105,7 @@ public abstract class ResourcePool<T> {
    * creating the resource will take a significant amount of time, the inheriting class should
    * avoid calling this method and instead initialize all the resources in the constructor.
    *
-   * @return a resource which will be added to the pool of resources.
+   * @return a resource which will be added to the pool of resources
    */
   protected abstract T createNewResource();
 }

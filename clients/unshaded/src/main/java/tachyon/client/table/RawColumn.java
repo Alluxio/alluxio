@@ -45,6 +45,15 @@ public class RawColumn {
   }
 
   /**
+   * @param tablePath path of the table
+   * @param columnIndex column ID
+   * @return path of the column
+   */
+  public static String getColumnPath(String tablePath, int columnIndex) {
+    return PathUtils.concatPath(tablePath, Constants.MASTER_COLUMN_FILE_PREFIX + columnIndex);
+  }
+
+  /**
    * Creates a new column partition.
    *
    * TODO(hy): Creating file here should be based on id.
@@ -54,9 +63,8 @@ public class RawColumn {
    * @throws IOException when the partition the path is invalid or points to an existing object
    */
   public boolean createPartition(int pId) throws IOException {
-    TachyonURI tUri =
-        new TachyonURI(PathUtils.concatPath(mRawTable.getPath(),
-            Constants.MASTER_COLUMN_FILE_PREFIX + mColumnIndex, pId));
+    TachyonURI tUri = new TachyonURI(PathUtils.concatPath(getColumnPath(mRawTable.getPath(),
+        mColumnIndex), pId));
     return mTachyonFS.createFile(tUri) > 0;
   }
 

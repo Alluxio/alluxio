@@ -16,39 +16,53 @@
 package tachyon.master.rawtable.journal;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * The <code>JournalEntry</code> to represent the update of metadata in RawTable.
+ * This class represents a journal entry for updating raw table metadata.
  */
-public class UpdateMetadataEntry implements JournalEntry {
-  public final long mId;
-  public final ByteBuffer mMetadata;
+public class UpdateMetadataEntry extends JournalEntry {
+  private final long mId;
+  private final ByteBuffer mMetadata;
 
   /**
+   * Creates a new instance of {@link UpdateMetadataEntry}.
+   *
    * @param id table id
    * @param metadata the metadata to be set for the table
    */
-  public UpdateMetadataEntry(long id, ByteBuffer metadata) {
+  @JsonCreator
+  public UpdateMetadataEntry(
+      @JsonProperty("id") long id,
+      @JsonProperty("metadata") ByteBuffer metadata) {
     mId = id;
     mMetadata = metadata;
+  }
+
+  /**
+   * @return the id
+   */
+  @JsonGetter
+  public long getId() {
+    return mId;
+  }
+
+  /**
+   * @return the metadata
+   */
+  @JsonGetter
+  public ByteBuffer getMetadata() {
+    return mMetadata;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.UPDATE_METADATA;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("id", mId);
-    parameters.put("metadata", mMetadata);
-    return parameters;
   }
 }

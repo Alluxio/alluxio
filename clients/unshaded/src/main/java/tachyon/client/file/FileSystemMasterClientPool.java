@@ -16,17 +16,13 @@
 package tachyon.client.file;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.resource.ResourcePool;
-import tachyon.util.ThreadFactoryUtils;
 
 final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
-  private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
 
   /**
@@ -36,19 +32,16 @@ final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClie
    */
   public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
     super(ClientContext.getConf().getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS));
-    mExecutorService = Executors.newFixedThreadPool(mMaxCapacity,
-        ThreadFactoryUtils.build("fs-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
   }
 
   @Override
   public void close() {
     // TODO(calvin): Consider collecting all the clients and shutting them down
-    mExecutorService.shutdown();
   }
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    return new FileSystemMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
+    return new FileSystemMasterClient(mMasterAddress, ClientContext.getConf());
   }
 }

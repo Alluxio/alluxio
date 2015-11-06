@@ -18,11 +18,13 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Random;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -42,11 +44,12 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 public final class LocalTachyonMaster {
   // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
 
+  private static Random sRandomGenerator = new Random();
+
   private final String mTachyonHome;
   private final String mHostname;
 
   private final UnderFileSystemCluster mUfsCluster;
-  private final String mUfsDirectory;
   private final String mJournalFolder;
 
   private final TachyonMaster mTachyonMaster;
@@ -69,16 +72,16 @@ public final class LocalTachyonMaster {
     TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
-    // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
-    // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
-    // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
-    // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
-    // "hdfs://xxx:xxx/tachyon*".
-    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
-    mUfsDirectory = mUfsCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
+    // To start the UFS for hdfs integration tests. It starts miniDFSCluster (see also
+    // {@link tachyon.LocalMiniDFScluster} and sets up the folder like "hdfs://xxx:xxx/tachyon*".
+    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, tachyonConf);
+
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
-    mJournalFolder = mUfsCluster.getUnderFilesystemAddress() + "/journal";
+    synchronized (sRandomGenerator) {
+      mJournalFolder =
+          mUfsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
+    }
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
     String[] masterServiceNames = new String[] {
@@ -95,21 +98,6 @@ public final class LocalTachyonMaster {
         tachyonConf);
 
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
-    tachyonConf.set(Constants.UNDERFS_ADDRESS, mUfsDirectory);
-    tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
-    tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
-
-    // If tests fail to connect they should fail early rather than using the default ridiculously
-    // high retries
-    tachyonConf.set(Constants.MASTER_RETRY_COUNT, "3");
-
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
-
-    tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
-    tachyonConf.set(Constants.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
     mTachyonMaster = TachyonMaster.Factory.createMaster();
 
@@ -256,19 +244,15 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getOldClient() throws IOException {
-    return mOldClientPool.getClient(MasterContext.getConf());
+    return mOldClientPool.getClient(ClientContext.getConf());
   }
 
   public TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(MasterContext.getConf());
+    return mClientPool.getClient(ClientContext.getConf());
   }
 
   private static String uniquePath() throws IOException {
     return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
-  }
-
-  private static String path(final String parent, final String child) {
-    return parent + "/" + child;
   }
 
   public String getJournalFolder() {

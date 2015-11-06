@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class LineageDeletionException extends TachyonException {
+  private static final long serialVersionUID = -1183157316281653017L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.LINEAGE_DELETION;
 
   public LineageDeletionException(String message) {

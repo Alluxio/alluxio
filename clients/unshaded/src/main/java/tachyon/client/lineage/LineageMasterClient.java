@@ -18,17 +18,13 @@ package tachyon.client.lineage;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-
 import tachyon.Constants;
 import tachyon.MasterClientBase;
-import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
@@ -51,12 +47,10 @@ public final class LineageMasterClient extends MasterClientBase {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
-    super(masterAddress, executorService, tachyonConf);
+  public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+    super(masterAddress, tachyonConf);
   }
 
   @Override
@@ -69,89 +63,74 @@ public final class LineageMasterClient extends MasterClientBase {
     mClient = new LineageMasterService.Client(mProtocol);
   }
 
-  public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      CommandLineJob job) throws IOException, TachyonException {
-    // prepare for RPC
-    List<String> inputFileStrings = Lists.newArrayList();
-    for (TachyonURI inputFile : inputFiles) {
-      inputFileStrings.add(inputFile.toString());
-    }
-    List<String> outputFileStrings = Lists.newArrayList();
-    for (TachyonURI outputFile : outputFiles) {
-      outputFileStrings.add(outputFile.toString());
-    }
-
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.createLineage(inputFileStrings, outputFileStrings,
+  public synchronized long createLineage(final List<String> inputFiles,
+      final List<String> outputFiles, final CommandLineJob job) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
+        return mClient.createLineage(inputFiles, outputFiles,
             job.generateCommandLineJobInfo());
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
-  public synchronized boolean deleteLineage(long lineageId, boolean cascade)
+  public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
         return mClient.deleteLineage(lineageId, cascade);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
-  public synchronized long reintializeFile(String path, long blockSizeBytes, long ttl)
-      throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
+      final long ttl) throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
-  public synchronized void asyncCompleteFile(long fileId) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void asyncCompleteFile(final long fileId)
+      throws TachyonException, IOException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
         mClient.asyncCompleteFile(fileId);
-        return;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
+    return retryRPC(new RpcCallable<List<LineageInfo>>() {
+      @Override
+      public List<LineageInfo> call() throws TException {
+        return mClient.getLineageInfoList();
+      }
+    });
+  }
+
+  /**
+   * Reports a lost file.
+   *
+   * @param path the file path
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void reportLostFile(String path) throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.getLineageInfoList();
+        mClient.reportLostFile(path);
+        return;
+      } catch (TachyonTException e) {
+        throw TachyonException.from(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

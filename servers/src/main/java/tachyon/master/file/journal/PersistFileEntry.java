@@ -15,48 +15,64 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.google.common.collect.Maps;
-
-import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class PersistFileEntry implements JournalEntry {
-  private final long mFileId;
+/**
+ * This class represents a journal entry for persisting a file.
+ */
+public class PersistFileEntry extends JournalEntry {
+  private final long mId;
   private final long mLength;
   private final long mOpTimeMs;
 
-  public PersistFileEntry(long fileId, long length, long opTimeMs) {
-    mFileId = fileId;
+  /**
+   * Creates a new instance {@link PersistFileEntry}.
+   *
+   * @param id the id
+   * @param length the length
+   * @param opTimeMs the operation time (in milliseconds)
+   */
+  @JsonCreator
+  public PersistFileEntry(
+      @JsonProperty("id") long id,
+      @JsonProperty("length") long length,
+      @JsonProperty("opTimeMs") long opTimeMs) {
+    mId = id;
     mLength = length;
     mOpTimeMs = opTimeMs;
   }
 
-  public long getFileId() {
-    return mFileId;
+  /**
+   * @return the file id
+   */
+  @JsonGetter
+  public long getId() {
+    return mId;
   }
 
-  public long getFileLength() {
+  /**
+   * @return the length
+   */
+  @JsonGetter
+  public long getLength() {
     return mLength;
   }
 
-  public long getOperationTimeMs() {
+  /**
+   * @return the operation time (in milliseconds)
+   */
+  @JsonGetter
+  public long getOpTimeMs() {
     return mOpTimeMs;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.ADD_CHECKPOINT;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(5);
-    parameters.put("fileId", mFileId);
-    parameters.put("length", mLength);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
   }
 }

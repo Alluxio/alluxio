@@ -59,16 +59,16 @@ public class ValidateConf {
     // "tachyon.worker.tieredstore.level%d.alias" is transformed to
     // "tachyon\.worker\.tieredstore\.level\d+\.alias".
     Pattern aliasPattern =
-        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
+        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
             .replace(".", "\\."));
     Pattern dirsPathPattern =
-        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT
+        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT
             .replace("%d", "\\d+").replace(".", "\\."));
     Pattern dirsQuotaPattern =
-        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
+        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
     Pattern reservedRatioPattern =
-        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
+        Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
     TachyonConf tachyonConf = new TachyonConf();
     boolean valid = true;
