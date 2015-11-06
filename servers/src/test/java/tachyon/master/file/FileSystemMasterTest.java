@@ -37,6 +37,7 @@ import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
@@ -108,18 +109,32 @@ public final class FileSystemMasterTest {
     long rootId = mFileSystemMaster.getFileId(ROOT_URI);
     Assert.assertFalse(mFileSystemMaster.deleteFile(rootId, true));
 
-    // cannot delete directory with recursive argument to false
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    long dirId = mFileSystemMaster.getFileId(NESTED_URI);
-    Assert.assertFalse(mFileSystemMaster.deleteFile(dirId, false));
-
     // delete the file
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     Assert.assertTrue(
         mFileSystemMaster.deleteFile(mFileSystemMaster.getFileId(NESTED_FILE_URI), false));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // verify the file is deleted
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+  }
+
+  @Test
+  public void deleteNonemptyDirectoryTest() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    long dirId = mFileSystemMaster.getFileId(NESTED_URI);
+    String dirName = mFileSystemMaster.getFileInfo(dirId).getName();
+    try {
+      mFileSystemMaster.deleteFile(dirId, false);
+      Assert.fail("Deleting a non-empty directory without setting recursive should fail");
+    } catch (DirectoryNotEmptyException e) {
+      String expectedMessage =
+          ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage(dirName);
+      Assert.assertEquals(expectedMessage, e.getMessage());
+    }
+
+    // Now delete with recursive set to true
+    Assert.assertTrue(mFileSystemMaster.deleteFile(dirId, true));
   }
 
   @Test
