@@ -79,6 +79,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBuffer = allocateBuffer();
     mBufferIsValid = false; // No data in buffer
     mClosed = false;
+    mBlockIsRead = false;
   }
 
   @Override
