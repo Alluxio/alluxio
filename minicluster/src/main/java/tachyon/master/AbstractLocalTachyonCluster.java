@@ -19,6 +19,12 @@ package tachyon.master;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tachyon.Constants;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
+import tachyon.worker.block.BlockWorker;
+
+import java.io.IOException;
 
 public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -26,8 +32,33 @@ public abstract class AbstractLocalTachyonCluster {
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
 
+  protected TachyonConf mMasterConf;
+  protected TachyonConf mWorkerConf;
+
+  protected BlockWorker mWorker = null;
+
+  protected String mTachyonHome;
+
+  protected Thread mWorkerThread = null;
+
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
   }
+
+  public abstract TachyonFileSystem getClient() throws IOException;
+
+  public abstract int getMasterPort();
+
+  public TachyonConf getMasterTachyonConf() {
+    return mMasterConf;
+  }
+
+  public abstract void start() throws IOException, ConnectionFailedException;
+
+  public abstract void stop() throws Exception;
+
+  public abstract void stopTFS() throws Exception;
+
+  public abstract void stopUFS() throws Exception;
 }

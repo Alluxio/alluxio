@@ -20,9 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
@@ -72,16 +69,11 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private BlockWorker mWorker = null;
   private LineageWorker mLineageWorker = null;
+
   private int mQuotaUnitBytes;
-  private String mTachyonHome;
-  private Thread mWorkerThread = null;
   private String mLocalhostName = null;
   private LocalTachyonMaster mMaster;
-  private TachyonConf mMasterConf;
-  private TachyonConf mWorkerConf;
   private TachyonConf mClientConf;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
@@ -89,16 +81,13 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mQuotaUnitBytes = quotaUnitBytes;
   }
 
+  @Override
   public TachyonFileSystem getClient() throws IOException {
     return mMaster.getClient();
   }
 
   public LocalTachyonMaster getMaster() {
     return mMaster;
-  }
-
-  public TachyonConf getMasterTachyonConf() {
-    return mMasterConf;
   }
 
   public String getMasterHostname() {
@@ -109,6 +98,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mMaster.getUri();
   }
 
+  @Override
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
   }
@@ -343,6 +333,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
    *
    * @throws Exception when the operation fails
    */
+  @Override
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
@@ -360,6 +351,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
    *
    * @throws Exception when the operation fails
    */
+  @Override
   public void stopTFS() throws Exception {
     LOG.info("stop Tachyon filesytstem");
 
@@ -376,6 +368,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
    *
    * @throws Exception when the operation fails
    */
+  @Override
   public void stopUFS() throws Exception {
     LOG.info("stop under storage system");
     mMaster.cleanupUnderfs();

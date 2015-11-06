@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.curator.test.TestingServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
@@ -30,7 +28,6 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -45,7 +42,6 @@ import tachyon.worker.lineage.LineageWorker;
  * A local Tachyon cluster with Multiple masters
  */
 public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
@@ -63,14 +59,10 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
-  private BlockWorker mWorker = null;
   private LineageWorker mLineageWorker = null;
 
-  private String mTachyonHome;
   private String mWorkerDataFolder;
   private String mHostname;
-
-  private Thread mWorkerThread = null;
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
@@ -81,10 +73,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     }
   };
   private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
-
-  private TachyonConf mMasterConf;
-
-  private TachyonConf mWorkerConf;
 
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
@@ -97,18 +85,16 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     }
   }
 
+  @Override
   public synchronized TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(ClientContext.getConf());
-  }
-
-  public TachyonConf getMasterTachyonConf() {
-    return mMasterConf;
   }
 
   public String getUri() {
     return Constants.HEADER_FT + mHostname + ":" + getMasterPort();
   }
 
+  @Override
   public int getMasterPort() {
     return mMasters.get(0).getRPCLocalPort();
   }
@@ -183,6 +169,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     }
   }
 
+  @Override
   public void start() throws IOException, ConnectionFailedException {
     int numLevels = 1;
 
@@ -319,6 +306,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     ClientContext.reset(mWorkerConf);
   }
 
+  @Override
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
@@ -327,6 +315,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
+  @Override
   public void stopTFS() throws Exception {
     mClientPool.close();
 
@@ -340,6 +329,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     mCuratorServer.stop();
   }
 
+  @Override
   public void stopUFS() throws Exception {
     // masters share underfs, so only need to call on the first master
     mMasters.get(0).cleanupUnderfs();
