@@ -16,29 +16,28 @@
 package tachyon.exception;
 
 /**
- * Exception for situations where an operation fails, but would have succeeded if the proper options
- * were specified. An example of this would be deleting a nonempty directory without specifying
- * 'recursive'.
+ * Exception for situations where an operation fails because a directory is not empty. An example of
+ * this would be deleting a nonempty directory without specifying 'recursive'.
  */
-public class ImproperOptionsException extends TachyonException {
+public class DirectoryNotEmptyException extends TachyonException {
   private static final long serialVersionUID = -8411287237224325573L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.IMPROPER_OPTIONS_EXCEPTION;
+      TachyonExceptionType.DIRECTORY_NOT_EMPTY_EXCEPTION;
 
-  public ImproperOptionsException(String message) {
+  public DirectoryNotEmptyException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
-  public ImproperOptionsException(String message, Throwable cause) {
+  public DirectoryNotEmptyException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
-  public ImproperOptionsException(ExceptionMessage message, Object... params) {
+  public DirectoryNotEmptyException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
-  public ImproperOptionsException(ExceptionMessage message, Throwable cause,
+  public DirectoryNotEmptyException(ExceptionMessage message, Throwable cause,
       Object... params) {
     this(message.getMessage(params), cause);
   }

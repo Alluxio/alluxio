@@ -37,7 +37,7 @@ import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.ImproperOptionsException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
@@ -127,7 +127,7 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.deleteFile(dirId, false);
       Assert.fail("Deleting a non-empty directory without setting recursive should fail");
-    } catch (ImproperOptionsException e) {
+    } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage(dirName);
       Assert.assertEquals(expectedMessage, e.getMessage());
