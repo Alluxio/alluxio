@@ -80,6 +80,10 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       return;
     }
     try {
+      if (mBlockIsRead) {
+        mWorkerClient.accessBlock(mBlockId);
+        ClientContext.getClientMetrics().incBlocksReadLocal(1);
+      }
       mWorkerClient.unlockBlock(mBlockId);
     } finally {
       mContext.releaseWorkerClient(mWorkerClient);
@@ -89,8 +93,6 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       }
     }
 
-    // TODO(calvin): Perhaps verify something was read from this stream
-    ClientContext.getClientMetrics().incBlocksReadLocal(1);
     mClosed = true;
   }
 
