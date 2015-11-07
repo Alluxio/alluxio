@@ -46,5 +46,6 @@ public class InStreamOptionsTest {
     InStreamOptions options = InStreamOptions.defaults();
 
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    ClientContext.reset();
   }
 }

@@ -62,5 +62,6 @@ public class CreateOptionsTest {
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    ClientContext.reset();
   }
 }

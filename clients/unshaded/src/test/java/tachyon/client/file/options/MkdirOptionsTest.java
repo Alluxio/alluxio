@@ -52,5 +52,6 @@ public class MkdirOptionsTest {
     MkdirOptions options = MkdirOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
+    ClientContext.reset();
   }
 }
