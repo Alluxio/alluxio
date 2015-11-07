@@ -200,7 +200,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public CreatePathResult createPath(TachyonURI path, CreatePathOptions options)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException {
     if (path.isRoot()) {
-      LOG.info("FileAlreadyExistsException: " + path);
+      LOG.info("FileAlreadyExistsException: {}", path);
       throw new FileAlreadyExistsException(path.toString());
     }
     if (!options.isDirectory() && options.getBlockSizeBytes() < 1) {
@@ -223,10 +223,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // exception here. Otherwise we add the remaining path components to the list of components
       // to create.
       if (!options.isRecursive()) {
-        final String msg = "File " + path + " creation failed. Component "
-            + traversalResult.getNonexistentPathIndex() + "("
-            + parentPath[traversalResult.getNonexistentPathIndex()] + ") does not exist";
-        LOG.info("InvalidPathException: " + msg);
+        final String msg = String.format("File %s creation failed. Component %d(%s) does not exist",
+            path, traversalResult.getNonexistentPathIndex(),
+            parentPath[traversalResult.getNonexistentPathIndex()]);
+        LOG.info("InvalidPathException: {}", msg);
         throw new InvalidPathException(msg);
       } else {
         // We will start filling at the index of the non-existing step found by the traversal.
@@ -285,7 +285,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         }
         return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
       }
-      LOG.info("FileAlreadyExistsException: " + path);
+      LOG.info("FileAlreadyExistsException: {}", path);
       throw new FileAlreadyExistsException(path.toString());
     }
     if (options.isDirectory()) {
@@ -317,7 +317,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     currentInodeDirectory.addChild(lastInode);
     currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
 
-    LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
+    LOG.debug("createFile: File Created: {} parent: {}", lastInode, currentInodeDirectory);
     return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getPersisted());
   }
 
@@ -473,7 +473,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         addInodeFromJournalInternal(directory);
       }
     } else {
-      LOG.error("Unexpected InodeEntry journal entry: " + entry);
+      LOG.error("Unexpected InodeEntry journal entry: {}", entry);
     }
   }
 

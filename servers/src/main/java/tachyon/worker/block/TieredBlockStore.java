@@ -352,8 +352,8 @@ public final class TieredBlockStore implements BlockStore {
       try {
         abortBlockInternal(sessionId, tempBlockMeta.getBlockId());
       } catch (Exception e) {
-        LOG.error("Failed to cleanup tempBlock " + tempBlockMeta.getBlockId() + " due to "
-            + e.getMessage());
+        LOG.error("Failed to cleanup tempBlock {} due to {}", tempBlockMeta.getBlockId(),
+            e.getMessage());
       }
     }
 
@@ -574,13 +574,13 @@ public final class TieredBlockStore implements BlockStore {
         mMetaManager.addTempBlockMeta(tempBlock);
       } catch (WorkerOutOfSpaceException ose) {
         // If we reach here, allocator is not working properly
-        LOG.error("Unexpected failure: " + initialBlockSize + " bytes allocated at " + location
-            + " by allocator, but addTempBlockMeta failed");
+        LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, but addTempBlockMeta failed",
+            initialBlockSize, location);
         throw Throwables.propagate(ose);
       } catch (BlockAlreadyExistsException aee) {
         // If we reach here, allocator is not working properly
-        LOG.error("Unexpected failure: " + initialBlockSize + " bytes allocated at " + location
-            + " by allocator, but addTempBlockMeta failed");
+        LOG.error("Unexpected failure: %d bytes allocated at {} by allocator, but addTempBlockMeta failed",
+            initialBlockSize, location);
         throw Throwables.propagate(aee);
       }
       return tempBlock;
@@ -651,11 +651,10 @@ public final class TieredBlockStore implements BlockStore {
         removeBlockInternal(sessionId, blockInfo.getFirst(), blockInfo.getSecond());
       } catch (InvalidWorkerStateException ise) {
         // Evictor is not working properly
-        LOG.error("Failed to evict blockId " + blockInfo.getFirst() + ", this is temp block");
+        LOG.error("Failed to evict blockId {}, this is temp block", blockInfo.getFirst());
         continue;
       } catch (BlockDoesNotExistException nfe) {
-        LOG.info("Failed to evict blockId " + blockInfo.getFirst() + ","
-            + " it could be already deleted");
+        LOG.info("Failed to evict blockId {}, it could be already deleted", blockInfo.getFirst());
         continue;
       }
       synchronized (mBlockStoreEventListeners) {
@@ -691,12 +690,12 @@ public final class TieredBlockStore implements BlockStore {
           moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
         } catch (InvalidWorkerStateException ise) {
           // Evictor is not working properly
-          LOG.error("Failed to evict blockId " + blockId + ", this is temp block");
+          LOG.error("Failed to evict blockId {}, this is temp block", blockId);
           continue;
         } catch (BlockAlreadyExistsException aee) {
           continue;
         } catch (BlockDoesNotExistException nfe) {
-          LOG.info("Failed to move blockId " + blockId + ", it could be already deleted");
+          LOG.info("Failed to move blockId {}, it could be already deleted", blockId);
           continue;
         }
         if (moveResult.success()) {

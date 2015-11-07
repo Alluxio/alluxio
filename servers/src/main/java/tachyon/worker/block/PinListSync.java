@@ -79,7 +79,7 @@ public final class PinListSync implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Sync took: " + lastIntervalMs + ", expected: " + mSyncIntervalMs);
+        LOG.warn("Sync took: {}, expected: {}", lastIntervalMs, mSyncIntervalMs);
       }
 
       // Send the sync
