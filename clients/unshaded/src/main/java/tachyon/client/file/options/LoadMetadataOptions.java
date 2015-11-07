@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class LoadMetadataOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<LoadMetadataOptions> {
     private boolean mRecursive;
 
     /**
@@ -44,6 +44,7 @@ public final class LoadMetadataOptions {
      *
      * @return a {@code LoadMetadataOptions} instance
      */
+    @Override
     public LoadMetadataOptions build() {
       return new LoadMetadataOptions(this);
     }
