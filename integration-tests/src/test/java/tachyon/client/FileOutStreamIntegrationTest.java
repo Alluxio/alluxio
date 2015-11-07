@@ -20,14 +20,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -37,7 +37,6 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
@@ -57,7 +56,13 @@ public final class FileOutStreamIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = Constants.GB;
   private static final int QUOTA_UNIT_BYTES = 128;
   private static final int BLOCK_SIZE_BYTES = 128;
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES,
+          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
+          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+
   private OutStreamOptions mWriteBoth;
   private OutStreamOptions mWriteTachyon;
   private OutStreamOptions mWriteUnderStore;
@@ -65,17 +70,9 @@ public final class FileOutStreamIntegrationTest {
   private TachyonConf mTestConf;
   private TachyonFileSystem mTfs = null;
 
-  @After
-  public final void after() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mTestConf = sLocalTachyonCluster.newTestConf();
-    mTestConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
-    // Only the Netty data server supports remote writes.
-    mTestConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+    mTestConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
     mWriteBoth =
         new OutStreamOptions.Builder(mTestConf)
             .setTachyonStorageType(TachyonStorageType.STORE)
@@ -96,14 +93,7 @@ public final class FileOutStreamIntegrationTest {
             .setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
             .setHostname(NetworkAddressUtils.getLocalHostName(mTestConf)).build();
-    sLocalTachyonCluster.start(mTestConf);
-    mTfs = sLocalTachyonCluster.getClient();
-  }
-
-  @BeforeClass
-  public static void beforeClass() throws IOException {
-    sLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+    mTfs = mLocalTachyonClusterResource.get().getClient();
   }
 
   /**

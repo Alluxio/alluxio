@@ -15,7 +15,6 @@
 
 package tachyon.master.rawtable;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -24,14 +23,16 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TableColumnException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.file.FileSystemMaster;
 
 public class RawTableMasterIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private TachyonConf mMasterConf;
   private RawTableMaster mRawTableMaster;
   private FileSystemMaster mFsMaster;
@@ -39,18 +40,13 @@ public class RawTableMasterIntegrationTest {
   @Rule
   public final ExpectedException mException = ExpectedException.none();
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mMasterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mRawTableMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getRawTableMaster();
-    mFsMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getFileSystemMaster();
+    mMasterConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mRawTableMaster =
+        mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getRawTableMaster();
+    mFsMaster =
+        mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
   }
 
   @Ignore

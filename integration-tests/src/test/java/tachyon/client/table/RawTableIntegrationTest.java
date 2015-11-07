@@ -18,43 +18,36 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for tachyon.client.RawTable.
  */
 public class RawTableIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
+      10000, 1000, Constants.GB, Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private TachyonFS mTfs = null;
   private int mMaxCols = 1000;
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    mLocalTachyonCluster.start(testConf);
-    mTfs = mLocalTachyonCluster.getOldClient();
-    mMaxCols =  mLocalTachyonCluster.getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);
+    mTfs = mLocalTachyonClusterResource.get().getOldClient();
+    mMaxCols =
+        mLocalTachyonClusterResource.get().getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);
   }
 
   @Test
