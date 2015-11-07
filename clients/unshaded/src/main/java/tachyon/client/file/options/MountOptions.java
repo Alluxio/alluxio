@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class MountOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<MountOptions> {
     /**
      * Creates a new builder for {@link MountOptions}.
      */
@@ -30,6 +30,7 @@ public final class MountOptions {
      *
      * @return a {@code MountOptions} instance
      */
+    @Override
     public MountOptions build() {
       return new MountOptions(this);
     }

@@ -15,33 +15,12 @@
 
 package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
-
-@PublicApi
-public final class OpenOptions {
-  public static class Builder implements OptionsBuilder<OpenOptions> {
-    /**
-     * Creates a new builder for {@link OpenOptions}.
-     */
-    public Builder() {}
-
-    /**
-     * Builds a new instance of {@code OpenOptions}.
-     *
-     * @return a {@code OpenOptions} instance
-     */
-    @Override
-    public OpenOptions build() {
-      return new OpenOptions(this);
-    }
-  }
-
+/**
+ * This interface should be implemented by all Tachyon option builders for client-side operations.
+ */
+public interface OptionsBuilder<T> {
   /**
-   * @return the default {@code OpenOptions}
+   * Builds a new instance
    */
-  public static OpenOptions defaults() {
-    return new Builder().build();
-  }
-
-  private OpenOptions(OpenOptions.Builder builder) {}
+  T build();
 }

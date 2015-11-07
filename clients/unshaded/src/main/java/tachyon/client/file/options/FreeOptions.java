@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class FreeOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<FreeOptions> {
     private boolean mRecursive;
 
     /**
@@ -44,6 +44,7 @@ public final class FreeOptions {
      *
      * @return a {@code FreeOptions} instance
      */
+    @Override
     public FreeOptions build() {
       return new FreeOptions(this);
     }
