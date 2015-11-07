@@ -19,17 +19,17 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.collections.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.UnderFileSystemUtils;
 
@@ -37,26 +37,20 @@ import tachyon.util.UnderFileSystemUtils;
  * To test the utilities related to under filesystem, including loadufs and etc.
  */
 public class UfsUtilsIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(10000, 1000, 128);
   private TachyonFS mTfs = null;
   private TachyonFileSystem mTachyonFileSystem = null;
   private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
-    mLocalTachyonCluster.start();
+    mTfs = mLocalTachyonClusterResource.get().getOldClient();
+    mTachyonFileSystem = mLocalTachyonClusterResource.get().getClient();
 
-    mTfs = mLocalTachyonCluster.getOldClient();
-    mTachyonFileSystem = mLocalTachyonCluster.getClient();
-
-    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
+    TachyonConf masterConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUfsRoot + TachyonURI.SEPARATOR, masterConf);
   }
@@ -76,12 +70,12 @@ public class UfsUtilsIntegrationTest {
         mUfs.mkdirs(mUfsRoot + inclusion, true);
       }
       UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
-          mLocalTachyonCluster.getMasterTachyonConf());
+          mLocalTachyonClusterResource.get().getMasterTachyonConf());
     }
 
     UfsUtils.loadUfs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUfsRoot
         + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
-        mLocalTachyonCluster.getMasterTachyonConf());
+        mLocalTachyonClusterResource.get().getMasterTachyonConf());
 
     List<String> paths;
     for (String exclusion : exclusions) {
