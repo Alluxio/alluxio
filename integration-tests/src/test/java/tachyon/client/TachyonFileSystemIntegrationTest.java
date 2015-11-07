@@ -156,6 +156,7 @@ public class TachyonFileSystemIntegrationTest {
       Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
       try {
         Assert.assertFalse(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
+        Assert.assertTrue("mkdir should throw FileAlreadyExistsException", false);
       } catch (FileAlreadyExistsException faee) {
         Assert.assertEquals(faee.getMessage(),
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));
