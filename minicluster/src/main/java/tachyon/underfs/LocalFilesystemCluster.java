@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.underfs;
 
 import java.io.File;
 import java.io.IOException;
