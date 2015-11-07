@@ -130,7 +130,7 @@ public final class MountTable {
    */
   public synchronized TachyonURI resolve(TachyonURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    LOG.info("Resolving " + path);
+    LOG.debug("Resolving " + path);
     String mountPoint = getMountPoint(uri);
     if (mountPoint != null) {
       TachyonURI ufsPath = mMountTable.get(mountPoint);
