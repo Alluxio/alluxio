@@ -140,8 +140,8 @@ public final class JournalTailerThread extends Thread {
                 return;
               }
             }
-            LOG.debug("{}: The next complete log file does not exist yet. Sleeping and checking again.",
-                mMaster.getServiceName());
+            LOG.debug("{}: The next complete log file does not exist yet. "
+                + "Sleeping and checking again.", mMaster.getServiceName());
             CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           }
         }
