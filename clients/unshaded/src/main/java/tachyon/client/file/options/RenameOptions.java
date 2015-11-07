@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class RenameOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<RenameOptions> {
     /**
      * Creates a new builder for {@link RenameOptions}.
      */
@@ -30,6 +30,7 @@ public final class RenameOptions {
      *
      * @return a {@code RenameOptions} instance
      */
+    @Override
     public RenameOptions build() {
       return new RenameOptions(this);
     }

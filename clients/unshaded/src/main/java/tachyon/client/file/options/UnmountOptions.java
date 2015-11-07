@@ -19,7 +19,7 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class UnmountOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<UnmountOptions> {
     /**
      * Creates a new builder for {@link UnmountOptions}.
      */
@@ -30,6 +30,7 @@ public final class UnmountOptions {
      *
      * @return a {@code UnmountOptions} instance
      */
+    @Override
     public UnmountOptions build() {
       return new UnmountOptions(this);
     }
