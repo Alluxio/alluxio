@@ -106,7 +106,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     try {
       lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
     } catch (BlockDoesNotExistException ioe) {
-      LOG.error("Failed to lock block: " + blockId, ioe);
+      LOG.error(String.format("Failed to lock block: %d", blockId), ioe);
       RPCBlockReadResponse resp =
           RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
       ChannelFuture future = ctx.writeAndFlush(resp);
@@ -133,9 +133,9 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
       mDataManager.accessBlock(Sessions.DATASERVER_SESSION_ID, blockId);
-      LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
+      LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
-      LOG.error("The file is not here : " + e.getMessage(), e);
+      LOG.error(String.format("The file is not here : %s", e.getMessage()), e);
       RPCBlockReadResponse resp =
           RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
       ChannelFuture future = ctx.writeAndFlush(resp);
@@ -189,7 +189,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));
     } catch (Exception e) {
-      LOG.error("Error writing remote block : " + e.getMessage(), e);
+      LOG.error(String.format("Error writing remote block : %s", e.getMessage()), e);
       RPCBlockWriteResponse resp =
           RPCBlockWriteResponse.createErrorResponse(req, RPCResponse.Status.WRITE_ERROR);
       ChannelFuture future = ctx.writeAndFlush(resp);

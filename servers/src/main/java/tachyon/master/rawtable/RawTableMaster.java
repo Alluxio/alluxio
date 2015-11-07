@@ -131,7 +131,7 @@ public class RawTableMaster extends MasterBase {
   public long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistsException, InvalidPathException, TableColumnException,
       TableMetadataException, IOException {
-    LOG.info("createRawTable with " + columns + " columns at " + path);
+    LOG.info("createRawTable with {} columns at {}", columns, path);
 
     validateColumnSize(columns);
     validateMetadataSize(metadata);

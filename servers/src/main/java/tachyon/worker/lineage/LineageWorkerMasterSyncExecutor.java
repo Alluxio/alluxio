@@ -68,7 +68,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     List<Long> persistedFiles = mLineageDataManager.popPersistedFiles();
     if (!persistedFiles.isEmpty()) {
-      LOG.info("files " + persistedFiles + " persisted");
+      LOG.info("files {} persisted", persistedFiles);
     }
 
     LineageCommand command = null;
@@ -103,10 +103,10 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     @Override
     public void run() {
       try {
-        LOG.info("persist file " + mFileId + " of blocks " + mBlockIds);
+        LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
         mLineageDataManager.persistFile(mFileId, mBlockIds);
       } catch (IOException e) {
-        LOG.error("Failed to persist file " + mFileId, e);
+        LOG.error(String.format("Failed to persist file %d", mFileId), e);
       }
     }
   }
