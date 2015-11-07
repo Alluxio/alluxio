@@ -62,5 +62,6 @@ public class CreateOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    MasterContext.reset();
   }
 }

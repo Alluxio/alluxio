@@ -69,5 +69,6 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    ClientContext.reset();
   }
 }
