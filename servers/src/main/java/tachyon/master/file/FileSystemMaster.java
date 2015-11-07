@@ -41,6 +41,7 @@ import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -342,7 +343,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    */
-  public long getFileId(TachyonURI path) throws IOException {
+  public long getFileId(TachyonURI path) {
     synchronized (mInodeTree) {
       Inode inode;
       try {
@@ -535,7 +536,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, IOException {
+      throws InvalidPathException {
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
       writeJournalEntry(new ReinitializeFileEntry(path.getPath(), blockSizeBytes, ttl));
@@ -544,7 +545,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) throws IOException {
+  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try {
       mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
           entry.getTTL());
@@ -602,9 +603,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   public boolean deleteFile(long fileId, boolean recursive)
-      throws IOException, FileDoesNotExistException {
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -625,6 +627,21 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
+   * {@link #deleteFileInternal(long, boolean, boolean, long)}.
+   */
+  boolean deleteFileRecursiveInternal(long fileId, boolean replayed, long opTimeMs)
+      throws FileDoesNotExistException, IOException {
+    try {
+      return deleteFileInternal(fileId, true, replayed, opTimeMs);
+    } catch (DirectoryNotEmptyException e) {
+      throw new IllegalStateException(
+          "deleteFileInternal should never throw DirectoryNotEmptyException when recursive is true",
+          e);
+    }
+  }
+
+  /**
    * Implements file deletion.
    *
    * @param fileId the file id
@@ -635,9 +652,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
-      throws FileDoesNotExistException, IOException {
+      throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     //
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
@@ -649,7 +667,8 @@ public final class FileSystemMaster extends MasterBase {
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
-      return false;
+      throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE,
+          inode.getName());
     }
     if (mInodeTree.isRootId(inode.getId())) {
       // The root cannot be deleted.
@@ -760,7 +779,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException {
     long fileId = getFileId(path);
     return getFileBlockInfoList(fileId);
   }
@@ -1297,7 +1316,7 @@ public final class FileSystemMaster extends MasterBase {
       }
       // Cleanup created directories in case the mount operation failed.
       long opTimeMs = System.currentTimeMillis();
-      deleteFileInternal(createResult.getCreated().get(0).getId(), true, false, opTimeMs);
+      deleteFileRecursiveInternal(createResult.getCreated().get(0).getId(), false, opTimeMs);
     }
     return false;
   }
@@ -1323,7 +1342,7 @@ public final class FileSystemMaster extends MasterBase {
         // operations from being persisted in the UFS.
         long fileId = inode.getId();
         long opTimeMs = System.currentTimeMillis();
-        deleteFileInternal(fileId, true /* recursive */, true /* replayed */, opTimeMs);
+        deleteFileRecursiveInternal(fileId, true /* replayed */, opTimeMs);
         writeJournalEntry(new DeleteFileEntry(fileId, true /* recursive */, opTimeMs));
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
@@ -1423,10 +1442,9 @@ public final class FileSystemMaster extends MasterBase {
               // whether the file is pinned.
               try {
                 deleteFile(file.getId(), false);
-              } catch (FileDoesNotExistException e) {
-                LOG.error("file does not exit {}", file.toString());
-              } catch (IOException e) {
-                LOG.error("IO exception for ttl check {}", file.toString());
+              } catch (Exception e) {
+                LOG.error("Exception trying to clean up {} for ttl check: {}",
+                    file.toString(), e.toString());
               }
             }
           }
