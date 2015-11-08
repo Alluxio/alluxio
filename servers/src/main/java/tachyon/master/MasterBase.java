@@ -73,7 +73,7 @@ public abstract class MasterBase implements Master {
   @Override
   public void start(boolean isLeader) throws IOException {
     mIsLeader = isLeader;
-    LOG.info("{}: Starting " + (mIsLeader ? "leader" : "standby") + " master.", getServiceName());
+    LOG.info("{}: Starting {} master.", getServiceName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       Preconditions.checkState(mJournal instanceof ReadWriteJournal);
       mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
@@ -142,7 +142,7 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info("{}: Stopping " + (mIsLeader ? "leader" : "standby") + " master.", getServiceName());
+    LOG.info("{}: Stopping {} master.", getServiceName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       // Stop this leader master.
       if (mJournalWriter != null) {

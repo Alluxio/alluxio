@@ -124,7 +124,7 @@ public final class StorageDir {
           // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);
         } catch (IOException ioe) {
-          LOG.error(String.format("can not delete directory %s", path.getAbsolutePath()), ioe);
+          LOG.error("can not delete directory {}", path.getAbsolutePath(), ioe);
         }
       } else {
         try {

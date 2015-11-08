@@ -106,7 +106,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
         LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
         mLineageDataManager.persistFile(mFileId, mBlockIds);
       } catch (IOException e) {
-        LOG.error(String.format("Failed to persist file %d", mFileId), e);
+        LOG.error("Failed to persist file {}", mFileId, e);
       }
     }
   }
