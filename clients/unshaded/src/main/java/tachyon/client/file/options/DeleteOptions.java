@@ -16,6 +16,8 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class DeleteOptions {
@@ -26,6 +28,15 @@ public final class DeleteOptions {
      * Creates a new builder for {@link DeleteOptions}.
      */
     public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link DeleteOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
       mRecursive = false;
     }
 
