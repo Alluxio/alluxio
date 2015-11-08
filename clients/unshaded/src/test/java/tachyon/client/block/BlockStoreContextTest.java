@@ -24,10 +24,9 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.client.file.FileSystemContext;
 
 /**
- * Tests {@link FileSystemContext}.
+ * Tests {@link BlockStoreContext}.
  */
 public final class BlockStoreContextTest {
 
