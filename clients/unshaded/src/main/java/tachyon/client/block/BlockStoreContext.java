@@ -97,12 +97,16 @@ public enum BlockStoreContext {
    *
    * @return the acquired block master client
    */
-  public synchronized BlockMasterClient acquireMasterClient() {
+  public BlockMasterClient acquireMasterClient() {
     return mBlockMasterClientPool.acquire();
   }
 
   /**
    * Releases a block master client into the block master client pool.
+   *
+   * NOTE: the client pool is already thread-safe. Synchronizing on BlockStoreContext will lead to
+   * deadlock: thread A acquired a client and awaits for BlockStoreContext to release the client,
+   * while thread B holds the lock of BlockStoreContext but waits for available clients.
    *
    * @param masterClient a block master client to release
    */
@@ -189,6 +193,10 @@ public enum BlockStoreContext {
 
   /**
    * Releases the WorkerClient back to the client pool, or destroys it if it was a remote client.
+   *
+   * NOTE: the client pool is already thread-safe. Synchronizing on BlockStoreContext will lead to
+   * deadlock: thread A acquired a client and awaits for BlockStoreContext to release the client,
+   * while thread B holds the lock of BlockStoreContext but waits for available clients.
    *
    * @param workerClient the worker client to release, the client should not be accessed after this
    *        method is called
