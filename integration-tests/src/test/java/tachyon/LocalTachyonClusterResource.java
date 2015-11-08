@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.google.common.base.Preconditions;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -28,7 +29,37 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
- * A JUnit Rule resource for automatically managing a local tachyon cluster for testing
+ * A JUnit Rule resource for automatically managing a local tachyon cluster for testing. To use it,
+ * create an instance of the class under a {@literal@}Rule annotation, with the required
+ * configuration parameters, and any necessary explicit TachyonConf settings. The tachyon cluster
+ * will be set up from scratch at the end of every method (or at the start of every suite if
+ * {@literal@}ClassRule is used), and destroyed at the end. Below is an example of declaring and
+ * using it.
+ *
+ * <pre>
+ *   public class SomethingTest {
+ *    {@literal@}Rule
+ *    public LocalTachyonClusterResource localTachyonClusterResource =
+ *      new LocalTachyonClusterResource(
+ *        WORKER_CAPACITY, QUOTA_UNIT, BLOCK_SIZE, CONF_KEY_1, CONF_VALUE_1, ...);
+ *
+ *    {@literal@}Test
+ *    public void testSomething() {
+ *      localTachyonClusterResource.get().getClient().create("/abced");
+ *      ...
+ *    }
+ *
+ *    {@literal@}Test
+ *    {@literal@}Config(tachyonConfParams = {CONF_KEY_1, CONF_VALUE_1, CONF_KEY_2,
+ *                                           CONF_VALUE_2, ...}
+ *                      startCluster = false)
+ *    public void testSomethingElse() {
+ *      localTachyonClusterResource.start();
+ *      localTachyonClusterResource.get().getClient().create("/efghi");
+ *      ...
+ *    }
+ *   }
+ * </pre>
  */
 public class LocalTachyonClusterResource implements TestRule {
 
@@ -63,15 +94,12 @@ public class LocalTachyonClusterResource implements TestRule {
    */
   public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
       int userBlockSize, boolean startCluster, String... confParams) {
+    Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
     mQuotaUnitBytes = quotaUnitBytes;
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
     mConfParams = confParams;
-    if (mConfParams.length % 2 != 0) {
-      throw new RuntimeException(
-          "There must be an even number of TachyonConf configuration parameters");
-    }
   }
 
   public LocalTachyonClusterResource(long workerCapacityBytes, int quotaUnitBytes,
