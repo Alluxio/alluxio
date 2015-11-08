@@ -284,9 +284,9 @@ public final class LineageMaster extends MasterBase {
     try {
       deleteLineageInternal(entry.getLineageId(), entry.isCascade());
     } catch (LineageDoesNotExistException e) {
-      LOG.error(String.format("Failed to delete lineage %d", entry.getLineageId()), e);
+      LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
     } catch (LineageDeletionException e) {
-      LOG.error(String.format("Failed to delete lineage %d", entry.getLineageId()), e);
+      LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
     }
   }
 

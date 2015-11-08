@@ -315,7 +315,7 @@ public final class NIODataServer implements Runnable, DataServer {
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
       } catch (BlockDoesNotExistException ioe) {
-        LOG.error(String.format("Failed to unlock block: %d", sendMessage.getBlockId()), ioe);
+        LOG.error("Failed to unlock block: {}", sendMessage.getBlockId(), ioe);
       }
     }
   }

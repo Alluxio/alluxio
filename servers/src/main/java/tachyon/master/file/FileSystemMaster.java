@@ -1245,7 +1245,7 @@ public final class FileSystemMaster extends MasterBase {
           blockIds.add(fileBlockInfo.blockInfo.blockId);
         }
       } catch (InvalidPathException e) {
-        LOG.info(String.format("Failed to get file info %d", fileId), e);
+        LOG.info("Failed to get file info {}", fileId, e);
       }
       mBlockMaster.reportLostBlocks(blockIds);
       LOG.info("Reported file loss of blocks {}. Tachyon will recompute it: {}", blockIds, fileId);

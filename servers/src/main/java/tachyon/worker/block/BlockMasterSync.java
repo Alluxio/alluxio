@@ -151,8 +151,8 @@ public final class BlockMasterSync implements Runnable {
         if (cmdFromMaster == null) {
           LOG.error("Failed to receive master heartbeat command.", e);
         } else {
-          LOG.error(String.format("Failed to receive or execute master heartbeat command: %s",
-              cmdFromMaster.toString()), e);
+          LOG.error("Failed to receive or execute master heartbeat command: {}",
+              cmdFromMaster.toString(), e);
         }
         mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);

@@ -76,7 +76,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
           try {
             mFileSystemMaster.resetFile(fileId);
           } catch (FileDoesNotExistException e) {
-            LOG.error(String.format("the lost file %d is invalid", fileId), e);
+            LOG.error("the lost file {} is invalid", fileId, e);
           }
         }
 

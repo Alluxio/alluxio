@@ -222,9 +222,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // exception here. Otherwise we add the remaining path components to the list of components
       // to create.
       if (!options.isRecursive()) {
-        final String msg = String.format("File %s creation failed. Component %d(%s) does not exist",
-            path, traversalResult.getNonexistentPathIndex(),
-            parentPath[traversalResult.getNonexistentPathIndex()]);
+        StringBuilder builder = new StringBuilder();
+        builder.append("File ");
+        builder.append(path);
+        builder.append(" creation failed. Component ");
+        builder.append(traversalResult.getNonexistentPathIndex());
+        builder.append("(");
+        builder.append(parentPath[traversalResult.getNonexistentPathIndex()]);
+        builder.append(") does not exist");
+        final String msg = builder.toString();
         LOG.info("InvalidPathException: {}", msg);
         throw new InvalidPathException(msg);
       } else {

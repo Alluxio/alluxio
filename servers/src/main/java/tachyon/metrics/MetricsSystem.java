@@ -160,7 +160,7 @@ public class MetricsSystem {
           Source source = (Source) Class.forName(classPath).newInstance();
           registerSource(source);
         } catch (Exception e) {
-          LOG.error(String.format("Source class %s cannot be instantiated", classPath), e);
+          LOG.error("Source class {} cannot be instantiated", classPath, e);
         }
       }
     }
@@ -186,7 +186,7 @@ public class MetricsSystem {
             mSinks.add(sink);
           }
         } catch (Exception e) {
-          LOG.error(String.format("Sink class %s cannot be instantiated", classPath), e);
+          LOG.error("Sink class {} cannot be instantiated", classPath, e);
         }
       }
     }
