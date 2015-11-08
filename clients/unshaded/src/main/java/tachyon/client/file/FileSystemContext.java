@@ -52,7 +52,7 @@ public enum FileSystemContext {
    *
    * @param masterClient a block master client to release
    */
-  public synchronized void releaseMasterClient(FileSystemMasterClient masterClient) {
+  public void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
   }
 

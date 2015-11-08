@@ -108,7 +108,7 @@ public enum BlockStoreContext {
    *
    * @param masterClient a block master client to release
    */
-  public synchronized void releaseMasterClient(BlockMasterClient masterClient) {
+  public void releaseMasterClient(BlockMasterClient masterClient) {
     mBlockMasterClientPool.release(masterClient);
   }
 
@@ -195,7 +195,7 @@ public enum BlockStoreContext {
    * @param workerClient the worker client to release, the client should not be accessed after this
    *        method is called
    */
-  public synchronized void releaseWorkerClient(WorkerClient workerClient) {
+  public void releaseWorkerClient(WorkerClient workerClient) {
     // If the client is local and the pool exists, release the client to the pool, otherwise just
     // close the client.
     if (workerClient.isLocal()) {
