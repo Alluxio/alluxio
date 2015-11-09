@@ -5,7 +5,6 @@
     <artifactId>tachyon-parent</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-assemblies</artifactId>
   <name>Tachyon Assemblies</name>
   <description>Assemblies of Tachyon system</description>
