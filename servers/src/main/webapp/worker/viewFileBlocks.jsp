@@ -1,5 +1,4 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.StorageLevelAlias" %>
 <%@ page import="tachyon.web.*" %>
 <%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
 
@@ -87,12 +86,11 @@
               <th>Tier</th>
               <th>Size (Byte)</th>
             </tr>
-            <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
-              <% List<UiBlockInfo> blocks = ((List<List<UiBlockInfo>>) request.getAttribute("fileBlocksOnTier")).get(i); %>
-              <% for (UiBlockInfo masterBlockInfo : blocks) { %>
+            <% for (Map.Entry<String, List<UiBlockInfo>> entry : ((Map<String, List<UiBlockInfo>>) request.getAttribute("fileBlocksOnTier")).entrySet()) { %>
+              <% for (UiBlockInfo masterBlockInfo : entry.getValue()) { %>
                 <tr>
                   <td><%= masterBlockInfo.getID() %></td>
-                  <td><%= StorageLevelAlias.values()[i].name() %></td>
+                  <td><%= entry.getKey() %></td>
                   <td><%= masterBlockInfo.getBlockLength() %></td>
                 </tr>
               <% } %>

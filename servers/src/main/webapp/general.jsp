@@ -113,7 +113,7 @@
               <tbody>
                 <% for (WebInterfaceGeneralServlet.StorageTierInfo info : ((WebInterfaceGeneralServlet.StorageTierInfo[]) request.getAttribute("storageTierInfos"))) { %>
                   <tr>
-                    <th><%= info.getStorageLevelAlias() %></th>
+                    <th><%= info.getStorageTierAlias() %></th>
                     <th><%= info.getCapacity() %></th>
                     <th><%= info.getUsedCapacity() %></th>
                     <th>

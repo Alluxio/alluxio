@@ -1,6 +1,0 @@
-<FindBugsFilter>
-  <Match>
-    <!-- IC: Initialization circularity -->
-    <Bug code="IC" />
-  </Match>
-</FindBugsFilter>

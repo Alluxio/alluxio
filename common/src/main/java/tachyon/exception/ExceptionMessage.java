@@ -26,7 +26,9 @@ import com.google.common.base.Preconditions;
  */
 public enum ExceptionMessage {
   // general
+  NOT_SUPPORTED("This method is not supported"),
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
+  PATH_MUST_BE_FILE("Path {0} must be a file"),
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
@@ -54,6 +56,9 @@ public enum ExceptionMessage {
   FAILED_SEEK_FORWARD("Failed to seek forward to {0}"),
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
+  READ_CLOSED_STREAM("Cannot read from a closed stream"),
+  SEEK_NEGATIVE("Seek position is negative: {0}"),
+  SEEK_PAST_EOF("Seek position is past EOF: {0}, fileSize: {1}"),
 
   // netty
   BLOCK_WRITE_ERROR("Error writing blockId: {0}, sessionId: {1}, address: {2}, message: {3}"),
@@ -80,8 +85,16 @@ public enum ExceptionMessage {
 
   // journal
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
-  UNEXPECETD_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
+  UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
+
+  // file
+  CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
+      "Cannot delete non-empty directory {0} because recursive is set to false"),
+  FILE_ALREADY_EXISTS("{0} already exists"),
+  FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
+  HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
@@ -93,10 +106,22 @@ public enum ExceptionMessage {
   RAW_TABLE_METADATA_OVERSIZED("Size of raw table metadata {0} should be smaller than {1}"),
   RAW_TABLE_PATH_DOES_NOT_EXIST("Raw table with path {0} does not exist"),
 
+  // shell
+  DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
+      "The destination cannot be an existent file when the src contains wildcards."),
+
   // lineage
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
 
+  // Tachyon Conf
+  DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Tachyon properties file does not exist"),
+  INVALID_CONFIGURATION_KEY("Invalid configuration key {0}"),
+  KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
+  KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
+  KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
+  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Tachyon properties file"),
+  UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 

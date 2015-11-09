@@ -54,7 +54,7 @@ service LineageMasterService {
    * Creates a lineage.
    */
   i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job)
-    throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Deletes a lineage.
@@ -85,4 +85,5 @@ service LineageMasterService {
    * Periodic lineage worker heartbeat.
    */
   LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
+    throws (1: exception.TachyonTException e)
 }

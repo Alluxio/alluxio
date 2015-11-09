@@ -16,12 +16,16 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class ListStatusOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<ListStatusOptions> {
+    /**
+     * Creates a new builder for {@link ListStatusOptions}.
+     */
+    public Builder() {}
+
     /**
      * Creates a new builder for {@link ListStatusOptions}.
      *
@@ -34,6 +38,7 @@ public final class ListStatusOptions {
      *
      * @return a {@code ListStatusOptions} instance
      */
+    @Override
     public ListStatusOptions build() {
       return new ListStatusOptions(this);
     }
@@ -43,7 +48,7 @@ public final class ListStatusOptions {
    * @return the default {@code ListStatusOptions}
    */
   public static ListStatusOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private ListStatusOptions(ListStatusOptions.Builder builder) {}

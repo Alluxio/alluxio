@@ -25,6 +25,7 @@ import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
+import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.FileUtils;
@@ -139,18 +140,17 @@ public final class BlockDataManager {
       IOException, WorkerOutOfSpaceException {
     mBlockStore.commitBlock(sessionId, blockId);
 
-    // TODO)(calvin): Reconsider how to do this without heavy locking.
+    // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
-      int tier = loc.tierAlias();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier, tier, blockId,
-          length);
+      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
+      mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
+          loc.tierAlias(), blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
@@ -163,7 +163,8 @@ public final class BlockDataManager {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to create
-   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
+   * @param tierAlias The alias of the tier to place the new block in, BlockStoreLocation.ANY_TIER
+   *        for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IllegalArgumentException if location does not belong to tiered storage
@@ -172,10 +173,9 @@ public final class BlockDataManager {
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
-  public String createBlock(long sessionId, long blockId, int tierAlias, long initialBytes)
+  public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc =
-        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     return createdBlock.getPath();
   }
@@ -187,7 +187,7 @@ public final class BlockDataManager {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to be created
-   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
+   * @param tierAlias The alias of the tier to place the new block in
    * @param initialBytes The initial amount of bytes to be allocated
    * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
@@ -195,7 +195,7 @@ public final class BlockDataManager {
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
-  public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
+  public void createBlockRemote(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
@@ -214,7 +214,7 @@ public final class BlockDataManager {
    * @throws BlockAlreadyExistsException if blocks to move already exists in destination location
    * @throws InvalidWorkerStateException if blocks to move/evict is uncommitted
    */
-  public void freeSpace(long sessionId, long availableBytes, int tierAlias)
+  public void freeSpace(long sessionId, long availableBytes, String tierAlias)
       throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
       BlockAlreadyExistsException, InvalidWorkerStateException {
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
@@ -225,7 +225,8 @@ public final class BlockDataManager {
    * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
    * data server.
    *
-   * The temporary block must already exist with {@link #createBlockRemote(long, long, int, long)}.
+   * The temporary block must already exist with
+   * {@link #createBlockRemote(long, long, String, long)}.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to be opened for writing
@@ -298,7 +299,7 @@ public final class BlockDataManager {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to move
-   * @param tierAlias The tier to move the block to
+   * @param tierAlias The alias of the tier to move the block to
    * @throws IllegalArgumentException if tierAlias is out of range of tiered storage
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
@@ -308,7 +309,7 @@ public final class BlockDataManager {
    *         block
    * @throws IOException if block cannot be moved from current location to newLocation
    */
-  public void moveBlock(long sessionId, long blockId, int tierAlias)
+  public void moveBlock(long sessionId, long blockId, String tierAlias)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
     BlockStoreLocation dst = BlockStoreLocation.anyDirInTier(tierAlias);
@@ -431,6 +432,10 @@ public final class BlockDataManager {
    * @throws IOException if an I/O error occurs
    */
   public FileInfo getFileInfo(long fileId) throws IOException {
-    return mFileSystemMasterClient.getFileInfo(fileId);
+    try {
+      return mFileSystemMasterClient.getFileInfo(fileId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 }

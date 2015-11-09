@@ -36,13 +36,13 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
 
   /** List of blocks that were removed in the last heartbeat period */
   private final List<Long> mRemovedBlocks;
-  /** Map of storage dirs to a list of blocks that were added in the last heartbeat period */
-  private final Map<Long, List<Long>> mAddedBlocks;
+  /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period */
+  private final Map<String, List<Long>> mAddedBlocks;
 
   public BlockHeartbeatReporter() {
     mLock = new Object();
     mRemovedBlocks = new ArrayList<Long>(100);
-    mAddedBlocks = new HashMap<Long, List<Long>>(20);
+    mAddedBlocks = new HashMap<String, List<Long>>(20);
   }
 
   /**
@@ -54,7 +54,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   public BlockHeartbeatReport generateReport() {
     synchronized (mLock) {
       // Copy added and removed blocks
-      Map<Long, List<Long>> addedBlocks = new HashMap<Long, List<Long>>(mAddedBlocks);
+      Map<String, List<Long>> addedBlocks = new HashMap<String, List<Long>>(mAddedBlocks);
       List<Long> removedBlocks = new ArrayList<Long>(mRemovedBlocks);
       // Clear added and removed blocks
       mAddedBlocks.clear();
@@ -66,13 +66,12 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   @Override
   public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
       // Remove the block from our list of added blocks in this heartbeat, if it was added, to
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);
-      // Add the block back with the new storagedir.
-      addBlockToAddedBlocks(blockId, storageDirId);
+      // Add the block back with the new tier
+      addBlockToAddedBlocks(blockId, newLocation.tierAlias());
     }
   }
 
@@ -103,13 +102,12 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   @Override
   public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
       // Remove the block from our list of added blocks in this heartbeat, if it was added, to
       // prevent adding the block twice.
       removeBlockFromAddedBlocks(blockId);
       // Add the block back with the new storagedir.
-      addBlockToAddedBlocks(blockId, storageDirId);
+      addBlockToAddedBlocks(blockId, newLocation.tierAlias());
     }
   }
 
@@ -117,13 +115,13 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
    * Adds a block to the list of added blocks in this heartbeat period.
    *
    * @param blockId The id of the block to add
-   * @param storageDirId The storage directory id containing the block
+   * @param tierAlias alias of the storage tier containing the block
    */
-  private void addBlockToAddedBlocks(long blockId, long storageDirId) {
-    if (mAddedBlocks.containsKey(storageDirId)) {
-      mAddedBlocks.get(storageDirId).add(blockId);
+  private void addBlockToAddedBlocks(long blockId, String tierAlias) {
+    if (mAddedBlocks.containsKey(tierAlias)) {
+      mAddedBlocks.get(tierAlias).add(blockId);
     } else {
-      mAddedBlocks.put(storageDirId, Lists.newArrayList(blockId));
+      mAddedBlocks.put(tierAlias, Lists.newArrayList(blockId));
     }
   }
 
@@ -133,9 +131,9 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
    * @param blockId The block to remove
    */
   private void removeBlockFromAddedBlocks(long blockId) {
-    Iterator<Entry<Long, List<Long>>> iterator = mAddedBlocks.entrySet().iterator();
+    Iterator<Entry<String, List<Long>>> iterator = mAddedBlocks.entrySet().iterator();
     while (iterator.hasNext()) {
-      Entry<Long, List<Long>> entry = iterator.next();
+      Entry<String, List<Long>> entry = iterator.next();
       List<Long> blockList = entry.getValue();
       if (blockList.contains(blockId)) {
         blockList.remove(blockId);

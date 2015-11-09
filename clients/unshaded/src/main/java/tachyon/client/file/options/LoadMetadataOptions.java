@@ -21,11 +21,18 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class LoadMetadataOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<LoadMetadataOptions> {
     private boolean mRecursive;
 
     /**
-     * Creates a new builder for {@link FreeOptions}.
+     * Creates a new builder for {@link LoadMetadataOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link LoadMetadataOptions}.
      *
      * @param conf a Tachyon configuration
      */
@@ -48,6 +55,7 @@ public final class LoadMetadataOptions {
      *
      * @return a {@code LoadMetadataOptions} instance
      */
+    @Override
     public LoadMetadataOptions build() {
       return new LoadMetadataOptions(this);
     }
@@ -57,7 +65,7 @@ public final class LoadMetadataOptions {
    * @return the default {@code LoadMetadataOptions}
    */
   public static LoadMetadataOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;
@@ -72,5 +80,16 @@ public final class LoadMetadataOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("LoadMetadataOptions(");
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(")");
+    return sb.toString();
   }
 }

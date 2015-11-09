@@ -44,7 +44,6 @@ import tachyon.Constants;
  * </ul>
  *
  */
-@SuppressWarnings("deprecation")
 public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
   static final String VALUE_TYPE_LONG = "l:";
   static final String VALUE_TYPE_FLOAT = "f:";

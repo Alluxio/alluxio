@@ -51,7 +51,7 @@ public class RecomputePlanner {
     // lineage to recompute
     Set<Lineage> toRecompute = Sets.newHashSet();
     if (!lostFiles.isEmpty()) {
-      LOG.info("report lost files " + lostFiles);
+      LOG.info("report lost files {}", lostFiles);
       // report lost files
       for (long lostFile : lostFiles) {
         if (!mLineageStore.hasOutputFile(lostFile)) {
@@ -62,7 +62,7 @@ public class RecomputePlanner {
         try {
           lineage = mLineageStore.reportLostFile(lostFile);
         } catch (LineageDoesNotExistException e) {
-          throw new RuntimeException(e); // should not happen
+          throw new IllegalStateException(e); // should not happen
         }
         if (!lineage.isPersisted()) {
           toRecompute.add(lineage);
@@ -71,7 +71,6 @@ public class RecomputePlanner {
     }
 
     List<Lineage> toRecomputeAfterSort = mLineageStore.sortLineageTopologically(toRecompute);
-    RecomputePlan plan = new RecomputePlan(toRecomputeAfterSort);
-    return plan;
+    return new RecomputePlan(toRecomputeAfterSort);
   }
 }

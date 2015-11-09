@@ -22,14 +22,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represent a journal entry for lineage id generator.
+ */
 public class LineageIdGeneratorEntry extends JournalEntry {
   private final long mSequenceNumber;
 
+  /**
+   * Creates a new instance of {@link LineageIdGeneratorEntry}.
+   *
+   * @param sequenceNumber the sequence number
+   */
   @JsonCreator
-  public LineageIdGeneratorEntry(@JsonProperty("sequenceNumber") long sequenceNumber) {
+  public LineageIdGeneratorEntry(
+      @JsonProperty("sequenceNumber") long sequenceNumber) {
     mSequenceNumber = sequenceNumber;
   }
 
+  /**
+   * @return the sequence number
+   */
   @JsonGetter
   public long getSequenceNumber() {
     return mSequenceNumber;

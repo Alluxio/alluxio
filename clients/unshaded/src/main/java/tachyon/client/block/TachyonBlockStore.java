@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
@@ -72,6 +73,8 @@ public final class TachyonBlockStore implements Closeable {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getBlockInfo(blockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -87,7 +90,6 @@ public final class TachyonBlockStore implements Closeable {
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
@@ -108,6 +110,8 @@ public final class TachyonBlockStore implements Closeable {
       } else {
         return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
       }
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -129,6 +133,8 @@ public final class TachyonBlockStore implements Closeable {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
       try {
         blockSize = blockMasterClient.getBlockInfo(blockId).getLength();
+      } catch (TachyonException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(blockMasterClient);
       }
@@ -208,6 +214,8 @@ public final class TachyonBlockStore implements Closeable {
       } finally {
         mContext.releaseWorkerClient(workerClient);
       }
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }

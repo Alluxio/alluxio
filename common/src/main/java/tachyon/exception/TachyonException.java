@@ -26,7 +26,7 @@ import tachyon.thrift.TachyonTException;
 public abstract class TachyonException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;
 
-  private TachyonExceptionType mType;
+  private final TachyonExceptionType mType;
 
   public TachyonException(TachyonTException te) {
     super(te.getMessage());
@@ -84,20 +84,5 @@ public abstract class TachyonException extends Exception {
     String errorMessage = "Could not instantiate " + throwClass.getName() + " with a String-only "
         + "constructor: " + reflectError.getMessage();
     throw new IllegalStateException(errorMessage);
-  }
-
-  /**
-   * Checks if the given exception is an instance of the given derived class and if so, downcasts
-   * the exception and throws it.
-   *
-   * @param e the {@link TachyonException}
-   * @param throwClass the type of exception to throw e is of the right type
-   * @throws T if e is of type T
-   */
-  public static <T extends TachyonException> void unwrap(TachyonException e, Class<T> throwClass)
-      throws T {
-    if (throwClass.isInstance(e)) {
-      throw throwClass.cast(e);
-    }
   }
 }

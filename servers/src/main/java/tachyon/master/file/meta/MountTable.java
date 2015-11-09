@@ -53,16 +53,15 @@ public final class MountTable {
   public synchronized boolean add(TachyonURI tachyonUri, TachyonURI ufsUri)
       throws InvalidPathException {
     String tachyonPath = tachyonUri.getPath();
-    LOG.info("Mounting " + ufsUri + " at " + tachyonPath);
+    LOG.info("Mounting {} at {}", ufsUri, tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
-      LOG.warn("Mount point " + tachyonPath + " already exists.");
+      LOG.warn("Mount point {} already exists.", tachyonPath);
       return false;
     }
     for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
       String path = entry.getKey();
       if (!path.equals(ROOT) && PathUtils.hasPrefix(tachyonPath, path)) {
-        LOG.warn("Cannot nest mount point " + tachyonPath + " under an existing mount point" + path
-            + ".");
+        LOG.warn("Cannot nest mount point {} under an existing mount point {}.", tachyonPath, path);
         return false;
       }
     }
@@ -78,7 +77,7 @@ public final class MountTable {
    */
   public synchronized boolean delete(TachyonURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    LOG.info("Unmounting " + path);
+    LOG.info("Unmounting {}", path);
     if (path.equals(ROOT)) {
       LOG.warn("Cannot unmount the root mount point.");
       return false;
@@ -87,7 +86,7 @@ public final class MountTable {
       mMountTable.remove(path);
       return true;
     }
-    LOG.warn("Mount point " + path + " does not exist.");
+    LOG.warn("Mount point {} does not exist.", path);
     return false;
   }
 
@@ -130,7 +129,7 @@ public final class MountTable {
    */
   public synchronized TachyonURI resolve(TachyonURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    LOG.info("Resolving " + path);
+    LOG.debug("Resolving {}", path);
     String mountPoint = getMountPoint(uri);
     if (mountPoint != null) {
       TachyonURI ufsPath = mMountTable.get(mountPoint);

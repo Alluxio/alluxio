@@ -18,9 +18,6 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -45,8 +42,6 @@ import tachyon.thrift.NetAddress;
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final TachyonFileSystem mTFS;
 
   final TachyonFS mTachyonFS;
@@ -394,23 +389,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {
     throw new UnsupportedOperationException("ReadLocalByteBuffer is not supported");
-  }
-
-  /**
-   * Read local block return a TachyonByteBuffer
-   *
-   * Currently unsupported.
-   *
-   * @param blockIndex the id of the block
-   * @param offset the start position to read
-   * @param len The length to read. -1 represents read the whole block
-   * @return <code>TachyonByteBuffer</code> containing the block
-   * @throws IOException when the offset is negative is the length is less than -1
-   */
-  private TachyonByteBuffer readLocalByteBuffer(int blockIndex, long offset, long len)
-      throws IOException {
-    throw new UnsupportedOperationException("ReadLocalByteBuffer is not supported");
-
   }
 
   /**

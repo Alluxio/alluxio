@@ -5,14 +5,16 @@
     <artifactId>tachyon-parent</artifactId>
     <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-assemblies</artifactId>
   <name>Tachyon Assemblies</name>
   <description>Assemblies of Tachyon system</description>
 
   <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 
