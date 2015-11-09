@@ -131,7 +131,7 @@ public final class BlockMasterSync implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Heartbeat took: " + lastIntervalMs + ", expected: " + mHeartbeatIntervalMs);
+        LOG.warn("Heartbeat took: {}, expected: {}", lastIntervalMs, mHeartbeatIntervalMs);
       }
 
       // Prepare metadata for the next heartbeat
@@ -151,8 +151,8 @@ public final class BlockMasterSync implements Runnable {
         if (cmdFromMaster == null) {
           LOG.error("Failed to receive master heartbeat command.", e);
         } else {
-          LOG.error("Failed to receive or execute master heartbeat command: "
-              + cmdFromMaster.toString(), e);
+          LOG.error("Failed to receive or execute master heartbeat command: {}",
+              cmdFromMaster.toString(), e);
         }
         mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
@@ -203,7 +203,7 @@ public final class BlockMasterSync implements Runnable {
         break;
       // Unknown request
       case Unknown:
-        LOG.error("Master heartbeat sends unknown command " + cmd);
+        LOG.error("Master heartbeat sends unknown command {}", cmd);
         break;
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
@@ -228,13 +228,13 @@ public final class BlockMasterSync implements Runnable {
     public void run() {
       try {
         mBlockDataManager.removeBlock(mSessionId, mBlockId);
-        LOG.info("Block " + mBlockId + " removed at session " + mSessionId);
+        LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
       } catch (IOException ioe) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
+        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId);
       } catch (InvalidWorkerStateException e) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
+        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId);
       } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
+        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId);
       }
     }
 

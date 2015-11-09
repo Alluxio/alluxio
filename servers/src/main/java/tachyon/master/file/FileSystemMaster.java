@@ -694,9 +694,9 @@ public final class FileSystemMaster extends MasterBase {
           String ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           if (!ufs.exists(ufsPath)) {
-            LOG.warn("File does not exist the underfs: " + ufsPath);
+            LOG.warn("File does not exist the underfs: {}", ufsPath);
           } else if (!ufs.delete(ufsPath, true)) {
-            LOG.error("Failed to delete " + ufsPath);
+            LOG.error("Failed to delete {}", ufsPath);
             return false;
           }
         } catch (InvalidPathException e) {
@@ -998,7 +998,7 @@ public final class FileSystemMaster extends MasterBase {
       String dstMount = mMountTable.getMountPoint(dstPath);
       if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
           || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
-        LOG.warn("Renaming " + srcPath + " to " + dstPath + " spans mount points.");
+        LOG.warn("Renaming {} to {} spans mount points.", srcPath, dstPath);
         return false;
       }
       // Renaming onto a mount point is not allowed.
@@ -1040,7 +1040,7 @@ public final class FileSystemMaster extends MasterBase {
       writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
       flushJournal();
 
-      LOG.debug("Renamed " + srcPath + " to " + dstPath);
+      LOG.debug("Renamed {} to {}", srcPath, dstPath);
       return true;
     }
   }
@@ -1062,7 +1062,7 @@ public final class FileSystemMaster extends MasterBase {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode srcInode = mInodeTree.getInodeById(fileId);
     TachyonURI srcPath = mInodeTree.getPath(srcInode);
-    LOG.debug("Renaming " + srcPath + " to " + dstPath);
+    LOG.debug("Renaming {} to {}", srcPath, dstPath);
 
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
@@ -1072,11 +1072,11 @@ public final class FileSystemMaster extends MasterBase {
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
       String parentPath = new TachyonURI(ufsDstPath).getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        LOG.error("Failed to create " + parentPath);
+        LOG.error("Failed to create {}", parentPath);
         return false;
       }
       if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
-        LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
+        LOG.error("Failed to rename {} to {}", ufsSrcPath, ufsDstPath);
         return false;
       }
     }
@@ -1235,7 +1235,7 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
-        LOG.warn("Reported file is a directory " + inode);
+        LOG.warn("Reported file is a directory {}", inode);
         return;
       }
 
@@ -1245,11 +1245,10 @@ public final class FileSystemMaster extends MasterBase {
           blockIds.add(fileBlockInfo.blockInfo.blockId);
         }
       } catch (InvalidPathException e) {
-        LOG.info("Failed to get file info " + fileId, e);
+        LOG.info("Failed to get file info {}", fileId, e);
       }
       mBlockMaster.reportLostBlocks(blockIds);
-      LOG.info(
-          "Reported file loss of blocks" + blockIds + ". Tachyon will recompute it: " + fileId);
+      LOG.info("Reported file loss of blocks {}. Tachyon will recompute it: {}", blockIds, fileId);
     }
   }
 
@@ -1326,7 +1325,7 @@ public final class FileSystemMaster extends MasterBase {
     TachyonURI tachyonURI = entry.getTachyonURI();
     TachyonURI ufsURI = entry.getUfsURI();
     if (!mountInternal(tachyonURI, ufsURI)) {
-      LOG.error("Failed to mount " + ufsURI + " at " + tachyonURI);
+      LOG.error("Failed to mount {} at {}", ufsURI, tachyonURI);
     }
   }
 
@@ -1356,7 +1355,7 @@ public final class FileSystemMaster extends MasterBase {
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
     TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
     if (!unmountInternal(tachyonURI)) {
-      LOG.error("Failed to unmount " + tachyonURI);
+      LOG.error("Failed to unmount {}", tachyonURI);
     }
   }
 
@@ -1444,8 +1443,8 @@ public final class FileSystemMaster extends MasterBase {
               try {
                 deleteFile(file.getId(), false);
               } catch (Exception e) {
-                LOG.error(String.format("Exception trying to clean up %s for ttl check: %s",
-                    file.toString(), e.toString()));
+                LOG.error("Exception trying to clean up {} for ttl check: {}",
+                    file.toString(), e.toString());
               }
             }
           }

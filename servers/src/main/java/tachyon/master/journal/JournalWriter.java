@@ -107,14 +107,14 @@ public final class JournalWriter {
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
       throws IOException {
     if (mCheckpointOutputStream == null) {
-      LOG.info("Creating tmp checkpoint file: " + mTempCheckpointPath);
+      LOG.info("Creating tmp checkpoint file: {}", mTempCheckpointPath);
       if (!mUfs.exists(mJournalDirectory)) {
-        LOG.info("Creating journal folder: " + mJournalDirectory);
+        LOG.info("Creating journal folder: {}", mJournalDirectory);
         mUfs.mkdirs(mJournalDirectory, true);
       }
       mNextEntrySequenceNumber = latestSequenceNumber + 1;
-      LOG.info("Latest journal sequence number: " + latestSequenceNumber
-          + " Next journal sequence number: " + mNextEntrySequenceNumber);
+      LOG.info("Latest journal sequence number: {} Next journal sequence number: {}",
+          latestSequenceNumber, mNextEntrySequenceNumber);
       mCheckpointOutputStream =
           new CheckpointOutputStream(new DataOutputStream(mUfs.create(mTempCheckpointPath)));
     }
@@ -158,7 +158,7 @@ public final class JournalWriter {
   private OutputStream openCurrentLog() throws IOException {
     String currentLogFile = mJournal.getCurrentLogFilePath();
     OutputStream os = mUfs.create(currentLogFile);
-    LOG.info("Opened current log file: " + currentLogFile);
+    LOG.info("Opened current log file: {}", currentLogFile);
     return os;
   }
 
@@ -174,7 +174,7 @@ public final class JournalWriter {
     long logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
-      LOG.info("Deleting completed log: " + logFilename);
+      LOG.info("Deleting completed log: {}", logFilename);
       mUfs.delete(logFilename, true);
       logNumber ++;
       // generate the next completed log filename in the sequence.
@@ -205,7 +205,7 @@ public final class JournalWriter {
 
     String completedLog = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
     mUfs.rename(currentLog, completedLog);
-    LOG.info("Completed current log: " + currentLog + " to completed log: " + completedLog);
+    LOG.info("Completed current log: {} to completed log: {}", currentLog, completedLog);
 
     mNextCompleteLogNumber ++;
   }
@@ -260,13 +260,13 @@ public final class JournalWriter {
       mOutputStream.flush();
       mOutputStream.close();
 
-      LOG.info("Successfully created tmp checkpoint file: " + mTempCheckpointPath);
+      LOG.info("Successfully created tmp checkpoint file: {}", mTempCheckpointPath);
       mUfs.delete(mJournal.getCheckpointFilePath(), false);
       // TODO(gpang): the real checkpoint should not be overwritten here, but after all operations.
       mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
       mUfs.delete(mTempCheckpointPath, false);
-      LOG.info("Renamed checkpoint file " + mTempCheckpointPath + " to "
-          + mJournal.getCheckpointFilePath());
+      LOG.info("Renamed checkpoint file {} to {}", mTempCheckpointPath,
+          mJournal.getCheckpointFilePath());
 
       // The checkpoint already reflects the information in the completed logs.
       deleteCompletedLogs();
@@ -343,8 +343,8 @@ public final class JournalWriter {
         // (2) Underfs is S3, flush on S3OutputStream will only flush to local temporary file,
         //     call close and complete the log to sync the journal entry to S3.
         if (overSize) {
-          LOG.info("Rotating log file. size: " + mDataOutputStream.size() + " maxSize: "
-              + mMaxLogSize);
+          LOG.info("Rotating log file. size: {} maxSize: {}", mDataOutputStream.size(),
+              mMaxLogSize);
         }
         // rotate the current log.
         mDataOutputStream.close();
