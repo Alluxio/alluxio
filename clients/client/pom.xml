@@ -96,17 +96,22 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-glusterfs</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-common</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+    <!-- module tachyon-underfs-glusterfs depends on
+         hadoop library of 2.3.0, which may have problem when using with
+         hadoop 2.4 and later. Please check instructions in
+         http://tachyon-project.org/documentation/Configuring-Tachyon-with-GlusterFS.html
+         for how to use glusterfs with Tachyon. -->
+    <!-- <dependency> -->
+    <!--   <groupId>org.tachyonproject</groupId> -->
+    <!--   <artifactId>tachyon-underfs-glusterfs</artifactId> -->
+    <!--   <version>${project.version}</version> -->
+    <!--   <exclusions> -->
+    <!--     <exclusion> -->
+    <!--       <groupId>org.tachyonproject</groupId> -->
+    <!--       <artifactId>tachyon-common</artifactId> -->
+    <!--     </exclusion> -->
+    <!--   </exclusions> -->
+    <!-- </dependency> -->
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-s3</artifactId>
