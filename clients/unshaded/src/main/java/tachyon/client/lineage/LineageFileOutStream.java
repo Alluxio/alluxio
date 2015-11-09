@@ -85,7 +85,7 @@ public class LineageFileOutStream extends FileOutStream {
     if (canComplete) {
       LineageMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        LOG.info("async complete file" + mFileId);
+        LOG.info("async complete file {}", mFileId);
         masterClient.asyncCompleteFile(mFileId);
       } catch (TachyonException e) {
         throw new IOException(e);
@@ -93,7 +93,7 @@ public class LineageFileOutStream extends FileOutStream {
         mContext.releaseMasterClient(masterClient);
       }
     } else {
-      LOG.warn("Failed to store file " + mFileId + " in Tachyon Storage");
+      LOG.warn("Failed to store file {} in Tachyon Storage", mFileId);
     }
   }
 }
