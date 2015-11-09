@@ -16,6 +16,8 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class FreeOptions {
@@ -26,6 +28,15 @@ public final class FreeOptions {
      * Creates a new builder for {@link FreeOptions}.
      */
     public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link FreeOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
       mRecursive = false;
     }
 

@@ -16,6 +16,7 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class GetInfoOptions {
@@ -24,6 +25,13 @@ public final class GetInfoOptions {
      * Creates a new builder for {@link GetInfoOptions}.
      */
     public Builder() {}
+
+    /**
+     * Creates a new builder for {@link GetInfoOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {}
 
     /**
      * Builds a new instance of {@code GetInfoOptions}.

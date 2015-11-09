@@ -16,6 +16,7 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class MountOptions {
@@ -24,6 +25,13 @@ public final class MountOptions {
      * Creates a new builder for {@link MountOptions}.
      */
     public Builder() {}
+
+    /**
+     * Creates a new builder for {@link MountOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {}
 
     /**
      * Builds a new instance of {@code MountOptions}.
