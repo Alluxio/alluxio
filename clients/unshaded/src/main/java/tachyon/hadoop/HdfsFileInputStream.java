@@ -277,7 +277,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
     LOG.error("Reading from HDFS directly");
     while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
-      LOG.error("Read 0 bytes in readFromHdfsBuffer for " + mHdfsPath);
+      LOG.error("Read 0 bytes in readFromHdfsBuffer for {}", mHdfsPath);
     }
     if (mBufferLimit == -1) {
       return -1;

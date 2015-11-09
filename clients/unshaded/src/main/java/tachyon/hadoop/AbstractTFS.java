@@ -84,7 +84,7 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.info("append(" + cPath + ", " + bufferSize + ", " + progress + ")");
+    LOG.info("append({}, {}, {})", cPath, bufferSize, progress);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -125,8 +125,8 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
-    LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + ", " + bufferSize + ", "
-        + replication + ", " + blockSize + ", " + progress + ")");
+    LOG.info("create({}, {}, {}, {}, {}, {}, {})", cPath, permission, overwrite, bufferSize,
+        replication, blockSize, progress);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -206,7 +206,7 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public boolean delete(Path cPath, boolean recursive) throws IOException {
-    LOG.info("delete(" + cPath + ", " + recursive + ")");
+    LOG.info("delete({}, {})", cPath, recursive);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -218,10 +218,10 @@ abstract class AbstractTFS extends FileSystem {
       mTFS.delete(file, options);
       return true;
     } catch (InvalidPathException e) {
-      LOG.info("delete failed: " + e.getMessage());
+      LOG.info("delete failed: {}", e.getMessage());
       return false;
     } catch (FileDoesNotExistException e) {
-      LOG.info("delete failed: " + e.getMessage());
+      LOG.info("delete failed: {}", e.getMessage());
       return false;
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -266,7 +266,7 @@ abstract class AbstractTFS extends FileSystem {
         for (NetAddress addr : addrs) {
           // Name format is "hostname:data transfer port"
           String name = addr.host + ":" + addr.dataPort;
-          LOG.debug("getFileBlockLocations : adding name : '" + name + "");
+          LOG.debug("getFileBlockLocations : adding name : {}", name);
           names.add(name);
           hosts.add(addr.host);
         }
@@ -290,8 +290,7 @@ abstract class AbstractTFS extends FileSystem {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
 
-    LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
-        + tPath);
+    LOG.info("getFileStatus({}): HDFS Path: {} TPath: {}{}", path, hdfsPath, mTachyonHeader, tPath);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
@@ -330,7 +329,7 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   public Path getWorkingDirectory() {
-    LOG.info("getWorkingDirectory: " + mWorkingDir);
+    LOG.info("getWorkingDirectory: {}", mWorkingDir);
     return mWorkingDir;
   }
 
@@ -342,7 +341,7 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
-    LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
+    LOG.info("initialize({}, {}). Connecting to Tachyon: {}", uri, conf, uri.toString());
     Utils.addS3Credentials(conf);
     setConf(conf);
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
@@ -363,7 +362,7 @@ abstract class AbstractTFS extends FileSystem {
     mTFS = TachyonFileSystemFactory.get();
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = getUfsAddress();
-    LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
+    LOG.info("{} {} {}", mTachyonHeader, mUri, mUnderFSAddress);
   }
 
   /**
@@ -378,7 +377,7 @@ abstract class AbstractTFS extends FileSystem {
   public FileStatus[] listStatus(Path path) throws IOException {
     TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath, mUnderFSAddress);
-    LOG.info("listStatus(" + path + "): HDFS Path: " + hdfsPath);
+    LOG.info("listStatus({}): HDFS Path: {}", path, hdfsPath);
 
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
@@ -414,7 +413,7 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
-    LOG.info("mkdirs(" + cPath + ", " + permission + ")");
+    LOG.info("mkdirs({}, {})", cPath, permission);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -437,7 +436,7 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
-    LOG.info("open(" + cPath + ", " + bufferSize + ")");
+    LOG.info("open({}, {})", cPath, bufferSize);
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }
@@ -452,7 +451,7 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
-    LOG.info("rename(" + src + ", " + dst + ")");
+    LOG.info("rename({}, {})", src, dst);
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
@@ -486,7 +485,7 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   public void setWorkingDirectory(Path path) {
-    LOG.info("setWorkingDirectory(" + path + ")");
+    LOG.info("setWorkingDirectory({})", path);
     if (path.isAbsolute()) {
       mWorkingDir = path;
     } else {
