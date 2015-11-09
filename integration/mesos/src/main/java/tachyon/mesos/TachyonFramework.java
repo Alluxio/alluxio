@@ -16,6 +16,7 @@
 package tachyon.mesos;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class TachyonFramework {
     public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId,
         Protos.SlaveID slaveId, byte[] data) {
       System.out.println("Executor: " + executorId.getValue() + ", " + "Slave: "
-          + slaveId.getValue() + ", " + "Data: " + data.toString() + ".");
+          + slaveId.getValue() + ", " + "Data: " + Arrays.toString(data) + ".");
     }
 
     @Override
@@ -95,10 +96,11 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      double masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
-      double masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-      double workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
-      double workerMem = sConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+      // TODO(andrew): Should these be doubles or longs?
+      long masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      long masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+      long workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      long workerMem = sConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -245,7 +247,7 @@ public class TachyonFramework {
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
-      System.out.printf("Task %s is in state %s\n", taskId, state);
+      System.out.printf("Task %s is in state %s%n", taskId, state);
       // TODO(jiri): Handle the case when a Tachyon master and/or worker task fails.
       // In particular, we should enable support for the fault tolerant mode of Tachyon to account
       // for Tachyon master process failures and keep track of the running number of Tachyon

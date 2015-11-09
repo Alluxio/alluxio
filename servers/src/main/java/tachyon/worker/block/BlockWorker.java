@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
@@ -227,7 +228,7 @@ public final class BlockWorker {
     }
 
     // Setup the lineage worker
-    LOG.info("Started lineage worker at worker with ID " + WorkerIdRegistry.getWorkerId());
+    LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
 
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       mLineageWorker = new LineageWorker(mBlockDataManager);
@@ -305,7 +306,7 @@ public final class BlockWorker {
     }
     mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
-      // TODO(calvin): The reason to stop and close again is due to some issues in Thrift.
+      // The reason to stop and close again is due to some issues in Thrift.
       mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
@@ -330,10 +331,11 @@ public final class BlockWorker {
     } catch (IOException ioe) {
       throw Throwables.propagate(ioe);
     }
-    return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)
-        .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
-        .transportFactory(tTransportFactory)
-        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
+        .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    args.stopTimeoutVal = WorkerContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    return new TThreadPoolServer(args);
   }
 
   /**

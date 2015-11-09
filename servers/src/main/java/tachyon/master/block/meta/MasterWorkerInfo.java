@@ -17,8 +17,10 @@ package tachyon.master.block.meta;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -28,6 +30,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.StorageTierAssoc;
+import tachyon.WorkerStorageTierAssoc;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
@@ -51,11 +55,12 @@ public final class MasterWorkerInfo {
   private long mLastUpdatedTimeMs;
   /** If true, the worker is considered registered. */
   private boolean mIsRegistered;
-  // TODO(gene): Convert all tier information to tierAlias (or storage type).
-  /** Total bytes on each storage tier */
-  private List<Long> mTotalBytesOnTiers;
-  /** Used bytes on each storage tier */
-  private List<Long> mUsedBytesOnTiers;
+  /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
+  private StorageTierAssoc mStorageTierAssoc;
+  /** Mapping from storage tier alias to total bytes */
+  private Map<String, Long> mTotalBytesOnTiers;
+  /** Mapping from storage tier alias to used bytes */
+  private Map<String, Long> mUsedBytesOnTiers;
 
   /** IDs of blocks the worker contains */
   private Set<Long> mBlocks;
@@ -68,8 +73,9 @@ public final class MasterWorkerInfo {
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
     mIsRegistered = false;
-    mTotalBytesOnTiers = Collections.emptyList();
-    mUsedBytesOnTiers = Collections.emptyList();
+    mStorageTierAssoc = null;
+    mTotalBytesOnTiers = new HashMap<String, Long>();
+    mUsedBytesOnTiers = new HashMap<String, Long>();
     mBlocks = new HashSet<Long>();
     mToRemoveBlocks = new HashSet<Long>();
   }
@@ -77,30 +83,47 @@ public final class MasterWorkerInfo {
   /**
    * Marks the worker as registered, while updating all of its metadata.
    *
-   * @param totalBytesOnTiers list of total bytes on each tier
-   * @param usedBytesOnTiers list of the used byes on each tier
+   * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
+   * @param storageTierAliases list of storage tier alises in order of their position in the
+   *        hierarchy
+   * @param totalBytesOnTiers mapping from storage tier alias to total bytes
+   * @param usedBytesOnTiers mapping from storage tier alias to used byes
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  public Set<Long> register(final List<Long> totalBytesOnTiers, final List<Long> usedBytesOnTiers,
-      final Set<Long> blocks) {
+  public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
+      final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
+      final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
+    // If the storage aliases do not have strictly increasing ordinal value based on the total
+    // ordering, throw an error
+    for (int i = 0; i < storageTierAliases.size() - 1; i ++) {
+      if (globalStorageTierAssoc.getOrdinal(storageTierAliases.get(i)) >= globalStorageTierAssoc
+          .getOrdinal(storageTierAliases.get(i + 1))) {
+        throw new IllegalArgumentException(
+            "Worker cannot place storage tier " + storageTierAliases.get(i) + " above "
+                + storageTierAliases.get(i + 1) + " in the hierarchy");
+      }
+    }
+    mStorageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
     // validate the number of tiers
-    if (totalBytesOnTiers.size() != usedBytesOnTiers.size()) {
+    if (mStorageTierAssoc.size() != totalBytesOnTiers.size()
+        || mStorageTierAssoc.size() != usedBytesOnTiers.size()) {
       throw new IllegalArgumentException(
-          "totalBytesOnTiers should have the same number of tiers as usedBytesOnTiers,"
-              + " but totalBytesOnTiers has " + totalBytesOnTiers.size()
-              + " tiers, while usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
+          "totalBytesOnTiers and usedBytesOnTiers should have the same number of tiers as "
+              + "storageTierAliases, but storageTierAliases has " + mStorageTierAssoc.size()
+              + " tiers, while totalBytesOnTiers has " + totalBytesOnTiers.size()
+              + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
     }
 
     // defensive copy
-    mTotalBytesOnTiers = new ArrayList<Long>(totalBytesOnTiers);
-    mUsedBytesOnTiers = new ArrayList<Long>(usedBytesOnTiers);
+    mTotalBytesOnTiers = new HashMap<String, Long>(totalBytesOnTiers);
+    mUsedBytesOnTiers = new HashMap<String, Long>(usedBytesOnTiers);
     mCapacityBytes = 0;
-    for (long bytes : mTotalBytesOnTiers) {
+    for (long bytes : mTotalBytesOnTiers.values()) {
       mCapacityBytes += bytes;
     }
     mUsedBytes = 0;
-    for (long bytes : mUsedBytesOnTiers) {
+    for (long bytes : mUsedBytesOnTiers.values()) {
       mUsedBytes += bytes;
     }
 
@@ -108,7 +131,7 @@ public final class MasterWorkerInfo {
     if (mIsRegistered) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: " + mId);
+      LOG.info("re-registering an existing workerId: {}", mId);
 
       // Compute the difference between the existing block data, and the new data.
       removedBlocks = Sets.difference(mBlocks, blocks);
@@ -215,16 +238,23 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * @return the storage tier mapping for the worker
+   */
+  public synchronized StorageTierAssoc getStorageTierAssoc() {
+    return mStorageTierAssoc;
+  }
+
+  /**
    * @return the total bytes on each storage tier
    */
-  public synchronized List<Long> getTotalBytesOnTiers() {
+  public synchronized Map<String, Long> getTotalBytesOnTiers() {
     return mTotalBytesOnTiers;
   }
 
   /**
    * @return the used bytes on each storage tier
    */
-  public synchronized List<Long> getUsedBytesOnTiers() {
+  public synchronized Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
   }
 
@@ -238,10 +268,11 @@ public final class MasterWorkerInfo {
   /**
    * @return the free bytes on each storage tier
    */
-  public synchronized List<Long> getFreeBytesOnTiers() {
-    List<Long> freeCapacityBytes = new ArrayList<Long>();
-    for (int i = 0; i < mTotalBytesOnTiers.size(); i ++) {
-      freeCapacityBytes.add(mTotalBytesOnTiers.get(i) - mUsedBytesOnTiers.get(i));
+  public synchronized Map<String, Long> getFreeBytesOnTiers() {
+    Map<String, Long> freeCapacityBytes = new HashMap<String, Long>();
+    for (Map.Entry<String, Long> entry : mTotalBytesOnTiers.entrySet()) {
+      freeCapacityBytes.put(entry.getKey(),
+          entry.getValue() - mUsedBytesOnTiers.get(entry.getKey()));
     }
     return freeCapacityBytes;
   }
@@ -291,10 +322,10 @@ public final class MasterWorkerInfo {
    *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
-  public synchronized void updateUsedBytes(List<Long> usedBytesOnTiers) {
+  public synchronized void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
     mUsedBytes = 0;
     mUsedBytesOnTiers = usedBytesOnTiers;
-    for (long t : mUsedBytesOnTiers) {
+    for (long t : mUsedBytesOnTiers.values()) {
       mUsedBytes += t;
     }
   }
@@ -302,11 +333,11 @@ public final class MasterWorkerInfo {
   /**
    * Set the used space of the worker in bytes.
    *
-   * @param aliasValue value of StorageLevelAlias
+   * @param tierAlias alias of storage tier
    * @param usedBytesOnTier used bytes on certain storage tier
    */
-  public synchronized void updateUsedBytes(int aliasValue, long usedBytesOnTier) {
-    mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(aliasValue - 1);
-    mUsedBytesOnTiers.set(aliasValue - 1, usedBytesOnTier);
+  public synchronized void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
+    mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(tierAlias);
+    mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 }

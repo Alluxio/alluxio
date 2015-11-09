@@ -21,8 +21,15 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class DeleteOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<DeleteOptions> {
     private boolean mRecursive;
+
+    /**
+     * Creates a new builder for {@link DeleteOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
 
     /**
      * Creates a new builder for {@link DeleteOptions}.
@@ -48,6 +55,7 @@ public final class DeleteOptions {
      *
      * @return a {@code DeleteOptions} instance
      */
+    @Override
     public DeleteOptions build() {
       return new DeleteOptions(this);
     }
@@ -57,7 +65,7 @@ public final class DeleteOptions {
    * @return the default {@code DeleteOptions}
    */
   public static DeleteOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;
@@ -72,5 +80,16 @@ public final class DeleteOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("DeleteOptions(");
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(")");
+    return sb.toString();
   }
 }

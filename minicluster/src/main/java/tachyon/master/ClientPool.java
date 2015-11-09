@@ -28,22 +28,18 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 
 /**
- * Keeps a collection of all clients ({@link tachyon.client.TachyonFS}) returned. The main reason
- * for this is to build cleanup clients.
+ * Keeps a collection of all clients ({@link tachyon.client.file.TachyonFileSystem}) returned. The
+ * main reason for this is to build cleanup clients.
  */
 public final class ClientPool implements Closeable {
-  private final Supplier<String> mUriSuppliers;
+  private final List<TachyonFileSystem> mClients =
+      Collections.synchronizedList(new ArrayList<TachyonFileSystem>());
 
-  private final List<TachyonFileSystem> mClients = Collections
-      .synchronizedList(new ArrayList<TachyonFileSystem>());
-
-  ClientPool(Supplier<String> uriSupplier) {
-    mUriSuppliers = uriSupplier;
-  }
+  ClientPool(Supplier<String> uriSupplier) {}
 
   /**
-   * Returns a {@link tachyon.client.TachyonFS} client. This client does not need to be closed
-   * directly, but can be closed by calling {@link #close()} on this object.
+   * Returns a {@link tachyon.client.file.TachyonFileSystem} client. This client does not need to be
+   * closed directly, but can be closed by calling {@link #close()} on this object.
    *
    * @param tachyonConf Tachyon configuration
    * @return a TachyonFS client

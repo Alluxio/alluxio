@@ -145,8 +145,8 @@ public final class Client {
       }
       System.out.println("Starting Client");
       result = client.run();
-    } catch (Throwable t) {
-      System.err.println("Error running Client " + t);
+    } catch (Exception e) {
+      System.err.println("Error running Client " + e);
       System.exit(1);
     }
     if (result) {

@@ -39,7 +39,7 @@ public final class WorkerUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
         blockdataManager, workerAddress, startTimeMs)), "/home");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerBlockInfoServlet(
-        blockdataManager, conf)), "/blockInfo");
+        blockdataManager)), "/blockInfo");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),

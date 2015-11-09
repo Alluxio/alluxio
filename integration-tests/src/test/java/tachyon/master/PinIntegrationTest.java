@@ -54,8 +54,8 @@ public class PinIntegrationTest {
         new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
             mLocalTachyonCluster.getMasterPort()),
         mLocalTachyonCluster.getWorkerTachyonConf());
-    mSetPinned = new SetStateOptions.Builder(new TachyonConf()).setPinned(true).build();
-    mUnsetPinned = new SetStateOptions.Builder(new TachyonConf()).setPinned(false).build();
+    mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
+    mUnsetPinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
   @After

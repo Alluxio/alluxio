@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.TachyonTException;
@@ -64,23 +65,17 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the file info for the given file id
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Factor this method out to a common client.
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized FileInfo getFileInfo(final long fileId) throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
+      @Override
+      public FileInfo call() throws TException {
         return mClient.getFileInfo(fileId);
-      } catch (TachyonTException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -88,18 +83,11 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized Set<Long> getPinList() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<Set<Long>>() {
+      @Override
+      public Set<Long> call() throws TException {
         return mClient.workerGetPinIdList();
-      } catch (TachyonTException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

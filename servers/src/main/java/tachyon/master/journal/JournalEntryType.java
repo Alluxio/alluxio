@@ -28,13 +28,13 @@ import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
+import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 
@@ -52,8 +52,6 @@ public enum JournalEntryType {
   COMPLETE_FILE(CompleteFileEntry.class),
   DELETE_FILE(DeleteFileEntry.class),
   DELETE_MOUNTPOINT(DeleteMountPointEntry.class),
-  //it is never used
-//  FREE,
   INODE_FILE(InodeFileEntry.class),
   INODE_DIRECTORY(InodeDirectoryEntry.class),
   INODE_DIRECTORY_ID_GENERATOR(InodeDirectoryIdGeneratorEntry.class),
@@ -61,7 +59,7 @@ public enum JournalEntryType {
   INODE_PERSISTED(PersistDirectoryEntry.class),
   REINITIALIZE_FILE(ReinitializeFileEntry.class),
   RENAME(RenameEntry.class),
-  SET_PINNED(SetPinnedEntry.class),
+  SET_STATE(SetStateEntry.class),
 
   // Raw table master entries
   RAW_TABLE(RawTableEntry.class),
@@ -73,15 +71,15 @@ public enum JournalEntryType {
   LINEAGE(LineageEntry.class),
   LINEAGE_ID_GENERATOR(LineageIdGeneratorEntry.class),
   PERSIST_FILES(PersistFilesEntry.class),
-  REQUEST_FILE_PERSISTENCE(RequestFilePersistenceEntry.class);
+  PERSIST_FILES_REQUEST(PersistFilesRequestEntry.class);
 
   private Class<? extends JournalEntry> mClass;
 
-  JournalEntryType(Class<? extends JournalEntry> clazz) {
-    mClass = clazz;
+  JournalEntryType(Class<? extends JournalEntry> entryClass) {
+    mClass = entryClass;
   }
 
-  public Class<? extends JournalEntry> getClazz() {
+  public Class<? extends JournalEntry> getEntryClass() {
     return mClass;
   }
 }

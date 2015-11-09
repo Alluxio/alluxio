@@ -101,6 +101,7 @@ public final class Constants {
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
+  public static final String THRIFT_STOP_TIMEOUT_SECONDS = "tachyon.thrift.stop.timeout.seconds";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -177,6 +178,10 @@ public final class Constants {
       "tachyon.master.lineage.recompute.interval.ms";
   public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       "tachyon.master.lineage.recompute.log.path";
+  public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
+      "tachyon.master.tieredstore.global.levels";
+  public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT =
+      "tachyon.master.tieredstore.global.level%d.alias";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
@@ -222,8 +227,8 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.step.factor";
   public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
       "tachyon.worker.evictor.lrfu.attenuation.factor";
-  public static final String WORKER_TIERED_STORAGE_LEVEL_MAX =
-      "tachyon.worker.tieredstore.level.max";
+  public static final String WORKER_TIERED_STORE_LEVELS =
+      "tachyon.worker.tieredstore.levels";
   public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.lineage.heartbeat.interval.ms";
 

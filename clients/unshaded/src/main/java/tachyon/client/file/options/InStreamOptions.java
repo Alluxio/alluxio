@@ -23,8 +23,15 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class InStreamOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<InStreamOptions> {
     private TachyonStorageType mTachyonStorageType;
+
+    /**
+     * Creates a new builder for {@link InStreamOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
 
     /**
      * Creates a new builder for {@link InStreamOptions}.
@@ -50,6 +57,7 @@ public final class InStreamOptions {
      *
      * @return a {@code InStreamOptions} instance
      */
+    @Override
     public InStreamOptions build() {
       return new InStreamOptions(this);
     }
@@ -61,7 +69,7 @@ public final class InStreamOptions {
    * @return the default {@code InStreamOptions}
    */
   public static InStreamOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private InStreamOptions(InStreamOptions.Builder builder) {
@@ -73,5 +81,17 @@ public final class InStreamOptions {
    */
   public TachyonStorageType getTachyonStorageType() {
     return mTachyonStorageType;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("InStreamOptions(");
+    sb.append(super.toString()).append(", TachyonStorageType: ")
+        .append(mTachyonStorageType.toString());
+    sb.append(")");
+    return sb.toString();
   }
 }
