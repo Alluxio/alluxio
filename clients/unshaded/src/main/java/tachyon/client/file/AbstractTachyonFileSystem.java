@@ -92,8 +92,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.delete(file.getFileId(), options.isRecursive());
-      LOG.info(
-          "Deleted file " + file.getFileId() + " from both Tachyon Storage and under file system");
+      LOG.info("Deleted file {} from both Tachyon Storage and under file system", file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -110,7 +109,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(file.getFileId(), options.isRecursive());
-      LOG.info("Removed file " + file.getFileId() + " from Tachyon Storage");
+      LOG.info("Removed file {} from Tachyon Storage", file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -156,7 +155,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       final long fileId = masterClient.loadMetadata(path.getPath(), options.isRecursive());
-      LOG.info("Loaded file " + path.getPath() + (options.isRecursive() ? " recursively" : ""));
+      LOG.info("Loaded file {}{}", path.getPath(), options.isRecursive() ? " recursively" : "");
       return new TachyonFile(fileId);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -170,7 +169,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       boolean result = masterClient.mkdir(path.getPath(), options);
       if (result) {
-        LOG.info("Created directory " + path.getPath());
+        LOG.info("Created directory {}", path.getPath());
       }
       return result;
     } finally {
@@ -231,7 +230,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       boolean result = masterClient.rename(src.getFileId(), dst.getPath());
       if (result) {
-        LOG.info("Renamed file " + src.getFileId() + " to " + dst.getPath());
+        LOG.info("Renamed file {} to {}", src.getFileId(), dst.getPath());
       }
       return result;
     } finally {

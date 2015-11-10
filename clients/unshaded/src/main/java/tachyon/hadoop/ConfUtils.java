@@ -88,7 +88,7 @@ public class ConfUtils {
         tachyonConfProperties.put(propertyName, entry.getValue());
       }
     }
-    LOG.info("Loading Tachyon properties from Hadoop configuration: " + tachyonConfProperties);
+    LOG.info("Loading Tachyon properties from Hadoop configuration: {}", tachyonConfProperties);
     return new TachyonConf(tachyonConfProperties);
   }
 }
