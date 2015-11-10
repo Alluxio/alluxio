@@ -78,9 +78,11 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       throws IOException {
     switch (msg.getType()) {
       case RPC_BLOCK_READ_REQUEST:
+        assert msg instanceof RPCBlockReadRequest;
         handleBlockReadRequest(ctx, (RPCBlockReadRequest) msg);
         break;
       case RPC_BLOCK_WRITE_REQUEST:
+        assert msg instanceof RPCBlockWriteRequest;
         handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
       default:
