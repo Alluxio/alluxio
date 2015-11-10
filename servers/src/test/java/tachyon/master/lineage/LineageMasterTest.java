@@ -111,7 +111,7 @@ public final class LineageMasterTest {
   }
 
   @Test
-  public void deleteNonexistingLineageTesT() throws Exception {
+  public void deleteNonexistingLineageTest() throws Exception {
     long id = 1L;
     try {
       mLineageMaster.deleteLineage(id, false);
