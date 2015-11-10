@@ -172,6 +172,6 @@ https://issues.apache.org/jira/browse/SPARK-10149) for more details, where you c
 from the Spark community.
 
 Note: Tachyon uses hostname to represent network address except in version 0.7.1 where IP address is
-used. Spark v1.5.x ships with Tachyon v0.7.1 by default, in this case, by default, Spark and Tachyon
+used. Spark v1.5.x ships with Tachyon v0.7.1 by default, in this case, Spark and Tachyon
 both use IP address to represent network address, so data locality should work out of the box.
 But since release 0.8.0, to be consistent with HDFS, Tachyon represents network address by hostname.
