@@ -498,7 +498,7 @@ abstract class AbstractTFS extends FileSystem {
    * {@link TachyonException} in {@link IOException}.
    *
    * @param path the path to look up
-   * @throws {@link IOException} if a Tachyon exception occurs
+   * @throws IOException if a Tachyon exception occurs
    */
   private TachyonFile tryOpen(TachyonURI path) throws IOException {
     try {
