@@ -660,24 +660,20 @@ public class TfsShell implements Closeable {
     }
   }
 
+  /**
+   * Set a new TTL value or unset an existing TTL value for file at path.
+   *
+   * @param path the file path
+   * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *        created file should be kept around before it is automatically deleted, irrespective of
+   *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
+   * @throws IOException when failing to set/unset the TTL
+   */
   public void setTTL(TachyonURI path, long ttlMs) throws IOException {
-    Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     try {
       TachyonFile fd = mTfs.open(path);
       SetStateOptions options = new SetStateOptions.Builder().setTTL(ttlMs).build();
       mTfs.setState(fd, options);
-      System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs + ".");
-    } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
-    }
-  }
-
-  public void unsetTTL(TachyonURI path) throws IOException {
-    try {
-      TachyonFile fd = mTfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder().setTTL(Constants.NO_TTL).build();
-      mTfs.setState(fd, options);
-      System.out.println("TTL of file '" + path + "' was successfully removed.");
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -942,7 +938,8 @@ public class TfsShell implements Closeable {
         } else if (cmd.equals("loadMetadata")) {
           loadMetadata(inputPath);
         } else if (cmd.equals("unsetTTL")) {
-          unsetTTL(inputPath);
+          setTTL(inputPath, Constants.NO_TTL);
+          System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
         } else {
           List<TachyonURI> paths = null;
           paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
@@ -1025,7 +1022,12 @@ public class TfsShell implements Closeable {
         } else if (cmd.equals("mount")) {
           mount(argv);
         } else if (cmd.equals("setTTL")) {
-          setTTL(new TachyonURI(argv[1]), Long.valueOf(argv[2]));
+          long ttlMs = Long.valueOf(argv[2]);
+          Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
+          TachyonURI path = new TachyonURI(argv[1]);
+          setTTL(path, ttlMs);
+          System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
+              + " milliseconds.");
         }
       } else if (numOfArgs > 2) { // commands need 3 arguments and more
         if (cmd.equals("createLineage")) {
