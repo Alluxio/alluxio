@@ -363,9 +363,6 @@ public final class FileSystemMaster extends MasterBase {
       InodeFile fileInode = (InodeFile) inode;
       List<Long> blockIdList = fileInode.getBlockIds();
       List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-      if (blockInfoList.size() != blockIdList.size()) {
-        throw new BlockInfoException("Cannot complete file without all the blocks committed");
-      }
 
       // Iterate from all in-memory file blocks, computing the length and verify that all the blocks
       // (except the last one) is the same size as the file block size.
