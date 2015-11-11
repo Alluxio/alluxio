@@ -42,7 +42,7 @@ public class FileUtilsTest {
   public void changeLocalFilePermissionTest() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "000");
-    Assert.assertFalse(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
+    Assert.assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
     Assert.assertTrue(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
     // File deletion should fail, because we don't have write permissions
