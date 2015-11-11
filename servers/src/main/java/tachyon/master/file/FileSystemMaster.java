@@ -915,7 +915,7 @@ public final class FileSystemMaster extends MasterBase {
         CreatePathOptions createPathOptions =
             new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
                 .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-                .setOperationTimeMs(options.getOperationTimeMs()).build();;
+                .setOperationTimeMs(options.getOperationTimeMs()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
