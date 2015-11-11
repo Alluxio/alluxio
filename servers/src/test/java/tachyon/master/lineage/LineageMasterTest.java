@@ -151,7 +151,8 @@ public final class LineageMasterTest {
     mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
         Lists.newArrayList(new TachyonURI("/test1")), mJob);
     mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
-    Mockito.verify(mFileSystemMaster).completeFile(fileId, CompleteFileOptions.defaults());
+    Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(fileId),
+        Mockito.any(CompleteFileOptions.class));
   }
 
   @Test
