@@ -24,11 +24,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.zookeeper.Op;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -227,6 +225,7 @@ public class FileSystemMasterIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
+  private static final long TEST_OPERATION_TIME_MS = 1000;
   private static final TachyonURI ROOT_PATH = new TachyonURI("/root");
   private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
 
@@ -498,7 +497,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeAddCheckpointTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = TEST_OPERATION_TIME_MS;
     mFsMaster.persistFileInternal(fileId, 1, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
@@ -507,7 +506,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = TEST_OPERATION_TIME_MS;
     mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, false, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
@@ -516,7 +515,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCreateFileTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = TEST_OPERATION_TIME_MS;
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setOperationTimeMs(opTimeMs).build();
     mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"), options);
@@ -532,7 +531,7 @@ public class FileSystemMasterIntegrationTest {
     long folderId = mFsMaster.getFileId(new TachyonURI("/testFolder"));
     Assert.assertEquals(1, folderId);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = TEST_OPERATION_TIME_MS;
     Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, true, opTimeMs));
     FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -543,7 +542,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     long fileId =
         mFsMaster.create(new TachyonURI("/testFolder/testFile1"), CreateOptions.defaults());
-    long opTimeMs = System.currentTimeMillis();
+    long opTimeMs = TEST_OPERATION_TIME_MS;
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true, opTimeMs);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
