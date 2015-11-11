@@ -200,7 +200,7 @@ public class FileOutStreamTest {
       Assert.assertFalse(mTachyonOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).completeFile(Mockito.eq(FILE_ID),
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
         Mockito.any(CompleteFileOptions.class));
   }
 
@@ -220,8 +220,7 @@ public class FileOutStreamTest {
     Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID,
         CompleteFileOptions.defaults());
 
-    Mockito.verify(mUnderFileSystem, Mockito.times(1)).delete(Mockito.anyString(),
-        Mockito.eq(false));
+    Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
   }
 
   /**
