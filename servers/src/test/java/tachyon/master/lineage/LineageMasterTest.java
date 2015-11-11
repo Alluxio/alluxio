@@ -43,6 +43,7 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
@@ -149,8 +150,8 @@ public final class LineageMasterTest {
     long fileId = 0;
     mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
         Lists.newArrayList(new TachyonURI("/test1")), mJob);
-    mFileSystemMaster.completeFile(fileId);
-    Mockito.verify(mFileSystemMaster).completeFile(fileId);
+    mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
+    Mockito.verify(mFileSystemMaster).completeFile(fileId, CompleteFileOptions.defaults());
   }
 
   @Test
