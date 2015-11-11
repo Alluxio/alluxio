@@ -58,7 +58,7 @@ public class BlockContainerIdGeneratorEntry extends JournalEntry {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof BlockContainerIdGeneratorEntry)) {
+    if (!(o instanceof BlockContainerIdGeneratorEntry)) {
       return false;
     }
     BlockContainerIdGeneratorEntry that = (BlockContainerIdGeneratorEntry) o;
