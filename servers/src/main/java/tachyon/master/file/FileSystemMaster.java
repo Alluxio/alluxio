@@ -506,7 +506,7 @@ public final class FileSystemMaster extends MasterBase {
         new CreatePathOptions.Builder(MasterContext.getConf())
             .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
             .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-            .setTTL(options.getTTL()).build();
+            .setTTL(options.getTTL()).setOperationTimeMs(options.getOperationTimeMs()).build();
     InodeTree.CreatePathResult createResult =
         mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
@@ -914,7 +914,8 @@ public final class FileSystemMaster extends MasterBase {
       try {
         CreatePathOptions createPathOptions =
             new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
-                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
+                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
+                .setOperationTimeMs(options.getOperationTimeMs()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
