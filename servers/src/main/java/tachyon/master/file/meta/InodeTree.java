@@ -521,7 +521,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof InodeTree)) {
+    if (!(o instanceof InodeTree)) {
       return false;
     }
     InodeTree that = (InodeTree) o;

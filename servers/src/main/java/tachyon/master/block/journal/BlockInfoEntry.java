@@ -70,7 +70,7 @@ public class BlockInfoEntry extends JournalEntry {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof BlockInfoEntry)) {
+    if (!(o instanceof BlockInfoEntry)) {
       return false;
     }
     BlockInfoEntry that = (BlockInfoEntry) o;
