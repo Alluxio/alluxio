@@ -33,6 +33,7 @@ import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -340,6 +341,8 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
+    Preconditions.checkNotNull(uri.getHost(), "URI hostname must not be null");
+    Preconditions.checkNotNull(uri.getPort(), "URI post must not be null");
     super.initialize(uri, conf);
     LOG.info("initialize({}, {}). Connecting to Tachyon: {}", uri, conf, uri.toString());
     Utils.addS3Credentials(conf);
