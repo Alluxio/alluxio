@@ -60,6 +60,10 @@ public final class RPCBlockWriteRequest extends RPCRequest {
     long offset = in.readLong();
     long length = in.readLong();
     // TODO(hy): Look into accessing Netty ByteBuf directly, to avoid copying the data.
+    // Length will always be greater than 0 if the request is not corrupted. If length is negative,
+    // ByteBuffer.allocate will fail. If length is 0 this will become a no-op but still go through
+    // the necessary calls to validate the sessionId/blockId. If length is positive, the request
+    // will proceed as normal
     ByteBuffer buffer = ByteBuffer.allocate((int) length);
     in.readBytes(buffer);
     DataByteBuffer data = new DataByteBuffer(buffer, (int) length);
