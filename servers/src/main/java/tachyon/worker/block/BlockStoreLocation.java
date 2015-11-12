@@ -122,7 +122,7 @@ public final class BlockStoreLocation {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof BlockStoreLocation)) {
+    if (!(o instanceof BlockStoreLocation)) {
       return false;
     }
     BlockStoreLocation that = (BlockStoreLocation) o;

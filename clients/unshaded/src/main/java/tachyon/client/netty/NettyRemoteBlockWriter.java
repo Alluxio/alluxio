@@ -89,7 +89,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       // TODO(hy): keep connection open across multiple write calls.
       ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
 
-      LOG.info("Connected to remote machine " + mAddress);
+      LOG.info("Connected to remote machine {}", mAddress);
       Channel channel = f.channel();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,

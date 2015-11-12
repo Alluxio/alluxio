@@ -148,6 +148,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
     contains.</td>
   </tr>
   <tr>
+    <td>setTTL</td>
+    <td>setTTL "time"</td>
+    <td>Set the TTL (time to live) in milliseconds to a file.</td>
+  </tr>
+  <tr>
     <td>tail</td>
     <td>tail "path"</td>
     <td>Print the last 1KB of the specified file to the console.</td>
@@ -170,5 +175,10 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Unpin the given file to allow Tachyon to evict this file again. If the given path is a
     directory, it recursively unpins all files contained and any new files created within this
     directory.</td>
+  </tr>
+  <tr>
+    <td>unsetTTL</td>
+    <td>unsetTTL</td>
+    <td>Remove the TTL (time to live) setting from a file.</td>
   </tr>
 </table>

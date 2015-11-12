@@ -91,7 +91,6 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  // TODO: rename to workerRegister?
   public synchronized long getId(final NetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override

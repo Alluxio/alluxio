@@ -40,7 +40,7 @@ public final class User implements Principal {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof User)) {
+    if (!(o instanceof User)) {
       return false;
     }
     User that = (User) o;

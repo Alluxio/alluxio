@@ -19,17 +19,11 @@ import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MasterContext.class)
 public class CreatePathOptionsTest {
   @Test
   public void builderTest() {
@@ -63,7 +57,7 @@ public class CreatePathOptionsTest {
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    Whitebox.setInternalState(MasterContext.class, "sTachyonConf", conf);
+    MasterContext.reset(conf);
 
     CreatePathOptions options = CreatePathOptions.defaults();
 
@@ -72,5 +66,6 @@ public class CreatePathOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    MasterContext.reset();
   }
 }

@@ -214,7 +214,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
       mWorker.requestSpace(sessionId, blockId, requestBytes);
       return true;
     } catch (Exception e) {
-      LOG.error("Failed to request " + requestBytes + " bytes for block: " + blockId, e);
+      LOG.error("Failed to request {} bytes for block: {}", requestBytes, blockId, e);
     }
     return false;
   }

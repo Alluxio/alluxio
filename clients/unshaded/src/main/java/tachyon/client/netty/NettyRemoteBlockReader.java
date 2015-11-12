@@ -64,7 +64,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
-      LOG.info("Connected to remote machine " + address);
+      LOG.info("Connected to remote machine {}", address);
       Channel channel = f.channel();
       SingleResponseListener listener = new SingleResponseListener();
       mHandler.addListener(listener);
@@ -76,7 +76,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       switch (response.getType()) {
         case RPC_BLOCK_READ_RESPONSE:
           RPCBlockReadResponse blockResponse = (RPCBlockReadResponse) response;
-          LOG.info("Data " + blockId + " from remote machine " + address + " received");
+          LOG.info("Data {} from remote machine {} received", blockId, address);
 
           RPCResponse.Status status = blockResponse.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
