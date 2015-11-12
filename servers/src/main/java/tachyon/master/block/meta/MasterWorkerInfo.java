@@ -304,7 +304,7 @@ public final class MasterWorkerInfo {
   /**
    * Sets the last updated time of the worker in ms. Should only be called by tests.
    *
-   * @param lastUpdatedTimeMs the time to set as the last updated time, in ms.
+   * @param lastUpdatedTimeMs the time to set as the last updated time, in ms
    */
   public synchronized void setLastUpdatedTimeMs(long lastUpdatedTimeMs) {
     mLastUpdatedTimeMs = lastUpdatedTimeMs;
