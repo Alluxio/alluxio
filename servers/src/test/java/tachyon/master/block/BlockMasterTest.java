@@ -35,13 +35,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
-import tachyon.master.MasterContext;
 import tachyon.collections.IndexedSet;
-import tachyon.exception.TachyonException;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
