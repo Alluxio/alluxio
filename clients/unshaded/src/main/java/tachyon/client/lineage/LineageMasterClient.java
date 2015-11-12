@@ -20,12 +20,11 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
@@ -39,8 +38,6 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class LineageMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private LineageMasterService.Client mClient = null;
 
   /**
@@ -51,6 +48,7 @@ public final class LineageMasterClient extends MasterClientBase {
    */
   public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
+    mCompatibleVersions.add(Constants.LINEAGE_MASTER_SERVICE_VERSION);
   }
 
   @Override
@@ -61,6 +59,17 @@ public final class LineageMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new LineageMasterService.Client(mProtocol);
+    if (mServerVersion == -1) {
+      try {
+        mServerVersion = mClient.version();
+        if (!mCompatibleVersions.contains(mServerVersion)) {
+          throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
+              Constants.LINEAGE_MASTER_SERVICE_VERSION, mServerVersion));
+        }
+      } catch (TException e) {
+        throw new RuntimeException(e.getMessage());
+      }
+    }
   }
 
   public synchronized long createLineage(final List<String> inputFiles,
@@ -115,27 +124,13 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  /**
-   * Reports a lost file.
-   *
-   * @param path the file path
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void reportLostFile(String path) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void reportLostFile(final String path) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
         mClient.reportLostFile(path);
-        return;
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

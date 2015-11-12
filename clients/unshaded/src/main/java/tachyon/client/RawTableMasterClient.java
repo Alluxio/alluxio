@@ -20,13 +20,12 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
@@ -39,8 +38,6 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class RawTableMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private RawTableMasterService.Client mClient = null;
 
   /**
@@ -51,6 +48,7 @@ public final class RawTableMasterClient extends MasterClientBase {
    */
   public RawTableMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
+    mCompatibleVersions.add(Constants.RAW_TABLE_MASTER_SERVICE_VERSION);
   }
 
   @Override
@@ -61,6 +59,17 @@ public final class RawTableMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new RawTableMasterService.Client(mProtocol);
+    if (mServerVersion == -1) {
+      try {
+        mServerVersion = mClient.version();
+        if (!mCompatibleVersions.contains(mServerVersion)) {
+          throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
+              Constants.RAW_TABLE_MASTER_SERVICE_VERSION, mServerVersion));
+        }
+      } catch (TException e) {
+        throw new RuntimeException(e.getMessage());
+      }
+    }
   }
 
   /**
