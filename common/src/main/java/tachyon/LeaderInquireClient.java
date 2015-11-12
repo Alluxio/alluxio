@@ -25,6 +25,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -32,7 +33,6 @@ import tachyon.util.io.PathUtils;
  * Utility to get leader from zookeeper.
  */
 public final class LeaderInquireClient {
-  private static final int MAX_TRY = 10;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static HashMap<String, LeaderInquireClient> sCreatedClients =
@@ -64,7 +64,8 @@ public final class LeaderInquireClient {
   public synchronized String getMasterAddress() {
     int tried = 0;
     try {
-      while (tried < MAX_TRY) {
+      int maxTry = new TachyonConf().getInt(Constants.ZOOKEEPER_LEADER_RETRY_COUNT);
+      while (tried < maxTry) {
         if (mClient.checkExists().forPath(mLeaderPath) != null) {
           List<String> masters = mClient.getChildren().forPath(mLeaderPath);
           LOG.info("Master addresses: {}", masters);
