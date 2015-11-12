@@ -3,7 +3,7 @@ package tachyon.client.table;
 import tachyon.annotation.PublicApi;
 
 @PublicApi
-public class TachyonRawTables {
+public class TachyonRawTables extends AbstractTachyonRawTables {
   private static TachyonRawTables sTachyonRawTables;
 
   public static class TachyonRawTablesFactory {
@@ -17,5 +17,7 @@ public class TachyonRawTables {
     }
   }
 
-  private TachyonRawTables() {}
+  private TachyonRawTables() {
+    super();
+  }
 }
