@@ -25,8 +25,6 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
