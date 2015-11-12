@@ -42,6 +42,13 @@ struct LineageInfo {
 
 service LineageMasterService {
 
+  /*
+   * Returns the version of the block master API.
+   *
+   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
+   */
+  i64 version()
+
   // Tachyon Client API
 
   /*

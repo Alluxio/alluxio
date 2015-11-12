@@ -66,9 +66,13 @@ public final class Constants {
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
+  public static final long BLOCK_MASTER_SERVICE_VERSION = 1;
   public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
+  public static final long FILE_SYSTEM_MASTER_SERVICE_VERSION = 1;
   public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
+  public static final long RAW_TABLE_MASTER_SERVICE_VERSION = 1;
   public static final String LINEAGE_MASTER_SERVICE_NAME = "LineageMaster";
+  public static final long LINEAGE_MASTER_SERVICE_VERSION = 1;
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
