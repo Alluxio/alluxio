@@ -361,29 +361,4 @@ public final class FileSystemMasterClient extends MasterClientBase {
       }
     });
   }
-
-  /**
-   * Persists the given Tachyon file with the given length.
-   *
-   * @param fileId file id to persist
-   * @param length the length of the file in bytes
-   * @return true if the persist succeeded, false otherwise
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized boolean persistFile(long fileId, long length)
-      throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.persistFile(fileId, length);
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
 }

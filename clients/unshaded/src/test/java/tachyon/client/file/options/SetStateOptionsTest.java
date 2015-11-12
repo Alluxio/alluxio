@@ -25,13 +25,16 @@ public class SetStateOptionsTest {
   public void builderTest() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
+    boolean persist = random.nextBoolean();
 
     SetStateOptions options =
         new SetStateOptions.Builder()
             .setPinned(recursive)
+            .setPersisted(persist)
             .build();
 
     Assert.assertEquals(recursive, options.getPinned());
+    Assert.assertEquals(persist, options.getPersisted());
   }
 
   @Test
@@ -40,5 +43,6 @@ public class SetStateOptionsTest {
 
     Assert.assertFalse(options.hasPinned());
     Assert.assertFalse(options.hasTTL());
+    Assert.assertFalse(options.hasPersisted());
   }
 }

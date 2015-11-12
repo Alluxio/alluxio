@@ -31,6 +31,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OpenOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
@@ -45,8 +46,7 @@ public final class TachyonFileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // prevent instantiation
-  private TachyonFileSystemUtils() {
-  }
+  private TachyonFileSystemUtils() {}
 
   /**
    * Shortcut for {@code waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
@@ -55,13 +55,13 @@ public final class TachyonFileSystemUtils {
    *
    * @param tfs a {@link TachyonFileSystemCore} instance
    * @param uri the URI of the file on which the thread should wait
-   * @return true if the file is complete when this method returns and false
-   * if the method timed out before the file was complete.
-   * @throws IOException          in case there are problems contacting the Tachyonmaster
-   *                              for the file status
-   * @throws TachyonException     if a Tachyon Exception occurs
-   * @throws InterruptedException if the thread receives an interrupt while
-   *                              waiting for file completion
+   * @return true if the file is complete when this method returns and false if the method timed out
+   *         before the file was complete.
+   * @throws IOException in case there are problems contacting the Tachyon master for the file
+   *         status
+   * @throws TachyonException if a Tachyon Exception occurs
+   * @throws InterruptedException if the thread receives an interrupt while waiting for file
+   *         completion
    * @see #waitCompleted(TachyonFileSystemCore, TachyonURI, long, TimeUnit)
    */
   public static boolean waitCompleted(TachyonFileSystemCore tfs, TachyonURI uri)
@@ -178,7 +178,7 @@ public final class TachyonFileSystemUtils {
       closer.close();
     }
     // Tell the master to persist the file
-    tfs.persistFile(file);
+    tfs.setState(file, (new SetStateOptions.Builder()).setPersisted(true).build());
     return ret;
   }
 }
