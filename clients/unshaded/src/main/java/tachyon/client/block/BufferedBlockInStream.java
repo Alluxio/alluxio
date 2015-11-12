@@ -17,7 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
@@ -47,8 +46,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected final long mBlockId;
   /** The size in bytes of the block. */
   protected final long mBlockSize;
-  /** The address of the worker to read the data from. */
-  protected final InetSocketAddress mLocation;
 
   /** Internal buffer to improve small read performance. */
   protected ByteBuffer mBuffer;
@@ -64,10 +61,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @param location worker address to read the block from
    */
   // TODO(calvin): Get the block lock here when the remote instream locks at a stream level
-  public BufferedBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
+  public BufferedBlockInStream(long blockId, long blockSize) {
     mBlockId = blockId;
     mBlockSize = blockSize;
-    mLocation = location;
     mBuffer = allocateBuffer();
     mBufferIsValid = false; // No data in buffer
     mClosed = false;
