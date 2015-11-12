@@ -406,13 +406,12 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Attempts to create a folder with the specified path. Parent directories will be created. Mkdirs
-   * will fail if the path already exists or a parent is a file.
+   * Attempts to create a folder with the specified path. Parent directories will be created.
    *
    * @param cPath path to create
    * @param permission permissions to grant the created folder
-   * @return true if the indicated folder is created successfully, false otherwise
-   * @throws IOException if the folder cannot be created (e.g., it already exists)
+   * @return true if the indicated folder is created successfully or already exists, false otherwise
+   * @throws IOException if the folder cannot be created
    */
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
@@ -423,6 +422,11 @@ abstract class AbstractTFS extends FileSystem {
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
     try {
+      TachyonFile fileId = mTFS.openIfExists(path);
+      if (fileId != null && mTFS.getInfo(fileId).isIsFolder()) {
+        // The directory already exists, nothing to do here
+        return true;
+      }
       return mTFS.mkdir(path, options);
     } catch (TachyonException e) {
       throw new IOException(e);

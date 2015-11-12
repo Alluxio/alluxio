@@ -117,12 +117,12 @@ public class S3OutputStream extends OutputStream {
       if (mHash != null) {
         obj.setMd5Hash(mHash.digest());
       } else {
-        LOG.warn("MD5 was not computed for: " + mKey);
+        LOG.warn("MD5 was not computed for: {}", mKey);
       }
       mClient.putObject(mBucketName, obj);
       mFile.delete();
     } catch (ServiceException se) {
-      LOG.error("Failed to upload " + mKey + ". Temporary file @ " + mFile.getPath());
+      LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(se);
     }
   }

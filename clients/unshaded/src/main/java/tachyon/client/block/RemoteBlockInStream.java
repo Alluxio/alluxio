@@ -28,6 +28,9 @@ import tachyon.client.RemoteBlockReader;
  * used by one thread and are not thread safe.
  */
 public final class RemoteBlockInStream extends BufferedBlockInStream {
+  /** The address of the worker to read the data from. */
+  private final InetSocketAddress mLocation;
+
   /**
    * Creates a new remote block input stream.
    *
@@ -37,7 +40,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    */
   // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
   public RemoteBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
-    super(blockId, blockSize, location);
+    super(blockId, blockSize);
+    mLocation = location;
   }
 
   @Override

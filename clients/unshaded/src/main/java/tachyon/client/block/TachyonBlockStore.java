@@ -20,8 +20,8 @@ import java.net.InetSocketAddress;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
@@ -96,7 +96,7 @@ public final class TachyonBlockStore {
       if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
           workerAddr.getHostName())) {
         if (mContext.hasLocalWorker()) {
-          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+          return new LocalBlockInStream(blockId, blockInfo.getLength());
         } else {
           throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage("read"));
         }
