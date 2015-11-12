@@ -79,8 +79,10 @@ public class TfsShellTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
-    // enable simple authentication
     TachyonConf conf = mLocalTachyonCluster.newTestConf();
+    // Make sure files in ttl related tests won't be deleted by the TTL checker.
+    conf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
+    // enable simple authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mLocalTachyonCluster.start(conf);
     mTfs = mLocalTachyonCluster.getClient();
@@ -552,7 +554,7 @@ public class TfsShellTest {
   @Test
   public void mkdirExistingTest() throws IOException {
     Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
-    Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
+    Assert.assertEquals(-1, mFsShell.run("mkdir", "/testFile1"));
   }
 
   @Test
@@ -1050,5 +1052,45 @@ public class TfsShellTest {
     fileReadTest("/testDir/foo/foobar2", 20);
     fileReadTest("/testDir/bar/foobar3", 30);
     fileReadTest("/testDir/foobar4", 40);
+  }
+
+  @Test
+  public void setTTLNegativeTest() throws IOException {
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, "/testFile",
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 1);
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage("TTL value must be >= 0");
+    mFsShell.run("setTTL", "/testFile", "-1");
+  }
+
+  @Test
+  public void setTTLTest() throws Exception {
+    String filePath = "/testFile";
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 1);
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
+    long[] ttls = new long[] { 0L, 1000L };
+    for (long ttl : ttls) {
+      Assert.assertEquals(0, mFsShell.run("setTTL", filePath, String.valueOf(ttl)));
+      Assert.assertEquals(ttl, mTfs.getInfo(file).getTtl());
+    }
+  }
+
+  @Test
+  public void unsetTTLTest() throws Exception {
+    String filePath = "/testFile";
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 1);
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
+
+    // unsetTTL on a file originally with no TTL will leave the TTL unchanged.
+    Assert.assertEquals(0, mFsShell.run("unsetTTL", filePath));
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
+
+    long ttl = 1000L;
+    Assert.assertEquals(0, mFsShell.run("setTTL", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(ttl, mTfs.getInfo(file).getTtl());
+    Assert.assertEquals(0, mFsShell.run("unsetTTL", filePath));
+    Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
   }
 }

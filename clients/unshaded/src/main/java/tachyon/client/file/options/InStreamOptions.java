@@ -23,7 +23,7 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class InStreamOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<InStreamOptions> {
     private TachyonStorageType mTachyonStorageType;
 
     /**
@@ -57,6 +57,7 @@ public final class InStreamOptions {
      *
      * @return a {@code InStreamOptions} instance
      */
+    @Override
     public InStreamOptions build() {
       return new InStreamOptions(this);
     }

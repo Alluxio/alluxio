@@ -17,11 +17,13 @@ package tachyon.client.file.options;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
 public class SetStateOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<SetStateOptions> {
     private Boolean mPinned;
     private Long mTTL;
 
@@ -29,6 +31,15 @@ public class SetStateOptions {
      * Creates a new builder for {@link SetStateOptions}.
      */
     public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link SetStateOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
       mPinned = null;
       mTTL = null;
     }
@@ -60,6 +71,7 @@ public class SetStateOptions {
      *
      * @return a {@code SetStateOptions} instance
      */
+    @Override
     public SetStateOptions build() {
       return new SetStateOptions(this);
     }

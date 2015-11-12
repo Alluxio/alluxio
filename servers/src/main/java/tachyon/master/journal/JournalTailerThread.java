@@ -66,7 +66,7 @@ public final class JournalTailerThread extends Thread {
    * Initiate the shutdown of this tailer thread.
    */
   public void shutdown() {
-    LOG.info(mMaster.getServiceName() + ": Journal tailer shutdown has been initiated.");
+    LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getServiceName());
     mInitiateShutdown = true;
   }
 
@@ -79,8 +79,8 @@ public final class JournalTailerThread extends Thread {
       // Wait for the thread to finish.
       join();
     } catch (InterruptedException ie) {
-      LOG.warn(mMaster.getServiceName() + ": stopping the journal tailer caused exception: "
-          + ie.getMessage());
+      LOG.warn("{}: stopping the journal tailer caused exception: {}", mMaster.getServiceName(),
+          ie.getMessage());
     }
   }
 
@@ -99,7 +99,7 @@ public final class JournalTailerThread extends Thread {
 
   @Override
   public void run() {
-    LOG.info(mMaster.getServiceName() + ": Journal tailer started.");
+    LOG.info("{}: Journal tailer started.", mMaster.getServiceName());
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (!mInitiateShutdown) {
@@ -108,7 +108,7 @@ public final class JournalTailerThread extends Thread {
         long waitForShutdownStart = -1;
 
         // Load the checkpoint file.
-        LOG.info(mMaster.getServiceName() + ": Waiting to load the checkpoint file.");
+        LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getServiceName());
         mJournalTailer = new JournalTailer(mMaster, mJournal);
         while (!mJournalTailer.checkpointExists()) {
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
@@ -118,9 +118,9 @@ public final class JournalTailerThread extends Thread {
             return;
           }
         }
-        LOG.info(mMaster.getServiceName() + ": Start loading the checkpoint file.");
+        LOG.info("{}: Start loading the checkpoint file.", mMaster.getServiceName());
         mJournalTailer.processJournalCheckpoint(true);
-        LOG.info(mMaster.getServiceName() + ": Checkpoint file has been loaded.");
+        LOG.info("{}: Checkpoint file has been loaded.", mMaster.getServiceName());
 
         // Continually process completed log files.
         while (mJournalTailer.isValid()) {
@@ -134,26 +134,26 @@ public final class JournalTailerThread extends Thread {
               } else if ((CommonUtils.getCurrentMs()
                   - waitForShutdownStart) > mShutdownQuietWaitTimeMs) {
                 // There have been no new logs for the quiet period. Shutdown now.
-                LOG.info(mMaster.getServiceName()
-                    + ": Journal tailer has been shutdown. No new logs for the quiet period.");
+                LOG.info("{}: Journal tailer has been shutdown. No new logs for the quiet period.",
+                    mMaster.getServiceName());
                 mStopped = true;
                 return;
               }
             }
-            LOG.debug(mMaster.getServiceName()
-                + ": The next complete log file does not exist yet. Sleeping and checking again.");
+            LOG.debug("{}: The next complete log file does not exist yet. "
+                + "Sleeping and checking again.", mMaster.getServiceName());
             CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           }
         }
-        LOG.info(mMaster.getServiceName()
-            + ": The checkpoint is out of date. Will reload the checkpoint file.");
+        LOG.info("{}: The checkpoint is out of date. Will reload the checkpoint file.",
+            mMaster.getServiceName());
         CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
       }
     }
-    LOG.info(mMaster.getServiceName() + ": Journal tailer has been shutdown.");
+    LOG.info("{}: Journal tailer has been shutdown.", mMaster.getServiceName());
     mStopped = true;
   }
 }

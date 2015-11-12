@@ -120,7 +120,7 @@ public final class TTLBucket implements Comparable<TTLBucket> {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof TTLBucket)) {
+    if (!(o instanceof TTLBucket)) {
       return false;
     }
     TTLBucket that = (TTLBucket) o;

@@ -30,8 +30,8 @@ import tachyon.util.io.PathUtils;
  */
 public class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String USAGE = "java -cp " + Version.TACHYON_JAR
-      + " tachyon.Format <MASTER/WORKER>";
+  private static final String USAGE = String.format("java -cp %s tachyon.Format <MASTER/WORKER>",
+      Version.TACHYON_JAR);
 
   private static boolean formatFolder(String name, String folder, TachyonConf tachyonConf)
       throws IOException {
