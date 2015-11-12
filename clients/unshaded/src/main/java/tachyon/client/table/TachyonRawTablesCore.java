@@ -10,13 +10,13 @@ import java.nio.ByteBuffer;
 
 @PublicApi
 interface TachyonRawTablesCore {
-  RawTable create(TachyonURI path, int numColumns, ByteBuffer metadata) throws IOException,
+  SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata) throws IOException,
       TachyonException;
 
-  RawTableInfo getInfo(RawTable rawTable) throws IOException, TachyonException;
+  RawTableInfo getInfo(SimpleRawTable rawTable) throws IOException, TachyonException;
 
-  RawTable open(TachyonURI path) throws IOException, TachyonException;
+  SimpleRawTable open(TachyonURI path) throws IOException, TachyonException;
 
-  void updateRawTableMetadata(RawTable rawTable, ByteBuffer metadata) throws IOException,
+  void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata) throws IOException,
       TachyonException;
 }
