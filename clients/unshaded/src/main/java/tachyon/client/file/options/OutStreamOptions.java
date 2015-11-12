@@ -24,7 +24,7 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class OutStreamOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<OutStreamOptions> {
     private long mBlockSizeBytes;
     private String mHostname;
     private TachyonStorageType mTachyonStorageType;
@@ -105,6 +105,7 @@ public final class OutStreamOptions {
      *
      * @return a {@code OutStreamOptions} instance
      */
+    @Override
     public OutStreamOptions build() {
       return new OutStreamOptions(this);
     }

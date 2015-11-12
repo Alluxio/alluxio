@@ -57,7 +57,7 @@ public class TachyonMaster {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp " + Version.TACHYON_JAR + " tachyon.Master");
+      LOG.info("java -cp {} tachyon.Master", Version.TACHYON_JAR);
       System.exit(-1);
     }
 
@@ -268,7 +268,7 @@ public class TachyonMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping RPC server on Tachyon Master @ " + mMasterAddress);
+      LOG.info("Stopping RPC server on Tachyon Master @ {}", mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
@@ -316,11 +316,11 @@ public class TachyonMaster {
   protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress + " "
-        + startMessage);
+    LOG.info("Tachyon Master version {} started @ {} {}", Version.VERSION, mMasterAddress,
+        startMessage);
     startServingRPCServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress + " "
-        + stopMessage);
+    LOG.info("Tachyon Master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
+        stopMessage);
   }
 
   protected void startServingWebServer() {
@@ -392,7 +392,7 @@ public class TachyonMaster {
     if (!ufs.providesStorage()) {
       // TODO(gene): Should the journal really be allowed on a ufs without storage?
       // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
-      LOG.info("Journal directory doesn't provide storage: " + journalDirectory);
+      LOG.info("Journal directory doesn't provide storage: {}", journalDirectory);
       return true;
     }
     String[] files = ufs.list(journalDirectory);

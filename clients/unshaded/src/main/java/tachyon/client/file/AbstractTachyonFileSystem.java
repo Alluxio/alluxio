@@ -43,7 +43,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -73,14 +72,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       final long fileId = masterClient.create(path.getPath(), options);
       return new TachyonFile(fileId);
-    } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.BLOCK_INFO) {
-        throw new FileAlreadyExistsException(e.getMessage(), e);
-      } else {
-        TachyonException.unwrap(e, FileAlreadyExistsException.class);
-        TachyonException.unwrap(e, InvalidPathException.class);
-        throw e;
-      }
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -101,11 +92,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.delete(file.getFileId(), options.isRecursive());
-      LOG.info(
-          "Deleted file " + file.getFileId() + " from both Tachyon Storage and under file system");
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
+      LOG.info("Deleted file {} from both Tachyon Storage and under file system", file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -122,10 +109,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(file.getFileId(), options.isRecursive());
-      LOG.info("Removed file " + file.getFileId() + " from Tachyon Storage");
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
+      LOG.info("Removed file {} from Tachyon Storage", file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -143,9 +127,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getFileInfo(file.getFileId());
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -163,9 +144,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getFileInfoList(file.getFileId());
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -177,11 +155,8 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       final long fileId = masterClient.loadMetadata(path.getPath(), options.isRecursive());
-      LOG.info("Loaded file " + path.getPath() + (options.isRecursive() ? " recursively" : ""));
+      LOG.info("Loaded file {}{}", path.getPath(), options.isRecursive() ? " recursively" : "");
       return new TachyonFile(fileId);
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -194,13 +169,9 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       boolean result = masterClient.mkdir(path.getPath(), options);
       if (result) {
-        LOG.info("Created directory " + path.getPath());
+        LOG.info("Created directory {}", path.getPath());
       }
       return result;
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileAlreadyExistsException.class);
-      TachyonException.unwrap(e, InvalidPathException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -259,12 +230,9 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       boolean result = masterClient.rename(src.getFileId(), dst.getPath());
       if (result) {
-        LOG.info("Renamed file " + src.getFileId() + " to " + dst.getPath());
+        LOG.info("Renamed file {} to {}", src.getFileId(), dst.getPath());
       }
       return result;
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -276,9 +244,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setState(file.getFileId(), options);
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

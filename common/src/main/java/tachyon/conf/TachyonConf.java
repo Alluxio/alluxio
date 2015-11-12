@@ -215,7 +215,7 @@ public final class TachyonConf {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof TachyonConf)) {
+    if (!(o instanceof TachyonConf)) {
       return false;
     }
     TachyonConf that = (TachyonConf) o;
