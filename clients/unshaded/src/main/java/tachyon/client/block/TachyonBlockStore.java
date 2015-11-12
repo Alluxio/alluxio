@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.exception.TachyonException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
@@ -106,8 +106,7 @@ public final class TachyonBlockStore {
         if (workerNetAddress.getHost().equals(localHostName)) {
           // There is a local worker and the block is local.
           try {
-            return new LocalBlockInStream(blockId, blockInfo.getLength(),
-                new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
+            return new LocalBlockInStream(blockId, blockInfo.getLength());
           } catch (IOException e) {
             LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
             // Getting a local stream failed, do not try again

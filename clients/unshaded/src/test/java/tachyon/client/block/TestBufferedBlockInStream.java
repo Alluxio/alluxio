@@ -27,7 +27,7 @@ public class TestBufferedBlockInStream extends BufferedBlockInStream {
   private final byte[] mData;
 
   public TestBufferedBlockInStream(long blockId, int start, long blockSize) {
-    super(blockId, blockSize, null);
+    super(blockId, blockSize);
     mData = BufferUtils.getIncreasingByteArray(start, (int) blockSize);
   }
 
