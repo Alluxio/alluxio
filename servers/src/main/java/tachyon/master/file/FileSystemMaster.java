@@ -41,6 +41,7 @@ import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -602,9 +603,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   public boolean deleteFile(long fileId, boolean recursive)
-      throws IOException, FileDoesNotExistException {
+      throws IOException, FileDoesNotExistException, DirectoryNotEmptyException {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -625,6 +627,21 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
+   * {@link #deleteFileInternal(long, boolean, boolean, long)}.
+   */
+  boolean deleteFileRecursiveInternal(long fileId, boolean replayed, long opTimeMs)
+      throws FileDoesNotExistException, IOException {
+    try {
+      return deleteFileInternal(fileId, true, replayed, opTimeMs);
+    } catch (DirectoryNotEmptyException e) {
+      throw new IllegalStateException(
+          "deleteFileInternal should never throw DirectoryNotEmptyException when recursive is true",
+          e);
+    }
+  }
+
+  /**
    * Implements file deletion.
    *
    * @param fileId the file id
@@ -635,9 +652,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
   boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
-      throws FileDoesNotExistException, IOException {
+      throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     //
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
@@ -649,7 +667,8 @@ public final class FileSystemMaster extends MasterBase {
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
       // true
-      return false;
+      throw new DirectoryNotEmptyException(ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE,
+          inode.getName());
     }
     if (mInodeTree.isRootId(inode.getId())) {
       // The root cannot be deleted.
@@ -675,9 +694,9 @@ public final class FileSystemMaster extends MasterBase {
           String ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           if (!ufs.exists(ufsPath)) {
-            LOG.warn("File does not exist the underfs: " + ufsPath);
+            LOG.warn("File does not exist the underfs: {}", ufsPath);
           } else if (!ufs.delete(ufsPath, true)) {
-            LOG.error("Failed to delete " + ufsPath);
+            LOG.error("Failed to delete {}", ufsPath);
             return false;
           }
         } catch (InvalidPathException e) {
@@ -979,7 +998,7 @@ public final class FileSystemMaster extends MasterBase {
       String dstMount = mMountTable.getMountPoint(dstPath);
       if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
           || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
-        LOG.warn("Renaming " + srcPath + " to " + dstPath + " spans mount points.");
+        LOG.warn("Renaming {} to {} spans mount points.", srcPath, dstPath);
         return false;
       }
       // Renaming onto a mount point is not allowed.
@@ -1021,7 +1040,7 @@ public final class FileSystemMaster extends MasterBase {
       writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
       flushJournal();
 
-      LOG.debug("Renamed " + srcPath + " to " + dstPath);
+      LOG.debug("Renamed {} to {}", srcPath, dstPath);
       return true;
     }
   }
@@ -1043,7 +1062,7 @@ public final class FileSystemMaster extends MasterBase {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode srcInode = mInodeTree.getInodeById(fileId);
     TachyonURI srcPath = mInodeTree.getPath(srcInode);
-    LOG.debug("Renaming " + srcPath + " to " + dstPath);
+    LOG.debug("Renaming {} to {}", srcPath, dstPath);
 
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
@@ -1053,11 +1072,11 @@ public final class FileSystemMaster extends MasterBase {
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
       String parentPath = new TachyonURI(ufsDstPath).getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        LOG.error("Failed to create " + parentPath);
+        LOG.error("Failed to create {}", parentPath);
         return false;
       }
       if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
-        LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
+        LOG.error("Failed to rename {} to {}", ufsSrcPath, ufsDstPath);
         return false;
       }
     }
@@ -1216,7 +1235,7 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
-        LOG.warn("Reported file is a directory " + inode);
+        LOG.warn("Reported file is a directory {}", inode);
         return;
       }
 
@@ -1226,11 +1245,10 @@ public final class FileSystemMaster extends MasterBase {
           blockIds.add(fileBlockInfo.blockInfo.blockId);
         }
       } catch (InvalidPathException e) {
-        LOG.info("Failed to get file info " + fileId, e);
+        LOG.info("Failed to get file info {}", fileId, e);
       }
       mBlockMaster.reportLostBlocks(blockIds);
-      LOG.info(
-          "Reported file loss of blocks" + blockIds + ". Tachyon will recompute it: " + fileId);
+      LOG.info("Reported file loss of blocks {}. Tachyon will recompute it: {}", blockIds, fileId);
     }
   }
 
@@ -1298,7 +1316,7 @@ public final class FileSystemMaster extends MasterBase {
       }
       // Cleanup created directories in case the mount operation failed.
       long opTimeMs = System.currentTimeMillis();
-      deleteFileInternal(createResult.getCreated().get(0).getId(), true, false, opTimeMs);
+      deleteFileRecursiveInternal(createResult.getCreated().get(0).getId(), false, opTimeMs);
     }
     return false;
   }
@@ -1307,7 +1325,7 @@ public final class FileSystemMaster extends MasterBase {
     TachyonURI tachyonURI = entry.getTachyonURI();
     TachyonURI ufsURI = entry.getUfsURI();
     if (!mountInternal(tachyonURI, ufsURI)) {
-      LOG.error("Failed to mount " + ufsURI + " at " + tachyonURI);
+      LOG.error("Failed to mount {} at {}", ufsURI, tachyonURI);
     }
   }
 
@@ -1324,7 +1342,7 @@ public final class FileSystemMaster extends MasterBase {
         // operations from being persisted in the UFS.
         long fileId = inode.getId();
         long opTimeMs = System.currentTimeMillis();
-        deleteFileInternal(fileId, true /* recursive */, true /* replayed */, opTimeMs);
+        deleteFileRecursiveInternal(fileId, true /* replayed */, opTimeMs);
         writeJournalEntry(new DeleteFileEntry(fileId, true /* recursive */, opTimeMs));
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
@@ -1337,7 +1355,7 @@ public final class FileSystemMaster extends MasterBase {
   void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
     TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
     if (!unmountInternal(tachyonURI)) {
-      LOG.error("Failed to unmount " + tachyonURI);
+      LOG.error("Failed to unmount {}", tachyonURI);
     }
   }
 
@@ -1424,10 +1442,9 @@ public final class FileSystemMaster extends MasterBase {
               // whether the file is pinned.
               try {
                 deleteFile(file.getId(), false);
-              } catch (FileDoesNotExistException e) {
-                LOG.error("file does not exit " + file.toString());
-              } catch (IOException e) {
-                LOG.error("IO exception for ttl check" + file.toString());
+              } catch (Exception e) {
+                LOG.error("Exception trying to clean up {} for ttl check: {}",
+                    file.toString(), e.toString());
               }
             }
           }

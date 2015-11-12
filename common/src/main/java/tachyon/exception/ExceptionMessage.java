@@ -90,6 +90,8 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
+      "Cannot delete non-empty directory {0} because recursive is set to false"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
@@ -109,6 +111,8 @@ public enum ExceptionMessage {
       "The destination cannot be an existent file when the src contains wildcards."),
 
   // lineage
+  DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
+  LINEAGE_DOES_NOT_EXIST("The lineage {0} does not exist"),
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
 

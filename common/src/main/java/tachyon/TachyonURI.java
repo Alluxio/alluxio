@@ -147,7 +147,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof TachyonURI)) {
+    if (!(o instanceof TachyonURI)) {
       return false;
     }
     TachyonURI that = (TachyonURI) o;

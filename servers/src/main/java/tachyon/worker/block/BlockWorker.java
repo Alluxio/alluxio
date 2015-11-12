@@ -228,7 +228,7 @@ public final class BlockWorker {
     }
 
     // Setup the lineage worker
-    LOG.info("Started lineage worker at worker with ID " + WorkerIdRegistry.getWorkerId());
+    LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
 
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       mLineageWorker = new LineageWorker(mBlockDataManager);

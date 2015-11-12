@@ -131,7 +131,7 @@ public final class MasterWorkerInfo {
     if (mIsRegistered) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: " + mId);
+      LOG.info("re-registering an existing workerId: {}", mId);
 
       // Compute the difference between the existing block data, and the new data.
       removedBlocks = Sets.difference(mBlocks, blocks);

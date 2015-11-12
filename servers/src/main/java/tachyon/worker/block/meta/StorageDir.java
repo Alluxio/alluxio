@@ -124,7 +124,7 @@ public final class StorageDir {
           // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);
         } catch (IOException ioe) {
-          LOG.error("can not delete directory {}: {}", path.getAbsolutePath(), ioe);
+          LOG.error("can not delete directory {}", path.getAbsolutePath(), ioe);
         }
       } else {
         try {
@@ -412,7 +412,7 @@ public final class StorageDir {
     } else {
       // This may happen if the client comes back during clean up and creates more blocks or some
       // temporary blocks failed to be deleted
-      LOG.warn("Blocks still owned by session " + sessionId + " after cleanup.");
+      LOG.warn("Blocks still owned by session {} after cleanup.", sessionId);
     }
   }
 

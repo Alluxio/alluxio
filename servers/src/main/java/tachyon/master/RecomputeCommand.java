@@ -52,7 +52,7 @@ public class RecomputeCommand implements Runnable {
   @Override
   public void run() {
     try {
-      LOG.info("Exec " + mCommand + " output to " + mFilePath);
+      LOG.info("Exec {} output to {}", mCommand, mFilePath);
       Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;
       Closer closer = Closer.create();
@@ -76,7 +76,7 @@ public class RecomputeCommand implements Runnable {
       }
 
       p.waitFor();
-      LOG.info("Exec " + mCommand + " output to " + mFilePath + " done.");
+      LOG.info("Exec {} output to {} done.", mCommand, mFilePath);
     } catch (IOException e) {
       LOG.error(e.getMessage());
     } catch (InterruptedException e) {

@@ -17,7 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -31,8 +30,8 @@ import tachyon.worker.WorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
- * from the local machine's storage. The instances of this class should only be used by one
- * thread and are not thread safe.
+ * from the local machine's storage. The instances of this class should only be used by one thread
+ * and are not thread safe.
  */
 public final class LocalBlockInStream extends BufferedBlockInStream {
   /** Helper to manage closables. */
@@ -50,9 +49,8 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @throws IOException if I/O error occurs
    */
-  public LocalBlockInStream(long blockId, long blockSize, InetSocketAddress location)
-      throws IOException {
-    super(blockId, blockSize, location);
+  public LocalBlockInStream(long blockId, long blockSize) throws IOException {
+    super(blockId, blockSize);
     mContext = BlockStoreContext.INSTANCE;
 
     mCloser = Closer.create();

@@ -16,16 +16,27 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class LoadMetadataOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<LoadMetadataOptions> {
     private boolean mRecursive;
 
     /**
-     * Creates a new builder for {@link FreeOptions}.
+     * Creates a new builder for {@link LoadMetadataOptions}.
      */
     public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link LoadMetadataOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
       mRecursive = false;
     }
 
@@ -44,6 +55,7 @@ public final class LoadMetadataOptions {
      *
      * @return a {@code LoadMetadataOptions} instance
      */
+    @Override
     public LoadMetadataOptions build() {
       return new LoadMetadataOptions(this);
     }

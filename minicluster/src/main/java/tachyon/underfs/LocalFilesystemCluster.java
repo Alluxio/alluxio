@@ -13,37 +13,36 @@
  * the License.
  */
 
-package tachyon.client.block;
+package tachyon.underfs;
 
+import java.io.File;
 import java.io.IOException;
 
-import tachyon.util.io.BufferUtils;
+import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * Test class for mocking BufferedBlockInStream. The stream will read in increasing bytes from
- * `start` to `start + blockSize`.
+ * The mock cluster for local file system as UnderFileSystemSingleLocal.
  */
-public class TestBufferedBlockInStream extends BufferedBlockInStream {
-  private final byte[] mData;
+public class LocalFilesystemCluster extends UnderFileSystemCluster {
 
-  public TestBufferedBlockInStream(long blockId, int start, long blockSize) {
-    super(blockId, blockSize);
-    mData = BufferUtils.getIncreasingByteArray(start, (int) blockSize);
+  public LocalFilesystemCluster(String baseDir, TachyonConf tachyonConf) {
+    super(baseDir, tachyonConf);
   }
 
   @Override
-  protected void bufferedRead(int len) throws IOException {
-    mBuffer.clear();
-    mBuffer.put(mData, (int) getPosition(), len);
-    mBuffer.flip();
+  public String getUnderFilesystemAddress() {
+    return new File(mBaseDir).getAbsolutePath();
   }
 
   @Override
-  protected int directRead(byte[] b, int off, int len) throws IOException {
-    System.arraycopy(mData, (int) getPosition(), b, off, len);
-    return len;
+  public boolean isStarted() {
+    return true;
   }
 
   @Override
-  protected void incrementBytesReadMetric(int bytes) {}
+  public void shutdown() throws IOException {}
+
+  @Override
+  public void start() throws IOException {}
 }

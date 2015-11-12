@@ -20,7 +20,7 @@ Tachyon without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three years
 open source history, Tachyon has attracted more than
-[130 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
+[140 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [Red Hat](https://www.redhat.com/),
 [Tachyon Nexus](http://www.tachyonnexus.com/),
@@ -66,7 +66,7 @@ the file system easily through the web UI. Under debug mode, administrators can 
 information of each file, including locations, checkpoint path, etc. Users can also use
 ``./bin/tachyon tfs`` to interact with Tachyon, e.g. copy data in and out of the file system.
 
-* **[Mounting & Transparency](Mounting-and-Transparent-Naming.html)** Tachyon enables effective
+* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Tachyon enables effective
 data management across different storage systems through the mount feature. Furthermore, 
 transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
 is preserved when persisting these objects to the underlying storage system.

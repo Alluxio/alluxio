@@ -17,18 +17,12 @@ package tachyon.client.file.options;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.conf.TachyonConf;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ClientContext.class)
 public class InStreamOptionsTest {
   @Test
   public void builderTest() {
@@ -47,10 +41,11 @@ public class InStreamOptionsTest {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, tachyonType.toString());
-    Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+    ClientContext.reset(conf);
 
     InStreamOptions options = InStreamOptions.defaults();
 
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
+    ClientContext.reset();
   }
 }
