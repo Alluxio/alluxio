@@ -145,10 +145,20 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
 
   @Override
   public void takeLeadership(CuratorFramework client) throws Exception {
+    List<String> childList = new ArrayList<String>();
     mIsLeader.set(true);
-    if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
-      client.delete().forPath(mLeaderFolder + mName);
+    if (mLeaderFolder != null && client.checkExists()
+        .forPath(mLeaderFolder.substring(0, mLeaderFolder.length() - 1)) != null) {
+      childList = client.getChildren()
+            .forPath(mLeaderFolder.substring(0, mLeaderFolder.length() - 1));
+
+      LOG.info("Deleting previous leaders under leader znode");
+      for (String child : childList) { 
+        client.delete().forPath(mLeaderFolder + child);
+      }
     }
+    
+
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info(mName + " is now the leader.");
     try {
