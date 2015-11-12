@@ -50,7 +50,6 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -423,10 +422,12 @@ abstract class AbstractTFS extends FileSystem {
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
     try {
+      TachyonFile fileId = mTFS.openIfExists(path);
+      if (fileId != null && mTFS.getInfo(fileId).isIsFolder()) {
+        // The directory already exists, nothing to do here
+        return true;
+      }
       return mTFS.mkdir(path, options);
-    } catch (FileAlreadyExistsException e) {
-      // The directory already exists, nothing to do here
-      return true;
     } catch (TachyonException e) {
       throw new IOException(e);
     }
