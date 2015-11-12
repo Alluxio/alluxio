@@ -16,16 +16,27 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class FreeOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<FreeOptions> {
     private boolean mRecursive;
 
     /**
      * Creates a new builder for {@link FreeOptions}.
      */
     public Builder() {
+      this(ClientContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link FreeOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {
       mRecursive = false;
     }
 
@@ -44,6 +55,7 @@ public final class FreeOptions {
      *
      * @return a {@code FreeOptions} instance
      */
+    @Override
     public FreeOptions build() {
       return new FreeOptions(this);
     }

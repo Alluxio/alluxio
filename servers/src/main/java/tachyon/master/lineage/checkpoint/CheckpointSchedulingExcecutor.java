@@ -47,7 +47,7 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
   public void heartbeat() {
     CheckpointPlan plan = mScheduler.schedule(mLineageMaster.getLineageStoreView());
     if (!plan.isEmpty()) {
-      LOG.info("Checkpoint scheduler created the plan: " + plan);
+      LOG.info("Checkpoint scheduler created the plan: {}", plan);
     }
     mLineageMaster.queueForCheckpoint(plan);
   }

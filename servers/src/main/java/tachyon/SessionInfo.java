@@ -60,7 +60,7 @@ public class SessionInfo {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof SessionInfo)) {
+    if (!(o instanceof SessionInfo)) {
       return false;
     }
     SessionInfo that = (SessionInfo) o;

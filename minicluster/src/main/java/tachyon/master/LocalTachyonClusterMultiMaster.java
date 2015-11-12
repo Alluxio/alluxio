@@ -133,9 +133,9 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (!mMasters.get(k).isServing()) {
         try {
-          LOG.info("master " + k + " is a standby. killing it...");
+          LOG.info("master {} is a standby. killing it...", k);
           mMasters.get(k).stop();
-          LOG.info("master " + k + " killed.");
+          LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -150,9 +150,9 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isServing()) {
         try {
-          LOG.info("master " + k + " is the leader. killing it...");
+          LOG.info("master {} is the leader. killing it...", k);
           mMasters.get(k).stop();
-          LOG.info("master " + k + " killed.");
+          LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -219,8 +219,8 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
       master.start();
-      LOG.info("master NO." + k + " started, isServing: " + master.isServing() + ", address: "
-          + master.getAddress());
+      LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
+          master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
       mMasterConf.set(Constants.MASTER_PORT, "0");
@@ -230,14 +230,14 @@ public class LocalTachyonClusterMultiMaster {
     // sets UNDERFS_ADDRESS.
     mkdir(mMasterConf.get(Constants.UNDERFS_ADDRESS));
 
-    LOG.info("all " + mNumOfMasters + " masters started.");
+    LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
     boolean hasLeader = false;
     while (!hasLeader) {
       for (int i = 0; i < mMasters.size(); i ++) {
         if (mMasters.get(i).isServing()) {
-          LOG.info("master NO." + i + " is selected as leader. address: "
-              + mMasters.get(i).getAddress());
+          LOG.info("master NO.{} is selected as leader. address: {}", i,
+              mMasters.get(i).getAddress());
           hasLeader = true;
           break;
         }

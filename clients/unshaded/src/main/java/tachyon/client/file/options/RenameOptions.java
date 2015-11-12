@@ -16,20 +16,29 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
+import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class RenameOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<RenameOptions> {
     /**
      * Creates a new builder for {@link RenameOptions}.
      */
     public Builder() {}
 
     /**
+     * Creates a new builder for {@link RenameOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
+    public Builder(TachyonConf conf) {}
+
+    /**
      * Builds a new instance of {@code RenameOptions}.
      *
      * @return a {@code RenameOptions} instance
      */
+    @Override
     public RenameOptions build() {
       return new RenameOptions(this);
     }

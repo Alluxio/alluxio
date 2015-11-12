@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.BlockInfoException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -173,11 +174,13 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // creating the directory path again results in no new inodes.
-    createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
-    modified = createResult.getModified();
-    created = createResult.getCreated();
-    Assert.assertEquals(0, modified.size());
-    Assert.assertEquals(0, created.size());
+    try {
+      createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
+      Assert.assertTrue("createPath should throw FileAlreadyExistsException", false);
+    } catch (FileAlreadyExistsException faee) {
+      Assert.assertEquals(faee.getMessage(),
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(NESTED_URI));
+    }
 
     // create a file
     CreatePathOptions options =

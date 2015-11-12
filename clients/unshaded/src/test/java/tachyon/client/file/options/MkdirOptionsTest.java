@@ -19,18 +19,12 @@ import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ClientContext.class)
 public class MkdirOptionsTest {
   @Test
   public void builderTest() {
@@ -53,10 +47,11 @@ public class MkdirOptionsTest {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
-    Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+    ClientContext.reset(conf);
 
     MkdirOptions options = MkdirOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
+    ClientContext.reset();
   }
 }

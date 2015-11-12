@@ -13,36 +13,14 @@
  * the License.
  */
 
-package tachyon;
-
-import java.io.File;
-import java.io.IOException;
-
-import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemCluster;
+package tachyon.client.file.options;
 
 /**
- * The mock cluster for local file system as UnderFileSystemSingleLocal.
+ * This interface should be implemented by all Tachyon option builders for client-side operations.
  */
-public class LocalFilesystemCluster extends UnderFileSystemCluster {
-
-  public LocalFilesystemCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
-  }
-
-  @Override
-  public String getUnderFilesystemAddress() {
-    return new File(mBaseDir).getAbsolutePath();
-  }
-
-  @Override
-  public boolean isStarted() {
-    return true;
-  }
-
-  @Override
-  public void shutdown() throws IOException {}
-
-  @Override
-  public void start() throws IOException {}
+public interface OptionsBuilder<T> {
+  /**
+   * Builds a new instance
+   */
+  T build();
 }
