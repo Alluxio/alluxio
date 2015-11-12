@@ -309,7 +309,6 @@ public class TFSRenameIntegrationTest {
 
     create(sTFS, fileA);
     create(sTFS, finalDst);
-    sTFS.mkdirs(dirA);
 
     Assert.assertFalse(sTFS.rename(fileA, dirA));
 

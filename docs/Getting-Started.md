@@ -77,6 +77,6 @@ manage (such as SSD or HHD), allowing for data sets that cannot fit into memory 
 advantage of the Tachyon architecture.
 * [Lineage](Lineage-API.html) provides an alternative to costly disk replication for fault tolerance and
 data durability, greatly improving write performance.
-* [Mounting and transparenting naming](Mounting-and-Transparent-Naming.html) provides the ability
+* [Unified and Transparent Namespace](Unified-and-Transparent-Namespace.html) provides the ability
 for users to manage data from existing storage systems and easily handle deployments where not all
 systems are Tachyon-aware.
