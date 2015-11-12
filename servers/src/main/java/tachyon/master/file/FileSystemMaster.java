@@ -378,14 +378,6 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
 
-      // If the file is both persisted and stored in memory, the memory footprint and the UFS file
-      // length should match.
-      if (fileInode.isPersisted() && inMemoryLength != 0
-          && options.getUfsLength() < inMemoryLength) {
-        throw new SuspectedFileSizeException("Inconsistent file length: Tachyon " + inMemoryLength
-            + " UFS " + options.getUfsLength());
-      }
-
       // If the file is persisted, its length is determined by UFS. Otherwise, its length is
       // determined by its memory footprint.
       long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
