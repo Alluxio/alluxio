@@ -169,9 +169,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     try {
       req.validate();
       ByteBuffer buffer = data.getReadOnlyByteBuffer();
-      if (buffer.remaining() <= 0) {
-        throw new IOException("Empty buffer to write.");
-      }
 
       if (offset == 0) {
         // This is the first write to the block, so create the temp block file. The file will only

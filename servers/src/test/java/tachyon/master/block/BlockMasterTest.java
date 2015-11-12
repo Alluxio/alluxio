@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,8 +35,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import tachyon.collections.IndexedSet;
 import tachyon.exception.TachyonException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatScheduler;
+import tachyon.collections.IndexedSet;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
@@ -56,14 +59,16 @@ public class BlockMasterTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
-  public void initialize() throws Exception {
+  public void before() throws Exception {
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
+    mMaster.start(true);
   }
 
   @Test
   public void countBytesTest() throws Exception {
-    mMaster.start(true);
     Assert.assertEquals(0L, mMaster.getCapacityBytes());
     Assert.assertEquals(0L, mMaster.getUsedBytes());
     Assert.assertEquals(ImmutableMap.of(), mMaster.getTotalBytesOnTiers());
@@ -130,7 +135,6 @@ public class BlockMasterTest {
 
   @Test
   public void removeBlocksTest() throws Exception {
-    mMaster.start(true);
     long worker1 = mMaster.getWorkerId(new NetAddress("test1", 1, 2));
     long worker2 = mMaster.getWorkerId(new NetAddress("test2", 1, 2));
     List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
@@ -150,7 +154,6 @@ public class BlockMasterTest {
 
   @Test
   public void workerHeartbeatTest() throws Exception {
-    mMaster.start(true);
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
     IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
@@ -199,7 +202,6 @@ public class BlockMasterTest {
 
   @Test
   public void heartbeatStatusTest() throws Exception {
-    mMaster.start(true);
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
     IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
@@ -228,6 +230,52 @@ public class BlockMasterTest {
   public void unknownHeartbeatTest() throws Exception {
     Command heartBeat = mMaster.workerHeartbeat(0, null, null, null);
     Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
+  }
+
+  @Test
+  public void detectLostWorkerTest() throws Exception {
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
+    IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
+    IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
+
+    // Get a new worker id.
+    long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
+    Assert.assertNotNull(workerInfo);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+
+    // No workers should be considered lost.
+    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+    Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
+
+    // Set the last updated time for the worker to be definitely too old, so it is considered lost.
+    Whitebox.setInternalState(workerInfo, "mLastUpdatedTimeMs", 0);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+
+    // There should be a lost worker.
+    Assert.assertEquals(1, mMaster.getLostWorkersInfo().size());
+    Assert.assertNull(workers.getFirstByField(idIdx, workerId));
+
+    // Get the worker id again, simulating the lost worker re-registering.
+    workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+
+    // No workers should be considered lost.
+    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
+    Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
   }
 
   private void addWorker(BlockMaster master, long workerId, List<String> storageTierAliases,

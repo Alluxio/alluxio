@@ -23,6 +23,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
 public class MkdirOptionsTest {
@@ -46,7 +47,7 @@ public class MkdirOptionsTest {
   public void defaultsTest() {
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, ufsType.toString());
+    conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
     ClientContext.reset(conf);
 
     MkdirOptions options = MkdirOptions.defaults();

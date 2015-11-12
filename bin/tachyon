@@ -240,18 +240,15 @@ elif [[ ${COMMAND} == "runTest" ]]; then
   runTest $@
   exit $?
 elif [[ ${COMMAND} == "runTests" ]]; then
-  declare -a tachyonStorageTypes=(STORE NO_STORE)
-  declare -a ufsStorageTypes=(SYNC_PERSIST NO_PERSIST)
+  declare -a writeTypes=(MUST_CACHE CACHE_THROUGH THROUGH)
+  declare -a readTypes=(CACHE_PROMOTE CACHE NO_CACHE)
 
   failed=0
-  for tachyonStorageType in ${tachyonStorageTypes[@]}; do
-    for ufsStorageType in ${ufsStorageTypes[@]}; do
-      if [[ ${tachyonStorageType} == "NO_STORE" ]] && [[ ${ufsStorageType} == "NO_PERSIST" ]]; then
-        continue
-      fi
+  for readType in ${readTypes[@]}; do
+    for writeType in ${writeTypes[@]}; do
       for example in Basic BasicNonByteBuffer BasicRawTable; do
-        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${tachyonStorageType} ${ufsStorageType}
-        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${tachyonStorageType} ${ufsStorageType}
+        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
+        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
         st=$?
 
         # If test process received a signal abort early

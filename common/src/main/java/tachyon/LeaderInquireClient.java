@@ -83,6 +83,7 @@ public final class LeaderInquireClient {
                 leader = master;
               }
             }
+            LOG.info("The leader master: " + leader);
             return leader;
           }
         } else {
