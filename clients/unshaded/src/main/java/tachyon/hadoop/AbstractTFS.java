@@ -50,6 +50,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
@@ -406,13 +407,12 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Attempts to create a folder with the specified path. Parent directories will be created. Mkdirs
-   * will fail if the path already exists or a parent is a file.
+   * Attempts to create a folder with the specified path. Parent directories will be created.
    *
    * @param cPath path to create
    * @param permission permissions to grant the created folder
-   * @return true if the indicated folder is created successfully, false otherwise
-   * @throws IOException if the folder cannot be created (e.g., it already exists)
+   * @return true if the indicated folder is created successfully or already exists, false otherwise
+   * @throws IOException if the folder cannot be created
    */
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
@@ -424,6 +424,9 @@ abstract class AbstractTFS extends FileSystem {
     MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
     try {
       return mTFS.mkdir(path, options);
+    } catch (FileAlreadyExistsException e) {
+      // The directory already exists, nothing to do here
+      return true;
     } catch (TachyonException e) {
       throw new IOException(e);
     }
