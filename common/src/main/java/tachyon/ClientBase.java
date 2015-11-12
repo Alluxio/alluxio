@@ -139,7 +139,7 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Closes the connection with the Tachyon remote and do the necessary cleanup. It should be used
+   * Closes the connection with the Tachyon remote and does the necessary cleanup. It should be used
    * if the client has not connected with the remote for a while, for example.
    */
   public synchronized void disconnect() {
@@ -176,7 +176,7 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Closes the connection, then query and set current remote address.
+   * Closes the connection, then queries and sets current remote address.
    */
   public synchronized void resetConnection() {
     disconnect();
@@ -255,7 +255,7 @@ public abstract class ClientBase implements Closeable {
   /**
    * Similar to {@link #retryRPC(RpcCallable)} except that the RPC call may throw
    * {@link TachyonTException} and once it is thrown, it will be transformed into
-   * {@link TachyonException} and be thrown out.
+   * {@link TachyonException} and be thrown.
    *
    * @param rpc the RPC call to be executed
    * @param <V> type of return value of the RPC call
