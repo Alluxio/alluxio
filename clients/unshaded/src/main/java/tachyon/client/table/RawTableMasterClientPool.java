@@ -1,11 +1,11 @@
 package tachyon.client.table;
 
+import java.net.InetSocketAddress;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.RawTableMasterClient;
 import tachyon.resource.ResourcePool;
-
-import java.net.InetSocketAddress;
 
 public class RawTableMasterClientPool extends ResourcePool<RawTableMasterClient> {
   private final InetSocketAddress mMasterAddress;

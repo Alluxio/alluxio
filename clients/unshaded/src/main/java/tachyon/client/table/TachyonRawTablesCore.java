@@ -1,12 +1,12 @@
 package tachyon.client.table;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 @PublicApi
 interface TachyonRawTablesCore {
