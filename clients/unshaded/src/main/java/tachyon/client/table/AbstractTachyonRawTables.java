@@ -1,13 +1,13 @@
 package tachyon.client.table;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.RawTableMasterClient;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 // TODO(calvin): Consider different client options
 @PublicApi
@@ -52,8 +52,8 @@ public class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
-  public void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata) throws IOException,
-      TachyonException {
+  public void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata)
+      throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.updateRawTableMetadata(rawTable.getRawTableId(), metadata);
