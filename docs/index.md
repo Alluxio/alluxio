@@ -66,7 +66,7 @@ the file system easily through the web UI. Under debug mode, administrators can 
 information of each file, including locations, checkpoint path, etc. Users can also use
 ``./bin/tachyon tfs`` to interact with Tachyon, e.g. copy data in and out of the file system.
 
-* **[Mounting & Transparency](Mounting-and-Transparent-Naming.html)** Tachyon enables effective
+* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Tachyon enables effective
 data management across different storage systems through the mount feature. Furthermore, 
 transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
 is preserved when persisting these objects to the underlying storage system.
