@@ -18,6 +18,7 @@ package tachyon.master.block;
 import java.util.List;
 import java.util.Map;
 
+import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
@@ -31,6 +32,11 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
 
   public BlockMasterServiceHandler(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
+  }
+
+  @Override
+  public long version() {
+    return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
   }
 
   @Override

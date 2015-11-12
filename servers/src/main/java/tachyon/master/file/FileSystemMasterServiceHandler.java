@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
@@ -38,6 +39,11 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   public FileSystemMasterServiceHandler(FileSystemMaster fileSystemMaster) {
     mFileSystemMaster = fileSystemMaster;
+  }
+
+  @Override
+  public long version() {
+    return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
   }
 
   @Override
