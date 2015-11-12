@@ -156,6 +156,11 @@ The common configuration contains constants shared by different components.
   <td>/leader</td>
   <td>Leader folder in ZooKeeper.</td>
 </tr>
+<tr>
+  <td>tachyon.zookeeper.leader.retry</td>
+  <td>10</td>
+  <td>The number of retries to inquire leader from ZooKeeper.</td>
+</tr>
 </table>
 
 ## Master Configuration
