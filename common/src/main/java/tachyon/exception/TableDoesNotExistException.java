@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class TableDoesNotExistException extends TachyonException {
+  private static final long serialVersionUID = 4958005309299337035L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.TABLE_DOES_NOT_EXIST;
 

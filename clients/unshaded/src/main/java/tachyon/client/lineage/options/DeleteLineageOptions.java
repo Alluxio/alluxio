@@ -27,7 +27,7 @@ public final class DeleteLineageOptions {
     /**
      * Creates a new builder for {@link DeleteLineageOptions}.
      *
-     * @param conf a Tachyon configuration.
+     * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
       mCascade = false;

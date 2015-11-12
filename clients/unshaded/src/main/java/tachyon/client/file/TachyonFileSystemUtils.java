@@ -27,7 +27,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -77,14 +76,13 @@ public final class TachyonFileSystemUtils {
    * while it is waited upon. In such cases the method will throw the a {@link TachyonException}
    * with the appropriate {@link tachyon.exception.TachyonExceptionType}
    *
-   * <i>IMPLEMENTATION NOTES</i> This method is implemented
-   * by periodically polling the master about the file status. The
-   * polling period is controlled by the {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS}
-   * java property and defaults to a generous 1 second.
+   * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
+   * the file status. The polling period is controlled by the
+   * {@link Constants#USER_WAITCOMPLETED_POLL} java property and defaults to a generous 1 second.
    *
    * @param tfs an instance of {@link TachyonFileSystemCore}
-   * @param uri the URI of the file whose completion status is to be watied for.
-   * @param timeout maximum time the calling thread should be blocked on this call.
+   * @param uri the URI of the file whose completion status is to be watied for
+   * @param timeout maximum time the calling thread should be blocked on this call
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
    * @return true if the file is complete when this method returns and false if the method timed out
    *         before the file was complete.

@@ -16,12 +16,16 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class UnmountOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<UnmountOptions> {
+    /**
+     * Creates a new builder for {@link UnmountOptions}.
+     */
+    public Builder() {}
+
     /**
      * Creates a new builder for {@link UnmountOptions}.
      *
@@ -34,6 +38,7 @@ public final class UnmountOptions {
      *
      * @return a {@code UnmountOptions} instance
      */
+    @Override
     public UnmountOptions build() {
       return new UnmountOptions(this);
     }
@@ -43,7 +48,7 @@ public final class UnmountOptions {
    * @return the default {@code UnmountOptions}
    */
   public static UnmountOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private UnmountOptions(UnmountOptions.Builder builder) {}

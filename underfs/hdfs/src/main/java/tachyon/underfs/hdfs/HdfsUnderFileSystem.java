@@ -73,7 +73,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     try {
       mFs = path.getFileSystem(tConf);
     } catch (IOException e) {
-      LOG.error("Exception thrown when trying to get FileSystem for " + mUfsPrefix, e);
+      LOG.error("Exception thrown when trying to get FileSystem for {}", mUfsPrefix, e);
       throw Throwables.propagate(e);
     }
   }
@@ -129,7 +129,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error("{} : {}", cnt, e.getMessage(), e);
         te = e;
       }
     }
@@ -152,7 +152,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // TODO(hy): Fix this.
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
-    // LOG.info(path + " " + replication + " " + blockSizeBytes);
+    // LOG.info("{} {} {}", path, replication, blockSizeBytes);
     // IOException te = null;
     // int cnt = 0;
     // while (cnt < MAX_TRY) {
@@ -160,7 +160,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // return mFs.create(new Path(path), true, 4096, replication, blockSizeBytes);
     // } catch (IOException e) {
     // cnt ++;
-    // LOG.error(cnt + " : " + e.getMessage(), e);
+    // LOG.error("{} : {}", cnt, e.getMessage(), e);
     // te = e;
     // continue;
     // }
@@ -178,7 +178,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return mFs.delete(new Path(path), recursive);
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error("{} : {}", cnt, e.getMessage(), e);
         te = e;
       }
     }
@@ -194,7 +194,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return mFs.exists(new Path(path));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to check if " + path + " exists " + " : " + e.getMessage(), e);
+        LOG.error("{} try to check if {} exists : {}", cnt, path, e.getMessage(), e);
         te = e;
       }
     }
@@ -232,7 +232,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.error("Unable to get file location for " + path, e);
+      LOG.error("Unable to get file location for {}", path, e);
     }
     return ret;
   }
@@ -247,7 +247,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return fs.getLen();
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to get file size for " + path + " : " + e.getMessage(), e);
+        LOG.error("{} try to get file size for {} : {}", cnt, path, e.getMessage(), e);
       }
     }
     return -1;
@@ -352,7 +352,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to make directory for " + path + " : " + e.getMessage(), e);
+        LOG.error("{} try to make directory for {} : {}", cnt, path, e.getMessage(), e);
         te = e;
       }
     }
@@ -368,7 +368,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return mFs.open(new Path(path));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to open " + path + " : " + e.getMessage(), e);
+        LOG.error("{} try to open {} : {}", cnt, path, e.getMessage(), e);
         te = e;
       }
     }
@@ -379,12 +379,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public boolean rename(String src, String dst) throws IOException {
     LOG.debug("Renaming from {} to {}", src, dst);
     if (!exists(src)) {
-      LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
+      LOG.error("File {} does not exist. Therefore rename to {} failed.", src, dst);
       return false;
     }
 
     if (exists(dst)) {
-      LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
+      LOG.error("File {} does exist. Therefore rename from {} failed.", dst, src);
       return false;
     }
 
@@ -395,7 +395,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         return mFs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to rename " + src + " to " + dst + " : " + e.getMessage(), e);
+        LOG.error("{} try to rename {} to {} : {}", cnt, src, dst, e.getMessage(), e);
         te = e;
       }
     }
@@ -411,12 +411,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public void setPermission(String path, String posixPerm) throws IOException {
     try {
       FileStatus fileStatus = mFs.getFileStatus(new Path(path));
-      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: "
-          + fileStatus.getPermission() + " to " + posixPerm);
+      LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
+          fileStatus.getPermission(), posixPerm);
       FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
       mFs.setPermission(fileStatus.getPath(), perm);
     } catch (IOException e) {
-      LOG.error("Fail to set permission for " + path + " with perm " + posixPerm, e);
+      LOG.error("Fail to set permission for {} with perm {}", path, posixPerm, e);
       throw e;
     }
   }

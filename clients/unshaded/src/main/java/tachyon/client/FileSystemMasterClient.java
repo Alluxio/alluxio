@@ -28,6 +28,7 @@ import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
@@ -41,7 +42,6 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO(gene): Figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -72,18 +72,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file id for the given path, or -1 if the path does not point to a file
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getFileId(String path) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized long getFileId(final String path) throws IOException {
+    return retryRPC(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws TException {
         return mClient.getFileId(path);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -92,21 +87,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException,
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException,
       TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
+      @Override
+      public FileInfo call() throws TachyonTException, TException {
         return mClient.getFileInfo(fileId);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -115,21 +103,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException,
+  public synchronized List<FileInfo> getFileInfoList(final long fileId) throws IOException,
       TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileInfo>>() {
+      @Override
+      public List<FileInfo> call() throws TachyonTException, TException {
         return mClient.getFileInfoList(fileId);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -140,21 +121,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    */
   // TODO(calvin): Not sure if this is necessary.
-  public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
+  public synchronized FileBlockInfo getFileBlockInfo(final long fileId, final int fileBlockIndex)
       throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<FileBlockInfo>() {
+      @Override
+      public FileBlockInfo call() throws TachyonTException, TException {
         return mClient.getFileBlockInfo(fileId, fileBlockIndex);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -164,21 +138,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    */
   // TODO(calvin): Not sure if this is necessary.
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException,
-      TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized List<FileBlockInfo> getFileBlockInfoList(final long fileId)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileBlockInfo>>() {
+      @Override
+      public List<FileBlockInfo> call() throws TachyonTException, TException {
         return mClient.getFileBlockInfoList(fileId);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -187,20 +154,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long getNewBlockIdForFile(long fileId) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized long getNewBlockIdForFile(final long fileId)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
         return mClient.getNewBlockIdForFile(fileId);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -208,17 +169,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized String getUfsAddress() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<String>() {
+      @Override
+      public String call() throws TException {
         return mClient.getUfsAddress();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -230,21 +186,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long create(String path, CreateOptions options) throws IOException,
-      TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized long create(final String path, final CreateOptions options)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
         return mClient.create(path, options.toThrift());
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -254,99 +203,71 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void completeFile(long fileId) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void completeFile(final long fileId) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
         mClient.completeFile(fileId);
-        return;
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
-   * Deletes a file.
+   * Deletes a file or a directory.
    *
-   * @param fileId the file id
+   * @param id the id
    * @param recursive whether to delete the file recursively (when it is a directory)
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException,
-      TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.deleteFile(fileId, recursive);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+  public synchronized boolean delete(final long id, final boolean recursive)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.remove(id, recursive);
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
-   * Renames a file.
+   * Renames a file or a directory.
    *
-   * @param fileId the file id
+   * @param id the id
    * @param dstPath new file path
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean renameFile(long fileId, String dstPath) throws IOException,
-      TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.renameFile(fileId, dstPath);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+  public synchronized boolean rename(final long id, final String dstPath)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.rename(id, dstPath);
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
-   * Sets the "pinned" status for a file.
+   * Sets the file state.
    *
    * @param fileId the file id
-   * @param pinned the pinned status to use
+   * @param options the file state options to be set
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void setPinned(long fileId, boolean pinned) throws IOException,
-      TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.setPinned(fileId, pinned);
-        return;
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+  public synchronized void setState(final long fileId, final SetStateOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.setState(fileId, options.toThrift());
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -358,21 +279,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean mkdir(String path, MkdirOptions options) throws IOException,
-      TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized boolean mkdir(final String path, final MkdirOptions options)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
         return mClient.mkdir(path, options.toThrift());
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -384,44 +298,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean free(long fileId, boolean recursive) throws IOException,
+  public synchronized boolean free(final long fileId, final boolean recursive) throws IOException,
       TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
         return mClient.free(fileId, recursive);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
-   * Reports a lost file.
-   *
-   * @param fileId the file id
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void reportLostFile(long fileId) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.reportLostFile(fileId);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -433,21 +317,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadMetadata(String path, boolean recursive)
+  public synchronized long loadMetadata(final String path, final boolean recursive)
       throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
         return mClient.loadMetadata(path, recursive);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -455,39 +332,33 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param tachyonPath the Tachyon path
    * @param ufsPath the UFS path
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized boolean mount(final TachyonURI tachyonPath, final TachyonURI ufsPath)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
         return mClient.mount(tachyonPath.toString(), ufsPath.toString());
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
    * Unmounts the given Tachyon path.
    *
    * @param tachyonPath the Tachyon path
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized boolean unmount(final TachyonURI tachyonPath)
+      throws TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
         return mClient.unmount(tachyonPath.toString());
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

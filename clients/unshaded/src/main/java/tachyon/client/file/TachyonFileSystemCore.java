@@ -35,6 +35,7 @@ import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -66,10 +67,11 @@ interface TachyonFileSystemCore {
    * @param options method options
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   void delete(TachyonFile file, DeleteOptions options) throws IOException,
-      FileDoesNotExistException, TachyonException;
+      FileDoesNotExistException, DirectoryNotEmptyException, TachyonException;
 
   /**
    * Removes the file from Tachyon, but not from UFS in case it exists there.
@@ -86,7 +88,7 @@ interface TachyonFileSystemCore {
   /**
    * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
    *
-   * @param file the handler for the file.
+   * @param file the handler for the file
    * @param options method options
    * @return the FileInfo of the file
    * @throws IOException if a non-Tachyon exception occurs
@@ -180,9 +182,9 @@ interface TachyonFileSystemCore {
       FileDoesNotExistException, TachyonException;
 
   /**
-   * Sets the state of a file.
+   * Sets the file state.
    *
-   * @param file the file handler for the file to pin
+   * @param file the file handler for the file
    * @param options method options
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist

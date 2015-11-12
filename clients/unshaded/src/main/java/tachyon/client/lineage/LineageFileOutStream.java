@@ -27,6 +27,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.TachyonException;
 
 /**
  * A stream API to write a file when lineage is enabled. It supports asynchronous persistence of the
@@ -84,13 +85,15 @@ public class LineageFileOutStream extends FileOutStream {
     if (canComplete) {
       LineageMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        LOG.info("async complete file" + mFileId);
+        LOG.info("async complete file {}", mFileId);
         masterClient.asyncCompleteFile(mFileId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
     } else {
-      LOG.warn("Failed to store file " + mFileId + " in Tachyon Storage");
+      LOG.warn("Failed to store file {} in Tachyon Storage", mFileId);
     }
   }
 }

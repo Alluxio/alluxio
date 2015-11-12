@@ -13,13 +13,13 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import tachyon.client.ClientContext;
-import tachyon.client.block.BlockInStream;
+import tachyon.exception.ExceptionMessage;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -28,8 +28,7 @@ import tachyon.underfs.UnderFileSystem;
  * system read does not guarantee any locality and is dependent on the implementation of the under
  * storage client.
  */
-// TODO(calvin): This should be treated like a block in stream.
-public final class UnderStoreFileInStream extends BlockInStream {
+public final class UnderStoreBlockInStream extends BlockInStream {
   private final long mInitPos;
   private final long mLength;
   private final String mUfsPath;
@@ -45,7 +44,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
    * @param ufsPath the under file system path
    * @throws IOException if an I/O error occurs
    */
-  public UnderStoreFileInStream(long initPos, long length, String ufsPath) throws IOException {
+  public UnderStoreBlockInStream(long initPos, long length, String ufsPath) throws IOException {
     mInitPos = initPos;
     mLength = length;
     mUfsPath = ufsPath;
@@ -91,7 +90,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
     } else {
       long toSkip = pos - offset;
       if (skip(toSkip) != toSkip) {
-        throw new IOException("Failed to seek forward to " + pos);
+        throw new IOException(ExceptionMessage.FAILED_SEEK_FORWARD.getMessage(pos));
       }
     }
   }
@@ -106,7 +105,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
     long toSkip = Math.min(mInitPos + mLength - mPos, n);
     long skipped = mUnderStoreStream.skip(toSkip);
     if (toSkip != skipped) {
-      throw new IOException("Failed to skip " + toSkip);
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
     }
     mPos += skipped;
     return skipped;
@@ -120,7 +119,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
     mUnderStoreStream = ufs.open(mUfsPath);
     mPos = 0;
     if (pos != skip(pos)) {
-      throw new IOException("Failed to skip: " + pos);
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
   }
 }

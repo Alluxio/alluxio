@@ -60,8 +60,8 @@ explicitly moving hot data to higher tiers.
 ### Pinning Files
 
 Another way for a user to control the placement and movement of their files is to *pin* and *unpin*
-files. When a file is pinned, its blocks will not be evicted. However, users can still promote blocks 
-of pinned files to move blocks to the top tier.
+files. When a file is pinned, its blocks will not be evicted. However, users can still promote
+blocks of pinned files to move blocks to the top tier.
 
 An example of how to pin a file:
 
@@ -138,10 +138,10 @@ size does not affect eviction latency.
 ## Space Reserver
 
 Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
-before all space on any given layer is consumed. It will improve the performance of bursty write, but may
-also provide marginal performance gain for continuous writes when eviction is continually running. See
-the [configuration section](#enabling-and-configuring-tiered-storage) for how to enable and configure
-the space reserver.
+before all space on any given layer is consumed. It will improve the performance of bursty write,
+but may also provide marginal performance gain for continuous writes when eviction is continually
+running. See the [configuration section](#enabling-and-configuring-tiered-storage) for how to enable
+and configure the space reserver.
 
 # Enabling and Configuring Tiered Storage
 

@@ -86,7 +86,7 @@ public class JournalReader {
     }
     mCheckpointOpenedTime = getCheckpointLastModifiedTimeMs();
 
-    LOG.info("Opening journal checkpoint file: " + mCheckpointPath);
+    LOG.info("Opening journal checkpoint file: {}", mCheckpointPath);
     JournalInputStream jis =
         mJournal.getJournalFormatter().deserialize(mUfs.open(mCheckpointPath));
 
@@ -108,11 +108,11 @@ public class JournalReader {
     }
     String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
     if (!mUfs.exists(currentLogPath)) {
-      LOG.debug("Journal log file: " + currentLogPath + " does not exist yet.");
+      LOG.debug("Journal log file: {} does not exist yet.", currentLogPath);
       return null;
     }
     // Open input stream from the current log file.
-    LOG.info("Opening journal log file: " + currentLogPath);
+    LOG.info("Opening journal log file: {}", currentLogPath);
     JournalInputStream jis =
         mJournal.getJournalFormatter().deserialize(mUfs.open(currentLogPath));
 

@@ -25,12 +25,19 @@ import tachyon.thrift.CreateTOptions;
 
 @PublicApi
 public final class CreateOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<CreateOptions> {
     // TODO(calvin): Should this just be an int?
     private long mBlockSizeBytes;
     private boolean mRecursive;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
+
+    /**
+     * Creates a new builder for {@link CreateOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
 
     /**
      * Creates a new builder for {@link CreateOptions}.
@@ -67,7 +74,7 @@ public final class CreateOptions {
 
     /**
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *        created file should be kept around before it is automatically deleted, no matter
+     *        created file should be kept around before it is automatically deleted, irrespective of
      *        whether the file is pinned
      * @return the builder
      */
@@ -101,6 +108,7 @@ public final class CreateOptions {
      *
      * @return a {@code CreateOptions} instance
      */
+    @Override
     public CreateOptions build() {
       return new CreateOptions(this);
     }
@@ -110,7 +118,7 @@ public final class CreateOptions {
    * @return the default {@code CreateOptions}
    */
   public static CreateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final long mBlockSizeBytes;
@@ -141,8 +149,9 @@ public final class CreateOptions {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
-   *         should be kept around before it is automatically deleted
+   * @return the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+   *         created file should be kept around before it is automatically deleted, irrespective of
+   *         whether the file is pinned
    */
   public long getTTL() {
     return mTTL;
@@ -153,6 +162,20 @@ public final class CreateOptions {
    */
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("CreateOptions(");
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Recursive: ").append(mRecursive);
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(")");
+    return sb.toString();
   }
 
   /**

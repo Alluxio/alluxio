@@ -86,7 +86,7 @@ public abstract class Journal {
   /**
    * Returns the completed log filename for a particular log number.
    *
-   * @param logNumber the log number to get the path for.
+   * @param logNumber the log number to get the path for
    * @return The absolute path of the completed log for a given log number
    */
   public String getCompletedLogFilePath(long logNumber) {

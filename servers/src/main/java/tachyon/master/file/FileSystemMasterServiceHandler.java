@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
@@ -28,6 +29,7 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.MkdirTOptions;
+import tachyon.thrift.SetStateTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
@@ -39,27 +41,38 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public Set<Long> workerGetPinIdList() {
-    return mFileSystemMaster.getPinIdList();
-  }
-
-  // TODO(jiri) Reduce exception handling boilerplate here
-  @Override
-  public boolean persistFile(long fileId, long length) throws TachyonTException {
+  public void completeFile(long fileId) throws TachyonTException {
     try {
-      return mFileSystemMaster.persistFile(fileId, length);
+      mFileSystemMaster.completeFile(fileId);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
   }
 
   @Override
-  public long getFileId(String path) throws ThriftIOException {
+  public long create(String path, CreateTOptions options) throws TachyonTException,
+      ThriftIOException {
     try {
-      return mFileSystemMaster.getFileId(new TachyonURI(path));
+      return mFileSystemMaster.create(new TachyonURI(path), new CreateOptions(options));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
     }
+  }
+
+  @Override
+  public boolean free(long fileId, boolean recursive) throws TachyonTException {
+    try {
+      return mFileSystemMaster.free(fileId, recursive);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
+  public long getFileId(String path) {
+    return mFileSystemMaster.getFileId(new TachyonURI(path));
   }
 
   @Override
@@ -112,58 +125,15 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     return mFileSystemMaster.getUfsAddress();
   }
 
-  // TODO: need to add another create option object for passing ttl
   @Override
-  public long create(String path, CreateTOptions options) throws TachyonTException,
-      ThriftIOException {
-    try {
-      return mFileSystemMaster.create(new TachyonURI(path), new CreateOptions(options));
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
-  public void completeFile(long fileId) throws TachyonTException {
-    try {
-      mFileSystemMaster.completeFile(fileId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
-  public boolean deleteFile(long fileId, boolean recursive)
+  public long loadMetadata(String tachyonPath, boolean recursive)
       throws TachyonTException, ThriftIOException {
     try {
-      return mFileSystemMaster.deleteFile(fileId, recursive);
+      return mFileSystemMaster.loadMetadata(new TachyonURI(tachyonPath), recursive);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public boolean renameFile(long fileId, String dstPath)
-      throws TachyonTException, ThriftIOException {
-    try {
-      return mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void setPinned(long fileId, boolean pinned) throws TachyonTException {
-    try {
-      mFileSystemMaster.setPinned(fileId, pinned);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
     }
   }
 
@@ -173,36 +143,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     try {
       mFileSystemMaster.mkdir(new TachyonURI(path), new MkdirOptions(options));
       return true;
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public boolean free(long fileId, boolean recursive) throws TachyonTException {
-    try {
-      return mFileSystemMaster.free(fileId, recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
-  public void reportLostFile(long fileId) throws TachyonTException {
-    try {
-      mFileSystemMaster.reportLostFile(fileId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
-  public long loadMetadata(String tachyonPath, boolean recursive)
-      throws TachyonTException, ThriftIOException {
-    try {
-      return mFileSystemMaster.loadMetadata(new TachyonURI(tachyonPath), recursive);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
@@ -223,6 +163,47 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
+  public boolean persistFile(long fileId, long length) throws TachyonTException {
+    try {
+      return mFileSystemMaster.persistFile(fileId, length);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
+  public boolean remove(long fileId, boolean recursive)
+      throws TachyonTException, ThriftIOException {
+    try {
+      return mFileSystemMaster.deleteFile(fileId, recursive);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  public boolean rename(long fileId, String dstPath)
+      throws TachyonTException, ThriftIOException {
+    try {
+      return mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  @Override
+  public void setState(long fileId, SetStateTOptions options) throws TachyonTException {
+    try {
+      mFileSystemMaster.setState(fileId, new SetStateOptions(options));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
   public boolean unmount(String tachyonPath) throws TachyonTException, ThriftIOException {
     try {
       return mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
@@ -232,4 +213,10 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       throw new ThriftIOException(e.getMessage());
     }
   }
+
+  @Override
+  public Set<Long> workerGetPinIdList() {
+    return mFileSystemMaster.getPinIdList();
+  }
+
 }

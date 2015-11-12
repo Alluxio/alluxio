@@ -15,20 +15,34 @@
 
 package tachyon.master.lineage.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class AsyncCompleteFileEntry implements JournalEntry {
+/**
+ * This class represents a journal entry for asynchronous file completion.
+ */
+public class AsyncCompleteFileEntry extends JournalEntry {
   private long mFileId;
 
-  public AsyncCompleteFileEntry(long fileId) {
+  /**
+   * Creates a new instance of {@link AsyncCompleteFileEntry}.
+   *
+   * @param fileId the file id
+   */
+  @JsonCreator
+  public AsyncCompleteFileEntry(
+      @JsonProperty("fileId") long fileId) {
     mFileId = fileId;
   }
 
+  /**
+   * @return the file id
+   */
+  @JsonGetter
   public long getFileId() {
     return mFileId;
   }
@@ -37,12 +51,4 @@ public class AsyncCompleteFileEntry implements JournalEntry {
   public JournalEntryType getType() {
     return JournalEntryType.ASYNC_COMPLETE_FILE;
   }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("fileId", mFileId);
-    return parameters;
-  }
-
 }

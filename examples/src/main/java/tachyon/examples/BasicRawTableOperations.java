@@ -25,11 +25,10 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -130,7 +129,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 4) {
-      System.out.println("java -cp " + Constants.TACHYON_JAR + " "
+      System.out.println("java -cp " + Version.TACHYON_JAR + " "
           + BasicRawTableOperations.class.getName() + " <master address> <file path> "
           + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
           + " | THROUGH)>");

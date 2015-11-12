@@ -50,7 +50,7 @@ public final class TachyonJaasConfiguration extends Configuration {
       TachyonLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
       EMPTY_JAAS_OPTIONS);
 
-  // TODO: add Kerberos_LOGIN module
+  // TODO(dong): add Kerberos_LOGIN module
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
 
   /**
@@ -63,7 +63,7 @@ public final class TachyonJaasConfiguration extends Configuration {
   private static final AppConfigurationEntry[] SIMPLE = new AppConfigurationEntry[] {APP_LOGIN,
       OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
 
-  // TODO: add Kerberos mode
+  // TODO(dong): add Kerberos mode
   // private static final AppConfigurationEntry[] KERBEROS = ...
 
   @Override
@@ -72,7 +72,7 @@ public final class TachyonJaasConfiguration extends Configuration {
         || appName.equalsIgnoreCase(AuthType.CUSTOM.getAuthName())) {
       return SIMPLE;
     } else if (appName.equalsIgnoreCase(AuthType.KERBEROS.getAuthName())) {
-      // TODO: return KERBEROS;
+      // TODO(dong): return KERBEROS;
       throw new UnsupportedOperationException("Kerberos is not supported currently.");
     }
     return null;

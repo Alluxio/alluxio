@@ -15,26 +15,46 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class InodeDirectoryIdGeneratorEntry implements JournalEntry {
+/**
+ * This class represents a journal entry for a directory id generator.
+ */
+public class InodeDirectoryIdGeneratorEntry extends JournalEntry {
   private final long mContainerId;
   private final long mSequenceNumber;
 
-  public InodeDirectoryIdGeneratorEntry(long containerId, long sequenceNumber) {
+  /**
+   * Creates a new instance of {@link InodeDirectoryIdGeneratorEntry}.
+   *
+   * @param containerId the container id
+   * @param sequenceNumber the sequence number
+   */
+  @JsonCreator
+  public InodeDirectoryIdGeneratorEntry(
+      @JsonProperty("containerId") long containerId,
+      @JsonProperty("sequenceNumber") long sequenceNumber) {
     mContainerId = containerId;
     mSequenceNumber = sequenceNumber;
   }
 
+  /**
+   * @return the container id
+   */
+  @JsonGetter
   public long getContainerId() {
     return mContainerId;
   }
 
+  /**
+   * @return the sequence number
+   */
+  @JsonGetter
   public long getSequenceNumber() {
     return mSequenceNumber;
   }
@@ -44,11 +64,4 @@ public class InodeDirectoryIdGeneratorEntry implements JournalEntry {
     return JournalEntryType.INODE_DIRECTORY_ID_GENERATOR;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("containerId", mContainerId);
-    parameters.put("sequenceNumber", mSequenceNumber);
-    return parameters;
-  }
 }

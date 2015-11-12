@@ -59,7 +59,7 @@
           <tr>
             <th>ID</th>
             <th>Size (Byte)</th>
-            <th>In Memory</th>
+            <th>In <%= request.getAttribute("highestTierAlias") %></th>
             <th>Locations</th>
           </tr>
           <% for (UiBlockInfo masterBlockInfo : ((List<UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
@@ -67,7 +67,7 @@
               <td><%= masterBlockInfo.getID() %></td>
               <td><%= masterBlockInfo.getBlockLength() %></td>
               <td>
-                <% if(masterBlockInfo.inMemory()) { %>
+                <% if (masterBlockInfo.isInTier((String) request.getAttribute("highestTierAlias"))) { %>
                   Yes
                 <% } else { %>
                   No

@@ -56,15 +56,15 @@ public class HeartbeatContextTest {
     String testSleeping = "TEST_SLEEPING_%s";
     String testScheduled = "TEST_SCHEDULED_%s";
 
-    Map<Class<HeartbeatTimer>, List<String>> timerMap =
-        new HashMap<Class<HeartbeatTimer>, List<String>>();
+    Map<Class<? extends HeartbeatTimer>, List<String>> timerMap =
+        new HashMap<Class<? extends HeartbeatTimer>, List<String>>();
     timerMap.put(HeartbeatContext.SLEEPING_TIMER_CLASS,
         Arrays.asList(String.format(testSleeping, "1"), String.format(testSleeping, "2")));
     timerMap.put(HeartbeatContext.SCHEDULED_TIMER_CLASS,
         Arrays.asList(String.format(testScheduled, "2"), String.format(testScheduled, "1"),
             String.format(testScheduled, "3")));
 
-    for (Class<HeartbeatTimer> timerClass : timerMap.keySet()) {
+    for (Class<? extends HeartbeatTimer> timerClass : timerMap.keySet()) {
       for (String name : timerMap.get(timerClass)) {
         HeartbeatContext.setTimerClass(name, timerClass);
         checkInstanceOf(name, timerClass);
@@ -81,7 +81,7 @@ public class HeartbeatContextTest {
         HeartbeatContext.getTimerClass(name));
   }
 
-  private void checkInstanceOf(String name, Class<HeartbeatTimer> timerClass) {
+  private void checkInstanceOf(String name, Class<? extends HeartbeatTimer> timerClass) {
     Assert.assertTrue(
         String.format("%s must be an instance of %s", name, timerClass.getCanonicalName()),
         HeartbeatContext.getTimerClass(name).isAssignableFrom(timerClass));

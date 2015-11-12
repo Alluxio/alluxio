@@ -33,6 +33,7 @@ import tachyon.client.lineage.options.GetLineageInfoListOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
@@ -56,16 +57,14 @@ public abstract class AbstractLineageClient implements LineageClient {
       CreateLineageOptions options)
           throws FileDoesNotExistException, TachyonException, IOException {
     // TODO(yupeng): relax this to support other type of jobs
-    Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
+    Preconditions.checkState(job instanceof CommandLineJob,
+        PreconditionMessage.COMMAND_LINE_LINEAGE_ONLY);
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long lineageId = masterClient.createLineage(stripURIList(inputFiles),
           stripURIList(outputFiles), (CommandLineJob) job);
-      LOG.info("Created lineage " + lineageId);
+      LOG.info("Created lineage {}", lineageId);
       return lineageId;
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -77,12 +76,8 @@ public abstract class AbstractLineageClient implements LineageClient {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
-      LOG.info(result ? "Succeeded to " : "Failed to " + "delete lineage " + lineageId);
+      LOG.info("{} delete lineage {}", result ? "Succeeded to " : "Failed to ", lineageId);
       return result;
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, LineageDoesNotExistException.class);
-      TachyonException.unwrap(e, LineageDeletionException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -94,8 +89,7 @@ public abstract class AbstractLineageClient implements LineageClient {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
 
     try {
-      List<LineageInfo> result = masterClient.getLineageInfoList();
-      return result;
+      return masterClient.getLineageInfoList();
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -104,7 +98,7 @@ public abstract class AbstractLineageClient implements LineageClient {
   /**
    * Transforms the list of {@link TachyonURI} in a new list of Strings,
    * where each string is {@link TachyonURI#getPath()}
-   * @param uris the list of {@link TacyonUri}s to be stripped
+   * @param uris the list of {@link TachyonURI}s to be stripped
    * @return a new list of strings mapping the input URIs to theri path component
    */
   private List<String> stripURIList(List<TachyonURI> uris) {

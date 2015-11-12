@@ -21,8 +21,15 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class FreeOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<FreeOptions> {
     private boolean mRecursive;
+
+    /**
+     * Creates a new builder for {@link FreeOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
 
     /**
      * Creates a new builder for {@link FreeOptions}.
@@ -48,6 +55,7 @@ public final class FreeOptions {
      *
      * @return a {@code FreeOptions} instance
      */
+    @Override
     public FreeOptions build() {
       return new FreeOptions(this);
     }
@@ -57,7 +65,7 @@ public final class FreeOptions {
    * @return the default {@code FreeOptions}
    */
   public static FreeOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private final boolean mRecursive;
@@ -72,5 +80,16 @@ public final class FreeOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("FreeOptions(");
+    sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
+    sb.append(")");
+    return sb.toString();
   }
 }

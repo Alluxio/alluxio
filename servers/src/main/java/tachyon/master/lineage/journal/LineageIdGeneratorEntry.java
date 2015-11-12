@@ -15,20 +15,34 @@
 
 package tachyon.master.lineage.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class LineageIdGeneratorEntry implements JournalEntry {
+/**
+ * This class represent a journal entry for lineage id generator.
+ */
+public class LineageIdGeneratorEntry extends JournalEntry {
   private final long mSequenceNumber;
 
-  public LineageIdGeneratorEntry(long sequenceNumber) {
+  /**
+   * Creates a new instance of {@link LineageIdGeneratorEntry}.
+   *
+   * @param sequenceNumber the sequence number
+   */
+  @JsonCreator
+  public LineageIdGeneratorEntry(
+      @JsonProperty("sequenceNumber") long sequenceNumber) {
     mSequenceNumber = sequenceNumber;
   }
 
+  /**
+   * @return the sequence number
+   */
+  @JsonGetter
   public long getSequenceNumber() {
     return mSequenceNumber;
   }
@@ -37,12 +51,4 @@ public class LineageIdGeneratorEntry implements JournalEntry {
   public JournalEntryType getType() {
     return JournalEntryType.LINEAGE_ID_GENERATOR;
   }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("sequenceNumber", mSequenceNumber);
-    return parameters;
-  }
-
 }

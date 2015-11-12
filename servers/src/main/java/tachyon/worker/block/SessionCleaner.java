@@ -63,7 +63,7 @@ public final class SessionCleaner implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Session cleanup took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
+        LOG.warn("Session cleanup took: {}, expected: {}", lastIntervalMs, mCheckIntervalMs);
       }
 
       // Check if any sessions have become zombies, if so clean them up

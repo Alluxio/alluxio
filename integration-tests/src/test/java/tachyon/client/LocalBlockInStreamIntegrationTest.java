@@ -34,6 +34,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
@@ -92,7 +93,8 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
         byte[] ret = new byte[k];
@@ -136,7 +138,8 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
         byte[] ret = new byte[k];
@@ -164,7 +167,8 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
         byte[] ret = new byte[k / 2];
@@ -193,12 +197,13 @@ public class LocalBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Seek position is negative: -1");
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
 
@@ -221,13 +226,14 @@ public class LocalBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest2() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Seek position past end of file: 1");
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, 1));
 
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
         try {
@@ -251,7 +257,8 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
 
@@ -275,7 +282,8 @@ public class LocalBlockInStreamIntegrationTest {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, k, op);
+            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_"
+            + op.hashCode(), k, op);
 
         FileInStream is = sTfs.getInStream(f, sReadNoCache);
         Assert.assertEquals(k / 2, is.skip(k / 2));

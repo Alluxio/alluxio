@@ -26,6 +26,7 @@ import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 
@@ -34,7 +35,6 @@ import tachyon.worker.ClientMetrics;
  * configuration and master address. This class is thread safe.
  */
 public final class ClientContext {
-  private static final String ERR_NOT_INITIALIZED = "Client Context not initialized.";
   private static ExecutorService sExecutorService;
   private static TachyonConf sTachyonConf;
   private static InetSocketAddress sMasterAddress;
@@ -121,7 +121,7 @@ public final class ClientContext {
   }
 
   private static void checkContextInitialized() {
-    Preconditions.checkState(sInitialized, ERR_NOT_INITIALIZED);
+    Preconditions.checkState(sInitialized, PreconditionMessage.CLIENT_CONTEXT_NOT_INITIALIZED);
   }
 
   private ClientContext() {} // prevent instantiation

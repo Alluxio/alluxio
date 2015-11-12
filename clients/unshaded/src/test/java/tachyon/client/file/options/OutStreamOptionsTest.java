@@ -19,10 +19,6 @@ import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
@@ -31,8 +27,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ClientContext.class)
 public class OutStreamOptionsTest {
   @Test
   public void builderTest() {
@@ -66,7 +60,7 @@ public class OutStreamOptionsTest {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
-    Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+    ClientContext.reset(conf);
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
@@ -75,5 +69,6 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    ClientContext.reset();
   }
 }

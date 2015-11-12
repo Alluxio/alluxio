@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
+import tachyon.exception.ExceptionMessage;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
@@ -62,7 +63,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     try {
       String blockPath = mWorkerClient.lockBlock(blockId);
       if (blockPath == null) {
-        throw new IOException("Block " + mBlockId + " is not available on local machine.");
+        throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
       localFileChannel = mCloser.register(localFile.getChannel());

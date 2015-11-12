@@ -43,7 +43,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
@@ -63,17 +62,11 @@ public class DataServerIntegrationTest {
     // Creates a new instance of DataServerIntegrationTest for different combinations of parameters.
     List<Object[]> list = new ArrayList<Object[]>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
-    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.FILE_CHANNEL_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
         IntegrationTestConstants.NETTY_BLOCK_READER});
     // The transfer type is not applicable to the NIODataServer.
-    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
     list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
         IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
     return list;
@@ -130,17 +123,15 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = MasterContext.getConf();
-    // MasterContext will be merged into WorkerContext and ClientContext when starting
-    // LocalTachyonCluster.
-    tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    tachyonConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
-
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start();
+
+    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    testConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    testConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
+    mLocalTachyonCluster.start(testConf);
 
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();

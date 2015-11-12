@@ -25,7 +25,7 @@ public final class CreateLineageOptions {
     /**
      * Creates a new builder for {@link CreateLineageOptions}.
      *
-     * @param conf a Tachyon configuration.
+     * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {}
 

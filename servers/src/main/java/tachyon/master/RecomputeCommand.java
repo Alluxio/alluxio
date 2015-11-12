@@ -41,8 +41,8 @@ public class RecomputeCommand implements Runnable {
   /**
    * Create a new RecomputeCommand.
    *
-   * @param cmd The command to execute
-   * @param filePath The path of the output file, which records the output of the recompute process.
+   * @param cmd the command to execute
+   * @param filePath the path of the output file, which records the output of the recompute process
    */
   public RecomputeCommand(String cmd, String filePath) {
     mCommand = cmd;
@@ -52,7 +52,7 @@ public class RecomputeCommand implements Runnable {
   @Override
   public void run() {
     try {
-      LOG.info("Exec " + mCommand + " output to " + mFilePath);
+      LOG.info("Exec {} output to {}", mCommand, mFilePath);
       Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;
       Closer closer = Closer.create();
@@ -76,7 +76,7 @@ public class RecomputeCommand implements Runnable {
       }
 
       p.waitFor();
-      LOG.info("Exec " + mCommand + " output to " + mFilePath + " done.");
+      LOG.info("Exec {} output to {} done.", mCommand, mFilePath);
     } catch (IOException e) {
       LOG.error(e.getMessage());
     } catch (InterruptedException e) {

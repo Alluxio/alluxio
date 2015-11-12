@@ -18,21 +18,15 @@ package tachyon.heartbeat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
-
 /**
  * This is a static class for storing and retrieving heartbeat related information.
  */
 public final class HeartbeatContext {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static Map<String, Class<HeartbeatTimer>> sTimerClasses;
+  private static Map<String, Class<? extends HeartbeatTimer>> sTimerClasses;
 
   // Names of different heartbeat timer classes.
-  public static final Class<HeartbeatTimer> SCHEDULED_TIMER_CLASS;
-  public static final Class<HeartbeatTimer> SLEEPING_TIMER_CLASS;
+  public static final Class<? extends HeartbeatTimer> SCHEDULED_TIMER_CLASS = ScheduledTimer.class;
+  public static final Class<? extends HeartbeatTimer> SLEEPING_TIMER_CLASS = SleepingTimer.class;
 
   // Names of different heartbeat executors.
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
@@ -43,15 +37,7 @@ public final class HeartbeatContext {
   public static final String WORKER_CLIENT = "Worker Client";
 
   static {
-    try {
-      SCHEDULED_TIMER_CLASS =
-          (Class<HeartbeatTimer>) Class.forName("tachyon.heartbeat.ScheduledTimer");
-      SLEEPING_TIMER_CLASS =
-          (Class<HeartbeatTimer>) Class.forName("tachyon.heartbeat.SleepingTimer");
-    } catch (Exception e) {
-      throw new RuntimeException("requested class could not be loaded: " + e.getMessage());
-    }
-    sTimerClasses = new HashMap<String, Class<HeartbeatTimer>>();
+    sTimerClasses = new HashMap<String, Class<? extends HeartbeatTimer>>();
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
@@ -66,7 +52,7 @@ public final class HeartbeatContext {
    * @param name a name of a heartbeat executor thread
    * @return the timer class to use for the executor thread
    */
-  public static synchronized  Class<HeartbeatTimer> getTimerClass(String name) {
+  public static synchronized Class<? extends HeartbeatTimer> getTimerClass(String name) {
     return sTimerClasses.get(name);
   }
 
@@ -74,7 +60,8 @@ public final class HeartbeatContext {
    * @param name a name of a heartbeat executor thread
    * @param timerClass the timer class to use for the executor thread
    */
-  public static synchronized void setTimerClass(String name, Class<HeartbeatTimer> timerClass) {
+  public static synchronized void setTimerClass(String name,
+      Class<? extends HeartbeatTimer> timerClass) {
     sTimerClasses.put(name, timerClass);
   }
 }

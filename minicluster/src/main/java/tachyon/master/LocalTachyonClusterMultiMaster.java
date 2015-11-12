@@ -132,9 +132,9 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (!mMasters.get(k).isServing()) {
         try {
-          LOG.info("master " + k + " is a standby. killing it...");
+          LOG.info("master {} is a standby. killing it...", k);
           mMasters.get(k).stop();
-          LOG.info("master " + k + " killed.");
+          LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -149,9 +149,9 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isServing()) {
         try {
-          LOG.info("master " + k + " is the leader. killing it...");
+          LOG.info("master {} is the leader. killing it...", k);
           mMasters.get(k).stop();
-          LOG.info("master " + k + " killed.");
+          LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -182,7 +182,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void start() throws IOException {
-    int maxLevel = 1;
+    int numLevels = 1;
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
@@ -218,8 +218,8 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
       master.start();
-      LOG.info("master NO." + k + " started, isServing: " + master.isServing() + ", address: "
-          + master.getAddress());
+      LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
+          master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
       mMasterConf.set(Constants.MASTER_PORT, "0");
@@ -229,14 +229,14 @@ public class LocalTachyonClusterMultiMaster {
     // sets UNDERFS_ADDRESS.
     mkdir(mMasterConf.get(Constants.UNDERFS_ADDRESS));
 
-    LOG.info("all " + mNumOfMasters + " masters started.");
+    LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
     boolean hasLeader = false;
     while (!hasLeader) {
       for (int i = 0; i < mMasters.size(); i ++) {
         if (mMasters.get(i).isServing()) {
-          LOG.info("master NO." + i + " is selected as leader. address: "
-              + mMasters.get(i).getAddress());
+          LOG.info("master NO.{} is selected as leader. address: {}", i,
+              mMasters.get(i).getAddress());
           hasLeader = true;
           break;
         }
@@ -254,7 +254,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15 + "");
 
     // Setup conf for worker
-    mWorkerConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, Integer.toString(maxLevel));
+    mWorkerConf.set(Constants.WORKER_TIERED_STORE_LEVELS, Integer.toString(numLevels));
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         mTachyonHome + "/ramdisk");
@@ -265,7 +265,7 @@ public class LocalTachyonClusterMultiMaster {
     // people running with strange network configurations will see very slow tests
     mWorkerConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    for (int level = 1; level < maxLevel; level ++) {
+    for (int level = 1; level < numLevels; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");

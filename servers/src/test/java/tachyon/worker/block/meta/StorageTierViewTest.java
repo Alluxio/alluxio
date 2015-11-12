@@ -79,7 +79,7 @@ public class StorageTierViewTest {
   }
 
   @Test
-  public void getTierViewLevelTest() {
-    Assert.assertEquals(mTestTier.getTierLevel(), mTestTierView.getTierViewLevel());
+  public void getTierViewOrdinalTest() {
+    Assert.assertEquals(mTestTier.getTierOrdinal(), mTestTierView.getTierViewOrdinal());
   }
 }

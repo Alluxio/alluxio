@@ -15,15 +15,16 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryType;
 
-public abstract class InodeEntry implements JournalEntry {
+/**
+ * This abstract class represents a journal entry for an inode.
+ */
+public abstract class InodeEntry extends JournalEntry {
   protected final long mId;
   protected final long mParentId;
   protected final String mName;
@@ -32,8 +33,26 @@ public abstract class InodeEntry implements JournalEntry {
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
 
-  public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean persisted,
-      boolean pinned, long lastModificationTimeMs) {
+  /**
+   * Creates a new instance of {@link InodeEntry}.
+   *
+   * @param creationTimeMs the creation time (in milliseconds)
+   * @param id the id
+   * @param name the name
+   * @param parentId the parent id
+   * @param persisted the persisted flag
+   * @param pinned the pinned flag
+   * @param lastModificationTimeMs the last modification time (in milliseconds)
+   */
+  @JsonCreator
+  public InodeEntry(
+      @JsonProperty("creationTimeMs") long creationTimeMs,
+      @JsonProperty("id") long id,
+      @JsonProperty("name") String name,
+      @JsonProperty("parentId") long parentId,
+      @JsonProperty("persisted") boolean persisted,
+      @JsonProperty("pinned") boolean pinned,
+      @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs) {
     mId = id;
     mParentId = parentId;
     mName = name;
@@ -43,38 +62,60 @@ public abstract class InodeEntry implements JournalEntry {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
-  @Override
-  public abstract JournalEntryType getType();
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(6);
-    parameters.put("id", mId);
-    parameters.put("parentId", mParentId);
-    parameters.put("name", mName);
-    parameters.put("persisted", mPersisted);
-    parameters.put("pinned", mPinned);
-    parameters.put("creationTimeMs", mCreationTimeMs);
-    parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
-    return parameters;
+  /**
+   * @return the creation time (in milliseconds)
+   */
+  @JsonGetter
+  public long getCreationTimeMs() {
+    return mCreationTimeMs;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mId, mParentId, mName, mPinned, mPersisted, mCreationTimeMs,
-        mLastModificationTimeMs);
+  /**
+   * @return the id
+   */
+  @JsonGetter
+  public long getId() {
+    return mId;
   }
 
-  @Override
-  public boolean equals(Object object) {
-    if (object instanceof InodeEntry) {
-      InodeEntry that = (InodeEntry) object;
-      return Objects.equal(mId, that.mId) && Objects.equal(mParentId, that.mParentId)
-          && Objects.equal(mName, that.mName) && Objects.equal(mPersisted, that.mPersisted)
-          && Objects.equal(mPinned, that.mPinned)
-          && Objects.equal(mCreationTimeMs, that.mCreationTimeMs)
-          && Objects.equal(mLastModificationTimeMs, that.mLastModificationTimeMs);
-    }
-    return false;
+  /**
+   * @return the parent id
+   */
+  @JsonGetter
+  public long getParentId() {
+    return mParentId;
+  }
+
+  /**
+   * @return the name
+   */
+  @JsonGetter
+  public String getName() {
+    return mName;
+  }
+
+  /**
+   * @return the persisted flag
+   */
+  @JsonGetter
+  public boolean getPersisted() {
+    return mPersisted;
+  }
+
+  /**
+   * @return the pinned flag
+   */
+  @JsonGetter
+  public boolean getPinned() {
+    return mPinned;
+  }
+
+  /**
+   * @return the last modification time (in milliseconds)
+   */
+  @JsonGetter
+  public long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
   }
 }
+

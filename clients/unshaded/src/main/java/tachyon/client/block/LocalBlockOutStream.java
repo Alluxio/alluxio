@@ -27,6 +27,7 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.exception.ExceptionMessage;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -66,7 +67,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
       // Change the permission of the temporary file in order that the worker can move it.
-      LOG.info("LocalBlockOutStream created new file block, block path: " + blockPath);
+      LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
       throw ioe;
@@ -131,7 +132,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
 
   private long requestSpace(long requestBytes) throws IOException {
     if (!mWorkerClient.requestSpace(mBlockId, requestBytes)) {
-      throw new IOException("Unable to request space from worker.");
+      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage());
     }
     return requestBytes;
   }

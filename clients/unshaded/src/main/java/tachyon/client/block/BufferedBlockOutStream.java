@@ -25,6 +25,7 @@ import tachyon.Constants;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -39,10 +40,6 @@ import tachyon.util.io.BufferUtils;
  * which will write the data through a Tachyon worker.
  */
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
-  // Error strings for preconditions in order to improve performance
-  private static final String ERR_CLOSED = "Cannot do operations on a closed BlockOutStream.";
-  private static final String ERR_END_OF_BLOCK = "Cannot write past end of block.";
-
   /** The block id of the block being written */
   protected final long mBlockId;
   /** Size of the block */
@@ -74,7 +71,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   @Override
   public void write(int b) throws IOException {
     checkIfClosed();
-    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, ERR_END_OF_BLOCK);
+    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, PreconditionMessage.ERR_END_OF_BLOCK);
     if (mBuffer.position() >= mBuffer.limit()) {
       flush();
     }
@@ -118,7 +115,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * Convenience method for checking the state of the stream.
    */
   protected void checkIfClosed() {
-    Preconditions.checkState(!mClosed, ERR_CLOSED);
+    Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM);
   }
 
   /**

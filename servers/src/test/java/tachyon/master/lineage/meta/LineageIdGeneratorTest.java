@@ -13,38 +13,26 @@
  * the License.
  */
 
-package tachyon.master.lineage.journal;
+package tachyon.master.lineage.meta;
 
-import java.util.List;
-import java.util.Map;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
+import org.junit.Assert;
+import org.junit.Test;
 
 import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryType;
+import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 
-public final class RequestFilePersistenceEntry implements JournalEntry {
-  private final List<Long> mFileIds;
+/**
+ * Tests lineage id generator.
+ */
+public final class LineageIdGeneratorTest {
 
-  public RequestFilePersistenceEntry(List<Long> fileIds) {
-    mFileIds = Preconditions.checkNotNull(fileIds);
+  @Test
+  public void journalEntrySerializationTest() {
+    LineageIdGenerator generator = new LineageIdGenerator();
+    long id = generator.generateId();
+    JournalEntry entry = generator.toJournalEntry();
+    generator = new LineageIdGenerator();
+    generator.fromJournalEntry((LineageIdGeneratorEntry) entry);
+    Assert.assertEquals(id + 1, generator.generateId());
   }
-
-  public List<Long> getFileIds() {
-    return mFileIds;
-  }
-
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.REQUEST_FILE_PERSISTENCE;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("fileIds", mFileIds);
-    return parameters;
-  }
-
 }
