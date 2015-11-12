@@ -16,7 +16,8 @@
 package tachyon.client;
 
 /**
- * Specifies the type of data interaction with Tachyon.
+ * Specifies the type of data interaction with Tachyon. This option is for developers and
+ * advanced users. See {@link tachyon.client.WriteType} and {@link tachyon.client.ReadType}.
  * <ul>
  * <li>For a write operation, this determines whether the data will be written into Tachyon storage.
  * Metadata will always be updated in Tachyon space.</li>
