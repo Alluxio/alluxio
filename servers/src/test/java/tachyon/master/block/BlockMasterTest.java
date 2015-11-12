@@ -255,9 +255,8 @@ public class BlockMasterTest {
     Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
     Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
 
-    // Set the last updated time for the worker to be old, so it is considered lost.
-    workerInfo.setLastUpdatedTimeMs(System.currentTimeMillis()
-        - 2 * MasterContext.getConf().getInt(Constants.MASTER_WORKER_TIMEOUT_MS));
+    // Set the last updated time for the worker to be definitely too old, so it is considered lost.
+    Whitebox.setInternalState(workerInfo, "mLastUpdatedTimeMs", 0);
 
     // Run the lost worker detector.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);

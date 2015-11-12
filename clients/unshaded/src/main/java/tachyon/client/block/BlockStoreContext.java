@@ -145,7 +145,7 @@ public enum BlockStoreContext {
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       client = acquireLocalWorkerClient();
       if (client == null) {
-        throw new IOException("No Tachyon worker available for host: " + hostname);
+        throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
       }
     } else {
       client = acquireRemoteWorkerClient(hostname);
