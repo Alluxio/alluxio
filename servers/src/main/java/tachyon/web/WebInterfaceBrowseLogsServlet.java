@@ -177,7 +177,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         long offset;
         try {
           if (offsetParam != null) {
-            relativeOffset = Long.valueOf(offsetParam);
+            relativeOffset = Long.parseLong(offsetParam);
           }
         } catch (NumberFormatException nfe) {
           relativeOffset = 0;
