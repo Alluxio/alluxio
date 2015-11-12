@@ -6,7 +6,7 @@
   <parent>
     <artifactId>tachyon-integration</artifactId>
     <groupId>org.tachyonproject</groupId>
-    <version>0.8.2</version>
+    <version>0.8.3-SNAPSHOT</version>
   </parent>
   <name>Tachyon Integration - YARN</name>
   <artifactId>tachyon-integration-yarn</artifactId>
