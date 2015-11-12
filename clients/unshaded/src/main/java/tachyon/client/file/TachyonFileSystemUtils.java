@@ -158,6 +158,7 @@ public final class TachyonFileSystemUtils {
    */
   public static long persistFile(TachyonFileSystem tfs, TachyonFile file, FileInfo fileInfo,
       TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
+    // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
     try {
