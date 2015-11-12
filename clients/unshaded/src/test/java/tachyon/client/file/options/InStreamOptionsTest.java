@@ -48,6 +48,7 @@ public class InStreamOptionsTest {
     TachyonConf originalConf = ClientContext.getConf();
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+    ClientContext.reset(conf);
 
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(ReadType.NO_CACHE.getTachyonStorageType(), options.getTachyonStorageType());
