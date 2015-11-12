@@ -29,7 +29,6 @@ import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
-import tachyon.client.file.options.PersistOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
@@ -167,15 +166,6 @@ interface TachyonFileSystemCore {
    */
   TachyonFile openIfExists(TachyonURI path, OpenOptions options) throws IOException,
       TachyonException;
-
-  /**
-   * Persists a {@link TachyonFile} to the UnderFileSystem.
-   *
-   * @param file the TachyonFile to persist
-   * @return true if the persist succeeded, false otherwise
-   */
-  boolean persistFile(TachyonFile file, PersistOptions options)
-      throws IOException, FileDoesNotExistException, TachyonException;
 
   /**
    * Renames an existing Tachyon file to another Tachyon path in Tachyon.

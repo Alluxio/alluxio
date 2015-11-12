@@ -34,6 +34,7 @@ public class SetStateEntry extends JournalEntry {
   private final long mOpTimeMs;
   private final Boolean mPinned;
   private final Long mTTL;
+  private final boolean mPersisted;
 
   /**
    * Creates a new instance of {@code SetStateEntry}.
@@ -42,14 +43,17 @@ public class SetStateEntry extends JournalEntry {
    * @param opTimeMs the operation timestamp (in milliseconds)
    * @param pinned the pinned flag to be set, otherwise, null
    * @param ttl the new TTL value to be set, otherwise, null
+   * @param persisted the persisted flag to be set, otherwise, null
    */
   @JsonCreator
   public SetStateEntry(@JsonProperty("id") long id, @JsonProperty("operationTimeMs") long opTimeMs,
-      @JsonProperty("pinned") Boolean pinned, @JsonProperty("ttl") Long ttl) {
+      @JsonProperty("pinned") Boolean pinned, @JsonProperty("ttl") Long ttl,
+      @JsonProperty("persisted") Boolean persisted) {
     mId = id;
     mOpTimeMs = opTimeMs;
     mPinned = pinned;
     mTTL = ttl;
+    mPersisted = persisted;
   }
 
   /**
@@ -72,6 +76,9 @@ public class SetStateEntry extends JournalEntry {
   public Boolean getPinned() {
     return mPinned;
   }
+
+  @JsonGetter
+  public Boolean getPersisted() { return mPersisted; }
 
   /**
    * @return the operation time (in milliseconds)
