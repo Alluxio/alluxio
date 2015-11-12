@@ -22,7 +22,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,15 +30,16 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
@@ -50,22 +50,14 @@ public class TachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sHost = null;
-  private static int sPort = -1;
   private static TachyonFileSystem sTfs = null;
-  private static InStreamOptions sReadCache;
   private static OutStreamOptions sWriteBoth;
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws IOException, TException {
-    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
-    mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
   }
 
   @AfterClass
@@ -75,21 +67,18 @@ public class TachyonFileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
-        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    sLocalTachyonCluster.start();
+    TachyonConf testConf = sLocalTachyonCluster.newTestConf();
+    testConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
+    sLocalTachyonCluster.start(testConf);
     sTfs = sLocalTachyonCluster.getClient();
-    sHost = sLocalTachyonCluster.getMasterHostname();
-    sPort = sLocalTachyonCluster.getMasterPort();
+
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sReadCache =
-        new InStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE).build();
   }
 
   @Test
@@ -119,17 +108,13 @@ public class TachyonFileSystemIntegrationTest {
     }
   }
 
-  // TODO(calvin): Validate the URI.
-  @Ignore
   @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("URI must be absolute, unless it's empty.");
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Path root/testFile1 is invalid.");
     sTfs.getOutStream(new TachyonURI("root/testFile1"), sWriteBoth);
   }
 
-  // TODO(calvin): Add Raw Table tests.
-  // TODO(calvin): Check worker capacity?
   @Test
   public void deleteFileTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
@@ -169,7 +154,13 @@ public class TachyonFileSystemIntegrationTest {
     MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
-      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
+      try {
+        Assert.assertFalse(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
+        Assert.assertTrue("mkdir should throw FileAlreadyExistsException", false);
+      } catch (FileAlreadyExistsException faee) {
+        Assert.assertEquals(faee.getMessage(),
+            ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));
+      }
     }
   }
 

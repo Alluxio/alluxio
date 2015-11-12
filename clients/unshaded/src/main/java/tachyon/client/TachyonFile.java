@@ -18,9 +18,6 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -45,8 +42,6 @@ import tachyon.thrift.NetAddress;
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final TachyonFileSystem mTFS;
 
   final TachyonFS mTachyonFS;
@@ -365,7 +360,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex the block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -379,7 +374,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file to read.
+   * @param blockIndex the block index of the current file to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -388,28 +383,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Read local block return a TachyonByteBuffer
-   *
-   * Currently unsupported.
-   *
-   * @param blockIndex The id of the block
-   * @param offset The start position to read
-   * @param len The length to read. -1 represents read the whole block
-   * @return <code>TachyonByteBuffer</code> containing the block
-   * @throws IOException when the offset is negative is the length is less than -1
-   */
-  private TachyonByteBuffer readLocalByteBuffer(int blockIndex, long offset, long len)
-      throws IOException {
-    throw new UnsupportedOperationException("ReadLocalByteBuffer is not supported");
-
-  }
-
-  /**
    * Get the the whole block from remote workers.
    *
    * Currently unsupported.
    *
-   * @param blockInfo The blockInfo of the block to read
+   * @param blockInfo the blockInfo of the block to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying stream throws IOException during close()
    */
@@ -436,7 +414,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * @param blockIndex The block index of the current file
+   * @param blockIndex the block index of the current file
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
@@ -459,7 +437,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * To set the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete under file system implementation.
    *
-   * @param conf The configuration object accepted by ufs
+   * @param conf the configuration object accepted by ufs
    */
   public void setUFSConf(Object conf) {
     mUFSConf = conf;

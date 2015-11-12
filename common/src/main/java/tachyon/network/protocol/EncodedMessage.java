@@ -29,7 +29,7 @@ public interface EncodedMessage {
   /**
    * Encodes the message to the output {@link ByteBuf}.
    *
-   * @param out the output ByteBuf where the message should be encoded.
+   * @param out the output ByteBuf where the message should be encoded
    */
   void encode(ByteBuf out);
 }

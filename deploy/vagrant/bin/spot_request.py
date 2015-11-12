@@ -79,10 +79,16 @@ def get_host(tag):
 
 
 # request_id -> tag
-def request_id_to_tag(requests):
+def request_id_to_tag(requests, masters):
     ret = {}
     for i, rid in enumerate([r.id for r in requests]):
-        host = "TachyonMaster" if i == 0 else "TachyonWorker{}".format(i)
+        # TODO(cc): This naming convention for host may need changes
+        if i == 0:
+            host = 'TachyonMaster'
+        elif i < masters:
+            host = 'TachyonMaster{}'.format(i + 1)
+        else:
+            host = 'TachyonWorker{}'.format(i - masters + 1)
         ret[rid] = add_tag(host)
     return ret
 
@@ -97,7 +103,7 @@ def load_request_ids():
     return pickle.load(open('.request_ids'))
 
 
-def submit_request(conn, ec2_conf):
+def submit_request(conn, ec2_conf, masters):
     # enable ssh as root without tty
     user_data = "#!/bin/bash\n \
         echo 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && \
@@ -125,13 +131,13 @@ def submit_request(conn, ec2_conf):
     requests = wait_until_fulfilled(request_ids, conn)
 
     # tag the requests and instances
-    rid_tag = request_id_to_tag(requests)
+    rid_tag = request_id_to_tag(requests, masters)
     for r in requests:
         tag = rid_tag[r.id]
         r.add_tag('Name', tag)
         conn.create_tags([r.instance_id], {'Name': tag})
 
-    return requests
+    return rid_tag, requests
 
 
 def cancel_request(conn):
@@ -187,6 +193,7 @@ def parse():
     grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument('-s', '--submit', action='store_true')
     grp.add_argument('-c', '--cancel', action='store_true')
+    parser.add_argument('--masters', type=int, default=1, help='number of Tachyon masters')
     return parser.parse_args()
 
 
@@ -196,13 +203,12 @@ def main(args):
     if args.submit:
         info('waiting for spot instance requests to be fulfilled, you can cancel by ctrl+c ...')
         try:
-            requests = submit_request(conn, ec2_conf)
+            rid_tag, requests = submit_request(conn, ec2_conf, args.masters)
         except (KeyboardInterrupt, RequestFailedError) as e:
             error(e)
             exit(1)
         info('spot instance requests fulfilled')
         instance_id_to_tag_ip = {}
-        rid_tag = request_id_to_tag(requests)
         info('getting instance IPs...')
         for r in requests:
             instance_id = r.instance_id

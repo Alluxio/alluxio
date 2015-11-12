@@ -38,9 +38,11 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
@@ -225,9 +227,11 @@ public class FileSystemMasterIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
-  private static final long TEST_OPERATION_TIME_MS = 1000;
   private static final TachyonURI ROOT_PATH = new TachyonURI("/root");
   private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
+  // Modify current time so that implementations can't accidentally pass unit tests by ignoring
+  // this specified time and always using System.currentTimeMillis()
+  private static final long TEST_CURRENT_TIME = 300;
 
   private ExecutorService mExecutorService = null;
   private TachyonConf mMasterTachyonConf;
@@ -432,7 +436,14 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertFalse(mFsMaster.deleteFile(2, false));
+    try {
+      mFsMaster.deleteFile(2, false);
+      Assert.fail("Deleting a nonempty directory nonrecursively should fail");
+    } catch (DirectoryNotEmptyException e) {
+      Assert.assertEquals(
+          ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder2"),
+          e.getMessage());
+    }
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
@@ -459,7 +470,14 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertFalse(mFsMaster.deleteFile(1, false));
+    try {
+      mFsMaster.deleteFile(1, false);
+      Assert.fail("Deleting a nonempty directory nonrecursively should fail");
+    } catch (DirectoryNotEmptyException e) {
+      Assert.assertEquals(
+          ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder"),
+          e.getMessage());
+    }
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
   }
@@ -497,7 +515,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeAddCheckpointTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = TEST_OPERATION_TIME_MS;
+    long opTimeMs = TEST_CURRENT_TIME;
     mFsMaster.persistFileInternal(fileId, 1, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
@@ -506,7 +524,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = TEST_OPERATION_TIME_MS;
+    long opTimeMs = TEST_CURRENT_TIME;
     mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, false, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
@@ -515,7 +533,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCreateFileTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
-    long opTimeMs = TEST_OPERATION_TIME_MS;
+    long opTimeMs = TEST_CURRENT_TIME;
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setOperationTimeMs(opTimeMs).build();
     mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"), options);
@@ -531,7 +549,7 @@ public class FileSystemMasterIntegrationTest {
     long folderId = mFsMaster.getFileId(new TachyonURI("/testFolder"));
     Assert.assertEquals(1, folderId);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    long opTimeMs = TEST_OPERATION_TIME_MS;
+    long opTimeMs = TEST_CURRENT_TIME;
     Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, true, opTimeMs));
     FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -542,7 +560,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     long fileId =
         mFsMaster.create(new TachyonURI("/testFolder/testFile1"), CreateOptions.defaults());
-    long opTimeMs = TEST_OPERATION_TIME_MS;
+    long opTimeMs = TEST_CURRENT_TIME;
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true, opTimeMs);
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
@@ -676,7 +694,7 @@ public class FileSystemMasterIntegrationTest {
     CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTTL(ttl).build();
     long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true,
-        System.currentTimeMillis());
+        TEST_CURRENT_TIME);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.ttl);

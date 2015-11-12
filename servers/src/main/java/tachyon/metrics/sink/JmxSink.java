@@ -25,16 +25,14 @@ import com.codahale.metrics.MetricRegistry;
  */
 public class JmxSink implements Sink {
   private JmxReporter mReporter;
-  private Properties mProperties;
 
   /**
    * Creates a JmxSink with a Properties and MetricRegistry.
    *
-   * @param properties the properties.
-   * @param registry the metric registry to register.
+   * @param properties the properties
+   * @param registry the metric registry to register
    */
   public JmxSink(Properties properties, MetricRegistry registry) {
-    mProperties = properties;
     mReporter = JmxReporter.forRegistry(registry).build();
   }
 

@@ -13,36 +13,18 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.client.util;
 
-import java.io.File;
-import java.io.IOException;
-
+import tachyon.Constants;
+import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemCluster;
 
-/**
- * The mock cluster for local file system as UnderFileSystemSingleLocal.
- */
-public class LocalFilesystemCluster extends UnderFileSystemCluster {
-
-  public LocalFilesystemCluster(String baseDir, TachyonConf tachyonConf) {
-    super(baseDir, tachyonConf);
+public final class ClientTestUtils {
+  public static void setSmallBufferSizes() {
+    // Sets small buffer sizes so that we don't run out of heap space
+    TachyonConf mConf = new TachyonConf();
+    mConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
+    mConf.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
+    ClientContext.reset(mConf);
   }
-
-  @Override
-  public String getUnderFilesystemAddress() {
-    return new File(mBaseDir).getAbsolutePath();
-  }
-
-  @Override
-  public boolean isStarted() {
-    return true;
-  }
-
-  @Override
-  public void shutdown() throws IOException {}
-
-  @Override
-  public void start() throws IOException {}
 }

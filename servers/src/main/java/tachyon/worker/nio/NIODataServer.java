@@ -84,7 +84,7 @@ public final class NIODataServer implements Runnable, DataServer {
    */
   public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       TachyonConf tachyonConf) {
-    LOG.info("Starting DataServer @ " + address);
+    LOG.info("Starting DataServer @ {}", address);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address), mTachyonConf);
     mAddress = address;
@@ -157,7 +157,7 @@ public final class NIODataServer implements Runnable, DataServer {
         socketSelector.close();
       } catch (IOException ex) {
         // ignore, we want the other exception
-        LOG.warn("Unable to close socket selector. Exception: " + ex.getMessage());
+        LOG.warn("Unable to close socket selector. Exception: {}", ex.getMessage());
       }
       throw e;
     } catch (RuntimeException e) {
@@ -167,7 +167,7 @@ public final class NIODataServer implements Runnable, DataServer {
         socketSelector.close();
       } catch (IOException ex) {
         // ignore, we want the other exception
-        LOG.warn("Unable to close socket selector. Exception:" +  ex.getMessage());
+        LOG.warn("Unable to close socket selector. Exception: {}", ex.getMessage());
       }
       throw e;
     }
@@ -209,7 +209,7 @@ public final class NIODataServer implements Runnable, DataServer {
 
     if (tMessage.isMessageReady()) {
       if (tMessage.getBlockId() <= 0) {
-        LOG.error("Invalid block id " + tMessage.getBlockId());
+        LOG.error("Invalid block id {}", tMessage.getBlockId());
         return;
       }
 
@@ -278,7 +278,7 @@ public final class NIODataServer implements Runnable, DataServer {
         try {
           close();
         } catch (Exception e2) {
-          LOG.error("Exception when closing data server. message: " + e2.getMessage());
+          LOG.error("Exception when closing data server. message: {}", e2.getMessage());
         }
         // Mark the server as shut down.
         mShutdownComplete = true;
@@ -315,7 +315,7 @@ public final class NIODataServer implements Runnable, DataServer {
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
       } catch (BlockDoesNotExistException ioe) {
-        LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
+        LOG.error("Failed to unlock block: {}", sendMessage.getBlockId(), ioe);
       }
     }
   }

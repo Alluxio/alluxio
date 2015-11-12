@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -27,12 +28,12 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.local.LocalUnderFileSystem;
@@ -49,14 +50,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
     UnderFileSystem.class})
-public class BlockDataManagerTest implements Tester<BlockDataManager> {
+public class BlockDataManagerTest {
   private TestHarness mHarness;
-  private BlockDataManager.PrivateAccess mPrivateAccess;
-
-  @Override
-  public void receiveAccess(Object access) {
-    mPrivateAccess = (BlockDataManager.PrivateAccess) access;
-  }
 
   private class TestHarness {
     WorkerBlockMasterClient mBlockMasterClient;
@@ -67,7 +62,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     BlockMetricsReporter mMetricsReporter;
     Random mRandom;
     Sessions mSessions;
-    TachyonConf mTachyonConf;
     long mWorkerId;
     WorkerSource mWorkerSource;
 
@@ -80,7 +74,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
-      mTachyonConf = PowerMockito.mock(TachyonConf.class);
       mWorkerId = mRandom.nextLong();
       WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
@@ -89,10 +82,9 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
           new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient,
               mBlockStore);
 
-      mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
-      mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
-      mPrivateAccess.setMetricsReporter(mMetricsReporter);
-      mPrivateAccess.setSessions(mSessions);
+      Whitebox.setInternalState(mManager, "mHeartbeatReporter", mHeartbeatReporter);
+      Whitebox.setInternalState(mManager, "mMetricsReporter", mMetricsReporter);
+      Whitebox.setInternalState(mManager, "mSessions", mSessions);
     }
   }
 
@@ -157,9 +149,9 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     long lockId = mHarness.mRandom.nextLong();
     long sessionId = mHarness.mRandom.nextLong();
     long usedBytes = mHarness.mRandom.nextLong();
-    int tierAlias = 1;
-    LinkedList<Long> usedBytesOnTiers = new LinkedList<Long>();
-    usedBytesOnTiers.add(usedBytes);
+    String tierAlias = "MEM";
+    HashMap<String, Long> usedBytesOnTiers = new HashMap<String, Long>();
+    usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
@@ -184,7 +176,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     long blockId = mHarness.mRandom.nextLong();
     long initialBytes = mHarness.mRandom.nextLong();
     long sessionId = mHarness.mRandom.nextLong();
-    int tierAlias = 1;
+    String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);

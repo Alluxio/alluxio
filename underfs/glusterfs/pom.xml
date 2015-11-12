@@ -3,13 +3,15 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-underfs</artifactId>
-    <version>0.8.3-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>tachyon-underfs-glusterfs</artifactId>
   <name>Tachyon Under File System - Gluster FS</name>
   <description>Tachyon Under File System implementation which adds Gluster FS as a Under File System</description>
 
   <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>

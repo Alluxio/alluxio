@@ -93,7 +93,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("s3service.https-only",
           Boolean.toString(tachyonConf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
-    LOG.debug("Initializing S3 underFs with properties: " + props.getProperties());
+    LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
   }
@@ -157,7 +157,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
-        LOG.error("Failed to delete path " + pathToDelete + ", aborting delete.");
+        LOG.error("Failed to delete path {}, aborting delete.", pathToDelete);
         return false;
       }
     }
@@ -250,7 +250,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return true;
     }
     if (exists(path)) {
-      LOG.error("Cannot create directory " + path + " because it is already a file.");
+      LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
     if (!createParent) {
@@ -258,7 +258,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
         // Parent directory exists
         return mkdirsInternal(path);
       } else {
-        LOG.error("Cannot create directory " + path + " because parent does not exist");
+        LOG.error("Cannot create directory {} because parent does not exist", path);
         return false;
       }
     }
@@ -279,7 +279,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       return new S3InputStream(mBucketName, path, mClient);
     } catch (ServiceException se) {
-      LOG.error("Failed to open file: " + path, se);
+      LOG.error("Failed to open file: {}", path, se);
       return null;
     }
   }
@@ -287,11 +287,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public boolean rename(String src, String dst) throws IOException {
     if (!exists(src)) {
-      LOG.error("Unable to rename " + src + " to " + dst + " because source does not exist.");
+      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
       return false;
     }
     if (exists(dst)) {
-      LOG.error("Unable to rename " + src + " to " + dst + " because destination already exists.");
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
       return false;
     }
     // Source exists and destination does not exist
@@ -333,20 +333,20 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Copies an object to another key.
-   * @param src the source key to copy.
-   * @param dst the destination key to copy to.
+   * @param src the source key to copy
+   * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String src, String dst) {
     try {
       src = stripPrefixIfPresent(src);
       dst = stripPrefixIfPresent(dst);
-      LOG.info("Copying " + src + " to " + dst);
+      LOG.info("Copying {} to {}", src, dst);
       S3Object obj = new S3Object(dst);
       mClient.copyObject(mBucketName, src, mBucketName, obj, false);
       return true;
     } catch (ServiceException se) {
-      LOG.error("Failed to rename file " + src + " to " + dst);
+      LOG.error("Failed to rename file {} to {}", src, dst);
       return false;
     }
   }
@@ -365,7 +365,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
         mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException se) {
-      LOG.error("Failed to delete " + key, se);
+      LOG.error("Failed to delete {}", key, se);
       return false;
     }
     return true;
@@ -381,8 +381,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (child.startsWith(parent)) {
       return child.substring(parent.length());
     }
-    LOG.error("Attempted to get childname with an invalid parent argument. Parent: " + parent
-        + " Child: " + child);
+    LOG.error("Attempted to get childname with an invalid parent argument. Parent: {} Child: {}",
+        parent, child);
     return null;
   }
 
@@ -496,7 +496,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException se) {
-      LOG.error("Failed to list path " + path);
+      LOG.error("Failed to list path {}", path);
       return null;
     }
   }
@@ -517,7 +517,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       mClient.putObject(mBucketName, obj);
       return true;
     } catch (ServiceException se) {
-      LOG.error("Failed to create directory: " + key, se);
+      LOG.error("Failed to create directory: {}", key, se);
       return false;
     }
   }

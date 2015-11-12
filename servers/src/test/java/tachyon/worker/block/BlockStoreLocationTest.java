@@ -18,19 +18,15 @@ package tachyon.worker.block;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.StorageLevelAlias;
-
 public class BlockStoreLocationTest {
 
   @Test
   public void newLocationTest() throws Exception {
-    int tierAlias = 1;
-    int tierLevel = 2;
+    String tierAlias = "SSD";
     int dirIndex = 3;
-    BlockStoreLocation loc = new BlockStoreLocation(tierAlias, tierLevel, dirIndex);
+    BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex);
     Assert.assertNotNull(loc);
     Assert.assertEquals(tierAlias, loc.tierAlias());
-    Assert.assertEquals(tierLevel, loc.tierLevel());
     Assert.assertEquals(dirIndex, loc.dir());
   }
 
@@ -38,11 +34,11 @@ public class BlockStoreLocationTest {
   public void testBelongTo() throws Exception {
     BlockStoreLocation anyTier = BlockStoreLocation.anyTier();
     BlockStoreLocation anyDirInTierMEM =
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
+        BlockStoreLocation.anyDirInTier("MEM");
     BlockStoreLocation anyDirInTierHDD =
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue());
-    BlockStoreLocation dirInMEM = new BlockStoreLocation(StorageLevelAlias.MEM.getValue(), 0, 1);
-    BlockStoreLocation dirInHDD = new BlockStoreLocation(StorageLevelAlias.HDD.getValue(), 0, 2);
+        BlockStoreLocation.anyDirInTier("HDD");
+    BlockStoreLocation dirInMEM = new BlockStoreLocation("MEM", 1);
+    BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
 
     Assert.assertTrue(anyTier.belongTo(anyTier));
     Assert.assertFalse(anyTier.belongTo(anyDirInTierMEM));
@@ -79,11 +75,11 @@ public class BlockStoreLocationTest {
   public void equalsTest() throws Exception {
     BlockStoreLocation anyTier = BlockStoreLocation.anyTier();
     BlockStoreLocation anyDirInTierMEM =
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
+        BlockStoreLocation.anyDirInTier("MEM");
     BlockStoreLocation anyDirInTierHDD =
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue());
-    BlockStoreLocation dirInMEM = new BlockStoreLocation(StorageLevelAlias.MEM.getValue(), 0, 1);
-    BlockStoreLocation dirInHDD = new BlockStoreLocation(StorageLevelAlias.HDD.getValue(), 0, 2);
+        BlockStoreLocation.anyDirInTier("HDD");
+    BlockStoreLocation dirInMEM = new BlockStoreLocation("MEM", 1);
+    BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
 
     Assert.assertEquals(anyTier, BlockStoreLocation.anyTier()); // Equals
     Assert.assertNotEquals(anyDirInTierMEM, BlockStoreLocation.anyTier());
@@ -91,36 +87,26 @@ public class BlockStoreLocationTest {
     Assert.assertNotEquals(dirInMEM, BlockStoreLocation.anyTier());
     Assert.assertNotEquals(dirInHDD, BlockStoreLocation.anyTier());
 
-    Assert.assertNotEquals(anyTier,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue()));
-    Assert.assertEquals(anyDirInTierMEM,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue())); // Equals
-    Assert.assertNotEquals(anyDirInTierHDD,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue()));
-    Assert.assertNotEquals(dirInMEM,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue()));
-    Assert.assertNotEquals(dirInHDD,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue()));
+    Assert.assertNotEquals(anyTier, BlockStoreLocation.anyDirInTier("MEM"));
+    Assert.assertEquals(anyDirInTierMEM, BlockStoreLocation.anyDirInTier("MEM")); // Equals
+    Assert.assertNotEquals(anyDirInTierHDD, BlockStoreLocation.anyDirInTier("MEM"));
+    Assert.assertNotEquals(dirInMEM, BlockStoreLocation.anyDirInTier("MEM"));
+    Assert.assertNotEquals(dirInHDD, BlockStoreLocation.anyDirInTier("MEM"));
 
-    Assert.assertNotEquals(anyTier,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue()));
-    Assert.assertNotEquals(anyDirInTierMEM,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue()));
-    Assert.assertEquals(anyDirInTierHDD,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue())); // Equals
-    Assert.assertNotEquals(dirInMEM,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue()));
-    Assert.assertNotEquals(dirInHDD,
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue()));
+    Assert.assertNotEquals(anyTier, BlockStoreLocation.anyDirInTier("HDD"));
+    Assert.assertNotEquals(anyDirInTierMEM, BlockStoreLocation.anyDirInTier("HDD"));
+    Assert.assertEquals(anyDirInTierHDD, BlockStoreLocation.anyDirInTier("HDD")); // Equals
+    Assert.assertNotEquals(dirInMEM, BlockStoreLocation.anyDirInTier("HDD"));
+    Assert.assertNotEquals(dirInHDD, BlockStoreLocation.anyDirInTier("HDD"));
 
-    BlockStoreLocation loc1 = new BlockStoreLocation(StorageLevelAlias.MEM.getValue(), 0, 1);
+    BlockStoreLocation loc1 = new BlockStoreLocation("MEM", 1);
     Assert.assertNotEquals(anyTier, loc1);
     Assert.assertNotEquals(anyDirInTierMEM, loc1);
     Assert.assertNotEquals(anyDirInTierHDD, loc1);
     Assert.assertEquals(dirInMEM, loc1); // Equals
     Assert.assertNotEquals(dirInHDD, loc1);
 
-    BlockStoreLocation loc2 = new BlockStoreLocation(StorageLevelAlias.HDD.getValue(), 0, 2);
+    BlockStoreLocation loc2 = new BlockStoreLocation("HDD", 2);
     Assert.assertNotEquals(anyTier, loc2);
     Assert.assertNotEquals(anyDirInTierMEM, loc2);
     Assert.assertNotEquals(anyDirInTierHDD, loc2);

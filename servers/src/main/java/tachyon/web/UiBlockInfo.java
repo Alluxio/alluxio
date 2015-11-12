@@ -16,39 +16,40 @@
 package tachyon.web;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-import tachyon.StorageLevelAlias;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 
 public final class UiBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
+  private final Set<String> mTierAliases = new HashSet<String>();
   private final long mId;
   private final long mBlockLength;
-  private final boolean mInMemory;
   private final long mLastAccessTimeMs;
 
   public UiBlockInfo(FileBlockInfo fileBlockInfo) {
     Preconditions.checkNotNull(fileBlockInfo);
     mId = fileBlockInfo.getBlockInfo().getBlockId();
     mBlockLength = fileBlockInfo.getBlockInfo().getLength();
-    mInMemory = isInMemory(fileBlockInfo.getBlockInfo());
     mLastAccessTimeMs = -1;
     addLocations(fileBlockInfo);
+    for (BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
+      mTierAliases.add(location.getTierAlias());
+    }
   }
 
-  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, boolean inMemory) {
+  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, String tierAlias) {
     mId = blockId;
     mBlockLength = blockLength;
-    mInMemory = inMemory;
     mLastAccessTimeMs = blockLastAccessTimeMs;
+    mTierAliases.add(tierAlias);
   }
 
   private void addLocations(FileBlockInfo fileBlockInfo) {
@@ -65,15 +66,10 @@ public final class UiBlockInfo {
   }
 
   /**
-   * @return true if the block is in some worker's memory, false otherwise
+   * @return true if the block is in the given tier alias in some worker, false otherwise
    */
-  private boolean isInMemory(BlockInfo blockInfo) {
-    for (BlockLocation location : blockInfo.getLocations()) {
-      if (location.getTier() == StorageLevelAlias.MEM.getValue()) {
-        return true;
-      }
-    }
-    return false;
+  public boolean isInTier(String tierAlias) {
+    return mTierAliases.contains(tierAlias);
   }
 
   public long getBlockLength() {
@@ -82,10 +78,6 @@ public final class UiBlockInfo {
 
   public long getID() {
     return mId;
-  }
-
-  public boolean inMemory() {
-    return mInMemory;
   }
 
   public long getLastAccessTimeMs() {

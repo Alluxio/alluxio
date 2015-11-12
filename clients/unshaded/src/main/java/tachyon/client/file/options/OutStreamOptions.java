@@ -25,12 +25,19 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class OutStreamOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<OutStreamOptions> {
     private long mBlockSizeBytes;
     private String mHostname;
     private TachyonStorageType mTachyonStorageType;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
+
+    /**
+     * Creates a new builder for {@link OutStreamOptions}.
+     */
+    public Builder() {
+      this(ClientContext.getConf());
+    }
 
     /**
      * Creates a new builder for {@link OutStreamOptions}.
@@ -114,6 +121,7 @@ public final class OutStreamOptions {
      *
      * @return a {@code OutStreamOptions} instance
      */
+    @Override
     public OutStreamOptions build() {
       return new OutStreamOptions(this);
     }
@@ -129,7 +137,7 @@ public final class OutStreamOptions {
    * @return the default {@code OutStreamOptions}
    */
   public static OutStreamOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder().build();
   }
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
@@ -174,5 +182,20 @@ public final class OutStreamOptions {
    */
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("OutStreamOptions(");
+    sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
+    sb.append(", Hostname: ").append(mHostname);
+    sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
+    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
+    sb.append(", TTL: ").append(mTTL);
+    sb.append(")");
+    return sb.toString();
   }
 }

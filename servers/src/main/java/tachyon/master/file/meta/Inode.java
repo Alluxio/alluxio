@@ -22,45 +22,60 @@ import tachyon.thrift.FileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
-  public abstract static class Builder<T> {
+  public abstract static class Builder<T extends Builder<T>> {
     private long mCreationTimeMs;
     protected boolean mDirectory;
     protected long mId;
+    private long mLastModificationTimeMs;
     private String mName;
     private long mParentId;
     private boolean mPersisted;
+    private boolean mPinned;
 
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();
       mDirectory = false;
       mId = 0;
+      mLastModificationTimeMs = mCreationTimeMs;
       mName = null;
       mParentId = InodeTree.NO_PARENT;
+      mPersisted = false;
+      mPinned = false;
     }
 
     public T setCreationTimeMs(long creationTimeMs) {
       mCreationTimeMs = creationTimeMs;
-      return (T) this;
+      return getThis();
     }
 
     public T setId(long id) {
       mId = id;
-      return (T) this;
+      return getThis();
+    }
+
+    public T setLastModificationTimeMs(long lastModificationTimeMs) {
+      mLastModificationTimeMs = lastModificationTimeMs;
+      return getThis();
     }
 
     public T setName(String name) {
       mName = name;
-      return (T) this;
+      return getThis();
     }
 
     public T setParentId(long parentId) {
       mParentId = parentId;
-      return (T) this;
+      return getThis();
     }
 
     public T setPersisted(boolean persisted) {
       mPersisted = persisted;
-      return (T) this;
+      return getThis();
+    }
+
+    public T setPinned(boolean pinned) {
+      mPinned = pinned;
+      return getThis();
     }
 
     /**
@@ -69,56 +84,63 @@ public abstract class Inode implements JournalEntryRepresentable {
      * @return a {@link Inode} instance
      */
     public abstract Inode build();
+
+    /**
+     * Returns `this` so that the abstract class can use the fluent builder pattern.
+     */
+    protected abstract T getThis();
   }
 
   private final long mCreationTimeMs;
+
+  /**
+   * Indicates whether an inode is deleted or not.
+   */
+  private boolean mDeleted;
+
   protected final boolean mDirectory;
 
   private final long mId;
-  private String mName;
-  private long mParentId;
-
-  /**
-   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
-   * files and folders will inherit this flag from their parents.
-   */
-  private boolean mPinned = false;
-
-  private boolean mPersisted = false;
 
   /**
    * The last modification time of this inode, in milliseconds.
    */
   private long mLastModificationTimeMs;
 
-  /**
-   * Indicates whether an inode is deleted or not.
-   */
-  private boolean mDeleted = false;
+  private String mName;
 
-  protected Inode(Builder builder) {
+  private long mParentId;
+  /**
+   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
+   * files and folders will inherit this flag from their parents.
+   */
+  private boolean mPinned;
+
+  private boolean mPersisted;
+
+  protected Inode(Builder<?> builder) {
     mCreationTimeMs = builder.mCreationTimeMs;
+    mDeleted = false;
     mDirectory = builder.mDirectory;
     mLastModificationTimeMs = builder.mCreationTimeMs;
     mId = builder.mId;
+    mLastModificationTimeMs = builder.mLastModificationTimeMs;
     mName = builder.mName;
     mPersisted = builder.mPersisted;
     mParentId = builder.mParentId;
-  }
-
-  /**
-   * Marks the inode as deleted
-   */
-  public synchronized void delete() {
-    mDeleted = true;
+    mPinned = builder.mPinned;
   }
 
   @Override
   public synchronized boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
     if (!(o instanceof Inode)) {
       return false;
     }
-    return mId == ((Inode) o).mId;
+    Inode that = (Inode) o;
+    return mId == that.mId;
   }
 
   /**
@@ -205,10 +227,10 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Restores a deleted inode.
+   * Marks the inode as deleted
    */
-  public synchronized void restore() {
-    mDeleted = false;
+  public synchronized void setDeleted(boolean deleted) {
+    mDeleted = deleted;
   }
 
   /**
@@ -258,9 +280,12 @@ public abstract class Inode implements JournalEntryRepresentable {
 
   @Override
   public synchronized String toString() {
-    return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
-        .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
-        .append(mCreationTimeMs).append(", PINNED:").append(mPinned).append("DELETED:")
+    return new StringBuilder("Inode(")
+        .append("ID:").append(mId)
+        .append(", NAME:").append(mName)
+        .append(", PARENT_ID:").append(mParentId)
+        .append(", CREATION_TIME_MS:").append(mCreationTimeMs)
+        .append(", PINNED:").append(mPinned).append("DELETED:")
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
         .append(")").toString();
   }

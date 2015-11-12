@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class BlockAlreadyExistsException extends TachyonException {
+  private static final long serialVersionUID = -127826899023625880L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.BLOCK_ALREADY_EXISTS;
 

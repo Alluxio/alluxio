@@ -16,6 +16,7 @@
 package tachyon.collections;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,14 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import tachyon.Constants;
 
 /**
  * A set of objects that are indexed and thus can be queried by specific fields of the object.
@@ -73,14 +69,14 @@ import tachyon.Constants;
  * First, define the fields to be indexed:
  * <pre>
  *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
- *    @Override
+ *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.id();
  *    }
  *  }
  *
  *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
- *    @Override
+ *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.name();
  *    }
@@ -104,8 +100,6 @@ import tachyon.Constants;
  * </pre>
  */
 public class IndexedSet<T> implements Iterable<T> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** All objects in the set */
   private final Set<T> mObjects = new HashSet<T>();
   /** Map from field index to an index of field related object in the internal lists */
@@ -195,7 +189,7 @@ public class IndexedSet<T> implements Iterable<T> {
               throw new IllegalStateException("Indexed Set is in an illegal state");
             }
           } else {
-            fieldValueToSet.put(fieldValue, Sets.newHashSet(objToAdd));
+            fieldValueToSet.put(fieldValue, Sets.newHashSet(Collections.singleton(objToAdd)));
           }
         }
       }

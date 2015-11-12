@@ -23,16 +23,12 @@ import java.util.Arrays;
  */
 public final class BlockStoreLocation {
   /** Special value to indicate any tier */
-  private static final int ANY_TIER = -1;
+  private static final String ANY_TIER = "";
   /** Special value to indicate any dir */
   private static final int ANY_DIR = -1;
-  /** NOTE: only reason to have level here is to calculate StorageDirId */
-  private static final int UNKNOWN_LEVEL = -1;
 
-  /** Tier alias of the location, see {@link tachyon.StorageLevelAlias} */
-  private final int mTierAlias;
-  /** Tier level of the location, generally alias - 1, this is 0 indexed */
-  private final int mTierLevel;
+  /** Alias of the storage tier */
+  private final String mTierAlias;
   /** Index of the directory in its tier, 0 indexed */
   private final int mDirIndex;
 
@@ -42,59 +38,37 @@ public final class BlockStoreLocation {
    * @return a BlockStoreLocation of any dir in any tier
    */
   public static BlockStoreLocation anyTier() {
-    return new BlockStoreLocation(ANY_TIER, UNKNOWN_LEVEL, ANY_DIR);
+    return new BlockStoreLocation(ANY_TIER, ANY_DIR);
   }
 
   /**
    * Convenience method to return the block store location representing any dir in the tier.
    *
-   * @param tierAlias The tier this returned block store alias will represent
+   * @param tierAlias The alias of the tier this returned block store location will represent
    * @return a BlockStoreLocation of any dir in the specified tier
    */
-  public static BlockStoreLocation anyDirInTier(int tierAlias) {
-    return new BlockStoreLocation(tierAlias, UNKNOWN_LEVEL, ANY_DIR);
+  public static BlockStoreLocation anyDirInTier(String tierAlias) {
+    return new BlockStoreLocation(tierAlias, ANY_DIR);
   }
 
-  public BlockStoreLocation(int tierAlias, int tierLevel, int dirIndex) {
-    mTierLevel = tierLevel;
+  public BlockStoreLocation(String tierAlias, int dirIndex) {
     mTierAlias = tierAlias;
     mDirIndex = dirIndex;
   }
 
   /**
-   * Gets the storage directory id of the location. The first 8 bits are tier level, next 8 are the
-   * tier alias and last 16 represent the directory index.
+   * Gets the storage tier alias of the location.
    *
-   * @return the storage directory id of the location
+   * @return the tier alias of the location
    */
-  // TODO(gene): Remove this method when master also understands MasterBlockLocation.
-  public long getStorageDirId() {
-    // Calculation copied from {@link StorageDirId.getStorageDirId}
-    return (mTierLevel << 24) + (mTierAlias << 16) + mDirIndex;
-  }
-
-  /**
-   * Gets the tier alias of the location.
-   *
-   * @return the tier alias of the location, -1 for any tier
-   */
-  public int tierAlias() {
+  public String tierAlias() {
     return mTierAlias;
-  }
-
-  /**
-   * Gets the tier level of the location.
-   *
-   * @return the tier level of the location, -1 for unknown level
-   */
-  public int tierLevel() {
-    return mTierLevel;
   }
 
   /**
    * Gets the directory index of the location.
    *
-   * @return the directory index of the location, -1 for any directory
+   * @return the directory index of the location, ANY_DIR for any directory
    */
   public int dir() {
     return mDirIndex;
@@ -110,7 +84,7 @@ public final class BlockStoreLocation {
    */
   public boolean belongTo(BlockStoreLocation location) {
     boolean tierInRange =
-        (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
+        tierAlias().equals(location.tierAlias()) || location.tierAlias().equals(ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
     return tierInRange && dirInRange;
   }
@@ -140,19 +114,23 @@ public final class BlockStoreLocation {
   /**
    * Compares to a specific object.
    *
-   * @param object the object to compare
+   * @param o the object to compare
    * @return true if object is also {@link BlockStoreLocation} and represents the same tier and dir
    */
   @Override
-  public boolean equals(Object object) {
-    return object instanceof BlockStoreLocation
-        && ((BlockStoreLocation) object).tierLevel() == tierLevel()
-        && ((BlockStoreLocation) object).tierAlias() == tierAlias()
-        && ((BlockStoreLocation) object).dir() == dir();
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BlockStoreLocation)) {
+      return false;
+    }
+    BlockStoreLocation that = (BlockStoreLocation) o;
+    return mTierAlias.equals(that.mTierAlias) && mDirIndex == that.mDirIndex;
   }
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(new Object[] {mTierLevel, mTierAlias, mDirIndex});
+    return Arrays.hashCode(new Object[] {mTierAlias, mDirIndex});
   }
 }

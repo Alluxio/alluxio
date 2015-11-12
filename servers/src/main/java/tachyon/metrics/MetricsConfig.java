@@ -79,7 +79,7 @@ public final class MetricsConfig {
   /**
    * Gets properties for the given instance.
    *
-   * @param inst the instance name. Currently there are only two instances: "master" and "worker".
+   * @param inst the instance name. Currently there are only two instances: "master" and "worker"
    * @return the instance's properties if it is present, otherwise a default one is returned
    */
   public Properties getInstanceProperties(String inst) {
@@ -157,8 +157,8 @@ public final class MetricsConfig {
    * Uses regex to parse every original property key to a prefix and a suffix. Creates sub
    * properties that are grouped by the prefix.
    *
-   * @param prop the original properties.
-   * @param regex specifies the prefix and suffix pattern.
+   * @param prop the original properties
+   * @param regex specifies the prefix and suffix pattern
    * @return a Map maps from the prefix to its properties
    */
   public Map<String, Properties> subProperties(Properties prop, String regex) {

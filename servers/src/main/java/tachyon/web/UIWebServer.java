@@ -155,7 +155,7 @@ public abstract class UIWebServer {
         // reset web service port
         mTachyonConf.set(mService.getPortKey(), Integer.toString(webPort));
       }
-      LOG.info(mService.getServiceName() + " started @ " + mAddress);
+      LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

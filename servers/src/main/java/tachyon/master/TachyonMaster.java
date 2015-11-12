@@ -22,6 +22,7 @@ import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class TachyonMaster {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp " + Constants.TACHYON_JAR + " tachyon.Master");
+      LOG.info("java -cp {} tachyon.Master", Version.TACHYON_JAR);
       System.exit(-1);
     }
 
@@ -267,7 +268,7 @@ public class TachyonMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping Tachyon Master @ " + mMasterAddress);
+      LOG.info("Stopping Tachyon Master @ {}", mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
@@ -313,11 +314,11 @@ public class TachyonMaster {
   protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress + " "
-        + startMessage);
+    LOG.info("Tachyon Master version {} started @ {} {}", Version.VERSION, mMasterAddress,
+        startMessage);
     startServingRPCServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress + " "
-        + stopMessage);
+    LOG.info("Tachyon Master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
+        stopMessage);
   }
 
   protected void startServingWebServer() {
@@ -351,11 +352,11 @@ public class TachyonMaster {
     }
 
     // create master thrift service with the multiplexed processor.
-    mMasterServiceServer =
-        new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
-            .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-            .processor(processor).transportFactory(transportFactory)
-            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
+        .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    args.stopTimeoutVal = MasterContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    mMasterServiceServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
     mIsServing = true;
@@ -389,7 +390,7 @@ public class TachyonMaster {
     if (!ufs.providesStorage()) {
       // TODO(gene): Should the journal really be allowed on a ufs without storage?
       // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
-      LOG.info("Journal directory doesn't provide storage: " + journalDirectory);
+      LOG.info("Journal directory doesn't provide storage: {}", journalDirectory);
       return true;
     }
     String[] files = ufs.list(journalDirectory);

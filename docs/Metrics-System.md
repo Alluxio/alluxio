@@ -30,8 +30,9 @@ Each instance can report to zero or more sinks.
 * GraphiteSink: Sends metrics to a Graphite server.
 * MetricsServlet: Adds a servlet in Web UI to serve metrics data as JSON data.
 
-Some metrics like `BytesReadLocal` rely on data collected from client heartbeat. To get the accurate 
-metrics data, the client is expected to properly close the `TachyonFileSystem` client after using it.
+Some metrics like `BytesReadLocal` rely on data collected from client heartbeat. To get the accurate
+metrics data, the client is expected to properly close the `TachyonFileSystem` client after using
+it.
 
 # Configuration
 The metrics system is configured via a configuration file that Tachyon expects to be present at

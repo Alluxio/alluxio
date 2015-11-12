@@ -60,7 +60,10 @@ public class IndexedSetTest {
         return o.longValue();
       }
     };
-    mSet = new IndexedSet<Pair>(mIntIndex, mLongIndex);
+    // This warning cannot be avoided when passing generics into varargs
+    @SuppressWarnings("unchecked")
+    IndexedSet<Pair> set = new IndexedSet<Pair>(mIntIndex, mLongIndex);
+    mSet = set;
     for (int i = 0; i < 3; i ++) {
       for (long l = 0; l < 3; l ++) {
         mSet.add(new Pair(i, l));

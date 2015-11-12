@@ -44,8 +44,8 @@ public class MetricsServlet implements Sink {
   /**
    * Creates a MetricsServlet with a Properties and MetricRegistry.
    *
-   * @param properties the properties which may contain path property.
-   * @param registry the metric registry to register.
+   * @param properties the properties which may contain path property
+   * @param registry the metric registry to register
    */
   public MetricsServlet(Properties properties, MetricRegistry registry) {
     mProperties = properties;
@@ -57,6 +57,8 @@ public class MetricsServlet implements Sink {
 
   private HttpServlet createServlet() {
     return new HttpServlet() {
+      private static final long serialVersionUID = -2761243531478788172L;
+
       @Override
       protected void doGet(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException {

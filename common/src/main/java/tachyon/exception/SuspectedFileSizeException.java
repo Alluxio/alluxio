@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class SuspectedFileSizeException extends TachyonException {
+  private static final long serialVersionUID = -4913703614829472342L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.SUSPECTED_FILE_SIZE;
 

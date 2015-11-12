@@ -16,6 +16,8 @@
 package tachyon.exception;
 
 public class WorkerOutOfSpaceException extends TachyonException {
+  private static final long serialVersionUID = 8148784998226149669L;
+
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.WORKER_OUT_OF_SPACE;
 
