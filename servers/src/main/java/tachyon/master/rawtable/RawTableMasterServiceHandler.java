@@ -35,7 +35,7 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
 
   @Override
   public long version() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
+    return Constants.RAW_TABLE_MASTER_SERVICE_VERSION;
   }
 
   @Override

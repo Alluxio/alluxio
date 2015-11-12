@@ -41,7 +41,7 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
   @Override
   public long version() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
+    return Constants.LINEAGE_MASTER_SERVICE_VERSION;
   }
 
   @Override

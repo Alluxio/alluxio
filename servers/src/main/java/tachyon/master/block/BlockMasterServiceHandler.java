@@ -36,7 +36,7 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
 
   @Override
   public long version() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
+    return Constants.BLOCK_MASTER_SERVICE_VERSION;
   }
 
   @Override
