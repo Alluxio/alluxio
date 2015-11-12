@@ -62,16 +62,16 @@ public class BlockMasterTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
-  public void initialize() throws Exception {
+  public void before() throws Exception {
     HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
         HeartbeatContext.SCHEDULED_TIMER_CLASS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
+    mMaster.start(true);
   }
 
   @Test
   public void countBytesTest() throws Exception {
-    mMaster.start(true);
     Assert.assertEquals(0L, mMaster.getCapacityBytes());
     Assert.assertEquals(0L, mMaster.getUsedBytes());
     Assert.assertEquals(ImmutableMap.of(), mMaster.getTotalBytesOnTiers());
@@ -138,7 +138,6 @@ public class BlockMasterTest {
 
   @Test
   public void removeBlocksTest() throws Exception {
-    mMaster.start(true);
     long worker1 = mMaster.getWorkerId(new NetAddress("test1", 1, 2));
     long worker2 = mMaster.getWorkerId(new NetAddress("test2", 1, 2));
     List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
@@ -158,7 +157,6 @@ public class BlockMasterTest {
 
   @Test
   public void workerHeartbeatTest() throws Exception {
-    mMaster.start(true);
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
     IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
@@ -207,7 +205,6 @@ public class BlockMasterTest {
 
   @Test
   public void heartbeatStatusTest() throws Exception {
-    mMaster.start(true);
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
     IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
