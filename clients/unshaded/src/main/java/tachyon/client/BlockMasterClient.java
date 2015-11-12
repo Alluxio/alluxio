@@ -20,12 +20,11 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
@@ -39,8 +38,6 @@ import tachyon.thrift.WorkerInfo;
  * to provide retries.
  */
 public final class BlockMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private BlockMasterService.Client mClient = null;
 
   /**
@@ -51,6 +48,7 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public BlockMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
+    mCompatibleVersions.add(Constants.BLOCK_MASTER_SERVICE_VERSION);
   }
 
   @Override
@@ -61,6 +59,17 @@ public final class BlockMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new BlockMasterService.Client(mProtocol);
+    if (mServerVersion == -1) {
+      try {
+        mServerVersion = mClient.version();
+        if (!mCompatibleVersions.contains(mServerVersion)) {
+          throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
+              Constants.BLOCK_MASTER_SERVICE_VERSION, mServerVersion));
+        }
+      } catch (TException e) {
+        throw new RuntimeException(e.getMessage());
+      }
+    }
   }
 
   /**

@@ -20,8 +20,6 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
@@ -30,6 +28,7 @@ import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -43,8 +42,6 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class FileSystemMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private FileSystemMasterService.Client mClient = null;
 
   /**
@@ -55,6 +52,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
+    mCompatibleVersions.add(Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION);
   }
 
   @Override
@@ -65,6 +63,17 @@ public final class FileSystemMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterService.Client(mProtocol);
+    if (mServerVersion == -1) {
+      try {
+        mServerVersion = mClient.version();
+        if (!mCompatibleVersions.contains(mServerVersion)) {
+          throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
+              Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION, mServerVersion));
+        }
+      } catch (TException e) {
+        throw new RuntimeException(e.getMessage());
+      }
+    }
   }
 
   /**
