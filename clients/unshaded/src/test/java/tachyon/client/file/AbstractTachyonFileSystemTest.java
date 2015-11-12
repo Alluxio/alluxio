@@ -56,6 +56,9 @@ import tachyon.thrift.FileInfo;
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, ClientContext.class})
 public final class AbstractTachyonFileSystemTest {
 
+  private static final long FILE_ID = 3L;
+  private static final long NO_FILE_CODE = -1L;
+
   private AbstractTachyonFileSystem mFileSystem;
   private FileSystemContext mFileContext;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -75,60 +78,60 @@ public final class AbstractTachyonFileSystemTest {
 
   @After
   public void after() {
-    Mockito.verify(mFileContext, Mockito.times(1)).acquireMasterClient();
-    Mockito.verify(mFileContext, Mockito.times(1)).releaseMasterClient(mFileSystemMasterClient);
+    Mockito.verify(mFileContext).acquireMasterClient();
+    Mockito.verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
   }
 
   @Test
   public void createTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(), Mockito.<CreateOptions>any()))
-        .thenReturn(1L);
+        .thenReturn(FILE_ID);
     CreateOptions createOptions = CreateOptions.defaults();
     TachyonFile file = mFileSystem.create(new TachyonURI("/"), createOptions);
-    Assert.assertEquals(1, file.getFileId());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).create("/", createOptions);
+    Assert.assertEquals(FILE_ID, file.getFileId());
+    Mockito.verify(mFileSystemMasterClient).create("/", createOptions);
   }
 
   @Test
   public void deleteTest() throws Exception {
     DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
-    mFileSystem.delete(new TachyonFile(3), deleteOptions);
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).delete(3L, true);
+    mFileSystem.delete(new TachyonFile(FILE_ID), deleteOptions);
+    Mockito.verify(mFileSystemMasterClient).delete(FILE_ID, true);
   }
 
   @Test
   public void freeTest() throws Exception {
     FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
-    mFileSystem.free(new TachyonFile(3), freeOptions);
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).free(3L, true);
+    mFileSystem.free(new TachyonFile(FILE_ID), freeOptions);
+    Mockito.verify(mFileSystemMasterClient).free(FILE_ID, true);
   }
 
   @Test
   public void getInfoTest() throws Exception {
     FileInfo info = new FileInfo();
-    Mockito.when(mFileSystemMasterClient.getFileInfo(3L)).thenReturn(info);
+    Mockito.when(mFileSystemMasterClient.getFileInfo(FILE_ID)).thenReturn(info);
     GetInfoOptions getInfoOptions = GetInfoOptions.defaults();
-    Assert.assertSame(info, mFileSystem.getInfo(new TachyonFile(3), getInfoOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).getFileInfo(3L);
+    Assert.assertSame(info, mFileSystem.getInfo(new TachyonFile(FILE_ID), getInfoOptions));
+    Mockito.verify(mFileSystemMasterClient).getFileInfo(FILE_ID);
   }
 
   @Test
   public void listStatusTest() throws Exception {
     List<FileInfo> infos = Lists.newArrayList(new FileInfo());
-    Mockito.when(mFileSystemMasterClient.getFileInfoList(3L)).thenReturn(infos);
+    Mockito.when(mFileSystemMasterClient.getFileInfoList(FILE_ID)).thenReturn(infos);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-    Assert.assertSame(infos, mFileSystem.listStatus(new TachyonFile(3), listStatusOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).getFileInfoList(3L);
+    Assert.assertSame(infos, mFileSystem.listStatus(new TachyonFile(FILE_ID), listStatusOptions));
+    Mockito.verify(mFileSystemMasterClient).getFileInfoList(FILE_ID);
   }
 
   @Test
   public void loadMetadataTest() throws Exception {
-    Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenReturn(3L);
+    Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenReturn(FILE_ID);
     LoadMetadataOptions loadMetadataOptions =
         new LoadMetadataOptions.Builder().setRecursive(true).build();
-    Assert.assertEquals(3L,
+    Assert.assertEquals(FILE_ID,
         mFileSystem.loadMetadata(new TachyonURI("/"), loadMetadataOptions).getFileId());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).loadMetadata("/", true);
+    Mockito.verify(mFileSystemMasterClient).loadMetadata("/", true);
   }
 
   @Test
@@ -136,7 +139,7 @@ public final class AbstractTachyonFileSystemTest {
     MkdirOptions mkdirOptions = MkdirOptions.defaults();
     Mockito.when(mFileSystemMasterClient.mkdir("/", mkdirOptions)).thenReturn(false);
     Assert.assertFalse(mFileSystem.mkdir(new TachyonURI("/"), mkdirOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).mkdir("/", mkdirOptions);
+    Mockito.verify(mFileSystemMasterClient).mkdir("/", mkdirOptions);
   }
 
   @Test
@@ -146,21 +149,21 @@ public final class AbstractTachyonFileSystemTest {
     MountOptions mountOptions = MountOptions.defaults();
     Mockito.when(mFileSystemMasterClient.mount(tachyonPath, ufsPath)).thenReturn(false);
     Assert.assertFalse(mFileSystem.mount(tachyonPath, ufsPath, mountOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).mount(tachyonPath, ufsPath);
+    Mockito.verify(mFileSystemMasterClient).mount(tachyonPath, ufsPath);
   }
 
   @Test
   public void openSuccessTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(3L);
-    Assert.assertEquals(3L, mFileSystem.open(new TachyonURI("/"), openOptions).getFileId());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).getFileId("/");
+    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(FILE_ID);
+    Assert.assertEquals(FILE_ID, mFileSystem.open(new TachyonURI("/"), openOptions).getFileId());
+    Mockito.verify(mFileSystemMasterClient).getFileId("/");
   }
 
   @Test
   public void openFailTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(-1L);
+    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(NO_FILE_CODE);
     try {
       mFileSystem.open(new TachyonURI("/"), openOptions);
       Assert.fail("open should throw InvalidPathException if the file doesn't exist");;
@@ -172,32 +175,34 @@ public final class AbstractTachyonFileSystemTest {
   @Test
   public void openIfExistsSucessTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(3L);
-    Assert.assertEquals(3L, mFileSystem.openIfExists(new TachyonURI("/"), openOptions).getFileId());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).getFileId("/");
+    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(FILE_ID);
+    Assert.assertEquals(FILE_ID,
+        mFileSystem.openIfExists(new TachyonURI("/"), openOptions).getFileId());
+    Mockito.verify(mFileSystemMasterClient).getFileId("/");
   }
 
   @Test
   public void openIfExistsFailTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(-1L);
+    Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(NO_FILE_CODE);
     Assert.assertNull(mFileSystem.openIfExists(new TachyonURI("/"), openOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).getFileId("/");
+    Mockito.verify(mFileSystemMasterClient).getFileId("/");
   }
 
   @Test
   public void renameTest() throws Exception {
     RenameOptions renameOptions = RenameOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.rename(3L, "/")).thenReturn(false);
-    Assert.assertFalse(mFileSystem.rename(new TachyonFile(3), new TachyonURI("/"), renameOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).rename(3L, "/");
+    Mockito.when(mFileSystemMasterClient.rename(FILE_ID, "/")).thenReturn(false);
+    Assert.assertFalse(
+        mFileSystem.rename(new TachyonFile(FILE_ID), new TachyonURI("/"), renameOptions));
+    Mockito.verify(mFileSystemMasterClient).rename(FILE_ID, "/");
   }
 
   @Test
   public void setStateTest() throws Exception {
     SetStateOptions setStateOptions = SetStateOptions.defaults();
-    mFileSystem.setState(new TachyonFile(3L), setStateOptions);
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).setState(3L, setStateOptions);
+    mFileSystem.setState(new TachyonFile(FILE_ID), setStateOptions);
+    Mockito.verify(mFileSystemMasterClient).setState(FILE_ID, setStateOptions);
   }
 
   @Test
@@ -206,6 +211,6 @@ public final class AbstractTachyonFileSystemTest {
     UnmountOptions unmountOptions = UnmountOptions.defaults();
     Mockito.when(mFileSystemMasterClient.unmount(path)).thenReturn(false);
     Assert.assertFalse(mFileSystem.unmount(path, unmountOptions));
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).unmount(path);
+    Mockito.verify(mFileSystemMasterClient).unmount(path);
   }
 }
