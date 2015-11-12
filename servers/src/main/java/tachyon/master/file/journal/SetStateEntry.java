@@ -34,7 +34,7 @@ public class SetStateEntry extends JournalEntry {
   private final long mOpTimeMs;
   private final Boolean mPinned;
   private final Long mTTL;
-  private final boolean mPersisted;
+  private final Boolean mPersisted;
 
   /**
    * Creates a new instance of {@code SetStateEntry}.
@@ -78,7 +78,9 @@ public class SetStateEntry extends JournalEntry {
   }
 
   @JsonGetter
-  public Boolean getPersisted() { return mPersisted; }
+  public Boolean getPersisted() {
+    return mPersisted;
+  }
 
   /**
    * @return the operation time (in milliseconds)

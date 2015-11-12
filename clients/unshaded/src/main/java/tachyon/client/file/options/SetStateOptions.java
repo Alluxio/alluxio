@@ -162,7 +162,6 @@ public class SetStateOptions {
     return mPersisted;
   }
 
-
   /**
    * @return Thrift representation of the options
    */
