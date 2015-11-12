@@ -70,7 +70,7 @@ public class Sessions {
    * @param sessionId the session to be removed
    */
   public synchronized void removeSession(long sessionId) {
-    LOG.info("Cleaning up session " + sessionId);
+    LOG.info("Cleaning up session {}", sessionId);
     synchronized (mSessions) {
       mSessions.remove(sessionId);
     }

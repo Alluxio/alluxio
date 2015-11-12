@@ -24,7 +24,7 @@ import tachyon.thrift.MkdirTOptions;
 
 @PublicApi
 public final class MkdirOptions {
-  public static class Builder {
+  public static class Builder implements OptionsBuilder<MkdirOptions> {
     private boolean mRecursive;
     private UnderStorageType mUnderStorageType;
 
@@ -70,6 +70,7 @@ public final class MkdirOptions {
      *
      * @return a {@code MkdirOptions} instance
      */
+    @Override
     public MkdirOptions build() {
       return new MkdirOptions(this);
     }

@@ -13,47 +13,36 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.underfs;
 
-import java.security.Principal;
+import java.io.File;
+import java.io.IOException;
+
+import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * This class represents a user in Tachyon. It implements {@link java.security.Principal} in the
- * context of Java security frameworks.
+ * The mock cluster for local file system as UnderFileSystemSingleLocal.
  */
-public final class User implements Principal {
-  private final String mName;
+public class LocalFilesystemCluster extends UnderFileSystemCluster {
 
-  // TODO(dong): add more attributes and methods for supporting Kerberos
-
-  public User(String name) {
-    mName = name;
+  public LocalFilesystemCluster(String baseDir, TachyonConf tachyonConf) {
+    super(baseDir, tachyonConf);
   }
 
   @Override
-  public String getName() {
-    return mName;
+  public String getUnderFilesystemAddress() {
+    return new File(mBaseDir).getAbsolutePath();
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof User)) {
-      return false;
-    }
-    User that = (User) o;
-    return mName.equals(that.mName);
+  public boolean isStarted() {
+    return true;
   }
 
   @Override
-  public int hashCode() {
-    return mName.hashCode();
-  }
+  public void shutdown() throws IOException {}
 
   @Override
-  public String toString() {
-    return mName;
-  }
+  public void start() throws IOException {}
 }

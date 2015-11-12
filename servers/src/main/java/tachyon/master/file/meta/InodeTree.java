@@ -201,7 +201,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public CreatePathResult createPath(TachyonURI path, CreatePathOptions options)
       throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException {
     if (path.isRoot()) {
-      LOG.info("FileAlreadyExistsException: " + path);
+      LOG.info("FileAlreadyExistsException: {}", path);
       throw new FileAlreadyExistsException(path.toString());
     }
     if (!options.isDirectory() && options.getBlockSizeBytes() < 1) {
@@ -224,10 +224,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // exception here. Otherwise we add the remaining path components to the list of components
       // to create.
       if (!options.isRecursive()) {
-        final String msg = "File " + path + " creation failed. Component "
-            + traversalResult.getNonexistentPathIndex() + "("
-            + parentPath[traversalResult.getNonexistentPathIndex()] + ") does not exist";
-        LOG.info("InvalidPathException: " + msg);
+        final String msg = new StringBuilder().append("File ").append(path)
+            .append(" creation failed. Component ")
+            .append(traversalResult.getNonexistentPathIndex()).append("(")
+            .append(parentPath[traversalResult.getNonexistentPathIndex()])
+            .append(") does not exist").toString();
+        LOG.info("InvalidPathException: {}", msg);
         throw new InvalidPathException(msg);
       } else {
         // We will start filling at the index of the non-existing step found by the traversal.
@@ -274,20 +276,19 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
-    // directory, update persistence property of the directories if needed, otherwise, nothing needs
-    // to be done.
+    // directory, update persistence property of the directories if needed, otherwise, throw
+    // FileAlreadyExistsException.
     Inode lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
-      if (lastInode.isDirectory() && options.isDirectory()) {
-        if (!lastInode.isPersisted() && options.isPersisted()) {
-          // The final path component already exists and is not persisted, so it should be added
-          // to the non-persisted Inodes of traversalResult.
-          traversalResult.getNonPersisted().add(lastInode);
-          toPersistDirectories.add(lastInode);
-        }
+      if (lastInode.isDirectory() && options.isDirectory() && !lastInode.isPersisted()
+          && options.isPersisted()) {
+        // The final path component already exists and is not persisted, so it should be added
+        // to the non-persisted Inodes of traversalResult.
+        traversalResult.getNonPersisted().add(lastInode);
+        toPersistDirectories.add(lastInode);
       } else {
-        LOG.info("FileAlreadyExistsException: " + path);
-        throw new FileAlreadyExistsException(path.toString());
+        LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
     } else {
       if (options.isDirectory()) {
@@ -416,6 +417,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         mPinnedInodeFileIds.remove(inode.getId());
       }
     } else {
+      assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
         setPinned(child, pinned, opTimeMs);
@@ -489,7 +491,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         addInodeFromJournalInternal(directory);
       }
     } else {
-      LOG.error("Unexpected InodeEntry journal entry: " + entry);
+      LOG.error("Unexpected InodeEntry journal entry: {}", entry);
     }
   }
 
@@ -525,7 +527,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof InodeTree)) {
+    if (!(o instanceof InodeTree)) {
       return false;
     }
     InodeTree that = (InodeTree) o;

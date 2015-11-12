@@ -63,11 +63,8 @@ public abstract class AbstractLineageClient implements LineageClient {
     try {
       long lineageId = masterClient.createLineage(stripURIList(inputFiles),
           stripURIList(outputFiles), (CommandLineJob) job);
-      LOG.info("Created lineage " + lineageId);
+      LOG.info("Created lineage {}", lineageId);
       return lineageId;
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, FileDoesNotExistException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -79,12 +76,8 @@ public abstract class AbstractLineageClient implements LineageClient {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
-      LOG.info(result ? "Succeeded to " : "Failed to " + "delete lineage " + lineageId);
+      LOG.info("{} delete lineage {}", result ? "Succeeded to " : "Failed to ", lineageId);
       return result;
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, LineageDoesNotExistException.class);
-      TachyonException.unwrap(e, LineageDeletionException.class);
-      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

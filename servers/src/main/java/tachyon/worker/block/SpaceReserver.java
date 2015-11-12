@@ -79,7 +79,7 @@ public class SpaceReserver implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Space reserver took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
+        LOG.warn("Space reserver took: {}, expected: {}", lastIntervalMs, mCheckIntervalMs);
       }
       reserveSpace();
     }

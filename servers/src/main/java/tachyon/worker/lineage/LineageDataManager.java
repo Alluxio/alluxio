@@ -127,7 +127,7 @@ public final class LineageDataManager {
     FileInfo fileInfo = mBlockDataManager.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
-    LOG.info("persist file " + fileId + " at " + dstPath);
+    LOG.info("persist file {} at {}", fileId, dstPath);
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     // creates the parent folder if it does not exist
     if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {

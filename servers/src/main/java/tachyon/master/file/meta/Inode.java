@@ -153,7 +153,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     if (this == o) {
       return true;
     }
-    if (o == null || !(o instanceof Inode)) {
+    if (!(o instanceof Inode)) {
       return false;
     }
     Inode that = (Inode) o;
