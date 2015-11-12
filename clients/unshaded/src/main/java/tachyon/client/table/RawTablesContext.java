@@ -20,7 +20,7 @@ public enum RawTablesContext {
     mRawTableMasterClientPool.release(masterClient);
   }
 
-  // TODO(calvin): Rethink reseting contexts outside of test cases
+  // TODO(calvin): Rethink resetting contexts outside of test cases
   public void reset() {
     mRawTableMasterClientPool.close();
     mRawTableMasterClientPool = new RawTableMasterClientPool(ClientContext.getMasterAddress());
