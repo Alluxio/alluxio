@@ -86,12 +86,11 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
-      FileInfo fileInfo = getFileInfo();
-      mUfsPath = fileInfo.getUfsPath();
-      String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
-      UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
+      updateUfsPath();
+      String tmpPath = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
+      UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-      mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
+      mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
     } else {
       mUfsPath = null;
       mUnderStorageOutputStream = null;
@@ -122,12 +121,12 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (mUnderStorageType.isSyncPersist()) {
       String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
-      FileInfo fileInfo = getFileInfo();
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
         if (!ufs.exists(tmpPath)) {
-          mUfsPath = fileInfo.getUfsPath();
+          // Location of the temporary file has changed, recompute it.
+          updateUfsPath();
           tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
         }
         ufs.delete(tmpPath, false);
@@ -136,7 +135,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
         mUnderStorageOutputStream.close();
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
-          mUfsPath = fileInfo.getUfsPath();
+          updateUfsPath();
           tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
         }
         if (!ufs.rename(tmpPath, mUfsPath)) {
@@ -282,10 +281,11 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
   }
 
-  private FileInfo getFileInfo() throws IOException {
+  private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      return client.getFileInfo(mFileId);
+      FileInfo fileInfo = client.getFileInfo(mFileId);
+      mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     } finally {
