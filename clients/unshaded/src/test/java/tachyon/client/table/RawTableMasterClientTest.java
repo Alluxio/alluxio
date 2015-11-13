@@ -26,8 +26,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.table.RawTableContext;
-import tachyon.client.table.RawTableMasterClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.RawTableMasterService;
 
