@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.block;
+package tachyon.client.table;
 
 import java.util.List;
 
@@ -25,18 +25,18 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 
 /**
- * Tests {@link BlockStoreContext}.
+ * Tests {@link RawTableContext}.
  */
-public final class BlockStoreContextTest {
+public final class RawTableContextTest {
 
   @Test
   public void concurrencyTest() throws Exception {
-    final List<BlockMasterClient> clients = Lists.newArrayList();
+    final List<RawTableMasterClient> clients = Lists.newArrayList();
 
     // acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i ++) {
-      clients.add(BlockStoreContext.INSTANCE.acquireMasterClient());
+        .getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i ++) {
+      clients.add(RawTableContext.INSTANCE.acquireMasterClient());
     }
 
     (new Thread(new AcquireClient())).start();
@@ -45,16 +45,16 @@ public final class BlockStoreContextTest {
     Thread.sleep(5L);
 
     // release all the clients
-    for (BlockMasterClient client : clients) {
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+    for (RawTableMasterClient client : clients) {
+      RawTableContext.INSTANCE.releaseMasterClient(client);
     }
   }
 
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+      RawTableMasterClient client = RawTableContext.INSTANCE.acquireMasterClient();
+      RawTableContext.INSTANCE.releaseMasterClient(client);;
     }
   }
 }

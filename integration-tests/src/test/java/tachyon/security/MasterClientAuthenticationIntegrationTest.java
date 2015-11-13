@@ -29,7 +29,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.security.authentication.AuthenticationProvider;
 

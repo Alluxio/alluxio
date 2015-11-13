@@ -18,7 +18,6 @@ package tachyon.client.block;
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 
