@@ -34,8 +34,8 @@ public class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
-  public SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata) throws
-      IOException, TachyonException {
+  public SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
+      throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long rawTableId = masterClient.createRawTable(path, numColumns, metadata);
