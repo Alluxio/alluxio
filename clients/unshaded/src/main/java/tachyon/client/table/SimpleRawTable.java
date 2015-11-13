@@ -38,7 +38,7 @@ public class SimpleRawTable {
   }
 
   /**
-   * @return the id of the raw table.
+   * @return the id of the raw table
    */
   public long getRawTableId() {
     return mRawTableId;
