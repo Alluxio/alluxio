@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +31,7 @@ import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.block.RemoteBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -44,7 +44,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
@@ -59,7 +58,8 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource;
   private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
   private String mNettyTransferType;
@@ -89,28 +89,21 @@ public class RemoteBlockInStreamIntegrationTest {
     mDataServerClass = dataServer;
     mNettyTransferType = transferType;
     mRemoteReaderClass = reader;
+
+    mLocalTachyonClusterResource = new LocalTachyonClusterResource(Constants.GB, Constants.KB,
+        Constants.GB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
+        Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass,
+        Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
   }
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    testConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    testConf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);
-    testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
-    mLocalTachyonCluster.start(testConf);
-
-    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mTfs = mLocalTachyonCluster.getClient();
+    mTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mTfs = mLocalTachyonClusterResource.get().getClient();
     mWriteTachyon =
         new OutStreamOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
