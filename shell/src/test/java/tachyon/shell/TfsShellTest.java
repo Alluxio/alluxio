@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -42,9 +43,9 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
-import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
@@ -60,6 +61,7 @@ public class TfsShellTest {
   private ByteArrayOutputStream mOutput = null;
   private PrintStream mNewOutput = null;
   private PrintStream mOldOutput = null;
+  private String mThreadName = "TfsShellTest-thread";
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
@@ -742,12 +744,14 @@ public class TfsShellTest {
   }
 
   @Test
-  public void freeTest() throws IOException, TachyonException {
+  public void freeTest() throws IOException, TachyonException, Exception {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, "/testFile",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     mFsShell.run("free", "/testFile");
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    HeartbeatScheduler.await(mThreadName,
+        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+        TimeUnit.MILLISECONDS);
     Assert.assertFalse(mTfs.getInfo(file).getInMemoryPercentage() == 100);
   }
 
@@ -792,14 +796,15 @@ public class TfsShellTest {
   }
 
   @Test
-  public void freeWildCardTest() throws IOException, TachyonException {
+  public void freeWildCardTest() throws IOException, TachyonException, Exception {
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
-    CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    HeartbeatScheduler.await(mThreadName,
+        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10,
+        TimeUnit.MILLISECONDS);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
@@ -807,8 +812,9 @@ public class TfsShellTest {
     Assert.assertTrue(isInMemoryTest("/testWildCards/foobar4"));
 
     ret = mFsShell.run("free", "/testWild*/*/");
-    CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    HeartbeatScheduler.await(mThreadName,
+        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10,
+        TimeUnit.MILLISECONDS);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
