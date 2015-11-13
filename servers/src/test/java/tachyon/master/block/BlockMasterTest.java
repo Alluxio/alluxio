@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,6 +68,11 @@ public class BlockMasterTest {
     mMaster = new BlockMaster(blockJournal);
     mMaster.start(true);
     mPrivateAccess = new PrivateAccess(mMaster);
+  }
+
+  @After
+  public void after() throws Exception {
+    mMaster.stop();
   }
 
   @Test
