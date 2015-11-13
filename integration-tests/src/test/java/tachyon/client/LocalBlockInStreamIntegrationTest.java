@@ -20,14 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -36,7 +37,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -48,7 +48,9 @@ public class LocalBlockInStreamIntegrationTest {
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.GB);
   private static TachyonFileSystem sTfs = null;
   private static OutStreamOptions sWriteBoth;
   private static OutStreamOptions sWriteTachyon;
@@ -59,17 +61,10 @@ public class LocalBlockInStreamIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
-    sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
-    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteBoth =
         new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();

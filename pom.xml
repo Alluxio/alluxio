@@ -317,11 +317,6 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.4</version>
           <configuration>
-            <archive>
-              <manifest>
-                <addClasspath>true</addClasspath>
-              </manifest>
-            </archive>
             <excludes>
               <exclude>**/log4j.properties</exclude>
             </excludes>

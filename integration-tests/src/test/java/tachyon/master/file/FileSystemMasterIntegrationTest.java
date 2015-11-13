@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -43,7 +44,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.DirectoryNotEmptyException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
@@ -235,8 +235,10 @@ public class FileSystemMasterIntegrationTest {
   private static final long TEST_CURRENT_TIME = 300;
 
   private ExecutorService mExecutorService = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private TachyonConf mMasterTachyonConf;
-  private LocalTachyonCluster mLocalTachyonCluster = null;
   private FileSystemMaster mFsMaster;
 
   @Rule
@@ -244,17 +246,15 @@ public class FileSystemMasterIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
   }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
     mExecutorService = Executors.newFixedThreadPool(2);
-    mFsMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getFileSystemMaster();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mFsMaster =
+        mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
   }
 
   @Test
@@ -388,8 +388,9 @@ public class FileSystemMasterIntegrationTest {
     for (int k = 0; k < 200; k ++) {
       MkdirOptions options =
           new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
-      mFsMaster.mkdir(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
-          .join("0"), options);
+      mFsMaster.mkdir(
+          new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
+          options);
     }
     for (int k = 0; k < 200; k ++) {
       mFsMaster.getFileInfo(mFsMaster.getFileId(
@@ -410,9 +411,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder/testFolder2"), MkdirOptions.defaults());
     long fileId =
         mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateOptions.defaults());
-    long fileId2 =
-        mFsMaster.create(new TachyonURI("/testFolder/testFolder2/testFile2"),
-            CreateOptions.defaults());
+    long fileId2 = mFsMaster.create(new TachyonURI("/testFolder/testFolder2/testFile2"),
+        CreateOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
@@ -429,9 +429,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder/testFolder2"), MkdirOptions.defaults());
     long fileId =
         mFsMaster.create(new TachyonURI("/testFolder/testFile"), CreateOptions.defaults());
-    long fileId2 =
-        mFsMaster.create(new TachyonURI("/testFolder/testFolder2/testFile2"),
-            CreateOptions.defaults());
+    long fileId2 = mFsMaster.create(new TachyonURI("/testFolder/testFolder2/testFile2"),
+        CreateOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
@@ -509,7 +508,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void getCapacityBytesTest() {
-    BlockMaster blockMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getBlockMaster();
+    BlockMaster blockMaster =
+        mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 

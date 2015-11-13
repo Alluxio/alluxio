@@ -16,7 +16,6 @@
 
   <Match>
     <!--
-	Bx: Boxing/unboxing to parse a primitive
 	CI: Class is final but declares protected field
 	Co: compareTo()/compare() incorrectly handles float or double value
 	DC: Possible double check of field
@@ -45,7 +44,7 @@
 	UrF: Unread public/protected field
 	Wa: Condition.await() not in loop
       -->
-    <Bug code="Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF,Wa"/>
+    <Bug code="CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF,Wa"/>
   </Match>
 
 </FindBugsFilter>
