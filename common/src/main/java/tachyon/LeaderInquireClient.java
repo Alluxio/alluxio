@@ -50,6 +50,7 @@ public final class LeaderInquireClient {
   private final String mZookeeperAddress;
   private final String mLeaderPath;
   private final CuratorFramework mClient;
+  private final int mMaxTry;
 
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
@@ -59,13 +60,14 @@ public final class LeaderInquireClient {
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     mClient.start();
+
+    mMaxTry = new TachyonConf().getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   public synchronized String getMasterAddress() {
     int tried = 0;
     try {
-      int maxTry = new TachyonConf().getInt(Constants.ZOOKEEPER_LEADER_RETRY_COUNT);
-      while (tried < maxTry) {
+      while (tried < mMaxTry) {
         if (mClient.checkExists().forPath(mLeaderPath) != null) {
           List<String> masters = mClient.getChildren().forPath(mLeaderPath);
           LOG.info("Master addresses: {}", masters);
