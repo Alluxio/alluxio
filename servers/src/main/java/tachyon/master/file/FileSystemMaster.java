@@ -347,8 +347,11 @@ public final class FileSystemMaster extends MasterBase {
    * Completes a file. After a file is completed, it cannot be written to. Called via RPC.
    *
    * @param fileId the file id to complete
-   * @throws FileDoesNotExistException if the file does not exist
+   * @param options the method options
    * @throws BlockInfoException if a block information exception is encountered
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws SuspectedFileSizeException if an invalid file size is encountered
    */
   public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
       FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
