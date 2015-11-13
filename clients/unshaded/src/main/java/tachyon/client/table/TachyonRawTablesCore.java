@@ -24,14 +24,56 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
 @PublicApi
+/**
+ * User facing interface for the Tachyon Raw Table client APIs. Raw tables are collections of
+ * columns stored as files. A column may consist of one or more ordered files.
+ */
 interface TachyonRawTablesCore {
+  /**
+   * Creates a new raw table.
+   *
+   * @param path the path of the table to create in Tachyon space, this must not already exist as
+   *             a file or table.
+   * @param numColumns the number of columns in the table
+   * @param metadata the metadata associated with the table, this will be stored as bytes and
+   *                 should be in a format the user can later understand
+   * @return a {@link SimpleRawTable} satisfying the input parameters
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
       throws IOException, TachyonException;
 
+  /**
+   * Gets the metadata of a raw table, such as the number of columns.
+   *
+   * @param rawTable the handler for the table
+   * @return the {@link RawTableInfo} for the table
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   RawTableInfo getInfo(SimpleRawTable rawTable) throws IOException, TachyonException;
 
+  /**
+   * Gets a handler for the given raw table, if it exists.
+   *
+   * @param path the path of the table in Tachyon space
+   * @return a {@link SimpleRawTable} representing the table
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   SimpleRawTable open(TachyonURI path) throws IOException, TachyonException;
 
+  /**
+   * Updates the user defined metadata for the raw table. This will overwrite the previous
+   * metadata if it existed.
+   *
+   * @param rawTable the handler for the table
+   * @param metadata the new metadata to associate with the table, this will be stored as bytes
+   *                 and should be in a format the user can later understand
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata)
       throws IOException, TachyonException;
 }
