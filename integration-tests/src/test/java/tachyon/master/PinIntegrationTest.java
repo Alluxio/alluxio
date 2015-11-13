@@ -21,11 +21,13 @@ import java.net.InetSocketAddress;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -39,7 +41,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 public class PinIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private TachyonFileSystem mTfs = null;
   private WorkerFileSystemMasterClient mFSMasterClient;
   private SetStateOptions mSetPinned;
@@ -47,13 +51,11 @@ public class PinIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonClusterResource.get().getClient();
     mFSMasterClient = new WorkerFileSystemMasterClient(
-        new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()),
-        mLocalTachyonCluster.getWorkerTachyonConf());
+        new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
+            mLocalTachyonClusterResource.get().getMasterPort()),
+        mLocalTachyonClusterResource.get().getWorkerTachyonConf());
     mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
     mUnsetPinned = new SetStateOptions.Builder().setPinned(false).build();
   }
@@ -61,7 +63,6 @@ public class PinIntegrationTest {
   @After
   public final void after() throws Exception {
     mFSMasterClient.close();
-    mLocalTachyonCluster.stop();
   }
 
   @Test
