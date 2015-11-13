@@ -744,7 +744,7 @@ public class TfsShellTest {
   }
 
   @Test
-  public void freeTest() throws IOException, TachyonException, Exception {
+  public void freeTest() throws IOException, TachyonException, InterruptedException {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, "/testFile",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     mFsShell.run("free", "/testFile");
@@ -796,7 +796,7 @@ public class TfsShellTest {
   }
 
   @Test
-  public void freeWildCardTest() throws IOException, TachyonException, Exception {
+  public void freeWildCardTest() throws IOException, TachyonException, InterruptedException {
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
