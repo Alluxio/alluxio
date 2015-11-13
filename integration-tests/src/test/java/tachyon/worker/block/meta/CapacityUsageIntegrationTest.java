@@ -19,11 +19,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -33,7 +34,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 
@@ -43,43 +43,32 @@ public class CapacityUsageIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = Constants.MB;
   private static final int HEARTBEAT_INTERVAL_MS = 30;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+          MEM_CAPACITY_BYTES / 2, Constants.WORKER_TIERED_STORE_LEVELS, "2",
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD",
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1), "/disk1",
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+          String.valueOf(DISK_CAPACITY_BYTES), Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
+          String.valueOf(HEARTBEAT_INTERVAL_MS));
   private TachyonFileSystem mTFS = null;
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.WORKER_TIERED_STORE_LEVELS, "2");
-    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "HDD");
-    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 1),
-        "/disk1");
-    testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-        DISK_CAPACITY_BYTES + "");
-    testConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
-    mLocalTachyonCluster.start(testConf);
-
-    mTFS = mLocalTachyonCluster.getClient();
+    mTFS = mLocalTachyonClusterResource.get().getClient();
   }
 
-  private TachyonFile createAndWriteFile(TachyonURI filePath,
-      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
-      throws IOException, TachyonException {
+  private TachyonFile createAndWriteFile(TachyonURI filePath, TachyonStorageType tachyonStorageType,
+      UnderStorageType underStorageType, int len) throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < len; k ++) {
       buf.put((byte) k);
     }
 
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(tachyonStorageType)
-            .setUnderStorageType(underStorageType).build();
+    OutStreamOptions options = new OutStreamOptions.Builder(new TachyonConf())
+        .setTachyonStorageType(tachyonStorageType).setUnderStorageType(underStorageType).build();
     FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());
     os.close();
@@ -89,17 +78,15 @@ public class CapacityUsageIntegrationTest {
   private void deleteDuringEviction(int i) throws IOException, TachyonException {
     final String fileName1 = "/file" + i + "_1";
     final String fileName2 = "/file" + i + "_2";
-    TachyonFile file1 =
-        createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
-            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile file1 = createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
+        UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES);
     FileInfo fileInfo1 = mTFS.getInfo(file1);
     Assert.assertTrue(fileInfo1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
     mTFS.delete(file1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
-    TachyonFile file2 =
-        createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
-            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 4);
+    TachyonFile file2 = createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
+        UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 4);
     FileInfo fileInfo2 = mTFS.getInfo(file2);
     Assert.assertTrue(fileInfo2.getInMemoryPercentage() == 100);
     mTFS.delete(file2);
