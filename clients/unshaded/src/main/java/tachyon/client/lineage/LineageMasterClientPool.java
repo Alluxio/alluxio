@@ -20,7 +20,7 @@ import java.net.InetSocketAddress;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 
-public class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
+final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
   private static final int CAPACITY = 10;
   private final InetSocketAddress mMasterAddress;
 
