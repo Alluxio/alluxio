@@ -25,13 +25,13 @@ import tachyon.thrift.RawTableInfo;
 
 @PublicApi
 interface TachyonRawTablesCore {
-  SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata) throws IOException,
-      TachyonException;
+  SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
+      throws IOException, TachyonException;
 
   RawTableInfo getInfo(SimpleRawTable rawTable) throws IOException, TachyonException;
 
   SimpleRawTable open(TachyonURI path) throws IOException, TachyonException;
 
-  void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata) throws IOException,
-      TachyonException;
+  void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata)
+      throws IOException, TachyonException;
 }
