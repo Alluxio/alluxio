@@ -29,7 +29,7 @@ import tachyon.thrift.RawTableInfo;
  * master.
  */
 @PublicApi
-public class AbstractTachyonRawTables implements TachyonRawTablesCore {
+public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   protected RawTablesContext mContext;
 
   protected AbstractTachyonRawTables() {
