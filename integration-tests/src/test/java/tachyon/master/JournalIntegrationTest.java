@@ -24,12 +24,14 @@ import java.util.concurrent.Executors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
@@ -57,6 +59,11 @@ import tachyon.util.io.PathUtils;
  * followed by the checkpoint.
  */
 public class JournalIntegrationTest {
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.GB, 100, Constants.GB,
+          Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
   /** Only for raw table API */
@@ -150,17 +157,12 @@ public class JournalIntegrationTest {
    */
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
   }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-        Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start(testConf);
+    mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
     mOldTfs = mLocalTachyonCluster.getOldClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
