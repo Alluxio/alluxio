@@ -36,7 +36,6 @@ import tachyon.util.UnderFileSystemUtils;
  */
 public class UfsUtilsIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
   private TachyonFileSystem mTachyonFileSystem = null;
   private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
@@ -51,7 +50,6 @@ public class UfsUtilsIntegrationTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
 
-    mTfs = mLocalTachyonCluster.getOldClient();
     mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -77,9 +75,9 @@ public class UfsUtilsIntegrationTest {
           mLocalTachyonCluster.getMasterTachyonConf());
     }
 
-    UfsUtils.loadUfs(TachyonFileSystem.TachyonFileSystemFactory.get(), new TachyonURI(
-        TachyonURI.SEPARATOR), new TachyonURI(mUfsRoot + TachyonURI.SEPARATOR), new PrefixList(
-        "tachyon;exclusions", ";"), mLocalTachyonCluster.getMasterTachyonConf());
+    UfsUtils.loadUfs(mTachyonFileSystem, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(
+        mUfsRoot + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
+        mLocalTachyonCluster.getMasterTachyonConf());
 
     List<String> paths;
     for (String exclusion : exclusions) {
