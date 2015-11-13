@@ -59,15 +59,15 @@ public final class BlockMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new BlockMasterService.Client(mProtocol);
-    if (mServerVersion == -1) {
+    if (mServerVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServerVersion = mClient.version();
-        if (!mCompatibleVersions.contains(mServerVersion)) {
-          throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-              Constants.BLOCK_MASTER_SERVICE_VERSION, mServerVersion));
-        }
       } catch (TException e) {
         throw new RuntimeException(e.getMessage());
+      }
+      if (!mCompatibleVersions.contains(mServerVersion)) {
+        throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
+            Constants.BLOCK_MASTER_SERVICE_VERSION, mServerVersion));
       }
     }
   }

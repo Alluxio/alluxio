@@ -118,7 +118,6 @@ public enum ExceptionMessage {
 
   // client
   INCOMPATIBLE_VERSION("Client version {0} is not compatible with server version {1}"),
-  FAILED_TO_OBTAIN_VERSION("Failed to obtain service version: {0}"),
 
   // Tachyon Conf
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Tachyon properties file does not exist"),
