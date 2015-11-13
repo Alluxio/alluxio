@@ -24,7 +24,10 @@ import tachyon.client.RawTableMasterClient;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
-// TODO(calvin): Consider different client options
+/**
+ * Tachyon Raw Table client. This class should be used to interface with the Tachyon Raw Table
+ * master.
+ */
 @PublicApi
 public class AbstractTachyonRawTables implements TachyonRawTablesCore {
   protected RawTablesContext mContext;
@@ -33,6 +36,7 @@ public class AbstractTachyonRawTables implements TachyonRawTablesCore {
     mContext = RawTablesContext.INSTANCE;
   }
 
+  // TODO(calvin): Consider different client options
   @Override
   public SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
       throws IOException, TachyonException {

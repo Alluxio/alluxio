@@ -17,6 +17,11 @@ package tachyon.client.table;
 
 import tachyon.annotation.PublicApi;
 
+/**
+ * An implementation of Tachyon Raw Table client. This is simply a wrapper around
+ * {@link AbstractTachyonRawTables}. Users can obtain an instance of this class by calling
+ * {@link TachyonRawTablesFactory#get()}.
+ */
 @PublicApi
 public class TachyonRawTables extends AbstractTachyonRawTables {
   private static TachyonRawTables sTachyonRawTables;
