@@ -19,6 +19,9 @@ package tachyon.client;
  * Specifies the type of data interaction with Tachyon's Under Storage. This is not applicable for
  * reads. Only writing temporary data is suggested to use type {@link #NO_PERSIST} where writing to
  * Under Storage will be skipped and data may be lost when evicted from Tachyon storage.
+ *
+ * This option is for developers and advanced users. See {@link tachyon.client.WriteType} and
+ * {@link tachyon.client.ReadType}.
  */
 public enum UnderStorageType {
   /** Persist data to Under Storage synchronously. */

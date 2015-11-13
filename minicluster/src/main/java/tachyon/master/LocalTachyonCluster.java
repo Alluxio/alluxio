@@ -167,8 +167,6 @@ public final class LocalTachyonCluster {
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     testConf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
-    testConf.set(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
-    testConf.set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
 
     testConf.set(Constants.WORKER_PORT, Integer.toString(0));
     testConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));

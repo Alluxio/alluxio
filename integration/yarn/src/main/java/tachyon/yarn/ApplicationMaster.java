@@ -106,7 +106,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
       LOG.info("Starting Application Master with args " + Arrays.toString(args));
-      final int numWorkers = Integer.valueOf(args[0]);
+      final int numWorkers = Integer.parseInt(args[0]);
       final String tachyonHome = args[1];
       final String masterAddress = args[2];
       ApplicationMaster applicationMaster =
