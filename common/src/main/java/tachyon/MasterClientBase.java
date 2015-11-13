@@ -49,7 +49,7 @@ public abstract class MasterClientBase extends ClientBase {
     super(masterAddress, tachyonConf, "master");
     mUseZookeeper = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
     mCompatibleVersions = new HashSet<Long>();
-    mServerVersion = -1;
+    mServerVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
 
   /**

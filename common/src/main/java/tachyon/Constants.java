@@ -73,6 +73,7 @@ public final class Constants {
   public static final long RAW_TABLE_MASTER_SERVICE_VERSION = 1;
   public static final String LINEAGE_MASTER_SERVICE_NAME = "LineageMaster";
   public static final long LINEAGE_MASTER_SERVICE_VERSION = 1;
+  public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
