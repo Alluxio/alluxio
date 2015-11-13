@@ -23,11 +23,11 @@ import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
-@PublicApi
 /**
  * User facing interface for the Tachyon Raw Table client APIs. Raw tables are collections of
  * columns stored as files. A column may consist of one or more ordered files.
  */
+@PublicApi
 interface TachyonRawTablesCore {
   /**
    * Creates a new raw table.
