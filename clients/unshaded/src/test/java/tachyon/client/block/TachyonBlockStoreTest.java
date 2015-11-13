@@ -64,6 +64,9 @@ public final class TachyonBlockStoreTest {
       new BlockLocation(WORKER_ID_LOCAL, WORKER_NET_ADDRESS_LOCAL, STORAGE_TIER);
   private static final BlockLocation BLOCK_LOCATION_REMOTE =
       new BlockLocation(WORKER_ID_REMOTE, WORKER_NET_ADDRESS_REMOTE, STORAGE_TIER);
+  /**
+   * {@link BlockInfo} representing a block stored both remotely and locally.
+   */
   private static final BlockInfo BLOCK_INFO = new BlockInfo(BLOCK_ID, BLOCK_LENGTH,
       Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
 
@@ -76,6 +79,16 @@ public final class TachyonBlockStoreTest {
   private BlockMasterClient mMasterClient;
   private WorkerClient mWorkerClient;
 
+  /**
+   * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
+   *
+   * 1. The singleton {@link BlockStoreContext} is replaced with mBlockStoreContext<br>
+   * 2. mBlockStoreContext will return mMasterClient and mWorkerClient when asked for master/worker
+   * clients<br>
+   * 3. mTestFile is created inside mTestFolder<br>
+   * 4. mWorkerClient is made to understand that locking BLOCK_ID should return the path to
+   * mTestFile.
+   */
   @Before
   public void before() throws Exception {
     mTestFile = mTestFolder.newFile("testFile");
@@ -95,6 +108,9 @@ public final class TachyonBlockStoreTest {
         .thenReturn(mWorkerClient);
   }
 
+  /**
+   * Tests getInStream when a local block exists, making sure that the local block is preferred.
+   */
   @Test
   public void testGetInStreamLocal() throws Exception {
     Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
@@ -111,6 +127,10 @@ public final class TachyonBlockStoreTest {
     Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
 
+  /**
+   * Tests getInStream when no local block exists, making sure that the first {@link BlockLocation}
+   * in the {@link BlockInfo} list is chosen.
+   */
   @Test
   public void testGetInStreamRemote() throws Exception {
     Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
