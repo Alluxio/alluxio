@@ -17,8 +17,6 @@ package tachyon;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,6 @@ public abstract class MasterClientBase extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final boolean mUseZookeeper;
-  protected Set<Long> mCompatibleVersions;
   protected long mServiceVersion;
 
   /**
@@ -48,7 +45,6 @@ public abstract class MasterClientBase extends ClientBase {
   public MasterClientBase(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf, "master");
     mUseZookeeper = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
-    mCompatibleVersions = new HashSet<Long>();
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
 

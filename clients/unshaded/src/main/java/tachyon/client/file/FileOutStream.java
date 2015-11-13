@@ -29,7 +29,6 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;

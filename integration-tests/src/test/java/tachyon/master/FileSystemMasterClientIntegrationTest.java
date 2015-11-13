@@ -24,14 +24,14 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 /**
  * Test the internal implementation of tachyon Master via a
- * {@link tachyon.client.FileSystemMasterClient}.
+ * {@link FileSystemMasterClient}.
  *
  * <p>
  */

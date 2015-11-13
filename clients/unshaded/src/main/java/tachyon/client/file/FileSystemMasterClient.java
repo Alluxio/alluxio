@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.client.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
+import tachyon.Version;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
@@ -52,7 +53,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
-    mCompatibleVersions.add(Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION);
   }
 
   @Override
@@ -61,16 +61,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterService.Client(mProtocol);
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServiceVersion = mClient.getServiceVersion();
       } catch (TException e) {
-        throw new RuntimeException(e.getMessage());
+        throw new IOException(e.getMessage());
       }
-      if (!mCompatibleVersions.contains(mServiceVersion)) {
-        throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
+      if (!Version.getCompatibleVersions(getServiceName()).contains(mServiceVersion)) {
+        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
             Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION, mServiceVersion));
       }
     }

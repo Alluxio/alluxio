@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.client.table;
 
 import java.net.InetSocketAddress;
 
@@ -21,26 +21,26 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 
-final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
+public class RawTableMasterClientPool extends ResourcePool<RawTableMasterClient> {
   private final InetSocketAddress mMasterAddress;
 
   /**
-   * Creates a new file stream master client pool.
+   * Creates a new raw table master client pool.
    *
    * @param masterAddress the master address
    */
-  public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS));
+  public RawTableMasterClientPool(InetSocketAddress masterAddress) {
+    super(ClientContext.getConf().getInt(Constants.USER_RAW_TABLE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down
+    // TODO(yupeng): Consider collecting all the clients and shutting them down
   }
 
   @Override
-  protected FileSystemMasterClient createNewResource() {
-    return new FileSystemMasterClient(mMasterAddress, ClientContext.getConf());
+  protected RawTableMasterClient createNewResource() {
+    return new RawTableMasterClient(mMasterAddress, ClientContext.getConf());
   }
 }
