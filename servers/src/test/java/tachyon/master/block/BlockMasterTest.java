@@ -35,10 +35,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import tachyon.collections.IndexedSet;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
-import tachyon.collections.IndexedSet;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
@@ -54,6 +54,7 @@ import tachyon.thrift.WorkerInfo;
 public class BlockMasterTest {
 
   private BlockMaster mMaster;
+  private PrivateAccess mPrivateAccess;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -65,6 +66,7 @@ public class BlockMasterTest {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
     mMaster.start(true);
+    mPrivateAccess = new PrivateAccess(mMaster);
   }
 
   @Test
@@ -98,11 +100,10 @@ public class BlockMasterTest {
   public void getLostWorkersInfoTest() throws Exception {
     MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, new NetAddress("localhost", 80, 81));
     MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, new NetAddress("localhost", 82, 83));
-    IndexedSet<MasterWorkerInfo> lostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
-    lostWorkers.add(workerInfo1);
+    mPrivateAccess.addLostWorker(workerInfo1);
     Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
         mMaster.getLostWorkersInfo());
-    lostWorkers.add(workerInfo2);
+    mPrivateAccess.addLostWorker(workerInfo2);
 
     final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
         workerInfo2.generateClientWorkerInfo());
@@ -115,10 +116,9 @@ public class BlockMasterTest {
     final NetAddress na = new NetAddress("localhost", 80, 81);
     final long expectedId = 1;
     final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
-    IndexedSet<MasterWorkerInfo> lostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
 
     workerInfo1.addBlock(1L);
-    lostWorkers.add(workerInfo1);
+    mPrivateAccess.addLostWorker(workerInfo1);
     final long workerId = mMaster.getWorkerId(na);
     Assert.assertEquals(expectedId, workerId);
 
@@ -155,10 +155,8 @@ public class BlockMasterTest {
   @Test
   public void workerHeartbeatTest() throws Exception {
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
-    IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
 
-    MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
+    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     final Map<String, Long> USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 125L);
     final List<Long> INITIAL_BLOCKS = ImmutableList.of(1L, 2L);
     addWorker(mMaster, workerId, Arrays.asList("MEM"), ImmutableMap.of("MEM", 500L),
@@ -177,8 +175,8 @@ public class BlockMasterTest {
     // block is removed from worker info
     Assert.assertEquals(expectedBlocks, workerInfo.getBlocks());
     // worker is removed from block info
-    Map<Long, MasterBlockInfo> blocks = Whitebox.getInternalState(mMaster, "mBlocks");
-    Assert.assertEquals(ImmutableSet.of(), blocks.get(REMOVED_BLOCK).getWorkers());
+    Assert.assertEquals(ImmutableSet.of(),
+        mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK).getWorkers());
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
 
     // test heartbeat adding back the block
@@ -188,7 +186,8 @@ public class BlockMasterTest {
     // block is restored to worker info
     Assert.assertEquals(ImmutableSet.copyOf(INITIAL_BLOCKS), workerInfo.getBlocks());
     // worker is restored to block info
-    Assert.assertEquals(ImmutableSet.of(workerId), blocks.get(REMOVED_BLOCK).getWorkers());
+    Assert.assertEquals(ImmutableSet.of(workerId),
+        mPrivateAccess.getMasterBlockInfo(REMOVED_BLOCK).getWorkers());
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
 
     // test heartbeat where the master tells the worker to remove a block
@@ -203,10 +202,8 @@ public class BlockMasterTest {
   @Test
   public void heartbeatStatusTest() throws Exception {
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
-    IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
 
-    MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
+    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     final Map<String, Long> INITIAL_USED_BYTES_ON_TIERS =
         ImmutableMap.of("MEM", 25L, "SSD", 50L, "HDD", 125L);
     addWorker(mMaster, workerId, Arrays.asList("MEM", "SSD", "HDD"),
@@ -235,12 +232,10 @@ public class BlockMasterTest {
   @Test
   public void detectLostWorkerTest() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
-    IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(mMaster, "mWorkers");
-    IndexedSet.FieldIndex<MasterWorkerInfo> idIdx = Whitebox.getInternalState(mMaster, "mIdIndex");
 
     // Get a new worker id.
     long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    MasterWorkerInfo workerInfo = workers.getFirstByField(idIdx, workerId);
+    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     Assert.assertNotNull(workerInfo);
 
     // Run the lost worker detector.
@@ -250,9 +245,10 @@ public class BlockMasterTest {
 
     // No workers should be considered lost.
     Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
-    Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
+    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
 
     // Set the last updated time for the worker to be definitely too old, so it is considered lost.
+    // TODO(andrew): Create a src/test PublicAccess to MasterWorkerInfo internals and replace this
     Whitebox.setInternalState(workerInfo, "mLastUpdatedTimeMs", 0);
 
     // Run the lost worker detector.
@@ -262,11 +258,11 @@ public class BlockMasterTest {
 
     // There should be a lost worker.
     Assert.assertEquals(1, mMaster.getLostWorkersInfo().size());
-    Assert.assertNull(workers.getFirstByField(idIdx, workerId));
+    Assert.assertNull(mPrivateAccess.getWorkerById(workerId));
 
     // Get the worker id again, simulating the lost worker re-registering.
     workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
+    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
 
     // Run the lost worker detector.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
@@ -275,7 +271,7 @@ public class BlockMasterTest {
 
     // No workers should be considered lost.
     Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
-    Assert.assertNotNull(workers.getFirstByField(idIdx, workerId));
+    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
   }
 
   private void addWorker(BlockMaster master, long workerId, List<String> storageTierAliases,
@@ -283,5 +279,53 @@ public class BlockMasterTest {
           throws TachyonException {
     master.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
         Maps.<String, List<Long>>newHashMap());
+  }
+
+  /** Private access to BlockMaster internals. */
+  private class PrivateAccess {
+    private final Map<Long, MasterBlockInfo> mBlocks;
+    private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;
+    private final IndexedSet<MasterWorkerInfo> mLostWorkers;
+    private final IndexedSet<MasterWorkerInfo> mWorkers;
+
+    PrivateAccess(BlockMaster blockMaster) {
+      mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
+      mIdIndex = Whitebox.getInternalState(mMaster, "mIdIndex");
+      mLostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
+      mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
+    }
+
+    /**
+     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
+     */
+    private void addLostWorker(MasterWorkerInfo worker) {
+      synchronized (mWorkers) {
+        mLostWorkers.add(worker);
+      }
+    }
+
+    /**
+     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
+     *
+     * @param workerId the worker ID to look up
+     * @return the {@link MasterWorkerInfo} for the given workerId
+     */
+    private MasterWorkerInfo getWorkerById(long workerId) {
+      synchronized (mWorkers) {
+        return mWorkers.getFirstByField(mIdIndex, workerId);
+      }
+    }
+
+    /**
+     * Looks up the {@link MasterBlockInfo} for the given block ID.
+     *
+     * @param blockId the block ID
+     * @return the {@link MasterBlockInfo}
+     */
+    public MasterBlockInfo getMasterBlockInfo(long blockId) {
+      synchronized (mBlocks) {
+        return mBlocks.get(blockId);
+      }
+    }
   }
 }
