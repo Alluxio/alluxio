@@ -59,15 +59,15 @@ public final class LineageMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new LineageMasterService.Client(mProtocol);
-    if (mServerVersion == Constants.UNKNOWN_SERVICE_VERSION) {
+    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
-        mServerVersion = mClient.version();
+        mServiceVersion = mClient.getServiceVersion();
       } catch (TException e) {
         throw new RuntimeException(e.getMessage());
       }
-      if (!mCompatibleVersions.contains(mServerVersion)) {
+      if (!mCompatibleVersions.contains(mServiceVersion)) {
         throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-            Constants.LINEAGE_MASTER_SERVICE_VERSION, mServerVersion));
+            Constants.LINEAGE_MASTER_SERVICE_VERSION, mServiceVersion));
       }
     }
   }

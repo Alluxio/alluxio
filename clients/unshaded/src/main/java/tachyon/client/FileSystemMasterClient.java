@@ -63,15 +63,15 @@ public final class FileSystemMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterService.Client(mProtocol);
-    if (mServerVersion == Constants.UNKNOWN_SERVICE_VERSION) {
+    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
-        mServerVersion = mClient.version();
+        mServiceVersion = mClient.getServiceVersion();
       } catch (TException e) {
         throw new RuntimeException(e.getMessage());
       }
-      if (!mCompatibleVersions.contains(mServerVersion)) {
+      if (!mCompatibleVersions.contains(mServiceVersion)) {
         throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-            Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION, mServerVersion));
+            Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION, mServiceVersion));
       }
     }
   }

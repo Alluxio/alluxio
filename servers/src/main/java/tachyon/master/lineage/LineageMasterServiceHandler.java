@@ -40,7 +40,7 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public long version() {
+  public long getServiceVersion() {
     return Constants.LINEAGE_MASTER_SERVICE_VERSION;
   }
 

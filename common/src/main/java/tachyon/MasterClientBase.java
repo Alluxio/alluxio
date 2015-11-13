@@ -37,7 +37,7 @@ public abstract class MasterClientBase extends ClientBase {
 
   protected final boolean mUseZookeeper;
   protected Set<Long> mCompatibleVersions;
-  protected long mServerVersion;
+  protected long mServiceVersion;
 
   /**
    * Creates a new master client base.
@@ -49,7 +49,7 @@ public abstract class MasterClientBase extends ClientBase {
     super(masterAddress, tachyonConf, "master");
     mUseZookeeper = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
     mCompatibleVersions = new HashSet<Long>();
-    mServerVersion = Constants.UNKNOWN_SERVICE_VERSION;
+    mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
 
   /**

@@ -59,15 +59,15 @@ public final class RawTableMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new RawTableMasterService.Client(mProtocol);
-    if (mServerVersion == Constants.UNKNOWN_SERVICE_VERSION) {
+    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
-        mServerVersion = mClient.version();
+        mServiceVersion = mClient.getServiceVersion();
       } catch (TException e) {
         throw new RuntimeException(e.getMessage());
       }
-      if (!mCompatibleVersions.contains(mServerVersion)) {
+      if (!mCompatibleVersions.contains(mServiceVersion)) {
         throw new RuntimeException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-            Constants.RAW_TABLE_MASTER_SERVICE_VERSION, mServerVersion));
+            Constants.RAW_TABLE_MASTER_SERVICE_VERSION, mServiceVersion));
       }
     }
   }
