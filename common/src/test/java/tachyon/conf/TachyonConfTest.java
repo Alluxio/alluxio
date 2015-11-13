@@ -102,7 +102,7 @@ public class TachyonConfTest {
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     Assert.assertEquals(Constants.MB * 5, longBytesValue);
 
-    int maxTry = sDefaultTachyonConf.getInt(Constants.ZOOKEEPER_LEADER_RETRY_COUNT);
+    int maxTry = sDefaultTachyonConf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
     Assert.assertEquals(10, maxTry);
   }
 

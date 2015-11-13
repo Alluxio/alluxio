@@ -111,7 +111,8 @@ public final class Constants {
   public static final String ZOOKEEPER_ADDRESS = "tachyon.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "tachyon.zookeeper.election.path";
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
-  public static final String ZOOKEEPER_LEADER_RETRY_COUNT = "tachyon.zookeeper.leader.retry";
+  public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
+      "tachyon.zookeeper.leader.inquiry.retry";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
