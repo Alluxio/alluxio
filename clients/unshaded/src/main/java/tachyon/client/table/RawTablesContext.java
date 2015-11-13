@@ -18,23 +18,47 @@ package tachyon.client.table;
 import tachyon.client.ClientContext;
 import tachyon.client.RawTableMasterClient;
 
+/**
+ * A shared context in each client JVM for common Raw Table client functionality such as a pool of
+ * master clients. This class is thread safe.
+ */
 public enum RawTablesContext {
   INSTANCE;
 
+  /** Pool of raw table master clients. */
   private RawTableMasterClientPool mRawTableMasterClientPool;
 
+  /**
+   * Creates a new Raw Table Context.
+   */
   RawTablesContext() {
     mRawTableMasterClientPool = new RawTableMasterClientPool(ClientContext.getMasterAddress());
   }
 
+  /**
+   * Acquires a Raw Table master client from the pool. If all clients are being utilized, this
+   * call will block until one is free. The client must be released by the caller after they have
+   * finished using it.
+   *
+   * @return a raw table master client
+   */
   public RawTableMasterClient acquireMasterClient() {
     return mRawTableMasterClientPool.acquire();
   }
 
+  /**
+   * Returns a Raw Table master client to the client pool. The client should not be accessed by
+   * the caller after this method.
+   *
+   * @param masterClient the raw table master client to return
+   */
   public void releaseMasterClient(RawTableMasterClient masterClient) {
     mRawTableMasterClientPool.release(masterClient);
   }
 
+  /**
+   * Re-initializes the raw table context. This should only be called by {@link ClientContext}
+   */
   // TODO(calvin): Rethink resetting contexts outside of test cases
   public void reset() {
     mRawTableMasterClientPool.close();

@@ -23,12 +23,23 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public class SimpleRawTable {
+
+  /** Id of the raw table, which uniquely identifies this table */
   private final long mRawTableId;
 
+  /**
+   * Creates a raw table which is used as a handler for accessing raw tables in
+   * {@link TachyonRawTables}
+   *
+   * @param rawTableId the id of the raw table
+   */
   public SimpleRawTable(long rawTableId) {
     mRawTableId = rawTableId;
   }
 
+  /**
+   * @return the id of the raw table.
+   */
   public long getRawTableId() {
     return mRawTableId;
   }
