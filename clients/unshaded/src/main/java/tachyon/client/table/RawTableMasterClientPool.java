@@ -22,7 +22,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.RawTableMasterClient;
 import tachyon.resource.ResourcePool;
 
-public class RawTableMasterClientPool extends ResourcePool<RawTableMasterClient> {
+final class RawTableMasterClientPool extends ResourcePool<RawTableMasterClient> {
   private final InetSocketAddress mMasterAddress;
 
   public RawTableMasterClientPool(InetSocketAddress masterAddress) {
