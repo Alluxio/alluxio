@@ -83,7 +83,7 @@ public class BlockServiceHandlerIntegrationTest {
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.get().getMasterHostname(),
             mLocalTachyonCluster.get().getMasterPort()), mWorkerTachyonConf);
   }
-  
+
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
