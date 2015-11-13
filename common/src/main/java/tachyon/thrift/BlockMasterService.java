@@ -39,7 +39,7 @@ public class BlockMasterService {
 
   public interface Iface {
 
-    public long version() throws org.apache.thrift.TException;
+    public long getServiceVersion() throws org.apache.thrift.TException;
 
     public tachyon.thrift.BlockInfo getBlockInfo(long blockId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -61,7 +61,7 @@ public class BlockMasterService {
 
   public interface AsyncIface {
 
-    public void version(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getServiceVersion(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getBlockInfo(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -101,26 +101,26 @@ public class BlockMasterService {
       super(iprot, oprot);
     }
 
-    public long version() throws org.apache.thrift.TException
+    public long getServiceVersion() throws org.apache.thrift.TException
     {
-      send_version();
-      return recv_version();
+      send_getServiceVersion();
+      return recv_getServiceVersion();
     }
 
-    public void send_version() throws org.apache.thrift.TException
+    public void send_getServiceVersion() throws org.apache.thrift.TException
     {
-      version_args args = new version_args();
-      sendBase("version", args);
+      getServiceVersion_args args = new getServiceVersion_args();
+      sendBase("getServiceVersion", args);
     }
 
-    public long recv_version() throws org.apache.thrift.TException
+    public long recv_getServiceVersion() throws org.apache.thrift.TException
     {
-      version_result result = new version_result();
-      receiveBase(result, "version");
+      getServiceVersion_result result = new getServiceVersion_result();
+      receiveBase(result, "getServiceVersion");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "version failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getServiceVersion failed: unknown result");
     }
 
     public tachyon.thrift.BlockInfo getBlockInfo(long blockId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
@@ -333,21 +333,21 @@ public class BlockMasterService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void version(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getServiceVersion(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      version_call method_call = new version_call(resultHandler, this, ___protocolFactory, ___transport);
+      getServiceVersion_call method_call = new getServiceVersion_call(resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class version_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public version_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getServiceVersion_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public getServiceVersion_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("version", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        version_args args = new version_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getServiceVersion", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getServiceVersion_args args = new getServiceVersion_args();
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -358,7 +358,7 @@ public class BlockMasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_version();
+        return (new Client(prot)).recv_getServiceVersion();
       }
     }
 
@@ -655,7 +655,7 @@ public class BlockMasterService {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
-      processMap.put("version", new version());
+      processMap.put("getServiceVersion", new getServiceVersion());
       processMap.put("getBlockInfo", new getBlockInfo());
       processMap.put("getCapacityBytes", new getCapacityBytes());
       processMap.put("getUsedBytes", new getUsedBytes());
@@ -667,22 +667,22 @@ public class BlockMasterService {
       return processMap;
     }
 
-    public static class version<I extends Iface> extends org.apache.thrift.ProcessFunction<I, version_args> {
-      public version() {
-        super("version");
+    public static class getServiceVersion<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getServiceVersion_args> {
+      public getServiceVersion() {
+        super("getServiceVersion");
       }
 
-      public version_args getEmptyArgsInstance() {
-        return new version_args();
+      public getServiceVersion_args getEmptyArgsInstance() {
+        return new getServiceVersion_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public version_result getResult(I iface, version_args args) throws org.apache.thrift.TException {
-        version_result result = new version_result();
-        result.success = iface.version();
+      public getServiceVersion_result getResult(I iface, getServiceVersion_args args) throws org.apache.thrift.TException {
+        getServiceVersion_result result = new getServiceVersion_result();
+        result.success = iface.getServiceVersion();
         result.setSuccessIsSet(true);
         return result;
       }
@@ -872,7 +872,7 @@ public class BlockMasterService {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
-      processMap.put("version", new version());
+      processMap.put("getServiceVersion", new getServiceVersion());
       processMap.put("getBlockInfo", new getBlockInfo());
       processMap.put("getCapacityBytes", new getCapacityBytes());
       processMap.put("getUsedBytes", new getUsedBytes());
@@ -884,20 +884,20 @@ public class BlockMasterService {
       return processMap;
     }
 
-    public static class version<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, version_args, Long> {
-      public version() {
-        super("version");
+    public static class getServiceVersion<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getServiceVersion_args, Long> {
+      public getServiceVersion() {
+        super("getServiceVersion");
       }
 
-      public version_args getEmptyArgsInstance() {
-        return new version_args();
+      public getServiceVersion_args getEmptyArgsInstance() {
+        return new getServiceVersion_args();
       }
 
       public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Long>() { 
           public void onComplete(Long o) {
-            version_result result = new version_result();
+            getServiceVersion_result result = new getServiceVersion_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -911,7 +911,7 @@ public class BlockMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            version_result result = new version_result();
+            getServiceVersion_result result = new getServiceVersion_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -931,8 +931,8 @@ public class BlockMasterService {
         return false;
       }
 
-      public void start(I iface, version_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.version(resultHandler);
+      public void start(I iface, getServiceVersion_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
+        iface.getServiceVersion(resultHandler);
       }
     }
 
@@ -1359,14 +1359,14 @@ public class BlockMasterService {
 
   }
 
-  public static class version_args implements org.apache.thrift.TBase<version_args, version_args._Fields>, java.io.Serializable, Cloneable, Comparable<version_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("version_args");
+  public static class getServiceVersion_args implements org.apache.thrift.TBase<getServiceVersion_args, getServiceVersion_args._Fields>, java.io.Serializable, Cloneable, Comparable<getServiceVersion_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getServiceVersion_args");
 
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new version_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new version_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getServiceVersion_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getServiceVersion_argsTupleSchemeFactory());
     }
 
 
@@ -1429,20 +1429,20 @@ public class BlockMasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(version_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getServiceVersion_args.class, metaDataMap);
     }
 
-    public version_args() {
+    public getServiceVersion_args() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public version_args(version_args other) {
+    public getServiceVersion_args(getServiceVersion_args other) {
     }
 
-    public version_args deepCopy() {
-      return new version_args(this);
+    public getServiceVersion_args deepCopy() {
+      return new getServiceVersion_args(this);
     }
 
     @Override
@@ -1475,12 +1475,12 @@ public class BlockMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof version_args)
-        return this.equals((version_args)that);
+      if (that instanceof getServiceVersion_args)
+        return this.equals((getServiceVersion_args)that);
       return false;
     }
 
-    public boolean equals(version_args that) {
+    public boolean equals(getServiceVersion_args that) {
       if (that == null)
         return false;
 
@@ -1495,7 +1495,7 @@ public class BlockMasterService {
     }
 
     @Override
-    public int compareTo(version_args other) {
+    public int compareTo(getServiceVersion_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1519,7 +1519,7 @@ public class BlockMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("version_args(");
+      StringBuilder sb = new StringBuilder("getServiceVersion_args(");
       boolean first = true;
 
       sb.append(")");
@@ -1547,15 +1547,15 @@ public class BlockMasterService {
       }
     }
 
-    private static class version_argsStandardSchemeFactory implements SchemeFactory {
-      public version_argsStandardScheme getScheme() {
-        return new version_argsStandardScheme();
+    private static class getServiceVersion_argsStandardSchemeFactory implements SchemeFactory {
+      public getServiceVersion_argsStandardScheme getScheme() {
+        return new getServiceVersion_argsStandardScheme();
       }
     }
 
-    private static class version_argsStandardScheme extends StandardScheme<version_args> {
+    private static class getServiceVersion_argsStandardScheme extends StandardScheme<getServiceVersion_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, version_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getServiceVersion_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1576,7 +1576,7 @@ public class BlockMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, version_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getServiceVersion_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1586,36 +1586,36 @@ public class BlockMasterService {
 
     }
 
-    private static class version_argsTupleSchemeFactory implements SchemeFactory {
-      public version_argsTupleScheme getScheme() {
-        return new version_argsTupleScheme();
+    private static class getServiceVersion_argsTupleSchemeFactory implements SchemeFactory {
+      public getServiceVersion_argsTupleScheme getScheme() {
+        return new getServiceVersion_argsTupleScheme();
       }
     }
 
-    private static class version_argsTupleScheme extends TupleScheme<version_args> {
+    private static class getServiceVersion_argsTupleScheme extends TupleScheme<getServiceVersion_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, version_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getServiceVersion_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, version_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getServiceVersion_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
 
   }
 
-  public static class version_result implements org.apache.thrift.TBase<version_result, version_result._Fields>, java.io.Serializable, Cloneable, Comparable<version_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("version_result");
+  public static class getServiceVersion_result implements org.apache.thrift.TBase<getServiceVersion_result, getServiceVersion_result._Fields>, java.io.Serializable, Cloneable, Comparable<getServiceVersion_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getServiceVersion_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new version_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new version_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getServiceVersion_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getServiceVersion_resultTupleSchemeFactory());
     }
 
     public long success; // required
@@ -1687,13 +1687,13 @@ public class BlockMasterService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(version_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getServiceVersion_result.class, metaDataMap);
     }
 
-    public version_result() {
+    public getServiceVersion_result() {
     }
 
-    public version_result(
+    public getServiceVersion_result(
       long success)
     {
       this();
@@ -1704,13 +1704,13 @@ public class BlockMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public version_result(version_result other) {
+    public getServiceVersion_result(getServiceVersion_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
     }
 
-    public version_result deepCopy() {
-      return new version_result(this);
+    public getServiceVersion_result deepCopy() {
+      return new getServiceVersion_result(this);
     }
 
     @Override
@@ -1723,7 +1723,7 @@ public class BlockMasterService {
       return this.success;
     }
 
-    public version_result setSuccess(long success) {
+    public getServiceVersion_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -1781,12 +1781,12 @@ public class BlockMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof version_result)
-        return this.equals((version_result)that);
+      if (that instanceof getServiceVersion_result)
+        return this.equals((getServiceVersion_result)that);
       return false;
     }
 
-    public boolean equals(version_result that) {
+    public boolean equals(getServiceVersion_result that) {
       if (that == null)
         return false;
 
@@ -1815,7 +1815,7 @@ public class BlockMasterService {
     }
 
     @Override
-    public int compareTo(version_result other) {
+    public int compareTo(getServiceVersion_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1849,7 +1849,7 @@ public class BlockMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("version_result(");
+      StringBuilder sb = new StringBuilder("getServiceVersion_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -1882,15 +1882,15 @@ public class BlockMasterService {
       }
     }
 
-    private static class version_resultStandardSchemeFactory implements SchemeFactory {
-      public version_resultStandardScheme getScheme() {
-        return new version_resultStandardScheme();
+    private static class getServiceVersion_resultStandardSchemeFactory implements SchemeFactory {
+      public getServiceVersion_resultStandardScheme getScheme() {
+        return new getServiceVersion_resultStandardScheme();
       }
     }
 
-    private static class version_resultStandardScheme extends StandardScheme<version_result> {
+    private static class getServiceVersion_resultStandardScheme extends StandardScheme<getServiceVersion_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, version_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getServiceVersion_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1919,7 +1919,7 @@ public class BlockMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, version_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getServiceVersion_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1934,16 +1934,16 @@ public class BlockMasterService {
 
     }
 
-    private static class version_resultTupleSchemeFactory implements SchemeFactory {
-      public version_resultTupleScheme getScheme() {
-        return new version_resultTupleScheme();
+    private static class getServiceVersion_resultTupleSchemeFactory implements SchemeFactory {
+      public getServiceVersion_resultTupleScheme getScheme() {
+        return new getServiceVersion_resultTupleScheme();
       }
     }
 
-    private static class version_resultTupleScheme extends TupleScheme<version_result> {
+    private static class getServiceVersion_resultTupleScheme extends TupleScheme<getServiceVersion_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, version_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getServiceVersion_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -1956,7 +1956,7 @@ public class BlockMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, version_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getServiceVersion_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

@@ -42,7 +42,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long version() {
+  public long getServiceVersion() {
     return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
   }
 
