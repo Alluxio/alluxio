@@ -64,9 +64,7 @@ public final class TachyonBlockStoreTest {
       new BlockLocation(WORKER_ID_LOCAL, WORKER_NET_ADDRESS_LOCAL, STORAGE_TIER);
   private static final BlockLocation BLOCK_LOCATION_REMOTE =
       new BlockLocation(WORKER_ID_REMOTE, WORKER_NET_ADDRESS_REMOTE, STORAGE_TIER);
-  /**
-   * {@link BlockInfo} representing a block stored both remotely and locally.
-   */
+  /** {@link BlockInfo} representing a block stored both remotely and locally. */
   private static final BlockInfo BLOCK_INFO = new BlockInfo(BLOCK_ID, BLOCK_LENGTH,
       Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
 
