@@ -23,7 +23,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.exception.FileAlreadyCompletesException;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.BlockInfoException;
 
@@ -68,8 +68,8 @@ public final class InodeFileTest extends AbstractInodeTest {
 
   @Test
   public void setLengthAfterCompleteTest() throws Exception {
-    mThrown.expect(FileAlreadyCompletesException.class);
-    mThrown.expectMessage("File testFile1 has already been completed.");
+    mThrown.expect(FileAlreadyCompletedException.class);
+    mThrown.expectMessage("InodeFile has been completed.");
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.complete(LENGTH);
     inodeFile.complete(LENGTH);
