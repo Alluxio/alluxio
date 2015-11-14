@@ -21,11 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 
 /**
  * Common utilities shared by all components in Tachyon.
  */
 public final class CommonUtils {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * @return current time in milliseconds
@@ -112,6 +117,13 @@ public final class CommonUtils {
    */
   public static void warmUpLoop() {
     for (int k = 0; k < 10000000; k ++) {}
+  }
+
+  /**
+   * returns the centralized logger so that we dont have to create a logger for each class
+   */
+  public static Logger getLogger() {
+    return LOG;
   }
 
   /**
