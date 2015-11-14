@@ -15,32 +15,32 @@
 
 package tachyon.client.table;
 
-import java.net.InetSocketAddress;
+import tachyon.annotation.PublicApi;
 
-import tachyon.Constants;
-import tachyon.client.ClientContext;
-import tachyon.resource.ResourcePool;
+/**
+ * Tachyon provides native support for tables with multiple columns. Each table contains one or more
+ * columns. Each column contains one or more ordered files.
+ */
+@PublicApi
+public class SimpleRawTable {
 
-public class RawTableMasterClientPool extends ResourcePool<RawTableMasterClient> {
-  private final InetSocketAddress mMasterAddress;
+  /** Id of the raw table, which uniquely identifies this table */
+  private final long mRawTableId;
 
   /**
-   * Creates a new raw table master client pool.
+   * Creates a raw table which is used as a handler for accessing raw tables in
+   * {@link TachyonRawTables}
    *
-   * @param masterAddress the master address
+   * @param rawTableId the id of the raw table
    */
-  public RawTableMasterClientPool(InetSocketAddress masterAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_RAW_TABLE_MASTER_CLIENT_THREADS));
-    mMasterAddress = masterAddress;
+  public SimpleRawTable(long rawTableId) {
+    mRawTableId = rawTableId;
   }
 
-  @Override
-  public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down
-  }
-
-  @Override
-  protected RawTableMasterClient createNewResource() {
-    return new RawTableMasterClient(mMasterAddress, ClientContext.getConf());
+  /**
+   * @return the id of the raw table
+   */
+  public long getRawTableId() {
+    return mRawTableId;
   }
 }
