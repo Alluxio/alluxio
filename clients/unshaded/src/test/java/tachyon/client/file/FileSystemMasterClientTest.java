@@ -17,12 +17,14 @@ package tachyon.client.file;
 
 import java.io.IOException;
 
+import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
@@ -38,15 +40,15 @@ public class FileSystemMasterClientTest {
     // Client context needs to be initialized before the file system context can be used.
     ClientContext.reset();
 
+    FileSystemMasterService.Client mock = PowerMockito.mock(FileSystemMasterService.Client.class);
+    PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
     FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-    FileSystemMasterService.Client mockClient =
-        PowerMockito.mock(FileSystemMasterService.Client.class);
-    PowerMockito.whenNew(FileSystemMasterService.Client.class).withAnyArguments()
-        .thenReturn(mockClient);
-    PowerMockito.when(mockClient.getServiceVersion()).thenReturn(0L);
+    TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
+    Whitebox.setInternalState(client, "mProtocol", mockProtocol);
+    PowerMockito.whenNew(FileSystemMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     try {
-      client.connect();
+      client.afterConnect();
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
