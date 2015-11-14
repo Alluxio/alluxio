@@ -165,7 +165,7 @@ public abstract class MasterBase implements Master {
   protected boolean isLeaderMode() {
     return mIsLeader;
   }
-  
+
   protected boolean isStandbyMode() {
     return !mIsLeader;
   }
