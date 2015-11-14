@@ -34,7 +34,7 @@ public enum ChannelType {
    * otherwise {@link #NIO}.
    * </p>
    *
-   * @return a ChannelType compatible with the host
+   * @return a {@link ChannelType} compatible with the host
    */
   public static ChannelType defaultType() {
     if (Epoll.isAvailable()) {
