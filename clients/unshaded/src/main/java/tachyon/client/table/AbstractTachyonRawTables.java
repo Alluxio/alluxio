@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.RawTableMasterClient;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
