@@ -17,12 +17,14 @@ package tachyon.client.block;
 
 import java.io.IOException;
 
+import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
@@ -38,13 +40,15 @@ public class BlockMasterClientTest {
     // Client context needs to be initialized before the block store context can be used.
     ClientContext.reset();
 
+    BlockMasterService.Client mock = PowerMockito.mock(BlockMasterService.Client.class);
+    PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
     BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
-    BlockMasterService.Client mockClient = PowerMockito.mock(BlockMasterService.Client.class);
-    PowerMockito.whenNew(BlockMasterService.Client.class).withAnyArguments().thenReturn(mockClient);
-    PowerMockito.when(mockClient.getServiceVersion()).thenReturn(0L);
+    TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
+    Whitebox.setInternalState(client, "mProtocol", mockProtocol);
+    PowerMockito.whenNew(BlockMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     try {
-      client.connect();
+      client.afterConnect();
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
