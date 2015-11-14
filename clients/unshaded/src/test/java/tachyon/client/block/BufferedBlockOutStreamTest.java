@@ -107,4 +107,14 @@ public class BufferedBlockOutStreamTest {
     mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK);
     mTestStream.write(0);
   }
+
+  @Test
+  public void doubleFlush() throws Exception {
+    mTestStream.write(INCREASING_BYTES, 1, 10);
+    Assert.assertEquals(0, mTestStream.getBytesFlushed());
+    mTestStream.flush();
+    Assert.assertEquals(10, mTestStream.getBytesFlushed());
+    mTestStream.flush();
+    Assert.assertEquals(10, mTestStream.getBytesFlushed());
+  }
 }
