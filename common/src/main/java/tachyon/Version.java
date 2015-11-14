@@ -23,7 +23,7 @@ import tachyon.conf.TachyonConf;
 public final class Version {
   public static final String VERSION;
 
-  private Version(){}
+  private Version() {}
 
   static {
     TachyonConf tachyonConf = new TachyonConf();
