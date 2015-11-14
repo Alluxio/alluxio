@@ -42,7 +42,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
   /**
    * @return all data which has even been written through the stream via write()
    */
-  public byte[] getDataWritten() {
+  public byte[] getWrittenData() {
     flush();
     return Arrays.copyOfRange(mDataWritten.array(), 0, (int) mWrittenBytes);
   }
@@ -51,11 +51,11 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
     mWrittenBytes = numBytes;
   }
 
-  public int getBytesWritten() {
+  public int getWrittenBytes() {
     return (int) mWrittenBytes;
   }
 
-  public int getBytesFlushed() {
+  public int getFlushedBytes() {
     return (int) mFlushedBytes;
   }
 
