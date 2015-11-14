@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.exception.InvalidFileSizeException;
-import tachyon.exception.FileAlreadyCompletesException;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.BlockInfoException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
@@ -262,9 +262,9 @@ public final class InodeFile extends Inode {
    * @throws InvalidFileSizeException
    */
   public synchronized void setLength(long length)
-      throws InvalidFileSizeException, FileAlreadyCompletesException {
+      throws InvalidFileSizeException, FileAlreadyCompletedException {
     if (mCompleted) {
-      throw new FileAlreadyCompletesException("File " + getName() + " has already been completed.");
+      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
     if (length < 0) {
       throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");

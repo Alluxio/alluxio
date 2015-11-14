@@ -45,7 +45,7 @@ import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.FileAlreadyCompletesException;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.PreconditionMessage;
@@ -1208,13 +1208,13 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
    * @throws InvalidPathException if invalid path is encountered
    * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletesException if setting length on a file that already completes
+   * @throws FileAlreadyCompletedException if the file is already completed
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletesException,
+      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException,
       IOException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {

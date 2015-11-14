@@ -15,26 +15,26 @@
 
 package tachyon.exception;
 
-public class FileAlreadyCompletesException extends TachyonException {
+public class FileAlreadyCompletedException extends TachyonException {
   private static final long serialVersionUID = -623565413624572542L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.FILE_ALREADY_COMPLETES;
 
-  public FileAlreadyCompletesException(String message) {
+  public FileAlreadyCompletedException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
-  public FileAlreadyCompletesException(String message, Throwable cause) {
+  public FileAlreadyCompletedException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
-  public FileAlreadyCompletesException(ExceptionMessage message, Object... params) {
+  public FileAlreadyCompletedException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
-  public FileAlreadyCompletesException(ExceptionMessage message,
-      Throwable cause, Object... params) {
+  public FileAlreadyCompletedException(ExceptionMessage message,
+                                       Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 }
