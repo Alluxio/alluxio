@@ -45,7 +45,7 @@ import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.FileAlreadyCompletesException;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.PreconditionMessage;
@@ -249,14 +249,14 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the file id
    * @param length the length of the file
    * @return true on success
-   * @throws InvalidFileSizeException
-   * @throws BlockInfoException
-   * @throws FileDoesNotExistException
-   * @throws FileAlreadyCompletesException if setting length on a file that already completes
+   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws BlockInfoException if an invalid block size is encountered
+   * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
+   * @throws FileAlreadyCompletedException if the file is already completed
    */
   public boolean persistFile(long fileId, long length)
       throws InvalidFileSizeException, BlockInfoException, FileDoesNotExistException,
-      FileAlreadyCompletesException {
+          FileAlreadyCompletedException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       if (persistFileInternal(fileId, length, opTimeMs)) {
@@ -273,7 +273,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the operation should be written to the journal
    */
   boolean persistFileInternal(long fileId, long length, long opTimeMs)
-      throws InvalidFileSizeException, FileDoesNotExistException, FileAlreadyCompletesException {
+      throws InvalidFileSizeException, FileDoesNotExistException, FileAlreadyCompletedException {
 
     Inode inode = mInodeTree.getInodeById(fileId);
     if (inode.isDirectory()) {
@@ -318,7 +318,7 @@ public final class FileSystemMaster extends MasterBase {
       throw new RuntimeException(fdnee);
     } catch (InvalidFileSizeException ifse) {
       throw new RuntimeException(ifse);
-    } catch (FileAlreadyCompletesException face) {
+    } catch (FileAlreadyCompletedException face) {
       throw new RuntimeException(face);
     }
   }
@@ -1269,13 +1269,13 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
    * @throws InvalidPathException if invalid path is encountered
    * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws FileAlreadyCompletesException if setting length on a file that already completes
+   * @throws FileAlreadyCompletedException if the file is already completed
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletesException,
+      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException,
       IOException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
