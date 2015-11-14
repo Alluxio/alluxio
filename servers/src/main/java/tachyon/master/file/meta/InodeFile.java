@@ -15,6 +15,7 @@
 
 package tachyon.master.file.meta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,6 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
-import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
