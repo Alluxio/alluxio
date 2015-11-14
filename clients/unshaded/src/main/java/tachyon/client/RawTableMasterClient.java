@@ -31,6 +31,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 /**
  * A wrapper for the thrift client to interact with the raw table master, used by tachyon clients.
@@ -66,6 +67,8 @@ public final class RawTableMasterClient extends MasterClientBase {
   /**
    * Creates a raw table. A table is a directory with sub-directories representing columns.
    *
+   * This method does not use retries because it is not idempotent.
+   *
    * @param path the path where the table is placed
    * @param columns the number of columns in the table, must be in range (0, tachyon.max.columns)
    * @param metadata additional metadata about the table, cannot be null
@@ -75,12 +78,16 @@ public final class RawTableMasterClient extends MasterClientBase {
    */
   public synchronized long createRawTable(final TachyonURI path, final int columns,
       final ByteBuffer metadata) throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
-      @Override
-      public Long call() throws TachyonTException, TException {
-        return mClient.createRawTable(path.getPath(), columns, metadata);
-      }
-    });
+    connect();
+    try {
+      return mClient.createRawTable(path.getPath(), columns, metadata);
+    } catch (TachyonTException e) {
+      throw TachyonException.from(e);
+    } catch (ThriftIOException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
