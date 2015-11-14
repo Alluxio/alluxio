@@ -39,10 +39,10 @@ public final class LeaderInquireClient {
       new HashMap<String, LeaderInquireClient>();
 
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath) {
+      String leaderPath, TachyonConf tachyonConf) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, tachyonConf));
     }
     return sCreatedClients.get(key);
   }
@@ -52,7 +52,7 @@ public final class LeaderInquireClient {
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
-  private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
+  private LeaderInquireClient(String zookeeperAddress, String leaderPath, TachyonConf tachyonConf) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
@@ -61,7 +61,7 @@ public final class LeaderInquireClient {
             Constants.SECOND_MS, 3));
     mClient.start();
 
-    mMaxTry = new TachyonConf().getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mMaxTry = tachyonConf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   public synchronized String getMasterAddress() {
