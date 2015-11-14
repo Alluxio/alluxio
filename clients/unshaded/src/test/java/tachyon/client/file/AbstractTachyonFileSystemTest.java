@@ -59,6 +59,8 @@ public final class AbstractTachyonFileSystemTest {
   private static final long FILE_ID = 3L;
   private static final long NO_FILE_CODE = -1L;
   private static final RuntimeException EXCEPTION = new RuntimeException("test exception");
+  private static final String SHOULD_HAVE_PROPAGATED_MESSAGE =
+      "Exception should have been propagated";
 
   private AbstractTachyonFileSystem mFileSystem;
   private FileSystemContext mFileContext;
@@ -100,7 +102,7 @@ public final class AbstractTachyonFileSystemTest {
     CreateOptions createOptions = CreateOptions.defaults();
     try {
       mFileSystem.create(new TachyonURI("/"), createOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -119,7 +121,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.delete(FILE_ID, true)).thenThrow(EXCEPTION);
     try {
       mFileSystem.delete(new TachyonFile(FILE_ID), deleteOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -138,7 +140,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.free(FILE_ID, true)).thenThrow(EXCEPTION);
     try {
       mFileSystem.free(new TachyonFile(FILE_ID), freeOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -159,7 +161,7 @@ public final class AbstractTachyonFileSystemTest {
     GetInfoOptions getInfoOptions = GetInfoOptions.defaults();
     try {
       mFileSystem.getInfo(new TachyonFile(FILE_ID), getInfoOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -180,7 +182,7 @@ public final class AbstractTachyonFileSystemTest {
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     try {
       mFileSystem.listStatus(new TachyonFile(FILE_ID), listStatusOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -203,7 +205,7 @@ public final class AbstractTachyonFileSystemTest {
         new LoadMetadataOptions.Builder().setRecursive(true).build();
     try {
       mFileSystem.loadMetadata(new TachyonURI("/"), loadMetadataOptions).getFileId();
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -223,7 +225,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.mkdir("/", mkdirOptions)).thenThrow(EXCEPTION);
     try {
       mFileSystem.mkdir(new TachyonURI("/"), mkdirOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -247,7 +249,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.mount(tachyonPath, ufsPath)).thenThrow(EXCEPTION);
     try {
       mFileSystem.mount(tachyonPath, ufsPath, mountOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -279,7 +281,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.getFileId("/")).thenThrow(EXCEPTION);
     try {
       mFileSystem.open(new TachyonURI("/"), openOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -317,7 +319,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.rename(FILE_ID, "/")).thenThrow(EXCEPTION);
     try {
       mFileSystem.rename(new TachyonFile(FILE_ID), new TachyonURI("/"), renameOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -336,7 +338,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).setState(FILE_ID, setStateOptions);
     try {
       mFileSystem.setState(new TachyonFile(FILE_ID), setStateOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
@@ -358,7 +360,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.unmount(path)).thenThrow(EXCEPTION);
     try {
       mFileSystem.unmount(path, unmountOptions);
-      Assert.fail("Exception should have been propagated");
+      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
