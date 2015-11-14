@@ -111,10 +111,10 @@ public class BufferedBlockOutStreamTest {
   @Test
   public void doubleFlush() throws Exception {
     mTestStream.write(INCREASING_BYTES, 1, 10);
-    Assert.assertEquals(0, mTestStream.getBytesFlushed());
+    Assert.assertEquals(0, mTestStream.getFlushedBytes());
     mTestStream.flush();
-    Assert.assertEquals(10, mTestStream.getBytesFlushed());
+    Assert.assertEquals(10, mTestStream.getFlushedBytes());
     mTestStream.flush();
-    Assert.assertEquals(10, mTestStream.getBytesFlushed());
+    Assert.assertEquals(10, mTestStream.getFlushedBytes());
   }
 }
