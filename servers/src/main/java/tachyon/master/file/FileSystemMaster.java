@@ -47,7 +47,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
-import tachyon.exception.SuspectedFileSizeException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
@@ -241,7 +240,7 @@ public final class FileSystemMaster extends MasterBase {
       mTTLCheckerService.cancel(true);
     }
   }
-
+  
   /**
    * Whether the filesystem contains a directory with the id. Called by internal masters.
    *
@@ -1206,13 +1205,12 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
    * @throws InvalidPathException if invalid path is encountered
-   * @throws SuspectedFileSizeException if invalid file size is encountered
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, SuspectedFileSizeException, IOException {
+      InvalidPathException, IOException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
       ufsPath = mMountTable.resolve(path);
