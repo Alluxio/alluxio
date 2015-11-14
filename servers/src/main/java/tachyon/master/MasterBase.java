@@ -162,6 +162,10 @@ public abstract class MasterBase implements Master {
     mJournal = Preconditions.checkNotNull(journal);
   }
 
+  protected boolean isLeaderMode() {
+    return mIsLeader;
+  }
+  
   protected boolean isStandbyMode() {
     return !mIsLeader;
   }
