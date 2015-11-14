@@ -15,7 +15,6 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +22,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.exception.InvalidFileSizeException;
+import tachyon.exception.FileAlreadyCompletesException;
 import tachyon.exception.BlockInfoException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
@@ -254,15 +255,15 @@ public final class InodeFile extends Inode {
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws IOException
+   * @throws InvalidFileSizeException
    */
   public synchronized void setLength(long length)
-      throws IOException {
+      throws InvalidFileSizeException, FileAlreadyCompletesException {
     if (mCompleted) {
-      throw new IOException("InodeFile has been completed.");
+      throw new FileAlreadyCompletesException("InodeFile has been completed.");
     }
     if (length < 0) {
-      throw new IOException("InodeFile new length " + length + " is negative.");
+      throw new InvalidFileSizeException("InodeFile new length " + length + " is negative.");
     }
     mLength = length;
     mBlocks.clear();
