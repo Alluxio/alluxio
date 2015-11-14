@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,8 +51,8 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.thrift.FileInfo;
-import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
+import tachyon.heartbeat.HeartbeatScheduler;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -239,6 +240,7 @@ public class FileSystemMasterIntegrationTest {
       new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private TachyonConf mMasterTachyonConf;
   private FileSystemMaster mFsMaster;
+  private String mThreadName = "TfsShellTest-thread";
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -682,7 +684,7 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.fileId);
     Assert.assertEquals(ttl, folderInfo.ttl);
-    CommonUtils.sleepMs(5000);
+    HeartbeatScheduler.await(mThreadName,5000, TimeUnit.MILLISECONDS);
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.getFileInfo(fileId);
   }
