@@ -55,6 +55,10 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
     return (int) mWrittenBytes;
   }
 
+  public int getBytesFlushed() {
+    return (int) mFlushedBytes;
+  }
+
   public ByteBuffer getBuffer() {
     return mBuffer;
   }
