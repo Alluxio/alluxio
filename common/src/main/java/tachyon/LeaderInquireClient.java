@@ -49,24 +49,24 @@ public final class LeaderInquireClient {
 
   private final String mZookeeperAddress;
   private final String mLeaderPath;
-  private final CuratorFramework mCLient;
+  private final CuratorFramework mClient;
 
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
-    mCLient =
+    mClient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
-    mCLient.start();
+    mClient.start();
   }
 
   public synchronized String getMasterAddress() {
     int tried = 0;
     try {
       while (tried < MAX_TRY) {
-        if (mCLient.checkExists().forPath(mLeaderPath) != null) {
-          List<String> masters = mCLient.getChildren().forPath(mLeaderPath);
+        if (mClient.checkExists().forPath(mLeaderPath) != null) {
+          List<String> masters = mClient.getChildren().forPath(mLeaderPath);
           LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
@@ -76,7 +76,7 @@ public final class LeaderInquireClient {
             long maxTime = 0;
             String leader = "";
             for (String master : masters) {
-              Stat stat = mCLient.checkExists().forPath(
+              Stat stat = mClient.checkExists().forPath(
                   PathUtils.concatPath(mLeaderPath, master));
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
