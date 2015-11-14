@@ -127,6 +127,8 @@ public class TachyonMaster {
       }
       return new TachyonMaster();
     }
+    
+    private Factory() {} // prevent instantiation.
   }
 
   protected TachyonMaster() {
