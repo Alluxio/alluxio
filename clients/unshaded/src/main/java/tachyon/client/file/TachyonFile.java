@@ -32,8 +32,9 @@ public class TachyonFile {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof tachyon.client.file.TachyonFile))
+    if (!(o instanceof tachyon.client.file.TachyonFile)) {
       return false;
+    }
 
     return mFileId == ((TachyonFile) o).mFileId;
   }
