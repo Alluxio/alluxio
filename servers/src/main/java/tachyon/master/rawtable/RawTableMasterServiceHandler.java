@@ -17,9 +17,17 @@ package tachyon.master.rawtable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+
+import org.apache.thrift.TException;
+
+import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
 
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
+import tachyon.retry.CacheUtils;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TachyonTException;
@@ -27,6 +35,7 @@ import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
+  private final Cache<String, Object> mReplayCache = CacheUtils.createCache();
 
   public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
     mRawTableMaster = rawTableMaster;
@@ -42,6 +51,21 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  @Override
+  public long createTable(final String path, final int columns, final ByteBuffer metadata,
+      String nonce) throws TachyonTException, ThriftIOException, TException {
+    try {
+      return ((Long) mReplayCache.get(nonce, new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          return createRawTable(path, columns, metadata);
+        }
+      }));
+    } catch (ExecutionException e) {
+      throw Throwables.propagate(e.getCause());
     }
   }
 
