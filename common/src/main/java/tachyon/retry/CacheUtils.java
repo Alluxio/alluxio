@@ -28,13 +28,23 @@ public final class CacheUtils {
   private static final long DEFAULT_MAX_SIZE = 10000;
   private static final long DEFAULT_EXPIRE_MS = 2000;
 
+  /**
+   * @return a cache with the default maximum size and expiration time
+   */
   public static <T> Cache<String, T> createCache() {
     return createCache(DEFAULT_MAX_SIZE, DEFAULT_EXPIRE_MS);
   }
 
+  /**
+   * @param maxSize the maximum number of elements the cache may hold
+   * @param expireMs the amount of time to hold entries before they expire
+   * @return a cache with the specified maximum size and expiration time
+   */
   public static <T> Cache<String, T> createCache(long maxSize, long expireMs) {
     // TODO(andrew) another constructor which understands CacheBuilder
     return CacheBuilder.newBuilder().maximumSize(maxSize)
         .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS).<String, T>build();
   }
+
+  private CacheUtils() {} // prevent instantiation
 }

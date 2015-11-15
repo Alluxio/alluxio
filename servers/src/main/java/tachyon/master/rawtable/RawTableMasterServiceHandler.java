@@ -35,7 +35,7 @@ import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
-  private final Cache<String, Object> replayCache = CacheUtils.createCache();
+  private final Cache<String, Object> mReplayCache = CacheUtils.createCache();
 
   public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
     mRawTableMaster = rawTableMaster;
@@ -55,10 +55,10 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public long createTable(final String path, final int columns, final ByteBuffer metadata, String nonce)
-      throws TachyonTException, ThriftIOException, TException {
+  public long createTable(final String path, final int columns, final ByteBuffer metadata,
+      String nonce) throws TachyonTException, ThriftIOException, TException {
     try {
-      return ((Long) replayCache.get(nonce, new Callable<Object>() {
+      return ((Long) mReplayCache.get(nonce, new Callable<Object>() {
         @Override
         public Object call() throws Exception {
           return createRawTable(path, columns, metadata);
