@@ -60,9 +60,6 @@ public final class Constants {
   public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
-
-  public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
