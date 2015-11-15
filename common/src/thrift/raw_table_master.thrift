@@ -23,6 +23,12 @@ service RawTableMasterService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /*
+   * Creates a raw table, using a nonce to detect retries.
+   */
+  i64 createTable(1: string path, 2: i32 columns, 3: binary metadata, 4: string nonce)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+
+  /*
    * Returns raw table information for the given id.
    */
   RawTableInfo getClientRawTableInfoById(1: i64 id)
