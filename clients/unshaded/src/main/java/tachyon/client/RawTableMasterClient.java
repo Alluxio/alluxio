@@ -18,6 +18,7 @@ package tachyon.client;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -78,7 +79,8 @@ public final class RawTableMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        return mClient.createRawTable(path.getPath(), columns, metadata);
+        UUID nonce = UUID.randomUUID();
+        return mClient.createTable(path.getPath(), columns, metadata, nonce.toString());
       }
     });
   }
