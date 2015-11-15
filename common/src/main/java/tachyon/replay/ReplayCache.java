@@ -32,10 +32,12 @@ import tachyon.thrift.ThriftIOException;
 /**
  * An RPC cache which uses RPC ids to avoid repeating non-idempotent RPCs due to retries.
  *
- * Whenever a {@link RetryCallable} is run via this class, the rpc id and return value for the
- * {@link RetryCallable} are remembered so that if the rpc id is replayed while the id is still in
+ * Whenever a {@link RetryCallable} is run via this class, the RPC id and return value for the
+ * {@link RetryCallable} are remembered so that if the RPC id is replayed while the id is still in
  * the cache, the return value can be immediately returned without executing the
  * {@link RetryCallable}.
+ *
+ * For RPCs which may throw {@link IOException}, use {@link ReplayCallableThrowsIOException}.
  *
  * Example usage:<br>
  *
@@ -43,11 +45,11 @@ import tachyon.thrift.ThriftIOException;
  * <code>
  * private final Cache<String, Long> cache = ReplayCache.create();
  * ...
- * public long myRpc(final Type val1, final Type val2, String rpcId) {
- *   return ReplayCache.run(rpcId, new ReplayCallable<Long>() {
- *     {@literal @}Override
- *     public Long call() {
- *       return rpcImplementation(val1, val2);
+ * public long myRpc(final boolean val1, final int val2, String rpcId) throws TachyonTException {
+ *   return mCache.run(rpcId, new ReplayCallable<Long>() {
+ *     @Override
+ *     public Long call() throws TachyonException {
+ *       return rpcWhichCanThrowTachyonException(val1, val2);
  *     }
  *   });
  * }
