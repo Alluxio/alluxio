@@ -41,7 +41,7 @@ public final class CacheUtils {
    * @return a cache with the specified maximum size and expiration time
    */
   public static <T> Cache<String, T> createCache(long maxSize, long expireMs) {
-    // TODO(andrew) another constructor which understands CacheBuilder
+    // TODO(andrew) another constructor which uses CacheBuilder<Object, Object> from(String spec)
     return CacheBuilder.newBuilder().maximumSize(maxSize)
         .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS).<String, T>build();
   }
