@@ -18,35 +18,49 @@ package tachyon.client.table;
 import tachyon.client.ClientContext;
 
 /**
- * A shared context in each client JVM for common raw table functionality.
+ * A shared context in each client JVM for common Raw Table client functionality such as a pool of
+ * master clients. This class is thread safe.
  */
 public enum RawTableContext {
   INSTANCE;
 
+  /** Pool of raw table master clients. */
   private RawTableMasterClientPool mRawTableMasterClientPool;
 
   /**
-   * Creates a new lineage context.
+   * Creates a new Raw Table Context.
    */
   RawTableContext() {
     mRawTableMasterClientPool = new RawTableMasterClientPool(ClientContext.getMasterAddress());
   }
 
   /**
-   * Acquires a lineage master client from the lineage master client pool.
+   * Acquires a Raw Table master client from the pool. If all clients are being utilized, this
+   * call will block until one is free. The client must be released by the caller after they have
+   * finished using it.
    *
-   * @return the acquired lineage master client
+   * @return a raw table master client
    */
   public RawTableMasterClient acquireMasterClient() {
     return mRawTableMasterClientPool.acquire();
   }
 
   /**
-   * Releases a lineage master client into the lineage master client pool.
+   * Returns a Raw Table master client to the client pool. The client should not be accessed by
+   * the caller after this method.
    *
-   * @param masterClient a lineage master client to release
+   * @param masterClient the raw table master client to return
    */
   public void releaseMasterClient(RawTableMasterClient masterClient) {
     mRawTableMasterClientPool.release(masterClient);
+  }
+
+  /**
+   * Re-initializes the raw table context. This should only be called by {@link ClientContext}
+   */
+  // TODO(calvin): Rethink resetting contexts outside of test cases
+  public void reset() {
+    mRawTableMasterClientPool.close();
+    mRawTableMasterClientPool = new RawTableMasterClientPool(ClientContext.getMasterAddress());
   }
 }
