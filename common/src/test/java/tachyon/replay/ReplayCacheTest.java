@@ -35,15 +35,15 @@ import tachyon.thrift.ThriftIOException;
  * Tests for {@link ReplayCache}.
  */
 public final class ReplayCacheTest {
-  private static final Long MAX_SIZE = 10L;
-  private static final Long TIMEOUT_MS = 1000L;
-  private static final String ERROR_MESSAGE = "test error message in ReplayCacheTest";
+  private static final Long TEST_MAX_SIZE = Long.MAX_VALUE;
+  private static final Long TEST_TIMEOUT_MS = Long.MAX_VALUE;
+  private static final String TEST_ERROR_MESSAGE = "test error message in ReplayCacheTest";
 
   private ReplayCache<Long> mCache;
 
   @Before
   public void before() {
-    mCache = ReplayCache.newReplayCache(MAX_SIZE, TIMEOUT_MS);
+    mCache = ReplayCache.newInstance(TEST_MAX_SIZE, TEST_TIMEOUT_MS);
   }
 
   /**
@@ -87,7 +87,7 @@ public final class ReplayCacheTest {
   @Test
   public void testSizeEviction() throws Exception {
     // Create a cache with max size 2.
-    ReplayCache<Long> cache = ReplayCache.newReplayCache(2, TIMEOUT_MS);
+    ReplayCache<Long> cache = ReplayCache.newInstance(2, TEST_TIMEOUT_MS);
     CounterCallable counter = new CounterCallable();
     Assert.assertEquals(1, (long) cache.run("key1", counter));
     Assert.assertEquals(2, (long) cache.run("key2", counter));
@@ -102,7 +102,7 @@ public final class ReplayCacheTest {
   @Test
   public void testTimeEviction() throws Exception {
     // Create a cache with timeout of 10ms
-    ReplayCache<Long> cache = ReplayCache.newReplayCache(MAX_SIZE, 10);
+    ReplayCache<Long> cache = ReplayCache.newInstance(TEST_MAX_SIZE, 10);
     CounterCallable counter = new CounterCallable();
     Assert.assertEquals(1, (long) cache.run("key1", counter));
     Thread.sleep(11);
@@ -117,10 +117,10 @@ public final class ReplayCacheTest {
   @Test
   public void testTachyonExceptionRethrow1() throws Exception {
     try {
-      mCache.run("key", new ThrowingCallable(new FileAlreadyExistsException(ERROR_MESSAGE)));
+      mCache.run("key", new ThrowingCallable(new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown TachyonTException");
     } catch (TachyonTException e) {
-      Assert.assertEquals(ERROR_MESSAGE, e.getMessage());
+      Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
       Assert.assertEquals(TachyonExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
     }
   }
@@ -132,11 +132,11 @@ public final class ReplayCacheTest {
   @Test
   public void testTachyonExceptionRethrow2() throws Exception {
     try {
-      mCache.run("key",
-          new ThrowingCallableThrowsIOException(new FileAlreadyExistsException(ERROR_MESSAGE)));
+      mCache.run("key", new ThrowingCallableThrowsIOException(
+          new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown TachyonTException");
     } catch (TachyonTException e) {
-      Assert.assertEquals(ERROR_MESSAGE, e.getMessage());
+      Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
       Assert.assertEquals(TachyonExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
     }
   }
@@ -148,10 +148,10 @@ public final class ReplayCacheTest {
   @Test
   public void testIOExceptionRethrow() throws Exception {
     try {
-      mCache.run("key", new ThrowingCallableThrowsIOException(new IOException(ERROR_MESSAGE)));
+      mCache.run("key", new ThrowingCallableThrowsIOException(new IOException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown ThriftIOException");
     } catch (ThriftIOException e) {
-      Assert.assertEquals(ERROR_MESSAGE, e.getMessage());
+      Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
     }
   }
 
@@ -160,7 +160,7 @@ public final class ReplayCacheTest {
    */
   @Test
   public void testRuntimeExceptionPropagated1() throws Exception {
-    RuntimeException exception = new RuntimeException(ERROR_MESSAGE);
+    RuntimeException exception = new RuntimeException(TEST_ERROR_MESSAGE);
     try {
       mCache.run("key", new ThrowingCallable(exception));
       Assert.fail("Should have thrown RuntimeException");
@@ -175,7 +175,7 @@ public final class ReplayCacheTest {
    */
   @Test
   public void testRuntimeExceptionPropagated2() throws Exception {
-    RuntimeException exception = new RuntimeException(ERROR_MESSAGE);
+    RuntimeException exception = new RuntimeException(TEST_ERROR_MESSAGE);
     try {
       mCache.run("key", new ThrowingCallableThrowsIOException(exception));
       Assert.fail("Should have thrown RuntimeException");
