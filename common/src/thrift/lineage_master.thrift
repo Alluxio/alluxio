@@ -40,15 +40,7 @@ struct LineageInfo {
   7: list<i64> children
 }
 
-service LineageMasterService {
-
-  /*
-   * Returns the version of the lineage master service.
-   *
-   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
-   */
-  i64 getServiceVersion()
-
+service LineageMasterService extends common.TachyonService {
 
   // Tachyon Client API
 
