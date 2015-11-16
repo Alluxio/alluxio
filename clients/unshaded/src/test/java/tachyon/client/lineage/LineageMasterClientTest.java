@@ -42,10 +42,11 @@ public class LineageMasterClientTest {
 
     LineageMasterService.Client mock = PowerMockito.mock(LineageMasterService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
+    PowerMockito.whenNew(LineageMasterService.Client.class).withAnyArguments().thenReturn(mock);
+
     LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
     Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-    PowerMockito.whenNew(LineageMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     try {
       client.afterConnect();

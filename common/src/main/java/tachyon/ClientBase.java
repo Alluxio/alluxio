@@ -107,7 +107,6 @@ public abstract class ClientBase implements Closeable {
             version, mServiceVersion));
       }
     }
-
   }
 
   /**
