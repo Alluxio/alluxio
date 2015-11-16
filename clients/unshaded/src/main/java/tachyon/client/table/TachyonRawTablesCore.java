@@ -46,6 +46,17 @@ interface TachyonRawTablesCore {
   RawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
       throws IOException, TachyonException;
 
+  /**
+   * Creates a new partition in a column of a raw table. The partition is represented as a file,
+   * and the user may interact with it through the FileSystem api. See
+   * {@link tachyon.client.file.TachyonFileSystem}.
+   *
+   * @param column the raw column under which to create the partition
+   * @param partitionId the index of the partition to create
+   * @return a {@link FileOutStream} which may be used to write data into the partition
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   FileOutStream createPartition(RawColumn column, int partitionId) throws IOException,
       TachyonException;
 
@@ -59,8 +70,27 @@ interface TachyonRawTablesCore {
    */
   RawTableInfo getInfo(RawTable rawTable) throws IOException, TachyonException;
 
+  /**
+   * Gets the file handler for a partition of a column. A partition should be accessed through
+   * a file API. See {@link tachyon.client.file.TachyonFileSystem}.
+   *
+   * @param column the raw column which contains the partition
+   * @param partitionId the index of the partition, which starts from 0
+   * @return the {@link TachyonFile} which may be used to interact with the partition
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   TachyonFile getPartition(RawColumn column, int partitionId) throws IOException, TachyonException;
 
+  /**
+   * Gets the number of partitions currently in the {@link RawColumn}. Each partition is a
+   * separate {@link TachyonFile}
+   *
+   * @param column the raw column containing the partitions
+   * @return the number of partitions currently in the column
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
   int getPartitionCount(RawColumn column) throws IOException, TachyonException;
 
   /**
