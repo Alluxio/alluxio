@@ -30,10 +30,29 @@ public class TachyonFile {
     mFileId = fileId;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof tachyon.client.file.TachyonFile)) {
+      return false;
+    }
+
+    return mFileId == ((TachyonFile) o).mFileId;
+  }
+
   /**
    * @return the file id
    */
   public long getFileId() {
     return mFileId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.valueOf(mFileId).hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "TachyonFile(" + mFileId + ")";
   }
 }
