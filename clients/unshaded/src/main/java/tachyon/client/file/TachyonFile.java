@@ -48,7 +48,7 @@ public class TachyonFile {
 
   @Override
   public int hashCode() {
-    return new Long(mFileId).hashCode();
+    return Long.valueOf(mFileId).hashCode();
   }
 
   @Override
