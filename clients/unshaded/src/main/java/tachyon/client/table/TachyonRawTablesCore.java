@@ -61,7 +61,7 @@ interface TachyonRawTablesCore {
 
   TachyonFile getPartition(RawColumn column, int partitionId) throws IOException, TachyonException;
 
-  int getPartitionCount(RawColumn column, int partitionId) throws IOException, TachyonException;
+  int getPartitionCount(RawColumn column) throws IOException, TachyonException;
 
   /**
    * Gets a handler for the given raw table, if it exists.

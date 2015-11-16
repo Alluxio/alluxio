@@ -23,6 +23,7 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.RawTableMasterClient;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
@@ -56,13 +57,9 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
-  public FileOutStream createPartition(RawColumn column, int partitionId) throws IOException,
-      TachyonException {
-    RawTableInfo info = getInfo(column.getRawTable());
-    TachyonURI partitionPath =
-        new TachyonURI(PathUtils.concatPath(getColumnPath(info.getPath(), column.getColumnIndex()),
-            partitionId));
-    return mTachyonFileSystem.getOutStream(partitionPath);
+  public FileOutStream createPartition(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    return mTachyonFileSystem.getOutStream(getPartitionUri(column, partitionId));
   }
 
   @Override
@@ -73,6 +70,21 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  @Override
+  public TachyonFile getPartition(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    return mTachyonFileSystem.open(getPartitionUri(column, partitionId));
+  }
+
+  @Override
+  public int getPartitionCount(RawColumn column) throws IOException, TachyonException {
+    RawTableInfo info = getInfo(column.getRawTable());
+    TachyonURI columnUri = new TachyonURI(PathUtils.concatPath(info.getPath(), Constants
+        .MASTER_COLUMN_FILE_PREFIX + column.getColumnIndex()));
+    TachyonFile file = mTachyonFileSystem.open(columnUri);
+    return mTachyonFileSystem.listStatus(file).size();
   }
 
   @Override
@@ -97,7 +109,10 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
     }
   }
 
-  private String getColumnPath(String rawTablePath, int columnIndex) {
-    return PathUtils.concatPath(rawTablePath, Constants.MASTER_COLUMN_FILE_PREFIX + columnIndex);
+  private TachyonURI getPartitionUri(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    RawTableInfo info = getInfo(column.getRawTable());
+    return new TachyonURI(PathUtils.concatPath(info.getPath(), Constants.MASTER_COLUMN_FILE_PREFIX
+        + column.getColumnIndex(), partitionId));
   }
 }
