@@ -42,7 +42,7 @@ import tachyon.util.CommonUtils;
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
-  public final NetAddress mWorkerAddress;
+  private final NetAddress mWorkerAddress;
   /** The id of the worker */
   private final long mId;
   /** Start time of the worker in ms */
