@@ -1381,6 +1381,9 @@ public final class FileSystemMaster extends MasterBase {
       Preconditions.checkArgument(((InodeFile) inode).isCompleted(),
           PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
       InodeFile file = (InodeFile) inode;
+      // TODO(manugoyal) figure out valid behavior in the un-persist case
+      Preconditions.checkArgument(options.getPersisted(),
+          PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         file.setPersisted(true);
         propagatePersisted(file, false);
