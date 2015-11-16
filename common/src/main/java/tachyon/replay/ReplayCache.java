@@ -30,10 +30,10 @@ import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
 /**
- * An RPC cache which uses RPC ids to avoid repeating non-idempotent RPCs due to retries.
+ * An RPC cache which uses RPC keys to avoid repeating non-idempotent RPCs due to retries.
  *
- * Whenever a {@link RetryCallable} is run via this class, the RPC id and return value for the
- * {@link RetryCallable} are remembered so that if the RPC id is replayed while the id is still in
+ * Whenever a {@link RetryCallable} is run via this class, the RPC key and return value for the
+ * {@link RetryCallable} are remembered so that if the RPC key is replayed while the key is still in
  * the cache, the return value can be immediately returned without executing the
  * {@link RetryCallable}.
  *
@@ -43,11 +43,11 @@ import tachyon.thrift.ThriftIOException;
  *
  * <pre>
  * <code>
- * private final Cache<String, Long> cache = ReplayCache.create();
+ * private final Cache<String, Long> cache = ReplayCache.newInstance();
  * ...
- * public long myRpc(final boolean val1, final int val2, String rpcId) throws TachyonTException {
- *   return mCache.run(rpcId, new ReplayCallable<Long>() {
- *     @Override
+ * public long myRpc(final boolean val1, final int val2, String key) throws TachyonTException {
+ *   return mCache.run(key, new ReplayCallable<Long>() {
+ *     &#64;Override
  *     public Long call() throws TachyonException {
  *       return rpcWhichCanThrowTachyonException(val1, val2);
  *     }
@@ -71,8 +71,8 @@ public final class ReplayCache<V> {
    *
    * @return a cache with the default maximum size and expiration time
    */
-  public static <V> ReplayCache<V> newReplayCache() {
-    return new ReplayCache<V>();
+  public static <V> ReplayCache<V> newInstance() {
+    return newInstance(DEFAULT_MAX_SIZE, DEFAULT_EXPIRE_MS);
   }
 
   /**
@@ -82,15 +82,8 @@ public final class ReplayCache<V> {
    * @param expireMs the amount of time to hold entries before they expire
    * @return a cache with the specified maximum size and expiration time
    */
-  public static <V> ReplayCache<V> newReplayCache(long maxSize, long expireMs) {
+  public static <V> ReplayCache<V> newInstance(long maxSize, long expireMs) {
     return new ReplayCache<V>(maxSize, expireMs);
-  }
-
-  /**
-   * Creates a cache with default maximum size and key expiration time.
-   */
-  private ReplayCache() {
-    this(DEFAULT_MAX_SIZE, DEFAULT_EXPIRE_MS);
   }
 
   /**
@@ -116,9 +109,8 @@ public final class ReplayCache<V> {
   }
 
   /**
-   * Same with {@link ReplayCallable} except that this handler method throws
-   * {@link IOException} and is to be executed in {@link #run(String,
-   * ReplayCallableThrowsIOException}.
+   * Same with {@link ReplayCallable} except that this handler method throws {@link IOException} and
+   * is to be executed in {@link #run(String, ReplayCallableThrowsIOException}.
    *
    * @param <V> the return type of {@link #call()}
    */
@@ -127,18 +119,18 @@ public final class ReplayCache<V> {
   }
 
   /**
-   * Handles the replay logic for the given RPC handler. The provided rpcId is used to manage
-   * replays by returning their previous return value instead of re-executing the RPC handler. This
-   * is neccessary when the RPC is non-idempotent.
+   * Handles the replay logic for the given RPC handler. The provided key is used to manage replays
+   * by returning their previous return value instead of re-executing the RPC handler. This is
+   * necessary when the RPC is non-idempotent.
    *
-   * @param rpcId the id for the RPC
+   * @param key the key for the RPC
    * @param replayCallable the handler logic for the RPC
    * @return the result of executing replayCallable, or the cached value from a previous invocation
    * @throws TachyonTException when {@link TachyonException} is thrown by the handler call
    */
-  public V run(String rpcId, final ReplayCallable<V> replayCallable) throws TachyonTException {
+  public V run(String key, final ReplayCallable<V> replayCallable) throws TachyonTException {
     try {
-      return mCache.get(rpcId, new Callable<V>() {
+      return mCache.get(key, new Callable<V>() {
         @Override
         public V call() throws Exception {
           try {
@@ -160,16 +152,16 @@ public final class ReplayCache<V> {
    * Similar to {@link #run(String, ReplayCallable)} except that the RPC handler may throw
    * {@link IOException}, which will be transformed into {@link ThriftIOException}.
    *
-   * @param rpcId the id for the RPC
+   * @param key the key for the RPC
    * @param replayCallable the handler logic for the RPC
    * @return the result of executing replayCallable, or the cached value from a previous invocation
    * @throws TachyonTException when {@link TachyonException} is thrown by the handler call
    * @throws ThriftIOException when {@link IOException} is thrown by the handler call
    */
-  public V run(String rpcId, final ReplayCallableThrowsIOException<V> replayCallable)
+  public V run(String key, final ReplayCallableThrowsIOException<V> replayCallable)
       throws TachyonTException, ThriftIOException {
     try {
-      return mCache.get(rpcId, new Callable<V>() {
+      return mCache.get(key, new Callable<V>() {
         @Override
         public V call() throws Exception {
           try {
