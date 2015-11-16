@@ -65,7 +65,7 @@ public abstract class MasterClientBase extends ClientBase {
     Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
         LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH), mTachyonConf);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
