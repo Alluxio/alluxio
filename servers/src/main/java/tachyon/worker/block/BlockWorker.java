@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -39,17 +38,16 @@ import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
-import tachyon.util.LineageUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
+import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
-import tachyon.worker.lineage.LineageWorker;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
@@ -60,7 +58,7 @@ import tachyon.worker.lineage.LineageWorker;
  *
  * Logic: BlockDataManager (Logic for all block related storage operations)
  */
-public final class BlockWorker {
+public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */
@@ -79,8 +77,6 @@ public final class BlockWorker {
   private final WorkerBlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
   private final WorkerFileSystemMasterClient mFileSystemMasterClient;
-  /** Threadpool for the master sync */
-  private final ExecutorService mSyncExecutorService;
   /** Net address of this worker */
   private final NetAddress mWorkerNetAddress;
   /** Configuration object */
@@ -97,10 +93,15 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
-  /** Lineage worker */
-  private LineageWorker mLineageWorker;
   /** Space reserver for the block data manager */
   private SpaceReserver mSpaceReserver = null;
+
+  /**
+   * @return the block data manager for other worker services
+   */
+  public BlockDataManager getBlockDataManager() {
+    return mBlockDataManager;
+  }
 
   /**
    * @return the worker service handler
@@ -158,6 +159,8 @@ public final class BlockWorker {
    * @throws IOException for other exceptions
    */
   public BlockWorker() throws IOException {
+    super(Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
@@ -207,12 +210,6 @@ public final class BlockWorker {
             NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
             mStartTimeMs, mTachyonConf);
 
-    // Setup Worker to Master Syncer
-    // We create four threads for two syncers, one cleaner and one asynchronous evictor:
-    // mBlockMasterSync, mPinListSync, mSessionCleanerThread, mSpaceReserver
-    mSyncExecutorService =
-        Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
-
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
         mBlockMasterClient);
 
@@ -225,13 +222,6 @@ public final class BlockWorker {
     // Setup space reserver
     if (mTachyonConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(mBlockDataManager);
-    }
-
-    // Setup the lineage worker
-    LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker = new LineageWorker(mBlockDataManager);
     }
   }
 
@@ -255,22 +245,17 @@ public final class BlockWorker {
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
-    mSyncExecutorService.submit(mBlockMasterSync);
+    getExecutorService().submit(mBlockMasterSync);
 
     // Start the pinlist syncer to perform the periodical fetching
-    mSyncExecutorService.submit(mPinListSync);
+    getExecutorService().submit(mPinListSync);
 
     // Start the session cleanup checker to perform the periodical checking
-    mSyncExecutorService.submit(mSessionCleanerThread);
-
-    // Start the lineage worker
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.start();
-    }
+    getExecutorService().submit(mSessionCleanerThread);
 
     // Start the space reserver
     if (mSpaceReserver != null) {
-      mSyncExecutorService.submit(mSpaceReserver);
+      getExecutorService().submit(mSpaceReserver);
     }
 
     mWebServer.startWebServer();
@@ -286,9 +271,6 @@ public final class BlockWorker {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
-    }
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mSessionCleanerThread.stop();
@@ -297,7 +279,7 @@ public final class BlockWorker {
       mSpaceReserver.stop();
     }
     mFileSystemMasterClient.close();
-    mSyncExecutorService.shutdown();
+    getExecutorService().shutdown();
     mWorkerMetricsSystem.stop();
     try {
       mWebServer.shutdownWebServer();
