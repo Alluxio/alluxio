@@ -3,7 +3,7 @@ namespace java tachyon.thrift
 include "common.thrift"
 include "exception.thrift"
 
-service WorkerService {
+service WorkerService extends common.TachyonService {
   void accessBlock(1: i64 blockId)
 
   bool asyncCheckpoint(1: i64 fileId)

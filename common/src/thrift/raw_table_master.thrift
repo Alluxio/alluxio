@@ -12,14 +12,7 @@ struct RawTableInfo {
   5: binary metadata
 }
 
-service RawTableMasterService {
-
-  /*
-   * Returns the version of the raw table master service.
-   *
-   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
-   */
-  i64 getServiceVersion()
+service RawTableMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

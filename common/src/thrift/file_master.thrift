@@ -39,14 +39,7 @@ struct SetStateTOptions {
   2: optional i64 ttl
 }
 
-service FileSystemMasterService {
-
-  /*
-   * Returns the version of the file system master service.
-   *
-   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
-   */
-  i64 getServiceVersion()
+service FileSystemMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

@@ -24,9 +24,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
@@ -59,17 +57,7 @@ public final class RawTableMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new RawTableMasterService.Client(mProtocol);
-    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
-      try {
-        mServiceVersion = mClient.getServiceVersion();
-      } catch (TException e) {
-        throw new IOException(e.getMessage());
-      }
-      if (!Version.getCompatibleVersions(getServiceName()).contains(mServiceVersion)) {
-        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-            Constants.RAW_TABLE_MASTER_SERVICE_VERSION, mServiceVersion));
-      }
-    }
+    checkVersion(mClient, Constants.RAW_TABLE_MASTER_SERVICE_VERSION);
   }
 
   /**

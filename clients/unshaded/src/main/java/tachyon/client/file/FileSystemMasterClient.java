@@ -24,12 +24,10 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
-import tachyon.Version;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -63,17 +61,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterService.Client(mProtocol);
-    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
-      try {
-        mServiceVersion = mClient.getServiceVersion();
-      } catch (TException e) {
-        throw new IOException(e.getMessage());
-      }
-      if (!Version.getCompatibleVersions(getServiceName()).contains(mServiceVersion)) {
-        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-            Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION, mServiceVersion));
-      }
-    }
+    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION);
   }
 
   /**

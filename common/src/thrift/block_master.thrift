@@ -13,14 +13,7 @@ struct WorkerInfo {
   7: i64 startTimeMs
 }
 
-service BlockMasterService {
-
-  /*
-   * Returns the version of the block master service.
-   *
-   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
-   */
-  i64 getServiceVersion()
+service BlockMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

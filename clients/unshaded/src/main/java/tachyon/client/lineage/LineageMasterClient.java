@@ -23,9 +23,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
-import tachyon.Version;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
@@ -59,17 +57,7 @@ public final class LineageMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new LineageMasterService.Client(mProtocol);
-    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
-      try {
-        mServiceVersion = mClient.getServiceVersion();
-      } catch (TException e) {
-        throw new IOException(e.getMessage());
-      }
-      if (!Version.getCompatibleVersions(getServiceName()).contains(mServiceVersion)) {
-        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-            Constants.LINEAGE_MASTER_SERVICE_VERSION, mServiceVersion));
-      }
-    }
+    checkVersion(mClient, Constants.LINEAGE_MASTER_SERVICE_VERSION);
   }
 
   public synchronized long createLineage(final List<String> inputFiles,
