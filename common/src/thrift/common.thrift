@@ -52,5 +52,4 @@ service TachyonService {
    * NOTE: The version should be updated every time a backwards incompatible API change occurs.
    */
   i64 getServiceVersion()
-
 }

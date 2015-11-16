@@ -42,10 +42,11 @@ public class FileSystemMasterClientTest {
 
     FileSystemMasterService.Client mock = PowerMockito.mock(FileSystemMasterService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
+    PowerMockito.whenNew(FileSystemMasterService.Client.class).withAnyArguments().thenReturn(mock);
+
     FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
     Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-    PowerMockito.whenNew(FileSystemMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     try {
       client.afterConnect();

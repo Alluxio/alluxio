@@ -42,10 +42,11 @@ public class BlockMasterClientTest {
 
     BlockMasterService.Client mock = PowerMockito.mock(BlockMasterService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
+    PowerMockito.whenNew(BlockMasterService.Client.class).withAnyArguments().thenReturn(mock);
+
     BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
     Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-    PowerMockito.whenNew(BlockMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     try {
       client.afterConnect();

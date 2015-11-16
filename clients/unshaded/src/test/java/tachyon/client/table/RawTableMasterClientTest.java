@@ -42,10 +42,11 @@ public class RawTableMasterClientTest {
 
     RawTableMasterService.Client mock = PowerMockito.mock(RawTableMasterService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
+    PowerMockito.whenNew(RawTableMasterService.Client.class).withAnyArguments().thenReturn(mock);
+
     RawTableMasterClient client = RawTableContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
     Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-    PowerMockito.whenNew(RawTableMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     try {
       client.afterConnect();
