@@ -52,8 +52,10 @@ public class FileSystemMasterClientTest {
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION, 0), e.getMessage());
+          Constants.FILE_SYSTEM_MASTER_SERVICE_NAME, Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION,
+          0), e.getMessage());
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
-    FileSystemContext.INSTANCE.releaseMasterClient(client);
   }
 }
