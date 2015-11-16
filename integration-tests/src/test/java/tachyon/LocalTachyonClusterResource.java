@@ -26,6 +26,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -135,7 +136,7 @@ public class LocalTachyonClusterResource implements TestRule {
    * Explicitly starts the LocalTachyonCluster.
    * @throws IOException if an I/O error occurs
    */
-  public void start() throws IOException {
+  public void start() throws IOException, TachyonException {
     mLocalTachyonCluster.start(mTestConf);
   }
 
@@ -165,6 +166,8 @@ public class LocalTachyonClusterResource implements TestRule {
         mLocalTachyonCluster.start(mTestConf);
       }
     } catch (IOException e) {
+      throw new RuntimeException(e);
+    }  catch (TachyonException e) {
       throw new RuntimeException(e);
     }
     return new Statement() {

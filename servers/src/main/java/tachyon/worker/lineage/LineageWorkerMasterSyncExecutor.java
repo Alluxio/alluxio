@@ -79,7 +79,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
     }  catch (TachyonException te) {
-      LOG.error("Failed to heatbeat to master", te);
+      LOG.error("Failed to heartbeat to master", te);
     }
     Preconditions.checkState(command.commandType == CommandType.Persist);
 
