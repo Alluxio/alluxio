@@ -19,7 +19,8 @@ service RawTableMasterService {
   /*
    * Creates a raw table.
    */
-  i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
+  i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata, 
+      4: common.RpcOptions rpcOptions)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /*
