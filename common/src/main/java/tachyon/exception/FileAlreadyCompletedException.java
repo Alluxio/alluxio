@@ -19,7 +19,7 @@ public class FileAlreadyCompletedException extends TachyonException {
   private static final long serialVersionUID = -623565413624572542L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.FILE_ALREADY_COMPLETES;
+      TachyonExceptionType.FILE_ALREADY_COMPLETED;
 
   public FileAlreadyCompletedException(String message) {
     super(EXCEPTION_TYPE, message);
