@@ -110,7 +110,7 @@ public final class TachyonBlockStoreTest {
    * Tests getInStream when a local block exists, making sure that the local block is preferred.
    */
   @Test
-  public void testGetInStreamLocal() throws Exception {
+  public void getInStreamLocalTest() throws Exception {
     Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
     Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<TachyonConf>any()))
@@ -130,7 +130,7 @@ public final class TachyonBlockStoreTest {
    * in the {@link BlockInfo} list is chosen.
    */
   @Test
-  public void testGetInStreamRemote() throws Exception {
+  public void getInStreamRemoteTest() throws Exception {
     Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
     Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<TachyonConf>any()))
