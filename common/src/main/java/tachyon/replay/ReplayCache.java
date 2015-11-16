@@ -62,7 +62,7 @@ public final class ReplayCache<V> {
   /** The maximum number of keys that can be cached before old keys are evicted. */
   private static final long DEFAULT_MAX_SIZE = 10000;
   /** The number of milliseconds a key may remain unaccessed in the cache before it is evicted. */
-  private static final long DEFAULT_EXPIRE_MS = 2000;
+  private static final long DEFAULT_EXPIRE_MS = 30 * 1000; // 30 seconds
 
   private final Cache<String, V> mCache;
 
