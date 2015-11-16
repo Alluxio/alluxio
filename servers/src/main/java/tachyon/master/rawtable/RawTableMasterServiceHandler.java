@@ -20,13 +20,16 @@ import java.nio.ByteBuffer;
 
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
+import tachyon.replay.ReplayCache;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RpcOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
+  private final ReplayCache<Long> replayCacheLong = ReplayCache.newInstance();
 
   public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
     mRawTableMaster = rawTableMaster;
@@ -34,15 +37,15 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
 
   // TODO(jiri) Reduce exception handling boilerplate here
   @Override
-  public long createRawTable(String path, int columns, ByteBuffer metadata)
-      throws TachyonTException, ThriftIOException {
-    try {
-      return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+  public long createRawTable(final String path, final int columns, final ByteBuffer metadata,
+      RpcOptions rpcOptions) throws TachyonTException, ThriftIOException {
+    return replayCacheLong.run(rpcOptions.getKey(),
+        new ReplayCache.ReplayCallableThrowsIOException<Long>() {
+          @Override
+          public Long call() throws TachyonException, IOException {
+            return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
+          }
+        });
   }
 
   @Override

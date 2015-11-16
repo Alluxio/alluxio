@@ -44,3 +44,9 @@ struct NetAddress {
   3: i32 dataPort
 }
 
+// Information about the RPC.
+struct RpcOptions {
+  // key used to identify retried RPCs
+  1: optional string key
+}
+
