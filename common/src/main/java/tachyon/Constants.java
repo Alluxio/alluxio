@@ -335,6 +335,8 @@ public final class Constants {
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
+  public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
+      "tachyon.security.authentication.socket.timeout.ms";
 
   private Constants() {} // prevent instantiation
 }
