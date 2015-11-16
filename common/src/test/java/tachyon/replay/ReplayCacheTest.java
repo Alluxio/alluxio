@@ -192,7 +192,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws TachyonException {
-      return ++mCount;
+      return ++ mCount;
     }
   }
 
@@ -204,7 +204,7 @@ public final class ReplayCacheTest {
 
     @Override
     public Long call() throws TachyonException, IOException {
-      return ++mCount;
+      return ++ mCount;
     }
   }
 
