@@ -52,8 +52,10 @@ public class LineageMasterClientTest {
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.LINEAGE_MASTER_SERVICE_VERSION, 0), e.getMessage());
+          Constants.LINEAGE_MASTER_SERVICE_NAME, Constants.LINEAGE_MASTER_SERVICE_VERSION, 0),
+          e.getMessage());
+    } finally {
+      LineageContext.INSTANCE.releaseMasterClient(client);
     }
-    LineageContext.INSTANCE.releaseMasterClient(client);
   }
 }

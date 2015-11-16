@@ -52,8 +52,10 @@ public class RawTableMasterClientTest {
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.RAW_TABLE_MASTER_SERVICE_VERSION, 0), e.getMessage());
+          Constants.RAW_TABLE_MASTER_SERVICE_NAME, Constants.RAW_TABLE_MASTER_SERVICE_VERSION, 0),
+          e.getMessage());
+    } finally {
+      RawTableContext.INSTANCE.releaseMasterClient(client);
     }
-    RawTableContext.INSTANCE.releaseMasterClient(client);
   }
 }

@@ -91,6 +91,9 @@ public abstract class ClientBase implements Closeable {
 
   /**
    * Checks that the service version is compatible with the client.
+   *
+   * @param client the service client
+   * @param version the client version
    */
   protected void checkVersion(TachyonService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
@@ -99,9 +102,9 @@ public abstract class ClientBase implements Closeable {
       } catch (TException e) {
         throw new IOException(e.getMessage());
       }
-      if (mServiceVersion != Constants.BLOCK_MASTER_SERVICE_VERSION) {
-        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(version,
-            mServiceVersion));
+      if (mServiceVersion != version) {
+        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+            version, mServiceVersion));
       }
     }
 
