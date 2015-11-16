@@ -29,10 +29,10 @@ import tachyon.thrift.RawTableInfo;
  */
 @PublicApi
 public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
-  protected RawTablesContext mContext;
+  protected RawTableContext mContext;
 
   protected AbstractTachyonRawTables() {
-    mContext = RawTablesContext.INSTANCE;
+    mContext = RawTableContext.INSTANCE;
   }
 
   // TODO(calvin): Consider different client options
