@@ -54,6 +54,8 @@ public class PreconditionMessage {
   public static final String PERSIST_ONLY_FOR_FILE = "Only files can be persisted";
   public static final String FILE_TO_PERSIST_MUST_BE_COMPLETE =
       "File being persisted must be complete";
+  public static final String ERR_SET_STATE_UNPERSIST =
+      "Cannot set the state of a file to not-persisted";
 
   private PreconditionMessage() {} // to prevent initialization
 }

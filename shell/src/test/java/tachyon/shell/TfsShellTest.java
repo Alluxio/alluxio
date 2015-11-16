@@ -1130,8 +1130,8 @@ public class TfsShellTest {
 
   @Test
   public void persistDirectoryTest() throws IOException, TachyonException {
-    // Set the default to NO_PERSIST, so that directories are not persisted by default
-    ClientContext.getConf().set(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
+    // Set the default write type to MUST_CACHE, so that directories are not persisted by default
+    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
     Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards"))).isIsPersisted());
     Assert
