@@ -25,6 +25,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -32,17 +33,16 @@ import tachyon.util.io.PathUtils;
  * Utility to get leader from zookeeper.
  */
 public final class LeaderInquireClient {
-  private static final int MAX_TRY = 10;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static HashMap<String, LeaderInquireClient> sCreatedClients =
       new HashMap<String, LeaderInquireClient>();
 
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath) {
+      String leaderPath, TachyonConf tachyonConf) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, tachyonConf));
     }
     return sCreatedClients.get(key);
   }
@@ -50,8 +50,9 @@ public final class LeaderInquireClient {
   private final String mZookeeperAddress;
   private final String mLeaderPath;
   private final CuratorFramework mClient;
+  private final int mMaxTry;
 
-  private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
+  private LeaderInquireClient(String zookeeperAddress, String leaderPath, TachyonConf tachyonConf) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
@@ -59,12 +60,14 @@ public final class LeaderInquireClient {
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     mClient.start();
+
+    mMaxTry = tachyonConf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   public synchronized String getMasterAddress() {
     int tried = 0;
     try {
-      while (tried < MAX_TRY) {
+      while (tried < mMaxTry) {
         if (mClient.checkExists().forPath(mLeaderPath) != null) {
           List<String> masters = mClient.getChildren().forPath(mLeaderPath);
           LOG.info("Master addresses: {}", masters);
