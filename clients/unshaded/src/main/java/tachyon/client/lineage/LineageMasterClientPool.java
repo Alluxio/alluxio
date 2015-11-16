@@ -21,7 +21,8 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 
-public class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
+final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
+
   private final InetSocketAddress mMasterAddress;
 
   /**

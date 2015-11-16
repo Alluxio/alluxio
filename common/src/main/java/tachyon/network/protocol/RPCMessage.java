@@ -72,7 +72,7 @@ public abstract class RPCMessage implements EncodedMessage {
      *
      * This must be updated to add new message types.
      *
-     * @param in The input ByteBuf to decode into a type
+     * @param in The input {@link ByteBuf} to decode into a type
      * @return The decoded message type
      */
     public static Type decode(ByteBuf in) {
@@ -146,7 +146,7 @@ public abstract class RPCMessage implements EncodedMessage {
    * This must be updated to add new message types.
    *
    * @param type The type of message to decode
-   * @param in the input ByteBuf
+   * @param in the input {@link ByteBuf}
    * @return the decoded RPCMessage
    */
   public static RPCMessage decodeMessage(RPCMessage.Type type, ByteBuf in) {

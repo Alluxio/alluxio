@@ -96,4 +96,5 @@ public class ValidateConf {
     System.exit(0);
   }
 
+  private ValidateConf() {} // prevent instantiation.
 }
