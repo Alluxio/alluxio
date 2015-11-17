@@ -60,13 +60,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     private TachyonFileSystemFactory() {} // to prevent initialization
 
     public static synchronized TachyonFileSystem get() {
-      if (sTachyonFileSystem == null) {
-        boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
-        sTachyonFileSystem =
-            enableLineage ? TachyonLineageFileSystem.get() : new TachyonFileSystem();
-      }
-      return sTachyonFileSystem;
+      boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
+      return enableLineage ? TachyonLineageFileSystem.get() : get();
     }
+  }
+
+  static synchronized TachyonFileSystem get() {
+    if (sTachyonFileSystem == null) {
+      sTachyonFileSystem = new TachyonFileSystem();
+    }
+    return sTachyonFileSystem;
   }
 
   protected TachyonFileSystem() {

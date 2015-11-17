@@ -30,8 +30,7 @@ import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.lineage.LineageMasterClient;
@@ -57,7 +56,8 @@ public final class LineageMastertIntegrationsTest {
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
+          Constants.USER_LINEAGE_ENABLED, "true");
 
   private static final String OUT_FILE = "/test";
   private TachyonConf mTestConf;
@@ -78,7 +78,6 @@ public final class LineageMastertIntegrationsTest {
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.USER_LINEAGE_ENABLED, "true"})
   public void lineageCreationTest() throws Exception {
     LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
@@ -96,7 +95,6 @@ public final class LineageMastertIntegrationsTest {
   }
 
   @Test
-  @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.USER_LINEAGE_ENABLED, "true"})
   public void lineageCompleteAndAsyncPersistTest() throws Exception {
     LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
@@ -109,10 +107,8 @@ public final class LineageMastertIntegrationsTest {
       lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
           mJob);
 
-      OutStreamOptions options =
-          new OutStreamOptions.Builder(mTestConf).setTachyonStorageType(TachyonStorageType.STORE)
-              .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-              .build();
+      OutStreamOptions options = new OutStreamOptions.Builder(mTestConf)
+          .setWriteType(WriteType.MUST_CACHE).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
       TachyonLineageFileSystem tfs =
           (TachyonLineageFileSystem) mLocalTachyonClusterResource.get().getClient();
       FileOutStream outputStream = tfs.getOutStream(new TachyonURI(OUT_FILE), options);
@@ -141,7 +137,7 @@ public final class LineageMastertIntegrationsTest {
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_LINEAGE_SYNC);
       Assert.assertTrue(
-          HeartbeatScheduler.await(HeartbeatContext.WORKER_LINEAGE_SYNC, 5000, TimeUnit.SECONDS));
+          HeartbeatScheduler.await(HeartbeatContext.WORKER_LINEAGE_SYNC, 5, TimeUnit.SECONDS));
 
       infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(LineageFileState.PERSISTED.toString(),
