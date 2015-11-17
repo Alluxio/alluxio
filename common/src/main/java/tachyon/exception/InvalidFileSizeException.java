@@ -15,7 +15,6 @@
 
 package tachyon.exception;
 
-// this exception indicates the file size is invalid
 public class InvalidFileSizeException extends TachyonException {
   private static final long serialVersionUID = -4913703614829472342L;
 
