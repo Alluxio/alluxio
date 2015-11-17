@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
@@ -36,6 +37,11 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
   public LineageMasterServiceHandler(LineageMaster lineageMaster) {
     mLineageMaster = lineageMaster;
+  }
+
+  @Override
+  public long getServiceVersion() {
+    return Constants.LINEAGE_MASTER_SERVICE_VERSION;
   }
 
   @Override

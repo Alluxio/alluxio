@@ -60,7 +60,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    *
    * @param blockId block id for this stream
    * @param blockSize size of the block in bytes
-   * @param location worker address to read the block from
    */
   // TODO(calvin): Get the block lock here when the remote instream locks at a stream level
   public BufferedBlockInStream(long blockId, long blockSize) {

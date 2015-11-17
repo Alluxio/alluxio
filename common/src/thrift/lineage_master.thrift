@@ -40,7 +40,7 @@ struct LineageInfo {
   7: list<i64> children
 }
 
-service LineageMasterService {
+service LineageMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

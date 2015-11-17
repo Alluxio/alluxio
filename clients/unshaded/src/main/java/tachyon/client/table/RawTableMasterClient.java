@@ -13,15 +13,13 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.client.table;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
@@ -41,8 +39,6 @@ import tachyon.util.IdUtils;
  * to provide retries.
  */
 public final class RawTableMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private RawTableMasterService.Client mClient = null;
 
   /**
@@ -61,8 +57,9 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     mClient = new RawTableMasterService.Client(mProtocol);
+    checkVersion(mClient, Constants.RAW_TABLE_MASTER_SERVICE_VERSION);
   }
 
   /**

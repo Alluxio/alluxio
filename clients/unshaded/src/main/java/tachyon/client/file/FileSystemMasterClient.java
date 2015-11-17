@@ -13,19 +13,18 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.client.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
@@ -43,8 +42,6 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class FileSystemMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private FileSystemMasterService.Client mClient = null;
 
   /**
@@ -63,8 +60,9 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterService.Client(mProtocol);
+    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION);
   }
 
   /**
@@ -200,14 +198,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Marks a file as completed.
    *
    * @param fileId the file id
+   * @param options the method options
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void completeFile(final long fileId) throws IOException, TachyonException {
+  public synchronized void completeFile(final long fileId, final CompleteFileOptions options)
+      throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.completeFile(fileId);
+        mClient.completeFile(fileId, options.toThrift());
         return null;
       }
     });
