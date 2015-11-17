@@ -37,12 +37,13 @@ import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
-import tachyon.exception.SuspectedFileSizeException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.job.Job;
@@ -320,7 +321,8 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if the completion fails
    */
   public synchronized void asyncCompleteFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException, SuspectedFileSizeException {
+      throws FileDoesNotExistException, BlockInfoException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     LOG.info("Async complete file {}", fileId);
     // complete file in Tachyon.
     try {

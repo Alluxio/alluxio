@@ -23,8 +23,9 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.exception.FileAlreadyCompletedException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.BlockInfoException;
-import tachyon.exception.SuspectedFileSizeException;
 
 /**
  * Unit tests for tachyon.InodeFile
@@ -58,19 +59,17 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   @Test
-  public void completeWithNegativeTest() throws Exception {
-    mThrown.expect(SuspectedFileSizeException.class);
+  public void setNegativeLengthTest() throws Exception {
+    mThrown.expect(InvalidFileSizeException.class);
     mThrown.expectMessage("File testFile1 cannot have negative length.");
-
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.complete(-1);
   }
 
   @Test
   public void completeTwiceTest() throws Exception {
-    mThrown.expect(SuspectedFileSizeException.class);
+    mThrown.expect(FileAlreadyCompletedException.class);
     mThrown.expectMessage("File testFile1 has already been completed.");
-
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.complete(LENGTH);
     inodeFile.complete(LENGTH);
