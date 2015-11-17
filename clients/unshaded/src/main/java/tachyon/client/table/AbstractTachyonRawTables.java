@@ -73,7 +73,7 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
-  public TachyonFile getPartition(RawColumn column, int partitionId)
+  public TachyonFile openPartition(RawColumn column, int partitionId)
       throws IOException, TachyonException {
     return mTachyonFileSystem.open(getPartitionUri(column, partitionId));
   }
