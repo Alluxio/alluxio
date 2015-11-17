@@ -144,7 +144,7 @@ public abstract class ClientBase implements Closeable {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      LOG.debug("Disconnecting from the " + getServiceName() + " " + mMode + " {}", mAddress);
+      LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
       mConnected = false;
     }
     try {
