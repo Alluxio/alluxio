@@ -30,7 +30,7 @@ import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
-  /** We use Object so that we can have a single cache per master, not one per type of return value */
+  /** We use Object so that we can have one cache per master, not one per type of return value */
   private final ReplayCache<Object> mReplayCache = ReplayCache.newInstance();
 
   public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
