@@ -33,9 +33,12 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.LineageUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
+import tachyon.worker.lineage.LineageWorker;
 
 /**
  * A local Tachyon cluster with Multiple masters
@@ -60,6 +63,7 @@ public class LocalTachyonClusterMultiMaster {
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
   private BlockWorker mWorker = null;
+  private LineageWorker mLineageWorker = null;
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
 
@@ -291,10 +295,19 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     mWorker = new BlockWorker();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      // Setup the lineage worker
+      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
+    }
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
+          // Start the lineage worker
+          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+            mLineageWorker.start();
+          }
           mWorker.process();
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
@@ -319,6 +332,9 @@ public class LocalTachyonClusterMultiMaster {
     mClientPool.close();
 
     mWorker.stop();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      mLineageWorker.stop();
+    }
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasters.get(k).stop();
     }
