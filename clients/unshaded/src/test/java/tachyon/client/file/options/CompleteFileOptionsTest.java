@@ -13,28 +13,33 @@
  * the License.
  */
 
-package tachyon.exception;
+package tachyon.client.file.options;
 
-// TODO(jiri): Rename this to InvalidFileLengthException
-public class SuspectedFileSizeException extends TachyonException {
-  private static final long serialVersionUID = -4913703614829472342L;
+import java.util.Random;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.SUSPECTED_FILE_SIZE;
+import org.junit.Assert;
+import org.junit.Test;
 
-  public SuspectedFileSizeException(String message) {
-    super(EXCEPTION_TYPE, message);
+import tachyon.conf.TachyonConf;
+
+public class CompleteFileOptionsTest {
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    long ufsLength = random.nextLong();
+
+    CompleteFileOptions options =
+        new CompleteFileOptions.Builder(new TachyonConf())
+            .setUfsLength(ufsLength)
+            .build();
+
+    Assert.assertEquals(ufsLength, options.getUfsLength());
   }
 
-  public SuspectedFileSizeException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
-  }
+  @Test
+  public void defaultsTest() {
+    CompleteFileOptions options = CompleteFileOptions.defaults();
 
-  public SuspectedFileSizeException(ExceptionMessage message, Object... params) {
-    this(message.getMessage(params));
-  }
-
-  public SuspectedFileSizeException(ExceptionMessage message, Throwable cause, Object... params) {
-    this(message.getMessage(params), cause);
+    Assert.assertEquals(0, options.getUfsLength());
   }
 }
