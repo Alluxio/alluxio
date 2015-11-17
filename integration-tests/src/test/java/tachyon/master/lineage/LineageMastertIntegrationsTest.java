@@ -61,7 +61,6 @@ public final class LineageMastertIntegrationsTest {
   private TachyonConf mTestConf;
   private CommandLineJob mJob;
 
-
   @BeforeClass
   public static void beforeClass() {
     HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
