@@ -113,15 +113,15 @@ public abstract class ClientBase implements Closeable {
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
-      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with "
-          + getServiceName() + " " + mMode + " @ " + mAddress);
+      LOG.info("Tachyon client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
+              getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
-        LOG.info("Client registered with " + getServiceName() + " " + mMode + " @ " + mAddress);
+        LOG.info("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
         mConnected = true;
         afterConnect();
         return;

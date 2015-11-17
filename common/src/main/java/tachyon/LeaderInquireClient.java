@@ -86,11 +86,11 @@ public final class LeaderInquireClient {
                 leader = master;
               }
             }
-            LOG.info("The leader master: " + leader);
+            LOG.info("The leader master: {}", leader);
             return leader;
           }
         } else {
-          LOG.info(mLeaderPath + " does not exist (" + (++tried) + ")");
+          LOG.info("{} does not exist ({})", mLeaderPath, (++tried));
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
