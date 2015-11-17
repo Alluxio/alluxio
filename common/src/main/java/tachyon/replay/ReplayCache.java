@@ -25,6 +25,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
+import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
@@ -62,7 +63,7 @@ public final class ReplayCache<V> {
   /** The maximum number of keys that can be cached before old keys are evicted. */
   private static final long DEFAULT_MAX_SIZE = 10000;
   /** The number of milliseconds a key may remain unaccessed in the cache before it is evicted. */
-  private static final long DEFAULT_EXPIRE_MS = 2000;
+  private static final long DEFAULT_EXPIRE_MS = 30 * Constants.SECOND_MS;
 
   private final Cache<String, V> mCache;
 

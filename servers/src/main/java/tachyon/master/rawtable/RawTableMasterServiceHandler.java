@@ -21,13 +21,17 @@ import java.nio.ByteBuffer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
+import tachyon.replay.ReplayCache;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RpcOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
+  /** We use Object so that we can have one cache per master, not one per type of return value */
+  private final ReplayCache<Object> mReplayCache = ReplayCache.newInstance();
 
   public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
     mRawTableMaster = rawTableMaster;
@@ -39,15 +43,15 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public long createRawTable(String path, int columns, ByteBuffer metadata)
-      throws TachyonTException, ThriftIOException {
-    try {
-      return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+  public long createRawTable(RpcOptions rpcOptions, final String path, final int columns,
+      final ByteBuffer metadata) throws TachyonTException, ThriftIOException {
+    return (Long) mReplayCache.run(rpcOptions.getKey(),
+        new ReplayCache.ReplayCallableThrowsIOException<Object>() {
+          @Override
+          public Long call() throws TachyonException, IOException {
+            return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
+          }
+        });
   }
 
   @Override

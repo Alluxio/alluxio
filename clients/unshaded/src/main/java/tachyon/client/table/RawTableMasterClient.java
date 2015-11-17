@@ -28,7 +28,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RpcOptions;
 import tachyon.thrift.TachyonTException;
+import tachyon.util.IdUtils;
 
 /**
  * A wrapper for the thrift client to interact with the raw table master, used by tachyon clients.
@@ -75,7 +77,8 @@ public final class RawTableMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        return mClient.createRawTable(path.getPath(), columns, metadata);
+        RpcOptions rpcOptions = new RpcOptions().setKey(IdUtils.createRpcId());
+        return mClient.createRawTable(rpcOptions, path.getPath(), columns, metadata);
       }
     });
   }
