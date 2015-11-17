@@ -57,7 +57,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
-  private LineageWorker mLineageWorker = null;
 
   private String mWorkerDataFolder;
 

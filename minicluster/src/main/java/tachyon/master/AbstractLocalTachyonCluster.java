@@ -27,6 +27,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.block.BlockWorker;
+import tachyon.worker.lineage.LineageWorker;
 
 public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -37,12 +38,13 @@ public abstract class AbstractLocalTachyonCluster {
   protected TachyonConf mMasterConf;
   protected TachyonConf mWorkerConf;
 
-  protected BlockWorker mWorker = null;
+  protected BlockWorker mWorker;
+  protected LineageWorker mLineageWorker;
 
   protected String mTachyonHome;
-  protected String mHostname = null;
+  protected String mHostname;
 
-  protected Thread mWorkerThread = null;
+  protected Thread mWorkerThread;
 
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
