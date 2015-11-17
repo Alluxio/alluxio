@@ -254,7 +254,8 @@ public final class TachyonConf {
       try {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key {} as long.", key);}
+        LOG.warn("Configuration cannot evaluate key {} as long.", key);
+      }
     }
     // if key is not found among the default properties
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
