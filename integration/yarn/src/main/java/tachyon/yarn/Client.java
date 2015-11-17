@@ -272,6 +272,7 @@ public final class Client {
     final String amCommand =
         new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
             .addArg(AM_MAIN_CLASS).addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
+            .addArg(mAppMasterJarHdfs)
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
@@ -279,8 +280,7 @@ public final class Client {
     mAmContainer.setCommands(Collections.singletonList(amCommand));
 
     // Setup jar for ApplicationMaster
-    LocalResource appMasterJar = Records.newRecord(LocalResource.class);
-    setupAppMasterJar(appMasterJar);
+    LocalResource appMasterJar = Utils.createLocalResourceOfFile(mYarnConf, mAppMasterJarHdfs);
     mAmContainer.setLocalResources(Collections.singletonMap("tachyon.jar", appMasterJar));
 
     // Setup CLASSPATH for ApplicationMaster

@@ -15,6 +15,7 @@
 
 package tachyon.yarn;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -63,23 +65,35 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mNumWorkers;
   private final String mTachyonHome;
   private final String mMasterAddress;
+  private final String mTachyonJarHdfs;
 
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
-  /** Client to talk to Resource Manager */
+  /**
+   * Client to talk to Resource Manager
+   */
   private AMRMClientAsync<ContainerRequest> mRMClient;
-  /** Client to talk to Node Manager */
+  /**
+   * Client to talk to Node Manager
+   */
   private NMClient mNMClient;
-  /** Whether a container for Tachyon master is allocated */
+  /**
+   * Whether a container for Tachyon master is allocated
+   */
   private volatile boolean mMasterContainerAllocated;
-  /** Num of allocated worker containers */
+  /**
+   * Num of allocated worker containers
+   */
   private volatile int mNumAllocatedWorkerContainers;
-  /** Network address of the container allocated for Tachyon master */
+  /**
+   * Network address of the container allocated for Tachyon master
+   */
   private String mMasterContainerNetAddress;
 
   private volatile boolean mApplicationDone;
 
-  public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
+  public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress,
+      String tachyonJar) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
         (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
@@ -93,6 +107,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
+    mTachyonJarHdfs = tachyonJar;
     mMasterContainerAllocated = false;
     mNumAllocatedWorkerContainers = 0;
     mApplicationDone = false;
@@ -102,6 +117,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
+    Preconditions.checkArgument(args[0] != null, "Number of workers cannot be null");
     Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
     Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
@@ -109,8 +125,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       final int numWorkers = Integer.parseInt(args[0]);
       final String tachyonHome = args[1];
       final String masterAddress = args[2];
+      final String tachyonJar = args[3];
       ApplicationMaster applicationMaster =
-          new ApplicationMaster(numWorkers, tachyonHome, masterAddress);
+          new ApplicationMaster(numWorkers, tachyonHome, masterAddress, tachyonJar);
       applicationMaster.start();
       applicationMaster.requestContainers();
       applicationMaster.stop();
@@ -189,6 +206,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         new ContainerRequest(masterResource, nodes, null /* any racks */, priority, relaxLocality);
     LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
         masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
+
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
@@ -203,11 +221,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk =
-          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
-              priority);
-      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes",
-          i, workerResource.getVirtualCores(), workerResource.getMemory());
+      ContainerRequest containerAsk = new ContainerRequest(workerResource, null /* any hosts */,
+          null /* any racks */, priority);
+      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes", i,
+          workerResource.getVirtualCores(), workerResource.getMemory());
       mRMClient.addContainerRequest(containerAsk);
     }
 
@@ -236,9 +253,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonMasterContainers(List<Container> containers) {
-    final String command =
-        new CommandBuilder(PathUtils.concatPath(mTachyonHome, "integration", "bin",
-            "tachyon-master-yarn.sh"))
+    final String command = new CommandBuilder(
+        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-master-yarn.sh"))
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
@@ -248,7 +264,28 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       try {
         // Launch container by create ContainerLaunchContext
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
+
+        // Setup commands
         ctx.setCommands(commands);
+
+        // Setup local resources
+        Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
+        LocalResource tachyonJarResource =
+            Utils.createLocalResourceOfFile(mYarnConf, mTachyonJarHdfs);
+        localResources.put("tachyon.jar", tachyonJarResource);
+        ctx.setLocalResources(localResources);
+
+        // Setup the environment needed for the launch context.
+        // Because our jars are available as local resources in the working directory from which
+        // the command will be run, we need to append "." to the path.
+        Map<String, String> env = new HashMap<String, String>();
+        StringBuilder classPathEnv =
+            new StringBuilder(ApplicationConstants.Environment.CLASSPATH.$())
+                .append(File.pathSeparatorChar).append("./*");
+
+        env.put("CLASSPATH", classPathEnv.toString());
+        ctx.setEnvironment(env);
+
         LOG.info("Launching container {} for Tachyon master on {} with master command: {}",
             container.getId(), container.getNodeHttpAddress(), commands);
         mNMClient.startContainer(container, ctx);
@@ -264,9 +301,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonWorkerContainers(List<Container> containers) {
-    final String command =
-        new CommandBuilder(PathUtils.concatPath(mTachyonHome, "integration", "bin",
-            "tachyon-worker-yarn.sh"))
+    final String command = new CommandBuilder(
+        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-worker-yarn.sh"))
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
