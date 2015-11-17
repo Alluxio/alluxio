@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.block;
+package tachyon.client.lineage;
 
 import java.util.List;
 
@@ -25,18 +25,18 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 
 /**
- * Tests {@link BlockStoreContext}.
+ * Tests {@link LineageContext}.
  */
-public final class BlockStoreContextTest {
+public final class LineageContextTest {
 
   @Test
   public void concurrencyTest() throws Exception {
-    final List<BlockMasterClient> clients = Lists.newArrayList();
+    final List<LineageMasterClient> clients = Lists.newArrayList();
 
     // acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i ++) {
-      clients.add(BlockStoreContext.INSTANCE.acquireMasterClient());
+        .getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i ++) {
+      clients.add(LineageContext.INSTANCE.acquireMasterClient());
     }
 
     (new Thread(new AcquireClient())).start();
@@ -45,16 +45,16 @@ public final class BlockStoreContextTest {
     Thread.sleep(5L);
 
     // release all the clients
-    for (BlockMasterClient client : clients) {
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+    for (LineageMasterClient client : clients) {
+      LineageContext.INSTANCE.releaseMasterClient(client);
     }
   }
 
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+      LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient();
+      LineageContext.INSTANCE.releaseMasterClient(client);;
     }
   }
 }

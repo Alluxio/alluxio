@@ -13,15 +13,13 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.client.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
@@ -44,8 +42,6 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class FileSystemMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private FileSystemMasterService.Client mClient = null;
 
   /**
@@ -64,8 +60,9 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterService.Client(mProtocol);
+    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION);
   }
 
   /**

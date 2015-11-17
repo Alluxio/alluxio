@@ -30,7 +30,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.BlockMasterClient;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;

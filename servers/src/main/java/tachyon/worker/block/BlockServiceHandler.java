@@ -48,6 +48,11 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
+  @Override
+  public long getServiceVersion() {
+    return Constants.BLOCK_WORKER_SERVICE_VERSION;
+  }
+
   /**
    * This should be called whenever a client does a direct read in order to update the worker's
    * components that may care about the access times of the blocks (for example, Evictor, UI).
