@@ -366,9 +366,12 @@ public final class FileSystemMaster extends MasterBase {
       InodeFile fileInode = (InodeFile) inode;
       List<Long> blockIdList = fileInode.getBlockIds();
       List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
+      if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
+        throw new BlockInfoException("Cannot complete a file without all the blocks committed");
+      }
 
-      // Iterate from all in-memory file blocks, computing the length and verify that all the blocks
-      // (except the last one) is the same size as the file block size.
+      // Iterate over all file blocks committed to Tachyon, computing the length and verify that all
+      // the blocks (except the last one) is the same size as the file block size.
       long inMemoryLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
       for (int i = 0; i < blockInfoList.size(); i ++) {
