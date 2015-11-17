@@ -33,7 +33,6 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.exception.TachyonException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
@@ -68,7 +67,7 @@ public class ServiceSocketBindIntegrationTest {
     CommonUtils.sleepMs(200);
   }
 
-  private void connectServices() throws IOException, TachyonException {
+  private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),

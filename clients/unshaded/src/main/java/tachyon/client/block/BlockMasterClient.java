@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
@@ -65,8 +66,10 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @return A list of worker info returned by master
    * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException, TachyonException {
+  public synchronized List<WorkerInfo> getWorkerInfoList()
+      throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
@@ -97,9 +100,10 @@ public final class BlockMasterClient extends MasterClientBase {
    * Gets the total Tachyon capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getCapacityBytes() throws TachyonException, IOException {
+  public synchronized long getCapacityBytes() throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -112,9 +116,10 @@ public final class BlockMasterClient extends MasterClientBase {
    * Gets the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getUsedBytes() throws TachyonException, IOException {
+  public synchronized long getUsedBytes() throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {

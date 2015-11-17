@@ -33,7 +33,7 @@ import tachyon.Constants;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
@@ -158,8 +158,9 @@ public final class BlockWorker extends WorkerBase {
    * Creates a Tachyon Block Worker.
    *
    * @throws IOException for other exceptions
+   * @throws ConnectionFailedException if network connection failed
    */
-  public BlockWorker() throws IOException, TachyonException {
+  public BlockWorker() throws IOException, ConnectionFailedException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mTachyonConf = WorkerContext.getConf();

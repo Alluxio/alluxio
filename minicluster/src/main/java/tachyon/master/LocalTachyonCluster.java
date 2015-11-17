@@ -29,7 +29,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
@@ -275,8 +275,9 @@ public final class LocalTachyonCluster {
    * Configure and start worker.
    *
    * @throws IOException when the operation fails
+   * @throws ConnectionFailedException if network connection failed
    */
-  private void startWorker(TachyonConf testConf) throws IOException, TachyonException {
+  private void startWorker(TachyonConf testConf) throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
     mWorkerConf = new TachyonConf(testConf.getInternalProperties());
@@ -312,8 +313,9 @@ public final class LocalTachyonCluster {
    * Starts both a master and a worker using the default test configurations.
    *
    * @throws IOException when the operation fails
+   * @throws ConnectionFailedException if network connection failed
    */
-  public void start() throws IOException, TachyonException {
+  public void start() throws IOException, ConnectionFailedException {
     start(newTestConf());
   }
 
@@ -321,8 +323,9 @@ public final class LocalTachyonCluster {
    * Starts both a master and a worker using the configurations in test conf respectively.
    *
    * @throws IOException when the operation fails
+   * @throws ConnectionFailedException if network connection failed
    */
-  public void start(TachyonConf conf) throws IOException, TachyonException {
+  public void start(TachyonConf conf) throws IOException, ConnectionFailedException {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 

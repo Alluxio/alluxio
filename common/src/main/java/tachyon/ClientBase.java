@@ -130,6 +130,7 @@ public abstract class ClientBase implements Closeable {
    * Connects with the remote.
    *
    * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
   public synchronized void connect() throws IOException, ConnectionFailedException {
     if (mConnected) {
@@ -266,8 +267,9 @@ public abstract class ClientBase implements Closeable {
    * @return the return value of the RPC call
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
    *         been called before calling this method or during the retry
+   * @throws ConnectionFailedException if network connection failed
    */
-  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException, TachyonException {
+  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException, ConnectionFailedException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();

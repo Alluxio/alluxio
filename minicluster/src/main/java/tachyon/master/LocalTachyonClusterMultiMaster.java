@@ -31,7 +31,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
@@ -186,7 +186,7 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public void start() throws IOException, TachyonException {
+  public void start() throws IOException, ConnectionFailedException {
     int numLevels = 1;
 
     mTachyonHome =
