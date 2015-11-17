@@ -13,49 +13,33 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.worker;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 
 /**
- * A file handler for a file in Tachyon. It is a wrapper around the file ID for now.
+ * This is the base class for all workers, and contains common functionality.
  */
-public class TachyonFile {
-  private final long mFileId;
+public abstract class WorkerBase {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /** The executor service for the master sync */
+  private final ExecutorService mExecutorService;
 
-  /**
-   * Creates a new Tachyon file.
-   *
-   * @param fileId the file id
-   */
-  public TachyonFile(long fileId) {
-    mFileId = fileId;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof TachyonFile)) {
-      return false;
-    }
-    TachyonFile that = (TachyonFile) o;
-    return mFileId == that.mFileId;
+  protected WorkerBase(ExecutorService executorService) throws IOException {
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   /**
-   * @return the file id
+   * @return the executor service for this master
    */
-  public long getFileId() {
-    return mFileId;
-  }
-
-  @Override
-  public int hashCode() {
-    return Long.valueOf(mFileId).hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "TachyonFile(" + mFileId + ")";
+  protected ExecutorService getExecutorService() {
+    return mExecutorService;
   }
 }
