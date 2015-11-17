@@ -31,7 +31,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import tachyon.client.BlockMasterClient;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
