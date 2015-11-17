@@ -30,13 +30,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.ClientContext;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.table.TachyonRawTables;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -143,7 +141,9 @@ public class JournalCrashTest {
             }
             sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
           } else if (ClientOpType.CREATE_TABLE == mOpType) {
-            if (sOldTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
+            try {
+              sTachyonRawTables.create(new TachyonURI(mWorkDir + mSuccessNum), 1, null);
+            } catch (Exception e) {
               break;
             }
           }
@@ -178,7 +178,7 @@ public class JournalCrashTest {
   /** The Tachyon Client. This can be shared by all the threads. */
   private static TachyonFileSystem sTfs = null;
   /** Old Tachyon client, only be used for raw table functionality */
-  private static TachyonFS sOldTfs = null;
+  private static TachyonRawTables sTachyonRawTables = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -276,8 +276,8 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = TachyonFileSystemFactory.get();
-      sOldTfs = TachyonFS.get(ClientContext.getConf());
+      sTfs = TachyonFileSystem.TachyonFileSystemFactory.get();
+      sTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
       } catch (Exception ioe) {
