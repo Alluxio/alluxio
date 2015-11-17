@@ -22,8 +22,10 @@ import java.util.Set;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
+import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateTOptions;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -41,9 +43,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void completeFile(long fileId) throws TachyonTException {
+  public void completeFile(long fileId, CompleteFileTOptions options) throws TachyonTException {
     try {
-      mFileSystemMaster.completeFile(fileId);
+      mFileSystemMaster.completeFile(fileId, new CompleteFileOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -159,15 +161,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public boolean persistFile(long fileId, long length) throws TachyonTException {
-    try {
-      return mFileSystemMaster.persistFile(fileId, length);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
     }
   }
 

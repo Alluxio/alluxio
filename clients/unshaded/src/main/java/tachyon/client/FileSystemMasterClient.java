@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
@@ -200,14 +201,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Marks a file as completed.
    *
    * @param fileId the file id
+   * @param options the method options
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void completeFile(final long fileId) throws IOException, TachyonException {
+  public synchronized void completeFile(final long fileId, final CompleteFileOptions options)
+      throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.completeFile(fileId);
+        mClient.completeFile(fileId, options.toThrift());
         return null;
       }
     });
