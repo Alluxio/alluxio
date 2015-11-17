@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.Callable;
 
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +27,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -39,7 +36,6 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.client.table.TachyonRawTables;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 public class BasicRawTableOperations implements Callable<Boolean> {
@@ -71,7 +67,8 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     return read(tachyonRawTableClient, tachyonClient);
   }
 
-  private void createRawTable(TachyonRawTables tachyonRawTableClient) throws IOException, TachyonException {
+  private void createRawTable(TachyonRawTables tachyonRawTableClient)
+      throws IOException, TachyonException {
     ByteBuffer data = ByteBuffer.allocate(mMetadataLength * 4);
     data.order(ByteOrder.nativeOrder());
     for (int k = -mMetadataLength; k < 0; k ++) {
