@@ -60,9 +60,6 @@ public final class Constants {
   public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
-
-  public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
@@ -114,6 +111,8 @@ public final class Constants {
   public static final String ZOOKEEPER_ADDRESS = "tachyon.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "tachyon.zookeeper.election.path";
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
+  public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
+      "tachyon.zookeeper.leader.inquiry.retry";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
@@ -336,6 +335,8 @@ public final class Constants {
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
+  public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
+      "tachyon.security.authentication.socket.timeout.ms";
 
   private Constants() {} // prevent instantiation
 }
