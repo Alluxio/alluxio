@@ -24,6 +24,7 @@ import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
@@ -153,8 +154,8 @@ public final class BlockDataManager {
           loc.tierAlias(), blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    } catch (ConnectionFailedException cfe) {
+      throw new IOException("Failed to commit block to master.", cfe);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }

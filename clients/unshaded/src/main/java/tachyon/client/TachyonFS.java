@@ -44,6 +44,7 @@ import tachyon.client.lineage.LineageMasterClient;
 import tachyon.client.table.RawTable;
 import tachyon.client.table.RawTableMasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.DependencyInfo;
@@ -558,7 +559,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId == IdUtils.INVALID_FILE_ID) {
       try {
         fileId = mFSMasterClient.getFileId(path);
-      } catch (TachyonException e) {
+      } catch (ConnectionFailedException e) {
         throw new IOException(e);
       }
       if (fileId == IdUtils.INVALID_FILE_ID) {
@@ -733,7 +734,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized String getUfsAddress() throws IOException {
     try {
       return mFSMasterClient.getUfsAddress();
-    } catch (TachyonException e) {
+    } catch (ConnectionFailedException e) {
       throw new IOException(e);
     }
   }
@@ -788,7 +789,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized List<WorkerInfo> getWorkersInfo() throws IOException {
     try {
       return mBlockMasterClient.getWorkerInfoList();
-    } catch (TachyonException e) {
+    } catch (ConnectionFailedException e) {
       throw new IOException(e);
     }
   }
