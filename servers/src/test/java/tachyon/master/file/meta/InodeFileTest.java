@@ -67,7 +67,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   @Test
-  public void setLengthAfterCompleteTest() throws Exception {
+  public void completeTwiceTest() throws Exception {
     mThrown.expect(FileAlreadyCompletedException.class);
     mThrown.expectMessage("File testFile1 has already been completed.");
     InodeFile inodeFile = createInodeFile(1);
