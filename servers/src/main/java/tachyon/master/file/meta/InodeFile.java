@@ -255,7 +255,7 @@ public final class InodeFile extends Inode {
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws InvalidFileSizeException
+   * @throws InvalidFileSizeException if invalid file size is encountered
    */
   public synchronized void setLength(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
