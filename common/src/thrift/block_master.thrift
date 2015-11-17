@@ -13,7 +13,7 @@ struct WorkerInfo {
   7: i64 startTimeMs
 }
 
-service BlockMasterService {
+service BlockMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

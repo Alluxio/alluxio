@@ -18,6 +18,7 @@ package tachyon.master.rawtable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
 import tachyon.replay.ReplayCache;
@@ -35,7 +36,11 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
     mRawTableMaster = rawTableMaster;
   }
 
-  // TODO(jiri) Reduce exception handling boilerplate here
+  @Override
+  public long getServiceVersion() {
+    return Constants.RAW_TABLE_MASTER_SERVICE_VERSION;
+  }
+
   @Override
   public long createRawTable(RpcOptions rpcOptions, final String path, final int columns,
       final ByteBuffer metadata) throws TachyonTException, ThriftIOException {

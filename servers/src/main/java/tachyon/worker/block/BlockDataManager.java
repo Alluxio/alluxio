@@ -20,20 +20,15 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Sessions;
-import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
-import tachyon.exception.FailedToCheckpointException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.thrift.FileInfo;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
-import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
@@ -114,48 +109,6 @@ public final class BlockDataManager {
    */
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     mBlockStore.accessBlock(sessionId, blockId);
-  }
-
-  /**
-   * Completes the process of persisting a file by renaming it to its final destination.
-   *
-   * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isAsyncPersist()} or {@link UnderStorageType#isSyncPersist()}
-   * is true. The current implementation of persistence is that through
-   * {@link tachyon.client.UnderStorageType} operations write to
-   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
-   *
-   * @param fileId a file id
-   * @param nonce a nonce used for temporary file creation
-   * @param ufsPath the UFS path of the file
-   * @throws IOException if the update to the master fails
-   * @throws TachyonException if the file does not exist or cannot be renamed
-   */
-  public void persistFile(long fileId, long nonce, String ufsPath)
-      throws IOException, TachyonException {
-    String tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
-    UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
-    try {
-      if (!ufs.exists(tmpPath)) {
-        // Location of the temporary file has changed, recompute it.
-        FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
-        ufsPath = fileInfo.getUfsPath();
-        tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
-      }
-      if (!ufs.rename(tmpPath, ufsPath)) {
-        throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + ufsPath);
-      }
-    } catch (IOException ioe) {
-      throw new FailedToCheckpointException(
-          "Failed to rename " + tmpPath + " to " + ufsPath + ": " + ioe);
-    }
-    long fileSize;
-    try {
-      fileSize = ufs.getFileSize(ufsPath);
-    } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to getFileSize " + ufsPath);
-    }
-    mFileSystemMasterClient.persistFile(fileId, fileSize);
   }
 
   /**

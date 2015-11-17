@@ -22,6 +22,10 @@ struct FileInfo {
   17: i64 ttl
 }
 
+struct CompleteFileTOptions {
+  1: optional i64 ufsLength
+}
+
 struct CreateTOptions {
   1: optional i64 blockSizeBytes
   2: optional bool persisted
@@ -39,14 +43,15 @@ struct SetStateTOptions {
   2: optional i64 ttl
 }
 
-service FileSystemMasterService {
+service FileSystemMasterService extends common.TachyonService {
 
   // Tachyon Client API
 
   /*
    * Marks a file as completed.
    */
-  void completeFile(1: i64 fileId) throws (1: exception.TachyonTException e)
+  void completeFile(1: i64 fileId, 2: CompleteFileTOptions options)
+    throws (1: exception.TachyonTException e)
 
   /*
    * Creates a file.
@@ -110,6 +115,9 @@ service FileSystemMasterService {
   i64 loadMetadata(1: string ufsPath, 2: bool recursive)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
+  /*
+   * Creates a directory.
+   */
   bool mkdir(1: string path, 2: MkdirTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
@@ -119,9 +127,6 @@ service FileSystemMasterService {
    */
   bool mount(1: string tachyonPath, 2: string ufsPath)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
-
-  bool persistFile(1: i64 fileId, 2: i64 length)
-    throws (1: exception.TachyonTException e)
 
   /*
    * Deletes a file or a directory.
@@ -153,7 +158,7 @@ service FileSystemMasterService {
   // Tachyon Worker API
 
   /*
-   * Retursn the set of pinned files.
+   * Returns the set of pinned files.
    */
   set<i64> workerGetPinIdList()
 }

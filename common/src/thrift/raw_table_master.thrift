@@ -12,7 +12,7 @@ struct RawTableInfo {
   5: binary metadata
 }
 
-service RawTableMasterService {
+service RawTableMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

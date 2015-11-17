@@ -50,3 +50,12 @@ struct RpcOptions {
   1: optional string key
 }
 
+service TachyonService {
+
+  /*
+   * Returns the version of the master service.
+   *
+   * NOTE: The version should be updated every time a backwards incompatible API change occurs.
+   */
+  i64 getServiceVersion()
+}

@@ -31,14 +31,18 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.lineage.LineageContext;
 import tachyon.client.lineage.LineageMasterClient;
 import tachyon.client.table.RawTable;
+import tachyon.client.table.RawTableMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -272,7 +276,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized void completeFile(long fid) throws IOException {
     try {
-      mFSMasterClient.completeFile(fid);
+      mFSMasterClient.completeFile(fid, CompleteFileOptions.defaults());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
