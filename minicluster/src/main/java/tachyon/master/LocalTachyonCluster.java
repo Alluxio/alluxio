@@ -67,8 +67,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
 
-  private LineageWorker mLineageWorker = null;
-
   private int mQuotaUnitBytes;
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
