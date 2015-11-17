@@ -261,7 +261,7 @@ public final class InodeFile extends Inode {
    * @param length The new length of the file, cannot be negative
    * @throws InvalidFileSizeException if invalid file size is encountered
    */
-  public synchronized void setLength(long length)
+  public synchronized void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
     if (mCompleted) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
