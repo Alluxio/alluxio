@@ -44,6 +44,9 @@ import tachyon.job.JobConf;
 import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.thrift.LineageInfo;
 
+/**
+ * Integration tests for the lineage module.
+ */
 public final class LineageMastertIntegrationsTest {
   private static final int BLOCK_SIZE_BYTES = 128;
   private static final long WORKER_CAPACITY_BYTES = Constants.GB;
@@ -57,7 +60,6 @@ public final class LineageMastertIntegrationsTest {
           Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 
   private static final String OUT_FILE = "/test";
-  private TachyonLineageFileSystem mTFS;
   private TachyonConf mTestConf;
   private CommandLineJob mJob;
 
@@ -72,7 +74,6 @@ public final class LineageMastertIntegrationsTest {
   @Before
   public void before() throws Exception {
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mTFS = (TachyonLineageFileSystem) mLocalTachyonClusterResource.get().getClient();
     mTestConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
   }
 
@@ -112,7 +113,9 @@ public final class LineageMastertIntegrationsTest {
           new OutStreamOptions.Builder(mTestConf).setTachyonStorageType(TachyonStorageType.STORE)
               .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
               .build();
-      FileOutStream outputStream = mTFS.getOutStream(new TachyonURI(OUT_FILE), options);
+      TachyonLineageFileSystem tfs =
+          (TachyonLineageFileSystem) mLocalTachyonClusterResource.get().getClient();
+      FileOutStream outputStream = tfs.getOutStream(new TachyonURI(OUT_FILE), options);
       outputStream.write(1);
       outputStream.close();
 
