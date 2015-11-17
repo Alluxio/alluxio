@@ -13,27 +13,33 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.worker;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.annotation.PublicApi;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.file.TachyonFileSystem}, which TFS is built on top of.
+ * This is the base class for all workers, and contains common functionality.
  */
-@PublicApi
-public final class TFS extends AbstractTFS {
+public abstract class WorkerBase {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /** The executor service for the master sync */
+  private final ExecutorService mExecutorService;
 
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME;
+  protected WorkerBase(ExecutorService executorService) throws IOException {
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
+  /**
+   * @return the executor service for this master
+   */
+  protected ExecutorService getExecutorService() {
+    return mExecutorService;
   }
 }
