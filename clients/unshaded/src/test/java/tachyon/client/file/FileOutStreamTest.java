@@ -37,7 +37,6 @@ import org.powermock.reflect.Whitebox;
 import com.google.common.collect.Maps;
 
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;

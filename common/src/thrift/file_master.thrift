@@ -43,7 +43,7 @@ struct SetStateTOptions {
   2: optional i64 ttl
 }
 
-service FileSystemMasterService {
+service FileSystemMasterService extends common.TachyonService {
 
   // Tachyon Client API
 

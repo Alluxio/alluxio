@@ -62,6 +62,14 @@ public final class Constants {
 
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
+  // Service versions should be incremented every time a backwards incompatible change occurs.
+  public static final long BLOCK_MASTER_SERVICE_VERSION = 1;
+  public static final long BLOCK_WORKER_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_MASTER_SERVICE_VERSION = 1;
+  public static final long RAW_TABLE_MASTER_SERVICE_VERSION = 1;
+  public static final long LINEAGE_MASTER_SERVICE_VERSION = 1;
+  public static final long UNKNOWN_SERVICE_VERSION = -1;
+
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
   public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
@@ -293,9 +301,11 @@ public final class Constants {
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "tachyon.user.file.master.client.threads";
-  public static final String USER_RAW_TABLE_MASTER_CLIENT_THREADS =
-      "tachyon.user.rawtable.master.client.threads";
+  public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
+      "tachyon.user.lineage.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
+  public static final String USER_RAW_TABLE_MASTER_CLIENT_THREADS =
+      "tachyon.user.raw.table.master.client.threads";
 
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "tachyon.user.file.waitcompleted.poll.ms";
