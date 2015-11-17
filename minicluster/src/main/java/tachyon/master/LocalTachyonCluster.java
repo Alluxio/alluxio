@@ -371,4 +371,11 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
       mLineageWorker.stop();
     }
   }
+
+  @Override
+  public void stop() throws Exception {
+    super.stop();
+    // clear HDFS client caching
+    System.clearProperty("fs.hdfs.impl.disable.cache");
+  }
 }
