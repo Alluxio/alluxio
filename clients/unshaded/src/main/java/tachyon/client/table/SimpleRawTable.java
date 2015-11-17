@@ -13,27 +13,34 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.client.table;
 
-import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.file.TachyonFileSystem}, which TFS is built on top of.
+ * Tachyon provides native support for tables with multiple columns. Each table contains one or more
+ * columns. Each column contains one or more ordered files.
  */
 @PublicApi
-public final class TFS extends AbstractTFS {
+public class SimpleRawTable {
 
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME;
+  /** Id of the raw table, which uniquely identifies this table */
+  private final long mRawTableId;
+
+  /**
+   * Creates a raw table which is used as a handler for accessing raw tables in
+   * {@link TachyonRawTables}
+   *
+   * @param rawTableId the id of the raw table
+   */
+  public SimpleRawTable(long rawTableId) {
+    mRawTableId = rawTableId;
   }
 
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
+  /**
+   * @return the id of the raw table
+   */
+  public long getRawTableId() {
+    return mRawTableId;
   }
 }
