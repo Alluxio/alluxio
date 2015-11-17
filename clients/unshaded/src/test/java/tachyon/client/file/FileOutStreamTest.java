@@ -149,7 +149,7 @@ public class FileOutStreamTest {
   @Test
   public void singleByteWriteTest() throws Exception {
     mTestStream.write(5);
-    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getDataWritten());
+    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getWrittenData());
   }
 
   /**
@@ -326,13 +326,13 @@ public class FileOutStreamTest {
           mTachyonOutStreamMap.containsKey(streamIndex));
       Assert.assertArrayEquals(BufferUtils
           .getIncreasingByteArray((int) (streamIndex * BLOCK_LENGTH + start), (int) BLOCK_LENGTH),
-          mTachyonOutStreamMap.get(streamIndex).getDataWritten());
+          mTachyonOutStreamMap.get(streamIndex).getWrittenData());
     }
     long lastStreamBytes = len - filledStreams * BLOCK_LENGTH;
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) (filledStreams * BLOCK_LENGTH + start),
             (int) lastStreamBytes),
-        mTachyonOutStreamMap.get(filledStreams).getDataWritten());
+        mTachyonOutStreamMap.get(filledStreams).getWrittenData());
 
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),
         mUnderStorageOutputStream.toByteArray());

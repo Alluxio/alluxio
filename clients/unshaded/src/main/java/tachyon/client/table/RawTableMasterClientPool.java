@@ -13,40 +13,30 @@
  * the License.
  */
 
-package tachyon.client.block;
+package tachyon.client.table;
 
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.client.RawTableMasterClient;
 import tachyon.resource.ResourcePool;
 
-/**
- * Class for managing block master clients. After obtaining a client with
- * {@link ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
- * using the client.
- */
-final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+final class RawTableMasterClientPool extends ResourcePool<RawTableMasterClient> {
   private final InetSocketAddress mMasterAddress;
 
-  /**
-   * Creates a new block master client pool.
-   *
-   * @param masterAddress the master address
-   */
-  public BlockMasterClientPool(InetSocketAddress masterAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
+  public RawTableMasterClientPool(InetSocketAddress masterAddress) {
+    super(ClientContext.getConf().getInt(Constants.USER_RAW_TABLE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down.
+    // TODO(calvin): Consider collecting all the clients and shutting them down
   }
 
   @Override
-  protected BlockMasterClient createNewResource() {
-    return new BlockMasterClient(mMasterAddress, ClientContext.getConf());
+  protected RawTableMasterClient createNewResource() {
+    return new RawTableMasterClient(mMasterAddress, ClientContext.getConf());
   }
 }
