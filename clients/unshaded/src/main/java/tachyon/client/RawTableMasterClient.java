@@ -80,8 +80,8 @@ public final class RawTableMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        return mClient.createRawTable(path.getPath(), columns, metadata,
-            new RpcOptions().setKey(IdUtils.createRpcId()));
+        RpcOptions rpcOptions = new RpcOptions().setKey(IdUtils.createRpcId());
+        return mClient.createRawTable(rpcOptions, path.getPath(), columns, metadata);
       }
     });
   }

@@ -39,7 +39,7 @@ public class RawTableMasterService {
 
   public interface Iface {
 
-    public long createRawTable(String path, int columns, ByteBuffer metadata, tachyon.thrift.RpcOptions rpcOptions) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     public RawTableInfo getClientRawTableInfoById(long id) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -53,7 +53,7 @@ public class RawTableMasterService {
 
   public interface AsyncIface {
 
-    public void createRawTable(String path, int columns, ByteBuffer metadata, tachyon.thrift.RpcOptions rpcOptions, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getClientRawTableInfoById(long id, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -85,19 +85,19 @@ public class RawTableMasterService {
       super(iprot, oprot);
     }
 
-    public long createRawTable(String path, int columns, ByteBuffer metadata, tachyon.thrift.RpcOptions rpcOptions) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
+    public long createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_createRawTable(path, columns, metadata, rpcOptions);
+      send_createRawTable(rpcOptions, path, columns, metadata);
       return recv_createRawTable();
     }
 
-    public void send_createRawTable(String path, int columns, ByteBuffer metadata, tachyon.thrift.RpcOptions rpcOptions) throws org.apache.thrift.TException
+    public void send_createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata) throws org.apache.thrift.TException
     {
       createRawTable_args args = new createRawTable_args();
+      args.setRpcOptions(rpcOptions);
       args.setPath(path);
       args.setColumns(columns);
       args.setMetadata(metadata);
-      args.setRpcOptions(rpcOptions);
       sendBase("createRawTable", args);
     }
 
@@ -237,33 +237,33 @@ public class RawTableMasterService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void createRawTable(String path, int columns, ByteBuffer metadata, tachyon.thrift.RpcOptions rpcOptions, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      createRawTable_call method_call = new createRawTable_call(path, columns, metadata, rpcOptions, resultHandler, this, ___protocolFactory, ___transport);
+      createRawTable_call method_call = new createRawTable_call(rpcOptions, path, columns, metadata, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class createRawTable_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private tachyon.thrift.RpcOptions rpcOptions;
       private String path;
       private int columns;
       private ByteBuffer metadata;
-      private tachyon.thrift.RpcOptions rpcOptions;
-      public createRawTable_call(String path, int columns, ByteBuffer metadata, tachyon.thrift.RpcOptions rpcOptions, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public createRawTable_call(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.rpcOptions = rpcOptions;
         this.path = path;
         this.columns = columns;
         this.metadata = metadata;
-        this.rpcOptions = rpcOptions;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("createRawTable", org.apache.thrift.protocol.TMessageType.CALL, 0));
         createRawTable_args args = new createRawTable_args();
+        args.setRpcOptions(rpcOptions);
         args.setPath(path);
         args.setColumns(columns);
         args.setMetadata(metadata);
-        args.setRpcOptions(rpcOptions);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -446,7 +446,7 @@ public class RawTableMasterService {
       public createRawTable_result getResult(I iface, createRawTable_args args) throws org.apache.thrift.TException {
         createRawTable_result result = new createRawTable_result();
         try {
-          result.success = iface.createRawTable(args.path, args.columns, args.metadata, args.rpcOptions);
+          result.success = iface.createRawTable(args.rpcOptions, args.path, args.columns, args.metadata);
           result.setSuccessIsSet(true);
         } catch (tachyon.thrift.TachyonTException e) {
           result.e = e;
@@ -634,7 +634,7 @@ public class RawTableMasterService {
       }
 
       public void start(I iface, createRawTable_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.createRawTable(args.path, args.columns, args.metadata, args.rpcOptions,resultHandler);
+        iface.createRawTable(args.rpcOptions, args.path, args.columns, args.metadata,resultHandler);
       }
     }
 
@@ -871,10 +871,10 @@ public class RawTableMasterService {
   public static class createRawTable_args implements org.apache.thrift.TBase<createRawTable_args, createRawTable_args._Fields>, java.io.Serializable, Cloneable, Comparable<createRawTable_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createRawTable_args");
 
+    private static final org.apache.thrift.protocol.TField RPC_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcOptions", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField COLUMNS_FIELD_DESC = new org.apache.thrift.protocol.TField("columns", org.apache.thrift.protocol.TType.I32, (short)2);
     private static final org.apache.thrift.protocol.TField METADATA_FIELD_DESC = new org.apache.thrift.protocol.TField("metadata", org.apache.thrift.protocol.TType.STRING, (short)3);
-    private static final org.apache.thrift.protocol.TField RPC_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcOptions", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -882,17 +882,17 @@ public class RawTableMasterService {
       schemes.put(TupleScheme.class, new createRawTable_argsTupleSchemeFactory());
     }
 
+    public tachyon.thrift.RpcOptions rpcOptions; // required
     public String path; // required
     public int columns; // required
     public ByteBuffer metadata; // required
-    public tachyon.thrift.RpcOptions rpcOptions; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      RPC_OPTIONS((short)4, "rpcOptions"),
       PATH((short)1, "path"),
       COLUMNS((short)2, "columns"),
-      METADATA((short)3, "metadata"),
-      RPC_OPTIONS((short)4, "rpcOptions");
+      METADATA((short)3, "metadata");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -907,14 +907,14 @@ public class RawTableMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 4: // RPC_OPTIONS
+            return RPC_OPTIONS;
           case 1: // PATH
             return PATH;
           case 2: // COLUMNS
             return COLUMNS;
           case 3: // METADATA
             return METADATA;
-          case 4: // RPC_OPTIONS
-            return RPC_OPTIONS;
           default:
             return null;
         }
@@ -960,14 +960,14 @@ public class RawTableMasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.RPC_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("rpcOptions", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, tachyon.thrift.RpcOptions.class)));
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.COLUMNS, new org.apache.thrift.meta_data.FieldMetaData("columns", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       tmpMap.put(_Fields.METADATA, new org.apache.thrift.meta_data.FieldMetaData("metadata", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
-      tmpMap.put(_Fields.RPC_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("rpcOptions", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, tachyon.thrift.RpcOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createRawTable_args.class, metaDataMap);
     }
@@ -976,17 +976,17 @@ public class RawTableMasterService {
     }
 
     public createRawTable_args(
+      tachyon.thrift.RpcOptions rpcOptions,
       String path,
       int columns,
-      ByteBuffer metadata,
-      tachyon.thrift.RpcOptions rpcOptions)
+      ByteBuffer metadata)
     {
       this();
+      this.rpcOptions = rpcOptions;
       this.path = path;
       this.columns = columns;
       setColumnsIsSet(true);
       this.metadata = org.apache.thrift.TBaseHelper.copyBinary(metadata);
-      this.rpcOptions = rpcOptions;
     }
 
     /**
@@ -994,15 +994,15 @@ public class RawTableMasterService {
      */
     public createRawTable_args(createRawTable_args other) {
       __isset_bitfield = other.__isset_bitfield;
+      if (other.isSetRpcOptions()) {
+        this.rpcOptions = new tachyon.thrift.RpcOptions(other.rpcOptions);
+      }
       if (other.isSetPath()) {
         this.path = other.path;
       }
       this.columns = other.columns;
       if (other.isSetMetadata()) {
         this.metadata = org.apache.thrift.TBaseHelper.copyBinary(other.metadata);
-      }
-      if (other.isSetRpcOptions()) {
-        this.rpcOptions = new tachyon.thrift.RpcOptions(other.rpcOptions);
       }
     }
 
@@ -1012,11 +1012,35 @@ public class RawTableMasterService {
 
     @Override
     public void clear() {
+      this.rpcOptions = null;
       this.path = null;
       setColumnsIsSet(false);
       this.columns = 0;
       this.metadata = null;
+    }
+
+    public tachyon.thrift.RpcOptions getRpcOptions() {
+      return this.rpcOptions;
+    }
+
+    public createRawTable_args setRpcOptions(tachyon.thrift.RpcOptions rpcOptions) {
+      this.rpcOptions = rpcOptions;
+      return this;
+    }
+
+    public void unsetRpcOptions() {
       this.rpcOptions = null;
+    }
+
+    /** Returns true if field rpcOptions is set (has been assigned a value) and false otherwise */
+    public boolean isSetRpcOptions() {
+      return this.rpcOptions != null;
+    }
+
+    public void setRpcOptionsIsSet(boolean value) {
+      if (!value) {
+        this.rpcOptions = null;
+      }
     }
 
     public String getPath() {
@@ -1100,32 +1124,16 @@ public class RawTableMasterService {
       }
     }
 
-    public tachyon.thrift.RpcOptions getRpcOptions() {
-      return this.rpcOptions;
-    }
-
-    public createRawTable_args setRpcOptions(tachyon.thrift.RpcOptions rpcOptions) {
-      this.rpcOptions = rpcOptions;
-      return this;
-    }
-
-    public void unsetRpcOptions() {
-      this.rpcOptions = null;
-    }
-
-    /** Returns true if field rpcOptions is set (has been assigned a value) and false otherwise */
-    public boolean isSetRpcOptions() {
-      return this.rpcOptions != null;
-    }
-
-    public void setRpcOptionsIsSet(boolean value) {
-      if (!value) {
-        this.rpcOptions = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case RPC_OPTIONS:
+        if (value == null) {
+          unsetRpcOptions();
+        } else {
+          setRpcOptions((tachyon.thrift.RpcOptions)value);
+        }
+        break;
+
       case PATH:
         if (value == null) {
           unsetPath();
@@ -1150,19 +1158,14 @@ public class RawTableMasterService {
         }
         break;
 
-      case RPC_OPTIONS:
-        if (value == null) {
-          unsetRpcOptions();
-        } else {
-          setRpcOptions((tachyon.thrift.RpcOptions)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case RPC_OPTIONS:
+        return getRpcOptions();
+
       case PATH:
         return getPath();
 
@@ -1171,9 +1174,6 @@ public class RawTableMasterService {
 
       case METADATA:
         return getMetadata();
-
-      case RPC_OPTIONS:
-        return getRpcOptions();
 
       }
       throw new IllegalStateException();
@@ -1186,14 +1186,14 @@ public class RawTableMasterService {
       }
 
       switch (field) {
+      case RPC_OPTIONS:
+        return isSetRpcOptions();
       case PATH:
         return isSetPath();
       case COLUMNS:
         return isSetColumns();
       case METADATA:
         return isSetMetadata();
-      case RPC_OPTIONS:
-        return isSetRpcOptions();
       }
       throw new IllegalStateException();
     }
@@ -1210,6 +1210,15 @@ public class RawTableMasterService {
     public boolean equals(createRawTable_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_rpcOptions = true && this.isSetRpcOptions();
+      boolean that_present_rpcOptions = true && that.isSetRpcOptions();
+      if (this_present_rpcOptions || that_present_rpcOptions) {
+        if (!(this_present_rpcOptions && that_present_rpcOptions))
+          return false;
+        if (!this.rpcOptions.equals(that.rpcOptions))
+          return false;
+      }
 
       boolean this_present_path = true && this.isSetPath();
       boolean that_present_path = true && that.isSetPath();
@@ -1238,21 +1247,17 @@ public class RawTableMasterService {
           return false;
       }
 
-      boolean this_present_rpcOptions = true && this.isSetRpcOptions();
-      boolean that_present_rpcOptions = true && that.isSetRpcOptions();
-      if (this_present_rpcOptions || that_present_rpcOptions) {
-        if (!(this_present_rpcOptions && that_present_rpcOptions))
-          return false;
-        if (!this.rpcOptions.equals(that.rpcOptions))
-          return false;
-      }
-
       return true;
     }
 
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_rpcOptions = true && (isSetRpcOptions());
+      list.add(present_rpcOptions);
+      if (present_rpcOptions)
+        list.add(rpcOptions);
 
       boolean present_path = true && (isSetPath());
       list.add(present_path);
@@ -1269,11 +1274,6 @@ public class RawTableMasterService {
       if (present_metadata)
         list.add(metadata);
 
-      boolean present_rpcOptions = true && (isSetRpcOptions());
-      list.add(present_rpcOptions);
-      if (present_rpcOptions)
-        list.add(rpcOptions);
-
       return list.hashCode();
     }
 
@@ -1285,6 +1285,16 @@ public class RawTableMasterService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetRpcOptions()).compareTo(other.isSetRpcOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetRpcOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.rpcOptions, other.rpcOptions);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
       if (lastComparison != 0) {
         return lastComparison;
@@ -1315,16 +1325,6 @@ public class RawTableMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetRpcOptions()).compareTo(other.isSetRpcOptions());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetRpcOptions()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.rpcOptions, other.rpcOptions);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -1345,6 +1345,14 @@ public class RawTableMasterService {
       StringBuilder sb = new StringBuilder("createRawTable_args(");
       boolean first = true;
 
+      sb.append("rpcOptions:");
+      if (this.rpcOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.rpcOptions);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("path:");
       if (this.path == null) {
         sb.append("null");
@@ -1362,14 +1370,6 @@ public class RawTableMasterService {
         sb.append("null");
       } else {
         org.apache.thrift.TBaseHelper.toString(this.metadata, sb);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("rpcOptions:");
-      if (this.rpcOptions == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.rpcOptions);
       }
       first = false;
       sb.append(")");
@@ -1420,6 +1420,15 @@ public class RawTableMasterService {
             break;
           }
           switch (schemeField.id) {
+            case 4: // RPC_OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.rpcOptions = new tachyon.thrift.RpcOptions();
+                struct.rpcOptions.read(iprot);
+                struct.setRpcOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
@@ -1440,15 +1449,6 @@ public class RawTableMasterService {
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.metadata = iprot.readBinary();
                 struct.setMetadataIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // RPC_OPTIONS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.rpcOptions = new tachyon.thrift.RpcOptions();
-                struct.rpcOptions.read(iprot);
-                struct.setRpcOptionsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -1504,19 +1504,22 @@ public class RawTableMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, createRawTable_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
+        if (struct.isSetRpcOptions()) {
           optionals.set(0);
         }
-        if (struct.isSetColumns()) {
+        if (struct.isSetPath()) {
           optionals.set(1);
         }
-        if (struct.isSetMetadata()) {
+        if (struct.isSetColumns()) {
           optionals.set(2);
         }
-        if (struct.isSetRpcOptions()) {
+        if (struct.isSetMetadata()) {
           optionals.set(3);
         }
         oprot.writeBitSet(optionals, 4);
+        if (struct.isSetRpcOptions()) {
+          struct.rpcOptions.write(oprot);
+        }
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
@@ -1526,9 +1529,6 @@ public class RawTableMasterService {
         if (struct.isSetMetadata()) {
           oprot.writeBinary(struct.metadata);
         }
-        if (struct.isSetRpcOptions()) {
-          struct.rpcOptions.write(oprot);
-        }
       }
 
       @Override
@@ -1536,21 +1536,21 @@ public class RawTableMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.columns = iprot.readI32();
-          struct.setColumnsIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.metadata = iprot.readBinary();
-          struct.setMetadataIsSet(true);
-        }
-        if (incoming.get(3)) {
           struct.rpcOptions = new tachyon.thrift.RpcOptions();
           struct.rpcOptions.read(iprot);
           struct.setRpcOptionsIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.path = iprot.readString();
+          struct.setPathIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.columns = iprot.readI32();
+          struct.setColumnsIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.metadata = iprot.readBinary();
+          struct.setMetadataIsSet(true);
         }
       }
     }
