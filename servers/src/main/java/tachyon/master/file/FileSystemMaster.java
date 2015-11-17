@@ -172,9 +172,12 @@ public final class FileSystemMaster extends MasterBase {
         completeFileFromEntry((CompleteFileEntry) entry);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
-      } catch (SuspectedFileSizeException e) {
+      } catch (InvalidFileSizeException e) {
+        throw new RuntimeException(e);
+      }  catch (FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
+
     } else if (entry instanceof SetStateEntry) {
       try {
         setStateFromEntry((SetStateEntry) entry);
@@ -352,10 +355,12 @@ public final class FileSystemMaster extends MasterBase {
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws SuspectedFileSizeException if an invalid file size is encountered
+   * @throws InvalidFileSizeException if an invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
    */
   public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
-      FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
+      FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -397,7 +402,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
-      throws FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
+      throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
     inode.setBlockIds(blockIds);
@@ -416,7 +422,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException,
-      SuspectedFileSizeException {
+      InvalidFileSizeException, FileAlreadyCompletedException {
     try {
       completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(),
           entry.getOpTimeMs());
