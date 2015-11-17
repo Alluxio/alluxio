@@ -262,10 +262,10 @@ public final class InodeFile extends Inode {
    */
   public synchronized void complete(long length) throws SuspectedFileSizeException {
     if (mCompleted) {
-      throw new SuspectedFileSizeException("File has already been completed.");
+      throw new SuspectedFileSizeException("File " + getName() + " has already been completed.");
     }
     if (length < 0) {
-      throw new SuspectedFileSizeException("File length " + length + " cannot be negative.");
+      throw new SuspectedFileSizeException("File " + getName() + " cannot have negative length.");
     }
     mCompleted = true;
     mLength = length;
