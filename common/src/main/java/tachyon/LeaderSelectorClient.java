@@ -158,7 +158,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     } finally {
       mIsLeader.set(false);
       mCurrentMasterThread = null;
-      LOG.warn(mName + " relinquishing leadership.");
+      LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId())
       LOG.info("All participants: {}", mLeaderSelector.getParticipants());
       client.delete().forPath(mLeaderFolder + mName);
