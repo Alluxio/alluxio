@@ -29,7 +29,8 @@ import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
-  private final ReplayCache<Long> replayCacheLong = ReplayCache.newInstance();
+  /** Replay cache used for RPCs which return values of type {@link Long}. */
+  private final ReplayCache<Long> mReplayCacheLong = ReplayCache.newInstance();
 
   public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
     mRawTableMaster = rawTableMaster;
@@ -39,7 +40,7 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   @Override
   public long createRawTable(final String path, final int columns, final ByteBuffer metadata,
       RpcOptions rpcOptions) throws TachyonTException, ThriftIOException {
-    return replayCacheLong.run(rpcOptions.getKey(),
+    return mReplayCacheLong.run(rpcOptions.getKey(),
         new ReplayCache.ReplayCallableThrowsIOException<Long>() {
           @Override
           public Long call() throws TachyonException, IOException {
