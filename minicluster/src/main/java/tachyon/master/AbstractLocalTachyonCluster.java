@@ -61,11 +61,6 @@ public abstract class AbstractLocalTachyonCluster {
 
   protected void resetContext() {}
 
-  protected void cleanHDFSCaching() {
-    // clear HDFS client caching
-    System.clearProperty("fs.hdfs.impl.disable.cache");
-  }
-
   protected void setHostname() {
     mHostname = NetworkAddressUtils.getLocalHostName(100);
   }
@@ -80,8 +75,6 @@ public abstract class AbstractLocalTachyonCluster {
     stopUFS();
 
     resetContext();
-
-    cleanHDFSCaching();
   }
 
   public abstract void stopTFS() throws Exception;
