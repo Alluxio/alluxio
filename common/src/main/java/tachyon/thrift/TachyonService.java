@@ -39,6 +39,11 @@ public class TachyonService {
 
   public interface Iface {
 
+    /**
+     * Returns the version of the master service.
+     * @return the version of the master service
+     * NOTE: The version should be updated every time a backwards incompatible API change occurs.
+     */
     public long getServiceVersion() throws org.apache.thrift.TException;
 
   }

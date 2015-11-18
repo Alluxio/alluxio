@@ -39,14 +39,62 @@ public class RawTableMasterService {
 
   public interface Iface extends tachyon.thrift.TachyonService.Iface {
 
+    /**
+     * Creates a raw table.
+     * @param rpcOptions
+     * @param path
+     * @param columns
+     * @param metadata
+     * @return the raw table id
+     * @throws TachyonTException
+     * @throws ThriftIOException
+     * 
+     * @param rpcOptions
+     * @param path
+     * @param columns
+     * @param metadata
+     */
     public long createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
+    /**
+     * Returns raw table information for the given id.
+     * @param id
+     * @return raw table information for the given id
+     * @throws TachyonTException
+     * 
+     * @param id
+     */
     public RawTableInfo getClientRawTableInfoById(long id) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns raw table information for the given path.
+     * @param path
+     * @return raw table information for the given path
+     * @throws TachyonTException
+     * 
+     * @param path
+     */
     public RawTableInfo getClientRawTableInfoByPath(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Returns raw table id for the given path.
+     * @param path
+     * @return raw table id for the given path
+     * @throws TachyonTException
+     * 
+     * @param path
+     */
     public long getRawTableId(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
+    /**
+     * Updates raw table metadata.
+     * @param tableId
+     * @param metadata
+     * @throws TachyonTException
+     * 
+     * @param tableId
+     * @param metadata
+     */
     public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
   }
