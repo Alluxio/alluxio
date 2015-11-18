@@ -388,6 +388,7 @@ public final class LocalTachyonCluster {
     if (mUfsCluster != null) {
       mUfsCluster.cleanup();
     }
+    // TODO(gpang): is this line necessary?
     System.clearProperty("tachyon.underfs.address");
   }
 
