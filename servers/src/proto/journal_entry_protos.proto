@@ -1,0 +1,14 @@
+package tachyon.proto;
+option java_package = "tachyon.proto";
+
+message JournalEntry {
+  optional int64 sequenceNumber = 1;
+  oneof entry {
+    AddMountPointEntry addMountPoint = 10;
+  }
+}
+
+message AddMountPointEntry {
+  optional string tachyonPath = 1;
+  optional string ufsPath = 2;
+}
