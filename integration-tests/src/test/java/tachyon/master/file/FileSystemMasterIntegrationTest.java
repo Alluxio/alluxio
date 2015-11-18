@@ -39,11 +39,11 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
@@ -510,6 +510,10 @@ public class FileSystemMasterIntegrationTest {
   public void getCapacityBytesTest() {
     BlockMaster blockMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+    // Sleep to give the workers time to register with the master
+    // TODO(andrew): Remove this when mLocalTachyonClusterResource.start() blocks until workers have
+    // registered with master.
+    CommonUtils.sleepMs(200);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
