@@ -41,58 +41,74 @@ public class FileSystemMasterService {
 
     /**
      * Marks a file as completed.
+     * @param fileId
+     * @param options
+     * @throws TachyonTException
      * 
-     * @param fileId the id of the file
-     * 
-     * @param options the options for completing the file
+     * @param fileId
+     * @param options
      */
     public void completeFile(long fileId, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
-     * Creates a file and returns the id of the file
+     * Creates a file.
+     * @param path
+     * @param options
+     * @return fileId
+     * @throws TachyonTException
+     * @throws ThriftIOException
      * 
-     * @param path the path of the file
-     * 
-     * @param options the options for completing the file
+     * @param path
+     * @param options
      */
     public long create(String path, CreateTOptions options) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Frees the given file from Tachyon and returns whether the free operation succeeded
+     * Frees the given file from Tachyon.
+     * @param fileId
+     * @param recursive
+     * @return whether the free operation succeeded
+     * @throws TachyonTException
      * 
-     * @param fileId the id of the file
-     * 
-     * @param recursive whether to free recursively
+     * @param fileId
+     * @param recursive
      */
     public boolean free(long fileId, boolean recursive) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the file block information for the given file and file block index.
+     * @param fileId
+     * @param fileBlockIndex
+     * @return the file block information for the given file and file block index.
+     * @throws TachyonTException
      * 
-     * @param fileId the id of the file
-     * 
-     * @param fileBlockIndex the index of the file block
+     * @param fileId
+     * @param fileBlockIndex
      */
     public tachyon.thrift.FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the list of file blocks information for the given file.
-     * 
-     * @param fileId the id of the file
+     * @param fileId
+     * @return the list of file blocks information for the given file
+     * @throws TachyonTException
      */
     public List<tachyon.thrift.FileBlockInfo> getFileBlockInfoList(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the file id for the given path.
-     * 
-     * @param path the path of the file
+     * @param path
+     * @return the file id for the given path
      */
     public long getFileId(String path) throws org.apache.thrift.TException;
 
     /**
      * Returns the file information.
+     * @param fileId
+     * @return the file information
+     * @throws TachyonTException
      * 
-     * @param fileId the id of the file
+     * @param fileId
      */
     public FileInfo getFileInfo(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -100,77 +116,103 @@ public class FileSystemMasterService {
      * If the id points to a file, the method returns a singleton with its file information.
      * If the id points to a directory, the method returns a list with file information for the
      * directory contents.
+     * @param fileId
+     * @return list of file info
+     * @throws TachyonTException
      * 
-     * @param fileId the id of the file
+     * @param fileId
      */
     public List<FileInfo> getFileInfoList(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Generates a new block id for the given file.
+     * @param fileId
+     * @return a new block id for the given file
+     * @throws TachyonTException
      * 
-     * @param fileId the id of the file
+     * @param fileId
      */
     public long getNewBlockIdForFile(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the UFS address of the root mount point.
+     * @return the UFS address of the root mount point
      */
     public String getUfsAddress() throws org.apache.thrift.TException;
 
     /**
      * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
+     * @param ufsPath
+     * @param recursive
+     * @return meta data object id
+     * @throws TachyonTException
+     * @throws ThriftIOException
      * 
-     * @param ufsPath the path of the under file system
-     * 
-     * @param recursive whether to load meta data recursively
+     * @param ufsPath
+     * @param recursive
      */
     public long loadMetadata(String ufsPath, boolean recursive) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Creates a directory and returns whether the directory is
-     * created successfully
+     * Creates a directory.
+     * @param path
+     * @param options
+     * @return whether the mkdir operation succeeded
+     * @throws TachyonTException
+     * @throws ThriftIOException
      * 
-     * @param path the path of the directory
-     * 
-     * @param options the options of this command
+     * @param path
+     * @param options
      */
     public boolean mkdir(String path, MkdirTOptions options) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
      * path. The path should not exist and should not be nested under any existing mount point.
+     * @param tachyonPath
+     * @param ufsPath
+     * @return whether the mount operation succeeded
+     * @throws TachyonTException
+     * @throws ThriftIOException
      * 
-     * @param tachyonPath the path of tachyon mount point
-     * 
-     * @param ufsPath the path of the under file system
+     * @param tachyonPath
+     * @param ufsPath
      */
     public boolean mount(String tachyonPath, String ufsPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Deletes a file or a directory and returns whether the remove operation succeeded
+     * Deletes a file or a directory.
+     * @param id
+     * @param recursive
+     * @return whether the remove operation succeeded
+     * @throws TachyonTException
      * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
      * 
-     * @param id the id of the file or directory
-     * 
-     * @param recursive whether to remove recursively
+     * @param id
+     * @param recursive
      */
     public boolean remove(long id, boolean recursive) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
-     * Renames a file or a directory and returns whether the rename operation succeeded
+     * Renames a file or a directory.
+     * @param fileId
+     * @param dstPath
+     * @return whether the rename operation succeeded
+     * @throws TachyonTException
+     * @throws ThriftIOException
      * 
-     * @param fileId the id of the file
-     * 
-     * @param dstPath the desinationpath of the file
+     * @param fileId
+     * @param dstPath
      */
     public boolean rename(long fileId, String dstPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Sets file state.
+     * @param fileId
+     * @param options
      * 
-     * @param fileId the id of the file
-     * 
-     * @param options the options of setting the file state
+     * @param fileId
+     * @param options
      */
     public void setState(long fileId, SetStateTOptions options) throws org.apache.thrift.TException;
 
@@ -178,13 +220,18 @@ public class FileSystemMasterService {
      * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
      * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
      * will be persisted before they are removed from the Tachyon namespace.
+     * @param tachyonPath
+     * @return whether the unmount operation succeeded
+     * @throws TachyonTException
+     * @throws ThriftIOException
      * 
-     * @param tachyonPath the path of the tachyon mount point
+     * @param tachyonPath
      */
     public boolean unmount(String tachyonPath) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Returns the set of pinned files.
+     * @return the set of pinned files
      */
     public Set<Long> workerGetPinIdList() throws org.apache.thrift.TException;
 
