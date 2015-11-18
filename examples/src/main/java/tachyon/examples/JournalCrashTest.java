@@ -406,7 +406,7 @@ public class JournalCrashTest {
 
   /**
    * Stop the current Tachyon cluster. This is used for preparation and clean up.
-   * To crash the Master, use <code>killMaster</code>.
+   * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
     String stopClusterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
