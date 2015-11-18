@@ -33,8 +33,10 @@ import tachyon.Version;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.table.TachyonRawTables;
+import tachyon.client.table.TachyonRawTables.TachyonRawTablesFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -276,8 +278,8 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = TachyonFileSystem.TachyonFileSystemFactory.get();
-      sTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
+      sTfs = TachyonFileSystemFactory.get();
+      sTachyonRawTables = TachyonRawTablesFactory.get();
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
       } catch (Exception ioe) {

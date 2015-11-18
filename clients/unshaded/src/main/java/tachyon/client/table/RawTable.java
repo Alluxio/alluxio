@@ -22,13 +22,13 @@ import tachyon.annotation.PublicApi;
  * columns. Each column contains one or more ordered files.
  */
 @PublicApi
-public class RawTable {
+public final class RawTable {
 
   /** Id of the raw table, which uniquely identifies this table */
   private final long mRawTableId;
 
   /**
-   * Creates a raw table which is used as a handler for accessing raw tables in
+   * Creates a raw table which is used as a handle for accessing raw tables in
    * {@link TachyonRawTables}
    *
    * @param rawTableId the id of the raw table
@@ -45,9 +45,9 @@ public class RawTable {
   }
 
   /**
-   * @param columnIndex the index of the column to fetch
-   * @return a handler for a column of this raw table, the column index is not checked, if the
+   * @param columnIndex the index of the column to fetch, the column index is not checked, if the
    * column is invalid, {@link TachyonRawTables} operations on the column will fail
+   * @return a handle for a column of this raw table
    */
   public RawColumn getColumn(int columnIndex) {
     return new RawColumn(this, columnIndex);

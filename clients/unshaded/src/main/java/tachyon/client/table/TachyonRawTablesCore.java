@@ -48,7 +48,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Creates a new partition in a column of a raw table. The partition is represented as a file,
-   * and the user may interact with it through the FileSystem api. See
+   * and the user may interact with it through the FileSystem API. See
    * {@link tachyon.client.file.TachyonFileSystem}.
    *
    * @param column the raw column under which to create the partition
@@ -57,13 +57,13 @@ interface TachyonRawTablesCore {
    * @throws IOException if a non Tachyon related I/O error occurs
    * @throws TachyonException if an internal Tachyon error occurs
    */
-  FileOutStream createPartition(RawColumn column, int partitionId) throws IOException,
-      TachyonException;
+  FileOutStream createPartition(RawColumn column, int partitionId)
+      throws IOException, TachyonException;
 
   /**
    * Gets the metadata of a raw table, such as the number of columns.
    *
-   * @param rawTable the handler for the table
+   * @param rawTable the handle for the table
    * @return the {@link RawTableInfo} for the table
    * @throws IOException if a non Tachyon related I/O error occurs
    * @throws TachyonException if an internal Tachyon error occurs
@@ -72,7 +72,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Gets the number of partitions currently in the {@link RawColumn}. Each partition is a
-   * separate {@link TachyonFile}
+   * separate {@link TachyonFile}.
    *
    * @param column the raw column containing the partitions
    * @return the number of partitions currently in the column
@@ -82,7 +82,7 @@ interface TachyonRawTablesCore {
   int getPartitionCount(RawColumn column) throws IOException, TachyonException;
 
   /**
-   * Gets a handler for the given raw table, if it exists.
+   * Gets a handle for the given raw table, if it exists.
    *
    * @param path the path of the table in Tachyon space
    * @return a {@link RawTable} representing the table
@@ -92,7 +92,7 @@ interface TachyonRawTablesCore {
   RawTable open(TachyonURI path) throws IOException, TachyonException;
 
   /**
-   * Gets the file handler for a partition of a column. A partition should be accessed through
+   * Gets the file handle for a partition of a column. A partition should be accessed through
    * a file API. See {@link tachyon.client.file.TachyonFileSystem}.
    *
    * @param column the raw column which contains the partition
@@ -107,7 +107,7 @@ interface TachyonRawTablesCore {
    * Updates the user defined metadata for the raw table. This will overwrite the previous
    * metadata if it existed.
    *
-   * @param rawTable the handler for the table
+   * @param rawTable the handle for the table
    * @param metadata the new metadata to associate with the table, this will be stored as bytes
    *                 and should be in a format the user can later understand
    * @throws IOException if a non Tachyon related I/O error occurs
