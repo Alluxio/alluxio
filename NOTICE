@@ -1,0 +1,55 @@
+Tachyon-FUSE
+Copyright 2015 IBM Ireland - Research and Development
+
+==========
+
+Tachyon-FUSE uses subcomponents with separate copyright notices and license terms.
+
+Your use of the source code for the these subcomponents is subject to the terms and conditions of
+their respective licenses.
+
+----------
+
+This product depends on tachyon-client, a set of java libraries used to interface the Tachyon distributed file system, developed by the University of California at Berkley and available at:
+
+  * LICENSE
+    * Apache License v2.0
+  * HOMEPAGE
+    * http://tachyon-project.org
+
+----------
+
+This product depends on jnr-fuse, a FUSE implementation in java using Java Native Runtime (JNR), written by Sergey Tselovalnikov. It can be obtained at:
+
+  * LICENSE:
+    * MIT License
+  * HOMEPAGE:
+    * https://github.com/SerCeMan/jnr-fuse
+
+----------
+
+This product depends on SLF4J, a standardized interfaces to various Java logging systems developed by QOS.ch. It can be obtained at:
+
+  * LICENSE:
+    * MIT License
+  * HOMEPAGE:
+    * http://www.slf4j.org
+
+---
+
+This product depends on Apache Commons CLI, an utility for command line parsing in Java. It can be obtained at:
+
+  * LICENSE:
+    * Apache License v2.0
+  * HOMEPAGE:
+    * https://commons.apache.org/proper/commons-cli/
+
+---
+
+This product uses Guava, a set of utility libraries developed by Google and available at:
+
+  * LICENSE:
+    * Apache License v2.0
+  * HOMEPAGE:
+    * https://github.com/google/guava
+
