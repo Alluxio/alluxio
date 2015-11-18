@@ -4,11 +4,174 @@ option java_package = "tachyon.proto";
 message JournalEntry {
   optional int64 sequenceNumber = 1;
   oneof entry {
-    AddMountPointEntry addMountPoint = 10;
+    AddMountPointEntry addMountPoint = 2;
+    AsyncCompleteFileEntry asyncCompleteFile = 3;
+    BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;
+    BlockInfoEntry blockInfo = 5;
+    CompleteFileEntry completeFile = 6;
+    DeleteFileEntry deleteFile = 7;
+    DeleteLineageEntry deleteLineage = 8;
+    DeleteMountPointEntry deleteMountPoint = 9;
+    InodeDirectoryEntry inodeDirectory = 10;
+    InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;
+    InodeFileEntry inodeFileEntry = 12;
+    InodeLastModificationTimeEntry inodeLastModificationTime = 13;
+    LineageEntry lineageEntry = 14;
+    LineageIdGeneratorEntry lineageIdGenerator = 15;
+    PersistDirectoryEntry persistDirectory = 16;
+    PersistFileEntry persistFile = 17;
+    PersistFilesEntry persisterFiles = 18;
+    PersistFilesRequestEntry persistFilesRequest = 19;
+    RawTableEntry rawTable = 20;
+    ReinitializeFileEntry reinitializeFile = 21;
+    RenameEntry rename = 22;
+    SetStateEntry setState = 23;
+    UpdateMetadataEntry updateMetadata = 24;
   }
 }
 
 message AddMountPointEntry {
   optional string tachyonPath = 1;
   optional string ufsPath = 2;
+}
+
+message AsyncCompleteFileEntry {
+  optional int64 fileId = 1;
+}
+
+message BlockContainerIdGeneratorEntry {
+  optional int64 nextContainerId = 1;
+}
+
+message BlockInfoEntry {
+  optional int64 blockId = 1;
+  optional int64 length = 2;
+}
+
+message CompleteFileEntry {
+  repeated int64 blockIds = 1;
+  optional int64 id = 2;
+  optional int64 length = 3;
+  optional int64 opTimeMs = 4;
+}
+
+message DeleteFileEntry {
+  optional int64 id = 1;
+  optional bool recursive = 2;
+  optional int64 opTimeMs = 3;
+}
+
+message DeleteLineageEntry {
+  optional int64 lineageId = 1;
+  optional bool cascade = 2;
+}
+
+message DeleteMountPointEntry {
+  optional string tachyonPath = 1;
+}
+
+message InodeDirectoryEntry {
+  optional int64 id = 1;
+  optional int64 parentId = 2;
+  optional string name = 3;
+  optional bool persisted = 4;
+  optional bool pinned = 5;
+  optional int64 creationTimeMs = 6;
+  optional int64 lastModificationTimeMs = 7;
+}
+
+message InodeDirectoryIdGeneratorEntry {
+  optional int64 containerId = 1;
+  optional int64 sequenceNumber = 2;
+}
+
+message InodeFileEntry {
+  optional int64 id = 1;
+  optional int64 parentId = 2;
+  optional string name = 3;
+  optional bool persisted = 4;
+  optional bool pinned = 5;
+  optional int64 creationTimeMs = 6;
+  optional int64 lastModificationTimeMs = 7;
+  optional int64 blockSizeBytes = 8;
+  optional int64 length = 9;
+  optional bool completed = 10;
+  optional bool cacheable = 11;
+  repeated int64 blocks = 12;
+  optional int64 ttl = 13;
+}
+
+message InodeLastModificationTimeEntry {
+  optional int64 id = 1;
+  optional int64 lastModificationTimeMs = 2;
+}
+
+message LineageEntry {
+  optional int64 id = 1;
+  repeated int64 inputFiles = 2;
+  repeated int64 outputFileIds = 3;
+  repeated LineageFileState outputFileStates = 4;
+  optional string jobCommand = 5;
+  optional string jobOutputPath = 6;
+  optional int64 creationTimeMs = 7;
+}
+
+enum LineageFileState {
+  CREATED = 1;
+  COMPLETED = 2;
+  PERSISTED = 3;
+  PERSISENCE_REQUESTED = 4;
+  LOST = 5;
+}
+
+message LineageIdGeneratorEntry {
+  optional int64 sequenceNumber = 1;
+}
+
+message PersistDirectoryEntry {
+  optional int64 id = 1;
+}
+
+message PersistFileEntry {
+  optional int64 id = 1;
+  optional int64 length = 2;
+  optional int64 opTimeMs = 3;
+}
+
+message PersistFilesEntry {
+  repeated int64 fileIds = 1;
+}
+
+message PersistFilesRequestEntry {
+  repeated int64 fileIds = 1;
+}
+
+message RawTableEntry {
+  optional int64 id = 1;
+  optional int32 columns = 2;
+  optional bytes metadata = 3;
+}
+
+message ReinitializeFileEntry {
+  optional string path = 1;
+  optional int64 blockSizeBytes = 2;
+  optional int64 ttl = 3;
+}
+
+message RenameEntry {
+  optional int64 id = 1;
+  optional string dstPath = 2;
+  optional int64 opTimeMs = 3;
+}
+
+message SetStateEntry {
+  optional int64 id = 1;
+  optional int64 opTimeMs = 2;
+  optional bool pinned = 3;
+  optional int64 ttl = 4;
+}
+
+message UpdateMetadataEntry {
+  optional int64 id = 1;
+  optional bytes metadata = 2;
 }
