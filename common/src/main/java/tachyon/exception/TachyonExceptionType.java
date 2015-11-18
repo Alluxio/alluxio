@@ -22,18 +22,20 @@ public enum TachyonExceptionType {
   DEPENDENCY_DOES_NOT_EXIST(DependencyDoesNotExistException.class),
   DIRECTORY_NOT_EMPTY_EXCEPTION(DirectoryNotEmptyException.class),
   FAILED_TO_CHECKPOINT(FailedToCheckpointException.class),
+  FILE_ALREADY_COMPLETED(FileAlreadyCompletedException.class),
   FILE_ALREADY_EXISTS(FileAlreadyExistsException.class),
   FILE_DOES_NOT_EXIST(FileDoesNotExistException.class),
+  INVALID_FILE_SIZE(InvalidFileSizeException.class),
   INVALID_PATH(InvalidPathException.class),
   INVALID_WORKER_STATE(InvalidWorkerStateException.class),
   LINEAGE_DELETION(LineageDeletionException.class),
   LINEAGE_DOES_NOT_EXIST(LineageDoesNotExistException.class),
   NO_WORKER(NoWorkerException.class),
-  SUSPECTED_FILE_SIZE(SuspectedFileSizeException.class),
   TABLE_COLUMN(TableColumnException.class),
   TABLE_DOES_NOT_EXIST(TableDoesNotExistException.class),
   TABLE_METADATA(TableMetadataException.class),
-  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class);
+  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class)
+  ;
 
   private final Class<? extends TachyonException> mExceptionClass;
 
