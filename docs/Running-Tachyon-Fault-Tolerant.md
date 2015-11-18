@@ -96,9 +96,6 @@ current master dies and then offer to be the new leader.
 
 ## Worker Configuration
 
-For a worker, it is only necessary to set the `TACHYON_MASTER_ADDRESS` option as:
-
-    export TACHYON_MASTER_ADDRESS=[address of one of the master nodes in the system]
-
-Any master address can be used, when configured to use Zookeeper workers will look up the
-current leaders address and use that as the master to connect to.
+As long as the config parameters above are correctly set, the worker will be able to consult with
+ZooKeeper, and find the current leader master to connect to. Therefore, `TACHYON_MASTER_ADDRESS`
+does not have to be set for the workers.
