@@ -62,7 +62,7 @@ public class ServiceSocketBindIntegrationTest {
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     // sleep to wait for services to start.
-    // TODO(andrew) change LocalTachyonCluster.start() to block until all services have started
+    // TODO(TACHYON-1324) change LocalTachyonCluster.start() to block until all services have started
     CommonUtils.sleepMs(200);
   }
 
