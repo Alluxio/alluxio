@@ -44,19 +44,23 @@ import tachyon.worker.block.meta.StorageTierView;
  */
 public class BlockMetadataManagerView {
 
-  /** The BlockMetadataManager this view is derived from */
+  /** The {@link BlockMetadataManager} this view is derived from */
   private final BlockMetadataManager mMetadataManager;
-  /** A list of StorageTierView, derived from StorageTiers from the BlockMetadataManager */
+  /**
+   * A list of {@link StorageTierView}, derived from StorageTiers from the
+   * {@link BlockMetadataManager}
+   */
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
   /** A list of pinned inodes */
   private final Set<Long> mPinnedInodes = new HashSet<Long>();
   /** Indices of locks that are being used */
   private final BitSet mInUseLocks = new BitSet();
-  /** A map from tier alias to StorageTierView */
+  /** A map from tier alias to {@link StorageTierView} */
   private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
 
   /**
-   * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
+   * Constructor of {@code BlockMatadataManagerView}. Now we always creating a new view before
+   * freespace.
    * TODO(qifan): Incrementally update the view.
    *
    * @param manager which the view should be constructed from
@@ -145,10 +149,10 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Provides StorageTierView given tierAlias.
+   * Provides {@link StorageTierView} given tierAlias.
    *
    * @param tierAlias the alias of this tierView
-   * @return the StorageTierView object associated with the alias
+   * @return the {@code StorageTierView} object associated with the alias
    * @throws IllegalArgumentException if tierAlias is not found
    */
   public StorageTierView getTierView(String tierAlias) {
@@ -164,7 +168,7 @@ public class BlockMetadataManagerView {
   /**
    * Gets all tierViews under this managerView.
    *
-   * @return the list of StorageTierViews
+   * @return the list of {@link StorageTierView}s
    */
   public List<StorageTierView> getTierViews() {
     return Collections.unmodifiableList(mTierViews);
@@ -174,7 +178,7 @@ public class BlockMetadataManagerView {
    * Gets all tierViews before certain tierView.
    *
    * @param tierAlias the alias of a tierView
-   * @return the list of StorageTierView
+   * @return the list of {@link StorageTierView}
    * @throws IllegalArgumentException if tierAlias is not found
    */
   public List<StorageTierView> getTierViewsBelow(String tierAlias) {

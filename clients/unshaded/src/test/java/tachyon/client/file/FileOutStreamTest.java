@@ -186,8 +186,8 @@ public class FileOutStreamTest {
   }
 
   /**
-   * Tests that close() will close but not cancel the underlying out streams. Also checks that
-   * close() persists and completes the file.
+   * Tests that {@link FileOutStream#close()} will close but not cancel the underlying out streams.
+   * Also checks that {@code close()} persists and completes the file.
    */
   @Test
   public void closeTest() throws Exception {
@@ -204,8 +204,9 @@ public class FileOutStreamTest {
   }
 
   /**
-   * Tests that cancel() will cancel and close the underlying out streams, and delete from the under
-   * file system. Also makes sure that cancel() doesn't persist or complete the file.
+   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams,
+   * and delete from the under file system. Also makes sure that cancel() doesn't persist or
+   * complete the file.
    */
   @Test
   public void cancelTest() throws Exception {
@@ -223,7 +224,7 @@ public class FileOutStreamTest {
   }
 
   /**
-   * Tests that flush() will flush the under store stream.
+   * Tests that {@link FileOutStream#flush()} will flush the under store stream.
    */
   @Test
   public void flushTest() throws IOException {
@@ -234,7 +235,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
-   * NO_PERSIST for their under storage type, the correct exception message will be thrown.
+   * {@link UnderStorageType#NO_PERSIST} for their under storage type, the correct exception
+   * message will be thrown.
    */
   @Test
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
@@ -253,8 +255,9 @@ public class FileOutStreamTest {
 
   /**
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
-   * SYNC_PERSIST for their under storage type, the error is recovered from by writing the data to
-   * the under storage out stream and setting the current block as not cacheable.
+   * {@link UnderStorageType#SYNC_PERSIST} for their under storage type, the error is recovered
+   * from by writing the data to the under storage out stream and setting the current block as not
+   * cacheable.
    */
   @Test
   public void cacheWriteExceptionSyncPersistTest() throws IOException {

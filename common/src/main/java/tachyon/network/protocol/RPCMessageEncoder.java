@@ -29,7 +29,7 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import tachyon.network.protocol.databuffer.DataBuffer;
 
 /**
- * Simple Netty encoder for RPCMessages.
+ * Simple Netty encoder for {@link RPCMessage}s.
  */
 @ChannelHandler.Sharable
 public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {

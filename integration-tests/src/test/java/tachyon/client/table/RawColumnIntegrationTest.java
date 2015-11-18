@@ -31,7 +31,7 @@ import tachyon.client.TachyonFile;
 import tachyon.conf.TachyonConf;
 
 /**
- * Integration tests for tachyon.client.RawColumn.
+ * Integration tests for {@link RawColumn}.
  */
 public class RawColumnIntegrationTest {
 

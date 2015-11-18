@@ -51,7 +51,8 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Initializes {#mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy manner.
+   * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
+   * manner.
    */
   private synchronized void initializeLocalBlockWorkerClientPool() {
     NetAddress localWorkerAddress =
@@ -70,7 +71,7 @@ public enum BlockStoreContext {
    * Gets the worker address based on its hostname by querying the master.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
-   * @return NetAddress of hostname, or null if no worker found
+   * @return {@link NetAddress} of hostname, or null if no worker found
    */
   private synchronized NetAddress getWorkerAddress(String hostname) {
     BlockMasterClient masterClient = acquireMasterClient();
@@ -105,9 +106,10 @@ public enum BlockStoreContext {
   /**
    * Releases a block master client into the block master client pool.
    *
-   * NOTE: the client pool is already thread-safe. Synchronizing on BlockStoreContext will lead to
-   * deadlock: thread A acquired a client and awaits for BlockStoreContext to release the client,
-   * while thread B holds the lock of BlockStoreContext but waits for available clients.
+   * NOTE: the client pool is already thread-safe. Synchronizing on {@code BlockStoreContext} will
+   * lead to deadlock: thread A acquired a client and awaits for {@code BlockStoreContext} to
+   * release the client, while thread B holds the lock of {@code BlockStoreContext} but waits for
+   * available clients.
    *
    * @param masterClient a block master client to release
    */
@@ -120,7 +122,7 @@ public enum BlockStoreContext {
    * but not guaranteed. The caller should use {@link WorkerClient#isLocal} to verify if the client
    * is local before assuming so.
    *
-   * @return a WorkerClient to a worker in the Tachyon system
+   * @return a {@link WorkerClient} to a worker in the Tachyon system
    */
   public synchronized WorkerClient acquireWorkerClient() {
     WorkerClient client = acquireLocalWorkerClient();
@@ -136,7 +138,7 @@ public enum BlockStoreContext {
    *
    * @param hostname the hostname of the worker to get a client to, empty String indicates all
    *        workers are eligible
-   * @return a WorkerClient connected to the worker with the given hostname
+   * @return a {@link WorkerClient} connected to the worker with the given hostname
    * @throws IOException if no Tachyon worker is available for the given hostname
    */
   public synchronized WorkerClient acquireWorkerClient(String hostname) throws IOException {
@@ -155,7 +157,7 @@ public enum BlockStoreContext {
   /**
    * Obtains a worker client on the local worker in the system.
    *
-   * @return a WorkerClient to a worker in the Tachyon system or null if failed
+   * @return a {@link WorkerClient} to a worker in the Tachyon system or null if failed
    */
   public synchronized WorkerClient acquireLocalWorkerClient() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
@@ -174,7 +176,7 @@ public enum BlockStoreContext {
    * created with a connection to the hostname.
    *
    * @param hostname the worker hostname to connect to, empty string for any worker
-   * @return a worker client with a connection to the specified hostname
+   * @return a {@link WorkerClient} with a connection to the specified hostname
    */
   private synchronized WorkerClient acquireRemoteWorkerClient(String hostname) {
     Preconditions.checkArgument(
@@ -193,11 +195,13 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Releases the WorkerClient back to the client pool, or destroys it if it was a remote client.
+   * Releases the {@link WorkerClient} back to the client pool, or destroys it if it was a remote
+   * client.
    *
-   * NOTE: the client pool is already thread-safe. Synchronizing on BlockStoreContext will lead to
-   * deadlock: thread A acquired a client and awaits for BlockStoreContext to release the client,
-   * while thread B holds the lock of BlockStoreContext but waits for available clients.
+   * NOTE: the client pool is already thread-safe. Synchronizing on {@code BlockStoreContext} will
+   * lead to deadlock: thread A acquired a client and awaits for {@code BlockStoreContext} to
+   * release the client, while thread B holds the lock of {@code BlockStoreContext} but waits for
+   * available clients.
    *
    * @param workerClient the worker client to release, the client should not be accessed after this
    *        method is called
@@ -231,7 +235,7 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Re-initializes the Block Store context. This method should only be used in
+   * Re-initializes the {@code BlockStoreContext}. This method should only be used in
    * {@link ClientContext}.
    */
   public synchronized void reset() {

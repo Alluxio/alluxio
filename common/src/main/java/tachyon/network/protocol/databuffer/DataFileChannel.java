@@ -33,7 +33,7 @@ public final class DataFileChannel implements DataBuffer {
 
   /**
    *
-   * @param fileChannel The FileChannel representing the data
+   * @param fileChannel The {@link FileChannel} representing the data
    * @param offset The offset into the FileChannel
    * @param length The length of the data to read
    */

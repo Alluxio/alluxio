@@ -23,9 +23,9 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
 /**
- * SessionCleaner periodically checks if any session have become zombies, removes the zombie session
- * and associated data when necessary. The syncing parameters (intervals) adopt directly from
- * worker-to-master heartbeat configurations.
+ * {@code SessionCleaner} periodically checks if any session have become zombies, removes the
+ * zombie session and associated data when necessary. The syncing parameters (intervals) adopt
+ * directly from worker-to-master heartbeat configurations.
  */
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -38,9 +38,9 @@ public final class SessionCleaner implements Runnable {
   private volatile boolean mRunning;
 
   /**
-   * Constructor for SessionCleaner
+   * Constructor for {@code SessionCleaner}
    *
-   * @param blockDataManager the blockDataManager this checker is updating to
+   * @param blockDataManager the {@link BlockDataManager} this checker is updating to
    */
   public SessionCleaner(BlockDataManager blockDataManager) {
     mBlockDataManager = blockDataManager;

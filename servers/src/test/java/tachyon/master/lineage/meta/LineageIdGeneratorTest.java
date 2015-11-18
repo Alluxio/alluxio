@@ -22,7 +22,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 
 /**
- * Tests lineage id generator.
+ * Tests {@link LineageIdGenerator}.
  */
 public final class LineageIdGeneratorTest {
 

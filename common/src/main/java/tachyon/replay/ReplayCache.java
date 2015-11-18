@@ -33,10 +33,9 @@ import tachyon.thrift.ThriftIOException;
 /**
  * An RPC cache which uses RPC keys to avoid repeating non-idempotent RPCs due to retries.
  *
- * Whenever a {@link RetryCallable} is run via this class, the RPC key and return value for the
- * {@link RetryCallable} are remembered so that if the RPC key is replayed while the key is still in
- * the cache, the return value can be immediately returned without executing the
- * {@link RetryCallable}.
+ * Whenever a RetryCallable is run via this class, the RPC key and return value for the
+ * RetryCallable are remembered so that if the RPC key is replayed while the key is still in
+ * the cache, the return value can be immediately returned without executing the RetryCallable.
  *
  * For RPCs which may throw {@link IOException}, use {@link ReplayCallableThrowsIOException}.
  *
@@ -97,7 +96,7 @@ public final class ReplayCache<V> {
     // TODO(andrew) Make it possible for users to configure this cache via
     // CacheBuilder<Object, Object> from(String spec)
     mCache = CacheBuilder.newBuilder().maximumSize(maxSize)
-        .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS).<String, V>build();
+        .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS).build();
   }
 
   /**

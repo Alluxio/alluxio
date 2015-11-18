@@ -72,7 +72,7 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Gets the UnderFileSystem instance according to its schema.
+   * Gets the {@code UnderFileSystem} instance according to its schema.
    *
    * @param path file path storing over the ufs
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance
@@ -84,7 +84,7 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Gets the UnderFileSystem instance according to its scheme and configuration.
+   * Gets the {@code UnderFileSystem} instance according to its scheme and configuration.
    *
    * @param path file path storing over the ufs
    * @param ufsConf the configuration object for ufs only
@@ -277,7 +277,7 @@ public abstract class UnderFileSystem {
   public abstract long getBlockSizeByte(String path) throws IOException;
 
   /**
-   * Gets the configuration object for UnderFileSystem.
+   * Gets the configuration object for {@code UnderFileSystem}.
    *
    * @return configuration object used for concrete ufs instance
    */
@@ -396,7 +396,7 @@ public abstract class UnderFileSystem {
   public abstract boolean rename(String src, String dst) throws IOException;
 
   /**
-   * Sets the configuration object for UnderFileSystem. The conf object is understood by the
+   * Sets the configuration object for {@code UnderFileSystem}. The conf object is understood by the
    * concrete underfs's implementation.
    *
    * @param conf the configuration object accepted by ufs

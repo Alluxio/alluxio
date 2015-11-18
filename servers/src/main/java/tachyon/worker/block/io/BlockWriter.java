@@ -27,9 +27,9 @@ import java.nio.channels.WritableByteChannel;
  */
 public interface BlockWriter extends Closeable {
   /**
-   * Appends data to the end of a block from an input ByteBuffer.
+   * Appends data to the end of a block from an input {@link ByteBuffer}.
    *
-   * @param inputBuf ByteBuffer that input data is stored in
+   * @param inputBuf {@code ByteBuffer} that input data is stored in
    * @return the size of data that was appended in bytes
    * @throws IOException if the operation fails
    */

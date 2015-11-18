@@ -22,7 +22,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 
 /**
- * A DataBuffer backed by a byte[].
+ * A {@link DataBuffer} backed by a byte[].
  */
 public final class DataByteArrayChannel implements DataBuffer {
   private final byte[] mByteArray;

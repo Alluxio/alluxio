@@ -28,8 +28,8 @@ import tachyon.security.authentication.AuthType;
 import tachyon.security.login.TachyonJaasConfiguration;
 
 /**
- * A Singleton of LoginUser, which is an instance of {@link tachyon.security.User}. It represents
- * the user of Tachyon client, when connecting to Tachyon service.
+ * A Singleton of {@code LoginUser}, which is an instance of {@link tachyon.security.User}. It
+ * represents the user of Tachyon client, when connecting to Tachyon service.
  *
  * The implementation of getting a login user supports Windows, Unix, and Kerberos login modules.
  *
@@ -94,7 +94,8 @@ public final class LoginUser {
   }
 
   /**
-   * Checks whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS, CUSTOM.
+   * Checks whether Tachyon is running in secure mode, such as {@link AuthType#SIMPLE},
+   * {@link AuthType#KERBEROS}, {@link AuthType#CUSTOM}.
    *
    * @param authType the authentication type in configuration
    */

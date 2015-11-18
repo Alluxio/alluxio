@@ -36,7 +36,7 @@ import tachyon.worker.block.meta.StorageDir;
  */
 public class EvictorTestUtils {
   /**
-   * Whether blocks in the EvictionPlan are in the same StorageDir.
+   * Whether blocks in the {@link EvictionPlan} are in the same {@link StorageDir}.
    *
    * @param plan the eviction plan
    * @param meta the meta data manager

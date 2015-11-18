@@ -68,7 +68,7 @@ public final class RPCBlockReadResponse extends RPCResponse {
    * Decodes the input {@link ByteBuf} into a {@link RPCBlockReadResponse} object and returns it.
    *
    * @param in the input {@link ByteBuf}
-   * @return The decoded RPCBlockReadResponse object
+   * @return The decoded {@code RPCBlockReadResponse} object
    */
   public static RPCBlockReadResponse decode(ByteBuf in) {
     long blockId = in.readLong();

@@ -63,8 +63,8 @@ public final class UfsUtils {
   }
 
   /**
-   * Loads files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
-   * the given tfs under a given destination path.
+   * Loads files under path {@code ufsAddrRootPath} (excluding {@code excludePathPrefix} relative
+   * to the path) to the given tfs under a given destination path.
    *
    * @param tfsAddrRootPath the mTachyonFS address and path to load the src files, like
    *        "tachyon://host:port/dest".
@@ -83,8 +83,8 @@ public final class UfsUtils {
   }
 
   /**
-   * Loads files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given tfs
-   * under the given tfsRootPath directory.
+   * Loads files under path "ufsAddress/ufsRootPath" (excluding {@code excludePathPrefix}) to the
+   * given {@code tfs} under the given tfsRootPath directory.
    *
    * @param tfs the mTachyonFS handler created out of address like "tachyon://host:port"
    * @param tachyonPath the destination point in mTachyonFS to load the under FS path onto

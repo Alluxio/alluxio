@@ -32,7 +32,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 
 /**
- * Utilities related to buffers, not only ByteBuffer.
+ * Utilities related to buffers, not only {@link ByteBuffer}.
  */
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -82,13 +82,13 @@ public final class BufferUtils {
   }
 
   /**
-   * Clones a bytebuffer.
+   * Clones a {@link ByteBuffer}.
    * <p>
-   * The new bytebuffer will have the same content, but the type of the bytebuffer may not be the
-   * same.
+   * The new {@code ByteBuffer} will have the same content, but the type of the bytebuffer may not
+   * be the same.
    *
-   * @param buf The ByteBuffer to clone
-   * @return The new ByteBuffer
+   * @param buf The {@code ByteBuffer} to clone
+   * @return The new {@code ByteBuffer}
    */
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
     ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
@@ -103,10 +103,10 @@ public final class BufferUtils {
   }
 
   /**
-   * Clones a list of ByteBuffers.
+   * Clones a list of {@link ByteBuffer}s.
    *
-   * @param source the list of ByteBuffers to clone
-   * @return the new list of ByteBuffers
+   * @param source the list of {@code ByteBuffer}s to clone
+   * @return the new list of {@code ByteBuffer}s
    */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
@@ -117,10 +117,10 @@ public final class BufferUtils {
   }
 
   /**
-   * Extracts a correct ByteBuffer from Thrift RPC result.
+   * Extracts a correct {@link ByteBuffer} from Thrift RPC result.
    *
    * @param data result of Thrift RPC
-   * @return ByteBuffer with data extracted from the Thrift RPC result
+   * @return {@code ByteBuffer} with data extracted from the Thrift RPC result
    */
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
     // TODO(cc): This is a trick to fix the issue in thrift. Change the code to use metadata
@@ -132,10 +132,10 @@ public final class BufferUtils {
   }
 
   /**
-   * Puts a byte (the first byte of an integer) into a ByteBuffer.
+   * Puts a byte (the first byte of an integer) into a {@link ByteBuffer}.
    *
-   * @param buf ByteBuffer to use
-   * @param b byte to put into the ByteBuffer
+   * @param buf {@code ByteBuffer} to use
+   * @param b byte to put into the {@code ByteBuffer}
    */
   public static void putIntByteBuffer(ByteBuffer buf, int b) {
     buf.put((byte) (b & 0xFF));
@@ -202,35 +202,36 @@ public final class BufferUtils {
   }
 
   /**
-   * Gets a ByteBuffer containing an increasing sequence of bytes starting at zero.
+   * Gets a {@link ByteBuffer} containing an increasing sequence of bytes starting at zero.
    *
    * @param len the target length of the sequence
-   * @return ByteBuffer containing an increasing sequence of bytes
+   * @return {@code ByteBuffer} containing an increasing sequence of bytes
    */
   public static ByteBuffer getIncreasingByteBuffer(int len) {
     return getIncreasingByteBuffer(0, len);
   }
 
   /**
-   * Gets a ByteBuffer containing an increasing sequence of bytes starting at the given value.
+   * Gets a {@link ByteBuffer} containing an increasing sequence of bytes starting at the given
+   * value.
    *
    * @param len the target length of the sequence
    * @param start the starting value to use
-   * @return ByteBuffer containing an increasing sequence of bytes
+   * @return {@code ByteBuffer} containing an increasing sequence of bytes
    */
   public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
     return ByteBuffer.wrap(getIncreasingByteArray(start, len));
   }
 
   /**
-   * Checks if the given ByteBuffer starts with an increasing sequence of bytes starting at the
-   * given value of length equal to or greater than the given length.
+   * Checks if the given {@link ByteBuffer} starts with an increasing sequence of bytes starting at
+   * the given value of length equal to or greater than the given length.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
-   * @param buf the ByteBuffer to check
-   * @return true if the ByteBuffer has a prefix of length <code>len</code> that is an increasing
-   *         sequence of bytes starting at <code>start</code>
+   * @param buf the {@code ByteBuffer} to check
+   * @return true if the {@code ByteBuffer} has a prefix of length <code>len</code> that is an
+   *         increasing sequence of bytes starting at <code>start</code>
    */
   public static boolean equalIncreasingByteBuffer(int start, int len, ByteBuffer buf) {
     if (buf == null) {
@@ -249,21 +250,22 @@ public final class BufferUtils {
   }
 
   /**
-   * Gets a ByteBuffer containing an increasing sequence of integers starting at zero.
+   * Gets a {@link ByteBuffer} containing an increasing sequence of integers starting at zero.
    *
    * @param len the target length of the sequence
-   * @return ByteBuffer containing an increasing sequence of integers
+   * @return {@code ByteBuffer} containing an increasing sequence of integers
    */
   public static ByteBuffer getIncreasingIntBuffer(int len) {
     return getIncreasingIntBuffer(0, len);
   }
 
   /**
-   * Get a ByteBuffer containing an increasing sequence of integers starting at the given value.
+   * Get a {@link ByteBuffer} containing an increasing sequence of integers starting at the given
+   * value.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
-   * @return ByteBuffer containing an increasing sequence of integers
+   * @return {@code ByteBuffer} containing an increasing sequence of integers
    */
   public static ByteBuffer getIncreasingIntBuffer(int start, int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);

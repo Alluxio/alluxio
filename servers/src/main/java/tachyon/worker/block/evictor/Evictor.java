@@ -33,10 +33,10 @@ public interface Evictor {
 
   class Factory {
     /**
-     * @param conf TachyonConf to determine the evictor type
-     * @param view BlockMetadataManagerView to pass to Evictor
+     * @param conf {@link TachyonConf} to determine the evictor type
+     * @param view {@link BlockMetadataManagerView} to pass to Evictor
      * @param allocator an allocation policy
-     * @return the generated Evictor
+     * @return the generated {@code Evictor}
      */
     public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view,
         Allocator allocator) {
@@ -53,16 +53,17 @@ public interface Evictor {
 
   /**
    * Frees space in the given block store location and with the given view.
-   * After eviction, at least one StorageDir in the location
+   * After eviction, at least one {@link tachyon.worker.block.meta.StorageDir} in the location
    * has the specific amount of free space after eviction. The location can be a specific
-   * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
-   * The view is generated and passed by the calling tachyon.worker.block.BlockStore.
+   * {@code StorageDir}, or {@link BlockStoreLocation#anyTier} or
+   * {@link BlockStoreLocation#anyDirInTier}. The view is generated and passed by the calling
+   * tachyon.worker.block.BlockStore.
    *
-   * <P>
-   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
-   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
-   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
-   * the requirement is already met.
+   * <p>
+   * This method returns null if {@code Evictor} fails to propose a feasible plan to meet the
+   * requirement, or an eviction plan with toMove and toEvict fields to indicate how to free space.
+   * If both toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to
+   * take and the requirement is already met.
    *
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store

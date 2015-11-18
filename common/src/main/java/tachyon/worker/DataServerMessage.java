@@ -172,7 +172,7 @@ public final class DataServerMessage {
   private ByteBuffer mData = null;
 
   /**
-   * New a DataServerMessage. Notice that it's not ready.
+   * New a {@code DataServerMessage}. Notice that it's not ready.
    *
    * @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type

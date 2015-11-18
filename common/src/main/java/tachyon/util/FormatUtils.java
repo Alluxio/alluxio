@@ -31,8 +31,8 @@ public final class FormatUtils {
    * Parses a list of <code>Objects</code> into a <code>String</code>.
    *
    * @param objs a list of Objects to convert to a String
-   * @return comma-separated concatenation of the string representation returned by Object#toString
-   *         of the individual objects
+   * @return comma-separated concatenation of the string representation returned by
+   *         {@link Object#toString} of the individual objects
    */
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");

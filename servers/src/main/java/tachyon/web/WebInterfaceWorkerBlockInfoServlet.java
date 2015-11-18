@@ -36,7 +36,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
@@ -176,46 +175,46 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   }
 
   /***
-   * Get the UiFileInfo object based on fileId.
+   * Get the {@link UiFileInfo} object based on fileId.
    *
-   * @param tachyonFileSystem the TachyonFileSystem client
+   * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param fileId the file id of the file
-   * @return the UiFileInfo object of the file
+   * @return the {@code UiFileInfo} object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
+      throws IOException, TachyonException {
     return getUiFileInfo(tachyonFileSystem, fileId, TachyonURI.EMPTY_URI);
   }
 
   /***
-   * Get the UiFileInfo object based on filePath.
+   * Get the {@link UiFileInfo} object based on filePath.
    *
-   * @param tachyonFileSystem the TachyonFileSystem client
+   * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param filePath the path of the file
-   * @return the UiFileInfo object of the file
+   * @return the {@code UiFileInfo} object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
+      throws IOException, TachyonException {
     return getUiFileInfo(tachyonFileSystem, -1, filePath);
   }
 
   /**
-   * Gets the UiFileInfo object that represents the fileId, or the filePath if fileId is -1.
+   * Gets the {@link UiFileInfo} object that represents the fileId, or the filePath if fileId is -1.
    *
-   * @param tachyonFileSystem the TachyonFileSystem client
+   * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param fileId the file id of the file
    * @param filePath the path of the file. valid iff fileId is -1
-   * @return the UiFileInfo object of the file
+   * @return the {@code UiFileInfo} object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
-      TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
-          InvalidPathException, IOException, TachyonException {
+      TachyonURI filePath) throws
+      IOException, TachyonException {
     TachyonFile file = null;
     if (fileId != -1) {
       file = new TachyonFile(fileId);

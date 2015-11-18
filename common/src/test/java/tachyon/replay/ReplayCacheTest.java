@@ -197,7 +197,7 @@ public final class ReplayCacheTest {
   }
 
   /**
-   * Same as CounterCallable, but for {@link ReplayCallableThrowsIOException}.
+   * Same as {@link CounterCallable}, but for {@link ReplayCallableThrowsIOException}.
    */
   private class CounterCallableThrowsIOException implements ReplayCallableThrowsIOException<Long> {
     private long mCount = 0;

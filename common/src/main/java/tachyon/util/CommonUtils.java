@@ -39,8 +39,8 @@ public final class CommonUtils {
    *
    * @param list list of objects
    * @param <T> type of the objects
-   * @return space-separated concatenation of the string representation returned by Object#toString
-   *         of the individual objects
+   * @return space-separated concatenation of the string representation returned by
+   *         {@link Object#toString} of the individual objects
    */
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
@@ -115,7 +115,8 @@ public final class CommonUtils {
   }
 
   /**
-   * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments.
+   * Creates new instance of a class by calling a constructor that receives {@code ctorClassArgs}
+   * arguments.
    *
    * @param cls the class to create
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default

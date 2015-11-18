@@ -46,9 +46,9 @@ public final class PlainSaslServerProvider extends Provider {
    */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**
-     * Creates a SaslServer using the parameters supplied. It returns null if no SaslServer can be
-     * created using the parameters supplied. Throws SaslException if it cannot create a SaslServer
-     * because of an error.
+     * Creates a {@link SaslServer} using the parameters supplied. It returns null if no
+     * {@code SaslServer} can be created using the parameters supplied. Throws
+     * {@link SaslException} if it cannot create a {@code SaslServer} because of an error.
      *
      * @param mechanism the name of a SASL mechanism. (e.g. "PLAIN")
      * @param protocol the non-null string name of the protocol for which the authentication is
@@ -58,8 +58,8 @@ public final class PlainSaslServerProvider extends Provider {
      *        configure the authentication exchange of the selected mechanism
      * @param callbackHandler the possibly null callback handler to used by the SASL mechanisms to
      *        do further operation
-     * @return A possibly null SaslServer created using the parameters supplied. If null, this
-     *         factory cannot produce a SaslServer using the parameters supplied.
+     * @return A possibly null {@link SaslServer} created using the parameters supplied. If null,
+     *         this factory cannot produce a SaslServer using the parameters supplied.
      * @exception SaslException If it cannot create a SaslServer because of an error.
      */
     @Override

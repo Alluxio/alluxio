@@ -42,7 +42,7 @@ public class MetricsServlet implements Sink {
   private ObjectMapper mObjectMapper;
 
   /**
-   * Creates a MetricsServlet with a Properties and MetricRegistry.
+   * Creates a {@code MetricsServlet} with a {@link Properties} and {@link MetricRegistry}.
    *
    * @param properties the properties which may contain path property
    * @param registry the metric registry to register
@@ -72,9 +72,9 @@ public class MetricsServlet implements Sink {
   }
 
   /***
-   * Get the ServletContextHandler of the metrics servlet.
+   * Get the {@link ServletContextHandler} of the metrics servlet.
    *
-   * @return the ServletContextHandler object
+   * @return the {@code ServletContextHandler} object
    */
   public ServletContextHandler getHandler() {
     ServletContextHandler contextHandler = new ServletContextHandler();

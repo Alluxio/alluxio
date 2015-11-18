@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for tachyon.collections.Pair
+ * Unit tests for {@link tachyon.collections.Pair}
  */
 public class PairTest {
   private static final String STR_TYPE = "test";

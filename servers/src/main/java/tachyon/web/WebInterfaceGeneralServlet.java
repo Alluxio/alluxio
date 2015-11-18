@@ -113,9 +113,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * List the StorageTierInfo objects of each storage level(alias).
+   * List the {@link StorageTierInfo} objects of each storage level(alias).
    *
-   * @return the list of StorageTierInfo objects, in order from highest tier to lowest
+   * @return the list of {@code StorageTierInfo} objects, in order from highest tier to lowest
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
     StorageTierAssoc globalStorageTierAssoc = mMaster.getBlockMaster().getGlobalStorageTierAssoc();

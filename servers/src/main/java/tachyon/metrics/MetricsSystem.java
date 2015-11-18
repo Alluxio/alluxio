@@ -34,8 +34,8 @@ import tachyon.metrics.sink.Sink;
 import tachyon.metrics.source.Source;
 
 /**
- * A MetricsSystem is created by a specific instance(master, worker). It polls the metrics sources
- * periodically and pass the data to the sinks.
+ * A {@code MetricsSystem} is created by a specific instance(master, worker). It polls the metrics
+ * sources periodically and pass the data to the sinks.
  *
  * The syntax of the metrics configuration file is:
  * [instance].[sink|source].[name].[options]=[value]
@@ -60,7 +60,7 @@ public class MetricsSystem {
   /**
    * Gets the sinks.
    *
-   * @return a list of registered Sinks
+   * @return a list of registered {@link Sink}s
    */
   public List<Sink> getSinks() {
     return mSinks;
@@ -121,10 +121,10 @@ public class MetricsSystem {
   }
 
   /***
-   * Gets the ServletContextHandler of the metrics servlet.
+   * Gets the {@link ServletContextHandler} of the metrics servlet.
    *
-   * @return the ServletContextHandler if the metrics system is running and the metrics servlet
-   *         exists, otherwise null
+   * @return the {@code ServletContextHandler} if the metrics system is running and the metrics
+   *         servlet exists, otherwise null
    */
   public ServletContextHandler getServletHandler() {
     if (mRunning && mMetricsServlet != null) {
@@ -134,7 +134,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Registers a Source.
+   * Registers a {@link Source}.
    *
    * @param source the source to register
    */
@@ -193,7 +193,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Removes a Source.
+   * Removes a {@link Source}.
    *
    * @param source the source to remove
    */

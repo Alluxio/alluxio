@@ -93,7 +93,8 @@ public abstract class RPCResponse extends RPCMessage {
      * Returns the {@link String} message for a given
      * {@link tachyon.network.protocol.RPCResponse.Status}.
      *
-     * This method must be updated when a new Status is added.
+     * This method must be updated when a new {@link tachyon.network.protocol.RPCResponse.Status}
+     * is added.
      *
      * @param status The {@link tachyon.network.protocol.RPCResponse.Status} to get the message for
      * @return The String message for the status

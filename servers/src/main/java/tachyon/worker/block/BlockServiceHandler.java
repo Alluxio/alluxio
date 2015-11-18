@@ -162,8 +162,9 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy, and the
    * temporary file path of the block file will be returned. if there is no enough space on Tachyon
-   * storage WorkerOutOfSpaceException will be thrown, if the file is already being written by the
-   * session, FileAlreadyExistsException will be thrown.
+   * storage {@link tachyon.exception.WorkerOutOfSpaceException} will be thrown, if the file is
+   * already being written by the session, {@link tachyon.exception.FileAlreadyExistsException}
+   * will be thrown.
    *
    * @param sessionId the id of the client requesting the create
    * @param blockId the id of the new block to create

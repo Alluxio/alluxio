@@ -30,9 +30,9 @@ import com.google.common.collect.Sets;
 
 /**
  * A set of objects that are indexed and thus can be queried by specific fields of the object.
- * Different IndexedSet instances may specify different fields to index. The field type must be
- * comparable. The field value must not be changed after an object is added to the set, otherwise,
- * behavior for all operations is not specified.
+ * Different {@code IndexedSet} instances may specify different fields to index. The field type
+ * must be comparable. The field value must not be changed after an object is added to the set,
+ * otherwise, behavior for all operations is not specified.
  *
  * <p>
  * This class is thread safe.
@@ -110,12 +110,12 @@ public class IndexedSet<T> implements Iterable<T> {
   private final Object mLock = new Object();
 
   /**
-   * An interface representing an index for this IndexedSet, each index for this set must implement
-   * the interface to define how to get the value of the field chosen as the index. Users must use
-   * the same instance of the implementation of this interface as the parameter in all methods of
-   * IndexedSet to represent the same index.
+   * An interface representing an index for this {@code IndexedSet}, each index for this set must
+   * implement the interface to define how to get the value of the field chosen as the index. Users
+   * must use the same instance of the implementation of this interface as the parameter in all
+   * methods of {@code IndexedSet} to represent the same index.
    *
-   * @param <T> type of objects in this IndexedSet
+   * @param <T> type of objects in this {@code IndexedSet}
    */
   public interface FieldIndex<T> {
     /**
@@ -128,7 +128,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Constructs a new IndexedSet instance with at least one field as the index.
+   * Constructs a new {@code IndexedSet} instance with at least one field as the index.
    *
    * @param field at least one field is needed to index the set of objects
    * @param otherFields other fields to index the set
@@ -200,12 +200,13 @@ public class IndexedSet<T> implements Iterable<T> {
 
   /**
    * Returns an iterator over the elements in this set. The elements are returned in no particular
-   * order. It is to implement {@link Iterable} so that users can foreach the IndexedSet directly.
+   * order. It is to implement {@link Iterable} so that users can foreach the {@code IndexedSet}
+   * directly.
    *
    * Note that the behaviour of the iterator is unspecified if the underlying collection is
    * modified while a thread is going through the iterator.
    *
-   * @return an iterator over the elements in this IndexedSet
+   * @return an iterator over the elements in this {@code IndexedSet}
    */
   @Override
   public Iterator<T> iterator() {

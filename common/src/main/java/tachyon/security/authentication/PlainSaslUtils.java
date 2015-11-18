@@ -52,12 +52,12 @@ public final class PlainSaslUtils {
   }
 
   /**
-   * For server side, get a PLAIN mechanism TTransportFactory. A callback handler is hooked for
-   * specific authentication methods.
+   * For server side, get a PLAIN mechanism {@link TTransportFactory}. A callback handler is hooked
+   * for specific authentication methods.
    *
    * @param authType the authentication type
    * @param conf TachyonConf
-   * @return a corresponding TTransportFactory, which is PLAIN mechanism
+   * @return a corresponding {@link TTransportFactory}, which is PLAIN mechanism
    * @throws SaslException if an AuthenticationProvider is not found
    */
   public static TTransportFactory getPlainServerTransportFactory(AuthType authType,

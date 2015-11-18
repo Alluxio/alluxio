@@ -40,8 +40,8 @@ import tachyon.util.network.NetworkAddressUtils;
 /**
  * Unit test for methods of {@link AuthenticationUtils}
  *
- * In order to test methods that return kinds of TTransport for connection in different mode, we
- * build Thrift servers and clients with specific TTransport, and let them connect.
+ * In order to test methods that return kinds of {@link TTransport} for connection in different
+ * mode, we build Thrift servers and clients with specific {@code TTransport}, and let them connect.
  */
 public class AuthenticationUtilsTest {
 
@@ -66,7 +66,7 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * In NOSASL mode, the TTransport used should be the same as Tachyon original code.
+   * In NOSASL mode, the {@link TTransport} used should be the same as Tachyon original code.
    */
   @Test
   public void nosaslAuthenticationTest() throws Exception {
@@ -86,8 +86,9 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * In SIMPLE mode, the TTransport mechanism is PLAIN. When server authenticate the connected
-   * client user, it use {@link tachyon.security.authentication.SimpleAuthenticationProviderImpl}.
+   * In SIMPLE mode, the {@link TTransport} mechanism is PLAIN. When server authenticate the
+   * connected client user, it use
+   * {@link tachyon.security.authentication.SimpleAuthenticationProviderImpl}.
    */
   @Test
   public void simpleAuthenticationTest() throws Exception {
@@ -180,9 +181,9 @@ public class AuthenticationUtilsTest {
   }
 
   /**
-   * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
-   * client user, it use configured AuthenticationProvider. If the username:password pair matches, a
-   * connection should be built.
+   * In CUSTOM mode, the {@link TTransport} mechanism is PLAIN. When server authenticate the
+   * connected client user, it use configured {@link AuthenticationProvider}. If the
+   * username:password pair matches, a connection should be built.
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
@@ -206,7 +207,7 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, If the username:password pair does not match based on the configured
-   * AuthenticationProvider, an exception should be thrown in server side.
+   * {@link AuthenticationProvider}, an exception should be thrown in server side.
    */
   @Test
   public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {

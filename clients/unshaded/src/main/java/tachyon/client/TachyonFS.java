@@ -61,9 +61,9 @@ import tachyon.worker.WorkerClient;
 
 /**
  * Client API to use Tachyon as a file system. This API is not compatible with HDFS file system API;
- * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file system.
- * Under the hood, this class maintains a MasterClientBase to talk to the master server and
- * WorkerClients to interact with different Tachyon workers.
+ * while {@link tachyon.hadoop.AbstractTFS} provides another API that exposes Tachyon as HDFS file
+ * system. Under the hood, this class maintains a MasterClientBase to talk to the master server and
+ * {@link WorkerClient}s to interact with different Tachyon workers.
  *
  * As of 0.8, replaced by {@link tachyon.client.file.TachyonFileSystem}
  */
@@ -334,7 +334,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Creates a <code>RawTable</code> and returns its id.
+   * Creates a {@link RawTable} and returns its id.
    *
    * @param path the RawTable's path
    * @param columns number of columns it has
@@ -346,7 +346,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Creates a <code>RawTable</code> and returns its id.
+   * Creates a {@link RawTable} and returns its id.
    *
    * Currently unsupported.
    *
@@ -473,7 +473,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets the user's <code>ClientMetrics</code>.
+   * Gets the user's {@link ClientMetrics}.
    *
    * @return the <code>ClientMetrics</code> object
    */
@@ -482,7 +482,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets <code>TachyonFile</code> based on the file id.
+   * Gets {@link TachyonFile} based on the file id.
    *
    * NOTE: This *will* use cached file metadata, and so will not see changes to dynamic properties,
    * such as the pinned flag. This is also different from the behavior of getFile(path), which by
@@ -497,7 +497,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets <code>TachyonFile</code> based on the file id. If useCachedMetadata, this will not see
+   * Gets {@link TachyonFile} based on the file id. If useCachedMetadata, this will not see
    * changes to the file's pin setting, or other dynamic properties.
    *
    * @param fid the file id
@@ -514,7 +514,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
+   * Gets {@link TachyonFile} based on the path. Does not utilize the file metadata cache.
    *
    * @param path file path
    * @return TachyonFile of the path, or null if the file does not exist
@@ -526,7 +526,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets <code>TachyonFile</code> based on the path. If useCachedMetadata is true, this will not
+   * Gets {@link TachyonFile} based on the path. If useCachedMetadata is true, this will not
    * see changes to the file's pin setting, or other dynamic properties.
    *
    * @param path file path
@@ -545,14 +545,15 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * If the given file id is INVALID_FILE_ID, tries to fetch the file id for the given path
+   * If the given file id is {@link IdUtils#INVALID_FILE_ID}, tries to fetch the file id for the
+   * given path
    *
    * @param fileId
-   * @param path the path to search for if fileId is INVALID_FILE_ID
-   * @return the original fileId if it wasn't INVALID_FILE_ID, or a new fileId corresponding to the
-   *         given path
-   * @throws IOException if the given fileId is INVALID_FILE_ID and no fileId was found for the
-   *         given path
+   * @param path the path to search for if fileId is {@code INVALID_FILE_ID}
+   * @return the original fileId if it wasn't {@code INVALID_FILE_ID}, or a new fileId
+   *         corresponding to the given path
+   * @throws IOException if the given fileId is {@code INVALID_FILE_ID} and no fileId was found for
+   *         the given path
    */
   private long getValidFileId(long fileId, String path) throws IOException {
     if (fileId == IdUtils.INVALID_FILE_ID) {
@@ -585,7 +586,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Get file id by the path. It will check if the path exists.
    *
    * @param path the path in Tachyon file system
-   * @return the file id if exists, INVALID_FILE_ID otherwise
+   * @return the file id if exists, {@link IdUtils#INVALID_FILE_ID} otherwise
    */
   public synchronized long getFileId(TachyonURI path) {
     try {
@@ -601,9 +602,9 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param cache FileInfo cache
    * @param key the key in the cache
-   * @param fileId the id of the queried file. If it is INVALID_FILE_ID, uses path
-   * @param path the path of the queried file. If fielId is not INVALID_FILE_ID, this parameter is
-   *        ignored.
+   * @param fileId the id of the queried file. If it is {@link IdUtils#INVALID_FILE_ID}, uses path
+   * @param path the path of the queried file. If fielId is not {@link IdUtils#INVALID_FILE_ID},
+   *        this parameter is ignored.
    * @param useCachedMetaData whether to use the cached data or not
    * @return the clientFileInfo
    * @throws IOException if the underlying master RPC fails
@@ -636,12 +637,13 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Advanced API.
    *
-   * Gets the FileInfo object that represents the fileId, or the path if fileId is INVALID_FILE_ID.
+   * Gets the {@link FileInfo} object that represents the fileId, or the path if fileId is
+   * {@link IdUtils#INVALID_FILE_ID}.
    *
    * @param fileId the file id of the file or folder
-   * @param path the path of the file or folder. valid iff fileId is INVALID_FILE_ID
+   * @param path the path of the file or folder. valid iff fileId is {@code INVALID_FILE_ID}
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the FileInfo of the file. null if the file does not exist
+   * @return the {@code FileInfo} of the file. null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
@@ -661,7 +663,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fileId the file id of the file or folder
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the FileInfo of the file. null if the file does not exist
+   * @return the {@code FileInfo} of the file. null if the file does not exist
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized FileInfo getFileStatus(long fileId, boolean useCachedMetadata)
@@ -686,12 +688,12 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets <code>RawTable</code> by id.
+   * Gets {@link RawTable} by id.
    *
    * Currently unsupported.
    *
    * @param id the id of the raw table
-   * @return the RawTable
+   * @return the {@code RawTable}
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized RawTable getRawTable(long id) throws IOException {
@@ -704,12 +706,12 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get the <code>RawTable</code> by path.
+   * Get the {@link RawTable} by path.
    *
    * Currently unsupported.
    *
    * @param path the path of the raw table
-   * @return the RawTable
+   * @return the {@code RawTable}
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
@@ -812,7 +814,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * <code>path</code> is a file, returns its ClientFileInfo.
    *
    * @param path the target directory/file path
-   * @return A list of FileInfo, null if the file or folder does not exist
+   * @return A list of {@link FileInfo}, null if the file or folder does not exist
    * @throws IOException when the underlying master RPC fails
    */
   @Override
@@ -827,7 +829,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Locks a block in the current TachyonFS.
+   * Locks a block in the current {@code TachyonFS}.
    *
    * @param blockId the id of the block to lock. <code>blockId</code> must be positive
    * @param blockLockId the block lock id of the block of lock. <code>blockLockId</code> must be
@@ -881,7 +883,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * An alias for setPinned(fid, true).
+   * An alias for {@code setPinned(fid, true)}.
    *
    * @throws IOException when the underlying worker RPC fails
    * @see #setPinned(long, boolean)
@@ -893,9 +895,10 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Frees an in-memory file or folder.
    *
-   * @param fileId the id of the file / folder. If it is not INVALID_FILE_ID, path parameter is
-   *        ignored. Otherwise, the method uses the path parameter.
-   * @param path the path of the file / folder. It could be empty iff id is not INVALID_FILE_ID
+   * @param fileId the id of the file / folder. If it is not {@link IdUtils#INVALID_FILE_ID}, path
+   *        parameter is ignored. Otherwise, the method uses the path parameter.
+   * @param path the path of the file / folder. It could be empty iff id is not
+   *        {@link IdUtils#INVALID_FILE_ID}
    * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
    *        or not
    * @return true if in-memory free successfully, false otherwise
@@ -930,12 +933,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Renames a file or folder to the indicated new path.
    *
-   * @param fileId The id of the source file / folder. If it is not INVALID_FILE_ID, path parameter
-   *        is ignored. Otherwise, the method uses the srcPath parameter.
+   * @param fileId The id of the source file / folder. If it is not {@link IdUtils#INVALID_FILE_ID},
+   *        path parameter is ignored. Otherwise, the method uses the srcPath parameter.
    * @param srcPath The path of the source file / folder. It could be empty iff id is not
-   *        INVALID_FILE_ID.
+   *        {@link IdUtils#INVALID_FILE_ID}.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not
-   *        INVALID_FILE_ID.
+   *        {@link IdUtils#INVALID_FILE_ID}.
    * @return true if renames successfully, false otherwise
    * @throws IOException if the underlying master RPC fails
    */
@@ -1007,8 +1010,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * Sets the "pinned" flag for the given file. Pinned files are never evicted by Tachyon until they
    * are unpinned.
    *
-   * Calling setPinned() on a folder will recursively set the "pinned" flag on all of that folder's
-   * children. This may be an expensive operation for folders with many files/subfolders.
+   * Calling {@code setPinned()} on a folder will recursively set the "pinned" flag on all of that
+   * folder's children. This may be an expensive operation for folders with many files/subfolders.
    *
    * @param fid the file id
    * @param pinned the target "pinned" flag value
@@ -1064,7 +1067,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * An alias for setPinned(fid, false).
+   * An alias for {@code setPinned(fid, false)}.
    *
    * @throws IOException when the underlying worker RPC fails
    * @see #setPinned(long, boolean)
@@ -1074,7 +1077,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Updates the RawTable's meta data.
+   * Updates the {@link RawTable}'s meta data.
    *
    * Currently unsupported.
    *

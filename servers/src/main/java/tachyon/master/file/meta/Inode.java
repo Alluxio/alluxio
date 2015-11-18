@@ -144,7 +144,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Generates a FileInfo of the file or folder.
+   * Generates a {@link FileInfo} of the file or folder.
    *
    * @param path The path of the file
    * @return generated FileInfo

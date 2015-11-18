@@ -38,13 +38,14 @@ import tachyon.security.User;
  * provider needed to register to support server-side PLAIN mechanism. This class completes three
  * basic steps to implement a SASL security provider:
  * <ol>
- * <li>Write a class that implements the SaslServer interface</li>
+ * <li>Write a class that implements the {@link SaslServer} interface</li>
  * <li>Write a factory class implements the SaslServerFactory</li>
  * <li>Write a JCA provider that registers the factory</li>
  * </ol>
  *
- * NOTE: When this SaslServer works on authentication (i.e., in the method evaluateResponse()), it
- * always assigns authentication ID to authorization ID currently.
+ * NOTE: When this SaslServer works on authentication (i.e., in the method
+ * {@link #evaluateResponse(byte[])}), it always assigns authentication ID to authorization ID
+ * currently.
  *
  */
 // TODO(dong): Authorization ID and authentication ID could be different after supporting
@@ -171,7 +172,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   /**
-   * PlainServerCallbackHandler is used by the SASL mechanisms to get further information to
+   * {@code PlainServerCallbackHandler} is used by the SASL mechanisms to get further information to
    * complete the authentication. For example, a SASL mechanism might use this callback handler to
    * do verification operation.
    */
@@ -222,12 +223,12 @@ public final class PlainSaslServer implements SaslServer {
   public static final class AuthorizedClientUser {
 
     /**
-     * A ThreadLocal variable to maintain the client user along with a specific thread.
+     * A {@link ThreadLocal} variable to maintain the client user along with a specific thread.
      */
     private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
 
     /**
-     * Creates a {@link User} and sets it to the ThreadLocal variable.
+     * Creates a {@link User} and sets it to the {@link ThreadLocal} variable.
      *
      * @param userName the name of the client user
      */
@@ -236,7 +237,7 @@ public final class PlainSaslServer implements SaslServer {
     }
 
     /**
-     * Gets the {@link User} from the ThreadLocal variable.
+     * Gets the {@link User} from the {@link ThreadLocal} variable.
      *
      * @return the client user
      */
@@ -245,7 +246,7 @@ public final class PlainSaslServer implements SaslServer {
     }
 
     /**
-     * Removes the {@link User} from the ThreadLocal variable.
+     * Removes the {@link User} from the {@link ThreadLocal} variable.
      */
     public static void remove() {
       sUserThreadLocal.remove();

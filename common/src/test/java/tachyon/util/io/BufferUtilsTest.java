@@ -306,9 +306,9 @@ public class BufferUtilsTest {
   /**
    *{@link BufferUtils#cleanDirectBuffer(ByteBuffer)} forces to unmap an unused direct buffer.
    * This test repeated allocates and de-allocates a direct buffer of size 16MB to make sure
-   * cleanDirectBuffer is doing its job. The bufferArray is used to store references to the direct
-   * buffers so that they won't get garbage collected automatically. It has been tested that if the
-   * call to cleanDirectBuffer is removed, this test will fail.
+   * {@link BufferUtils#cleanDirectBuffer(ByteBuffer)} is doing its job. The bufferArray is used to
+   * store references to the direct buffers so that they won't get garbage collected automatically.
+   * It has been tested that if the call to cleanDirectBuffer is removed, this test will fail.
    */
   @Test
   public void cleanDirectBufferTest() {

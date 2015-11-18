@@ -48,7 +48,7 @@ import tachyon.util.io.PathUtils;
 
 /**
  * Actual owner of Tachyon running on Yarn. The YARN ResourceManager will launch this
- * ApplicationMaster on an allocated container. The ApplicationMaster communicates with YARN
+ * {@code ApplicationMaster} on an allocated container. The ApplicationMaster communicates with YARN
  * cluster, and handles application execution. It performs operations in an asynchronous fashion.
  */
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {

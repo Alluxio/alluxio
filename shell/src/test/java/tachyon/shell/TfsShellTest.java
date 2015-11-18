@@ -18,7 +18,6 @@ package tachyon.shell;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -50,7 +49,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Unit tests on TFsShell.
+ * Unit tests on {@link TfsShell}.
  */
 public class TfsShellTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
@@ -395,7 +394,7 @@ public class TfsShellTest {
    * mOutput.toString()); }
    */
   private File generateFileContent(String path, byte[] toWrite)
-      throws IOException, FileNotFoundException {
+      throws IOException {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);

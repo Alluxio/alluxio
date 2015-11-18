@@ -29,7 +29,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import tachyon.Constants;
 
 /**
- * Simple Netty decoder which converts the input ByteBuf into an RPCMessage.
+ * Simple Netty decoder which converts the input ByteBuf into an {@link RPCMessage}.
  * The frame decoder should have already run earlier in the Netty pipeline, and split up the stream
  * into individual encoded messages.
  */

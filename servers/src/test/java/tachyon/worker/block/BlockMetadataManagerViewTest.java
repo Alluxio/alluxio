@@ -167,13 +167,13 @@ public final class BlockMetadataManagerViewTest {
 
     // lock block
     mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Long>newHashSet(),
-        Sets.<Long>newHashSet(TEST_BLOCK_ID));
+        Sets.newHashSet(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin and lock block
     mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode),
-        Sets.<Long>newHashSet(TEST_BLOCK_ID));
+        Sets.newHashSet(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
   }
@@ -200,7 +200,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Test that <code>BlockMetadataManagerView.getTierView(tierAlias)</code> returns the same
+   * Test that {@link BlockMetadataManagerView#getTierView(String)} returns the same
    * TierView as <code>new StorageTierView(mMetadataManager.getTier(tierAlias), this)</code>.
    */
   @Test
@@ -222,7 +222,7 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Test that <code>BlockMetadataManagerView.getTierViewsBelow(tierAlias)</code> returns the same
+   * Test that {@link BlockMetadataManagerView#getTierViewsBelow(String)} returns the same
    * TierViews as constructing by <code>BlockMetadataManager.getTiersBelow(tierAlias)</code>.
    */
   @Test

@@ -65,7 +65,7 @@ interface BlockStore {
    * location named after the the session ID) to store its data. This method only creates the meta
    * data but adds NO data to this temporary location. The location can be a location with specific
    * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
-   * {@link BlockStoreLocation#anyDirInTier(int)}.
+   * {@link BlockStoreLocation#anyDirInTier(String)}.
    * <p>
    * Before commit, all the data written to this block will be stored in the temp path and the block
    * is only "visible" to its writer client.
@@ -86,13 +86,13 @@ interface BlockStore {
       IOException;
 
   /**
-   * Gets the metadata of a block given its blockId or throws BlockDoesNotExistException. This
-   * method does not require a lock ID so the block is possible to be moved or removed after it
+   * Gets the metadata of a block given its blockId or throws {@link BlockDoesNotExistException}.
+   * This method does not require a lock ID so the block is possible to be moved or removed after it
    * returns.
    *
    * @param blockId the block ID
    * @return metadata of the block
-   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
    */
   BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 

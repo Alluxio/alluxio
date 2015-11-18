@@ -218,7 +218,7 @@ public final class Client {
   }
 
   /**
-   * Submits an application to the ResourceManager to run ApplicationMaster.
+   * Submits an application to the ResourceManager to run {@link ApplicationMaster}.
    *
    * The stable Yarn API provides a convenience method (YarnClient#createApplication) for creating
    * applications and setting up the application submission context. This was not available in the

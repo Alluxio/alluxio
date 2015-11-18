@@ -27,7 +27,8 @@ import tachyon.security.authentication.AuthType;
  * A JAAS configuration that defines the login modules, by which JAAS uses to login.
  *
  * In implementation, we define several modes (Simple, Kerberos, ...) by constructing different
- * arrays of AppConfigurationEntry, and select the proper array based on the configured mode.
+ * arrays of {@link AppConfigurationEntry}, and select the proper array based on the configured
+ * mode.
  *
  * Then JAAS login framework use the selected array of AppConfigurationEntry to determine the login
  * modules to be used.

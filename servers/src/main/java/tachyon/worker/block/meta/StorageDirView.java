@@ -31,11 +31,11 @@ import tachyon.worker.block.BlockStoreLocation;
  */
 public final class StorageDirView {
 
-  /** the StorageDir this view is derived from */
+  /** the {@link StorageDir} this view is derived from */
   private final StorageDir mDir;
-  /** the StorageTierView this view under */
+  /** the {@code StorageTierView} this view under */
   private final StorageTierView mTierView;
-  /** the BlockMetadataView this view is associated with */
+  /** the {@link BlockMetadataManagerView} this view is associated with */
   private final BlockMetadataManagerView mManagerView;
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
@@ -46,7 +46,8 @@ public final class StorageDirView {
   private long mBlocksToMoveOutSize = 0L;
 
   /**
-   * Creates a StorageDirView using the actual StorageDir and the associated BlockMetadataView.
+   * Creates a {@code StorageDirView} using the actual StorageDir and the associated
+   * {@link BlockMetadataManagerView}.
    *
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under
@@ -138,12 +139,12 @@ public final class StorageDirView {
   }
 
   /**
-   * Creates a TempBlockMeta given sessionId, blockId, and initialBlockSize.
+   * Creates a {@link TempBlockMeta} given sessionId, blockId, and initialBlockSize.
    *
    * @param sessionId of the owning session
    * @param blockId of the new block
    * @param initialBlockSize of the new block
-   * @return a new TempBlockMeta under the underlying directory
+   * @return a new {@code TempBlockMeta} under the underlying directory
    */
   public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
     return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
@@ -191,10 +192,10 @@ public final class StorageDirView {
   }
 
   /**
-   * Creates a BlockStoraLocation for this directory view. Redirecting to
+   * Creates a {@link BlockStoreLocation} for this directory view. Redirecting to
    * {@link StorageDir#toBlockStoreLocation}
    *
-   * @return BlockStoreLocation created
+   * @return {@code BlockStoreLocation} created
    */
   public BlockStoreLocation toBlockStoreLocation() {
     return mDir.toBlockStoreLocation();

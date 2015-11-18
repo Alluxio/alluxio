@@ -28,7 +28,7 @@ import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.BlockInfoException;
 
 /**
- * Unit tests for tachyon.InodeFile
+ * Unit tests for {@link tachyon.master.file.meta.InodeFile}
  */
 public final class InodeFileTest extends AbstractInodeTest {
   private static final long LENGTH = 100;

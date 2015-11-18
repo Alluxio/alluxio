@@ -50,7 +50,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 
 /**
- * Unit tests for tachyon.master.block.BlockMaster.
+ * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
 
@@ -201,7 +201,7 @@ public class BlockMasterTest {
     workerInfo.updateToRemovedBlock(true, BLOCK_TO_FREE);
     Command heartBeat3 = mMaster.workerHeartbeat(workerId, USED_BYTES_ON_TIERS,
         ImmutableList.<Long>of(), ImmutableMap.<String, List<Long>>of());
-    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.<Long>of(BLOCK_TO_FREE)),
+    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.of(BLOCK_TO_FREE)),
         heartBeat3);
   }
 

@@ -28,8 +28,9 @@ import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
 
 /**
- * This class provides an implementation of AbstractFSContract using tachyon.hadoop.TFS. This
- * will be used to run Hadoop Contract tests which verify the AbstractTFS interface.
+ * This class provides an implementation of {@link AbstractFSContract} using
+ * {@link tachyon.hadoop.TFS}. This will be used to run Hadoop Contract tests which verify the
+ * {@code AbstractTFS} interface.
  * More information can be found here:
  * http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/filesystem/testing.html
  */

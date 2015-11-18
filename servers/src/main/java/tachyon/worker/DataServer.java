@@ -45,23 +45,23 @@ public interface DataServer extends Closeable {
   }
 
   /**
-   * Get the actual bind hostname on DataServer service.
+   * Get the actual bind hostname on {@code DataServer} service.
    *
    * @return the bind host
    */
   String getBindHost();
 
   /**
-   * Gets the port the DataServer is listening on.
+   * Gets the port the {@code DataServer} is listening on.
    *
    * @return the port number
    */
   int getPort();
 
   /**
-   * Check if the DataServer is closed.
+   * Check if the {@code DataServer} is closed.
    *
-   * @return true if the DataServer is closed, false otherwise
+   * @return true if the {@code DataServer} is closed, false otherwise
    */
   boolean isClosed();
 }

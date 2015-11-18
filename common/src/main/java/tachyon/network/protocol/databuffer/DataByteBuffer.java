@@ -30,7 +30,7 @@ public final class DataByteBuffer implements DataBuffer {
 
   /**
    *
-   * @param buffer The ByteBuffer representing the data
+   * @param buffer The {@link ByteBuffer} representing the data
    * @param length The length of the ByteBuffer
    */
   public DataByteBuffer(ByteBuffer buffer, long length) {

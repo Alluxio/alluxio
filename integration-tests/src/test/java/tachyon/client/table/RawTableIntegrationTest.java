@@ -34,7 +34,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Integration tests for tachyon.client.RawTable.
+ * Integration tests for {@link RawTable}.
  */
 public class RawTableIntegrationTest {
   @Rule

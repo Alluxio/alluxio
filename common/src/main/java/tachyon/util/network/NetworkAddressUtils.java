@@ -275,7 +275,7 @@ public final class NetworkAddressUtils {
    *
    * @param service the service name used to connect
    * @param conf the configuration of Tachyon
-   * @return the InetSocketAddress the service will bind to
+   * @return the {@link InetSocketAddress} the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
     int port = getPort(service, conf);
@@ -458,8 +458,8 @@ public final class NetworkAddressUtils {
 
   /**
    * Get FQDN(Full Qualified Domain Name) from Java representations of network address, except
-   * String representation which should be handled by #resolveHostName(String hostname) which will
-   * handle the situation where hostname is null.
+   * String representation which should be handled by {@link #resolveHostName(String hostname)}
+   * which will handle the situation where hostname is null.
    *
    * @param addr the input network address representation, can not be null
    * @return the resolved FQDN host name
@@ -509,7 +509,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parses InetSocketAddress from a String.
+   * Parses {@link InetSocketAddress} from a String.
    *
    * @param address socket address to parse
    * @return InetSocketAddress of the String

@@ -18,14 +18,14 @@ package tachyon.master;
 import tachyon.conf.TachyonConf;
 
 /**
- * A MasterContext object stores TachyonConf.
+ * A {@code MasterContext} object stores {@link TachyonConf}.
  */
 public final class MasterContext {
   private MasterContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one TachyonConf object shared within the same
-   * master process.
+   * The static configuration object. There is only one {@link TachyonConf} object shared within
+   * the same master process.
    */
   private static TachyonConf sTachyonConf = new TachyonConf();
 

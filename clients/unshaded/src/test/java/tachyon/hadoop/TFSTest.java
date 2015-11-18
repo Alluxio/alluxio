@@ -45,7 +45,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit tests for TFS
+ * Unit tests for {@link TFS}
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
