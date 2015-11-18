@@ -22,7 +22,7 @@ import java.util.List;
 import tachyon.Constants;
 
 /**
- * ClientMetrics is used to pass client metrics from client to worker by session heartbeat.
+ * {@code ClientMetrics} is used to pass client metrics from client to worker by session heartbeat.
  */
 public final class ClientMetrics {
   private List<Long> mMetrics;

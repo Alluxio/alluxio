@@ -68,7 +68,7 @@ public abstract class RPCMessage implements EncodedMessage {
     }
 
     /**
-     * Returns the type represented by the id from the input ByteBuf.
+     * Returns the type represented by the id from the input {@link ByteBuf}.
      *
      * This must be updated to add new message types.
      *
@@ -126,7 +126,7 @@ public abstract class RPCMessage implements EncodedMessage {
   }
 
   /**
-   * Creates a decoder that splits up the incoming ByteBuf into new ByteBuf's according to a length
+   * Creates a decoder that splits up the incoming {@link ByteBuf} into new ByteBuf's according to a length
    * field in the input.
    *
    * The encoding scheme is: [(long) frame length][message payload]
@@ -141,13 +141,13 @@ public abstract class RPCMessage implements EncodedMessage {
   }
 
   /**
-   * Returns the message of message type 'type', decoded from the input ByteBuf.
+   * Returns the message of message type 'type', decoded from the input {@link ByteBuf}.
    *
    * This must be updated to add new message types.
    *
    * @param type The type of message to decode
    * @param in the input {@link ByteBuf}
-   * @return the decoded RPCMessage
+   * @return the decoded {@code RPCMessage}
    */
   public static RPCMessage decodeMessage(RPCMessage.Type type, ByteBuf in) {
     switch (type) {

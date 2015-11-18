@@ -27,8 +27,8 @@ import javax.security.auth.spi.LoginModule;
 import tachyon.security.User;
 
 /**
- * A login module that search the Kerberos or OS user from Subject, and then convert to a Tachyon
- * user. It does not really authenticate the user in its login method.
+ * A login module that search the Kerberos or OS user from {@link Subject}, and then convert to a
+ * Tachyon user. It does not really authenticate the user in its login method.
  */
 public final class TachyonLoginModule implements LoginModule {
   private Subject mSubject;
@@ -107,7 +107,7 @@ public final class TachyonLoginModule implements LoginModule {
   /**
    * Logs out the user.
    *
-   * The implementation removes the User associated with the Subject.
+   * The implementation removes the User associated with the {@link Subject}.
    * @return true in all cases
    * @throws LoginException if logout fails
    */

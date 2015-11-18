@@ -22,7 +22,7 @@ import org.junit.Test;
 import tachyon.util.OSUtils;
 
 /**
- * Unit tests for tachyon.TachyonURITest
+ * Unit tests for {@link TachyonURI}
  */
 public class TachyonURITest {
 

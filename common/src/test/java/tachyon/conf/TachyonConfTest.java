@@ -13,7 +13,7 @@ import tachyon.Constants;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * Unit test for TachyonConf class
+ * Unit test for {@link TachyonConf} class
  */
 public class TachyonConfTest {
   private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";

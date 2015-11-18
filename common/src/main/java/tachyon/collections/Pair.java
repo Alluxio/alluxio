@@ -26,7 +26,7 @@ public final class Pair<T1, T2> {
   private T2 mSecond;
 
   /**
-   * Constructs and initializes a Pair specified by the two input elements.
+   * Constructs and initializes a {@code Pair} specified by the two input elements.
    *
    * @param first the first element of the pair (of type First)
    * @param second the second element of the pair (of type Second)

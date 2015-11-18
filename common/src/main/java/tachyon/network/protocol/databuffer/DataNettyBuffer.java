@@ -30,7 +30,7 @@ public final class DataNettyBuffer implements DataBuffer {
   private final ByteBuf mNettyBuf;
 
   /**
-  * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
+  * Constructor for creating a {@code DataNettyBuffer}, by passing a Netty ByteBuf.
   * This way we avoid one copy from ByteBuf to another ByteBuffer,
   * and making sure the buffer would not be recycled.
   * IMPORTANT: {@link #release()} must be called after

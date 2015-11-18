@@ -196,7 +196,8 @@ public final class TachyonConf {
   }
 
   /**
-   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance
+   * @return the deep copy of the internal <code>Properties</code> of this {@code TachyonConf}
+   * instance
    */
   public Properties getInternalProperties() {
     return SerializationUtils.clone(mProperties);

@@ -37,12 +37,12 @@ import tachyon.util.network.NetworkAddressUtils;
  */
 public final class AuthenticationUtils {
   /**
-   * For server side, this method returns a TTransportFactory based on the auth type. It is used as
-   * one argument to build a Thrift TServer. If the auth type is not supported or recognized, an
-   * UnsupportedOperationException is thrown.
+   * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
+   * used as one argument to build a Thrift TServer. If the auth type is not supported or
+   * recognized, an UnsupportedOperationException is thrown.
    *
    * @param tachyonConf Tachyon Configuration
-   * @return a corresponding TTransportFactory
+   * @return a corresponding {@link TTransportFactory}
    * @throws SaslException if building a TransportFactory fails
    */
   public static TTransportFactory getServerTransportFactory(TachyonConf tachyonConf)
@@ -72,7 +72,7 @@ public final class AuthenticationUtils {
    *
    * @param tachyonConf Tachyon Configuration
    * @param serverAddress the server address which clients will connect to
-   * @return a TTransport for client
+   * @return a {@link TTransport} for client
    * @throws IOException if building a TransportFactory fails or user login fails
    */
   public static TTransport getClientTransport(TachyonConf tachyonConf,
