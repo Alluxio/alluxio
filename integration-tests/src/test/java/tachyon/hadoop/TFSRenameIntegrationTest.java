@@ -26,7 +26,6 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -213,12 +212,6 @@ public class TFSRenameIntegrationTest {
   }
 
   @Test
-  @Ignore
-  // TODO(jiri): The test logic below does not work in the presence of transparent naming.
-  // The current implementation renames files on UFS if they are marked as persisted. They are
-  // marked as persisted when they are closed. Thus, if the Tachyon path of the file being
-  // written to changes before it is closed, renaming the temporary underlying file to its final
-  // destination fails.
   public void basicRenameTest7() throws Exception {
     // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA even if it was not closed
 
