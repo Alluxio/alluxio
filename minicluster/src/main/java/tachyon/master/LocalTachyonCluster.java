@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,7 @@ public final class LocalTachyonCluster {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static Random sRandomGenerator = new Random();
   private BlockWorker mWorker = null;
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
@@ -231,6 +233,27 @@ public final class LocalTachyonCluster {
         UnderFileSystemUtils.mkdirIfNotExists(dirPath, testConf);
       }
     }
+
+    // Set the journal folder
+    UnderFileSystemCluster ufsCluster = UnderFileSystemCluster.get(mTachyonHome, testConf);
+    String journalFolder =
+        ufsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
+    testConf.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
+
+    // Format journal
+    UnderFileSystemUtils.mkdirIfNotExists(journalFolder, testConf);
+    String[] masterServiceNames = new String[] {
+        Constants.BLOCK_MASTER_SERVICE_NAME,
+        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
+        Constants.RAW_TABLE_MASTER_SERVICE_NAME,
+        Constants.LINEAGE_MASTER_SERVICE_NAME,
+    };
+    for (String masterServiceName : masterServiceNames) {
+      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
+          testConf);
+    }
+    UnderFileSystemUtils.touch(journalFolder + "/_format_" + System.currentTimeMillis(),
+        testConf);
   }
 
   /**

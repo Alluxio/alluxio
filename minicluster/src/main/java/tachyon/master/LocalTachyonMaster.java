@@ -18,7 +18,6 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Random;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -30,7 +29,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.UnderFileSystemUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
@@ -43,9 +41,6 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public final class LocalTachyonMaster {
   // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
-
-  private static Random sRandomGenerator = new Random();
-
   private final String mTachyonHome;
   private final String mHostname;
 
@@ -76,28 +71,7 @@ public final class LocalTachyonMaster {
     // {@link tachyon.LocalMiniDFScluster} and sets up the folder like "hdfs://xxx:xxx/tachyon*".
     mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, tachyonConf);
 
-    // To setup the journalFolder under either local file system or distributed ufs like
-    // miniDFSCluster
-    synchronized (sRandomGenerator) {
-      mJournalFolder =
-          mUfsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
-    }
-
-    UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
-    String[] masterServiceNames = new String[] {
-        Constants.BLOCK_MASTER_SERVICE_NAME,
-        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
-        Constants.RAW_TABLE_MASTER_SERVICE_NAME,
-        Constants.LINEAGE_MASTER_SERVICE_NAME,
-    };
-    for (String masterServiceName : masterServiceNames) {
-      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
-          tachyonConf);
-    }
-    UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
-        tachyonConf);
-
-    tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
+    mJournalFolder = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
 
     mTachyonMaster = TachyonMaster.Factory.createMaster();
 
