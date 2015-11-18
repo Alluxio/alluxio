@@ -15,10 +15,11 @@ struct WorkerInfo {
 
 service BlockMasterService extends common.TachyonService {
 
-  // Tachyon Client API
-
   /*
    * Returns the block information for the given block id.
+   * @param blockId
+   * @return the block information for the given block id
+   * @throws TachyonTException
    */
   common.BlockInfo getBlockInfo(1: i64 blockId) throws (1: exception.TachyonTException e)
 
