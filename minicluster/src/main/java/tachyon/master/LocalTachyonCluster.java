@@ -219,7 +219,7 @@ public final class LocalTachyonCluster {
     // Delete the tachyon home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(tachyonHome, testConf);
 
-    // Create ufs dir
+    // Create ufs dir. This must be called before UnderFileSystemCluster.get().
     UnderFileSystemUtils.mkdirIfNotExists(testConf.get(Constants.UNDERFS_ADDRESS),
         testConf);
 
@@ -240,7 +240,7 @@ public final class LocalTachyonCluster {
         ufsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
     testConf.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
 
-    // Format journal
+    // Format the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder, testConf);
     String[] masterServiceNames = new String[] {
         Constants.BLOCK_MASTER_SERVICE_NAME,
