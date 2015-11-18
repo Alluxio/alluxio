@@ -28,7 +28,6 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
@@ -74,7 +73,7 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void deleteLineageTest() {
+  public void deleteLineageTest() throws LineageDoesNotExistException {
     long l1 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
         Lists.newArrayList(new LineageFile(1)), mJob);
     long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
@@ -87,9 +86,9 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void deleteNonexistingLineageTest() {
+  public void deleteNonexistingLineageTest() throws LineageDoesNotExistException {
     long id = 1;
-    mThrown.expect(IllegalStateException.class);
+    mThrown.expect(LineageDoesNotExistException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_DOES_NOT_EXIST, id));
 
     mLineageStore.deleteLineage(id);
@@ -129,7 +128,7 @@ public final class LineageStoreTest {
   public void reportLostNonexistingFileTest() throws Exception {
     long fileId = 1;
     mThrown.expect(LineageDoesNotExistException.class);
-    mThrown.expectMessage(ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
+    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
 
     mLineageStore.reportLostFile(fileId);
   }
