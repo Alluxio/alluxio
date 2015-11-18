@@ -28,10 +28,9 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
 /**
- * PinListSync periodically syncs the set of pinned inodes from master,
- * and saves the new pinned inodes to the BlockDataManager.
- * The syncing parameters (intervals, timeouts) adopt directly from worker-to-master heartbeat
- * configurations.
+ * {@code PinListSync} periodically syncs the set of pinned inodes from master, and saves the new
+ * pinned inodes to the {@link BlockDataManager}. The syncing parameters (intervals, timeouts)
+ * adopt directly from worker-to-master heartbeat configurations.
  *
  */
 public final class PinListSync implements Runnable {
@@ -50,9 +49,9 @@ public final class PinListSync implements Runnable {
   private volatile boolean mRunning;
 
   /**
-   * Constructor for PinListSync
+   * Constructor for {@code PinListSync}
    *
-   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
    * @param masterClient the Tachyon master client
    */
   public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {

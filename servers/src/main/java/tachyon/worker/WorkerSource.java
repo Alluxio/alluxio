@@ -23,7 +23,7 @@ import tachyon.metrics.source.Source;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * A WorkerSource collects a Worker's internal state.
+ * A {@code WorkerSource} collects a Worker's internal state.
  */
 public class WorkerSource implements Source {
   private static final String WORKER_SOURCE_NAME = "worker";

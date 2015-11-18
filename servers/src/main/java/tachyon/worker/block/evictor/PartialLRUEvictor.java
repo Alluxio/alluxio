@@ -21,10 +21,11 @@ import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.StorageDirView;
 
 /**
- * This class is used to evict old blocks in certain StorageDir by LRU. The main difference
- * between PartialLRU and LRU is that LRU choose old blocks among several StorageDirs
- * until one StorageDir satisfies the request space, but PartialLRU select one StorageDir
- * with maximum free space first and evict old blocks in the selected StorageDir by LRU
+ * This class is used to evict old blocks in certain {@link tachyon.worker.block.meta.StorageDir}
+ * by LRU. The main difference between PartialLRU and LRU is that LRU choose old blocks among
+ * several {@code StorageDirs} until one {@code StorageDir} satisfies the request space, but
+ * PartialLRU select one {@code StorageDir} with maximum free space first and evict old blocks in
+ * the selected {@code StorageDir} by LRU
  */
 public class PartialLRUEvictor extends LRUEvictor {
   /**

@@ -110,7 +110,7 @@ public final class BlockLockManager {
   }
 
   /**
-   * Releases a lock by its lockId or throws BlockDoesNotExistException.
+   * Releases a lock by its lockId or throws {@link BlockDoesNotExistException}.
    *
    * @param lockId the ID of the lock
    * @throws BlockDoesNotExistException if no lock is associated with this lock id

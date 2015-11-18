@@ -31,7 +31,7 @@ public class RawTable implements JournalEntryRepresentable {
   private ByteBuffer mMetadata;
 
   /**
-   * Create a new RawTable with metadata set to null. metadata can later be set via
+   * Create a new {@code RawTable} with metadata set to null. metadata can later be set via
    * {@link #setMetadata(java.nio.ByteBuffer)}.
    *
    * @param id table id
@@ -44,7 +44,7 @@ public class RawTable implements JournalEntryRepresentable {
   }
 
   /**
-   * Create a new RawTable with metadata set to a ByteBuffer.
+   * Create a new {@code RawTable} with metadata set to a {@link ByteBuffer}.
    *
    * @param id table id
    * @param columns number of columns

@@ -29,7 +29,7 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
  * Test {@link Allocator.Factory} by passing different allocate strategy class
- * names with tachyon conf and test if it generates the correct Allocator instance.
+ * names with tachyon conf and test if it generates the correct {@link Allocator} instance.
  */
 public class AllocatorFactoryTest {
   private TachyonConf mTachyonConf;

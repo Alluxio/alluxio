@@ -71,10 +71,10 @@ public final class LocalFileBlockWriter implements BlockWriter {
   }
 
   /**
-   * Writes data to the block from an input ByteBuffer.
+   * Writes data to the block from an input {@link ByteBuffer}.
    *
    * @param offset starting offset of the block file to write
-   * @param inputBuf ByteBuffer that input data is stored in
+   * @param inputBuf {@code ByteBuffer} that input data is stored in
    * @return the size of data that was written
    * @throws IOException
    */

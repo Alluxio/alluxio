@@ -27,7 +27,7 @@ public class JvmSource implements Source {
   private MetricRegistry mMetricRegistry;
 
   /**
-   * Creates a JVMSource and register all JVM metrics.
+   * Creates a {@code JvmSource} and register all JVM metrics.
    */
   public JvmSource() {
     mMetricRegistry = new MetricRegistry();

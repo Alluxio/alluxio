@@ -45,20 +45,24 @@ public final class BlockDataManager {
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private BlockStore mBlockStore;
-  /** WorkerSource for collecting worker metrics */
+  /** {@link WorkerSource} for collecting worker metrics */
   private WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters */
   private BlockMetricsReporter mMetricsReporter;
 
-  /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
+  /**
+   * {@link WorkerBlockMasterClient}, only used to inform the master of a new block in commitBlock
+   * */
   private WorkerBlockMasterClient mBlockMasterClient;
-  /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
+  /**
+   * {@link WorkerFileSystemMasterClient}, only used to inform master of a new file in persistFile
+   * */
   private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
   private Sessions mSessions = new Sessions();
 
   /**
-   * Creates a BlockDataManager based on the configuration values.
+   * Creates a {@code BlockDataManager} based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
    * @param workerBlockMasterClient the block Tachyon master client for worker
@@ -163,8 +167,8 @@ public final class BlockDataManager {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to create
-   * @param tierAlias The alias of the tier to place the new block in, BlockStoreLocation.ANY_TIER
-   *        for any tier
+   * @param tierAlias The alias of the tier to place the new block in,
+   *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IllegalArgumentException if location does not belong to tiered storage
@@ -416,7 +420,7 @@ public final class BlockDataManager {
   }
 
   /**
-   * Set the pinlist for the underlying blockstore. Typically called by PinListSync.
+   * Set the pinlist for the underlying blockstore. Typically called by {@link PinListSync}.
    *
    * @param pinnedInodes a set of pinned inodes
    */

@@ -54,10 +54,10 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
    * A recursive implementation of cascading eviction.
    *
    * This method uses a specific eviction strategy to find blocks to evict in the requested
-   * location. After eviction, one StorageDir in the location has the specific amount of free space.
-   * It then uses an allocation strategy to allocate space in the next tier to move each evicted
-   * blocks. If the next tier fails to allocate space for the evicted blocks, the next tier will
-   * continue to evict its blocks to free space.
+   * location. After eviction, one {@link tachyon.worker.block.meta.StorageDir} in the location has
+   * the specific amount of free space. It then uses an allocation strategy to allocate space in
+   * the next tier to move each evicted blocks. If the next tier fails to allocate space for the
+   * evicted blocks, the next tier will continue to evict its blocks to free space.
    *
    * This method is only used in {@link #freeSpaceWithView}.
    *
@@ -183,8 +183,8 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
 
   /**
    * @return an iterator over the IDs of the blocks in the evictor cache. The evictor is responsible
-   * for specifying the iteration order using its own strategy. For example, LRUEvictor returns an
-   * iterator that iterates through the block IDs in LRU order.
+   * for specifying the iteration order using its own strategy. For example, {@link LRUEvictor}
+   * returns an iterator that iterates through the block IDs in LRU order.
    */
   protected abstract Iterator<Long> getBlockIterator();
 
@@ -196,7 +196,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
 
   /**
    * Update the block store location if the evictor wants to free space in a specific location.
-   * For example, PartialLRUEvictor always evicts blocks from a dir with max free space.
+   * For example, {@link PartialLRUEvictor} always evicts blocks from a dir with max free space.
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location the original block store location

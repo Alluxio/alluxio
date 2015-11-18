@@ -71,7 +71,7 @@ public final class BlockMasterSync implements Runnable {
       Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   /**
-   * Constructor for BlockMasterSync
+   * Constructor for {@code BlockMasterSync}
    *
    * @param blockDataManager the blockDataManager this syncer is updating to
    * @param workerAddress the net address of the worker

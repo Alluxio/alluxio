@@ -29,7 +29,7 @@ public interface CheckpointScheduler {
 
   class Factory {
     /**
-     * @param conf TachyonConf to determine the scheduler type
+     * @param conf {@link TachyonConf} to determine the scheduler type
      * @return the generated scheduler
      */
     public static CheckpointScheduler createScheduler(TachyonConf conf, LineageStoreView store) {

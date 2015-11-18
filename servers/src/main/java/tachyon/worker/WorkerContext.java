@@ -18,14 +18,14 @@ package tachyon.worker;
 import tachyon.conf.TachyonConf;
 
 /**
- * A WorkerContext object stores TachyonConf.
+ * A {@code WorkerContext} object stores {@link TachyonConf}.
  */
 public final class WorkerContext {
   private WorkerContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one TachyonConf object shared within the same
-   * worker process.
+   * The static configuration object. There is only one {@link TachyonConf} object shared within
+   * the same worker process.
    */
   private static TachyonConf sTachyonConf = new TachyonConf();
 

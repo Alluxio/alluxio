@@ -45,7 +45,7 @@ public final class BlockStoreLocation {
    * Convenience method to return the block store location representing any dir in the tier.
    *
    * @param tierAlias The alias of the tier this returned block store location will represent
-   * @return a BlockStoreLocation of any dir in the specified tier
+   * @return a {@code BlockStoreLocation} of any dir in the specified tier
    */
   public static BlockStoreLocation anyDirInTier(String tierAlias) {
     return new BlockStoreLocation(tierAlias, ANY_DIR);
@@ -68,7 +68,7 @@ public final class BlockStoreLocation {
   /**
    * Gets the directory index of the location.
    *
-   * @return the directory index of the location, ANY_DIR for any directory
+   * @return the directory index of the location, {@link #ANY_DIR} for any directory
    */
   public int dir() {
     return mDirIndex;
@@ -79,8 +79,8 @@ public final class BlockStoreLocation {
    *
    * Location A belongs to B when tier and dir of A are all in the range of B respectively.
    *
-   * @param location the target BlockStoreLocation
-   * @return true when this BlockStoreLocation belongs to the target, otherwise false
+   * @param location the target {@code BlockStoreLocation}
+   * @return true when this {@code BlockStoreLocation} belongs to the target, otherwise false
    */
   public boolean belongTo(BlockStoreLocation location) {
     boolean tierInRange =
