@@ -148,14 +148,14 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Get the externally resolvable address of the master (used by unit test only).
+   * @return the externally resolvable address of the master (used by unit test only)
    */
   public InetSocketAddress getAddress() {
     return mTachyonMaster.getMasterAddress();
   }
 
   /**
-   * Gets the actual internal master.
+   * @return the internal {@link TachyonMaster}
    */
   public TachyonMaster getInternalMaster() {
     return mTachyonMaster;
