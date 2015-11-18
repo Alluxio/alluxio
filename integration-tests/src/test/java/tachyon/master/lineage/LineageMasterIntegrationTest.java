@@ -42,11 +42,12 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.thrift.LineageInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Integration tests for the lineage module.
  */
-public final class LineageMastertIntegrationsTest {
+public final class LineageMasterIntegrationTest {
   private static final int BLOCK_SIZE_BYTES = 128;
   private static final long WORKER_CAPACITY_BYTES = Constants.GB;
   private static final int QUOTA_UNIT_BYTES = 128;
@@ -132,7 +133,7 @@ public final class LineageMastertIntegrationsTest {
           infos.get(0).outputFiles.get(0).state);
 
       // sleep and wait for worker to persist the file
-      Thread.sleep(5);
+      CommonUtils.sleepMs(5);
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_LINEAGE_SYNC);
