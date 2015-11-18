@@ -79,7 +79,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Returns the BlockInfo for a block id.
+   * Returns the {@link BlockInfo} for a block id.
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the BlockInfo
@@ -90,7 +90,7 @@ public final class BlockMasterClient extends MasterClientBase {
       throws TachyonException, IOException {
     return retryRPC(new RpcCallableThrowsTachyonTException<BlockInfo>() {
       @Override
-      public BlockInfo call() throws TachyonTException, TException {
+      public BlockInfo call() throws TException {
         return mClient.getBlockInfo(blockId);
       }
     });

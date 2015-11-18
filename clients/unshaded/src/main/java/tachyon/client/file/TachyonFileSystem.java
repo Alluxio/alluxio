@@ -46,11 +46,11 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
 /**
- * A TachyonFileSystem implementation including convenience methods as well as a streaming API to
- * read and write files. This class does not access the master client directly but goes through the
- * implementations provided in {@link AbstractTachyonFileSystem}. The create API for creating files
- * is not supported by this TachyonFileSystem because the files should only be written once, thus
- * getOutStream is sufficient for creating and writing to a file.
+ * A {@code TachyonFileSystem} implementation including convenience methods as well as a streaming
+ * API to read and write files. This class does not access the master client directly but goes
+ * through the implementations provided in {@link AbstractTachyonFileSystem}. The create API for
+ * creating files is not supported by this {@code TachyonFileSystem} because the files should only
+ * be written once, thus {@link #getOutStream} is sufficient for creating and writing to a file.
  */
 @PublicApi
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
@@ -77,7 +77,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #create(TachyonURI, CreateOptions)} with default options.
    */
   public TachyonFile create(TachyonURI path)
-      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
+      throws IOException, TachyonException {
     return create(path, CreateOptions.defaults());
   }
 
@@ -85,7 +85,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #delete(TachyonFile, DeleteOptions)} with default options.
    */
   public void delete(TachyonFile file)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     delete(file, DeleteOptions.defaults());
   }
 
@@ -93,7 +93,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #free(TachyonFile, FreeOptions)} with default options.
    */
   public void free(TachyonFile file)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     free(file, FreeOptions.defaults());
   }
 
@@ -102,7 +102,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * default options.
    */
   public FileInfo getInfo(TachyonFile file)
-      throws FileDoesNotExistException, IOException, TachyonException {
+      throws IOException, TachyonException {
     return getInfo(file, GetInfoOptions.defaults());
   }
 
@@ -110,7 +110,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #getInStream(TachyonFile, InStreamOptions)} with default options.
    */
   public FileInStream getInStream(TachyonFile file)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     return getInStream(file, InStreamOptions.defaults());
   }
 
@@ -127,7 +127,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   public FileInStream getInStream(TachyonFile file, InStreamOptions options)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     FileInfo info = getInfo(file, GetInfoOptions.defaults());
     if (info.isIsFolder()) {
       throw new FileNotFoundException(
@@ -141,7 +141,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * options.
    */
   public FileOutStream getOutStream(TachyonURI path)
-      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
+      throws IOException, TachyonException {
     return getOutStream(path, OutStreamOptions.defaults());
   }
 
@@ -160,7 +160,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws InvalidPathException if the path is invalid
    */
   public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
-      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
+      throws IOException, TachyonException {
     CreateOptions createOptions =
         new CreateOptions.Builder(ClientContext.getConf())
             .setBlockSizeBytes(options.getBlockSizeBytes())
@@ -182,8 +182,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Alternative way to get a FileOutStream to a file that has already been created. This should not
-   * be used. Deprecated in version v0.8 and will be removed in v0.9.
+   * Alternative way to get a {@link FileOutStream} to a file that has already been created. This
+   * should not be used. Deprecated in version v0.8 and will be removed in v0.9.
    *
    * @see #getOutStream(TachyonURI path, OutStreamOptions options)
    */
@@ -198,7 +198,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * options.
    */
   public List<FileInfo> listStatus(TachyonFile file)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     return listStatus(file, ListStatusOptions.defaults());
   }
 
@@ -207,7 +207,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * options.
    */
   public TachyonFile loadMetadata(TachyonURI path)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     return loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
@@ -215,7 +215,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #mkdir(TachyonURI, MkdirOptions)} with default options.
    */
   public boolean mkdir(TachyonURI path)
-      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
+      throws IOException, TachyonException {
     return mkdir(path, MkdirOptions.defaults());
   }
 
@@ -232,7 +232,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #open(TachyonURI, OpenOptions)} with default options.
    */
   public TachyonFile open(TachyonURI path)
-      throws IOException, InvalidPathException, TachyonException {
+      throws IOException, TachyonException {
     return open(path, OpenOptions.defaults());
   }
 
@@ -248,7 +248,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * options.
    */
   public boolean rename(TachyonFile src, TachyonURI dst)
-      throws IOException, TachyonException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     return rename(src, dst, RenameOptions.defaults());
   }
 

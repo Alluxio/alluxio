@@ -64,11 +64,11 @@ public final class TachyonFileSystemUtils {
    * Wait for a file to be marked as completed.
    *
    * The calling thread will block for <i>at most</i> {@code timeout} time units (as specified via
-   * {@code tunit} or until the TachyonFile is reported as complete by the master. The method will
-   * return the last known completion status of the file (hence, false only if the method has timed
-   * out). A zero value on the {@code timeout} parameter will make the calling thread check once and
-   * return; a negative value will make it block indefinitely. Note that, in this last case, if a
-   * file is never completed, the thread will block forever, so use with care.
+   * {@code tunit} or until the {@link TachyonFile} is reported as complete by the master. The
+   * method will return the last known completion status of the file (hence, false only if the
+   * method has timed out). A zero value on the {@code timeout} parameter will make the calling
+   * thread check once and return; a negative value will make it block indefinitely. Note that, in
+   * this last case, if a file is never completed, the thread will block forever, so use with care.
    *
    * Note that the file whose uri is specified, might not exist at the moment this method this call.
    * The method will deliberately block anyway for the specified amount of time, waiting for the

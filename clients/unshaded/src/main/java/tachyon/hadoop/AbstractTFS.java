@@ -119,7 +119,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param replication under filesystem replication factor
    * @param blockSize block size in bytes
    * @param progress queryable progress
-   * @return an FSDataOutputStream created at the indicated path of a file
+   * @return an {@link FSDataOutputStream} created at the indicated path of a file
    * @throws IOException if overwrite is not specified and the path already exists or if the path is
    *         a folder
    */
@@ -163,8 +163,8 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
-   * create(), except fails if parent directory doesn't already exist.
+   * Opens an {@link FSDataOutputStream} at the indicated Path with write-progress reporting. Same
+   * as create(), except fails if parent directory doesn't already exist.
    *
    * TODO(hy): We need to refactor this method after having a new internal API support (TACHYON-46).
    *
@@ -337,7 +337,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * {@inheritDoc}
    *
-   * Sets up a lazy connection to Tachyon through mTFS.
+   * Sets up a lazy connection to Tachyon through {@link #mTFS}.
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
@@ -438,7 +438,7 @@ abstract class AbstractTFS extends FileSystem {
    *
    * @param cPath the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
-   * @return an FSDataInputStream at the indicated path of a file
+   * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
   @Override

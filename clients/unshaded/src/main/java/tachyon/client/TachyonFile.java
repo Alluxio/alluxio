@@ -56,7 +56,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * @param tfs the Tachyon file system client handler
    * @param fid the file id
-   * @param tachyonConf the TachyonConf for this file
+   * @param tachyonConf the {@link TachyonConf} for this file
    */
   TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
@@ -90,7 +90,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Returns the id of a block in the file, specified by blockIndex.
+   * Returns the id of a block in the file, specified by {@code blockIndex}.
    *
    * @param blockIndex the index of the block in this file
    * @return the block id
@@ -356,7 +356,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * Advanced API.
    *
-   * Returns a TachyonByteBuffer of the block specified by the blockIndex.
+   * Returns a {@link TachyonByteBuffer} of the block specified by the blockIndex.
    *
    * Currently unsupported.
    *
@@ -375,7 +375,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Currently unsupported.
    *
    * @param blockIndex the block index of the current file to read
-   * @return TachyonByteBuffer containing the block
+   * @return {@link TachyonByteBuffer} containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {
@@ -388,7 +388,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Currently unsupported.
    *
    * @param blockInfo the blockInfo of the block to read
-   * @return TachyonByteBuffer containing the block
+   * @return {@link TachyonByteBuffer} containing the block
    * @throws IOException if the underlying stream throws IOException during close()
    */
   TachyonByteBuffer readRemoteByteBuffer(FileBlockInfo blockInfo) throws IOException {

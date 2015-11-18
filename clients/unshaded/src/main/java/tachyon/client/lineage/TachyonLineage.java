@@ -33,8 +33,8 @@ import tachyon.job.Job;
 import tachyon.thrift.LineageInfo;
 
 /**
- * A LineageClient implementation. This class does not access the master client directly but goes
- * through the implementations provided in {@link AbstractLineageClient}.
+ * A {@link LineageClient} implementation. This class does not access the master client directly
+ * but goes through the implementations provided in {@link AbstractLineageClient}.
  */
 @PublicApi
 public final class TachyonLineage extends AbstractLineageClient {
@@ -59,7 +59,7 @@ public final class TachyonLineage extends AbstractLineageClient {
    * default options.
    */
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
-      throws FileDoesNotExistException, TachyonException, IOException {
+      throws TachyonException, IOException {
     return createLineage(inputFiles, outputFiles, job, CreateLineageOptions.defaults());
   }
 
@@ -67,7 +67,7 @@ public final class TachyonLineage extends AbstractLineageClient {
    * Convenience method for {@link #deleteLineage(long, DeleteLineageOptions)} with default options.
    */
   public boolean deleteLineage(long lineageId)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException {
+      throws IOException, TachyonException {
     return deleteLineage(lineageId, DeleteLineageOptions.defaults());
   }
 

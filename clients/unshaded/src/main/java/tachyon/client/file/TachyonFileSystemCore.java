@@ -58,7 +58,7 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   TachyonFile create(TachyonURI path, CreateOptions options) throws IOException,
-      FileAlreadyExistsException, InvalidPathException, TachyonException;
+      TachyonException;
 
   /**
    * Deletes a file or a directory.
@@ -71,7 +71,7 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   void delete(TachyonFile file, DeleteOptions options) throws IOException,
-      FileDoesNotExistException, DirectoryNotEmptyException, TachyonException;
+      TachyonException;
 
   /**
    * Removes the file from Tachyon, but not from UFS in case it exists there.
@@ -82,7 +82,7 @@ interface TachyonFileSystemCore {
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  void free(TachyonFile file, FreeOptions options) throws IOException, FileDoesNotExistException,
+  void free(TachyonFile file, FreeOptions options) throws IOException,
       TachyonException;
 
   /**
@@ -95,7 +95,7 @@ interface TachyonFileSystemCore {
    * @throws FileDoesNotExistException if the file does not exist
    */
   FileInfo getInfo(TachyonFile file, GetInfoOptions options) throws IOException,
-      FileDoesNotExistException, TachyonException;
+      TachyonException;
 
   /**
    * If the file is a directory, returns the {@link FileInfo} of all the direct entries in it.
@@ -103,13 +103,13 @@ interface TachyonFileSystemCore {
    *
    * @param file the handler for the file
    * @param options method options
-   * @return a list of FileInfos representing the files which are children of the given file
+   * @return a list of {@link FileInfo}s representing the files which are children of the given file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   List<FileInfo> listStatus(TachyonFile file, ListStatusOptions options) throws IOException,
-      FileDoesNotExistException, TachyonException;
+      TachyonException;
 
   /**
    * Loads metadata about a file in UFS to Tachyon. No data will be transferred.
@@ -122,7 +122,7 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   TachyonFile loadMetadata(TachyonURI path, LoadMetadataOptions options)
-      throws IOException, FileDoesNotExistException, TachyonException;
+      throws IOException, TachyonException;
 
   /**
    * Creates a directory.
@@ -136,7 +136,7 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   boolean mkdir(TachyonURI path, MkdirOptions options) throws IOException,
-      FileAlreadyExistsException, InvalidPathException, TachyonException;
+      TachyonException;
 
   /**
    * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
@@ -159,8 +159,8 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param options method options
-   * @return a TachyonFile which acts as a file handler for the path or null if there is no file at
-             the given path
+   * @return a {@link TachyonFile} which acts as a file handler for the path or null if there is no
+   *         file at the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
@@ -179,7 +179,7 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   boolean rename(TachyonFile src, TachyonURI dst, RenameOptions options) throws IOException,
-      FileDoesNotExistException, TachyonException;
+      TachyonException;
 
   /**
    * Sets the file state.
@@ -191,7 +191,7 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   void setState(TachyonFile file, SetStateOptions options) throws IOException,
-      FileDoesNotExistException, TachyonException;
+      TachyonException;
 
   /**
    * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a

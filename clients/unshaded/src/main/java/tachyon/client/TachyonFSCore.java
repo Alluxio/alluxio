@@ -58,11 +58,11 @@ interface TachyonFSCore extends Closeable {
   boolean delete(long fileId, TachyonURI path, boolean recursive) throws IOException;
 
   /**
-   * Gets the FileInfo object that represents the fileId, or the path if fileId is -1.
+   * Gets the {@link FileInfo} object that represents the fileId, or the path if fileId is -1.
    *
    * @param fileId the file id of the file or folder
    * @param path the path of the file or folder. valid iff fileId is -1
-   * @return the FileInfo of the file or folder, null if the file or folder does not exist
+   * @return the {@link FileInfo} of the file or folder, null if the file or folder does not exist
    * @throws IOException when the operation fails
    */
   FileInfo getFileStatus(long fileId, TachyonURI path) throws IOException;

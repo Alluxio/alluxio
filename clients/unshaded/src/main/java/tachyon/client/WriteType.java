@@ -18,7 +18,7 @@ package tachyon.client;
 import tachyon.annotation.PublicApi;
 
 /**
- * Convenience modes for commonly used write types for a TachyonFile.
+ * Convenience modes for commonly used write types for a {@link TachyonFile}.
  *
  * For finer grained control over data storage, advanced users may specify
  * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
@@ -33,8 +33,8 @@ public enum WriteType {
   MUST_CACHE(1),
   /**
    * Write the file and try to cache it. This write type is deprecated as of v0.8 and not
-   * recommended for use. Use either MUST_CACHE or CACHE_THROUGH depending on your data
-   * persistence requirements.
+   * recommended for use. Use either {@link #MUST_CACHE} or {@link #CACHE_THROUGH} depending on
+   * your data persistence requirements.
    */
   @Deprecated
   TRY_CACHE(2),
@@ -89,7 +89,7 @@ public enum WriteType {
   }
 
   /**
-   * This method is deprecated, it is not recommended to use ASYNC_THROUGH. Use {@link
+   * This method is deprecated, it is not recommended to use {@link #ASYNC_THROUGH}. Use {@link
    * tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data persistence.
    *
    * @return true if the write type is ASYNC_THROUGH, false otherwise
@@ -100,7 +100,8 @@ public enum WriteType {
   }
 
   /**
-   * @return true if the write type is one of MUST_CACHE, CACHE_THROUGH, TRY_CACHE, or ASYNC_THROUGH
+   * @return true if the write type is one of {@link #MUST_CACHE}, {@link #CACHE_THROUGH},
+   *         {@link #TRY_CACHE}, or {@link #ASYNC_THROUGH}
    */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
@@ -108,14 +109,14 @@ public enum WriteType {
   }
 
   /**
-   * @return true if the write type is MUST_CACHE or ASYNC_THROUGH
+   * @return true if the write type is {@link #MUST_CACHE} or {@link #ASYNC_THROUGH}
    */
   public boolean isMustCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
-   * @return true if the write type is CACHE_THROUGH or THROUGH
+   * @return true if the write type is {@link #CACHE_THROUGH} or {@link #THROUGH}
    */
   public boolean isThrough() {
     return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);

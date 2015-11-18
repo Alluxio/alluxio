@@ -50,7 +50,7 @@ public final class TachyonByteBuffer implements Closeable {
   }
 
   /**
-   * Closes the TachyonByteBuffer, here it is synchronized.
+   * Closes the {@code TachyonByteBuffer}, here it is synchronized.
    *
    * @throws IOException when the underlying block cannot be unlocked
    */

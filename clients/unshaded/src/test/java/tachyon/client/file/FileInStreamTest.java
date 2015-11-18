@@ -179,7 +179,8 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that FileInStream.remaining() is correctly updated during reads, skips, and seeks.
+   * Tests that {@link FileInStream#remaining()} is correctly updated during reads, skips, and
+   * seeks.
    */
   @Test
   public void testRemaining() throws IOException {
@@ -197,8 +198,8 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests seek, particularly that seeking over part of a block will cause us not to cache it, and
-   * cancels the existing cache stream.
+   * Tests {@link FileInStream#seek(long)}, particularly that seeking over part of a block will
+   * cause us not to cache it, and cancels the existing cache stream.
    */
   @Test
   public void testSeek() throws IOException {
@@ -224,8 +225,8 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
-   * cancels the existing cache stream.
+   * Tests {@link FileInStream#skip(long)}, particularly that skipping the start of a block will
+   * cause us not to cache it, and cancels the existing cache stream.
    */
   @Test
   public void testSkip() throws IOException {
