@@ -33,17 +33,17 @@ import tachyon.thrift.ThriftIOException;
 /**
  * An RPC cache which uses RPC keys to avoid repeating non-idempotent RPCs due to retries.
  *
- * Whenever a {@link RetryCallable} is run via this class, the RPC key and return value for the
- * {@link RetryCallable} are remembered so that if the RPC key is replayed while the key is still in
+ * Whenever a {@link ReplayCallable} is run via this class, the RPC key and return value for the
+ * {@link ReplayCallable} are remembered so that if the RPC key is replayed while the key is still in
  * the cache, the return value can be immediately returned without executing the
- * {@link RetryCallable}.
+ * {@link ReplayCallable}.
  *
  * For RPCs which may throw {@link IOException}, use {@link ReplayCallableThrowsIOException}.
  *
  * Example usage:<br>
  *
  * <pre>
- * <code>
+ * {@code
  * private final Cache<String, Long> cache = ReplayCache.newInstance();
  * ...
  * public long myRpc(final boolean val1, final int val2, String key) throws TachyonTException {
@@ -54,7 +54,7 @@ import tachyon.thrift.ThriftIOException;
  *     }
  *   });
  * }
- * </code>
+ * }
  * </pre>
  *
  * @param <V> the type of value returned by this cache
@@ -126,7 +126,8 @@ public final class ReplayCache<V> {
    *
    * @param key the key for the RPC
    * @param replayCallable the handler logic for the RPC
-   * @return the result of executing replayCallable, or the cached value from a previous invocation
+   * @return the result of executing {@code replayCallable}, or the cached value from a previous
+   *         invocation
    * @throws TachyonTException when {@link TachyonException} is thrown by the handler call
    */
   public V run(String key, final ReplayCallable<V> replayCallable) throws TachyonTException {
