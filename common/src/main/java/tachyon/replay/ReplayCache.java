@@ -34,8 +34,8 @@ import tachyon.thrift.ThriftIOException;
  * An RPC cache which uses RPC keys to avoid repeating non-idempotent RPCs due to retries.
  *
  * Whenever a {@link ReplayCallable} is run via this class, the RPC key and return value for the
- * {@link ReplayCallable} are remembered so that if the RPC key is replayed while the key is still in
- * the cache, the return value can be immediately returned without executing the
+ * {@link ReplayCallable} are remembered so that if the RPC key is replayed while the key is still
+ * in the cache, the return value can be immediately returned without executing the
  * {@link ReplayCallable}.
  *
  * For RPCs which may throw {@link IOException}, use {@link ReplayCallableThrowsIOException}.
