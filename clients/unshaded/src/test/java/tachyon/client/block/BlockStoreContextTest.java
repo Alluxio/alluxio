@@ -22,7 +22,6 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 
 /**
@@ -55,7 +54,7 @@ public final class BlockStoreContextTest {
     @Override
     public void run() {
       BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);;
+      BlockStoreContext.INSTANCE.releaseMasterClient(client);
     }
   }
 }

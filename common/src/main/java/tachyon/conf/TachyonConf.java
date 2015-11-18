@@ -255,7 +255,7 @@ public final class TachyonConf {
       try {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as long.");
+        LOG.warn("Configuration cannot evaluate key {} as long.", key);
       }
     }
     // if key is not found among the default properties
@@ -281,7 +281,7 @@ public final class TachyonConf {
       try {
         return Float.parseFloat(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as float.");
+        LOG.warn("Configuration cannot evaluate key {} as float.", key);
       }
     }
     // if key is not found among the default properties

@@ -16,13 +16,12 @@
 package tachyon.client.table;
 
 import tachyon.client.ClientContext;
-import tachyon.client.RawTableMasterClient;
 
 /**
  * A shared context in each client JVM for common Raw Table client functionality such as a pool of
  * master clients. This class is thread safe.
  */
-public enum RawTablesContext {
+public enum RawTableContext {
   INSTANCE;
 
   /** Pool of raw table master clients. */
@@ -31,7 +30,7 @@ public enum RawTablesContext {
   /**
    * Creates a new Raw Table Context.
    */
-  RawTablesContext() {
+  RawTableContext() {
     mRawTableMasterClientPool = new RawTableMasterClientPool(ClientContext.getMasterAddress());
   }
 

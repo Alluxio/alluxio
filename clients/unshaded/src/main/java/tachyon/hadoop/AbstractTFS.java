@@ -39,7 +39,7 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.TachyonFile;

@@ -45,9 +45,10 @@ import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.PreconditionMessage;
-import tachyon.exception.SuspectedFileSizeException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
@@ -171,9 +172,12 @@ public final class FileSystemMaster extends MasterBase {
         completeFileFromEntry((CompleteFileEntry) entry);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
-      } catch (SuspectedFileSizeException e) {
+      } catch (InvalidFileSizeException e) {
+        throw new RuntimeException(e);
+      }  catch (FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
+
     } else if (entry instanceof SetStateEntry) {
       try {
         setStateFromEntry((SetStateEntry) entry);
@@ -351,10 +355,12 @@ public final class FileSystemMaster extends MasterBase {
    * @throws BlockInfoException if a block information exception is encountered
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws SuspectedFileSizeException if an invalid file size is encountered
+   * @throws InvalidFileSizeException if an invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
    */
   public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
-      FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
+      FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -396,7 +402,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
-      throws FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
+      throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
     inode.setBlockIds(blockIds);
@@ -415,7 +422,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException,
-      SuspectedFileSizeException {
+      InvalidFileSizeException, FileAlreadyCompletedException {
     try {
       completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(),
           entry.getOpTimeMs());
@@ -872,6 +879,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException {
+    LOG.debug("mkdir {} ", path);
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
@@ -881,6 +889,7 @@ public final class FileSystemMaster extends MasterBase {
                 .setOperationTimeMs(options.getOperationTimeMs()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
+        LOG.debug("writing journal entry for mkdir {0}", path);
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
         flushJournal();
@@ -1206,13 +1215,15 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
    * @throws InvalidPathException if invalid path is encountered
-   * @throws SuspectedFileSizeException if invalid file size is encountered
+   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, SuspectedFileSizeException, IOException {
+      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException,
+      IOException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
       ufsPath = mMountTable.resolve(path);

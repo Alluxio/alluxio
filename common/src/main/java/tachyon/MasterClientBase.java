@@ -33,6 +33,9 @@ import tachyon.util.network.NetworkAddressUtils;
 public abstract class MasterClientBase extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Identifies whether the ZooKeeper service should be used for obtaining master address.
+   */
   protected final boolean mUseZookeeper;
 
   /**

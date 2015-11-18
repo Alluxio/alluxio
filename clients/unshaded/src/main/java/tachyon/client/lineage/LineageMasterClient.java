@@ -20,8 +20,6 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
@@ -39,8 +37,6 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class LineageMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private LineageMasterService.Client mClient = null;
 
   /**
@@ -59,8 +55,9 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     mClient = new LineageMasterService.Client(mProtocol);
+    checkVersion(mClient, Constants.LINEAGE_MASTER_SERVICE_VERSION);
   }
 
   public synchronized long createLineage(final List<String> inputFiles,
@@ -115,27 +112,13 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  /**
-   * Reports a lost file.
-   *
-   * @param path the file path
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void reportLostFile(String path) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void reportLostFile(final String path) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
         mClient.reportLostFile(path);
-        return;
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

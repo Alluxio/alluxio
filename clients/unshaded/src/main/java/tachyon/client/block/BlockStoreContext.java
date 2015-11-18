@@ -21,7 +21,6 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
