@@ -22,6 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
@@ -40,7 +43,6 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -63,37 +65,31 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mWorkerMemInMB;
   private final int mRamdiskMemInMB;
   private final int mNumWorkers;
+  private final String mMasterJavaOpts;
+  private final String mWorkerJavaOpts;
   private final String mTachyonHome;
   private final String mMasterAddress;
-  private final String mTachyonJarHdfs;
+  private final String mResourcePath;
 
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
-  /**
-   * Client to talk to Resource Manager
-   */
+
+  /** Client to talk to Resource Manager */
   private AMRMClientAsync<ContainerRequest> mRMClient;
-  /**
-   * Client to talk to Node Manager
-   */
+  /** Client to talk to Node Manager */
   private NMClient mNMClient;
-  /**
-   * Whether a container for Tachyon master is allocated
-   */
+  /** Whether a container for Tachyon master is allocated */
   private volatile boolean mMasterContainerAllocated;
-  /**
-   * Num of allocated worker containers
-   */
+  /** Num of allocated worker containers */
   private volatile int mNumAllocatedWorkerContainers;
-  /**
-   * Network address of the container allocated for Tachyon master
-   */
+  /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
 
   private volatile boolean mApplicationDone;
 
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress,
-      String tachyonJar) {
+      String resourcePath, String masterJavaOpts, String workerJavaOpts) {
+
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
         (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
@@ -107,7 +103,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
-    mTachyonJarHdfs = tachyonJar;
+    mResourcePath = resourcePath;
+    mMasterJavaOpts = masterJavaOpts;
+    mWorkerJavaOpts = workerJavaOpts;
     mMasterContainerAllocated = false;
     mNumAllocatedWorkerContainers = 0;
     mApplicationDone = false;
@@ -117,17 +115,38 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
-    Preconditions.checkArgument(args[0] != null, "Number of workers cannot be null");
-    Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
-    Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
+    Options options = new Options();
+    options.addOption("num_workers", true, "Number of Tachyon workers to launch. Default 1");
+    options.addOption("tachyon_home", true,
+        "Path of the home dir of Tachyon deployment on YARN slave machines");
+    options.addOption("master_address", true, "(Required) Address to run Tachyon master");
+    options.addOption("master_java_opts", true, "Java opts for Tachyon master");
+    options.addOption("worker_java_opts", true, "Java opts for Tachyon worker");
+    options.addOption("resource_path", true,
+        "(Required) HDFS path containing the Application Master");
+
     try {
       LOG.info("Starting Application Master with args " + Arrays.toString(args));
-      final int numWorkers = Integer.parseInt(args[0]);
-      final String tachyonHome = args[1];
-      final String masterAddress = args[2];
-      final String tachyonJar = args[3];
+
+      CommandLine cliParser = new GnuParser().parse(options, args);
+      int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
+      String tachyonHome;
+      if (cliParser.hasOption("tachyon_home")) {
+        tachyonHome = cliParser.getOptionValue("tachyon_home");
+      } else {
+        tachyonHome = ApplicationConstants.Environment.PWD.$();
+      }
+      String masterAddress = cliParser.getOptionValue("master_address");
+      String resourcePath = cliParser.getOptionValue("resource_path");
+      String masterJavaOpts = cliParser.getOptionValue("master_java_opts");
+      String workerJavaOpts = cliParser.getOptionValue("worker_java_opts");
+
+      LOG.info("master java opts : " + masterJavaOpts);
+      LOG.info("worker java opts : " + workerJavaOpts);
+
       ApplicationMaster applicationMaster =
-          new ApplicationMaster(numWorkers, tachyonHome, masterAddress, tachyonJar);
+          new ApplicationMaster(numWorkers, tachyonHome, masterAddress, resourcePath,
+              masterJavaOpts, workerJavaOpts);
       applicationMaster.start();
       applicationMaster.requestContainers();
       applicationMaster.stop();
@@ -253,8 +272,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonMasterContainers(List<Container> containers) {
-    final String command = new CommandBuilder(
-        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-master-yarn.sh"))
+    final String command = new CommandBuilder(PathUtils.concatPath("./tachyon-master-yarn.sh"))
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
@@ -270,20 +288,26 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
         // Setup local resources
         Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
-        LocalResource tachyonJarResource =
-            Utils.createLocalResourceOfFile(mYarnConf, mTachyonJarHdfs);
-        localResources.put("tachyon.jar", tachyonJarResource);
+        localResources.put("tachyon.jar", Utils.createLocalResourceOfFile(mYarnConf,
+            mResourcePath + "/tachyon.jar"));
+        localResources.put("tachyon-master-yarn.sh", Utils.createLocalResourceOfFile(mYarnConf,
+            mResourcePath + "/tachyon-master-yarn.sh"));
         ctx.setLocalResources(localResources);
 
         // Setup the environment needed for the launch context.
         // Because our jars are available as local resources in the working directory from which
         // the command will be run, we need to append "." to the path.
         Map<String, String> env = new HashMap<String, String>();
-        StringBuilder classPathEnv =
+        String classPath =
             new StringBuilder(ApplicationConstants.Environment.CLASSPATH.$())
-                .append(File.pathSeparatorChar).append("./*");
-
-        env.put("CLASSPATH", classPathEnv.toString());
+                .append(File.pathSeparatorChar).append("./*").toString();
+        env.put("CLASSPATH", classPath);
+        env.put("JAVA", PathUtils.concatPath(ApplicationConstants.Environment.JAVA_HOME.$$(),
+                "bin", "java"));
+        env.put("TACHYON_MASTER_JAVA_OPTS", mMasterJavaOpts);
+        env.put("TACHYON_HOME", mTachyonHome);
+        env.put("TACHYON_LOGS_DIR", PathUtils.concatPath(ApplicationConstants.Environment.PWD.$(),
+            "logs"));
         ctx.setEnvironment(env);
 
         LOG.info("Launching container {} for Tachyon master on {} with master command: {}",
@@ -301,16 +325,40 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonWorkerContainers(List<Container> containers) {
-    final String command = new CommandBuilder(
-        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-worker-yarn.sh"))
+    final String command = new CommandBuilder(PathUtils.concatPath("./tachyon-worker-yarn.sh"))
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
     List<String> commands = Lists.newArrayList(command);
-    Map<String, String> environmentMap = new HashMap<String, String>();
-    environmentMap.put("TACHYON_MASTER_ADDRESS", mMasterContainerNetAddress);
-    environmentMap.put("TACHYON_WORKER_MEMORY_SIZE",
+
+    // Setup the environment needed for the launch context.
+    // Because our jars are available as local resources in the working directory from which
+    // the command will be run, we need to append "." to the path.
+    Map<String, String> env = new HashMap<String, String>();
+    String classPath =
+        new StringBuilder(ApplicationConstants.Environment.CLASSPATH.$())
+            .append(File.pathSeparatorChar).append("./*").toString();
+    env.put("CLASSPATH", classPath);
+    env.put("JAVA", PathUtils.concatPath(ApplicationConstants.Environment.JAVA_HOME.$$(),
+        "bin", "java"));
+    env.put("TACHYON_WORKER_JAVA_OPTS", mWorkerJavaOpts);
+    env.put("TACHYON_HOME", mTachyonHome);
+    env.put("TACHYON_LOGS_DIR", PathUtils.concatPath(ApplicationConstants.Environment.PWD.$(),
+        "logs"));
+    env.put("TACHYON_MASTER_ADDRESS", mMasterContainerNetAddress);
+    env.put("TACHYON_WORKER_MEMORY_SIZE",
         FormatUtils.getSizeFromBytes((long) mRamdiskMemInMB * Constants.MB));
+
+    // Setup local resources
+    Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
+    try {
+      localResources.put("tachyon.jar", Utils.createLocalResourceOfFile(mYarnConf,
+          mResourcePath + "/tachyon.jar"));
+      localResources.put("tachyon-worker-yarn.sh", Utils.createLocalResourceOfFile(mYarnConf,
+          mResourcePath + "/tachyon-worker-yarn.sh"));
+    } catch (IOException e) {
+      throw new RuntimeException("Cannot find resource", e);
+    }
 
     for (Container container : containers) {
       if (mNumAllocatedWorkerContainers >= mNumWorkers) {
@@ -320,7 +368,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         // Launch container by create ContainerLaunchContext
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
         ctx.setCommands(commands);
-        ctx.setEnvironment(environmentMap);
+        ctx.setLocalResources(localResources);
+        ctx.setEnvironment(env);
         LOG.info("Launching container {} for Tachyon worker {} on {} with worker command: {}",
             container.getId(), mNumAllocatedWorkerContainers, container.getNodeHttpAddress(),
             command);

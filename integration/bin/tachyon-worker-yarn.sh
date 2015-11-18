@@ -1,12 +1,16 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
-source "${SCRIPT_DIR}/common.sh"
-TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
+#SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+#source "${SCRIPT_DIR}/common.sh"
+#TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
 # ${TACHYON_WORKER_MEMORY_SIZE} needs to be set to mount ramdisk
 echo "Mounting ramdisk of ${TACHYON_WORKER_MEMORY_SIZE} MB on Worker"
-${TACHYON_HOME}/bin/tachyon-mount.sh SudoMount
+# ${TACHYON_HOME}/bin/tachyon-mount.sh SudoMount
+
+echo $TACHYON_LOGS_DIR
+echo reset LOGS_DIR
+TACHYON_LOGS_DIR=/tmp/logs
 
 mkdir -p "${TACHYON_LOGS_DIR}"
 
@@ -14,7 +18,6 @@ echo "Formatting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties \
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
@@ -25,7 +28,6 @@ echo "Starting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties \
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
