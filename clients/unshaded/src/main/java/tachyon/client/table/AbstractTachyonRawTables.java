@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.RawTableMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -35,11 +34,11 @@ import tachyon.util.io.PathUtils;
  */
 @PublicApi
 public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
-  protected RawTablesContext mContext;
+  protected RawTableContext mContext;
   protected TachyonFileSystem mTachyonFileSystem;
 
   protected AbstractTachyonRawTables() {
-    mContext = RawTablesContext.INSTANCE;
+    mContext = RawTableContext.INSTANCE;
     mTachyonFileSystem = TachyonFileSystem.TachyonFileSystemFactory.get();
   }
 
