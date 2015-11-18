@@ -1,22 +1,28 @@
 namespace java tachyon.thrift
 
-// Contains the information of a block in Tachyon. It maintains the worker nodes where the replicas
-// of the blocks are stored.
+/**
+* Contains the information of a block in Tachyon. It maintains the worker nodes where the replicas
+* of the blocks are stored.
+*/
 struct BlockInfo {
   1: i64 blockId
   2: i64 length
   3: list<BlockLocation> locations
 }
 
-// Information about blocks.
+/**
+* Information about blocks.
+*/
 struct BlockLocation {
   1: i64 workerId
   2: NetAddress workerAddress
   3: string tierAlias
 }
 
-// Contains the information of a block in a file. In addition to the BlockInfo, it includes the
-// offset in the file, and the under file system locations of the block replicas
+/**
+* Contains the information of a block in a file. In addition to the BlockInfo, it includes the
+* offset in the file, and the under file system locations of the block replicas
+*/
 struct FileBlockInfo {
   1: BlockInfo blockInfo
   2: i64 offset
@@ -37,14 +43,18 @@ struct Command {
   2: list<i64> data
 }
 
-// Information about workers.
+/**
+* Information about workers.
+*/
 struct NetAddress {
   1: string host
   2: i32 rpcPort
   3: i32 dataPort
 }
 
-// Information about the RPC.
+/**
+* Information about the RPC.
+*/
 struct RpcOptions {
   // key used to identify retried RPCs
   1: optional string key
@@ -52,9 +62,9 @@ struct RpcOptions {
 
 service TachyonService {
 
-  /*
+  /**
    * Returns the version of the master service.
-   *
+   * @return the version of the master service
    * NOTE: The version should be updated every time a backwards incompatible API change occurs.
    */
   i64 getServiceVersion()
