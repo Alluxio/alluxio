@@ -879,6 +879,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException {
+    LOG.debug("mkdir {} ", path);
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
@@ -888,6 +889,7 @@ public final class FileSystemMaster extends MasterBase {
                 .setOperationTimeMs(options.getOperationTimeMs()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
+        LOG.debug("writing journal entry for mkdir {0}", path);
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
         flushJournal();
