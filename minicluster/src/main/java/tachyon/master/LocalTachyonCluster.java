@@ -254,6 +254,16 @@ public final class LocalTachyonCluster {
     }
     UnderFileSystemUtils.touch(journalFolder + "/_format_" + System.currentTimeMillis(),
         testConf);
+
+    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
+    // the cluster's current address. This must happen after UnderFileSystemCluster.get().
+    UnderFileSystemCluster ufs = UnderFileSystemCluster.get();
+    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
+    // instead of comparing classnames.
+    if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+      String ufsAddress = ufs.getUnderFilesystemAddress() + mTachyonHome;
+      testConf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+    }
   }
 
   /**
@@ -270,19 +280,6 @@ public final class LocalTachyonCluster {
 
     // Update the test conf with actual RPC port.
     testConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
-
-    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
-    // the cluster's current address. This must happen here because the cluster isn't initialized
-    // until mMaster is started.
-    UnderFileSystemCluster ufs = UnderFileSystemCluster.get();
-    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
-    // instead of comparing classnames.
-    if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
-      String ufsAddress = ufs.getUnderFilesystemAddress() + mTachyonHome;
-      testConf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
-      MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, ufsAddress);
-      mMasterConf = MasterContext.getConf();
-    }
 
     // We need to update client context with the most recent configuration so they know the correct
     // port to connect to master.
