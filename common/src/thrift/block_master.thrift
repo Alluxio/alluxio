@@ -15,7 +15,7 @@ struct WorkerInfo {
 
 service BlockMasterService extends common.TachyonService {
 
-  /*
+  /**
    * Returns the block information for the given block id.
    * @param blockId
    * @return the block information for the given block id
@@ -23,42 +23,61 @@ service BlockMasterService extends common.TachyonService {
    */
   common.BlockInfo getBlockInfo(1: i64 blockId) throws (1: exception.TachyonTException e)
 
-  /*
+  /**
    * Returns the capacity (in bytes).
+   * @return the block capacity in number of bytes
    */
   i64 getCapacityBytes()
 
-  /*
+  /**
    * Returns the used storage (in bytes).
+   * @return the block usage in number of bytes
    */
   i64 getUsedBytes()
 
-  /*
+  /**
    * Returns a list of workers information.
+   * @return a list of workers information
    */
   list<WorkerInfo> getWorkerInfoList()
 
-  // Tachyon Worker API
-
-  /*
+  /**
    * Marks the given block as committed.
+   * @param workerId
+   * @param usedBytesOnTier
+   * @param tierAlias
+   * @param blockId
+   * @param length
    */
   void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: string tierAlias, 4: i64 blockId,
       5: i64 length)
 
-  /*
+  /**
    * Returns a worker id for the given network address.
+   * @param workerNetAddress
+   * @return a worker id for the given network address
    */
   i64 workerGetWorkerId(1: common.NetAddress workerNetAddress)
 
-  /*
+  /**
    * Periodic worker heartbeat.
+   * @param workerId
+   * @param usedBytesOnTiers
+   * @param removedBlockIds
+   * @param addedBlocksOnTiers
+   * @return  an optional command for the worker to execute
    */
   common.Command workerHeartbeat(1: i64 workerId, 2: map<string, i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<string, list<i64>> addedBlocksOnTiers)
 
-  /*
+  /**
    * Registers a worker.
+   * @param workerId
+   * @param storageTiers
+   * @param totalBytesOnTiers
+   * @param usedBytesOnTiers
+   * @param currentBlocksOnTiers
+   * @throws TachyonTException
    */
   void workerRegister(1: i64 workerId, 2: list<string> storageTiers, 3: map<string, i64> totalBytesOnTiers,
       4: map<string, i64> usedBytesOnTiers, 5: map<string, list<i64>> currentBlocksOnTiers)
