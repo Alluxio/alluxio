@@ -58,8 +58,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
-  private String mWorkerDataFolder;
-
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
   private final Supplier<String> mClientSuppliers = new Supplier<String>() {
@@ -169,7 +167,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   public void start() throws IOException, ConnectionFailedException {
     int numLevels = 1;
     setTachyonHome();
-    mWorkerDataFolder = "/datastore";
 
     setHostname();
 
@@ -185,7 +182,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, "10000");
+    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, String.valueOf(mQuotaUnitBytes));
     mMasterConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
@@ -233,7 +230,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
-    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
+    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, "/datastore");
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, mWorkerCapacityBytes + "");
     mWorkerConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15 + "");
 
