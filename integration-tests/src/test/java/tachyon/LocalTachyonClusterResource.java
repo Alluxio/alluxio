@@ -31,8 +31,8 @@ import tachyon.master.LocalTachyonCluster;
 /**
  * A JUnit Rule resource for automatically managing a local tachyon cluster for testing. To use it,
  * create an instance of the class under a {@literal@}Rule annotation, with the required
- * configuration parameters, and any necessary explicit TachyonConf settings. The tachyon cluster
- * will be set up from scratch at the end of every method (or at the start of every suite if
+ * configuration parameters, and any necessary explicit {@link TachyonConf} settings. The tachyon
+ * cluster will be set up from scratch at the end of every method (or at the start of every suite if
  * {@literal@}ClassRule is used), and destroyed at the end. Below is an example of declaring and
  * using it.
  *
@@ -74,7 +74,7 @@ public class LocalTachyonClusterResource implements TestRule {
    * must start the cluster explicitly.
    */
   private final boolean mStartCluster;
-  /** Configuration parameters for the TachyonConf object used in the cluster */
+  /** Configuration parameters for the {@link TachyonConf} object used in the cluster */
   private final String[] mConfParams;
 
   /** The tachyon cluster being managed */
@@ -118,21 +118,21 @@ public class LocalTachyonClusterResource implements TestRule {
   }
 
   /**
-   * @return the LocalTachyonCluster being managed
+   * @return the {@link LocalTachyonCluster} being managed
    */
   public LocalTachyonCluster get() {
     return mLocalTachyonCluster;
   }
 
   /**
-   * @return the TachyonConf object used by the cluster
+   * @return the {@link TachyonConf} object used by the cluster
    */
   public TachyonConf getTestConf() {
     return mTestConf;
   }
 
   /**
-   * Explicitly starts the LocalTachyonCluster.
+   * Explicitly starts the {@link LocalTachyonCluster}.
    * @throws IOException if an I/O error occurs
    */
   public void start() throws IOException {

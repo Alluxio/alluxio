@@ -52,7 +52,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * This tests the encoding and decoding of RPCMessage's. This is done by setting up a simple
+ * This tests the encoding and decoding of {@link RPCMessage}'s. This is done by setting up a simple
  * client/server bootstrap connection, and writing messages on the client side, and verifying it on
  * the server side. In this case, the server simply stores the message received, and does not reply
  * to the client.

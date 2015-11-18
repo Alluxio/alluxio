@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.client.block.BufferedBlockInStream;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -69,7 +70,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read()</code>.
+   * Test {@link BufferedBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -99,7 +100,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link BufferedBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -125,7 +126,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link BufferedBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -152,7 +153,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link BufferedBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {

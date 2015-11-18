@@ -29,6 +29,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.client.block.LocalBlockInStream;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -41,7 +42,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.LocalBlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.LocalBlockInStream}.
  */
 public class LocalBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
@@ -80,7 +81,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read()</code>.
+   * Test {@link LocalBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -125,7 +126,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link LocalBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -154,7 +155,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -183,8 +184,8 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
-   * position.
+   * Test {@link LocalBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * negative position.
    *
    * @throws IOException
    * @throws TException
@@ -212,8 +213,8 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
-   * that is past buffer limit.
+   * Test {@link LocalBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * position that is past buffer limit.
    *
    * @throws IOException
    * @throws TException
@@ -241,7 +242,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test {@link LocalBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws TException
@@ -269,7 +270,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link LocalBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {
