@@ -19,7 +19,6 @@ import java.net.InetSocketAddress;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.resource.ResourcePool;
 
 final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {

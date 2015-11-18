@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Mounting API and Transparent Naming
-nickname: Mounts and Transparent Naming
+title: Unified and Transparent Namespace
+nickname: Unified Namespace
 group: Features
-priority: 4
+priority: 5
 ---
 
 * Table of Contents
@@ -30,17 +30,17 @@ it is renamed or deleted in the underlying storage system.
 Furthermore, Tachyon transparently discovers content present in the underlying storage system which
 was not created through Tachyon. For instance, if the underlying storage system contains a directory
 `Data` with files `Reports` and `Sales`, all of which were not created through Tachyon, their
-metadata will be loaded into Tachyon the first time they are accessed (e.g. when the user asks to
-list the contents of the top-level directory or when they request to open a file). The data of file
-is not loaded to Tachyon during this process. To load the data into Tachyon, one can set the 
-`TachyonStorageType` to `STORE` when reading the data for the first time or use the `load` command
-of the Tachyon shell.
+metadata will be loaded into Tachyon the first time they are accessed (e.g. when a user requests to
+open a file). The data of file is not loaded to Tachyon during this process. To load the data into
+Tachyon, one can set the `TachyonStorageType` to `STORE` when reading the data for the first time or
+use the `load` command of the Tachyon shell.
 
-## Mounting API
+## Unified Namespace
 
-Mounting API makes it possible to use Tachyon to access data across multiple data sources.
+Tachyon provides a mounting API that makes it possible to use Tachyon to access data across multiple
+data sources.
 
-![mounting](./img/screenshot_mounting.png)
+![unified](./img/screenshot_unified.png)
 
 By default, Tachyon namespace is mounted onto the directory specified by the
 `tachyon.underfs.address` property of Tachyon configuration; this directory identifies the
@@ -61,36 +61,43 @@ might be stored in an S3 bucket, which is mounted to the Tachyon namespace throu
 In this example, we will showcase the above features. The example assumes that Tachyon source code
 exists in the `${TACHYON_HOME}` directory and that there is an instance of Tachyon running locally.
 
-First, let's create a temporary directory in the local file system that to use for the example:
+First, let's create a temporary directory in the local file system that will use for the example:
 
 ```bash
 $ cd /tmp
 $ mkdir tachyon-demo
+$ touch tachyon-demo/hello
 ```
 
-Next, let's mount the directory created above into Tachyon and verify the mounted directory is
-created in Tachyon:
+Next, let's mount the directory created above into Tachyon and verify the mounted directory
+appears in Tachyon:
 
 ```bash
 $ ${TACHYON_HOME}/bin/tachyon tfs mount /demo /tmp/tachyon-demo
 > Mounted /tmp/tachyon-demo at /demo
-$ ${TACHYON_HOME}/bin/tachyon tfs ls /
-... # should contain /demo
+$ ${TACHYON_HOME}/bin/tachyon tfs lsr /
+... # should contain /demo but not /demo/hello
 ```
 
-Next, let's create two files under the mounted directory and verify it is created in the underlying
+Next, let's verify that the metadata for content not created through Tachyon is loaded into Tachyon
+the first time the content is accessed:
+
+```bash
+$ ${TACHYON_HOME}/bin/tachyon tfs ls /demo/hello
+... # should contain /demo/hello
+```
+
+Next, let's create a file under the mounted directory and verify the file is created in the underlying
 file system:
 
 ```bash
-$ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello
-> /demo/hello has been created
 $ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello2
 > /demo/hello2 has been created
 $ ls /tmp/tachyon-demo
-> hello	hello2
+> hello hello2
 ```
 
-Next, let's rename one of the files and verify it is renamed in the underlying file system:
+Next, let's rename a file in Tachyon and verify the file is renamed in the underlying file system:
 
 ```bash
 $ ${TACHYON_HOME}/bin/tachyon tfs mv /demo/hello2 /demo/world
@@ -99,7 +106,7 @@ $ ls /tmp/tachyon-demo
 > hello world
 ```
 
-Next, let's delete one of the files and verify it is deleted in the underlying file system:
+Next, let's delete a file in Tachyon and verify the file is deleted in the underlying file system:
 
 ```bash
 $ ${TACHYON_HOME}/bin/tachyon tfs rm /demo/world
@@ -108,13 +115,13 @@ $ ls /tmp/tachyon-demo
 > hello
 ```
 
-Finally, let's unmount the mounted directory and verify that it is removed from the Tachyon
-namespace, but its contents are preserved in the underlying file system:
+Finally, let's unmount the mounted directory and verify that the directory is removed from the
+Tachyon namespace, but its content is preserved in the underlying file system:
 
 ```bash
 ${TACHYON_HOME}/bin/tachyon tfs unmount /demo
 > Unmounted /demo
-$ ${TACHYON_HOME}/bin/tachyon tfs ls /
+$ ${TACHYON_HOME}/bin/tachyon tfs lsr /
 ... # should not contain /demo
 $ ls /tmp/tachyon-demo
 > hello

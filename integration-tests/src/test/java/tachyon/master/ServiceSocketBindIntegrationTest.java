@@ -22,12 +22,13 @@ import java.net.URL;
 import java.nio.channels.SocketChannel;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
+import tachyon.LocalTachyonClusterResource;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
@@ -38,6 +39,9 @@ import tachyon.worker.WorkerClient;
  * Simple integration tests for the bind configuration options.
  */
 public class ServiceSocketBindIntegrationTest {
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(100, 100, Constants.GB, false);
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonConf mWorkerTachyonConf = null;
   private TachyonConf mMasterTachyonConf = null;
@@ -48,18 +52,12 @@ public class ServiceSocketBindIntegrationTest {
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   private void startCluster(String bindHost) throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
     for (ServiceType service : ServiceType.values()) {
-      testConf.set(service.getBindHostKey(), bindHost);
+      mLocalTachyonClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
     }
-    mLocalTachyonCluster.start(testConf);
+    mLocalTachyonClusterResource.start();
+    mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
@@ -102,7 +100,6 @@ public class ServiceSocketBindIntegrationTest {
     mWorkerClient.close();
     mMasterWebService.disconnect();
     mBlockMasterClient.close();
-    mLocalTachyonCluster.stop();
   }
 
   @Test

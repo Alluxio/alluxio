@@ -31,14 +31,18 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.lineage.LineageContext;
 import tachyon.client.lineage.LineageMasterClient;
 import tachyon.client.table.RawTable;
+import tachyon.client.table.RawTableMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -272,7 +276,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized void completeFile(long fid) throws IOException {
     try {
-      mFSMasterClient.completeFile(fid);
+      mFSMasterClient.completeFile(fid, CompleteFileOptions.defaults());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -317,12 +321,9 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeBytes > 0) {
-        UnderStorageType underStorageType =
-            mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
-                UnderStorageType.class);
         CreateOptions options =
             new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
-                .setRecursive(recursive).setUnderStorageType(underStorageType).build();
+                .setRecursive(recursive).build();
         return mFSMasterClient.create(path.getPath(), options);
       } else {
         return mFSMasterClient.loadMetadata(path.getPath(), recursive);
@@ -871,12 +872,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      UnderStorageType underStorageType =
-          mTachyonConf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT,
-              UnderStorageType.class);
       MkdirOptions options =
-          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
-              .setUnderStorageType(underStorageType).build();
+          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive).build();
       return mFSMasterClient.mkdir(path.getPath(), options);
     } catch (TachyonException e) {
       throw new IOException(e);

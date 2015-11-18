@@ -128,7 +128,7 @@ public final class StorageDir {
         }
       } else {
         try {
-          long blockId = Long.valueOf(path.getName());
+          long blockId = Long.parseLong(path.getName());
           addBlockMeta(new BlockMeta(blockId, path.length(), this));
         } catch (NumberFormatException nfe) {
           LOG.error("filename of {} in StorageDir can not be parsed into long",

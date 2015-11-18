@@ -475,6 +475,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         final long lostWorkerId = lostWorkerInfo.getId();
         LOG.warn("A lost worker {} has requested its old id {}.", workerAddress, lostWorkerId);
 
+        // Update the timestamp of the worker before it is considered an active worker.
+        lostWorkerInfo.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorkerInfo);
         mLostWorkers.remove(lostWorkerInfo);
         return lostWorkerId;

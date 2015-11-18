@@ -13,27 +13,31 @@
  * the License.
  */
 
-package tachyon.exception;
+package tachyon.client.table;
 
-public class SuspectedFileSizeException extends TachyonException {
-  private static final long serialVersionUID = -4913703614829472342L;
+import tachyon.annotation.PublicApi;
 
-  private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.SUSPECTED_FILE_SIZE;
+/**
+ * An implementation of Tachyon Raw Table client. This is simply a wrapper around
+ * {@link AbstractTachyonRawTables}. Users can obtain an instance of this class by calling
+ * {@link TachyonRawTablesFactory#get()}.
+ */
+@PublicApi
+public class TachyonRawTables extends AbstractTachyonRawTables {
+  private static TachyonRawTables sTachyonRawTables;
 
-  public SuspectedFileSizeException(String message) {
-    super(EXCEPTION_TYPE, message);
+  public static class TachyonRawTablesFactory {
+    private TachyonRawTablesFactory() {} // prevent init
+
+    public static synchronized TachyonRawTables get() {
+      if (sTachyonRawTables == null) {
+        sTachyonRawTables = new TachyonRawTables();
+      }
+      return sTachyonRawTables;
+    }
   }
 
-  public SuspectedFileSizeException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
-  }
-
-  public SuspectedFileSizeException(ExceptionMessage message, Object... params) {
-    this(message.getMessage(params));
-  }
-
-  public SuspectedFileSizeException(ExceptionMessage message, Throwable cause, Object... params) {
-    this(message.getMessage(params), cause);
+  private TachyonRawTables() {
+    super();
   }
 }

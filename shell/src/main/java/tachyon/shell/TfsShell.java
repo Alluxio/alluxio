@@ -154,6 +154,10 @@ public class TfsShell implements Closeable {
           load(newPath);
         }
       } else {
+        if (fInfo.getInMemoryPercentage() == 100) {
+          // The file has already been fully loaded into Tachyon memory.
+          return;
+        }
         Closer closer = Closer.create();
         try {
           InStreamOptions op = new InStreamOptions.Builder(mTachyonConf)
@@ -1024,7 +1028,7 @@ public class TfsShell implements Closeable {
         } else if (cmd.equals("mount")) {
           mount(argv);
         } else if (cmd.equals("setTTL")) {
-          long ttlMs = Long.valueOf(argv[2]);
+          long ttlMs = Long.parseLong(argv[2]);
           Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
           TachyonURI path = new TachyonURI(argv[1]);
           setTTL(path, ttlMs);

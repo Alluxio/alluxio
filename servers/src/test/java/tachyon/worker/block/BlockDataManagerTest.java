@@ -34,11 +34,8 @@ import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.underfs.local.LocalUnderFileSystem;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
@@ -107,27 +104,6 @@ public class BlockDataManagerTest {
     long sessionId = mHarness.mRandom.nextLong();
     mHarness.mManager.accessBlock(sessionId, blockId);
     Mockito.verify(mHarness.mBlockStore).accessBlock(sessionId, blockId);
-  }
-
-  @Test
-  public void addCheckpointTest() throws Exception {
-    long fileId = mHarness.mRandom.nextLong();
-    long fileSize = mHarness.mRandom.nextLong();
-    long nonce = mHarness.mRandom.nextLong();
-    String dstPath = "/tmp/foo/bar";
-    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setUfsPath(dstPath);
-    LocalUnderFileSystem ufs = PowerMockito.mock(LocalUnderFileSystem.class);
-
-    // TODO(jiri): Test error cases.
-    Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
-    PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystem.get(srcPath, WorkerContext.getConf())).thenReturn(ufs);
-    Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
-    Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
-    mHarness.mManager.persistFile(fileId, nonce, dstPath);
-    Mockito.verify(mHarness.mFileSystemMasterClient).persistFile(fileId, fileSize);
   }
 
   @Test
