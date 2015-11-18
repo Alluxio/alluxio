@@ -86,7 +86,7 @@ Tachyon masters, workers, and clients. In `conf/tachyon-env.sh`, these java opti
   <td>tachyon.zookeeper.address</td>
   <td>[zookeeper_hostname]:2181</td>
   <td>
-    The hostname and port ZooKeeper is running on.
+    The hostname and port ZooKeeper is running on. Separate multiple addresses with commas.
   </td>
 </tr>
 </table>
@@ -95,6 +95,11 @@ To set these options, you can configure your `TACHYON_JAVA_OPTS` to include:
 
     -Dtachyon.zookeeper.enabled=true
     -Dtachyon.zookeeper.address=[zookeeper_hostname]:2181
+
+If you are using a cluster of ZooKeeper nodes, you can specify multiple addresses by separating them
+with commas, like:
+
+     -Dtachyon.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
 
 ### Master Configuration
 
