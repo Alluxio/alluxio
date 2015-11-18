@@ -109,10 +109,6 @@ public final class Client {
   private ApplicationId mAppId;
   /** Command line options */
   private Options mOptions;
-  /** Java opts for Tachyon master */
-  private String mMasterJavaOpts;
-  /** Java opts for Tachyon master */
-  private String mWorkerJavaOpts;
 
   public Client() {
     mOptions = new Options();
@@ -203,16 +199,12 @@ public final class Client {
 
     mResourcePath = cliParser.getOptionValue("resource_path");
     mMasterAddress = cliParser.getOptionValue("master_address");
-    mMasterJavaOpts = cliParser.getOptionValue("master_java_opts");
-    mWorkerJavaOpts = cliParser.getOptionValue("worker_java_opts");
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
     mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-    mMasterJavaOpts = CharMatcher.is('\n').replaceFrom(mMasterJavaOpts, " ");
-    mWorkerJavaOpts = CharMatcher.is('\n').replaceFrom(mWorkerJavaOpts, " ");
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
             + mAmMemoryInMB);
@@ -278,11 +270,8 @@ public final class Client {
         new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
             .addArg(AM_MAIN_CLASS)
             .addArg("-num_workers", mNumWorkers)
-            //.addArg("-tachyon_home", mTachyonHome)
             .addArg("-master_address", mMasterAddress)
             .addArg("-resource_path", mResourcePath)
-            .addArg("-master_java_opts", String.format("'%s'", mMasterJavaOpts))
-            .addArg("-worker_java_opts", String.format("'%s'", mWorkerJavaOpts))
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
