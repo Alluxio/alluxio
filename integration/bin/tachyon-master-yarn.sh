@@ -4,11 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 TACHYON_MASTER_JAVA_OPTS="${TACHYON_MASTER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
-TACHYON_LOGS_DIR=/tmp/logs
-echo cp  $CLASSPATH
-echo th $TACHYON_HOME
-echo tl $TACHYON_LOGS_DIR
-
 mkdir -p "${TACHYON_LOGS_DIR}"
 
 echo "Formatting Tachyon Master"

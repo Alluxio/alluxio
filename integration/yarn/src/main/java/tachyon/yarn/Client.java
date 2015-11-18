@@ -296,10 +296,6 @@ public final class Client {
     }
     Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
-//    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(mTachyonHome, "conf")
-//        + File.separator, ApplicationConstants.CLASS_PATH_SEPARATOR);
-//    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(mTachyonHome, "bin")
-//        + File.separator, ApplicationConstants.CLASS_PATH_SEPARATOR);
   }
 
   /**

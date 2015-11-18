@@ -40,26 +40,15 @@ tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
 
 JAR_LOCAL=${TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
 
+echo "Uploading files to HDFS to distribute tachyon runtime"
 
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${TACHYON_TARFILE} ${HDFS_PATH}/$TACHYON_TARFILE
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
 ${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-yarn-setup.sh ${HDFS_PATH}/tachyon-yarn-setup.sh
 
+echo "Starting YARN client to launch Tachyon on YARN"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
     -num_workers $NUM_WORKERS \
     -master_address localhost \
     -resource_path ${HDFS_PATH}
-
-exit 0
-
-
-${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-master-yarn.sh ${HDFS_PATH}/tachyon-master-yarn.sh
-${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-worker-yarn.sh ${HDFS_PATH}/tachyon-worker-yarn.sh
-
-${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
-    -num_workers $NUM_WORKERS \
-    -master_address localhost \
-    -resource_path ${HDFS_PATH} \
-    -master_java_opts "$TACHYON_MASTER_JAVA_OPTS" \
-    -worker_java_opts "$TACHYON_WORKER_JAVA_OPTS"

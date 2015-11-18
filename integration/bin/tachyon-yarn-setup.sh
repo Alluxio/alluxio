@@ -1,14 +1,9 @@
 #!/bin/bash
-#
-# Usage:
-#  tachyon-yarn.sh <deployTachyonHome> <numWorkers> <pathHdfs>
 
+# prepare Tachyon dir structure for a YARN container to launch master or worker
 tar zxf tachyon.tar.gz
 
-pwd
-
-ls -rl
-
+# launch master or worker on this container
 if [ $1 = 'master' ]; then
   ./integration/bin/tachyon-master-yarn.sh
 else

@@ -4,10 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
-TACHYON_LOGS_DIR=/tmp/logs
-echo logs dir $TACHYON_LOGS_DIR
-echo home $TACHYON_HOME
-
 # ${TACHYON_WORKER_MEMORY_SIZE} needs to be set to mount ramdisk
 echo "Mounting ramdisk of ${TACHYON_WORKER_MEMORY_SIZE} MB on Worker"
 ${TACHYON_HOME}/bin/tachyon-mount.sh SudoMount
