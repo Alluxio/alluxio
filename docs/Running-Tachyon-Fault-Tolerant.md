@@ -51,7 +51,7 @@ and then in `conf/tachyon-env.sh`, these java options should be used:
 <table class="table">
 <tr><th>Property Name</th><th>Example</th><th>Meaning</th></tr>
 <tr>
-  <td>tachyon.usezookeeper</td>
+  <td>tachyon.zookeeper.enabled</td>
   <td>true</td>
   <td>
      Whether or not Master processes should use ZooKeeper.
