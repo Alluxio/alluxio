@@ -37,12 +37,12 @@ import org.powermock.reflect.Whitebox;
 import com.google.common.collect.Maps;
 
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockOutStream;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
@@ -148,7 +148,7 @@ public class FileOutStreamTest {
   @Test
   public void singleByteWriteTest() throws Exception {
     mTestStream.write(5);
-    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getDataWritten());
+    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getWrittenData());
   }
 
   /**
@@ -191,17 +191,16 @@ public class FileOutStreamTest {
    */
   @Test
   public void closeTest() throws Exception {
+    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex ++) {
       Assert.assertFalse(mTachyonOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mWorkerClient, Mockito.times(1)).persistFile(Mockito.eq(FILE_ID),
-        Mockito.anyLong(), Mockito.anyString());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).completeFile(FILE_ID);
-    Mockito.verify(mBlockStoreContext, Mockito.timeout(1)).acquireWorkerClient();
-    Mockito.verify(mBlockStoreContext, Mockito.timeout(1)).releaseWorkerClient(mWorkerClient);
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
+        Mockito.any(CompleteFileOptions.class));
   }
 
   /**
@@ -217,12 +216,10 @@ public class FileOutStreamTest {
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    Mockito.verify(mWorkerClient, Mockito.times(0)).persistFile(Mockito.anyLong(),
-        Mockito.anyLong(), Mockito.anyString());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID);
+    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID,
+        CompleteFileOptions.defaults());
 
-    Mockito.verify(mUnderFileSystem, Mockito.times(1)).delete(Mockito.anyString(),
-        Mockito.eq(false));
+    Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
   }
 
   /**
@@ -328,13 +325,13 @@ public class FileOutStreamTest {
           mTachyonOutStreamMap.containsKey(streamIndex));
       Assert.assertArrayEquals(BufferUtils
           .getIncreasingByteArray((int) (streamIndex * BLOCK_LENGTH + start), (int) BLOCK_LENGTH),
-          mTachyonOutStreamMap.get(streamIndex).getDataWritten());
+          mTachyonOutStreamMap.get(streamIndex).getWrittenData());
     }
     long lastStreamBytes = len - filledStreams * BLOCK_LENGTH;
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) (filledStreams * BLOCK_LENGTH + start),
             (int) lastStreamBytes),
-        mTachyonOutStreamMap.get(filledStreams).getDataWritten());
+        mTachyonOutStreamMap.get(filledStreams).getWrittenData());
 
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),
         mUnderStorageOutputStream.toByteArray());

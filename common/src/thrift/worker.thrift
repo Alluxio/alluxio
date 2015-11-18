@@ -3,7 +3,7 @@ namespace java tachyon.thrift
 include "common.thrift"
 include "exception.thrift"
 
-service WorkerService {
+service WorkerService extends common.TachyonService {
   void accessBlock(1: i64 blockId)
 
   bool asyncCheckpoint(1: i64 fileId)
@@ -30,9 +30,6 @@ service WorkerService {
    * thrown.
    */
   string lockBlock(1: i64 blockId, 2: i64 sessionId)
-    throws (1: exception.TachyonTException e)
-
-  void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
     throws (1: exception.TachyonTException e)
 
   /**

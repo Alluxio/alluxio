@@ -17,7 +17,6 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
@@ -47,13 +46,13 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected final long mBlockId;
   /** The size in bytes of the block. */
   protected final long mBlockSize;
-  /** The address of the worker to read the data from. */
-  protected final InetSocketAddress mLocation;
 
   /** Internal buffer to improve small read performance. */
   protected ByteBuffer mBuffer;
   /** Flag indicating if the stream is closed, can only go from false to true. */
   protected boolean mClosed;
+  /** Flag indicating if the stream is read */
+  protected boolean mBlockIsRead;
 
   /**
    * Basic constructor for a BufferedBlockInStream. This sets the necessary variables and creates
@@ -61,16 +60,15 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    *
    * @param blockId block id for this stream
    * @param blockSize size of the block in bytes
-   * @param location worker address to read the block from
    */
   // TODO(calvin): Get the block lock here when the remote instream locks at a stream level
-  public BufferedBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
+  public BufferedBlockInStream(long blockId, long blockSize) {
     mBlockId = blockId;
     mBlockSize = blockSize;
-    mLocation = location;
     mBuffer = allocateBuffer();
     mBufferIsValid = false; // No data in buffer
     mClosed = false;
+    mBlockIsRead = false;
   }
 
   @Override
@@ -92,6 +90,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       updateBuffer();
     }
     mPos ++;
+    mBlockIsRead = true;
     return BufferUtils.byteToInt(mBuffer.get());
   }
 
@@ -116,6 +115,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     if (mBufferIsValid && mBuffer.remaining() > toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
+      mBlockIsRead = true;
       return toRead;
     }
 
@@ -123,6 +123,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       mBufferIsValid = false;
       int bytesRead = directRead(b, off, toRead);
       mPos += bytesRead;
+      mBlockIsRead = true;
       incrementBytesReadMetric(bytesRead);
       return bytesRead;
     }
@@ -131,6 +132,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     updateBuffer();
     mBuffer.get(b, off, toRead);
     mPos += toRead;
+    mBlockIsRead = true;
     return toRead;
   }
 

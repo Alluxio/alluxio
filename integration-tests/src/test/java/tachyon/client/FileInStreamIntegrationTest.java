@@ -20,21 +20,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -47,7 +47,9 @@ public class FileInStreamIntegrationTest {
   private static final int MAX_LEN = BLOCK_SIZE * 10 + 1;
   private static final int DELTA = BLOCK_SIZE / 2;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
   private static TachyonFileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteBoth;
@@ -57,17 +59,10 @@ public class FileInStreamIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, BLOCK_SIZE);
-    sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
-    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     sWriteBoth =
         new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();

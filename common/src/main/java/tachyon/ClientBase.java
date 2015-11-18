@@ -30,10 +30,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
@@ -51,13 +53,20 @@ public abstract class ClientBase implements Closeable {
 
   protected InetSocketAddress mAddress = null;
   protected TProtocol mProtocol = null;
+
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
+
   /**
    * Is true if this client was closed by the user. No further actions are possible after the client
    * is closed.
    */
   protected boolean mClosed = false;
+
+  /**
+   * Stores the service version; used for detecting incompatible client-server pairs.
+   */
+  protected long mServiceVersion;
 
   /**
    * Creates a new client base.
@@ -70,6 +79,7 @@ public abstract class ClientBase implements Closeable {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
+    mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
 
   /**
@@ -80,10 +90,30 @@ public abstract class ClientBase implements Closeable {
   protected abstract String getServiceName();
 
   /**
+   * Checks that the service version is compatible with the client.
+   *
+   * @param client the service client
+   * @param version the client version
+   */
+  protected void checkVersion(TachyonService.Client client, long version) throws IOException {
+    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
+      try {
+        mServiceVersion = client.getServiceVersion();
+      } catch (TException e) {
+        throw new IOException(e.getMessage());
+      }
+      if (mServiceVersion != version) {
+        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+            version, mServiceVersion));
+      }
+    }
+  }
+
+  /**
    * This method is called after the connection is made to the remote. Implementations should create
    * internal state to finish the connection process.
    */
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     // Empty implementation.
   }
 
@@ -139,7 +169,7 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Closes the connection with the Tachyon remote and do the necessary cleanup. It should be used
+   * Closes the connection with the Tachyon remote and does the necessary cleanup. It should be used
    * if the client has not connected with the remote for a while, for example.
    */
   public synchronized void disconnect() {
@@ -176,7 +206,7 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Closes the connection, then query and set current remote address.
+   * Closes the connection, then queries and sets current remote address.
    */
   public synchronized void resetConnection() {
     disconnect();
@@ -255,7 +285,7 @@ public abstract class ClientBase implements Closeable {
   /**
    * Similar to {@link #retryRPC(RpcCallable)} except that the RPC call may throw
    * {@link TachyonTException} and once it is thrown, it will be transformed into
-   * {@link TachyonException} and be thrown out.
+   * {@link TachyonException} and be thrown.
    *
    * @param rpc the RPC call to be executed
    * @param <V> type of return value of the RPC call

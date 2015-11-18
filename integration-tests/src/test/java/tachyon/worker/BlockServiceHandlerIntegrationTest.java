@@ -24,11 +24,13 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.BlockMasterClient;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -38,7 +40,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidPathException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
@@ -56,7 +57,10 @@ public class BlockServiceHandlerIntegrationTest {
   private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonCluster =
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockServiceHandler mWorkerServiceHandler = null;
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
@@ -66,47 +70,18 @@ public class BlockServiceHandlerIntegrationTest {
   @After
   public final void after() throws Exception {
     mBlockMasterClient.close();
-    mLocalTachyonCluster.stop();
   }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    mLocalTachyonCluster.start(testConf);
-    mTfs = mLocalTachyonCluster.getClient();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
-    mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
+    mTfs = mLocalTachyonCluster.get().getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.get().getMasterTachyonConf();
+    mWorkerTachyonConf = mLocalTachyonCluster.get().getWorkerTachyonConf();
+    mWorkerServiceHandler = mLocalTachyonCluster.get().getWorker().getWorkerServiceHandler();
 
     mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mWorkerTachyonConf);
-  }
-
-  // Tests that persisting a file successfully informs master of the update
-  @Test
-  public void addCheckpointTest() throws Exception {
-    TachyonFile file = mTfs.create(new TachyonURI("/testFile"));
-    FileInfo fileInfo = mLocalTachyonCluster.getClient().getInfo(file);
-    long nonce = 10;
-
-    // Create the temporary file.
-    String ufsPath =
-        PathUtils.temporaryFileName(fileInfo.getFileId(), nonce, fileInfo.getUfsPath());
-    UnderFileSystem ufs = UnderFileSystem.get(ufsPath, mMasterTachyonConf);
-    OutputStream out = ufs.create(ufsPath);
-    final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
-    out.write(BufferUtils.getIncreasingByteArray(blockSize));
-    out.close();
-
-    mWorkerServiceHandler.persistFile(file.getFileId(), nonce, ufsPath);
-
-    // No space should be used in Tachyon, but the file should be complete
-    Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
-    Assert.assertTrue(mTfs.getInfo(file).isCompleted);
+        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.get().getMasterHostname(),
+            mLocalTachyonCluster.get().getMasterPort()), mWorkerTachyonConf);
   }
 
   // Tests that caching a block successfully persists the block if the block exists

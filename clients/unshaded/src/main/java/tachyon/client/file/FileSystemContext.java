@@ -16,7 +16,6 @@
 package tachyon.client.file;
 
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.block.TachyonBlockStore;
 
 /**
@@ -43,16 +42,20 @@ public enum FileSystemContext {
    *
    * @return the acquired block master client
    */
-  public synchronized FileSystemMasterClient acquireMasterClient() {
+  public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
   }
 
   /**
    * Releases a block master client into the block master client pool.
    *
+   * NOTE: the client pool is already thread-safe. Synchronizing on FileSystemContext will lead to
+   * deadlock: thread A acquired a client and awaits for FileSystemContext to release the client,
+   * while thread B holds the lock of FileSystemContext but waits for available clients.
+   *
    * @param masterClient a block master client to release
    */
-  public synchronized void releaseMasterClient(FileSystemMasterClient masterClient) {
+  public void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
   }
 

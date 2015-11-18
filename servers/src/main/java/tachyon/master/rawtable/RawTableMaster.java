@@ -46,9 +46,9 @@ import tachyon.master.rawtable.meta.RawTables;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.IdUtils;
 
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -158,9 +158,11 @@ public class RawTableMaster extends MasterBase {
       mFileSystemMaster.mkdir(columnPath(path, k), options);
     }
 
+    LOG.debug("writing journal entry for createRawTable {0}", path);
     writeJournalEntry(new RawTableEntry(id, columns, metadata));
     flushJournal();
 
+    LOG.debug("created raw table with {0} columns at {0}", columns, path);
     return id;
   }
 

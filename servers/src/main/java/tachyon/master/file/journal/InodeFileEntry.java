@@ -104,12 +104,15 @@ public class InodeFileEntry extends InodeEntry {
             .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
             .build();
 
-    if (mCompleted) {
-      inode.setCompleted(mLength);
-    }
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
+    inode.setCompleted(mCompleted);
+    inode.setLength(mLength);
+    inode.setPersisted(mPersisted);
+    inode.setPinned(mPinned);
+    inode.setCacheable(mCacheable);
+    inode.setLastModificationTimeMs(mLastModificationTimeMs);
 
     return inode;
   }

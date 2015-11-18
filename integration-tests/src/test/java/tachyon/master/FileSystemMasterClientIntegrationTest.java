@@ -17,43 +17,39 @@ package tachyon.master;
 
 import java.io.IOException;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.LocalTachyonClusterResource;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 /**
  * Test the internal implementation of tachyon Master via a
- * {@link tachyon.client.FileSystemMasterClient}.
+ * {@link FileSystemMasterClient}.
  *
  * <p>
  */
 public class FileSystemMasterClientIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private TachyonConf mMasterTachyonConf = null;
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
   }
 
   @Test
   public void openCloseTest() throws TachyonException, IOException {
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonCluster.getMaster().getAddress(), mMasterTachyonConf);
+        mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
@@ -73,7 +69,7 @@ public class FileSystemMasterClientIntegrationTest {
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonCluster.getMaster().getAddress(), mMasterTachyonConf);
+        mLocalTachyonClusterResource.get().getMaster().getAddress(), mMasterTachyonConf);
     fsMasterClient.getFileInfo(Long.MAX_VALUE);
     fsMasterClient.close();
   }
