@@ -53,7 +53,8 @@ time, but all masters read the shared journal to replay the state of Tachyon.
 The shared filesystem must be set up independently from Tachyon, and should already be running
 before Tachyon is started.
 
-For example, if using HDFS for the shared journal, you need to note address and port running your NameNode, as you will need to configure Tachyon below.
+For example, if using HDFS for the shared journal, you need to note address and port running your
+NameNode, as you will need to configure Tachyon below.
 
 ## Configuring Tachyon
 
@@ -102,7 +103,8 @@ following variable must be set appropriately in `conf/tachyon-env.sh`:
 
     export TACHYON_MASTER_ADDRESS=[externally visible address of this machine]
 
-Also, specify the correct journal folder by setting `tachyon.master.journal.folder` appropriately for `TACHYON_JAVA_OPTS`. For example, if you are using HDFS for the journal, you can add:
+Also, specify the correct journal folder by setting `tachyon.master.journal.folder` appropriately
+for `TACHYON_JAVA_OPTS`. For example, if you are using HDFS for the journal, you can add:
 
     -Dtachyon.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/tachyon/journal
 
