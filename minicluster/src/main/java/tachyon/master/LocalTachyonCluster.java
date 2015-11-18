@@ -16,10 +16,6 @@
 package tachyon.master;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.google.common.base.Joiner;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
@@ -31,9 +27,7 @@ import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
 import tachyon.util.UnderFileSystemUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.lineage.LineageWorker;
 
@@ -123,7 +117,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
    * @param testConf configuration of this test
    * @throws IOException when creating or deleting dirs failed
    */
-  private void setupTest(TachyonConf testConf) throws IOException {
+  protected void setupTest(TachyonConf testConf) throws IOException {
     String tachyonHome = testConf.get(Constants.TACHYON_HOME);
     // Delete the tachyon home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(tachyonHome, testConf);
@@ -149,7 +143,8 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
    *
    * @throws IOException when the operation fails
    */
-  private void startMaster(TachyonConf testConf) throws IOException {
+  @Override
+  protected void startMaster(TachyonConf testConf) throws IOException {
     mMasterConf = new TachyonConf(testConf.getInternalProperties());
     MasterContext.reset(mMasterConf);
 
@@ -184,68 +179,14 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
    * @throws IOException when the operation fails
    * @throws ConnectionFailedException if network connection failed
    */
-  private void startWorker(TachyonConf testConf) throws IOException, ConnectionFailedException {
+  @Override
+  protected void startWorker(TachyonConf testConf) throws IOException, ConnectionFailedException  {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
     mWorkerConf = new TachyonConf(testConf.getInternalProperties());
     WorkerContext.reset(mWorkerConf);
 
-    mWorker = new BlockWorker();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      // Setup the lineage worker
-      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
-    }
-
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // Start the lineage worker
-          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-            mLineageWorker.start();
-          }
-          mWorker.process();
-
-        } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
-        }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
-  }
-
-  /**
-   * Starts both a master and a worker using the default test configurations.
-   *
-   * @throws IOException when the operation fails
-   * @throws ConnectionFailedException if network connection failed
-   */
-  public void start() throws IOException, ConnectionFailedException {
-    start(newTestConf());
-  }
-
-  /**
-   * Starts both a master and a worker using the configurations in test conf respectively.
-   *
-   * @throws IOException when the operation fails
-   * @throws ConnectionFailedException if network connection failed
-   */
-  public void start(TachyonConf conf) throws IOException, ConnectionFailedException {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
-    setupTest(conf);
-
-    startMaster(conf);
-
-    CommonUtils.sleepMs(10);
-
-    startWorker(conf);
-    // wait until worker registered with master
-    // TODO(binfan): use callback to ensure LocalTachyonCluster setup rather than sleep
-    CommonUtils.sleepMs(100);
+    runWorker();
   }
 
   @Override

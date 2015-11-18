@@ -28,8 +28,12 @@ import tachyon.Constants;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.util.CommonUtils;
+import tachyon.util.LineageUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.lineage.LineageWorker;
 
@@ -64,8 +68,6 @@ public abstract class AbstractLocalTachyonCluster {
     return mMasterConf;
   }
 
-  public abstract void start() throws IOException, ConnectionFailedException;
-
   protected void resetContext() {}
 
   protected void setHostname() {
@@ -76,6 +78,38 @@ public abstract class AbstractLocalTachyonCluster {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
   }
+
+  public void start() throws IOException, ConnectionFailedException {
+    start(newTestConf());
+  }
+
+  /**
+   * Starts both master and a worker using the configurations in test conf respectively.
+   *
+   * @throws IOException when the operation fails
+   */
+  public void start(TachyonConf conf) throws IOException, ConnectionFailedException {
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
+    setupTest(conf);
+
+    startMaster(conf);
+
+    CommonUtils.sleepMs(10);
+
+    startWorker(conf);
+    // wait until worker registered with master
+    // TODO(binfan): use callback to ensure LocalTachyonCluster setup rather than sleep
+    CommonUtils.sleepMs(100);
+  }
+
+  protected abstract void startMaster(TachyonConf conf) throws IOException;
+
+  protected abstract void startWorker(TachyonConf conf) throws IOException,
+      ConnectionFailedException;
+
+  protected abstract void setupTest(TachyonConf conf) throws IOException;
 
   public void stop() throws Exception {
     stopTFS();
@@ -160,4 +194,32 @@ public abstract class AbstractLocalTachyonCluster {
     }
     return testConf;
   }
+
+  protected void runWorker() throws IOException, ConnectionFailedException {
+    mWorker = new BlockWorker();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      // Setup the lineage worker
+      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
+    }
+
+    Runnable runWorker = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          // Start the lineage worker
+          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+            mLineageWorker.start();
+          }
+          mWorker.process();
+
+        } catch (Exception e) {
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+        }
+      }
+    };
+    mWorkerThread = new Thread(runWorker);
+    mWorkerThread.start();
+  }
+
 }
