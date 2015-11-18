@@ -219,7 +219,7 @@ public final class WorkerClient implements Closeable {
       int port = mWorkerNetAddress.rpcPort;
       mWorkerAddress = new InetSocketAddress(host, port);
       mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
-      LOG.info("Connecting {} worker @ {}", (mIsLocal ? "local" : "remote"), mWorkerAddress);
+      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mWorkerAddress);
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
           mTachyonConf, new InetSocketAddress(host, port)));
