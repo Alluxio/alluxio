@@ -371,7 +371,7 @@ public final class LocalTachyonCluster {
    * @throws Exception when the operation fails
    */
   public void stopTFS() throws Exception {
-    LOG.info("stop Tachyon filesytstem");
+    LOG.info("stop Tachyon filesystem");
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
