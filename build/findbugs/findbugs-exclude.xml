@@ -6,6 +6,7 @@
 
   <Match>
     <Package name="tachyon.thrift"/>
+    <Package name="tachyon.proto"/>
   </Match>
 
   <!-- volatile increment is used correctly in this class -->
