@@ -165,32 +165,77 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public void start() throws IOException, ConnectionFailedException {
-    int numLevels = 1;
-    setTachyonHome();
-
-    setHostname();
-
-    mMasterConf = MasterContext.getConf();
-    mMasterConf.set(Constants.IN_TEST_MODE, "true");
-    mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
-    mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
-    mMasterConf.set(Constants.MASTER_HOSTNAME, mHostname);
-    mMasterConf.set(Constants.MASTER_BIND_HOST, mHostname);
-    mMasterConf.set(Constants.MASTER_PORT, "0");
-    mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
-    mMasterConf.set(Constants.MASTER_WEB_PORT, "0");
-    mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
-    mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, String.valueOf(mQuotaUnitBytes));
-    mMasterConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
-    mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    mMasterConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
+    startMasters();
+
+    CommonUtils.sleepMs(10);
+
+    startWorker();
+  }
+
+  private void startWorker() throws IOException, ConnectionFailedException {
+    mWorkerConf = WorkerContext.getConf();
+    mWorkerConf.merge(mMasterConf);
+
+    // Setup conf for worker
+    int numLevels = 1;
+    mWorkerConf.set(Constants.WORKER_TIERED_STORE_LEVELS, Integer.toString(numLevels));
+
+    for (int level = 1; level < numLevels; level ++) {
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
+      String newPath = "";
+      for (String dirPath : dirPaths) {
+        newPath += mTachyonHome + dirPath + ",";
+      }
+      mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
+          newPath.substring(0, newPath.length() - 1));
+    }
+
+    mWorkerConf.set(Constants.WORKER_BIND_HOST, mHostname);
+    mWorkerConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
+    mWorkerConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
+    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, "1");
+    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
+
+    mWorker = new BlockWorker();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      // Setup the lineage worker
+      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
+    }
+    Runnable runWorker = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          // Start the lineage worker
+          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+            mLineageWorker.start();
+          }
+          mWorker.process();
+        } catch (Exception e) {
+          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
+        }
+      }
+    };
+    mWorkerThread = new Thread(runWorker);
+    mWorkerThread.start();
+    // The client context should reflect the updates to the conf.
+    ClientContext.reset(mWorkerConf);
+  }
+
+  private void startMasters() throws IOException {
+    mMasterConf = newTestConf();
+    mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
+    mMasterConf.set(Constants.MASTER_BIND_HOST, mHostname);
+    mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
+    mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
+    mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
@@ -224,77 +269,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");
-
-    CommonUtils.sleepMs(10);
-
-    mWorkerConf = WorkerContext.getConf();
-    mWorkerConf.merge(mMasterConf);
-    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, "/datastore");
-    mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, mWorkerCapacityBytes + "");
-    mWorkerConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15 + "");
-
-    // Setup conf for worker
-    mWorkerConf.set(Constants.WORKER_TIERED_STORE_LEVELS, Integer.toString(numLevels));
-    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mTachyonHome + "/ramdisk");
-    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        mWorkerCapacityBytes + "");
-
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    mWorkerConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
-
-    for (int level = 1; level < numLevels; level ++) {
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
-      String newPath = "";
-      for (String dirPath : dirPaths) {
-        newPath += mTachyonHome + dirPath + ",";
-      }
-      mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
-          newPath.substring(0, newPath.length() - 1));
-    }
-
-    mWorkerConf.set(Constants.WORKER_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_WEB_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, "1");
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
-
-    // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
-
-    mWorker = new BlockWorker();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      // Setup the lineage worker
-      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
-    }
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // Start the lineage worker
-          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-            mLineageWorker.start();
-          }
-          mWorker.process();
-        } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
-        }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
-    // The client context should reflect the updates to the conf.
-    ClientContext.reset(mWorkerConf);
+    mMasterConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
   }
 
   @Override
