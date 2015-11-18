@@ -126,8 +126,8 @@ public abstract class RPCMessage implements EncodedMessage {
   }
 
   /**
-   * Creates a decoder that splits up the incoming {@link ByteBuf} into new ByteBuf's according to a length
-   * field in the input.
+   * Creates a decoder that splits up the incoming {@link ByteBuf} into new ByteBuf's according to
+   * a length field in the input.
    *
    * The encoding scheme is: [(long) frame length][message payload]
    * The frame length is NOT included in the output ByteBuf.

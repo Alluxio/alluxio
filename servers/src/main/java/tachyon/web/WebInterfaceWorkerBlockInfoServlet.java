@@ -36,7 +36,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;

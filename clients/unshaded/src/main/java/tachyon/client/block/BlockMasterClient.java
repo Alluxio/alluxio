@@ -27,7 +27,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
-import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
 
 /**

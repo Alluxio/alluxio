@@ -198,9 +198,10 @@ public enum BlockStoreContext {
    * Releases the {@link WorkerClient} back to the client pool, or destroys it if it was a remote
    * client.
    *
-   * NOTE: the client pool is already thread-safe. Synchronizing on {@code BlockStoreContext} will lead to
-   * deadlock: thread A acquired a client and awaits for {@code BlockStoreContext} to release the client,
-   * while thread B holds the lock of {@code BlockStoreContext} but waits for available clients.
+   * NOTE: the client pool is already thread-safe. Synchronizing on {@code BlockStoreContext} will
+   * lead to deadlock: thread A acquired a client and awaits for {@code BlockStoreContext} to
+   * release the client, while thread B holds the lock of {@code BlockStoreContext} but waits for
+   * available clients.
    *
    * @param workerClient the worker client to release, the client should not be accessed after this
    *        method is called

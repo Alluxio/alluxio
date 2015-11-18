@@ -84,8 +84,8 @@ public final class BufferUtils {
   /**
    * Clones a {@link ByteBuffer}.
    * <p>
-   * The new {@code ByteBuffer} will have the same content, but the type of the bytebuffer may not be the
-   * same.
+   * The new {@code ByteBuffer} will have the same content, but the type of the bytebuffer may not
+   * be the same.
    *
    * @param buf The {@code ByteBuffer} to clone
    * @return The new {@code ByteBuffer}

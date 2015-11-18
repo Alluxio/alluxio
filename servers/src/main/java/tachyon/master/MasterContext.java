@@ -24,8 +24,8 @@ public final class MasterContext {
   private MasterContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one {@link TachyonConf} object shared within the same
-   * master process.
+   * The static configuration object. There is only one {@link TachyonConf} object shared within
+   * the same master process.
    */
   private static TachyonConf sTachyonConf = new TachyonConf();
 
