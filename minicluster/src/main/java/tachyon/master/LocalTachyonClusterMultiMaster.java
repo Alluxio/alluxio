@@ -27,14 +27,12 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.WorkerIdRegistry;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.lineage.LineageWorker;
 
 /**
  * A local Tachyon cluster with Multiple masters
@@ -164,21 +162,9 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  public void start() throws IOException, ConnectionFailedException {
-
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
-    startMasters();
-
-    CommonUtils.sleepMs(10);
-
-    startWorker();
-  }
-
-  private void startWorker() throws IOException, ConnectionFailedException {
+  protected void startWorker(TachyonConf conf) throws IOException, ConnectionFailedException {
     mWorkerConf = WorkerContext.getConf();
-    mWorkerConf.merge(mMasterConf);
+    mWorkerConf.merge(conf);
 
     // Setup conf for worker
     int numLevels = 1;
@@ -202,34 +188,17 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, "1");
     mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
 
-    mWorker = new BlockWorker();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      // Setup the lineage worker
-      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
-    }
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // Start the lineage worker
-          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-            mLineageWorker.start();
-          }
-          mWorker.process();
-        } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
-        }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
+    runWorker();
     // The client context should reflect the updates to the conf.
     ClientContext.reset(mWorkerConf);
   }
 
-  private void startMasters() throws IOException {
-    mMasterConf = newTestConf();
+  @Override
+  protected void setupTest(TachyonConf conf) throws IOException {}
+
+  @Override
+  protected void startMaster(TachyonConf conf) throws IOException {
+    mMasterConf = conf;
     mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     mMasterConf.set(Constants.MASTER_BIND_HOST, mHostname);
     mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
