@@ -17,6 +17,9 @@ service BlockMasterService extends common.TachyonService {
 
   /**
    * Returns the block information for the given block id.
+   * @param blockId
+   * @return the block information for the given block id
+   * @throws TachyonTException
    */
   common.BlockInfo getBlockInfo( /** the id of the block */  1: i64 blockId)
       throws (1: exception.TachyonTException e)
