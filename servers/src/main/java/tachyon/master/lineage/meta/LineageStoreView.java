@@ -19,6 +19,8 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.LineageDoesNotExistException;
+
 /**
  * This class exposes a readonly view of {@link LineageStore} to checkpoint schedulers and recompute
  * planners.
@@ -43,7 +45,7 @@ public final class LineageStoreView {
   /**
    * @return the children lineages of a given lineage in the store
    */
-  public List<Lineage> getChildren(Lineage lineage) {
+  public List<Lineage> getChildren(Lineage lineage) throws LineageDoesNotExistException {
     return mLineageStore.getChildren(lineage);
   }
 

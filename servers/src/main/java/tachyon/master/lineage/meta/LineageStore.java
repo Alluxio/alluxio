@@ -27,9 +27,9 @@ import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
-import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
+import tachyon.exception.TachyonPreconditions;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
@@ -119,14 +119,14 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param lineageId the lineage id
    */
-  public synchronized void deleteLineage(long lineageId) {
-    Preconditions.checkState(mIdIndex.containsKey(lineageId),
-        PreconditionMessage.LINEAGE_DOES_NOT_EXIST, lineageId);
+  public synchronized void deleteLineage(long lineageId) throws LineageDoesNotExistException {
+    TachyonPreconditions.CheckLineageExist(mIdIndex.containsKey(lineageId), lineageId);
 
     deleteLineage(lineageId, Sets.<Long>newHashSet());
   }
 
-  private void deleteLineage(long lineageId, Set<Long> deleted) {
+  private void deleteLineage(long lineageId, Set<Long> deleted)
+      throws LineageDoesNotExistException {
     if (deleted.contains(lineageId)) {
       return;
     }
@@ -174,9 +174,9 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param lineage the lineage
    * @return the lineage's children
    */
-  public synchronized List<Lineage> getChildren(Lineage lineage) {
-    Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
-        PreconditionMessage.LINEAGE_DOES_NOT_EXIST, lineage.getId());
+  public synchronized List<Lineage> getChildren(Lineage lineage)
+      throws LineageDoesNotExistException {
+    TachyonPreconditions.CheckLineageExist(mIdIndex.containsKey(lineage.getId()), lineage.getId());
 
     return mLineageDAG.getChildren(lineage);
   }
@@ -203,10 +203,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized Lineage reportLostFile(long fileId) throws LineageDoesNotExistException {
     Lineage lineage = mOutputFileIndex.get(fileId);
-    if (lineage == null) {
-      throw new LineageDoesNotExistException(
-          ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
-    }
+    TachyonPreconditions.CheckLineageExist(lineage != null,
+        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
     // TODO(yupeng) push the persisted info to FS master
     if (lineage.getOutputFileState(fileId) != LineageFileState.PERSISTED) {
       lineage.updateOutputFileState(fileId, LineageFileState.LOST);

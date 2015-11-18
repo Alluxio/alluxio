@@ -45,6 +45,7 @@ import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.TachyonPreconditions;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.job.Job;
@@ -276,10 +277,7 @@ public final class LineageMaster extends MasterBase {
   private boolean deleteLineageInternal(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
-    if (lineage == null) {
-      throw new LineageDoesNotExistException(
-          ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(lineageId));
-    }
+    TachyonPreconditions.CheckLineageExist(lineage != null, lineageId);
 
     // there should not be child lineage if not cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
@@ -379,7 +377,7 @@ public final class LineageMaster extends MasterBase {
   /**
    * @return the list of all the {@link LineageInfo}s
    */
-  public synchronized List<LineageInfo> getLineageInfoList() {
+  public synchronized List<LineageInfo> getLineageInfoList() throws LineageDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
