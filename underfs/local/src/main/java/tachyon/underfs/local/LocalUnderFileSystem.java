@@ -34,7 +34,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Local node UnderFilesystem implementation.
+ * Local node {@link UnderFileSystem} implementation.
  * <p>
  * This is primarily intended for local unit test and single machine mode. In principal it can also
  * be used on a system where a shared file system (e.g. NFS) is mounted at the same path on every

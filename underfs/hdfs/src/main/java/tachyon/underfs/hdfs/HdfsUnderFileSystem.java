@@ -44,7 +44,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * HDFS UnderFilesystem implementation
+ * HDFS {@link UnderFileSystem} implementation
  */
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
