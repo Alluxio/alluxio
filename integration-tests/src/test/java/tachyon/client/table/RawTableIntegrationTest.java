@@ -88,12 +88,13 @@ public class RawTableIntegrationTest {
       TachyonURI uri = new TachyonURI("/x/table" + k);
       RawTable table = mTachyonRawTables.create(uri, 1);
       RawTableInfo info = mTachyonRawTables.getInfo(table);
-      Assert.assertEquals(new byte[0], info.getMetadata());
+      Assert.assertArrayEquals(new byte[0], info.getMetadata());
 
       uri = new TachyonURI("/y/tab" + k);
       table = mTachyonRawTables.create(uri, 1, BufferUtils.getIncreasingByteBuffer(k % 7));
       info = mTachyonRawTables.getInfo(table);
-      Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(k % 7).array(), info.getMetadata());
+      Assert.assertArrayEquals(BufferUtils.getIncreasingByteBuffer(k % 7).array(),
+          info.getMetadata());
     }
   }
 
@@ -172,13 +173,15 @@ public class RawTableIntegrationTest {
       RawTable table = mTachyonRawTables.create(uri, 1);
       mTachyonRawTables.updateRawTableMetadata(table, BufferUtils.getIncreasingByteBuffer(k % 17));
       RawTableInfo info = mTachyonRawTables.getInfo(table);
-      Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(k % 17).array(), info.getMetadata());
+      Assert.assertArrayEquals(BufferUtils.getIncreasingByteBuffer(k % 17).array(),
+          info.getMetadata());
 
       uri = new TachyonURI("/y/tab" + k);
       table = mTachyonRawTables.create(uri, 1, BufferUtils.getIncreasingByteBuffer(k % 7));
       mTachyonRawTables.updateRawTableMetadata(table, BufferUtils.getIncreasingByteBuffer(k % 16));
       info = mTachyonRawTables.getInfo(table);
-      Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(k % 16).array(), info.getMetadata());
+      Assert.assertArrayEquals(BufferUtils.getIncreasingByteBuffer(k % 16).array(),
+          info.getMetadata());
     }
   }
 }
