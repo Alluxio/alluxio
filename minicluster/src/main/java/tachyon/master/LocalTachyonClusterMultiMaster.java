@@ -326,7 +326,6 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void stopUFS() throws Exception {
-    // masters share underfs, so only need to call on the first master
-    mMasters.get(0).cleanupUnderfs();
+    // TODO(gpang): clean up UFS here.
   }
 }

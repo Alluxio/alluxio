@@ -27,7 +27,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -44,7 +43,6 @@ public final class LocalTachyonMaster {
   private final String mTachyonHome;
   private final String mHostname;
 
-  private final UnderFileSystemCluster mUfsCluster;
   private final String mJournalFolder;
 
   private final TachyonMaster mTachyonMaster;
@@ -66,10 +64,6 @@ public final class LocalTachyonMaster {
 
     TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
-
-    // To start the UFS for hdfs integration tests. It starts miniDFSCluster (see also
-    // {@link tachyon.LocalMiniDFScluster} and sets up the folder like "hdfs://xxx:xxx/tachyon*".
-    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, tachyonConf);
 
     mJournalFolder = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
 
@@ -136,9 +130,6 @@ public final class LocalTachyonMaster {
   /**
    * Stops the master and cleans up client connections.
    *
-   * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you
-   * must call {@link #cleanupUnderfs()}.
-   *
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
@@ -154,13 +145,6 @@ public final class LocalTachyonMaster {
   public void clearClients() throws IOException {
     mClientPool.close();
     mOldClientPool.close();
-  }
-
-  public void cleanupUnderfs() throws IOException {
-    if (mUfsCluster != null) {
-      mUfsCluster.cleanup();
-    }
-    System.clearProperty("tachyon.underfs.address");
   }
 
   /**

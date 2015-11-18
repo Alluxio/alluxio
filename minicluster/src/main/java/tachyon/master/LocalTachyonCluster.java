@@ -80,6 +80,7 @@ public final class LocalTachyonCluster {
   private Thread mWorkerThread = null;
   private String mLocalhostName = null;
   private LocalTachyonMaster mMaster;
+  private UnderFileSystemCluster mUfsCluster = null;
   private TachyonConf mMasterConf;
   private TachyonConf mWorkerConf;
   private TachyonConf mClientConf;
@@ -219,7 +220,7 @@ public final class LocalTachyonCluster {
     // Delete the tachyon home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(tachyonHome, testConf);
 
-    // Create ufs dir. This must be called before UnderFileSystemCluster.get().
+    // Create ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
     UnderFileSystemUtils.mkdirIfNotExists(testConf.get(Constants.UNDERFS_ADDRESS),
         testConf);
 
@@ -234,10 +235,14 @@ public final class LocalTachyonCluster {
       }
     }
 
+    // Start the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
+    // (see also {@link tachyon.LocalMiniDFSCluster} and sets up the folder like
+    // "hdfs://xxx:xxx/tachyon*".
+    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, testConf);
+
     // Set the journal folder
-    UnderFileSystemCluster ufsCluster = UnderFileSystemCluster.get(mTachyonHome, testConf);
     String journalFolder =
-        ufsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
+        mUfsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
     testConf.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
 
     // Format the journal
@@ -256,12 +261,12 @@ public final class LocalTachyonCluster {
         testConf);
 
     // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
-    // the cluster's current address. This must happen after UnderFileSystemCluster.get().
-    UnderFileSystemCluster ufs = UnderFileSystemCluster.get();
+    // the cluster's current address. This must happen after UFS is started with
+    // UnderFileSystemCluster.get().
     // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
     // instead of comparing classnames.
-    if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
-      String ufsAddress = ufs.getUnderFilesystemAddress() + mTachyonHome;
+    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mTachyonHome;
       testConf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }
   }
@@ -380,7 +385,10 @@ public final class LocalTachyonCluster {
    */
   public void stopUFS() throws Exception {
     LOG.info("stop under storage system");
-    mMaster.cleanupUnderfs();
+    if (mUfsCluster != null) {
+      mUfsCluster.cleanup();
+    }
+    System.clearProperty("tachyon.underfs.address");
   }
 
   /**
