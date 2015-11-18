@@ -20,7 +20,6 @@ import java.lang.reflect.Field;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -424,18 +423,16 @@ public final class TieredBlockStoreTests {
     mBlockStore.moveBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());
   }
 
-  // TACHYON-825
-  @Ignore
   @Test
-  public void moveBlockToTheLocationWithExistingIdTest() throws Exception {
+  public void cacheSameBlockInDifferentTiersTest() throws Exception {
     mThrown.expect(BlockAlreadyExistsException.class);
-    mThrown.expectMessage("Failed to add BlockMeta: blockId " + BLOCK_ID1 + " exists");
+    mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
+        FIRST_TIER_ALIAS));
 
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
         mEvictor);
-    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
   }
 
   @Test
