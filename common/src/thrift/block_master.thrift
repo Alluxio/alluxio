@@ -68,7 +68,10 @@ service BlockMasterService extends common.TachyonService {
    * @return  an optional command for the worker to execute
    */
   common.Command workerHeartbeat(1: i64 workerId, 2: map<string, i64> usedBytesOnTiers,
-      3: list<i64> removedBlockIds, 4: map<string, list<i64>> addedBlocksOnTiers)
+      3: list<i
+   * @param totalBytesOnTiers
+   * @param usedBytesOnTiers
+   * @param currentBlocksOnTiers64> removedBlockIds, 4: map<string, list<i64>> addedBlocksOnTiers)
 
   /**
    * Registers a worker.
@@ -79,7 +82,7 @@ service BlockMasterService extends common.TachyonService {
    * @param currentBlocksOnTiers
    * @throws TachyonTException
    */
-  void workerRegister(1: i64 workerId, 2: list<string> storageTiers, 3: map<string, i64> totalBytesOnTiers,
+  void workerRegister(1: i64 workerId, 2: list<string> storageid of the workertesOnTiers,
       4: map<string, i64> usedBytesOnTiers, 5: map<string, list<i64>> currentBlocksOnTiers)
     throws (1: exception.TachyonTException e)
 }
