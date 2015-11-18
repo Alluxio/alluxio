@@ -24,6 +24,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.util.io.PathUtils;
@@ -39,7 +40,7 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
 
   protected AbstractTachyonRawTables() {
     mContext = RawTableContext.INSTANCE;
-    mTachyonFileSystem = TachyonFileSystem.TachyonFileSystemFactory.get();
+    mTachyonFileSystem = TachyonFileSystemFactory.get();
   }
 
   // TODO(calvin): Consider different client options
@@ -80,8 +81,8 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   @Override
   public int getPartitionCount(RawColumn column) throws IOException, TachyonException {
     RawTableInfo info = getInfo(column.getRawTable());
-    TachyonURI columnUri = new TachyonURI(PathUtils.concatPath(info.getPath(), Constants
-        .MASTER_COLUMN_FILE_PREFIX + column.getColumnIndex()));
+    TachyonURI columnUri = new TachyonURI(PathUtils.concatPath(info.getPath(),
+        Constants.MASTER_COLUMN_FILE_PREFIX + column.getColumnIndex()));
     TachyonFile file = mTachyonFileSystem.open(columnUri);
     return mTachyonFileSystem.listStatus(file).size();
   }
