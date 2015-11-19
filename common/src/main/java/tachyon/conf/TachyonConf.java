@@ -49,24 +49,24 @@ import tachyon.util.network.NetworkAddressUtils;
  * decreasing priority:
  * <ol>
  * <li>Java system properties;</li>
- * <li>Environment variables via <code>tachyon-env.sh</code> or from OS settings;</li>
- * <li>Site specific properties via <code>tachyon-site.properties</code> file;</li>
- * <li>Default properties via <code>tachyon-default.properties</code> file.</li>
+ * <li>Environment variables via {@code tachyon-env.sh} or from OS settings;</li>
+ * <li>Site specific properties via {@code tachyon-site.properties} file;</li>
+ * <li>Default properties via {@code tachyon-default.properties} file.</li>
  * </ol>
  *
  * <p>
- * The default properties are defined in a property file <code>tachyon-default.properties</code>
+ * The default properties are defined in a property file {@code tachyon-default.properties}
  * distributed with Tachyon jar. Tachyon users can override values of these default properties by
- * creating <code>tachyon-site.properties</code> and putting it under java <code>CLASSPATH</code>
- * when running Tachyon (e.g., ${TACHYON_HOME}/conf/)
+ * creating {@code tachyon-site.properties} and putting it under java {@code CLASSPATH} when
+ * running Tachyon (e.g., ${TACHYON_HOME}/conf/)
  *
  * <p>
- * Developers can create an instance of this class by <code>new TachyonConf()</code>, which will
- * load values from any Java system properties set as well.
+ * Developers can create an instance of this class by {@code new TachyonConf()}, which will load
+ * values from any Java system properties set as well.
  *
  * <p>
- * The class only supports creation using <code>new TachyonConf(properties)</code> to override
- * default values.
+ * The class only supports creation using {@code new TachyonConf(properties)} to override default
+ * values.
  */
 public final class TachyonConf {
   /** File to set default properties */
@@ -196,7 +196,7 @@ public final class TachyonConf {
   }
 
   /**
-   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance
+   * @return the deep copy of the internal {@code Properties} of this TachyonConf instance
    */
   public Properties getInternalProperties() {
     return SerializationUtils.clone(mProperties);
@@ -206,7 +206,7 @@ public final class TachyonConf {
    * Merge the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param alternateConf The source <code>TachyonConf</code> to be merged
+   * @param alternateConf The source {@code TachyonConf} to be merged
    */
   public void merge(TachyonConf alternateConf) {
     if (alternateConf != null) {

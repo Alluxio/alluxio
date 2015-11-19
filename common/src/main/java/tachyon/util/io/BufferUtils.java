@@ -172,7 +172,7 @@ public final class BufferUtils {
    *
    * @param len the target length of the sequence
    * @param arr the byte array to check
-   * @return true if the byte array has a prefix of length <code>len</code> that is an increasing
+   * @return true if the byte array has a prefix of length {@code len} that is an increasing
    *         sequence of bytes starting at zero
    */
   public static boolean equalIncreasingByteArray(int len, byte[] arr) {
@@ -186,8 +186,8 @@ public final class BufferUtils {
    * @param start the starting value to use
    * @param len the target length of the sequence
    * @param arr the byte array to check
-   * @return true if the byte array has a prefix of length <code>len</code> that is an increasing
-   *         sequence of bytes starting at <code>start</code>
+   * @return true if the byte array has a prefix of length {@code len} that is an increasing
+   *         sequence of bytes starting at {@code start}
    */
   public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
     if (arr == null || arr.length != len) {
@@ -229,8 +229,8 @@ public final class BufferUtils {
    * @param start the starting value to use
    * @param len the target length of the sequence
    * @param buf the ByteBuffer to check
-   * @return true if the ByteBuffer has a prefix of length <code>len</code> that is an increasing
-   *         sequence of bytes starting at <code>start</code>
+   * @return true if the ByteBuffer has a prefix of length {@code len} that is an increasing
+   *         sequence of bytes starting at {@code start}
    */
   public static boolean equalIncreasingByteBuffer(int start, int len, ByteBuffer buf) {
     if (buf == null) {
