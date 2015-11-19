@@ -81,7 +81,6 @@ import tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry;
 import tachyon.proto.JournalEntryProtos.JournalEntry;
 import tachyon.proto.JournalEntryProtos.PersistDirectoryEntry;
 import tachyon.proto.JournalEntryProtos.PersistFileEntry;
-import tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder;
 import tachyon.proto.JournalEntryProtos.ReinitializeFileEntry;
 import tachyon.proto.JournalEntryProtos.RenameEntry;
 import tachyon.proto.JournalEntryProtos.SetStateEntry;
@@ -260,9 +259,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       if (persistFileInternal(fileId, length, opTimeMs)) {
-        Builder persistFileEntry =
-            PersistFileEntry.newBuilder().setId(fileId).setLength(length).setOpTimeMs(opTimeMs);
-        writeJournalEntry(JournalEntry.newBuilder().setPersistFile(persistFileEntry).build());
+        PersistFileEntry persistFile = PersistFileEntry.newBuilder().setId(fileId).setLength(length)
+            .setOpTimeMs(opTimeMs).build();
+        writeJournalEntry(JournalEntry.newBuilder().setPersistFile(persistFile).build());
         flushJournal();
       }
     }
@@ -545,8 +544,8 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException {
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
-      ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder().setPath(path.getPath())
-          .setBlockSizeBytes(blockSizeBytes).setTtl(ttl).build();
+      ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
+          .setPath(path.getPath()).setBlockSizeBytes(blockSizeBytes).setTtl(ttl).build();
       writeJournalEntry(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       flushJournal();
       return id;
@@ -619,8 +618,8 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
-      DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId).setRecursive(recursive)
-          .setOpTimeMs(opTimeMs).build();
+      DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId)
+          .setRecursive(recursive).setOpTimeMs(opTimeMs).build();
       writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
       flushJournal();
       return ret;
@@ -1415,10 +1414,14 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      Boolean pinned = options.hasPinned() ? options.getPinned() : null;
-      Long ttl = options.hasTTL() ? options.getTTL() : null;
-      SetStateEntry setState = SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs)
-          .setPinned(pinned).setTtl(ttl).build();
+      SetStateEntry.Builder setState =
+          SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
+      if (options.hasPinned()) {
+        setState.setPinned(options.getPinned());
+      }
+      if (options.hasTTL()) {
+        setState.setTtl(options.getTTL());
+      }
       writeJournalEntry(JournalEntry.newBuilder().setSetState(setState).build());
       flushJournal();
     }

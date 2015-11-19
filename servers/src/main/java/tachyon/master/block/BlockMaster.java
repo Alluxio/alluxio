@@ -59,7 +59,6 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry;
 import tachyon.proto.JournalEntryProtos.BlockInfoEntry;
-import tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder;
 import tachyon.proto.JournalEntryProtos.JournalEntry;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -189,9 +188,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
-       Builder entry = BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
-          .setLength(blockInfo.getLength());
-      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(entry).build());
+      BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
+          .setBlockId(blockInfo.getBlockId()).setLength(blockInfo.getLength()).build();
+      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
 
@@ -350,9 +349,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
-          // TODO use protobuf
-          // writeJournalEntry(
-          // new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+          BlockInfoEntry blockInfo =
+              BlockInfoEntry.newBuilder().setBlockId(masterBlockInfo.getBlockId())
+                  .setLength(masterBlockInfo.getLength()).build();
+          writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           flushJournal();
         }
         masterBlockInfo.addWorker(workerId, tierAlias);
@@ -376,9 +376,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         // The block has not been committed previously, so add the metadata to commit the block.
         masterBlockInfo = new MasterBlockInfo(blockId, length);
         mBlocks.put(blockId, masterBlockInfo);
-        // TODO use protobuf
-        // writeJournalEntry(
-        // new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+
+        BlockInfoEntry blockInfo =
+            BlockInfoEntry.newBuilder().setBlockId(masterBlockInfo.getBlockId())
+                .setLength(masterBlockInfo.getLength()).build();
+        writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
         flushJournal();
       }
     }

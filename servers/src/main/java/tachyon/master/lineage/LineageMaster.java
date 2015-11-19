@@ -259,7 +259,8 @@ public final class LineageMaster extends MasterBase {
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     deleteLineageInternal(lineageId, cascade);
-    DeleteLineageEntry deleteLineage = DeleteLineageEntry.newBuilder().setLineageId(lineageId).setCascade(cascade).build();
+    DeleteLineageEntry deleteLineage =
+        DeleteLineageEntry.newBuilder().setLineageId(lineageId).setCascade(cascade).build();
     writeJournalEntry(JournalEntry.newBuilder().setDeleteLineage(deleteLineage).build());
     flushJournal();
     return true;
@@ -494,7 +495,8 @@ public final class LineageMaster extends MasterBase {
     for (Long fileId : persistedFiles) {
       mLineageStore.commitFilePersistence(fileId);
     }
-    PersistFilesEntry persistFiles = PersistFilesEntry.newBuilder().addAllFileIds(persistedFiles).build();
+    PersistFilesEntry persistFiles =
+        PersistFilesEntry.newBuilder().addAllFileIds(persistedFiles).build();
     writeJournalEntry(JournalEntry.newBuilder().setPersistFiles(persistFiles).build());
     flushJournal();
   }
