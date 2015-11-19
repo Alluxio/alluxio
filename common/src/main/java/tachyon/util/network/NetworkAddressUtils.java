@@ -407,7 +407,7 @@ public final class NetworkAddressUtils {
    * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
    * @return a <code>boolean</code> indicating if the given address is externally resolvable
-   *         address.
+   *         address
    * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
