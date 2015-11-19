@@ -21,6 +21,7 @@ import tachyon.master.MasterContext;
 
 public class CreatePathOptions {
   public static class Builder {
+    private boolean mAllowExists;
     private long mBlockSizeBytes;
     private boolean mDirectory;
     private long mOperationTimeMs;
@@ -34,12 +35,23 @@ public class CreatePathOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
+      mAllowExists = false;
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mDirectory = false;
       mOperationTimeMs = System.currentTimeMillis();
       mRecursive = false;
       mPersisted = false;
       mTTL = Constants.NO_TTL;
+    }
+
+    /**
+     * @param allowExists the allowExists flag value to use; it specifies whether an exception
+     *        should be thrown if the object being made already exists.
+     * @return the builder
+     */
+    public Builder setAllowExists(boolean allowExists) {
+      mAllowExists = allowExists;
+      return this;
     }
 
     /**
@@ -92,7 +104,7 @@ public class CreatePathOptions {
 
     /**
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *            created file should be kept around before it is automatically deleted
+     *        created file should be kept around before it is automatically deleted
      * @return the builder
      */
     public Builder setTTL(long ttl) {
@@ -117,6 +129,7 @@ public class CreatePathOptions {
     return new Builder(MasterContext.getConf()).build();
   }
 
+  private final boolean mAllowExists;
   private final long mBlockSizeBytes;
   private final boolean mDirectory;
   private final long mOperationTimeMs;
@@ -125,12 +138,21 @@ public class CreatePathOptions {
   private final long mTTL;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
+    mAllowExists = builder.mAllowExists;
     mBlockSizeBytes = builder.mBlockSizeBytes;
     mDirectory = builder.mDirectory;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
+  }
+
+  /**
+   * @return the allowExists flag; it specifies whether an exception should be thrown if the object
+   *         being made already exists
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
   }
 
   /**
@@ -163,7 +185,7 @@ public class CreatePathOptions {
 
   /**
    * @return the recursive flag value; it specifies whether parent directories should be created if
-   * they do not already exist
+   *         they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
@@ -171,7 +193,7 @@ public class CreatePathOptions {
 
   /**
    * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   * should be kept around before it is automatically deleted
+   *         should be kept around before it is automatically deleted
    */
   public long getTTL() {
     return mTTL;
