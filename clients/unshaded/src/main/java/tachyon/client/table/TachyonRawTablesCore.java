@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFile;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
@@ -37,43 +39,80 @@ interface TachyonRawTablesCore {
    * @param numColumns the number of columns in the table
    * @param metadata the metadata associated with the table, this will be stored as bytes and
    *                 should be in a format the user can later understand
-   * @return a {@link SimpleRawTable} satisfying the input parameters
+   * @return a {@link RawTable} satisfying the input parameters
    * @throws IOException if a non Tachyon related I/O error occurs
    * @throws TachyonException if an internal Tachyon error occurs
    */
-  SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
+  RawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
+      throws IOException, TachyonException;
+
+  /**
+   * Creates a new partition in a column of a raw table. The partition is represented as a file,
+   * and the user may interact with it through the FileSystem API. See
+   * {@link tachyon.client.file.TachyonFileSystem}.
+   *
+   * @param column the raw column under which to create the partition
+   * @param partitionId the index of the partition to create
+   * @return a {@link FileOutStream} which may be used to write data into the partition
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
+  FileOutStream createPartition(RawColumn column, int partitionId)
       throws IOException, TachyonException;
 
   /**
    * Gets the metadata of a raw table, such as the number of columns.
    *
-   * @param rawTable the handler for the table
+   * @param rawTable the handle for the table
    * @return the {@link RawTableInfo} for the table
    * @throws IOException if a non Tachyon related I/O error occurs
    * @throws TachyonException if an internal Tachyon error occurs
    */
-  RawTableInfo getInfo(SimpleRawTable rawTable) throws IOException, TachyonException;
+  RawTableInfo getInfo(RawTable rawTable) throws IOException, TachyonException;
 
   /**
-   * Gets a handler for the given raw table, if it exists.
+   * Gets the number of partitions currently in the {@link RawColumn}. Each partition is a
+   * separate {@link TachyonFile}.
    *
-   * @param path the path of the table in Tachyon space
-   * @return a {@link SimpleRawTable} representing the table
+   * @param column the raw column containing the partitions
+   * @return the number of partitions currently in the column
    * @throws IOException if a non Tachyon related I/O error occurs
    * @throws TachyonException if an internal Tachyon error occurs
    */
-  SimpleRawTable open(TachyonURI path) throws IOException, TachyonException;
+  int getPartitionCount(RawColumn column) throws IOException, TachyonException;
+
+  /**
+   * Gets a handle for the given raw table, if it exists.
+   *
+   * @param path the path of the table in Tachyon space
+   * @return a {@link RawTable} representing the table
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
+  RawTable open(TachyonURI path) throws IOException, TachyonException;
+
+  /**
+   * Gets the file handle for a partition of a column. A partition should be accessed through
+   * a file API. See {@link tachyon.client.file.TachyonFileSystem}.
+   *
+   * @param column the raw column which contains the partition
+   * @param partitionId the index of the partition, which starts from 0
+   * @return the {@link TachyonFile} which may be used to interact with the partition
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
+  TachyonFile openPartition(RawColumn column, int partitionId) throws IOException, TachyonException;
 
   /**
    * Updates the user defined metadata for the raw table. This will overwrite the previous
    * metadata if it existed.
    *
-   * @param rawTable the handler for the table
+   * @param rawTable the handle for the table
    * @param metadata the new metadata to associate with the table, this will be stored as bytes
    *                 and should be in a format the user can later understand
    * @throws IOException if a non Tachyon related I/O error occurs
    * @throws TachyonException if an internal Tachyon error occurs
    */
-  void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata)
+  void updateRawTableMetadata(RawTable rawTable, ByteBuffer metadata)
       throws IOException, TachyonException;
 }

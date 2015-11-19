@@ -43,7 +43,7 @@ public final class MetricsConfig {
   private Map<String, Properties> mPropertyCategories;
 
   /**
-   * Creates a new instance of <code>MetricConfig</code> using the given config file.
+   * Creates a new instance of {@code MetricConfig} using the given config file.
    *
    * @param configFile config file to use
    */
@@ -56,7 +56,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * Creates a new instance of <code>MetricConfig</code> using the given <code>Properties</code>.
+   * Creates a new instance of {@code MetricConfig} using the given {@code Properties}.
    *
    * @param properties properties to use
    */

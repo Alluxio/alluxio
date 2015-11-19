@@ -28,7 +28,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
 
 /**
- * <code>Sessions</code> represents and manages all session contacting a worker.
+ * {@code Sessions} represents and manages all session contacting a worker.
  */
 public class Sessions {
   public static final int DATASERVER_SESSION_ID = -1;
@@ -65,7 +65,7 @@ public class Sessions {
   }
 
   /**
-   * Remove <code> sessionId </code> from session pool.
+   * Remove {@code sessionId} from session pool.
    *
    * @param sessionId the session to be removed
    */
