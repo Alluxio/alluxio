@@ -285,7 +285,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
       } else {
         if (!(lastInode.isDirectory() && options.isAllowExists())) {
           LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-          throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+          throw new FileAlreadyExistsException(
+              ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
         }
       }
     } else {
