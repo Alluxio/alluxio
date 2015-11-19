@@ -8,6 +8,115 @@ public final class JournalEntryProtos {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
+  /**
+   * Protobuf enum {@code tachyon.proto.LineageFileState}
+   */
+  public enum LineageFileState
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>CREATED = 1;</code>
+     */
+    CREATED(0, 1),
+    /**
+     * <code>COMPLETED = 2;</code>
+     */
+    COMPLETED(1, 2),
+    /**
+     * <code>PERSISTED = 3;</code>
+     */
+    PERSISTED(2, 3),
+    /**
+     * <code>PERSISENCE_REQUESTED = 4;</code>
+     */
+    PERSISENCE_REQUESTED(3, 4),
+    /**
+     * <code>LOST = 5;</code>
+     */
+    LOST(4, 5),
+    ;
+
+    /**
+     * <code>CREATED = 1;</code>
+     */
+    public static final int CREATED_VALUE = 1;
+    /**
+     * <code>COMPLETED = 2;</code>
+     */
+    public static final int COMPLETED_VALUE = 2;
+    /**
+     * <code>PERSISTED = 3;</code>
+     */
+    public static final int PERSISTED_VALUE = 3;
+    /**
+     * <code>PERSISENCE_REQUESTED = 4;</code>
+     */
+    public static final int PERSISENCE_REQUESTED_VALUE = 4;
+    /**
+     * <code>LOST = 5;</code>
+     */
+    public static final int LOST_VALUE = 5;
+
+
+    public final int getNumber() { return value; }
+
+    public static LineageFileState valueOf(int value) {
+      switch (value) {
+        case 1: return CREATED;
+        case 2: return COMPLETED;
+        case 3: return PERSISTED;
+        case 4: return PERSISENCE_REQUESTED;
+        case 5: return LOST;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<LineageFileState>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static com.google.protobuf.Internal.EnumLiteMap<LineageFileState>
+        internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<LineageFileState>() {
+            public LineageFileState findValueByNumber(int number) {
+              return LineageFileState.valueOf(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.getDescriptor().getEnumTypes().get(0);
+    }
+
+    private static final LineageFileState[] VALUES = values();
+
+    public static LineageFileState valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int index;
+    private final int value;
+
+    private LineageFileState(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:tachyon.proto.LineageFileState)
+  }
+
   public interface JournalEntryOrBuilder extends
       // @@protoc_insertion_point(interface_extends:tachyon.proto.JournalEntry)
       com.google.protobuf.MessageOrBuilder {
@@ -22,17 +131,303 @@ public final class JournalEntryProtos {
     long getSequenceNumber();
 
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
      */
     boolean hasAddMountPoint();
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
      */
     tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint();
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
      */
     tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     */
+    boolean hasAsyncCompleteFile();
+    /**
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     */
+    tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getAsyncCompleteFile();
+    /**
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     */
+    tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder getAsyncCompleteFileOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     */
+    boolean hasBlockContainerIdGenerator();
+    /**
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     */
+    tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getBlockContainerIdGenerator();
+    /**
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     */
+    tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder getBlockContainerIdGeneratorOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     */
+    boolean hasBlockInfo();
+    /**
+     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     */
+    tachyon.proto.JournalEntryProtos.BlockInfoEntry getBlockInfo();
+    /**
+     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     */
+    tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder getBlockInfoOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     */
+    boolean hasCompleteFile();
+    /**
+     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     */
+    tachyon.proto.JournalEntryProtos.CompleteFileEntry getCompleteFile();
+    /**
+     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     */
+    tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder getCompleteFileOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     */
+    boolean hasDeleteFile();
+    /**
+     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     */
+    tachyon.proto.JournalEntryProtos.DeleteFileEntry getDeleteFile();
+    /**
+     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     */
+    tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder getDeleteFileOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     */
+    boolean hasDeleteLineage();
+    /**
+     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     */
+    tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDeleteLineage();
+    /**
+     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     */
+    tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     */
+    boolean hasDeleteMountPoint();
+    /**
+     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     */
+    tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDeleteMountPoint();
+    /**
+     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     */
+    tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     */
+    boolean hasInodeDirectory();
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getInodeDirectory();
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder getInodeDirectoryOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     */
+    boolean hasInodeDirectoryIdGenerator();
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getInodeDirectoryIdGenerator();
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     */
+    boolean hasInodeFileEntry();
+    /**
+     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeFileEntry getInodeFileEntry();
+    /**
+     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     */
+    boolean hasInodeLastModificationTime();
+    /**
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getInodeLastModificationTime();
+    /**
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     */
+    tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder getInodeLastModificationTimeOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     */
+    boolean hasLineageEntry();
+    /**
+     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     */
+    tachyon.proto.JournalEntryProtos.LineageEntry getLineageEntry();
+    /**
+     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     */
+    tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageEntryOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     */
+    boolean hasLineageIdGenerator();
+    /**
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     */
+    tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getLineageIdGenerator();
+    /**
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     */
+    tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     */
+    boolean hasPersistDirectory();
+    /**
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getPersistDirectory();
+    /**
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     */
+    boolean hasPersistFile();
+    /**
+     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistFileEntry getPersistFile();
+    /**
+     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder getPersistFileOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     */
+    boolean hasPersisterFiles();
+    /**
+     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersisterFiles();
+    /**
+     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersisterFilesOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     */
+    boolean hasPersistFilesRequest();
+    /**
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getPersistFilesRequest();
+    /**
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     */
+    tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     */
+    boolean hasRawTable();
+    /**
+     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     */
+    tachyon.proto.JournalEntryProtos.RawTableEntry getRawTable();
+    /**
+     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     */
+    tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder getRawTableOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     */
+    boolean hasReinitializeFile();
+    /**
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     */
+    tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getReinitializeFile();
+    /**
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     */
+    tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+     */
+    boolean hasRename();
+    /**
+     * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+     */
+    tachyon.proto.JournalEntryProtos.RenameEntry getRename();
+    /**
+     * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+     */
+    tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder getRenameOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     */
+    boolean hasSetState();
+    /**
+     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     */
+    tachyon.proto.JournalEntryProtos.SetStateEntry getSetState();
+    /**
+     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     */
+    tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder getSetStateOrBuilder();
+
+    /**
+     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     */
+    boolean hasUpdateMetadata();
+    /**
+     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     */
+    tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getUpdateMetadata();
+    /**
+     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     */
+    tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder();
   }
   /**
    * Protobuf type {@code tachyon.proto.JournalEntry}
@@ -91,9 +486,9 @@ public final class JournalEntryProtos {
               sequenceNumber_ = input.readInt64();
               break;
             }
-            case 82: {
+            case 18: {
               tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder subBuilder = null;
-              if (entryCase_ == 10) {
+              if (entryCase_ == 2) {
                 subBuilder = ((tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_).toBuilder();
               }
               entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.AddMountPointEntry.PARSER, extensionRegistry);
@@ -101,7 +496,293 @@ public final class JournalEntryProtos {
                 subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
+              entryCase_ = 2;
+              break;
+            }
+            case 26: {
+              tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder subBuilder = null;
+              if (entryCase_ == 3) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 3;
+              break;
+            }
+            case 34: {
+              tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder subBuilder = null;
+              if (entryCase_ == 4) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 4;
+              break;
+            }
+            case 42: {
+              tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder subBuilder = null;
+              if (entryCase_ == 5) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.BlockInfoEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 5;
+              break;
+            }
+            case 50: {
+              tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder subBuilder = null;
+              if (entryCase_ == 6) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.CompleteFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 6;
+              break;
+            }
+            case 58: {
+              tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder subBuilder = null;
+              if (entryCase_ == 7) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.DeleteFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 7;
+              break;
+            }
+            case 66: {
+              tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder subBuilder = null;
+              if (entryCase_ == 8) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.DeleteLineageEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 8;
+              break;
+            }
+            case 74: {
+              tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder subBuilder = null;
+              if (entryCase_ == 9) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 9;
+              break;
+            }
+            case 82: {
+              tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder subBuilder = null;
+              if (entryCase_ == 10) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
               entryCase_ = 10;
+              break;
+            }
+            case 90: {
+              tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder subBuilder = null;
+              if (entryCase_ == 11) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 11;
+              break;
+            }
+            case 98: {
+              tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder subBuilder = null;
+              if (entryCase_ == 12) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.InodeFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 12;
+              break;
+            }
+            case 106: {
+              tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder subBuilder = null;
+              if (entryCase_ == 13) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 13;
+              break;
+            }
+            case 114: {
+              tachyon.proto.JournalEntryProtos.LineageEntry.Builder subBuilder = null;
+              if (entryCase_ == 14) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.LineageEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.LineageEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.LineageEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 14;
+              break;
+            }
+            case 122: {
+              tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder subBuilder = null;
+              if (entryCase_ == 15) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 15;
+              break;
+            }
+            case 130: {
+              tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder subBuilder = null;
+              if (entryCase_ == 16) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 16;
+              break;
+            }
+            case 138: {
+              tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder subBuilder = null;
+              if (entryCase_ == 17) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.PersistFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 17;
+              break;
+            }
+            case 146: {
+              tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder subBuilder = null;
+              if (entryCase_ == 18) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.PersistFilesEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 18;
+              break;
+            }
+            case 154: {
+              tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder subBuilder = null;
+              if (entryCase_ == 19) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 19;
+              break;
+            }
+            case 162: {
+              tachyon.proto.JournalEntryProtos.RawTableEntry.Builder subBuilder = null;
+              if (entryCase_ == 20) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.RawTableEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.RawTableEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.RawTableEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 20;
+              break;
+            }
+            case 170: {
+              tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder subBuilder = null;
+              if (entryCase_ == 21) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 21;
+              break;
+            }
+            case 178: {
+              tachyon.proto.JournalEntryProtos.RenameEntry.Builder subBuilder = null;
+              if (entryCase_ == 22) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.RenameEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.RenameEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.RenameEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 22;
+              break;
+            }
+            case 186: {
+              tachyon.proto.JournalEntryProtos.SetStateEntry.Builder subBuilder = null;
+              if (entryCase_ == 23) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.SetStateEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.SetStateEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.SetStateEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 23;
+              break;
+            }
+            case 194: {
+              tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder subBuilder = null;
+              if (entryCase_ == 24) {
+                subBuilder = ((tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_).toBuilder();
+              }
+              entry_ = input.readMessage(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom((tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_);
+                entry_ = subBuilder.buildPartial();
+              }
+              entryCase_ = 24;
               break;
             }
           }
@@ -148,7 +829,29 @@ public final class JournalEntryProtos {
     private java.lang.Object entry_;
     public enum EntryCase
         implements com.google.protobuf.Internal.EnumLite {
-      ADDMOUNTPOINT(10),
+      ADDMOUNTPOINT(2),
+      ASYNCCOMPLETEFILE(3),
+      BLOCKCONTAINERIDGENERATOR(4),
+      BLOCKINFO(5),
+      COMPLETEFILE(6),
+      DELETEFILE(7),
+      DELETELINEAGE(8),
+      DELETEMOUNTPOINT(9),
+      INODEDIRECTORY(10),
+      INODEDIRECTORYIDGENERATOR(11),
+      INODEFILEENTRY(12),
+      INODELASTMODIFICATIONTIME(13),
+      LINEAGEENTRY(14),
+      LINEAGEIDGENERATOR(15),
+      PERSISTDIRECTORY(16),
+      PERSISTFILE(17),
+      PERSISTERFILES(18),
+      PERSISTFILESREQUEST(19),
+      RAWTABLE(20),
+      REINITIALIZEFILE(21),
+      RENAME(22),
+      SETSTATE(23),
+      UPDATEMETADATA(24),
       ENTRY_NOT_SET(0);
       private int value = 0;
       private EntryCase(int value) {
@@ -156,7 +859,29 @@ public final class JournalEntryProtos {
       }
       public static EntryCase valueOf(int value) {
         switch (value) {
-          case 10: return ADDMOUNTPOINT;
+          case 2: return ADDMOUNTPOINT;
+          case 3: return ASYNCCOMPLETEFILE;
+          case 4: return BLOCKCONTAINERIDGENERATOR;
+          case 5: return BLOCKINFO;
+          case 6: return COMPLETEFILE;
+          case 7: return DELETEFILE;
+          case 8: return DELETELINEAGE;
+          case 9: return DELETEMOUNTPOINT;
+          case 10: return INODEDIRECTORY;
+          case 11: return INODEDIRECTORYIDGENERATOR;
+          case 12: return INODEFILEENTRY;
+          case 13: return INODELASTMODIFICATIONTIME;
+          case 14: return LINEAGEENTRY;
+          case 15: return LINEAGEIDGENERATOR;
+          case 16: return PERSISTDIRECTORY;
+          case 17: return PERSISTFILE;
+          case 18: return PERSISTERFILES;
+          case 19: return PERSISTFILESREQUEST;
+          case 20: return RAWTABLE;
+          case 21: return REINITIALIZEFILE;
+          case 22: return RENAME;
+          case 23: return SETSTATE;
+          case 24: return UPDATEMETADATA;
           case 0: return ENTRY_NOT_SET;
           default: throw new java.lang.IllegalArgumentException(
             "Value is undefined for this oneof enum.");
@@ -188,30 +913,602 @@ public final class JournalEntryProtos {
       return sequenceNumber_;
     }
 
-    public static final int ADDMOUNTPOINT_FIELD_NUMBER = 10;
+    public static final int ADDMOUNTPOINT_FIELD_NUMBER = 2;
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
      */
     public boolean hasAddMountPoint() {
+      return entryCase_ == 2;
+    }
+    /**
+     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint() {
+      if (entryCase_ == 2) {
+         return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder() {
+      if (entryCase_ == 2) {
+         return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+    }
+
+    public static final int ASYNCCOMPLETEFILE_FIELD_NUMBER = 3;
+    /**
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     */
+    public boolean hasAsyncCompleteFile() {
+      return entryCase_ == 3;
+    }
+    /**
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getAsyncCompleteFile() {
+      if (entryCase_ == 3) {
+         return (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder getAsyncCompleteFileOrBuilder() {
+      if (entryCase_ == 3) {
+         return (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+    }
+
+    public static final int BLOCKCONTAINERIDGENERATOR_FIELD_NUMBER = 4;
+    /**
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     */
+    public boolean hasBlockContainerIdGenerator() {
+      return entryCase_ == 4;
+    }
+    /**
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getBlockContainerIdGenerator() {
+      if (entryCase_ == 4) {
+         return (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder getBlockContainerIdGeneratorOrBuilder() {
+      if (entryCase_ == 4) {
+         return (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+    }
+
+    public static final int BLOCKINFO_FIELD_NUMBER = 5;
+    /**
+     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     */
+    public boolean hasBlockInfo() {
+      return entryCase_ == 5;
+    }
+    /**
+     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.BlockInfoEntry getBlockInfo() {
+      if (entryCase_ == 5) {
+         return (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder getBlockInfoOrBuilder() {
+      if (entryCase_ == 5) {
+         return (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+    }
+
+    public static final int COMPLETEFILE_FIELD_NUMBER = 6;
+    /**
+     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     */
+    public boolean hasCompleteFile() {
+      return entryCase_ == 6;
+    }
+    /**
+     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.CompleteFileEntry getCompleteFile() {
+      if (entryCase_ == 6) {
+         return (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder getCompleteFileOrBuilder() {
+      if (entryCase_ == 6) {
+         return (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+    }
+
+    public static final int DELETEFILE_FIELD_NUMBER = 7;
+    /**
+     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     */
+    public boolean hasDeleteFile() {
+      return entryCase_ == 7;
+    }
+    /**
+     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.DeleteFileEntry getDeleteFile() {
+      if (entryCase_ == 7) {
+         return (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder getDeleteFileOrBuilder() {
+      if (entryCase_ == 7) {
+         return (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+    }
+
+    public static final int DELETELINEAGE_FIELD_NUMBER = 8;
+    /**
+     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     */
+    public boolean hasDeleteLineage() {
+      return entryCase_ == 8;
+    }
+    /**
+     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDeleteLineage() {
+      if (entryCase_ == 8) {
+         return (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder() {
+      if (entryCase_ == 8) {
+         return (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+    }
+
+    public static final int DELETEMOUNTPOINT_FIELD_NUMBER = 9;
+    /**
+     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     */
+    public boolean hasDeleteMountPoint() {
+      return entryCase_ == 9;
+    }
+    /**
+     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDeleteMountPoint() {
+      if (entryCase_ == 9) {
+         return (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder() {
+      if (entryCase_ == 9) {
+         return (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+    }
+
+    public static final int INODEDIRECTORY_FIELD_NUMBER = 10;
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     */
+    public boolean hasInodeDirectory() {
       return entryCase_ == 10;
     }
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
      */
-    public tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint() {
+    public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getInodeDirectory() {
       if (entryCase_ == 10) {
-         return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
+         return (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_;
       }
-      return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+      return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
      */
-    public tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder() {
+    public tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder getInodeDirectoryOrBuilder() {
       if (entryCase_ == 10) {
-         return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
+         return (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_;
       }
-      return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+      return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
+    }
+
+    public static final int INODEDIRECTORYIDGENERATOR_FIELD_NUMBER = 11;
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     */
+    public boolean hasInodeDirectoryIdGenerator() {
+      return entryCase_ == 11;
+    }
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getInodeDirectoryIdGenerator() {
+      if (entryCase_ == 11) {
+         return (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder() {
+      if (entryCase_ == 11) {
+         return (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+    }
+
+    public static final int INODEFILEENTRY_FIELD_NUMBER = 12;
+    /**
+     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     */
+    public boolean hasInodeFileEntry() {
+      return entryCase_ == 12;
+    }
+    /**
+     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.InodeFileEntry getInodeFileEntry() {
+      if (entryCase_ == 12) {
+         return (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder() {
+      if (entryCase_ == 12) {
+         return (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+    }
+
+    public static final int INODELASTMODIFICATIONTIME_FIELD_NUMBER = 13;
+    /**
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     */
+    public boolean hasInodeLastModificationTime() {
+      return entryCase_ == 13;
+    }
+    /**
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getInodeLastModificationTime() {
+      if (entryCase_ == 13) {
+         return (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder getInodeLastModificationTimeOrBuilder() {
+      if (entryCase_ == 13) {
+         return (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+    }
+
+    public static final int LINEAGEENTRY_FIELD_NUMBER = 14;
+    /**
+     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     */
+    public boolean hasLineageEntry() {
+      return entryCase_ == 14;
+    }
+    /**
+     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.LineageEntry getLineageEntry() {
+      if (entryCase_ == 14) {
+         return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageEntryOrBuilder() {
+      if (entryCase_ == 14) {
+         return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+    }
+
+    public static final int LINEAGEIDGENERATOR_FIELD_NUMBER = 15;
+    /**
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     */
+    public boolean hasLineageIdGenerator() {
+      return entryCase_ == 15;
+    }
+    /**
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getLineageIdGenerator() {
+      if (entryCase_ == 15) {
+         return (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder() {
+      if (entryCase_ == 15) {
+         return (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+    }
+
+    public static final int PERSISTDIRECTORY_FIELD_NUMBER = 16;
+    /**
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     */
+    public boolean hasPersistDirectory() {
+      return entryCase_ == 16;
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getPersistDirectory() {
+      if (entryCase_ == 16) {
+         return (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder() {
+      if (entryCase_ == 16) {
+         return (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+    }
+
+    public static final int PERSISTFILE_FIELD_NUMBER = 17;
+    /**
+     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     */
+    public boolean hasPersistFile() {
+      return entryCase_ == 17;
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistFileEntry getPersistFile() {
+      if (entryCase_ == 17) {
+         return (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder getPersistFileOrBuilder() {
+      if (entryCase_ == 17) {
+         return (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+    }
+
+    public static final int PERSISTERFILES_FIELD_NUMBER = 18;
+    /**
+     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     */
+    public boolean hasPersisterFiles() {
+      return entryCase_ == 18;
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersisterFiles() {
+      if (entryCase_ == 18) {
+         return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersisterFilesOrBuilder() {
+      if (entryCase_ == 18) {
+         return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+    }
+
+    public static final int PERSISTFILESREQUEST_FIELD_NUMBER = 19;
+    /**
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     */
+    public boolean hasPersistFilesRequest() {
+      return entryCase_ == 19;
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getPersistFilesRequest() {
+      if (entryCase_ == 19) {
+         return (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder() {
+      if (entryCase_ == 19) {
+         return (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+    }
+
+    public static final int RAWTABLE_FIELD_NUMBER = 20;
+    /**
+     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     */
+    public boolean hasRawTable() {
+      return entryCase_ == 20;
+    }
+    /**
+     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.RawTableEntry getRawTable() {
+      if (entryCase_ == 20) {
+         return (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder getRawTableOrBuilder() {
+      if (entryCase_ == 20) {
+         return (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+    }
+
+    public static final int REINITIALIZEFILE_FIELD_NUMBER = 21;
+    /**
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     */
+    public boolean hasReinitializeFile() {
+      return entryCase_ == 21;
+    }
+    /**
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getReinitializeFile() {
+      if (entryCase_ == 21) {
+         return (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
+      if (entryCase_ == 21) {
+         return (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+    }
+
+    public static final int RENAME_FIELD_NUMBER = 22;
+    /**
+     * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+     */
+    public boolean hasRename() {
+      return entryCase_ == 22;
+    }
+    /**
+     * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.RenameEntry getRename() {
+      if (entryCase_ == 22) {
+         return (tachyon.proto.JournalEntryProtos.RenameEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder getRenameOrBuilder() {
+      if (entryCase_ == 22) {
+         return (tachyon.proto.JournalEntryProtos.RenameEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+    }
+
+    public static final int SETSTATE_FIELD_NUMBER = 23;
+    /**
+     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     */
+    public boolean hasSetState() {
+      return entryCase_ == 23;
+    }
+    /**
+     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.SetStateEntry getSetState() {
+      if (entryCase_ == 23) {
+         return (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder getSetStateOrBuilder() {
+      if (entryCase_ == 23) {
+         return (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+    }
+
+    public static final int UPDATEMETADATA_FIELD_NUMBER = 24;
+    /**
+     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     */
+    public boolean hasUpdateMetadata() {
+      return entryCase_ == 24;
+    }
+    /**
+     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getUpdateMetadata() {
+      if (entryCase_ == 24) {
+         return (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
+    }
+    /**
+     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder() {
+      if (entryCase_ == 24) {
+         return (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_;
+      }
+      return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
     }
 
     private void initFields() {
@@ -233,8 +1530,74 @@ public final class JournalEntryProtos {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, sequenceNumber_);
       }
+      if (entryCase_ == 2) {
+        output.writeMessage(2, (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_);
+      }
+      if (entryCase_ == 3) {
+        output.writeMessage(3, (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_);
+      }
+      if (entryCase_ == 4) {
+        output.writeMessage(4, (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_);
+      }
+      if (entryCase_ == 5) {
+        output.writeMessage(5, (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_);
+      }
+      if (entryCase_ == 6) {
+        output.writeMessage(6, (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_);
+      }
+      if (entryCase_ == 7) {
+        output.writeMessage(7, (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_);
+      }
+      if (entryCase_ == 8) {
+        output.writeMessage(8, (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_);
+      }
+      if (entryCase_ == 9) {
+        output.writeMessage(9, (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_);
+      }
       if (entryCase_ == 10) {
-        output.writeMessage(10, (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_);
+        output.writeMessage(10, (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_);
+      }
+      if (entryCase_ == 11) {
+        output.writeMessage(11, (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_);
+      }
+      if (entryCase_ == 12) {
+        output.writeMessage(12, (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_);
+      }
+      if (entryCase_ == 13) {
+        output.writeMessage(13, (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_);
+      }
+      if (entryCase_ == 14) {
+        output.writeMessage(14, (tachyon.proto.JournalEntryProtos.LineageEntry) entry_);
+      }
+      if (entryCase_ == 15) {
+        output.writeMessage(15, (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_);
+      }
+      if (entryCase_ == 16) {
+        output.writeMessage(16, (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_);
+      }
+      if (entryCase_ == 17) {
+        output.writeMessage(17, (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_);
+      }
+      if (entryCase_ == 18) {
+        output.writeMessage(18, (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_);
+      }
+      if (entryCase_ == 19) {
+        output.writeMessage(19, (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_);
+      }
+      if (entryCase_ == 20) {
+        output.writeMessage(20, (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_);
+      }
+      if (entryCase_ == 21) {
+        output.writeMessage(21, (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_);
+      }
+      if (entryCase_ == 22) {
+        output.writeMessage(22, (tachyon.proto.JournalEntryProtos.RenameEntry) entry_);
+      }
+      if (entryCase_ == 23) {
+        output.writeMessage(23, (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_);
+      }
+      if (entryCase_ == 24) {
+        output.writeMessage(24, (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -249,9 +1612,97 @@ public final class JournalEntryProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, sequenceNumber_);
       }
+      if (entryCase_ == 2) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_);
+      }
+      if (entryCase_ == 3) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_);
+      }
+      if (entryCase_ == 4) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_);
+      }
+      if (entryCase_ == 5) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_);
+      }
+      if (entryCase_ == 6) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_);
+      }
+      if (entryCase_ == 7) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_);
+      }
+      if (entryCase_ == 8) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(8, (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_);
+      }
+      if (entryCase_ == 9) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(9, (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_);
+      }
       if (entryCase_ == 10) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(10, (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_);
+          .computeMessageSize(10, (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_);
+      }
+      if (entryCase_ == 11) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(11, (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_);
+      }
+      if (entryCase_ == 12) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(12, (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_);
+      }
+      if (entryCase_ == 13) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(13, (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_);
+      }
+      if (entryCase_ == 14) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(14, (tachyon.proto.JournalEntryProtos.LineageEntry) entry_);
+      }
+      if (entryCase_ == 15) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(15, (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_);
+      }
+      if (entryCase_ == 16) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(16, (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_);
+      }
+      if (entryCase_ == 17) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(17, (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_);
+      }
+      if (entryCase_ == 18) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(18, (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_);
+      }
+      if (entryCase_ == 19) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(19, (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_);
+      }
+      if (entryCase_ == 20) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(20, (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_);
+      }
+      if (entryCase_ == 21) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(21, (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_);
+      }
+      if (entryCase_ == 22) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(22, (tachyon.proto.JournalEntryProtos.RenameEntry) entry_);
+      }
+      if (entryCase_ == 23) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(23, (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_);
+      }
+      if (entryCase_ == 24) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(24, (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -406,11 +1857,165 @@ public final class JournalEntryProtos {
           to_bitField0_ |= 0x00000001;
         }
         result.sequenceNumber_ = sequenceNumber_;
-        if (entryCase_ == 10) {
+        if (entryCase_ == 2) {
           if (addMountPointBuilder_ == null) {
             result.entry_ = entry_;
           } else {
             result.entry_ = addMountPointBuilder_.build();
+          }
+        }
+        if (entryCase_ == 3) {
+          if (asyncCompleteFileBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = asyncCompleteFileBuilder_.build();
+          }
+        }
+        if (entryCase_ == 4) {
+          if (blockContainerIdGeneratorBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = blockContainerIdGeneratorBuilder_.build();
+          }
+        }
+        if (entryCase_ == 5) {
+          if (blockInfoBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = blockInfoBuilder_.build();
+          }
+        }
+        if (entryCase_ == 6) {
+          if (completeFileBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = completeFileBuilder_.build();
+          }
+        }
+        if (entryCase_ == 7) {
+          if (deleteFileBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = deleteFileBuilder_.build();
+          }
+        }
+        if (entryCase_ == 8) {
+          if (deleteLineageBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = deleteLineageBuilder_.build();
+          }
+        }
+        if (entryCase_ == 9) {
+          if (deleteMountPointBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = deleteMountPointBuilder_.build();
+          }
+        }
+        if (entryCase_ == 10) {
+          if (inodeDirectoryBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = inodeDirectoryBuilder_.build();
+          }
+        }
+        if (entryCase_ == 11) {
+          if (inodeDirectoryIdGeneratorBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = inodeDirectoryIdGeneratorBuilder_.build();
+          }
+        }
+        if (entryCase_ == 12) {
+          if (inodeFileEntryBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = inodeFileEntryBuilder_.build();
+          }
+        }
+        if (entryCase_ == 13) {
+          if (inodeLastModificationTimeBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = inodeLastModificationTimeBuilder_.build();
+          }
+        }
+        if (entryCase_ == 14) {
+          if (lineageEntryBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = lineageEntryBuilder_.build();
+          }
+        }
+        if (entryCase_ == 15) {
+          if (lineageIdGeneratorBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = lineageIdGeneratorBuilder_.build();
+          }
+        }
+        if (entryCase_ == 16) {
+          if (persistDirectoryBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = persistDirectoryBuilder_.build();
+          }
+        }
+        if (entryCase_ == 17) {
+          if (persistFileBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = persistFileBuilder_.build();
+          }
+        }
+        if (entryCase_ == 18) {
+          if (persisterFilesBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = persisterFilesBuilder_.build();
+          }
+        }
+        if (entryCase_ == 19) {
+          if (persistFilesRequestBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = persistFilesRequestBuilder_.build();
+          }
+        }
+        if (entryCase_ == 20) {
+          if (rawTableBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = rawTableBuilder_.build();
+          }
+        }
+        if (entryCase_ == 21) {
+          if (reinitializeFileBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = reinitializeFileBuilder_.build();
+          }
+        }
+        if (entryCase_ == 22) {
+          if (renameBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = renameBuilder_.build();
+          }
+        }
+        if (entryCase_ == 23) {
+          if (setStateBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = setStateBuilder_.build();
+          }
+        }
+        if (entryCase_ == 24) {
+          if (updateMetadataBuilder_ == null) {
+            result.entry_ = entry_;
+          } else {
+            result.entry_ = updateMetadataBuilder_.build();
           }
         }
         result.bitField0_ = to_bitField0_;
@@ -436,6 +2041,94 @@ public final class JournalEntryProtos {
         switch (other.getEntryCase()) {
           case ADDMOUNTPOINT: {
             mergeAddMountPoint(other.getAddMountPoint());
+            break;
+          }
+          case ASYNCCOMPLETEFILE: {
+            mergeAsyncCompleteFile(other.getAsyncCompleteFile());
+            break;
+          }
+          case BLOCKCONTAINERIDGENERATOR: {
+            mergeBlockContainerIdGenerator(other.getBlockContainerIdGenerator());
+            break;
+          }
+          case BLOCKINFO: {
+            mergeBlockInfo(other.getBlockInfo());
+            break;
+          }
+          case COMPLETEFILE: {
+            mergeCompleteFile(other.getCompleteFile());
+            break;
+          }
+          case DELETEFILE: {
+            mergeDeleteFile(other.getDeleteFile());
+            break;
+          }
+          case DELETELINEAGE: {
+            mergeDeleteLineage(other.getDeleteLineage());
+            break;
+          }
+          case DELETEMOUNTPOINT: {
+            mergeDeleteMountPoint(other.getDeleteMountPoint());
+            break;
+          }
+          case INODEDIRECTORY: {
+            mergeInodeDirectory(other.getInodeDirectory());
+            break;
+          }
+          case INODEDIRECTORYIDGENERATOR: {
+            mergeInodeDirectoryIdGenerator(other.getInodeDirectoryIdGenerator());
+            break;
+          }
+          case INODEFILEENTRY: {
+            mergeInodeFileEntry(other.getInodeFileEntry());
+            break;
+          }
+          case INODELASTMODIFICATIONTIME: {
+            mergeInodeLastModificationTime(other.getInodeLastModificationTime());
+            break;
+          }
+          case LINEAGEENTRY: {
+            mergeLineageEntry(other.getLineageEntry());
+            break;
+          }
+          case LINEAGEIDGENERATOR: {
+            mergeLineageIdGenerator(other.getLineageIdGenerator());
+            break;
+          }
+          case PERSISTDIRECTORY: {
+            mergePersistDirectory(other.getPersistDirectory());
+            break;
+          }
+          case PERSISTFILE: {
+            mergePersistFile(other.getPersistFile());
+            break;
+          }
+          case PERSISTERFILES: {
+            mergePersisterFiles(other.getPersisterFiles());
+            break;
+          }
+          case PERSISTFILESREQUEST: {
+            mergePersistFilesRequest(other.getPersistFilesRequest());
+            break;
+          }
+          case RAWTABLE: {
+            mergeRawTable(other.getRawTable());
+            break;
+          }
+          case REINITIALIZEFILE: {
+            mergeReinitializeFile(other.getReinitializeFile());
+            break;
+          }
+          case RENAME: {
+            mergeRename(other.getRename());
+            break;
+          }
+          case SETSTATE: {
+            mergeSetState(other.getSetState());
+            break;
+          }
+          case UPDATEMETADATA: {
+            mergeUpdateMetadata(other.getUpdateMetadata());
             break;
           }
           case ENTRY_NOT_SET: {
@@ -519,29 +2212,29 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder> addMountPointBuilder_;
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
        */
       public boolean hasAddMountPoint() {
-        return entryCase_ == 10;
+        return entryCase_ == 2;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
        */
       public tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint() {
         if (addMountPointBuilder_ == null) {
-          if (entryCase_ == 10) {
+          if (entryCase_ == 2) {
             return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
           }
           return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
         } else {
-          if (entryCase_ == 10) {
+          if (entryCase_ == 2) {
             return addMountPointBuilder_.getMessage();
           }
           return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
        */
       public Builder setAddMountPoint(tachyon.proto.JournalEntryProtos.AddMountPointEntry value) {
         if (addMountPointBuilder_ == null) {
@@ -553,11 +2246,11 @@ public final class JournalEntryProtos {
         } else {
           addMountPointBuilder_.setMessage(value);
         }
-        entryCase_ = 10;
+        entryCase_ = 2;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
        */
       public Builder setAddMountPoint(
           tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder builderForValue) {
@@ -567,15 +2260,15 @@ public final class JournalEntryProtos {
         } else {
           addMountPointBuilder_.setMessage(builderForValue.build());
         }
-        entryCase_ = 10;
+        entryCase_ = 2;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
        */
       public Builder mergeAddMountPoint(tachyon.proto.JournalEntryProtos.AddMountPointEntry value) {
         if (addMountPointBuilder_ == null) {
-          if (entryCase_ == 10 &&
+          if (entryCase_ == 2 &&
               entry_ != tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.JournalEntryProtos.AddMountPointEntry.newBuilder((tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_)
                 .mergeFrom(value).buildPartial();
@@ -584,19 +2277,1099 @@ public final class JournalEntryProtos {
           }
           onChanged();
         } else {
-          if (entryCase_ == 10) {
+          if (entryCase_ == 2) {
             addMountPointBuilder_.mergeFrom(value);
           }
           addMountPointBuilder_.setMessage(value);
+        }
+        entryCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       */
+      public Builder clearAddMountPoint() {
+        if (addMountPointBuilder_ == null) {
+          if (entryCase_ == 2) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 2) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          addMountPointBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder getAddMountPointBuilder() {
+        return getAddMountPointFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder() {
+        if ((entryCase_ == 2) && (addMountPointBuilder_ != null)) {
+          return addMountPointBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 2) {
+            return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder> 
+          getAddMountPointFieldBuilder() {
+        if (addMountPointBuilder_ == null) {
+          if (!(entryCase_ == 2)) {
+            entry_ = tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+          }
+          addMountPointBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 2;
+        return addMountPointBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder> asyncCompleteFileBuilder_;
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public boolean hasAsyncCompleteFile() {
+        return entryCase_ == 3;
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getAsyncCompleteFile() {
+        if (asyncCompleteFileBuilder_ == null) {
+          if (entryCase_ == 3) {
+            return (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 3) {
+            return asyncCompleteFileBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public Builder setAsyncCompleteFile(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry value) {
+        if (asyncCompleteFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          asyncCompleteFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public Builder setAsyncCompleteFile(
+          tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder builderForValue) {
+        if (asyncCompleteFileBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          asyncCompleteFileBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public Builder mergeAsyncCompleteFile(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry value) {
+        if (asyncCompleteFileBuilder_ == null) {
+          if (entryCase_ == 3 &&
+              entry_ != tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.newBuilder((tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 3) {
+            asyncCompleteFileBuilder_.mergeFrom(value);
+          }
+          asyncCompleteFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public Builder clearAsyncCompleteFile() {
+        if (asyncCompleteFileBuilder_ == null) {
+          if (entryCase_ == 3) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 3) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          asyncCompleteFileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder getAsyncCompleteFileBuilder() {
+        return getAsyncCompleteFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder getAsyncCompleteFileOrBuilder() {
+        if ((entryCase_ == 3) && (asyncCompleteFileBuilder_ != null)) {
+          return asyncCompleteFileBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 3) {
+            return (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder> 
+          getAsyncCompleteFileFieldBuilder() {
+        if (asyncCompleteFileBuilder_ == null) {
+          if (!(entryCase_ == 3)) {
+            entry_ = tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+          }
+          asyncCompleteFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 3;
+        return asyncCompleteFileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder> blockContainerIdGeneratorBuilder_;
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public boolean hasBlockContainerIdGenerator() {
+        return entryCase_ == 4;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getBlockContainerIdGenerator() {
+        if (blockContainerIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 4) {
+            return (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 4) {
+            return blockContainerIdGeneratorBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public Builder setBlockContainerIdGenerator(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry value) {
+        if (blockContainerIdGeneratorBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          blockContainerIdGeneratorBuilder_.setMessage(value);
+        }
+        entryCase_ = 4;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public Builder setBlockContainerIdGenerator(
+          tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder builderForValue) {
+        if (blockContainerIdGeneratorBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          blockContainerIdGeneratorBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 4;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public Builder mergeBlockContainerIdGenerator(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry value) {
+        if (blockContainerIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 4 &&
+              entry_ != tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.newBuilder((tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 4) {
+            blockContainerIdGeneratorBuilder_.mergeFrom(value);
+          }
+          blockContainerIdGeneratorBuilder_.setMessage(value);
+        }
+        entryCase_ = 4;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public Builder clearBlockContainerIdGenerator() {
+        if (blockContainerIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 4) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 4) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          blockContainerIdGeneratorBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder getBlockContainerIdGeneratorBuilder() {
+        return getBlockContainerIdGeneratorFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder getBlockContainerIdGeneratorOrBuilder() {
+        if ((entryCase_ == 4) && (blockContainerIdGeneratorBuilder_ != null)) {
+          return blockContainerIdGeneratorBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 4) {
+            return (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder> 
+          getBlockContainerIdGeneratorFieldBuilder() {
+        if (blockContainerIdGeneratorBuilder_ == null) {
+          if (!(entryCase_ == 4)) {
+            entry_ = tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+          }
+          blockContainerIdGeneratorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 4;
+        return blockContainerIdGeneratorBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.BlockInfoEntry, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder, tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder> blockInfoBuilder_;
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public boolean hasBlockInfo() {
+        return entryCase_ == 5;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.BlockInfoEntry getBlockInfo() {
+        if (blockInfoBuilder_ == null) {
+          if (entryCase_ == 5) {
+            return (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 5) {
+            return blockInfoBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public Builder setBlockInfo(tachyon.proto.JournalEntryProtos.BlockInfoEntry value) {
+        if (blockInfoBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          blockInfoBuilder_.setMessage(value);
+        }
+        entryCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public Builder setBlockInfo(
+          tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder builderForValue) {
+        if (blockInfoBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          blockInfoBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public Builder mergeBlockInfo(tachyon.proto.JournalEntryProtos.BlockInfoEntry value) {
+        if (blockInfoBuilder_ == null) {
+          if (entryCase_ == 5 &&
+              entry_ != tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.BlockInfoEntry.newBuilder((tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 5) {
+            blockInfoBuilder_.mergeFrom(value);
+          }
+          blockInfoBuilder_.setMessage(value);
+        }
+        entryCase_ = 5;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public Builder clearBlockInfo() {
+        if (blockInfoBuilder_ == null) {
+          if (entryCase_ == 5) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 5) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          blockInfoBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder getBlockInfoBuilder() {
+        return getBlockInfoFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder getBlockInfoOrBuilder() {
+        if ((entryCase_ == 5) && (blockInfoBuilder_ != null)) {
+          return blockInfoBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 5) {
+            return (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.BlockInfoEntry, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder, tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder> 
+          getBlockInfoFieldBuilder() {
+        if (blockInfoBuilder_ == null) {
+          if (!(entryCase_ == 5)) {
+            entry_ = tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+          }
+          blockInfoBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.BlockInfoEntry, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder, tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.BlockInfoEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 5;
+        return blockInfoBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.CompleteFileEntry, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder> completeFileBuilder_;
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public boolean hasCompleteFile() {
+        return entryCase_ == 6;
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.CompleteFileEntry getCompleteFile() {
+        if (completeFileBuilder_ == null) {
+          if (entryCase_ == 6) {
+            return (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 6) {
+            return completeFileBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public Builder setCompleteFile(tachyon.proto.JournalEntryProtos.CompleteFileEntry value) {
+        if (completeFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          completeFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 6;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public Builder setCompleteFile(
+          tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder builderForValue) {
+        if (completeFileBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          completeFileBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 6;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public Builder mergeCompleteFile(tachyon.proto.JournalEntryProtos.CompleteFileEntry value) {
+        if (completeFileBuilder_ == null) {
+          if (entryCase_ == 6 &&
+              entry_ != tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.CompleteFileEntry.newBuilder((tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 6) {
+            completeFileBuilder_.mergeFrom(value);
+          }
+          completeFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 6;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public Builder clearCompleteFile() {
+        if (completeFileBuilder_ == null) {
+          if (entryCase_ == 6) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 6) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          completeFileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder getCompleteFileBuilder() {
+        return getCompleteFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder getCompleteFileOrBuilder() {
+        if ((entryCase_ == 6) && (completeFileBuilder_ != null)) {
+          return completeFileBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 6) {
+            return (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.CompleteFileEntry, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder> 
+          getCompleteFileFieldBuilder() {
+        if (completeFileBuilder_ == null) {
+          if (!(entryCase_ == 6)) {
+            entry_ = tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+          }
+          completeFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.CompleteFileEntry, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.CompleteFileEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 6;
+        return completeFileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.DeleteFileEntry, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder> deleteFileBuilder_;
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public boolean hasDeleteFile() {
+        return entryCase_ == 7;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteFileEntry getDeleteFile() {
+        if (deleteFileBuilder_ == null) {
+          if (entryCase_ == 7) {
+            return (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 7) {
+            return deleteFileBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public Builder setDeleteFile(tachyon.proto.JournalEntryProtos.DeleteFileEntry value) {
+        if (deleteFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          deleteFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 7;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public Builder setDeleteFile(
+          tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder builderForValue) {
+        if (deleteFileBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          deleteFileBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 7;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public Builder mergeDeleteFile(tachyon.proto.JournalEntryProtos.DeleteFileEntry value) {
+        if (deleteFileBuilder_ == null) {
+          if (entryCase_ == 7 &&
+              entry_ != tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.DeleteFileEntry.newBuilder((tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 7) {
+            deleteFileBuilder_.mergeFrom(value);
+          }
+          deleteFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 7;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public Builder clearDeleteFile() {
+        if (deleteFileBuilder_ == null) {
+          if (entryCase_ == 7) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 7) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          deleteFileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder getDeleteFileBuilder() {
+        return getDeleteFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder getDeleteFileOrBuilder() {
+        if ((entryCase_ == 7) && (deleteFileBuilder_ != null)) {
+          return deleteFileBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 7) {
+            return (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.DeleteFileEntry, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder> 
+          getDeleteFileFieldBuilder() {
+        if (deleteFileBuilder_ == null) {
+          if (!(entryCase_ == 7)) {
+            entry_ = tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+          }
+          deleteFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.DeleteFileEntry, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.DeleteFileEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 7;
+        return deleteFileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.DeleteLineageEntry, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder> deleteLineageBuilder_;
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public boolean hasDeleteLineage() {
+        return entryCase_ == 8;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDeleteLineage() {
+        if (deleteLineageBuilder_ == null) {
+          if (entryCase_ == 8) {
+            return (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 8) {
+            return deleteLineageBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public Builder setDeleteLineage(tachyon.proto.JournalEntryProtos.DeleteLineageEntry value) {
+        if (deleteLineageBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          deleteLineageBuilder_.setMessage(value);
+        }
+        entryCase_ = 8;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public Builder setDeleteLineage(
+          tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder builderForValue) {
+        if (deleteLineageBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          deleteLineageBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 8;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public Builder mergeDeleteLineage(tachyon.proto.JournalEntryProtos.DeleteLineageEntry value) {
+        if (deleteLineageBuilder_ == null) {
+          if (entryCase_ == 8 &&
+              entry_ != tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.DeleteLineageEntry.newBuilder((tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 8) {
+            deleteLineageBuilder_.mergeFrom(value);
+          }
+          deleteLineageBuilder_.setMessage(value);
+        }
+        entryCase_ = 8;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public Builder clearDeleteLineage() {
+        if (deleteLineageBuilder_ == null) {
+          if (entryCase_ == 8) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 8) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          deleteLineageBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder getDeleteLineageBuilder() {
+        return getDeleteLineageFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder() {
+        if ((entryCase_ == 8) && (deleteLineageBuilder_ != null)) {
+          return deleteLineageBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 8) {
+            return (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.DeleteLineageEntry, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder> 
+          getDeleteLineageFieldBuilder() {
+        if (deleteLineageBuilder_ == null) {
+          if (!(entryCase_ == 8)) {
+            entry_ = tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+          }
+          deleteLineageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.DeleteLineageEntry, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 8;
+        return deleteLineageBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.DeleteMountPointEntry, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder> deleteMountPointBuilder_;
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public boolean hasDeleteMountPoint() {
+        return entryCase_ == 9;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDeleteMountPoint() {
+        if (deleteMountPointBuilder_ == null) {
+          if (entryCase_ == 9) {
+            return (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 9) {
+            return deleteMountPointBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public Builder setDeleteMountPoint(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry value) {
+        if (deleteMountPointBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          deleteMountPointBuilder_.setMessage(value);
+        }
+        entryCase_ = 9;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public Builder setDeleteMountPoint(
+          tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder builderForValue) {
+        if (deleteMountPointBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          deleteMountPointBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 9;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public Builder mergeDeleteMountPoint(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry value) {
+        if (deleteMountPointBuilder_ == null) {
+          if (entryCase_ == 9 &&
+              entry_ != tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.newBuilder((tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 9) {
+            deleteMountPointBuilder_.mergeFrom(value);
+          }
+          deleteMountPointBuilder_.setMessage(value);
+        }
+        entryCase_ = 9;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public Builder clearDeleteMountPoint() {
+        if (deleteMountPointBuilder_ == null) {
+          if (entryCase_ == 9) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 9) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          deleteMountPointBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder getDeleteMountPointBuilder() {
+        return getDeleteMountPointFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder() {
+        if ((entryCase_ == 9) && (deleteMountPointBuilder_ != null)) {
+          return deleteMountPointBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 9) {
+            return (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.DeleteMountPointEntry, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder> 
+          getDeleteMountPointFieldBuilder() {
+        if (deleteMountPointBuilder_ == null) {
+          if (!(entryCase_ == 9)) {
+            entry_ = tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+          }
+          deleteMountPointBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.DeleteMountPointEntry, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 9;
+        return deleteMountPointBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeDirectoryEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder> inodeDirectoryBuilder_;
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       */
+      public boolean hasInodeDirectory() {
+        return entryCase_ == 10;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getInodeDirectory() {
+        if (inodeDirectoryBuilder_ == null) {
+          if (entryCase_ == 10) {
+            return (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 10) {
+            return inodeDirectoryBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       */
+      public Builder setInodeDirectory(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry value) {
+        if (inodeDirectoryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          inodeDirectoryBuilder_.setMessage(value);
         }
         entryCase_ = 10;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
        */
-      public Builder clearAddMountPoint() {
-        if (addMountPointBuilder_ == null) {
+      public Builder setInodeDirectory(
+          tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder builderForValue) {
+        if (inodeDirectoryBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          inodeDirectoryBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 10;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       */
+      public Builder mergeInodeDirectory(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry value) {
+        if (inodeDirectoryBuilder_ == null) {
+          if (entryCase_ == 10 &&
+              entry_ != tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.newBuilder((tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 10) {
+            inodeDirectoryBuilder_.mergeFrom(value);
+          }
+          inodeDirectoryBuilder_.setMessage(value);
+        }
+        entryCase_ = 10;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       */
+      public Builder clearInodeDirectory() {
+        if (inodeDirectoryBuilder_ == null) {
           if (entryCase_ == 10) {
             entryCase_ = 0;
             entry_ = null;
@@ -607,48 +3380,1938 @@ public final class JournalEntryProtos {
             entryCase_ = 0;
             entry_ = null;
           }
-          addMountPointBuilder_.clear();
+          inodeDirectoryBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
        */
-      public tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder getAddMountPointBuilder() {
-        return getAddMountPointFieldBuilder().getBuilder();
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder getInodeDirectoryBuilder() {
+        return getInodeDirectoryFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
        */
-      public tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder() {
-        if ((entryCase_ == 10) && (addMountPointBuilder_ != null)) {
-          return addMountPointBuilder_.getMessageOrBuilder();
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder getInodeDirectoryOrBuilder() {
+        if ((entryCase_ == 10) && (inodeDirectoryBuilder_ != null)) {
+          return inodeDirectoryBuilder_.getMessageOrBuilder();
         } else {
           if (entryCase_ == 10) {
-            return (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_;
+            return (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_;
           }
-          return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+          return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder> 
-          getAddMountPointFieldBuilder() {
-        if (addMountPointBuilder_ == null) {
+          tachyon.proto.JournalEntryProtos.InodeDirectoryEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder> 
+          getInodeDirectoryFieldBuilder() {
+        if (inodeDirectoryBuilder_ == null) {
           if (!(entryCase_ == 10)) {
-            entry_ = tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
+            entry_ = tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
           }
-          addMountPointBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder>(
-                  (tachyon.proto.JournalEntryProtos.AddMountPointEntry) entry_,
+          inodeDirectoryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.InodeDirectoryEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) entry_,
                   getParentForChildren(),
                   isClean());
           entry_ = null;
         }
         entryCase_ = 10;
-        return addMountPointBuilder_;
+        return inodeDirectoryBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder> inodeDirectoryIdGeneratorBuilder_;
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public boolean hasInodeDirectoryIdGenerator() {
+        return entryCase_ == 11;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getInodeDirectoryIdGenerator() {
+        if (inodeDirectoryIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 11) {
+            return (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 11) {
+            return inodeDirectoryIdGeneratorBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public Builder setInodeDirectoryIdGenerator(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry value) {
+        if (inodeDirectoryIdGeneratorBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          inodeDirectoryIdGeneratorBuilder_.setMessage(value);
+        }
+        entryCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public Builder setInodeDirectoryIdGenerator(
+          tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder builderForValue) {
+        if (inodeDirectoryIdGeneratorBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          inodeDirectoryIdGeneratorBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public Builder mergeInodeDirectoryIdGenerator(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry value) {
+        if (inodeDirectoryIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 11 &&
+              entry_ != tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.newBuilder((tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 11) {
+            inodeDirectoryIdGeneratorBuilder_.mergeFrom(value);
+          }
+          inodeDirectoryIdGeneratorBuilder_.setMessage(value);
+        }
+        entryCase_ = 11;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public Builder clearInodeDirectoryIdGenerator() {
+        if (inodeDirectoryIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 11) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 11) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          inodeDirectoryIdGeneratorBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder getInodeDirectoryIdGeneratorBuilder() {
+        return getInodeDirectoryIdGeneratorFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder() {
+        if ((entryCase_ == 11) && (inodeDirectoryIdGeneratorBuilder_ != null)) {
+          return inodeDirectoryIdGeneratorBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 11) {
+            return (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder> 
+          getInodeDirectoryIdGeneratorFieldBuilder() {
+        if (inodeDirectoryIdGeneratorBuilder_ == null) {
+          if (!(entryCase_ == 11)) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+          }
+          inodeDirectoryIdGeneratorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 11;
+        return inodeDirectoryIdGeneratorBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeFileEntry, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder, tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder> inodeFileEntryBuilder_;
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public boolean hasInodeFileEntry() {
+        return entryCase_ == 12;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeFileEntry getInodeFileEntry() {
+        if (inodeFileEntryBuilder_ == null) {
+          if (entryCase_ == 12) {
+            return (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 12) {
+            return inodeFileEntryBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public Builder setInodeFileEntry(tachyon.proto.JournalEntryProtos.InodeFileEntry value) {
+        if (inodeFileEntryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          inodeFileEntryBuilder_.setMessage(value);
+        }
+        entryCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public Builder setInodeFileEntry(
+          tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder builderForValue) {
+        if (inodeFileEntryBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          inodeFileEntryBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public Builder mergeInodeFileEntry(tachyon.proto.JournalEntryProtos.InodeFileEntry value) {
+        if (inodeFileEntryBuilder_ == null) {
+          if (entryCase_ == 12 &&
+              entry_ != tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeFileEntry.newBuilder((tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 12) {
+            inodeFileEntryBuilder_.mergeFrom(value);
+          }
+          inodeFileEntryBuilder_.setMessage(value);
+        }
+        entryCase_ = 12;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public Builder clearInodeFileEntry() {
+        if (inodeFileEntryBuilder_ == null) {
+          if (entryCase_ == 12) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 12) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          inodeFileEntryBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder getInodeFileEntryBuilder() {
+        return getInodeFileEntryFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder() {
+        if ((entryCase_ == 12) && (inodeFileEntryBuilder_ != null)) {
+          return inodeFileEntryBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 12) {
+            return (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeFileEntry, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder, tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder> 
+          getInodeFileEntryFieldBuilder() {
+        if (inodeFileEntryBuilder_ == null) {
+          if (!(entryCase_ == 12)) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+          }
+          inodeFileEntryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.InodeFileEntry, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder, tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.InodeFileEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 12;
+        return inodeFileEntryBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder> inodeLastModificationTimeBuilder_;
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public boolean hasInodeLastModificationTime() {
+        return entryCase_ == 13;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getInodeLastModificationTime() {
+        if (inodeLastModificationTimeBuilder_ == null) {
+          if (entryCase_ == 13) {
+            return (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 13) {
+            return inodeLastModificationTimeBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public Builder setInodeLastModificationTime(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry value) {
+        if (inodeLastModificationTimeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          inodeLastModificationTimeBuilder_.setMessage(value);
+        }
+        entryCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public Builder setInodeLastModificationTime(
+          tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder builderForValue) {
+        if (inodeLastModificationTimeBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          inodeLastModificationTimeBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public Builder mergeInodeLastModificationTime(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry value) {
+        if (inodeLastModificationTimeBuilder_ == null) {
+          if (entryCase_ == 13 &&
+              entry_ != tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.newBuilder((tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 13) {
+            inodeLastModificationTimeBuilder_.mergeFrom(value);
+          }
+          inodeLastModificationTimeBuilder_.setMessage(value);
+        }
+        entryCase_ = 13;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public Builder clearInodeLastModificationTime() {
+        if (inodeLastModificationTimeBuilder_ == null) {
+          if (entryCase_ == 13) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 13) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          inodeLastModificationTimeBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder getInodeLastModificationTimeBuilder() {
+        return getInodeLastModificationTimeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder getInodeLastModificationTimeOrBuilder() {
+        if ((entryCase_ == 13) && (inodeLastModificationTimeBuilder_ != null)) {
+          return inodeLastModificationTimeBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 13) {
+            return (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder> 
+          getInodeLastModificationTimeFieldBuilder() {
+        if (inodeLastModificationTimeBuilder_ == null) {
+          if (!(entryCase_ == 13)) {
+            entry_ = tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+          }
+          inodeLastModificationTimeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 13;
+        return inodeLastModificationTimeBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder> lineageEntryBuilder_;
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public boolean hasLineageEntry() {
+        return entryCase_ == 14;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageEntry getLineageEntry() {
+        if (lineageEntryBuilder_ == null) {
+          if (entryCase_ == 14) {
+            return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 14) {
+            return lineageEntryBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public Builder setLineageEntry(tachyon.proto.JournalEntryProtos.LineageEntry value) {
+        if (lineageEntryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          lineageEntryBuilder_.setMessage(value);
+        }
+        entryCase_ = 14;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public Builder setLineageEntry(
+          tachyon.proto.JournalEntryProtos.LineageEntry.Builder builderForValue) {
+        if (lineageEntryBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          lineageEntryBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 14;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public Builder mergeLineageEntry(tachyon.proto.JournalEntryProtos.LineageEntry value) {
+        if (lineageEntryBuilder_ == null) {
+          if (entryCase_ == 14 &&
+              entry_ != tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder((tachyon.proto.JournalEntryProtos.LineageEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 14) {
+            lineageEntryBuilder_.mergeFrom(value);
+          }
+          lineageEntryBuilder_.setMessage(value);
+        }
+        entryCase_ = 14;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public Builder clearLineageEntry() {
+        if (lineageEntryBuilder_ == null) {
+          if (entryCase_ == 14) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 14) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          lineageEntryBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageEntry.Builder getLineageEntryBuilder() {
+        return getLineageEntryFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageEntryOrBuilder() {
+        if ((entryCase_ == 14) && (lineageEntryBuilder_ != null)) {
+          return lineageEntryBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 14) {
+            return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder> 
+          getLineageEntryFieldBuilder() {
+        if (lineageEntryBuilder_ == null) {
+          if (!(entryCase_ == 14)) {
+            entry_ = tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+          }
+          lineageEntryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.LineageEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 14;
+        return lineageEntryBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder> lineageIdGeneratorBuilder_;
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public boolean hasLineageIdGenerator() {
+        return entryCase_ == 15;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getLineageIdGenerator() {
+        if (lineageIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 15) {
+            return (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 15) {
+            return lineageIdGeneratorBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public Builder setLineageIdGenerator(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry value) {
+        if (lineageIdGeneratorBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          lineageIdGeneratorBuilder_.setMessage(value);
+        }
+        entryCase_ = 15;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public Builder setLineageIdGenerator(
+          tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder builderForValue) {
+        if (lineageIdGeneratorBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          lineageIdGeneratorBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 15;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public Builder mergeLineageIdGenerator(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry value) {
+        if (lineageIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 15 &&
+              entry_ != tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.newBuilder((tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 15) {
+            lineageIdGeneratorBuilder_.mergeFrom(value);
+          }
+          lineageIdGeneratorBuilder_.setMessage(value);
+        }
+        entryCase_ = 15;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public Builder clearLineageIdGenerator() {
+        if (lineageIdGeneratorBuilder_ == null) {
+          if (entryCase_ == 15) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 15) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          lineageIdGeneratorBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder getLineageIdGeneratorBuilder() {
+        return getLineageIdGeneratorFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder() {
+        if ((entryCase_ == 15) && (lineageIdGeneratorBuilder_ != null)) {
+          return lineageIdGeneratorBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 15) {
+            return (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder> 
+          getLineageIdGeneratorFieldBuilder() {
+        if (lineageIdGeneratorBuilder_ == null) {
+          if (!(entryCase_ == 15)) {
+            entry_ = tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+          }
+          lineageIdGeneratorBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 15;
+        return lineageIdGeneratorBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistDirectoryEntry, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder> persistDirectoryBuilder_;
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public boolean hasPersistDirectory() {
+        return entryCase_ == 16;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getPersistDirectory() {
+        if (persistDirectoryBuilder_ == null) {
+          if (entryCase_ == 16) {
+            return (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 16) {
+            return persistDirectoryBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public Builder setPersistDirectory(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry value) {
+        if (persistDirectoryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          persistDirectoryBuilder_.setMessage(value);
+        }
+        entryCase_ = 16;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public Builder setPersistDirectory(
+          tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder builderForValue) {
+        if (persistDirectoryBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          persistDirectoryBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 16;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public Builder mergePersistDirectory(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry value) {
+        if (persistDirectoryBuilder_ == null) {
+          if (entryCase_ == 16 &&
+              entry_ != tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.newBuilder((tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 16) {
+            persistDirectoryBuilder_.mergeFrom(value);
+          }
+          persistDirectoryBuilder_.setMessage(value);
+        }
+        entryCase_ = 16;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public Builder clearPersistDirectory() {
+        if (persistDirectoryBuilder_ == null) {
+          if (entryCase_ == 16) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 16) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          persistDirectoryBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder getPersistDirectoryBuilder() {
+        return getPersistDirectoryFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder() {
+        if ((entryCase_ == 16) && (persistDirectoryBuilder_ != null)) {
+          return persistDirectoryBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 16) {
+            return (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistDirectoryEntry, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder> 
+          getPersistDirectoryFieldBuilder() {
+        if (persistDirectoryBuilder_ == null) {
+          if (!(entryCase_ == 16)) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+          }
+          persistDirectoryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.PersistDirectoryEntry, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 16;
+        return persistDirectoryBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistFileEntry, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder> persistFileBuilder_;
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public boolean hasPersistFile() {
+        return entryCase_ == 17;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFileEntry getPersistFile() {
+        if (persistFileBuilder_ == null) {
+          if (entryCase_ == 17) {
+            return (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 17) {
+            return persistFileBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public Builder setPersistFile(tachyon.proto.JournalEntryProtos.PersistFileEntry value) {
+        if (persistFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          persistFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 17;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public Builder setPersistFile(
+          tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder builderForValue) {
+        if (persistFileBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          persistFileBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 17;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public Builder mergePersistFile(tachyon.proto.JournalEntryProtos.PersistFileEntry value) {
+        if (persistFileBuilder_ == null) {
+          if (entryCase_ == 17 &&
+              entry_ != tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistFileEntry.newBuilder((tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 17) {
+            persistFileBuilder_.mergeFrom(value);
+          }
+          persistFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 17;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public Builder clearPersistFile() {
+        if (persistFileBuilder_ == null) {
+          if (entryCase_ == 17) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 17) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          persistFileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder getPersistFileBuilder() {
+        return getPersistFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder getPersistFileOrBuilder() {
+        if ((entryCase_ == 17) && (persistFileBuilder_ != null)) {
+          return persistFileBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 17) {
+            return (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistFileEntry, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder> 
+          getPersistFileFieldBuilder() {
+        if (persistFileBuilder_ == null) {
+          if (!(entryCase_ == 17)) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+          }
+          persistFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.PersistFileEntry, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.PersistFileEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 17;
+        return persistFileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder> persisterFilesBuilder_;
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public boolean hasPersisterFiles() {
+        return entryCase_ == 18;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersisterFiles() {
+        if (persisterFilesBuilder_ == null) {
+          if (entryCase_ == 18) {
+            return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 18) {
+            return persisterFilesBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public Builder setPersisterFiles(tachyon.proto.JournalEntryProtos.PersistFilesEntry value) {
+        if (persisterFilesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          persisterFilesBuilder_.setMessage(value);
+        }
+        entryCase_ = 18;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public Builder setPersisterFiles(
+          tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder builderForValue) {
+        if (persisterFilesBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          persisterFilesBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 18;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public Builder mergePersisterFiles(tachyon.proto.JournalEntryProtos.PersistFilesEntry value) {
+        if (persisterFilesBuilder_ == null) {
+          if (entryCase_ == 18 &&
+              entry_ != tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistFilesEntry.newBuilder((tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 18) {
+            persisterFilesBuilder_.mergeFrom(value);
+          }
+          persisterFilesBuilder_.setMessage(value);
+        }
+        entryCase_ = 18;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public Builder clearPersisterFiles() {
+        if (persisterFilesBuilder_ == null) {
+          if (entryCase_ == 18) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 18) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          persisterFilesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder getPersisterFilesBuilder() {
+        return getPersisterFilesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersisterFilesOrBuilder() {
+        if ((entryCase_ == 18) && (persisterFilesBuilder_ != null)) {
+          return persisterFilesBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 18) {
+            return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder> 
+          getPersisterFilesFieldBuilder() {
+        if (persisterFilesBuilder_ == null) {
+          if (!(entryCase_ == 18)) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+          }
+          persisterFilesBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 18;
+        return persisterFilesBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder> persistFilesRequestBuilder_;
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public boolean hasPersistFilesRequest() {
+        return entryCase_ == 19;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getPersistFilesRequest() {
+        if (persistFilesRequestBuilder_ == null) {
+          if (entryCase_ == 19) {
+            return (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 19) {
+            return persistFilesRequestBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public Builder setPersistFilesRequest(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry value) {
+        if (persistFilesRequestBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          persistFilesRequestBuilder_.setMessage(value);
+        }
+        entryCase_ = 19;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public Builder setPersistFilesRequest(
+          tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder builderForValue) {
+        if (persistFilesRequestBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          persistFilesRequestBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 19;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public Builder mergePersistFilesRequest(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry value) {
+        if (persistFilesRequestBuilder_ == null) {
+          if (entryCase_ == 19 &&
+              entry_ != tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.newBuilder((tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 19) {
+            persistFilesRequestBuilder_.mergeFrom(value);
+          }
+          persistFilesRequestBuilder_.setMessage(value);
+        }
+        entryCase_ = 19;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public Builder clearPersistFilesRequest() {
+        if (persistFilesRequestBuilder_ == null) {
+          if (entryCase_ == 19) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 19) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          persistFilesRequestBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder getPersistFilesRequestBuilder() {
+        return getPersistFilesRequestFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder() {
+        if ((entryCase_ == 19) && (persistFilesRequestBuilder_ != null)) {
+          return persistFilesRequestBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 19) {
+            return (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder> 
+          getPersistFilesRequestFieldBuilder() {
+        if (persistFilesRequestBuilder_ == null) {
+          if (!(entryCase_ == 19)) {
+            entry_ = tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+          }
+          persistFilesRequestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 19;
+        return persistFilesRequestBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.RawTableEntry, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder, tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder> rawTableBuilder_;
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public boolean hasRawTable() {
+        return entryCase_ == 20;
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.RawTableEntry getRawTable() {
+        if (rawTableBuilder_ == null) {
+          if (entryCase_ == 20) {
+            return (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 20) {
+            return rawTableBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public Builder setRawTable(tachyon.proto.JournalEntryProtos.RawTableEntry value) {
+        if (rawTableBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          rawTableBuilder_.setMessage(value);
+        }
+        entryCase_ = 20;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public Builder setRawTable(
+          tachyon.proto.JournalEntryProtos.RawTableEntry.Builder builderForValue) {
+        if (rawTableBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          rawTableBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 20;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public Builder mergeRawTable(tachyon.proto.JournalEntryProtos.RawTableEntry value) {
+        if (rawTableBuilder_ == null) {
+          if (entryCase_ == 20 &&
+              entry_ != tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.RawTableEntry.newBuilder((tachyon.proto.JournalEntryProtos.RawTableEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 20) {
+            rawTableBuilder_.mergeFrom(value);
+          }
+          rawTableBuilder_.setMessage(value);
+        }
+        entryCase_ = 20;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public Builder clearRawTable() {
+        if (rawTableBuilder_ == null) {
+          if (entryCase_ == 20) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 20) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          rawTableBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.RawTableEntry.Builder getRawTableBuilder() {
+        return getRawTableFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder getRawTableOrBuilder() {
+        if ((entryCase_ == 20) && (rawTableBuilder_ != null)) {
+          return rawTableBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 20) {
+            return (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.RawTableEntry, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder, tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder> 
+          getRawTableFieldBuilder() {
+        if (rawTableBuilder_ == null) {
+          if (!(entryCase_ == 20)) {
+            entry_ = tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+          }
+          rawTableBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.RawTableEntry, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder, tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.RawTableEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 20;
+        return rawTableBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.ReinitializeFileEntry, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder, tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder> reinitializeFileBuilder_;
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public boolean hasReinitializeFile() {
+        return entryCase_ == 21;
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getReinitializeFile() {
+        if (reinitializeFileBuilder_ == null) {
+          if (entryCase_ == 21) {
+            return (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 21) {
+            return reinitializeFileBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public Builder setReinitializeFile(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry value) {
+        if (reinitializeFileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          reinitializeFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 21;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public Builder setReinitializeFile(
+          tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder builderForValue) {
+        if (reinitializeFileBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          reinitializeFileBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 21;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public Builder mergeReinitializeFile(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry value) {
+        if (reinitializeFileBuilder_ == null) {
+          if (entryCase_ == 21 &&
+              entry_ != tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.newBuilder((tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 21) {
+            reinitializeFileBuilder_.mergeFrom(value);
+          }
+          reinitializeFileBuilder_.setMessage(value);
+        }
+        entryCase_ = 21;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public Builder clearReinitializeFile() {
+        if (reinitializeFileBuilder_ == null) {
+          if (entryCase_ == 21) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 21) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          reinitializeFileBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder getReinitializeFileBuilder() {
+        return getReinitializeFileFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
+        if ((entryCase_ == 21) && (reinitializeFileBuilder_ != null)) {
+          return reinitializeFileBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 21) {
+            return (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.ReinitializeFileEntry, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder, tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder> 
+          getReinitializeFileFieldBuilder() {
+        if (reinitializeFileBuilder_ == null) {
+          if (!(entryCase_ == 21)) {
+            entry_ = tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+          }
+          reinitializeFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.ReinitializeFileEntry, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder, tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 21;
+        return reinitializeFileBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.RenameEntry, tachyon.proto.JournalEntryProtos.RenameEntry.Builder, tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder> renameBuilder_;
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public boolean hasRename() {
+        return entryCase_ == 22;
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.RenameEntry getRename() {
+        if (renameBuilder_ == null) {
+          if (entryCase_ == 22) {
+            return (tachyon.proto.JournalEntryProtos.RenameEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 22) {
+            return renameBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public Builder setRename(tachyon.proto.JournalEntryProtos.RenameEntry value) {
+        if (renameBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          renameBuilder_.setMessage(value);
+        }
+        entryCase_ = 22;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public Builder setRename(
+          tachyon.proto.JournalEntryProtos.RenameEntry.Builder builderForValue) {
+        if (renameBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          renameBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 22;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public Builder mergeRename(tachyon.proto.JournalEntryProtos.RenameEntry value) {
+        if (renameBuilder_ == null) {
+          if (entryCase_ == 22 &&
+              entry_ != tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.RenameEntry.newBuilder((tachyon.proto.JournalEntryProtos.RenameEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 22) {
+            renameBuilder_.mergeFrom(value);
+          }
+          renameBuilder_.setMessage(value);
+        }
+        entryCase_ = 22;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public Builder clearRename() {
+        if (renameBuilder_ == null) {
+          if (entryCase_ == 22) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 22) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          renameBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.RenameEntry.Builder getRenameBuilder() {
+        return getRenameFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder getRenameOrBuilder() {
+        if ((entryCase_ == 22) && (renameBuilder_ != null)) {
+          return renameBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 22) {
+            return (tachyon.proto.JournalEntryProtos.RenameEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.RenameEntry rename = 22;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.RenameEntry, tachyon.proto.JournalEntryProtos.RenameEntry.Builder, tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder> 
+          getRenameFieldBuilder() {
+        if (renameBuilder_ == null) {
+          if (!(entryCase_ == 22)) {
+            entry_ = tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+          }
+          renameBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.RenameEntry, tachyon.proto.JournalEntryProtos.RenameEntry.Builder, tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.RenameEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 22;
+        return renameBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.SetStateEntry, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder, tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder> setStateBuilder_;
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public boolean hasSetState() {
+        return entryCase_ == 23;
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.SetStateEntry getSetState() {
+        if (setStateBuilder_ == null) {
+          if (entryCase_ == 23) {
+            return (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 23) {
+            return setStateBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public Builder setSetState(tachyon.proto.JournalEntryProtos.SetStateEntry value) {
+        if (setStateBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          setStateBuilder_.setMessage(value);
+        }
+        entryCase_ = 23;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public Builder setSetState(
+          tachyon.proto.JournalEntryProtos.SetStateEntry.Builder builderForValue) {
+        if (setStateBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          setStateBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 23;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public Builder mergeSetState(tachyon.proto.JournalEntryProtos.SetStateEntry value) {
+        if (setStateBuilder_ == null) {
+          if (entryCase_ == 23 &&
+              entry_ != tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.SetStateEntry.newBuilder((tachyon.proto.JournalEntryProtos.SetStateEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 23) {
+            setStateBuilder_.mergeFrom(value);
+          }
+          setStateBuilder_.setMessage(value);
+        }
+        entryCase_ = 23;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public Builder clearSetState() {
+        if (setStateBuilder_ == null) {
+          if (entryCase_ == 23) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 23) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          setStateBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.SetStateEntry.Builder getSetStateBuilder() {
+        return getSetStateFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder getSetStateOrBuilder() {
+        if ((entryCase_ == 23) && (setStateBuilder_ != null)) {
+          return setStateBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 23) {
+            return (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.SetStateEntry, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder, tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder> 
+          getSetStateFieldBuilder() {
+        if (setStateBuilder_ == null) {
+          if (!(entryCase_ == 23)) {
+            entry_ = tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+          }
+          setStateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.SetStateEntry, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder, tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.SetStateEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 23;
+        return setStateBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.UpdateMetadataEntry, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder, tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder> updateMetadataBuilder_;
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public boolean hasUpdateMetadata() {
+        return entryCase_ == 24;
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getUpdateMetadata() {
+        if (updateMetadataBuilder_ == null) {
+          if (entryCase_ == 24) {
+            return (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
+        } else {
+          if (entryCase_ == 24) {
+            return updateMetadataBuilder_.getMessage();
+          }
+          return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public Builder setUpdateMetadata(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry value) {
+        if (updateMetadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          entry_ = value;
+          onChanged();
+        } else {
+          updateMetadataBuilder_.setMessage(value);
+        }
+        entryCase_ = 24;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public Builder setUpdateMetadata(
+          tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder builderForValue) {
+        if (updateMetadataBuilder_ == null) {
+          entry_ = builderForValue.build();
+          onChanged();
+        } else {
+          updateMetadataBuilder_.setMessage(builderForValue.build());
+        }
+        entryCase_ = 24;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public Builder mergeUpdateMetadata(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry value) {
+        if (updateMetadataBuilder_ == null) {
+          if (entryCase_ == 24 &&
+              entry_ != tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.newBuilder((tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            entry_ = value;
+          }
+          onChanged();
+        } else {
+          if (entryCase_ == 24) {
+            updateMetadataBuilder_.mergeFrom(value);
+          }
+          updateMetadataBuilder_.setMessage(value);
+        }
+        entryCase_ = 24;
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public Builder clearUpdateMetadata() {
+        if (updateMetadataBuilder_ == null) {
+          if (entryCase_ == 24) {
+            entryCase_ = 0;
+            entry_ = null;
+            onChanged();
+          }
+        } else {
+          if (entryCase_ == 24) {
+            entryCase_ = 0;
+            entry_ = null;
+          }
+          updateMetadataBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder getUpdateMetadataBuilder() {
+        return getUpdateMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder() {
+        if ((entryCase_ == 24) && (updateMetadataBuilder_ != null)) {
+          return updateMetadataBuilder_.getMessageOrBuilder();
+        } else {
+          if (entryCase_ == 24) {
+            return (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_;
+          }
+          return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          tachyon.proto.JournalEntryProtos.UpdateMetadataEntry, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder, tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder> 
+          getUpdateMetadataFieldBuilder() {
+        if (updateMetadataBuilder_ == null) {
+          if (!(entryCase_ == 24)) {
+            entry_ = tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
+          }
+          updateMetadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.JournalEntryProtos.UpdateMetadataEntry, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder, tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder>(
+                  (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) entry_,
+                  getParentForChildren(),
+                  isClean());
+          entry_ = null;
+        }
+        entryCase_ = 24;
+        return updateMetadataBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:tachyon.proto.JournalEntry)
@@ -1295,6 +5958,13359 @@ public final class JournalEntryProtos {
     // @@protoc_insertion_point(class_scope:tachyon.proto.AddMountPointEntry)
   }
 
+  public interface AsyncCompleteFileEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.AsyncCompleteFileEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 fileId = 1;</code>
+     */
+    boolean hasFileId();
+    /**
+     * <code>optional int64 fileId = 1;</code>
+     */
+    long getFileId();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.AsyncCompleteFileEntry}
+   */
+  public static final class AsyncCompleteFileEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.AsyncCompleteFileEntry)
+      AsyncCompleteFileEntryOrBuilder {
+    // Use AsyncCompleteFileEntry.newBuilder() to construct.
+    private AsyncCompleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private AsyncCompleteFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final AsyncCompleteFileEntry defaultInstance;
+    public static AsyncCompleteFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public AsyncCompleteFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private AsyncCompleteFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              fileId_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_AsyncCompleteFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_AsyncCompleteFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.class, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<AsyncCompleteFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<AsyncCompleteFileEntry>() {
+      public AsyncCompleteFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new AsyncCompleteFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AsyncCompleteFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int FILEID_FIELD_NUMBER = 1;
+    private long fileId_;
+    /**
+     * <code>optional int64 fileId = 1;</code>
+     */
+    public boolean hasFileId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 fileId = 1;</code>
+     */
+    public long getFileId() {
+      return fileId_;
+    }
+
+    private void initFields() {
+      fileId_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, fileId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, fileId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.AsyncCompleteFileEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.AsyncCompleteFileEntry)
+        tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_AsyncCompleteFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_AsyncCompleteFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.class, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        fileId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_AsyncCompleteFileEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry build() {
+        tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry result = new tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.fileId_ = fileId_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance()) return this;
+        if (other.hasFileId()) {
+          setFileId(other.getFileId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long fileId_ ;
+      /**
+       * <code>optional int64 fileId = 1;</code>
+       */
+      public boolean hasFileId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 fileId = 1;</code>
+       */
+      public long getFileId() {
+        return fileId_;
+      }
+      /**
+       * <code>optional int64 fileId = 1;</code>
+       */
+      public Builder setFileId(long value) {
+        bitField0_ |= 0x00000001;
+        fileId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 fileId = 1;</code>
+       */
+      public Builder clearFileId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        fileId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.AsyncCompleteFileEntry)
+    }
+
+    static {
+      defaultInstance = new AsyncCompleteFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.AsyncCompleteFileEntry)
+  }
+
+  public interface BlockContainerIdGeneratorEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.BlockContainerIdGeneratorEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 nextContainerId = 1;</code>
+     */
+    boolean hasNextContainerId();
+    /**
+     * <code>optional int64 nextContainerId = 1;</code>
+     */
+    long getNextContainerId();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.BlockContainerIdGeneratorEntry}
+   */
+  public static final class BlockContainerIdGeneratorEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.BlockContainerIdGeneratorEntry)
+      BlockContainerIdGeneratorEntryOrBuilder {
+    // Use BlockContainerIdGeneratorEntry.newBuilder() to construct.
+    private BlockContainerIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private BlockContainerIdGeneratorEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final BlockContainerIdGeneratorEntry defaultInstance;
+    public static BlockContainerIdGeneratorEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public BlockContainerIdGeneratorEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private BlockContainerIdGeneratorEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              nextContainerId_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.class, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<BlockContainerIdGeneratorEntry> PARSER =
+        new com.google.protobuf.AbstractParser<BlockContainerIdGeneratorEntry>() {
+      public BlockContainerIdGeneratorEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new BlockContainerIdGeneratorEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<BlockContainerIdGeneratorEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int NEXTCONTAINERID_FIELD_NUMBER = 1;
+    private long nextContainerId_;
+    /**
+     * <code>optional int64 nextContainerId = 1;</code>
+     */
+    public boolean hasNextContainerId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 nextContainerId = 1;</code>
+     */
+    public long getNextContainerId() {
+      return nextContainerId_;
+    }
+
+    private void initFields() {
+      nextContainerId_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, nextContainerId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, nextContainerId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.BlockContainerIdGeneratorEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.BlockContainerIdGeneratorEntry)
+        tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.class, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        nextContainerId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry build() {
+        tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry result = new tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.nextContainerId_ = nextContainerId_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance()) return this;
+        if (other.hasNextContainerId()) {
+          setNextContainerId(other.getNextContainerId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long nextContainerId_ ;
+      /**
+       * <code>optional int64 nextContainerId = 1;</code>
+       */
+      public boolean hasNextContainerId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 nextContainerId = 1;</code>
+       */
+      public long getNextContainerId() {
+        return nextContainerId_;
+      }
+      /**
+       * <code>optional int64 nextContainerId = 1;</code>
+       */
+      public Builder setNextContainerId(long value) {
+        bitField0_ |= 0x00000001;
+        nextContainerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 nextContainerId = 1;</code>
+       */
+      public Builder clearNextContainerId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        nextContainerId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.BlockContainerIdGeneratorEntry)
+    }
+
+    static {
+      defaultInstance = new BlockContainerIdGeneratorEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.BlockContainerIdGeneratorEntry)
+  }
+
+  public interface BlockInfoEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.BlockInfoEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 blockId = 1;</code>
+     */
+    boolean hasBlockId();
+    /**
+     * <code>optional int64 blockId = 1;</code>
+     */
+    long getBlockId();
+
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    boolean hasLength();
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    long getLength();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.BlockInfoEntry}
+   */
+  public static final class BlockInfoEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.BlockInfoEntry)
+      BlockInfoEntryOrBuilder {
+    // Use BlockInfoEntry.newBuilder() to construct.
+    private BlockInfoEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private BlockInfoEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final BlockInfoEntry defaultInstance;
+    public static BlockInfoEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public BlockInfoEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private BlockInfoEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              blockId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              length_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockInfoEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockInfoEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.BlockInfoEntry.class, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<BlockInfoEntry> PARSER =
+        new com.google.protobuf.AbstractParser<BlockInfoEntry>() {
+      public BlockInfoEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new BlockInfoEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<BlockInfoEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int BLOCKID_FIELD_NUMBER = 1;
+    private long blockId_;
+    /**
+     * <code>optional int64 blockId = 1;</code>
+     */
+    public boolean hasBlockId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 blockId = 1;</code>
+     */
+    public long getBlockId() {
+      return blockId_;
+    }
+
+    public static final int LENGTH_FIELD_NUMBER = 2;
+    private long length_;
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    public boolean hasLength() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    public long getLength() {
+      return length_;
+    }
+
+    private void initFields() {
+      blockId_ = 0L;
+      length_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, length_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, blockId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, length_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.BlockInfoEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.BlockInfoEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.BlockInfoEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.BlockInfoEntry)
+        tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockInfoEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockInfoEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.BlockInfoEntry.class, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.BlockInfoEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        blockId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        length_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_BlockInfoEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.BlockInfoEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.BlockInfoEntry build() {
+        tachyon.proto.JournalEntryProtos.BlockInfoEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.BlockInfoEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.BlockInfoEntry result = new tachyon.proto.JournalEntryProtos.BlockInfoEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.length_ = length_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.BlockInfoEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.BlockInfoEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.BlockInfoEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance()) return this;
+        if (other.hasBlockId()) {
+          setBlockId(other.getBlockId());
+        }
+        if (other.hasLength()) {
+          setLength(other.getLength());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.BlockInfoEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.BlockInfoEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long blockId_ ;
+      /**
+       * <code>optional int64 blockId = 1;</code>
+       */
+      public boolean hasBlockId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 blockId = 1;</code>
+       */
+      public long getBlockId() {
+        return blockId_;
+      }
+      /**
+       * <code>optional int64 blockId = 1;</code>
+       */
+      public Builder setBlockId(long value) {
+        bitField0_ |= 0x00000001;
+        blockId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 blockId = 1;</code>
+       */
+      public Builder clearBlockId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long length_ ;
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public boolean hasLength() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public long getLength() {
+        return length_;
+      }
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public Builder setLength(long value) {
+        bitField0_ |= 0x00000002;
+        length_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public Builder clearLength() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        length_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.BlockInfoEntry)
+    }
+
+    static {
+      defaultInstance = new BlockInfoEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.BlockInfoEntry)
+  }
+
+  public interface CompleteFileEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.CompleteFileEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated int64 blockIds = 1;</code>
+     */
+    java.util.List<java.lang.Long> getBlockIdsList();
+    /**
+     * <code>repeated int64 blockIds = 1;</code>
+     */
+    int getBlockIdsCount();
+    /**
+     * <code>repeated int64 blockIds = 1;</code>
+     */
+    long getBlockIds(int index);
+
+    /**
+     * <code>optional int64 id = 2;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 2;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    boolean hasLength();
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    long getLength();
+
+    /**
+     * <code>optional int64 opTimeMs = 4;</code>
+     */
+    boolean hasOpTimeMs();
+    /**
+     * <code>optional int64 opTimeMs = 4;</code>
+     */
+    long getOpTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.CompleteFileEntry}
+   */
+  public static final class CompleteFileEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.CompleteFileEntry)
+      CompleteFileEntryOrBuilder {
+    // Use CompleteFileEntry.newBuilder() to construct.
+    private CompleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private CompleteFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final CompleteFileEntry defaultInstance;
+    public static CompleteFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public CompleteFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private CompleteFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                blockIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              blockIds_.add(input.readInt64());
+              break;
+            }
+            case 10: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
+                blockIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                blockIds_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000002;
+              length_ = input.readInt64();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000004;
+              opTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_CompleteFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_CompleteFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.CompleteFileEntry.class, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<CompleteFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<CompleteFileEntry>() {
+      public CompleteFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompleteFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompleteFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int BLOCKIDS_FIELD_NUMBER = 1;
+    private java.util.List<java.lang.Long> blockIds_;
+    /**
+     * <code>repeated int64 blockIds = 1;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getBlockIdsList() {
+      return blockIds_;
+    }
+    /**
+     * <code>repeated int64 blockIds = 1;</code>
+     */
+    public int getBlockIdsCount() {
+      return blockIds_.size();
+    }
+    /**
+     * <code>repeated int64 blockIds = 1;</code>
+     */
+    public long getBlockIds(int index) {
+      return blockIds_.get(index);
+    }
+
+    public static final int ID_FIELD_NUMBER = 2;
+    private long id_;
+    /**
+     * <code>optional int64 id = 2;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 2;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int LENGTH_FIELD_NUMBER = 3;
+    private long length_;
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    public boolean hasLength() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 length = 3;</code>
+     */
+    public long getLength() {
+      return length_;
+    }
+
+    public static final int OPTIMEMS_FIELD_NUMBER = 4;
+    private long opTimeMs_;
+    /**
+     * <code>optional int64 opTimeMs = 4;</code>
+     */
+    public boolean hasOpTimeMs() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 opTimeMs = 4;</code>
+     */
+    public long getOpTimeMs() {
+      return opTimeMs_;
+    }
+
+    private void initFields() {
+      blockIds_ = java.util.Collections.emptyList();
+      id_ = 0L;
+      length_ = 0L;
+      opTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < blockIds_.size(); i++) {
+        output.writeInt64(1, blockIds_.get(i));
+      }
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(2, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(3, length_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(4, opTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < blockIds_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(blockIds_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getBlockIdsList().size();
+      }
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, length_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, opTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.CompleteFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.CompleteFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.CompleteFileEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.CompleteFileEntry)
+        tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_CompleteFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_CompleteFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.CompleteFileEntry.class, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.CompleteFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        blockIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        length_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        opTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_CompleteFileEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.CompleteFileEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.CompleteFileEntry build() {
+        tachyon.proto.JournalEntryProtos.CompleteFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.CompleteFileEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.CompleteFileEntry result = new tachyon.proto.JournalEntryProtos.CompleteFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.blockIds_ = blockIds_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.length_ = length_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.opTimeMs_ = opTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.CompleteFileEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.CompleteFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.CompleteFileEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance()) return this;
+        if (!other.blockIds_.isEmpty()) {
+          if (blockIds_.isEmpty()) {
+            blockIds_ = other.blockIds_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureBlockIdsIsMutable();
+            blockIds_.addAll(other.blockIds_);
+          }
+          onChanged();
+        }
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasLength()) {
+          setLength(other.getLength());
+        }
+        if (other.hasOpTimeMs()) {
+          setOpTimeMs(other.getOpTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.CompleteFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.CompleteFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<java.lang.Long> blockIds_ = java.util.Collections.emptyList();
+      private void ensureBlockIdsIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          blockIds_ = new java.util.ArrayList<java.lang.Long>(blockIds_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getBlockIdsList() {
+        return java.util.Collections.unmodifiableList(blockIds_);
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public int getBlockIdsCount() {
+        return blockIds_.size();
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public long getBlockIds(int index) {
+        return blockIds_.get(index);
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public Builder setBlockIds(
+          int index, long value) {
+        ensureBlockIdsIsMutable();
+        blockIds_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public Builder addBlockIds(long value) {
+        ensureBlockIdsIsMutable();
+        blockIds_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public Builder addAllBlockIds(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureBlockIdsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, blockIds_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blockIds = 1;</code>
+       */
+      public Builder clearBlockIds() {
+        blockIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 2;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 id = 2;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 2;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000002;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 2;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long length_ ;
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public boolean hasLength() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public long getLength() {
+        return length_;
+      }
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public Builder setLength(long value) {
+        bitField0_ |= 0x00000004;
+        length_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 length = 3;</code>
+       */
+      public Builder clearLength() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        length_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long opTimeMs_ ;
+      /**
+       * <code>optional int64 opTimeMs = 4;</code>
+       */
+      public boolean hasOpTimeMs() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 opTimeMs = 4;</code>
+       */
+      public long getOpTimeMs() {
+        return opTimeMs_;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 4;</code>
+       */
+      public Builder setOpTimeMs(long value) {
+        bitField0_ |= 0x00000008;
+        opTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 4;</code>
+       */
+      public Builder clearOpTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.CompleteFileEntry)
+    }
+
+    static {
+      defaultInstance = new CompleteFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.CompleteFileEntry)
+  }
+
+  public interface DeleteFileEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.DeleteFileEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional bool recursive = 2;</code>
+     */
+    boolean hasRecursive();
+    /**
+     * <code>optional bool recursive = 2;</code>
+     */
+    boolean getRecursive();
+
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    boolean hasOpTimeMs();
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    long getOpTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.DeleteFileEntry}
+   */
+  public static final class DeleteFileEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.DeleteFileEntry)
+      DeleteFileEntryOrBuilder {
+    // Use DeleteFileEntry.newBuilder() to construct.
+    private DeleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private DeleteFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final DeleteFileEntry defaultInstance;
+    public static DeleteFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public DeleteFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DeleteFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              recursive_ = input.readBool();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              opTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.DeleteFileEntry.class, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<DeleteFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<DeleteFileEntry>() {
+      public DeleteFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int RECURSIVE_FIELD_NUMBER = 2;
+    private boolean recursive_;
+    /**
+     * <code>optional bool recursive = 2;</code>
+     */
+    public boolean hasRecursive() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool recursive = 2;</code>
+     */
+    public boolean getRecursive() {
+      return recursive_;
+    }
+
+    public static final int OPTIMEMS_FIELD_NUMBER = 3;
+    private long opTimeMs_;
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    public boolean hasOpTimeMs() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    public long getOpTimeMs() {
+      return opTimeMs_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      recursive_ = false;
+      opTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(2, recursive_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, opTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, recursive_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, opTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.DeleteFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.DeleteFileEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.DeleteFileEntry)
+        tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.DeleteFileEntry.class, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.DeleteFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        recursive_ = false;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        opTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteFileEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteFileEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteFileEntry build() {
+        tachyon.proto.JournalEntryProtos.DeleteFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteFileEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.DeleteFileEntry result = new tachyon.proto.JournalEntryProtos.DeleteFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.recursive_ = recursive_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.opTimeMs_ = opTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.DeleteFileEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.DeleteFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.DeleteFileEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasRecursive()) {
+          setRecursive(other.getRecursive());
+        }
+        if (other.hasOpTimeMs()) {
+          setOpTimeMs(other.getOpTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.DeleteFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.DeleteFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean recursive_ ;
+      /**
+       * <code>optional bool recursive = 2;</code>
+       */
+      public boolean hasRecursive() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bool recursive = 2;</code>
+       */
+      public boolean getRecursive() {
+        return recursive_;
+      }
+      /**
+       * <code>optional bool recursive = 2;</code>
+       */
+      public Builder setRecursive(boolean value) {
+        bitField0_ |= 0x00000002;
+        recursive_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool recursive = 2;</code>
+       */
+      public Builder clearRecursive() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        recursive_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long opTimeMs_ ;
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public boolean hasOpTimeMs() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public long getOpTimeMs() {
+        return opTimeMs_;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public Builder setOpTimeMs(long value) {
+        bitField0_ |= 0x00000004;
+        opTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public Builder clearOpTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.DeleteFileEntry)
+    }
+
+    static {
+      defaultInstance = new DeleteFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.DeleteFileEntry)
+  }
+
+  public interface DeleteLineageEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.DeleteLineageEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 lineageId = 1;</code>
+     */
+    boolean hasLineageId();
+    /**
+     * <code>optional int64 lineageId = 1;</code>
+     */
+    long getLineageId();
+
+    /**
+     * <code>optional bool cascade = 2;</code>
+     */
+    boolean hasCascade();
+    /**
+     * <code>optional bool cascade = 2;</code>
+     */
+    boolean getCascade();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.DeleteLineageEntry}
+   */
+  public static final class DeleteLineageEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.DeleteLineageEntry)
+      DeleteLineageEntryOrBuilder {
+    // Use DeleteLineageEntry.newBuilder() to construct.
+    private DeleteLineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private DeleteLineageEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final DeleteLineageEntry defaultInstance;
+    public static DeleteLineageEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public DeleteLineageEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DeleteLineageEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              lineageId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              cascade_ = input.readBool();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteLineageEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteLineageEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.DeleteLineageEntry.class, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<DeleteLineageEntry> PARSER =
+        new com.google.protobuf.AbstractParser<DeleteLineageEntry>() {
+      public DeleteLineageEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteLineageEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteLineageEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int LINEAGEID_FIELD_NUMBER = 1;
+    private long lineageId_;
+    /**
+     * <code>optional int64 lineageId = 1;</code>
+     */
+    public boolean hasLineageId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 lineageId = 1;</code>
+     */
+    public long getLineageId() {
+      return lineageId_;
+    }
+
+    public static final int CASCADE_FIELD_NUMBER = 2;
+    private boolean cascade_;
+    /**
+     * <code>optional bool cascade = 2;</code>
+     */
+    public boolean hasCascade() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool cascade = 2;</code>
+     */
+    public boolean getCascade() {
+      return cascade_;
+    }
+
+    private void initFields() {
+      lineageId_ = 0L;
+      cascade_ = false;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, lineageId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(2, cascade_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, lineageId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, cascade_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteLineageEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.DeleteLineageEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.DeleteLineageEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.DeleteLineageEntry)
+        tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteLineageEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteLineageEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.DeleteLineageEntry.class, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.DeleteLineageEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        lineageId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        cascade_ = false;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteLineageEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteLineageEntry build() {
+        tachyon.proto.JournalEntryProtos.DeleteLineageEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteLineageEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.DeleteLineageEntry result = new tachyon.proto.JournalEntryProtos.DeleteLineageEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.lineageId_ = lineageId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.cascade_ = cascade_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.DeleteLineageEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.DeleteLineageEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.DeleteLineageEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance()) return this;
+        if (other.hasLineageId()) {
+          setLineageId(other.getLineageId());
+        }
+        if (other.hasCascade()) {
+          setCascade(other.getCascade());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.DeleteLineageEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.DeleteLineageEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long lineageId_ ;
+      /**
+       * <code>optional int64 lineageId = 1;</code>
+       */
+      public boolean hasLineageId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 lineageId = 1;</code>
+       */
+      public long getLineageId() {
+        return lineageId_;
+      }
+      /**
+       * <code>optional int64 lineageId = 1;</code>
+       */
+      public Builder setLineageId(long value) {
+        bitField0_ |= 0x00000001;
+        lineageId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 lineageId = 1;</code>
+       */
+      public Builder clearLineageId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        lineageId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean cascade_ ;
+      /**
+       * <code>optional bool cascade = 2;</code>
+       */
+      public boolean hasCascade() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bool cascade = 2;</code>
+       */
+      public boolean getCascade() {
+        return cascade_;
+      }
+      /**
+       * <code>optional bool cascade = 2;</code>
+       */
+      public Builder setCascade(boolean value) {
+        bitField0_ |= 0x00000002;
+        cascade_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool cascade = 2;</code>
+       */
+      public Builder clearCascade() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        cascade_ = false;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.DeleteLineageEntry)
+    }
+
+    static {
+      defaultInstance = new DeleteLineageEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.DeleteLineageEntry)
+  }
+
+  public interface DeleteMountPointEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.DeleteMountPointEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string tachyonPath = 1;</code>
+     */
+    boolean hasTachyonPath();
+    /**
+     * <code>optional string tachyonPath = 1;</code>
+     */
+    java.lang.String getTachyonPath();
+    /**
+     * <code>optional string tachyonPath = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getTachyonPathBytes();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.DeleteMountPointEntry}
+   */
+  public static final class DeleteMountPointEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.DeleteMountPointEntry)
+      DeleteMountPointEntryOrBuilder {
+    // Use DeleteMountPointEntry.newBuilder() to construct.
+    private DeleteMountPointEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private DeleteMountPointEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final DeleteMountPointEntry defaultInstance;
+    public static DeleteMountPointEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public DeleteMountPointEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DeleteMountPointEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              tachyonPath_ = bs;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteMountPointEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteMountPointEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.class, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<DeleteMountPointEntry> PARSER =
+        new com.google.protobuf.AbstractParser<DeleteMountPointEntry>() {
+      public DeleteMountPointEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteMountPointEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteMountPointEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int TACHYONPATH_FIELD_NUMBER = 1;
+    private java.lang.Object tachyonPath_;
+    /**
+     * <code>optional string tachyonPath = 1;</code>
+     */
+    public boolean hasTachyonPath() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string tachyonPath = 1;</code>
+     */
+    public java.lang.String getTachyonPath() {
+      java.lang.Object ref = tachyonPath_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          tachyonPath_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string tachyonPath = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getTachyonPathBytes() {
+      java.lang.Object ref = tachyonPath_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tachyonPath_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      tachyonPath_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getTachyonPathBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getTachyonPathBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.DeleteMountPointEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.DeleteMountPointEntry)
+        tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteMountPointEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteMountPointEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.class, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        tachyonPath_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_DeleteMountPointEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry build() {
+        tachyon.proto.JournalEntryProtos.DeleteMountPointEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.DeleteMountPointEntry result = new tachyon.proto.JournalEntryProtos.DeleteMountPointEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.tachyonPath_ = tachyonPath_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.DeleteMountPointEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance()) return this;
+        if (other.hasTachyonPath()) {
+          bitField0_ |= 0x00000001;
+          tachyonPath_ = other.tachyonPath_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.DeleteMountPointEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.DeleteMountPointEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object tachyonPath_ = "";
+      /**
+       * <code>optional string tachyonPath = 1;</code>
+       */
+      public boolean hasTachyonPath() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional string tachyonPath = 1;</code>
+       */
+      public java.lang.String getTachyonPath() {
+        java.lang.Object ref = tachyonPath_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            tachyonPath_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string tachyonPath = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getTachyonPathBytes() {
+        java.lang.Object ref = tachyonPath_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          tachyonPath_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string tachyonPath = 1;</code>
+       */
+      public Builder setTachyonPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        tachyonPath_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string tachyonPath = 1;</code>
+       */
+      public Builder clearTachyonPath() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        tachyonPath_ = getDefaultInstance().getTachyonPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string tachyonPath = 1;</code>
+       */
+      public Builder setTachyonPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        tachyonPath_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.DeleteMountPointEntry)
+    }
+
+    static {
+      defaultInstance = new DeleteMountPointEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.DeleteMountPointEntry)
+  }
+
+  public interface InodeDirectoryEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.InodeDirectoryEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    boolean hasParentId();
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    long getParentId();
+
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    boolean hasName();
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    java.lang.String getName();
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    boolean hasPersisted();
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    boolean getPersisted();
+
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    boolean hasPinned();
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    boolean getPinned();
+
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    boolean hasCreationTimeMs();
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    long getCreationTimeMs();
+
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    boolean hasLastModificationTimeMs();
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    long getLastModificationTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.InodeDirectoryEntry}
+   */
+  public static final class InodeDirectoryEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.InodeDirectoryEntry)
+      InodeDirectoryEntryOrBuilder {
+    // Use InodeDirectoryEntry.newBuilder() to construct.
+    private InodeDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private InodeDirectoryEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeDirectoryEntry defaultInstance;
+    public static InodeDirectoryEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public InodeDirectoryEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private InodeDirectoryEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              parentId_ = input.readInt64();
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              name_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              persisted_ = input.readBool();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              pinned_ = input.readBool();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              creationTimeMs_ = input.readInt64();
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000040;
+              lastModificationTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.class, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeDirectoryEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeDirectoryEntry>() {
+      public InodeDirectoryEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeDirectoryEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeDirectoryEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int PARENTID_FIELD_NUMBER = 2;
+    private long parentId_;
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    public boolean hasParentId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    public long getParentId() {
+      return parentId_;
+    }
+
+    public static final int NAME_FIELD_NUMBER = 3;
+    private java.lang.Object name_;
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public boolean hasName() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          name_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PERSISTED_FIELD_NUMBER = 4;
+    private boolean persisted_;
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    public boolean hasPersisted() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    public boolean getPersisted() {
+      return persisted_;
+    }
+
+    public static final int PINNED_FIELD_NUMBER = 5;
+    private boolean pinned_;
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    public boolean hasPinned() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    public boolean getPinned() {
+      return pinned_;
+    }
+
+    public static final int CREATIONTIMEMS_FIELD_NUMBER = 6;
+    private long creationTimeMs_;
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    public boolean hasCreationTimeMs() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    public long getCreationTimeMs() {
+      return creationTimeMs_;
+    }
+
+    public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 7;
+    private long lastModificationTimeMs_;
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    public boolean hasLastModificationTimeMs() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    public long getLastModificationTimeMs() {
+      return lastModificationTimeMs_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      parentId_ = 0L;
+      name_ = "";
+      persisted_ = false;
+      pinned_ = false;
+      creationTimeMs_ = 0L;
+      lastModificationTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, parentId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getNameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBool(4, persisted_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(5, pinned_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeInt64(6, creationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        output.writeInt64(7, lastModificationTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, parentId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getNameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, persisted_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, pinned_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(6, creationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, lastModificationTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.InodeDirectoryEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.InodeDirectoryEntry)
+        tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.class, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        parentId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        name_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        persisted_ = false;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        pinned_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        creationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000020);
+        lastModificationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000040);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry build() {
+        tachyon.proto.JournalEntryProtos.InodeDirectoryEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.InodeDirectoryEntry result = new tachyon.proto.JournalEntryProtos.InodeDirectoryEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.parentId_ = parentId_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.name_ = name_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.persisted_ = persisted_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.pinned_ = pinned_;
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.creationTimeMs_ = creationTimeMs_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000040;
+        }
+        result.lastModificationTimeMs_ = lastModificationTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.InodeDirectoryEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasParentId()) {
+          setParentId(other.getParentId());
+        }
+        if (other.hasName()) {
+          bitField0_ |= 0x00000004;
+          name_ = other.name_;
+          onChanged();
+        }
+        if (other.hasPersisted()) {
+          setPersisted(other.getPersisted());
+        }
+        if (other.hasPinned()) {
+          setPinned(other.getPinned());
+        }
+        if (other.hasCreationTimeMs()) {
+          setCreationTimeMs(other.getCreationTimeMs());
+        }
+        if (other.hasLastModificationTimeMs()) {
+          setLastModificationTimeMs(other.getLastModificationTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.InodeDirectoryEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.InodeDirectoryEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long parentId_ ;
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public boolean hasParentId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public long getParentId() {
+        return parentId_;
+      }
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public Builder setParentId(long value) {
+        bitField0_ |= 0x00000002;
+        parentId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public Builder clearParentId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        parentId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public boolean hasName() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            name_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        name_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder clearName() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        name_ = getDefaultInstance().getName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        name_ = value;
+        onChanged();
+        return this;
+      }
+
+      private boolean persisted_ ;
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public boolean hasPersisted() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public boolean getPersisted() {
+        return persisted_;
+      }
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public Builder setPersisted(boolean value) {
+        bitField0_ |= 0x00000008;
+        persisted_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public Builder clearPersisted() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        persisted_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean pinned_ ;
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public boolean hasPinned() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public boolean getPinned() {
+        return pinned_;
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public Builder setPinned(boolean value) {
+        bitField0_ |= 0x00000010;
+        pinned_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public Builder clearPinned() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        pinned_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long creationTimeMs_ ;
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public boolean hasCreationTimeMs() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public long getCreationTimeMs() {
+        return creationTimeMs_;
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public Builder setCreationTimeMs(long value) {
+        bitField0_ |= 0x00000020;
+        creationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public Builder clearCreationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        creationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long lastModificationTimeMs_ ;
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public boolean hasLastModificationTimeMs() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public long getLastModificationTimeMs() {
+        return lastModificationTimeMs_;
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public Builder setLastModificationTimeMs(long value) {
+        bitField0_ |= 0x00000040;
+        lastModificationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public Builder clearLastModificationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        lastModificationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.InodeDirectoryEntry)
+    }
+
+    static {
+      defaultInstance = new InodeDirectoryEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.InodeDirectoryEntry)
+  }
+
+  public interface InodeDirectoryIdGeneratorEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.InodeDirectoryIdGeneratorEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 containerId = 1;</code>
+     */
+    boolean hasContainerId();
+    /**
+     * <code>optional int64 containerId = 1;</code>
+     */
+    long getContainerId();
+
+    /**
+     * <code>optional int64 sequenceNumber = 2;</code>
+     */
+    boolean hasSequenceNumber();
+    /**
+     * <code>optional int64 sequenceNumber = 2;</code>
+     */
+    long getSequenceNumber();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.InodeDirectoryIdGeneratorEntry}
+   */
+  public static final class InodeDirectoryIdGeneratorEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.InodeDirectoryIdGeneratorEntry)
+      InodeDirectoryIdGeneratorEntryOrBuilder {
+    // Use InodeDirectoryIdGeneratorEntry.newBuilder() to construct.
+    private InodeDirectoryIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private InodeDirectoryIdGeneratorEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeDirectoryIdGeneratorEntry defaultInstance;
+    public static InodeDirectoryIdGeneratorEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public InodeDirectoryIdGeneratorEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private InodeDirectoryIdGeneratorEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              containerId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              sequenceNumber_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.class, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeDirectoryIdGeneratorEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeDirectoryIdGeneratorEntry>() {
+      public InodeDirectoryIdGeneratorEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeDirectoryIdGeneratorEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeDirectoryIdGeneratorEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int CONTAINERID_FIELD_NUMBER = 1;
+    private long containerId_;
+    /**
+     * <code>optional int64 containerId = 1;</code>
+     */
+    public boolean hasContainerId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 containerId = 1;</code>
+     */
+    public long getContainerId() {
+      return containerId_;
+    }
+
+    public static final int SEQUENCENUMBER_FIELD_NUMBER = 2;
+    private long sequenceNumber_;
+    /**
+     * <code>optional int64 sequenceNumber = 2;</code>
+     */
+    public boolean hasSequenceNumber() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 sequenceNumber = 2;</code>
+     */
+    public long getSequenceNumber() {
+      return sequenceNumber_;
+    }
+
+    private void initFields() {
+      containerId_ = 0L;
+      sequenceNumber_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, containerId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, sequenceNumber_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, containerId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, sequenceNumber_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.InodeDirectoryIdGeneratorEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.InodeDirectoryIdGeneratorEntry)
+        tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.class, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        containerId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        sequenceNumber_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry build() {
+        tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry result = new tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.containerId_ = containerId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.sequenceNumber_ = sequenceNumber_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance()) return this;
+        if (other.hasContainerId()) {
+          setContainerId(other.getContainerId());
+        }
+        if (other.hasSequenceNumber()) {
+          setSequenceNumber(other.getSequenceNumber());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long containerId_ ;
+      /**
+       * <code>optional int64 containerId = 1;</code>
+       */
+      public boolean hasContainerId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 containerId = 1;</code>
+       */
+      public long getContainerId() {
+        return containerId_;
+      }
+      /**
+       * <code>optional int64 containerId = 1;</code>
+       */
+      public Builder setContainerId(long value) {
+        bitField0_ |= 0x00000001;
+        containerId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 containerId = 1;</code>
+       */
+      public Builder clearContainerId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        containerId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long sequenceNumber_ ;
+      /**
+       * <code>optional int64 sequenceNumber = 2;</code>
+       */
+      public boolean hasSequenceNumber() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 sequenceNumber = 2;</code>
+       */
+      public long getSequenceNumber() {
+        return sequenceNumber_;
+      }
+      /**
+       * <code>optional int64 sequenceNumber = 2;</code>
+       */
+      public Builder setSequenceNumber(long value) {
+        bitField0_ |= 0x00000002;
+        sequenceNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 sequenceNumber = 2;</code>
+       */
+      public Builder clearSequenceNumber() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        sequenceNumber_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.InodeDirectoryIdGeneratorEntry)
+    }
+
+    static {
+      defaultInstance = new InodeDirectoryIdGeneratorEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.InodeDirectoryIdGeneratorEntry)
+  }
+
+  public interface InodeFileEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.InodeFileEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    boolean hasParentId();
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    long getParentId();
+
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    boolean hasName();
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    java.lang.String getName();
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    boolean hasPersisted();
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    boolean getPersisted();
+
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    boolean hasPinned();
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    boolean getPinned();
+
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    boolean hasCreationTimeMs();
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    long getCreationTimeMs();
+
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    boolean hasLastModificationTimeMs();
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    long getLastModificationTimeMs();
+
+    /**
+     * <code>optional int64 blockSizeBytes = 8;</code>
+     */
+    boolean hasBlockSizeBytes();
+    /**
+     * <code>optional int64 blockSizeBytes = 8;</code>
+     */
+    long getBlockSizeBytes();
+
+    /**
+     * <code>optional int64 length = 9;</code>
+     */
+    boolean hasLength();
+    /**
+     * <code>optional int64 length = 9;</code>
+     */
+    long getLength();
+
+    /**
+     * <code>optional bool completed = 10;</code>
+     */
+    boolean hasCompleted();
+    /**
+     * <code>optional bool completed = 10;</code>
+     */
+    boolean getCompleted();
+
+    /**
+     * <code>optional bool cacheable = 11;</code>
+     */
+    boolean hasCacheable();
+    /**
+     * <code>optional bool cacheable = 11;</code>
+     */
+    boolean getCacheable();
+
+    /**
+     * <code>repeated int64 blocks = 12;</code>
+     */
+    java.util.List<java.lang.Long> getBlocksList();
+    /**
+     * <code>repeated int64 blocks = 12;</code>
+     */
+    int getBlocksCount();
+    /**
+     * <code>repeated int64 blocks = 12;</code>
+     */
+    long getBlocks(int index);
+
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    boolean hasTtl();
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    long getTtl();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.InodeFileEntry}
+   */
+  public static final class InodeFileEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.InodeFileEntry)
+      InodeFileEntryOrBuilder {
+    // Use InodeFileEntry.newBuilder() to construct.
+    private InodeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private InodeFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeFileEntry defaultInstance;
+    public static InodeFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public InodeFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private InodeFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              parentId_ = input.readInt64();
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              name_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              persisted_ = input.readBool();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              pinned_ = input.readBool();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              creationTimeMs_ = input.readInt64();
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000040;
+              lastModificationTimeMs_ = input.readInt64();
+              break;
+            }
+            case 64: {
+              bitField0_ |= 0x00000080;
+              blockSizeBytes_ = input.readInt64();
+              break;
+            }
+            case 72: {
+              bitField0_ |= 0x00000100;
+              length_ = input.readInt64();
+              break;
+            }
+            case 80: {
+              bitField0_ |= 0x00000200;
+              completed_ = input.readBool();
+              break;
+            }
+            case 88: {
+              bitField0_ |= 0x00000400;
+              cacheable_ = input.readBool();
+              break;
+            }
+            case 96: {
+              if (!((mutable_bitField0_ & 0x00000800) == 0x00000800)) {
+                blocks_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000800;
+              }
+              blocks_.add(input.readInt64());
+              break;
+            }
+            case 98: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000800) == 0x00000800) && input.getBytesUntilLimit() > 0) {
+                blocks_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000800;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                blocks_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+            case 104: {
+              bitField0_ |= 0x00000800;
+              ttl_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000800) == 0x00000800)) {
+          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.InodeFileEntry.class, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeFileEntry>() {
+      public InodeFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int PARENTID_FIELD_NUMBER = 2;
+    private long parentId_;
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    public boolean hasParentId() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 parentId = 2;</code>
+     */
+    public long getParentId() {
+      return parentId_;
+    }
+
+    public static final int NAME_FIELD_NUMBER = 3;
+    private java.lang.Object name_;
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public boolean hasName() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          name_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string name = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PERSISTED_FIELD_NUMBER = 4;
+    private boolean persisted_;
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    public boolean hasPersisted() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool persisted = 4;</code>
+     */
+    public boolean getPersisted() {
+      return persisted_;
+    }
+
+    public static final int PINNED_FIELD_NUMBER = 5;
+    private boolean pinned_;
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    public boolean hasPinned() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool pinned = 5;</code>
+     */
+    public boolean getPinned() {
+      return pinned_;
+    }
+
+    public static final int CREATIONTIMEMS_FIELD_NUMBER = 6;
+    private long creationTimeMs_;
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    public boolean hasCreationTimeMs() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional int64 creationTimeMs = 6;</code>
+     */
+    public long getCreationTimeMs() {
+      return creationTimeMs_;
+    }
+
+    public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 7;
+    private long lastModificationTimeMs_;
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    public boolean hasLastModificationTimeMs() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     */
+    public long getLastModificationTimeMs() {
+      return lastModificationTimeMs_;
+    }
+
+    public static final int BLOCKSIZEBYTES_FIELD_NUMBER = 8;
+    private long blockSizeBytes_;
+    /**
+     * <code>optional int64 blockSizeBytes = 8;</code>
+     */
+    public boolean hasBlockSizeBytes() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional int64 blockSizeBytes = 8;</code>
+     */
+    public long getBlockSizeBytes() {
+      return blockSizeBytes_;
+    }
+
+    public static final int LENGTH_FIELD_NUMBER = 9;
+    private long length_;
+    /**
+     * <code>optional int64 length = 9;</code>
+     */
+    public boolean hasLength() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional int64 length = 9;</code>
+     */
+    public long getLength() {
+      return length_;
+    }
+
+    public static final int COMPLETED_FIELD_NUMBER = 10;
+    private boolean completed_;
+    /**
+     * <code>optional bool completed = 10;</code>
+     */
+    public boolean hasCompleted() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional bool completed = 10;</code>
+     */
+    public boolean getCompleted() {
+      return completed_;
+    }
+
+    public static final int CACHEABLE_FIELD_NUMBER = 11;
+    private boolean cacheable_;
+    /**
+     * <code>optional bool cacheable = 11;</code>
+     */
+    public boolean hasCacheable() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <code>optional bool cacheable = 11;</code>
+     */
+    public boolean getCacheable() {
+      return cacheable_;
+    }
+
+    public static final int BLOCKS_FIELD_NUMBER = 12;
+    private java.util.List<java.lang.Long> blocks_;
+    /**
+     * <code>repeated int64 blocks = 12;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getBlocksList() {
+      return blocks_;
+    }
+    /**
+     * <code>repeated int64 blocks = 12;</code>
+     */
+    public int getBlocksCount() {
+      return blocks_.size();
+    }
+    /**
+     * <code>repeated int64 blocks = 12;</code>
+     */
+    public long getBlocks(int index) {
+      return blocks_.get(index);
+    }
+
+    public static final int TTL_FIELD_NUMBER = 13;
+    private long ttl_;
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    public boolean hasTtl() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional int64 ttl = 13;</code>
+     */
+    public long getTtl() {
+      return ttl_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      parentId_ = 0L;
+      name_ = "";
+      persisted_ = false;
+      pinned_ = false;
+      creationTimeMs_ = 0L;
+      lastModificationTimeMs_ = 0L;
+      blockSizeBytes_ = 0L;
+      length_ = 0L;
+      completed_ = false;
+      cacheable_ = false;
+      blocks_ = java.util.Collections.emptyList();
+      ttl_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, parentId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getNameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBool(4, persisted_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(5, pinned_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeInt64(6, creationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        output.writeInt64(7, lastModificationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeInt64(8, blockSizeBytes_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        output.writeInt64(9, length_);
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        output.writeBool(10, completed_);
+      }
+      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+        output.writeBool(11, cacheable_);
+      }
+      for (int i = 0; i < blocks_.size(); i++) {
+        output.writeInt64(12, blocks_.get(i));
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeInt64(13, ttl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, parentId_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getNameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, persisted_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, pinned_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(6, creationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, lastModificationTimeMs_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(8, blockSizeBytes_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(9, length_);
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(10, completed_);
+      }
+      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(11, cacheable_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < blocks_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(blocks_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getBlocksList().size();
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, ttl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.InodeFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.InodeFileEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.InodeFileEntry)
+        tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.InodeFileEntry.class, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.InodeFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        parentId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        name_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        persisted_ = false;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        pinned_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        creationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000020);
+        lastModificationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000040);
+        blockSizeBytes_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000080);
+        length_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000100);
+        completed_ = false;
+        bitField0_ = (bitField0_ & ~0x00000200);
+        cacheable_ = false;
+        bitField0_ = (bitField0_ & ~0x00000400);
+        blocks_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000800);
+        ttl_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00001000);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeFileEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeFileEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeFileEntry build() {
+        tachyon.proto.JournalEntryProtos.InodeFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeFileEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.InodeFileEntry result = new tachyon.proto.JournalEntryProtos.InodeFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.parentId_ = parentId_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.name_ = name_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.persisted_ = persisted_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.pinned_ = pinned_;
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.creationTimeMs_ = creationTimeMs_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000040;
+        }
+        result.lastModificationTimeMs_ = lastModificationTimeMs_;
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.blockSizeBytes_ = blockSizeBytes_;
+        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+          to_bitField0_ |= 0x00000100;
+        }
+        result.length_ = length_;
+        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+          to_bitField0_ |= 0x00000200;
+        }
+        result.completed_ = completed_;
+        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+          to_bitField0_ |= 0x00000400;
+        }
+        result.cacheable_ = cacheable_;
+        if (((bitField0_ & 0x00000800) == 0x00000800)) {
+          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+          bitField0_ = (bitField0_ & ~0x00000800);
+        }
+        result.blocks_ = blocks_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.ttl_ = ttl_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.InodeFileEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.InodeFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.InodeFileEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasParentId()) {
+          setParentId(other.getParentId());
+        }
+        if (other.hasName()) {
+          bitField0_ |= 0x00000004;
+          name_ = other.name_;
+          onChanged();
+        }
+        if (other.hasPersisted()) {
+          setPersisted(other.getPersisted());
+        }
+        if (other.hasPinned()) {
+          setPinned(other.getPinned());
+        }
+        if (other.hasCreationTimeMs()) {
+          setCreationTimeMs(other.getCreationTimeMs());
+        }
+        if (other.hasLastModificationTimeMs()) {
+          setLastModificationTimeMs(other.getLastModificationTimeMs());
+        }
+        if (other.hasBlockSizeBytes()) {
+          setBlockSizeBytes(other.getBlockSizeBytes());
+        }
+        if (other.hasLength()) {
+          setLength(other.getLength());
+        }
+        if (other.hasCompleted()) {
+          setCompleted(other.getCompleted());
+        }
+        if (other.hasCacheable()) {
+          setCacheable(other.getCacheable());
+        }
+        if (!other.blocks_.isEmpty()) {
+          if (blocks_.isEmpty()) {
+            blocks_ = other.blocks_;
+            bitField0_ = (bitField0_ & ~0x00000800);
+          } else {
+            ensureBlocksIsMutable();
+            blocks_.addAll(other.blocks_);
+          }
+          onChanged();
+        }
+        if (other.hasTtl()) {
+          setTtl(other.getTtl());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.InodeFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.InodeFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long parentId_ ;
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public boolean hasParentId() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public long getParentId() {
+        return parentId_;
+      }
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public Builder setParentId(long value) {
+        bitField0_ |= 0x00000002;
+        parentId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 parentId = 2;</code>
+       */
+      public Builder clearParentId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        parentId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public boolean hasName() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            name_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        name_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder clearName() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        name_ = getDefaultInstance().getName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string name = 3;</code>
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        name_ = value;
+        onChanged();
+        return this;
+      }
+
+      private boolean persisted_ ;
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public boolean hasPersisted() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public boolean getPersisted() {
+        return persisted_;
+      }
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public Builder setPersisted(boolean value) {
+        bitField0_ |= 0x00000008;
+        persisted_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool persisted = 4;</code>
+       */
+      public Builder clearPersisted() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        persisted_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean pinned_ ;
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public boolean hasPinned() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public boolean getPinned() {
+        return pinned_;
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public Builder setPinned(boolean value) {
+        bitField0_ |= 0x00000010;
+        pinned_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool pinned = 5;</code>
+       */
+      public Builder clearPinned() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        pinned_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long creationTimeMs_ ;
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public boolean hasCreationTimeMs() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public long getCreationTimeMs() {
+        return creationTimeMs_;
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public Builder setCreationTimeMs(long value) {
+        bitField0_ |= 0x00000020;
+        creationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 6;</code>
+       */
+      public Builder clearCreationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        creationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long lastModificationTimeMs_ ;
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public boolean hasLastModificationTimeMs() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public long getLastModificationTimeMs() {
+        return lastModificationTimeMs_;
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public Builder setLastModificationTimeMs(long value) {
+        bitField0_ |= 0x00000040;
+        lastModificationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       */
+      public Builder clearLastModificationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        lastModificationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long blockSizeBytes_ ;
+      /**
+       * <code>optional int64 blockSizeBytes = 8;</code>
+       */
+      public boolean hasBlockSizeBytes() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional int64 blockSizeBytes = 8;</code>
+       */
+      public long getBlockSizeBytes() {
+        return blockSizeBytes_;
+      }
+      /**
+       * <code>optional int64 blockSizeBytes = 8;</code>
+       */
+      public Builder setBlockSizeBytes(long value) {
+        bitField0_ |= 0x00000080;
+        blockSizeBytes_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 blockSizeBytes = 8;</code>
+       */
+      public Builder clearBlockSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        blockSizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long length_ ;
+      /**
+       * <code>optional int64 length = 9;</code>
+       */
+      public boolean hasLength() {
+        return ((bitField0_ & 0x00000100) == 0x00000100);
+      }
+      /**
+       * <code>optional int64 length = 9;</code>
+       */
+      public long getLength() {
+        return length_;
+      }
+      /**
+       * <code>optional int64 length = 9;</code>
+       */
+      public Builder setLength(long value) {
+        bitField0_ |= 0x00000100;
+        length_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 length = 9;</code>
+       */
+      public Builder clearLength() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        length_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean completed_ ;
+      /**
+       * <code>optional bool completed = 10;</code>
+       */
+      public boolean hasCompleted() {
+        return ((bitField0_ & 0x00000200) == 0x00000200);
+      }
+      /**
+       * <code>optional bool completed = 10;</code>
+       */
+      public boolean getCompleted() {
+        return completed_;
+      }
+      /**
+       * <code>optional bool completed = 10;</code>
+       */
+      public Builder setCompleted(boolean value) {
+        bitField0_ |= 0x00000200;
+        completed_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool completed = 10;</code>
+       */
+      public Builder clearCompleted() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        completed_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean cacheable_ ;
+      /**
+       * <code>optional bool cacheable = 11;</code>
+       */
+      public boolean hasCacheable() {
+        return ((bitField0_ & 0x00000400) == 0x00000400);
+      }
+      /**
+       * <code>optional bool cacheable = 11;</code>
+       */
+      public boolean getCacheable() {
+        return cacheable_;
+      }
+      /**
+       * <code>optional bool cacheable = 11;</code>
+       */
+      public Builder setCacheable(boolean value) {
+        bitField0_ |= 0x00000400;
+        cacheable_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool cacheable = 11;</code>
+       */
+      public Builder clearCacheable() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        cacheable_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Long> blocks_ = java.util.Collections.emptyList();
+      private void ensureBlocksIsMutable() {
+        if (!((bitField0_ & 0x00000800) == 0x00000800)) {
+          blocks_ = new java.util.ArrayList<java.lang.Long>(blocks_);
+          bitField0_ |= 0x00000800;
+         }
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getBlocksList() {
+        return java.util.Collections.unmodifiableList(blocks_);
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public int getBlocksCount() {
+        return blocks_.size();
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public long getBlocks(int index) {
+        return blocks_.get(index);
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public Builder setBlocks(
+          int index, long value) {
+        ensureBlocksIsMutable();
+        blocks_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public Builder addBlocks(long value) {
+        ensureBlocksIsMutable();
+        blocks_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public Builder addAllBlocks(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureBlocksIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, blocks_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 blocks = 12;</code>
+       */
+      public Builder clearBlocks() {
+        blocks_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000800);
+        onChanged();
+        return this;
+      }
+
+      private long ttl_ ;
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public boolean hasTtl() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public long getTtl() {
+        return ttl_;
+      }
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public Builder setTtl(long value) {
+        bitField0_ |= 0x00001000;
+        ttl_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 ttl = 13;</code>
+       */
+      public Builder clearTtl() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        ttl_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.InodeFileEntry)
+    }
+
+    static {
+      defaultInstance = new InodeFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.InodeFileEntry)
+  }
+
+  public interface InodeLastModificationTimeEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.InodeLastModificationTimeEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     */
+    boolean hasLastModificationTimeMs();
+    /**
+     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     */
+    long getLastModificationTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.InodeLastModificationTimeEntry}
+   */
+  public static final class InodeLastModificationTimeEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.InodeLastModificationTimeEntry)
+      InodeLastModificationTimeEntryOrBuilder {
+    // Use InodeLastModificationTimeEntry.newBuilder() to construct.
+    private InodeLastModificationTimeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private InodeLastModificationTimeEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeLastModificationTimeEntry defaultInstance;
+    public static InodeLastModificationTimeEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public InodeLastModificationTimeEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private InodeLastModificationTimeEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              lastModificationTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeLastModificationTimeEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeLastModificationTimeEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.class, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeLastModificationTimeEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeLastModificationTimeEntry>() {
+      public InodeLastModificationTimeEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeLastModificationTimeEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeLastModificationTimeEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 2;
+    private long lastModificationTimeMs_;
+    /**
+     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     */
+    public boolean hasLastModificationTimeMs() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     */
+    public long getLastModificationTimeMs() {
+      return lastModificationTimeMs_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      lastModificationTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, lastModificationTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, lastModificationTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.InodeLastModificationTimeEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.InodeLastModificationTimeEntry)
+        tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeLastModificationTimeEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeLastModificationTimeEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.class, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        lastModificationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_InodeLastModificationTimeEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry build() {
+        tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry result = new tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.lastModificationTimeMs_ = lastModificationTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasLastModificationTimeMs()) {
+          setLastModificationTimeMs(other.getLastModificationTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long lastModificationTimeMs_ ;
+      /**
+       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       */
+      public boolean hasLastModificationTimeMs() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       */
+      public long getLastModificationTimeMs() {
+        return lastModificationTimeMs_;
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       */
+      public Builder setLastModificationTimeMs(long value) {
+        bitField0_ |= 0x00000002;
+        lastModificationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       */
+      public Builder clearLastModificationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        lastModificationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.InodeLastModificationTimeEntry)
+    }
+
+    static {
+      defaultInstance = new InodeLastModificationTimeEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.InodeLastModificationTimeEntry)
+  }
+
+  public interface LineageEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.LineageEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>repeated int64 inputFiles = 2;</code>
+     */
+    java.util.List<java.lang.Long> getInputFilesList();
+    /**
+     * <code>repeated int64 inputFiles = 2;</code>
+     */
+    int getInputFilesCount();
+    /**
+     * <code>repeated int64 inputFiles = 2;</code>
+     */
+    long getInputFiles(int index);
+
+    /**
+     * <code>repeated int64 outputFileIds = 3;</code>
+     */
+    java.util.List<java.lang.Long> getOutputFileIdsList();
+    /**
+     * <code>repeated int64 outputFileIds = 3;</code>
+     */
+    int getOutputFileIdsCount();
+    /**
+     * <code>repeated int64 outputFileIds = 3;</code>
+     */
+    long getOutputFileIds(int index);
+
+    /**
+     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     */
+    java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> getOutputFileStatesList();
+    /**
+     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     */
+    int getOutputFileStatesCount();
+    /**
+     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     */
+    tachyon.proto.JournalEntryProtos.LineageFileState getOutputFileStates(int index);
+
+    /**
+     * <code>optional string jobCommand = 5;</code>
+     */
+    boolean hasJobCommand();
+    /**
+     * <code>optional string jobCommand = 5;</code>
+     */
+    java.lang.String getJobCommand();
+    /**
+     * <code>optional string jobCommand = 5;</code>
+     */
+    com.google.protobuf.ByteString
+        getJobCommandBytes();
+
+    /**
+     * <code>optional string jobOutputPath = 6;</code>
+     */
+    boolean hasJobOutputPath();
+    /**
+     * <code>optional string jobOutputPath = 6;</code>
+     */
+    java.lang.String getJobOutputPath();
+    /**
+     * <code>optional string jobOutputPath = 6;</code>
+     */
+    com.google.protobuf.ByteString
+        getJobOutputPathBytes();
+
+    /**
+     * <code>optional int64 creationTimeMs = 7;</code>
+     */
+    boolean hasCreationTimeMs();
+    /**
+     * <code>optional int64 creationTimeMs = 7;</code>
+     */
+    long getCreationTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.LineageEntry}
+   */
+  public static final class LineageEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.LineageEntry)
+      LineageEntryOrBuilder {
+    // Use LineageEntry.newBuilder() to construct.
+    private LineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private LineageEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LineageEntry defaultInstance;
+    public static LineageEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public LineageEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private LineageEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                inputFiles_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              inputFiles_.add(input.readInt64());
+              break;
+            }
+            case 18: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
+                inputFiles_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                inputFiles_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+            case 24: {
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                outputFileIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              outputFileIds_.add(input.readInt64());
+              break;
+            }
+            case 26: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
+                outputFileIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000004;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                outputFileIds_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+            case 32: {
+              int rawValue = input.readEnum();
+              tachyon.proto.JournalEntryProtos.LineageFileState value = tachyon.proto.JournalEntryProtos.LineageFileState.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(4, rawValue);
+                } else {
+                if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                  outputFileStates_ = new java.util.ArrayList<tachyon.proto.JournalEntryProtos.LineageFileState>();
+                  mutable_bitField0_ |= 0x00000008;
+                }
+                outputFileStates_.add(value);
+              }
+              break;
+            }
+            case 34: {
+              int length = input.readRawVarint32();
+              int oldLimit = input.pushLimit(length);
+              while(input.getBytesUntilLimit() > 0) {
+                int rawValue = input.readEnum();
+                tachyon.proto.JournalEntryProtos.LineageFileState value = tachyon.proto.JournalEntryProtos.LineageFileState.valueOf(rawValue);
+                if (value == null) {
+                  unknownFields.mergeVarintField(4, rawValue);
+                  } else {
+                  if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                    outputFileStates_ = new java.util.ArrayList<tachyon.proto.JournalEntryProtos.LineageFileState>();
+                    mutable_bitField0_ |= 0x00000008;
+                  }
+                  outputFileStates_.add(value);
+                }
+              }
+              input.popLimit(oldLimit);
+              break;
+            }
+            case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              jobCommand_ = bs;
+              break;
+            }
+            case 50: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              jobOutputPath_ = bs;
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000008;
+              creationTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          inputFiles_ = java.util.Collections.unmodifiableList(inputFiles_);
+        }
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+          outputFileIds_ = java.util.Collections.unmodifiableList(outputFileIds_);
+        }
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          outputFileStates_ = java.util.Collections.unmodifiableList(outputFileStates_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.LineageEntry.class, tachyon.proto.JournalEntryProtos.LineageEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LineageEntry> PARSER =
+        new com.google.protobuf.AbstractParser<LineageEntry>() {
+      public LineageEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LineageEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LineageEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int INPUTFILES_FIELD_NUMBER = 2;
+    private java.util.List<java.lang.Long> inputFiles_;
+    /**
+     * <code>repeated int64 inputFiles = 2;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getInputFilesList() {
+      return inputFiles_;
+    }
+    /**
+     * <code>repeated int64 inputFiles = 2;</code>
+     */
+    public int getInputFilesCount() {
+      return inputFiles_.size();
+    }
+    /**
+     * <code>repeated int64 inputFiles = 2;</code>
+     */
+    public long getInputFiles(int index) {
+      return inputFiles_.get(index);
+    }
+
+    public static final int OUTPUTFILEIDS_FIELD_NUMBER = 3;
+    private java.util.List<java.lang.Long> outputFileIds_;
+    /**
+     * <code>repeated int64 outputFileIds = 3;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getOutputFileIdsList() {
+      return outputFileIds_;
+    }
+    /**
+     * <code>repeated int64 outputFileIds = 3;</code>
+     */
+    public int getOutputFileIdsCount() {
+      return outputFileIds_.size();
+    }
+    /**
+     * <code>repeated int64 outputFileIds = 3;</code>
+     */
+    public long getOutputFileIds(int index) {
+      return outputFileIds_.get(index);
+    }
+
+    public static final int OUTPUTFILESTATES_FIELD_NUMBER = 4;
+    private java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> outputFileStates_;
+    /**
+     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     */
+    public java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> getOutputFileStatesList() {
+      return outputFileStates_;
+    }
+    /**
+     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     */
+    public int getOutputFileStatesCount() {
+      return outputFileStates_.size();
+    }
+    /**
+     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     */
+    public tachyon.proto.JournalEntryProtos.LineageFileState getOutputFileStates(int index) {
+      return outputFileStates_.get(index);
+    }
+
+    public static final int JOBCOMMAND_FIELD_NUMBER = 5;
+    private java.lang.Object jobCommand_;
+    /**
+     * <code>optional string jobCommand = 5;</code>
+     */
+    public boolean hasJobCommand() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string jobCommand = 5;</code>
+     */
+    public java.lang.String getJobCommand() {
+      java.lang.Object ref = jobCommand_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          jobCommand_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string jobCommand = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getJobCommandBytes() {
+      java.lang.Object ref = jobCommand_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        jobCommand_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int JOBOUTPUTPATH_FIELD_NUMBER = 6;
+    private java.lang.Object jobOutputPath_;
+    /**
+     * <code>optional string jobOutputPath = 6;</code>
+     */
+    public boolean hasJobOutputPath() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional string jobOutputPath = 6;</code>
+     */
+    public java.lang.String getJobOutputPath() {
+      java.lang.Object ref = jobOutputPath_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          jobOutputPath_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string jobOutputPath = 6;</code>
+     */
+    public com.google.protobuf.ByteString
+        getJobOutputPathBytes() {
+      java.lang.Object ref = jobOutputPath_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        jobOutputPath_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CREATIONTIMEMS_FIELD_NUMBER = 7;
+    private long creationTimeMs_;
+    /**
+     * <code>optional int64 creationTimeMs = 7;</code>
+     */
+    public boolean hasCreationTimeMs() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 creationTimeMs = 7;</code>
+     */
+    public long getCreationTimeMs() {
+      return creationTimeMs_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      inputFiles_ = java.util.Collections.emptyList();
+      outputFileIds_ = java.util.Collections.emptyList();
+      outputFileStates_ = java.util.Collections.emptyList();
+      jobCommand_ = "";
+      jobOutputPath_ = "";
+      creationTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      for (int i = 0; i < inputFiles_.size(); i++) {
+        output.writeInt64(2, inputFiles_.get(i));
+      }
+      for (int i = 0; i < outputFileIds_.size(); i++) {
+        output.writeInt64(3, outputFileIds_.get(i));
+      }
+      for (int i = 0; i < outputFileStates_.size(); i++) {
+        output.writeEnum(4, outputFileStates_.get(i).getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(5, getJobCommandBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(6, getJobOutputPathBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(7, creationTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < inputFiles_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(inputFiles_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getInputFilesList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < outputFileIds_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(outputFileIds_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getOutputFileIdsList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < outputFileStates_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeEnumSizeNoTag(outputFileStates_.get(i).getNumber());
+        }
+        size += dataSize;
+        size += 1 * outputFileStates_.size();
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, getJobCommandBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(6, getJobOutputPathBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, creationTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.LineageEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.LineageEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.LineageEntry)
+        tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.LineageEntry.class, tachyon.proto.JournalEntryProtos.LineageEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        inputFiles_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        outputFileIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        outputFileStates_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        jobCommand_ = "";
+        bitField0_ = (bitField0_ & ~0x00000010);
+        jobOutputPath_ = "";
+        bitField0_ = (bitField0_ & ~0x00000020);
+        creationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000040);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.LineageEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.LineageEntry build() {
+        tachyon.proto.JournalEntryProtos.LineageEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.LineageEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.LineageEntry result = new tachyon.proto.JournalEntryProtos.LineageEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          inputFiles_ = java.util.Collections.unmodifiableList(inputFiles_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.inputFiles_ = inputFiles_;
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          outputFileIds_ = java.util.Collections.unmodifiableList(outputFileIds_);
+          bitField0_ = (bitField0_ & ~0x00000004);
+        }
+        result.outputFileIds_ = outputFileIds_;
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          outputFileStates_ = java.util.Collections.unmodifiableList(outputFileStates_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.outputFileStates_ = outputFileStates_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.jobCommand_ = jobCommand_;
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.jobOutputPath_ = jobOutputPath_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.creationTimeMs_ = creationTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.LineageEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.LineageEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.LineageEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (!other.inputFiles_.isEmpty()) {
+          if (inputFiles_.isEmpty()) {
+            inputFiles_ = other.inputFiles_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureInputFilesIsMutable();
+            inputFiles_.addAll(other.inputFiles_);
+          }
+          onChanged();
+        }
+        if (!other.outputFileIds_.isEmpty()) {
+          if (outputFileIds_.isEmpty()) {
+            outputFileIds_ = other.outputFileIds_;
+            bitField0_ = (bitField0_ & ~0x00000004);
+          } else {
+            ensureOutputFileIdsIsMutable();
+            outputFileIds_.addAll(other.outputFileIds_);
+          }
+          onChanged();
+        }
+        if (!other.outputFileStates_.isEmpty()) {
+          if (outputFileStates_.isEmpty()) {
+            outputFileStates_ = other.outputFileStates_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureOutputFileStatesIsMutable();
+            outputFileStates_.addAll(other.outputFileStates_);
+          }
+          onChanged();
+        }
+        if (other.hasJobCommand()) {
+          bitField0_ |= 0x00000010;
+          jobCommand_ = other.jobCommand_;
+          onChanged();
+        }
+        if (other.hasJobOutputPath()) {
+          bitField0_ |= 0x00000020;
+          jobOutputPath_ = other.jobOutputPath_;
+          onChanged();
+        }
+        if (other.hasCreationTimeMs()) {
+          setCreationTimeMs(other.getCreationTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.LineageEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.LineageEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Long> inputFiles_ = java.util.Collections.emptyList();
+      private void ensureInputFilesIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          inputFiles_ = new java.util.ArrayList<java.lang.Long>(inputFiles_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getInputFilesList() {
+        return java.util.Collections.unmodifiableList(inputFiles_);
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public int getInputFilesCount() {
+        return inputFiles_.size();
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public long getInputFiles(int index) {
+        return inputFiles_.get(index);
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public Builder setInputFiles(
+          int index, long value) {
+        ensureInputFilesIsMutable();
+        inputFiles_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public Builder addInputFiles(long value) {
+        ensureInputFilesIsMutable();
+        inputFiles_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public Builder addAllInputFiles(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureInputFilesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, inputFiles_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 inputFiles = 2;</code>
+       */
+      public Builder clearInputFiles() {
+        inputFiles_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<java.lang.Long> outputFileIds_ = java.util.Collections.emptyList();
+      private void ensureOutputFileIdsIsMutable() {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+          outputFileIds_ = new java.util.ArrayList<java.lang.Long>(outputFileIds_);
+          bitField0_ |= 0x00000004;
+         }
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getOutputFileIdsList() {
+        return java.util.Collections.unmodifiableList(outputFileIds_);
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public int getOutputFileIdsCount() {
+        return outputFileIds_.size();
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public long getOutputFileIds(int index) {
+        return outputFileIds_.get(index);
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public Builder setOutputFileIds(
+          int index, long value) {
+        ensureOutputFileIdsIsMutable();
+        outputFileIds_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public Builder addOutputFileIds(long value) {
+        ensureOutputFileIdsIsMutable();
+        outputFileIds_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public Builder addAllOutputFileIds(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureOutputFileIdsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputFileIds_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 outputFileIds = 3;</code>
+       */
+      public Builder clearOutputFileIds() {
+        outputFileIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> outputFileStates_ =
+        java.util.Collections.emptyList();
+      private void ensureOutputFileStatesIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          outputFileStates_ = new java.util.ArrayList<tachyon.proto.JournalEntryProtos.LineageFileState>(outputFileStates_);
+          bitField0_ |= 0x00000008;
+        }
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> getOutputFileStatesList() {
+        return java.util.Collections.unmodifiableList(outputFileStates_);
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public int getOutputFileStatesCount() {
+        return outputFileStates_.size();
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public tachyon.proto.JournalEntryProtos.LineageFileState getOutputFileStates(int index) {
+        return outputFileStates_.get(index);
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public Builder setOutputFileStates(
+          int index, tachyon.proto.JournalEntryProtos.LineageFileState value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureOutputFileStatesIsMutable();
+        outputFileStates_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public Builder addOutputFileStates(tachyon.proto.JournalEntryProtos.LineageFileState value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureOutputFileStatesIsMutable();
+        outputFileStates_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public Builder addAllOutputFileStates(
+          java.lang.Iterable<? extends tachyon.proto.JournalEntryProtos.LineageFileState> values) {
+        ensureOutputFileStatesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputFileStates_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       */
+      public Builder clearOutputFileStates() {
+        outputFileStates_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object jobCommand_ = "";
+      /**
+       * <code>optional string jobCommand = 5;</code>
+       */
+      public boolean hasJobCommand() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional string jobCommand = 5;</code>
+       */
+      public java.lang.String getJobCommand() {
+        java.lang.Object ref = jobCommand_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            jobCommand_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string jobCommand = 5;</code>
+       */
+      public com.google.protobuf.ByteString
+          getJobCommandBytes() {
+        java.lang.Object ref = jobCommand_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          jobCommand_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string jobCommand = 5;</code>
+       */
+      public Builder setJobCommand(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        jobCommand_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string jobCommand = 5;</code>
+       */
+      public Builder clearJobCommand() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        jobCommand_ = getDefaultInstance().getJobCommand();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string jobCommand = 5;</code>
+       */
+      public Builder setJobCommandBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        jobCommand_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object jobOutputPath_ = "";
+      /**
+       * <code>optional string jobOutputPath = 6;</code>
+       */
+      public boolean hasJobOutputPath() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional string jobOutputPath = 6;</code>
+       */
+      public java.lang.String getJobOutputPath() {
+        java.lang.Object ref = jobOutputPath_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            jobOutputPath_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string jobOutputPath = 6;</code>
+       */
+      public com.google.protobuf.ByteString
+          getJobOutputPathBytes() {
+        java.lang.Object ref = jobOutputPath_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          jobOutputPath_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string jobOutputPath = 6;</code>
+       */
+      public Builder setJobOutputPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+        jobOutputPath_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string jobOutputPath = 6;</code>
+       */
+      public Builder clearJobOutputPath() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        jobOutputPath_ = getDefaultInstance().getJobOutputPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string jobOutputPath = 6;</code>
+       */
+      public Builder setJobOutputPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+        jobOutputPath_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long creationTimeMs_ ;
+      /**
+       * <code>optional int64 creationTimeMs = 7;</code>
+       */
+      public boolean hasCreationTimeMs() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 7;</code>
+       */
+      public long getCreationTimeMs() {
+        return creationTimeMs_;
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 7;</code>
+       */
+      public Builder setCreationTimeMs(long value) {
+        bitField0_ |= 0x00000040;
+        creationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 creationTimeMs = 7;</code>
+       */
+      public Builder clearCreationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        creationTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.LineageEntry)
+    }
+
+    static {
+      defaultInstance = new LineageEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.LineageEntry)
+  }
+
+  public interface LineageIdGeneratorEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.LineageIdGeneratorEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 sequenceNumber = 1;</code>
+     */
+    boolean hasSequenceNumber();
+    /**
+     * <code>optional int64 sequenceNumber = 1;</code>
+     */
+    long getSequenceNumber();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.LineageIdGeneratorEntry}
+   */
+  public static final class LineageIdGeneratorEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.LineageIdGeneratorEntry)
+      LineageIdGeneratorEntryOrBuilder {
+    // Use LineageIdGeneratorEntry.newBuilder() to construct.
+    private LineageIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private LineageIdGeneratorEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LineageIdGeneratorEntry defaultInstance;
+    public static LineageIdGeneratorEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public LineageIdGeneratorEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private LineageIdGeneratorEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              sequenceNumber_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageIdGeneratorEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageIdGeneratorEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.class, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LineageIdGeneratorEntry> PARSER =
+        new com.google.protobuf.AbstractParser<LineageIdGeneratorEntry>() {
+      public LineageIdGeneratorEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LineageIdGeneratorEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LineageIdGeneratorEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int SEQUENCENUMBER_FIELD_NUMBER = 1;
+    private long sequenceNumber_;
+    /**
+     * <code>optional int64 sequenceNumber = 1;</code>
+     */
+    public boolean hasSequenceNumber() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 sequenceNumber = 1;</code>
+     */
+    public long getSequenceNumber() {
+      return sequenceNumber_;
+    }
+
+    private void initFields() {
+      sequenceNumber_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, sequenceNumber_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, sequenceNumber_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.LineageIdGeneratorEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.LineageIdGeneratorEntry)
+        tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageIdGeneratorEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageIdGeneratorEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.class, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        sequenceNumber_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_LineageIdGeneratorEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry build() {
+        tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry result = new tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.sequenceNumber_ = sequenceNumber_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance()) return this;
+        if (other.hasSequenceNumber()) {
+          setSequenceNumber(other.getSequenceNumber());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long sequenceNumber_ ;
+      /**
+       * <code>optional int64 sequenceNumber = 1;</code>
+       */
+      public boolean hasSequenceNumber() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 sequenceNumber = 1;</code>
+       */
+      public long getSequenceNumber() {
+        return sequenceNumber_;
+      }
+      /**
+       * <code>optional int64 sequenceNumber = 1;</code>
+       */
+      public Builder setSequenceNumber(long value) {
+        bitField0_ |= 0x00000001;
+        sequenceNumber_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 sequenceNumber = 1;</code>
+       */
+      public Builder clearSequenceNumber() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        sequenceNumber_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.LineageIdGeneratorEntry)
+    }
+
+    static {
+      defaultInstance = new LineageIdGeneratorEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.LineageIdGeneratorEntry)
+  }
+
+  public interface PersistDirectoryEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.PersistDirectoryEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.PersistDirectoryEntry}
+   */
+  public static final class PersistDirectoryEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.PersistDirectoryEntry)
+      PersistDirectoryEntryOrBuilder {
+    // Use PersistDirectoryEntry.newBuilder() to construct.
+    private PersistDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private PersistDirectoryEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final PersistDirectoryEntry defaultInstance;
+    public static PersistDirectoryEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public PersistDirectoryEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PersistDirectoryEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistDirectoryEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistDirectoryEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.class, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<PersistDirectoryEntry> PARSER =
+        new com.google.protobuf.AbstractParser<PersistDirectoryEntry>() {
+      public PersistDirectoryEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new PersistDirectoryEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PersistDirectoryEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.PersistDirectoryEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.PersistDirectoryEntry)
+        tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistDirectoryEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistDirectoryEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.class, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistDirectoryEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry build() {
+        tachyon.proto.JournalEntryProtos.PersistDirectoryEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.PersistDirectoryEntry result = new tachyon.proto.JournalEntryProtos.PersistDirectoryEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.PersistDirectoryEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.PersistDirectoryEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.PersistDirectoryEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.PersistDirectoryEntry)
+    }
+
+    static {
+      defaultInstance = new PersistDirectoryEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.PersistDirectoryEntry)
+  }
+
+  public interface PersistFileEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.PersistFileEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    boolean hasLength();
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    long getLength();
+
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    boolean hasOpTimeMs();
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    long getOpTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.PersistFileEntry}
+   */
+  public static final class PersistFileEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.PersistFileEntry)
+      PersistFileEntryOrBuilder {
+    // Use PersistFileEntry.newBuilder() to construct.
+    private PersistFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private PersistFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final PersistFileEntry defaultInstance;
+    public static PersistFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public PersistFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PersistFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              length_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              opTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.PersistFileEntry.class, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<PersistFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<PersistFileEntry>() {
+      public PersistFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new PersistFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PersistFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int LENGTH_FIELD_NUMBER = 2;
+    private long length_;
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    public boolean hasLength() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 length = 2;</code>
+     */
+    public long getLength() {
+      return length_;
+    }
+
+    public static final int OPTIMEMS_FIELD_NUMBER = 3;
+    private long opTimeMs_;
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    public boolean hasOpTimeMs() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    public long getOpTimeMs() {
+      return opTimeMs_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      length_ = 0L;
+      opTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, length_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, opTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, length_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, opTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.PersistFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.PersistFileEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.PersistFileEntry)
+        tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.PersistFileEntry.class, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.PersistFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        length_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        opTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFileEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFileEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFileEntry build() {
+        tachyon.proto.JournalEntryProtos.PersistFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFileEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.PersistFileEntry result = new tachyon.proto.JournalEntryProtos.PersistFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.length_ = length_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.opTimeMs_ = opTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.PersistFileEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.PersistFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.PersistFileEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasLength()) {
+          setLength(other.getLength());
+        }
+        if (other.hasOpTimeMs()) {
+          setOpTimeMs(other.getOpTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.PersistFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.PersistFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long length_ ;
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public boolean hasLength() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public long getLength() {
+        return length_;
+      }
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public Builder setLength(long value) {
+        bitField0_ |= 0x00000002;
+        length_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 length = 2;</code>
+       */
+      public Builder clearLength() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        length_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long opTimeMs_ ;
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public boolean hasOpTimeMs() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public long getOpTimeMs() {
+        return opTimeMs_;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public Builder setOpTimeMs(long value) {
+        bitField0_ |= 0x00000004;
+        opTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public Builder clearOpTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.PersistFileEntry)
+    }
+
+    static {
+      defaultInstance = new PersistFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.PersistFileEntry)
+  }
+
+  public interface PersistFilesEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.PersistFilesEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    java.util.List<java.lang.Long> getFileIdsList();
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    int getFileIdsCount();
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    long getFileIds(int index);
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.PersistFilesEntry}
+   */
+  public static final class PersistFilesEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.PersistFilesEntry)
+      PersistFilesEntryOrBuilder {
+    // Use PersistFilesEntry.newBuilder() to construct.
+    private PersistFilesEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private PersistFilesEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final PersistFilesEntry defaultInstance;
+    public static PersistFilesEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public PersistFilesEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PersistFilesEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                fileIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              fileIds_.add(input.readInt64());
+              break;
+            }
+            case 10: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
+                fileIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                fileIds_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          fileIds_ = java.util.Collections.unmodifiableList(fileIds_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.PersistFilesEntry.class, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<PersistFilesEntry> PARSER =
+        new com.google.protobuf.AbstractParser<PersistFilesEntry>() {
+      public PersistFilesEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new PersistFilesEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PersistFilesEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public static final int FILEIDS_FIELD_NUMBER = 1;
+    private java.util.List<java.lang.Long> fileIds_;
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getFileIdsList() {
+      return fileIds_;
+    }
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    public int getFileIdsCount() {
+      return fileIds_.size();
+    }
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    public long getFileIds(int index) {
+      return fileIds_.get(index);
+    }
+
+    private void initFields() {
+      fileIds_ = java.util.Collections.emptyList();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < fileIds_.size(); i++) {
+        output.writeInt64(1, fileIds_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < fileIds_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(fileIds_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getFileIdsList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.PersistFilesEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.PersistFilesEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.PersistFilesEntry)
+        tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.PersistFilesEntry.class, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.PersistFilesEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        fileIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry build() {
+        tachyon.proto.JournalEntryProtos.PersistFilesEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.PersistFilesEntry result = new tachyon.proto.JournalEntryProtos.PersistFilesEntry(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          fileIds_ = java.util.Collections.unmodifiableList(fileIds_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.fileIds_ = fileIds_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.PersistFilesEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.PersistFilesEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.PersistFilesEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance()) return this;
+        if (!other.fileIds_.isEmpty()) {
+          if (fileIds_.isEmpty()) {
+            fileIds_ = other.fileIds_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureFileIdsIsMutable();
+            fileIds_.addAll(other.fileIds_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.PersistFilesEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.PersistFilesEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<java.lang.Long> fileIds_ = java.util.Collections.emptyList();
+      private void ensureFileIdsIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          fileIds_ = new java.util.ArrayList<java.lang.Long>(fileIds_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getFileIdsList() {
+        return java.util.Collections.unmodifiableList(fileIds_);
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public int getFileIdsCount() {
+        return fileIds_.size();
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public long getFileIds(int index) {
+        return fileIds_.get(index);
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder setFileIds(
+          int index, long value) {
+        ensureFileIdsIsMutable();
+        fileIds_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder addFileIds(long value) {
+        ensureFileIdsIsMutable();
+        fileIds_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder addAllFileIds(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureFileIdsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, fileIds_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder clearFileIds() {
+        fileIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.PersistFilesEntry)
+    }
+
+    static {
+      defaultInstance = new PersistFilesEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.PersistFilesEntry)
+  }
+
+  public interface PersistFilesRequestEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.PersistFilesRequestEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    java.util.List<java.lang.Long> getFileIdsList();
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    int getFileIdsCount();
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    long getFileIds(int index);
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.PersistFilesRequestEntry}
+   */
+  public static final class PersistFilesRequestEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.PersistFilesRequestEntry)
+      PersistFilesRequestEntryOrBuilder {
+    // Use PersistFilesRequestEntry.newBuilder() to construct.
+    private PersistFilesRequestEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private PersistFilesRequestEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final PersistFilesRequestEntry defaultInstance;
+    public static PersistFilesRequestEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public PersistFilesRequestEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private PersistFilesRequestEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                fileIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              fileIds_.add(input.readInt64());
+              break;
+            }
+            case 10: {
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
+                fileIds_ = new java.util.ArrayList<java.lang.Long>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              while (input.getBytesUntilLimit() > 0) {
+                fileIds_.add(input.readInt64());
+              }
+              input.popLimit(limit);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          fileIds_ = java.util.Collections.unmodifiableList(fileIds_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesRequestEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesRequestEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.class, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<PersistFilesRequestEntry> PARSER =
+        new com.google.protobuf.AbstractParser<PersistFilesRequestEntry>() {
+      public PersistFilesRequestEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new PersistFilesRequestEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PersistFilesRequestEntry> getParserForType() {
+      return PARSER;
+    }
+
+    public static final int FILEIDS_FIELD_NUMBER = 1;
+    private java.util.List<java.lang.Long> fileIds_;
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    public java.util.List<java.lang.Long>
+        getFileIdsList() {
+      return fileIds_;
+    }
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    public int getFileIdsCount() {
+      return fileIds_.size();
+    }
+    /**
+     * <code>repeated int64 fileIds = 1;</code>
+     */
+    public long getFileIds(int index) {
+      return fileIds_.get(index);
+    }
+
+    private void initFields() {
+      fileIds_ = java.util.Collections.emptyList();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < fileIds_.size(); i++) {
+        output.writeInt64(1, fileIds_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < fileIds_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt64SizeNoTag(fileIds_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getFileIdsList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.PersistFilesRequestEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.PersistFilesRequestEntry)
+        tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesRequestEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesRequestEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.class, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        fileIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_PersistFilesRequestEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry build() {
+        tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry result = new tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          fileIds_ = java.util.Collections.unmodifiableList(fileIds_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.fileIds_ = fileIds_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance()) return this;
+        if (!other.fileIds_.isEmpty()) {
+          if (fileIds_.isEmpty()) {
+            fileIds_ = other.fileIds_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureFileIdsIsMutable();
+            fileIds_.addAll(other.fileIds_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<java.lang.Long> fileIds_ = java.util.Collections.emptyList();
+      private void ensureFileIdsIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          fileIds_ = new java.util.ArrayList<java.lang.Long>(fileIds_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public java.util.List<java.lang.Long>
+          getFileIdsList() {
+        return java.util.Collections.unmodifiableList(fileIds_);
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public int getFileIdsCount() {
+        return fileIds_.size();
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public long getFileIds(int index) {
+        return fileIds_.get(index);
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder setFileIds(
+          int index, long value) {
+        ensureFileIdsIsMutable();
+        fileIds_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder addFileIds(long value) {
+        ensureFileIdsIsMutable();
+        fileIds_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder addAllFileIds(
+          java.lang.Iterable<? extends java.lang.Long> values) {
+        ensureFileIdsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, fileIds_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated int64 fileIds = 1;</code>
+       */
+      public Builder clearFileIds() {
+        fileIds_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.PersistFilesRequestEntry)
+    }
+
+    static {
+      defaultInstance = new PersistFilesRequestEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.PersistFilesRequestEntry)
+  }
+
+  public interface RawTableEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.RawTableEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int32 columns = 2;</code>
+     */
+    boolean hasColumns();
+    /**
+     * <code>optional int32 columns = 2;</code>
+     */
+    int getColumns();
+
+    /**
+     * <code>optional bytes metadata = 3;</code>
+     */
+    boolean hasMetadata();
+    /**
+     * <code>optional bytes metadata = 3;</code>
+     */
+    com.google.protobuf.ByteString getMetadata();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.RawTableEntry}
+   */
+  public static final class RawTableEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.RawTableEntry)
+      RawTableEntryOrBuilder {
+    // Use RawTableEntry.newBuilder() to construct.
+    private RawTableEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private RawTableEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RawTableEntry defaultInstance;
+    public static RawTableEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public RawTableEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RawTableEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              columns_ = input.readInt32();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              metadata_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RawTableEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RawTableEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.RawTableEntry.class, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RawTableEntry> PARSER =
+        new com.google.protobuf.AbstractParser<RawTableEntry>() {
+      public RawTableEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RawTableEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RawTableEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int COLUMNS_FIELD_NUMBER = 2;
+    private int columns_;
+    /**
+     * <code>optional int32 columns = 2;</code>
+     */
+    public boolean hasColumns() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int32 columns = 2;</code>
+     */
+    public int getColumns() {
+      return columns_;
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 3;
+    private com.google.protobuf.ByteString metadata_;
+    /**
+     * <code>optional bytes metadata = 3;</code>
+     */
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bytes metadata = 3;</code>
+     */
+    public com.google.protobuf.ByteString getMetadata() {
+      return metadata_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      columns_ = 0;
+      metadata_ = com.google.protobuf.ByteString.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt32(2, columns_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, metadata_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, columns_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, metadata_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.RawTableEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.RawTableEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.RawTableEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.RawTableEntry)
+        tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RawTableEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RawTableEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.RawTableEntry.class, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.RawTableEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        columns_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        metadata_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RawTableEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.RawTableEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.RawTableEntry build() {
+        tachyon.proto.JournalEntryProtos.RawTableEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.RawTableEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.RawTableEntry result = new tachyon.proto.JournalEntryProtos.RawTableEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.columns_ = columns_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.metadata_ = metadata_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.RawTableEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.RawTableEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.RawTableEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasColumns()) {
+          setColumns(other.getColumns());
+        }
+        if (other.hasMetadata()) {
+          setMetadata(other.getMetadata());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.RawTableEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.RawTableEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int columns_ ;
+      /**
+       * <code>optional int32 columns = 2;</code>
+       */
+      public boolean hasColumns() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int32 columns = 2;</code>
+       */
+      public int getColumns() {
+        return columns_;
+      }
+      /**
+       * <code>optional int32 columns = 2;</code>
+       */
+      public Builder setColumns(int value) {
+        bitField0_ |= 0x00000002;
+        columns_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 columns = 2;</code>
+       */
+      public Builder clearColumns() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        columns_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString metadata_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes metadata = 3;</code>
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional bytes metadata = 3;</code>
+       */
+      public com.google.protobuf.ByteString getMetadata() {
+        return metadata_;
+      }
+      /**
+       * <code>optional bytes metadata = 3;</code>
+       */
+      public Builder setMetadata(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        metadata_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes metadata = 3;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        metadata_ = getDefaultInstance().getMetadata();
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.RawTableEntry)
+    }
+
+    static {
+      defaultInstance = new RawTableEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.RawTableEntry)
+  }
+
+  public interface ReinitializeFileEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.ReinitializeFileEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    boolean hasPath();
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    java.lang.String getPath();
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getPathBytes();
+
+    /**
+     * <code>optional int64 blockSizeBytes = 2;</code>
+     */
+    boolean hasBlockSizeBytes();
+    /**
+     * <code>optional int64 blockSizeBytes = 2;</code>
+     */
+    long getBlockSizeBytes();
+
+    /**
+     * <code>optional int64 ttl = 3;</code>
+     */
+    boolean hasTtl();
+    /**
+     * <code>optional int64 ttl = 3;</code>
+     */
+    long getTtl();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.ReinitializeFileEntry}
+   */
+  public static final class ReinitializeFileEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.ReinitializeFileEntry)
+      ReinitializeFileEntryOrBuilder {
+    // Use ReinitializeFileEntry.newBuilder() to construct.
+    private ReinitializeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private ReinitializeFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final ReinitializeFileEntry defaultInstance;
+    public static ReinitializeFileEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public ReinitializeFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ReinitializeFileEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              path_ = bs;
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              blockSizeBytes_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              ttl_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_ReinitializeFileEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_ReinitializeFileEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.class, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<ReinitializeFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<ReinitializeFileEntry>() {
+      public ReinitializeFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new ReinitializeFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReinitializeFileEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int PATH_FIELD_NUMBER = 1;
+    private java.lang.Object path_;
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public boolean hasPath() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          path_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string path = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPathBytes() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        path_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int BLOCKSIZEBYTES_FIELD_NUMBER = 2;
+    private long blockSizeBytes_;
+    /**
+     * <code>optional int64 blockSizeBytes = 2;</code>
+     */
+    public boolean hasBlockSizeBytes() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 blockSizeBytes = 2;</code>
+     */
+    public long getBlockSizeBytes() {
+      return blockSizeBytes_;
+    }
+
+    public static final int TTL_FIELD_NUMBER = 3;
+    private long ttl_;
+    /**
+     * <code>optional int64 ttl = 3;</code>
+     */
+    public boolean hasTtl() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 ttl = 3;</code>
+     */
+    public long getTtl() {
+      return ttl_;
+    }
+
+    private void initFields() {
+      path_ = "";
+      blockSizeBytes_ = 0L;
+      ttl_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getPathBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, blockSizeBytes_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, ttl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getPathBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, blockSizeBytes_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, ttl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.ReinitializeFileEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.ReinitializeFileEntry)
+        tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_ReinitializeFileEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_ReinitializeFileEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.class, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        path_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        blockSizeBytes_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        ttl_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_ReinitializeFileEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry build() {
+        tachyon.proto.JournalEntryProtos.ReinitializeFileEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.ReinitializeFileEntry result = new tachyon.proto.JournalEntryProtos.ReinitializeFileEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.path_ = path_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.blockSizeBytes_ = blockSizeBytes_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.ttl_ = ttl_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.ReinitializeFileEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance()) return this;
+        if (other.hasPath()) {
+          bitField0_ |= 0x00000001;
+          path_ = other.path_;
+          onChanged();
+        }
+        if (other.hasBlockSizeBytes()) {
+          setBlockSizeBytes(other.getBlockSizeBytes());
+        }
+        if (other.hasTtl()) {
+          setTtl(other.getTtl());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.ReinitializeFileEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.ReinitializeFileEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object path_ = "";
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public boolean hasPath() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public java.lang.String getPath() {
+        java.lang.Object ref = path_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            path_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getPathBytes() {
+        java.lang.Object ref = path_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          path_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public Builder setPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        path_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public Builder clearPath() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        path_ = getDefaultInstance().getPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string path = 1;</code>
+       */
+      public Builder setPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        path_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long blockSizeBytes_ ;
+      /**
+       * <code>optional int64 blockSizeBytes = 2;</code>
+       */
+      public boolean hasBlockSizeBytes() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 blockSizeBytes = 2;</code>
+       */
+      public long getBlockSizeBytes() {
+        return blockSizeBytes_;
+      }
+      /**
+       * <code>optional int64 blockSizeBytes = 2;</code>
+       */
+      public Builder setBlockSizeBytes(long value) {
+        bitField0_ |= 0x00000002;
+        blockSizeBytes_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 blockSizeBytes = 2;</code>
+       */
+      public Builder clearBlockSizeBytes() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        blockSizeBytes_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long ttl_ ;
+      /**
+       * <code>optional int64 ttl = 3;</code>
+       */
+      public boolean hasTtl() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 ttl = 3;</code>
+       */
+      public long getTtl() {
+        return ttl_;
+      }
+      /**
+       * <code>optional int64 ttl = 3;</code>
+       */
+      public Builder setTtl(long value) {
+        bitField0_ |= 0x00000004;
+        ttl_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 ttl = 3;</code>
+       */
+      public Builder clearTtl() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        ttl_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.ReinitializeFileEntry)
+    }
+
+    static {
+      defaultInstance = new ReinitializeFileEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.ReinitializeFileEntry)
+  }
+
+  public interface RenameEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.RenameEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional string dstPath = 2;</code>
+     */
+    boolean hasDstPath();
+    /**
+     * <code>optional string dstPath = 2;</code>
+     */
+    java.lang.String getDstPath();
+    /**
+     * <code>optional string dstPath = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getDstPathBytes();
+
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    boolean hasOpTimeMs();
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    long getOpTimeMs();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.RenameEntry}
+   */
+  public static final class RenameEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.RenameEntry)
+      RenameEntryOrBuilder {
+    // Use RenameEntry.newBuilder() to construct.
+    private RenameEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private RenameEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RenameEntry defaultInstance;
+    public static RenameEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public RenameEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RenameEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              dstPath_ = bs;
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              opTimeMs_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RenameEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RenameEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.RenameEntry.class, tachyon.proto.JournalEntryProtos.RenameEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RenameEntry> PARSER =
+        new com.google.protobuf.AbstractParser<RenameEntry>() {
+      public RenameEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RenameEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RenameEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int DSTPATH_FIELD_NUMBER = 2;
+    private java.lang.Object dstPath_;
+    /**
+     * <code>optional string dstPath = 2;</code>
+     */
+    public boolean hasDstPath() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string dstPath = 2;</code>
+     */
+    public java.lang.String getDstPath() {
+      java.lang.Object ref = dstPath_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          dstPath_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string dstPath = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDstPathBytes() {
+      java.lang.Object ref = dstPath_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        dstPath_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OPTIMEMS_FIELD_NUMBER = 3;
+    private long opTimeMs_;
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    public boolean hasOpTimeMs() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 opTimeMs = 3;</code>
+     */
+    public long getOpTimeMs() {
+      return opTimeMs_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      dstPath_ = "";
+      opTimeMs_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getDstPathBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, opTimeMs_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getDstPathBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, opTimeMs_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.RenameEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.RenameEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.RenameEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.RenameEntry)
+        tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RenameEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RenameEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.RenameEntry.class, tachyon.proto.JournalEntryProtos.RenameEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.RenameEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        dstPath_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        opTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_RenameEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.RenameEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.RenameEntry build() {
+        tachyon.proto.JournalEntryProtos.RenameEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.RenameEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.RenameEntry result = new tachyon.proto.JournalEntryProtos.RenameEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.dstPath_ = dstPath_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.opTimeMs_ = opTimeMs_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.RenameEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.RenameEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.RenameEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasDstPath()) {
+          bitField0_ |= 0x00000002;
+          dstPath_ = other.dstPath_;
+          onChanged();
+        }
+        if (other.hasOpTimeMs()) {
+          setOpTimeMs(other.getOpTimeMs());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.RenameEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.RenameEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object dstPath_ = "";
+      /**
+       * <code>optional string dstPath = 2;</code>
+       */
+      public boolean hasDstPath() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional string dstPath = 2;</code>
+       */
+      public java.lang.String getDstPath() {
+        java.lang.Object ref = dstPath_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            dstPath_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string dstPath = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDstPathBytes() {
+        java.lang.Object ref = dstPath_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          dstPath_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string dstPath = 2;</code>
+       */
+      public Builder setDstPath(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        dstPath_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string dstPath = 2;</code>
+       */
+      public Builder clearDstPath() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        dstPath_ = getDefaultInstance().getDstPath();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string dstPath = 2;</code>
+       */
+      public Builder setDstPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        dstPath_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long opTimeMs_ ;
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public boolean hasOpTimeMs() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public long getOpTimeMs() {
+        return opTimeMs_;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public Builder setOpTimeMs(long value) {
+        bitField0_ |= 0x00000004;
+        opTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 3;</code>
+       */
+      public Builder clearOpTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.RenameEntry)
+    }
+
+    static {
+      defaultInstance = new RenameEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.RenameEntry)
+  }
+
+  public interface SetStateEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.SetStateEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional int64 opTimeMs = 2;</code>
+     */
+    boolean hasOpTimeMs();
+    /**
+     * <code>optional int64 opTimeMs = 2;</code>
+     */
+    long getOpTimeMs();
+
+    /**
+     * <code>optional bool pinned = 3;</code>
+     */
+    boolean hasPinned();
+    /**
+     * <code>optional bool pinned = 3;</code>
+     */
+    boolean getPinned();
+
+    /**
+     * <code>optional int64 ttl = 4;</code>
+     */
+    boolean hasTtl();
+    /**
+     * <code>optional int64 ttl = 4;</code>
+     */
+    long getTtl();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.SetStateEntry}
+   */
+  public static final class SetStateEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.SetStateEntry)
+      SetStateEntryOrBuilder {
+    // Use SetStateEntry.newBuilder() to construct.
+    private SetStateEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private SetStateEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final SetStateEntry defaultInstance;
+    public static SetStateEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public SetStateEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private SetStateEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              opTimeMs_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              pinned_ = input.readBool();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              ttl_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_SetStateEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_SetStateEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.SetStateEntry.class, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<SetStateEntry> PARSER =
+        new com.google.protobuf.AbstractParser<SetStateEntry>() {
+      public SetStateEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new SetStateEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SetStateEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int OPTIMEMS_FIELD_NUMBER = 2;
+    private long opTimeMs_;
+    /**
+     * <code>optional int64 opTimeMs = 2;</code>
+     */
+    public boolean hasOpTimeMs() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 opTimeMs = 2;</code>
+     */
+    public long getOpTimeMs() {
+      return opTimeMs_;
+    }
+
+    public static final int PINNED_FIELD_NUMBER = 3;
+    private boolean pinned_;
+    /**
+     * <code>optional bool pinned = 3;</code>
+     */
+    public boolean hasPinned() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bool pinned = 3;</code>
+     */
+    public boolean getPinned() {
+      return pinned_;
+    }
+
+    public static final int TTL_FIELD_NUMBER = 4;
+    private long ttl_;
+    /**
+     * <code>optional int64 ttl = 4;</code>
+     */
+    public boolean hasTtl() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 ttl = 4;</code>
+     */
+    public long getTtl() {
+      return ttl_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      opTimeMs_ = 0L;
+      pinned_ = false;
+      ttl_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, opTimeMs_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBool(3, pinned_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, ttl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, opTimeMs_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, pinned_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, ttl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.SetStateEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.SetStateEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.SetStateEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.SetStateEntry)
+        tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_SetStateEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_SetStateEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.SetStateEntry.class, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.SetStateEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        opTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        pinned_ = false;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        ttl_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_SetStateEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.SetStateEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.SetStateEntry build() {
+        tachyon.proto.JournalEntryProtos.SetStateEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.SetStateEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.SetStateEntry result = new tachyon.proto.JournalEntryProtos.SetStateEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.opTimeMs_ = opTimeMs_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.pinned_ = pinned_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.ttl_ = ttl_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.SetStateEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.SetStateEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.SetStateEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasOpTimeMs()) {
+          setOpTimeMs(other.getOpTimeMs());
+        }
+        if (other.hasPinned()) {
+          setPinned(other.getPinned());
+        }
+        if (other.hasTtl()) {
+          setTtl(other.getTtl());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.SetStateEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.SetStateEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long opTimeMs_ ;
+      /**
+       * <code>optional int64 opTimeMs = 2;</code>
+       */
+      public boolean hasOpTimeMs() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 opTimeMs = 2;</code>
+       */
+      public long getOpTimeMs() {
+        return opTimeMs_;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 2;</code>
+       */
+      public Builder setOpTimeMs(long value) {
+        bitField0_ |= 0x00000002;
+        opTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 opTimeMs = 2;</code>
+       */
+      public Builder clearOpTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        opTimeMs_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean pinned_ ;
+      /**
+       * <code>optional bool pinned = 3;</code>
+       */
+      public boolean hasPinned() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional bool pinned = 3;</code>
+       */
+      public boolean getPinned() {
+        return pinned_;
+      }
+      /**
+       * <code>optional bool pinned = 3;</code>
+       */
+      public Builder setPinned(boolean value) {
+        bitField0_ |= 0x00000004;
+        pinned_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool pinned = 3;</code>
+       */
+      public Builder clearPinned() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        pinned_ = false;
+        onChanged();
+        return this;
+      }
+
+      private long ttl_ ;
+      /**
+       * <code>optional int64 ttl = 4;</code>
+       */
+      public boolean hasTtl() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 ttl = 4;</code>
+       */
+      public long getTtl() {
+        return ttl_;
+      }
+      /**
+       * <code>optional int64 ttl = 4;</code>
+       */
+      public Builder setTtl(long value) {
+        bitField0_ |= 0x00000008;
+        ttl_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 ttl = 4;</code>
+       */
+      public Builder clearTtl() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        ttl_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.SetStateEntry)
+    }
+
+    static {
+      defaultInstance = new SetStateEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.SetStateEntry)
+  }
+
+  public interface UpdateMetadataEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.UpdateMetadataEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    boolean hasId();
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    long getId();
+
+    /**
+     * <code>optional bytes metadata = 2;</code>
+     */
+    boolean hasMetadata();
+    /**
+     * <code>optional bytes metadata = 2;</code>
+     */
+    com.google.protobuf.ByteString getMetadata();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.UpdateMetadataEntry}
+   */
+  public static final class UpdateMetadataEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.UpdateMetadataEntry)
+      UpdateMetadataEntryOrBuilder {
+    // Use UpdateMetadataEntry.newBuilder() to construct.
+    private UpdateMetadataEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private UpdateMetadataEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final UpdateMetadataEntry defaultInstance;
+    public static UpdateMetadataEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public UpdateMetadataEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UpdateMetadataEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readInt64();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              metadata_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_UpdateMetadataEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_UpdateMetadataEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.class, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<UpdateMetadataEntry> PARSER =
+        new com.google.protobuf.AbstractParser<UpdateMetadataEntry>() {
+      public UpdateMetadataEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateMetadataEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateMetadataEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    private long id_;
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 id = 1;</code>
+     */
+    public long getId() {
+      return id_;
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 2;
+    private com.google.protobuf.ByteString metadata_;
+    /**
+     * <code>optional bytes metadata = 2;</code>
+     */
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bytes metadata = 2;</code>
+     */
+    public com.google.protobuf.ByteString getMetadata() {
+      return metadata_;
+    }
+
+    private void initFields() {
+      id_ = 0L;
+      metadata_ = com.google.protobuf.ByteString.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, metadata_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, id_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, metadata_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.UpdateMetadataEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.UpdateMetadataEntry)
+        tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_UpdateMetadataEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_UpdateMetadataEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.class, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.JournalEntryProtos.internal_static_tachyon_proto_UpdateMetadataEntry_descriptor;
+      }
+
+      public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getDefaultInstanceForType() {
+        return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry build() {
+        tachyon.proto.JournalEntryProtos.UpdateMetadataEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry buildPartial() {
+        tachyon.proto.JournalEntryProtos.UpdateMetadataEntry result = new tachyon.proto.JournalEntryProtos.UpdateMetadataEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.metadata_ = metadata_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) {
+          return mergeFrom((tachyon.proto.JournalEntryProtos.UpdateMetadataEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry other) {
+        if (other == tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        if (other.hasMetadata()) {
+          setMetadata(other.getMetadata());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.JournalEntryProtos.UpdateMetadataEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.JournalEntryProtos.UpdateMetadataEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long id_ ;
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public long getId() {
+        return id_;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder setId(long value) {
+        bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 id = 1;</code>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString metadata_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes metadata = 2;</code>
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bytes metadata = 2;</code>
+       */
+      public com.google.protobuf.ByteString getMetadata() {
+        return metadata_;
+      }
+      /**
+       * <code>optional bytes metadata = 2;</code>
+       */
+      public Builder setMetadata(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        metadata_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes metadata = 2;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        metadata_ = getDefaultInstance().getMetadata();
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.UpdateMetadataEntry)
+    }
+
+    static {
+      defaultInstance = new UpdateMetadataEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.UpdateMetadataEntry)
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_JournalEntry_descriptor;
   private static
@@ -1305,6 +19321,116 @@ public final class JournalEntryProtos {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_AddMountPointEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_AsyncCompleteFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_AsyncCompleteFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_BlockInfoEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_BlockInfoEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_CompleteFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_CompleteFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_DeleteFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_DeleteFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_DeleteLineageEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_DeleteLineageEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_DeleteMountPointEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_DeleteMountPointEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_InodeDirectoryEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_InodeDirectoryEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_InodeFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_InodeFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_InodeLastModificationTimeEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_InodeLastModificationTimeEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_LineageEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_LineageEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_LineageIdGeneratorEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_LineageIdGeneratorEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_PersistDirectoryEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_PersistDirectoryEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_PersistFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_PersistFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_PersistFilesEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_PersistFilesEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_PersistFilesRequestEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_PersistFilesRequestEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_RawTableEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_RawTableEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_ReinitializeFileEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_ReinitializeFileEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_RenameEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_RenameEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_SetStateEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_SetStateEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_UpdateMetadataEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_UpdateMetadataEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -1315,11 +19441,92 @@ public final class JournalEntryProtos {
   static {
     java.lang.String[] descriptorData = {
       "\n\032journal_entry_protos.proto\022\rtachyon.pr" +
-      "oto\"k\n\014JournalEntry\022\026\n\016sequenceNumber\030\001 " +
-      "\001(\003\022:\n\raddMountPoint\030\n \001(\0132!.tachyon.pro" +
-      "to.AddMountPointEntryH\000B\007\n\005entry\":\n\022AddM" +
-      "ountPointEntry\022\023\n\013tachyonPath\030\001 \001(\t\022\017\n\007u" +
-      "fsPath\030\002 \001(\tB\017\n\rtachyon.proto"
+      "oto\"\317\013\n\014JournalEntry\022\026\n\016sequenceNumber\030\001" +
+      " \001(\003\022:\n\raddMountPoint\030\002 \001(\0132!.tachyon.pr" +
+      "oto.AddMountPointEntryH\000\022B\n\021asyncComplet" +
+      "eFile\030\003 \001(\0132%.tachyon.proto.AsyncComplet" +
+      "eFileEntryH\000\022R\n\031blockContainerIdGenerato" +
+      "r\030\004 \001(\0132-.tachyon.proto.BlockContainerId" +
+      "GeneratorEntryH\000\0222\n\tblockInfo\030\005 \001(\0132\035.ta" +
+      "chyon.proto.BlockInfoEntryH\000\0228\n\014complete" +
+      "File\030\006 \001(\0132 .tachyon.proto.CompleteFileE",
+      "ntryH\000\0224\n\ndeleteFile\030\007 \001(\0132\036.tachyon.pro" +
+      "to.DeleteFileEntryH\000\022:\n\rdeleteLineage\030\010 " +
+      "\001(\0132!.tachyon.proto.DeleteLineageEntryH\000" +
+      "\022@\n\020deleteMountPoint\030\t \001(\0132$.tachyon.pro" +
+      "to.DeleteMountPointEntryH\000\022<\n\016inodeDirec" +
+      "tory\030\n \001(\0132\".tachyon.proto.InodeDirector" +
+      "yEntryH\000\022R\n\031inodeDirectoryIdGenerator\030\013 " +
+      "\001(\0132-.tachyon.proto.InodeDirectoryIdGene" +
+      "ratorEntryH\000\0227\n\016inodeFileEntry\030\014 \001(\0132\035.t" +
+      "achyon.proto.InodeFileEntryH\000\022R\n\031inodeLa",
+      "stModificationTime\030\r \001(\0132-.tachyon.proto" +
+      ".InodeLastModificationTimeEntryH\000\0223\n\014lin" +
+      "eageEntry\030\016 \001(\0132\033.tachyon.proto.LineageE" +
+      "ntryH\000\022D\n\022lineageIdGenerator\030\017 \001(\0132&.tac" +
+      "hyon.proto.LineageIdGeneratorEntryH\000\022@\n\020" +
+      "persistDirectory\030\020 \001(\0132$.tachyon.proto.P" +
+      "ersistDirectoryEntryH\000\0226\n\013persistFile\030\021 " +
+      "\001(\0132\037.tachyon.proto.PersistFileEntryH\000\022:" +
+      "\n\016persisterFiles\030\022 \001(\0132 .tachyon.proto.P" +
+      "ersistFilesEntryH\000\022F\n\023persistFilesReques",
+      "t\030\023 \001(\0132\'.tachyon.proto.PersistFilesRequ" +
+      "estEntryH\000\0220\n\010rawTable\030\024 \001(\0132\034.tachyon.p" +
+      "roto.RawTableEntryH\000\022@\n\020reinitializeFile" +
+      "\030\025 \001(\0132$.tachyon.proto.ReinitializeFileE" +
+      "ntryH\000\022,\n\006rename\030\026 \001(\0132\032.tachyon.proto.R" +
+      "enameEntryH\000\0220\n\010setState\030\027 \001(\0132\034.tachyon" +
+      ".proto.SetStateEntryH\000\022<\n\016updateMetadata" +
+      "\030\030 \001(\0132\".tachyon.proto.UpdateMetadataEnt" +
+      "ryH\000B\007\n\005entry\":\n\022AddMountPointEntry\022\023\n\013t" +
+      "achyonPath\030\001 \001(\t\022\017\n\007ufsPath\030\002 \001(\t\"(\n\026Asy",
+      "ncCompleteFileEntry\022\016\n\006fileId\030\001 \001(\003\"9\n\036B" +
+      "lockContainerIdGeneratorEntry\022\027\n\017nextCon" +
+      "tainerId\030\001 \001(\003\"1\n\016BlockInfoEntry\022\017\n\007bloc" +
+      "kId\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\"S\n\021CompleteFil" +
+      "eEntry\022\020\n\010blockIds\030\001 \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006" +
+      "length\030\003 \001(\003\022\020\n\010opTimeMs\030\004 \001(\003\"B\n\017Delete" +
+      "FileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010" +
+      "\022\020\n\010opTimeMs\030\003 \001(\003\"8\n\022DeleteLineageEntry" +
+      "\022\021\n\tlineageId\030\001 \001(\003\022\017\n\007cascade\030\002 \001(\010\",\n\025" +
+      "DeleteMountPointEntry\022\023\n\013tachyonPath\030\001 \001",
+      "(\t\"\234\001\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\020" +
+      "\n\010parentId\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpersis" +
+      "ted\030\004 \001(\010\022\016\n\006pinned\030\005 \001(\010\022\026\n\016creationTim" +
+      "eMs\030\006 \001(\003\022\036\n\026lastModificationTimeMs\030\007 \001(" +
+      "\003\"M\n\036InodeDirectoryIdGeneratorEntry\022\023\n\013c" +
+      "ontainerId\030\001 \001(\003\022\026\n\016sequenceNumber\030\002 \001(\003" +
+      "\"\202\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010paren" +
+      "tId\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpersisted\030\004 \001" +
+      "(\010\022\016\n\006pinned\030\005 \001(\010\022\026\n\016creationTimeMs\030\006 \001" +
+      "(\003\022\036\n\026lastModificationTimeMs\030\007 \001(\003\022\026\n\016bl",
+      "ockSizeBytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tco" +
+      "mpleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006bloc" +
+      "ks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\"L\n\036InodeLastModifi" +
+      "cationTimeEntry\022\n\n\002id\030\001 \001(\003\022\036\n\026lastModif" +
+      "icationTimeMs\030\002 \001(\003\"\303\001\n\014LineageEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\022\n\ninputFiles\030\002 \003(\003\022\025\n\routputFi" +
+      "leIds\030\003 \003(\003\0229\n\020outputFileStates\030\004 \003(\0162\037." +
+      "tachyon.proto.LineageFileState\022\022\n\njobCom" +
+      "mand\030\005 \001(\t\022\025\n\rjobOutputPath\030\006 \001(\t\022\026\n\016cre" +
+      "ationTimeMs\030\007 \001(\003\"1\n\027LineageIdGeneratorE",
+      "ntry\022\026\n\016sequenceNumber\030\001 \001(\003\"#\n\025PersistD" +
+      "irectoryEntry\022\n\n\002id\030\001 \001(\003\"@\n\020PersistFile" +
+      "Entry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\020\n\010opT" +
+      "imeMs\030\003 \001(\003\"$\n\021PersistFilesEntry\022\017\n\007file" +
+      "Ids\030\001 \003(\003\"+\n\030PersistFilesRequestEntry\022\017\n" +
+      "\007fileIds\030\001 \003(\003\">\n\rRawTableEntry\022\n\n\002id\030\001 " +
+      "\001(\003\022\017\n\007columns\030\002 \001(\005\022\020\n\010metadata\030\003 \001(\014\"J" +
+      "\n\025ReinitializeFileEntry\022\014\n\004path\030\001 \001(\t\022\026\n" +
+      "\016blockSizeBytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"<\n\013Re" +
+      "nameEntry\022\n\n\002id\030\001 \001(\003\022\017\n\007dstPath\030\002 \001(\t\022\020",
+      "\n\010opTimeMs\030\003 \001(\003\"J\n\rSetStateEntry\022\n\n\002id\030" +
+      "\001 \001(\003\022\020\n\010opTimeMs\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022" +
+      "\013\n\003ttl\030\004 \001(\003\"3\n\023UpdateMetadataEntry\022\n\n\002i" +
+      "d\030\001 \001(\003\022\020\n\010metadata\030\002 \001(\014*a\n\020LineageFile" +
+      "State\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r\n\tPER" +
+      "SISTED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022\010\n\004LO" +
+      "ST\020\005B\017\n\rtachyon.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1338,13 +19545,145 @@ public final class JournalEntryProtos {
     internal_static_tachyon_proto_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "Entry", });
+        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncCompleteFile", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFileEntry", "InodeLastModificationTime", "LineageEntry", "LineageIdGenerator", "PersistDirectory", "PersistFile", "PersisterFiles", "PersistFilesRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "Entry", });
     internal_static_tachyon_proto_AddMountPointEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_tachyon_proto_AddMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_AddMountPointEntry_descriptor,
         new java.lang.String[] { "TachyonPath", "UfsPath", });
+    internal_static_tachyon_proto_AsyncCompleteFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_tachyon_proto_AsyncCompleteFileEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_AsyncCompleteFileEntry_descriptor,
+        new java.lang.String[] { "FileId", });
+    internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_BlockContainerIdGeneratorEntry_descriptor,
+        new java.lang.String[] { "NextContainerId", });
+    internal_static_tachyon_proto_BlockInfoEntry_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_tachyon_proto_BlockInfoEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_BlockInfoEntry_descriptor,
+        new java.lang.String[] { "BlockId", "Length", });
+    internal_static_tachyon_proto_CompleteFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_tachyon_proto_CompleteFileEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_CompleteFileEntry_descriptor,
+        new java.lang.String[] { "BlockIds", "Id", "Length", "OpTimeMs", });
+    internal_static_tachyon_proto_DeleteFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_tachyon_proto_DeleteFileEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_DeleteFileEntry_descriptor,
+        new java.lang.String[] { "Id", "Recursive", "OpTimeMs", });
+    internal_static_tachyon_proto_DeleteLineageEntry_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_tachyon_proto_DeleteLineageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_DeleteLineageEntry_descriptor,
+        new java.lang.String[] { "LineageId", "Cascade", });
+    internal_static_tachyon_proto_DeleteMountPointEntry_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_tachyon_proto_DeleteMountPointEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_DeleteMountPointEntry_descriptor,
+        new java.lang.String[] { "TachyonPath", });
+    internal_static_tachyon_proto_InodeDirectoryEntry_descriptor =
+      getDescriptor().getMessageTypes().get(9);
+    internal_static_tachyon_proto_InodeDirectoryEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_InodeDirectoryEntry_descriptor,
+        new java.lang.String[] { "Id", "ParentId", "Name", "Persisted", "Pinned", "CreationTimeMs", "LastModificationTimeMs", });
+    internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_descriptor =
+      getDescriptor().getMessageTypes().get(10);
+    internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_InodeDirectoryIdGeneratorEntry_descriptor,
+        new java.lang.String[] { "ContainerId", "SequenceNumber", });
+    internal_static_tachyon_proto_InodeFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(11);
+    internal_static_tachyon_proto_InodeFileEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_InodeFileEntry_descriptor,
+        new java.lang.String[] { "Id", "ParentId", "Name", "Persisted", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", });
+    internal_static_tachyon_proto_InodeLastModificationTimeEntry_descriptor =
+      getDescriptor().getMessageTypes().get(12);
+    internal_static_tachyon_proto_InodeLastModificationTimeEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_InodeLastModificationTimeEntry_descriptor,
+        new java.lang.String[] { "Id", "LastModificationTimeMs", });
+    internal_static_tachyon_proto_LineageEntry_descriptor =
+      getDescriptor().getMessageTypes().get(13);
+    internal_static_tachyon_proto_LineageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_LineageEntry_descriptor,
+        new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "OutputFileStates", "JobCommand", "JobOutputPath", "CreationTimeMs", });
+    internal_static_tachyon_proto_LineageIdGeneratorEntry_descriptor =
+      getDescriptor().getMessageTypes().get(14);
+    internal_static_tachyon_proto_LineageIdGeneratorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_LineageIdGeneratorEntry_descriptor,
+        new java.lang.String[] { "SequenceNumber", });
+    internal_static_tachyon_proto_PersistDirectoryEntry_descriptor =
+      getDescriptor().getMessageTypes().get(15);
+    internal_static_tachyon_proto_PersistDirectoryEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_PersistDirectoryEntry_descriptor,
+        new java.lang.String[] { "Id", });
+    internal_static_tachyon_proto_PersistFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(16);
+    internal_static_tachyon_proto_PersistFileEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_PersistFileEntry_descriptor,
+        new java.lang.String[] { "Id", "Length", "OpTimeMs", });
+    internal_static_tachyon_proto_PersistFilesEntry_descriptor =
+      getDescriptor().getMessageTypes().get(17);
+    internal_static_tachyon_proto_PersistFilesEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_PersistFilesEntry_descriptor,
+        new java.lang.String[] { "FileIds", });
+    internal_static_tachyon_proto_PersistFilesRequestEntry_descriptor =
+      getDescriptor().getMessageTypes().get(18);
+    internal_static_tachyon_proto_PersistFilesRequestEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_PersistFilesRequestEntry_descriptor,
+        new java.lang.String[] { "FileIds", });
+    internal_static_tachyon_proto_RawTableEntry_descriptor =
+      getDescriptor().getMessageTypes().get(19);
+    internal_static_tachyon_proto_RawTableEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_RawTableEntry_descriptor,
+        new java.lang.String[] { "Id", "Columns", "Metadata", });
+    internal_static_tachyon_proto_ReinitializeFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(20);
+    internal_static_tachyon_proto_ReinitializeFileEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_ReinitializeFileEntry_descriptor,
+        new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", });
+    internal_static_tachyon_proto_RenameEntry_descriptor =
+      getDescriptor().getMessageTypes().get(21);
+    internal_static_tachyon_proto_RenameEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_RenameEntry_descriptor,
+        new java.lang.String[] { "Id", "DstPath", "OpTimeMs", });
+    internal_static_tachyon_proto_SetStateEntry_descriptor =
+      getDescriptor().getMessageTypes().get(22);
+    internal_static_tachyon_proto_SetStateEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_SetStateEntry_descriptor,
+        new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", });
+    internal_static_tachyon_proto_UpdateMetadataEntry_descriptor =
+      getDescriptor().getMessageTypes().get(23);
+    internal_static_tachyon_proto_UpdateMetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_UpdateMetadataEntry_descriptor,
+        new java.lang.String[] { "Id", "Metadata", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
