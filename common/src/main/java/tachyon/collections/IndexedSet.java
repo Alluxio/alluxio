@@ -104,8 +104,6 @@ import tachyon.Constants;
  * </pre>
  */
 public class IndexedSet<T> implements Iterable<T> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** All objects in the set */
   private final Set<T> mObjects = new HashSet<T>();
   /** Map from field index to an index of field related object in the internal lists */
