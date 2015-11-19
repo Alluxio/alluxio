@@ -282,12 +282,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
         // to the non-persisted Inodes of traversalResult.
         traversalResult.getNonPersisted().add(lastInode);
         toPersistDirectories.add(lastInode);
-      } else {
-        if (!(lastInode.isDirectory() && options.isAllowExists())) {
-          LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-          throw new FileAlreadyExistsException(
-              ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-        }
+      } else if (!(lastInode.isDirectory() && options.isAllowExists())) {
+        LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
     } else {
       if (options.isDirectory()) {
