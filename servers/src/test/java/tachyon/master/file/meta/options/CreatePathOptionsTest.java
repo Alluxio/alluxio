@@ -28,6 +28,7 @@ public class CreatePathOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
+    boolean allowExists = random.nextBoolean();
     long blockSize = random.nextLong();
     boolean directory = random.nextBoolean();
     long operationTimeMs = random.nextLong();
@@ -35,16 +36,12 @@ public class CreatePathOptionsTest {
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
 
-    CreatePathOptions options =
-        new CreatePathOptions.Builder(new TachyonConf())
-            .setBlockSizeBytes(blockSize)
-            .setDirectory(directory)
-            .setOperationTimeMs(operationTimeMs)
-            .setPersisted(persisted)
-            .setRecursive(recursive)
-            .setTTL(ttl)
-            .build();
+    CreatePathOptions options = new CreatePathOptions.Builder(new TachyonConf())
+        .setAllowExists(allowExists).setBlockSizeBytes(blockSize).setDirectory(directory)
+        .setOperationTimeMs(operationTimeMs).setPersisted(persisted).setRecursive(recursive)
+        .setTTL(ttl).build();
 
+    Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(directory, options.isDirectory());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
@@ -61,6 +58,7 @@ public class CreatePathOptionsTest {
 
     CreatePathOptions options = CreatePathOptions.defaults();
 
+    Assert.assertEquals(false, options.isAllowExists());
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertFalse(options.isDirectory());
     Assert.assertFalse(options.isPersisted());

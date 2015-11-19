@@ -31,6 +31,13 @@ public class CreatePathOptions {
 
     /**
      * Creates a new builder for {@link CreatePathOptions}.
+     */
+    public Builder() {
+      this(MasterContext.getConf());
+    }
+
+    /**
+     * Creates a new builder for {@link CreatePathOptions}.
      *
      * @param conf a Tachyon configuration
      */
