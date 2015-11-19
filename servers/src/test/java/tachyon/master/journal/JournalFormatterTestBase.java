@@ -182,7 +182,7 @@ public abstract class JournalFormatterTestBase {
                       .setCascade(false))
                   .build())
       .add(JournalEntry.newBuilder()
-          .setLineageEntry(LineageEntry.newBuilder().setId(TEST_LINEAGE_ID)
+          .setLineage(LineageEntry.newBuilder().setId(TEST_LINEAGE_ID)
               .addAllInputFiles(Arrays.asList(TEST_FILE_ID))
               .addAllOutputFileIds(Arrays.asList(TEST_FILE_ID))
               .addAllOutputFileStates(Arrays.asList(LineageFileState.CREATED))
@@ -191,7 +191,7 @@ public abstract class JournalFormatterTestBase {
           .build())
       .add(
           JournalEntry.newBuilder()
-              .setPersisterFiles(
+              .setPersistFiles(
                   PersistFilesEntry.newBuilder().addAllFileIds(Arrays.asList(1L, 2L)))
               .build())
           .add(JournalEntry.newBuilder()
@@ -259,5 +259,4 @@ public abstract class JournalFormatterTestBase {
       entryTest(entry);
     }
   }
-
 }

@@ -1,99 +1,101 @@
 package tachyon.proto;
 option java_package = "tachyon.proto";
 
+// Wraps around all types of Tachyon journal messages.
+// next id: 25
 message JournalEntry {
-  optional int64 sequenceNumber = 1;
+  optional int64 sequence_number = 1;
   oneof entry {
-    AddMountPointEntry addMountPoint = 2;
-    AsyncCompleteFileEntry asyncCompleteFile = 3;
-    BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;
-    BlockInfoEntry blockInfo = 5;
-    CompleteFileEntry completeFile = 6;
-    DeleteFileEntry deleteFile = 7;
-    DeleteLineageEntry deleteLineage = 8;
-    DeleteMountPointEntry deleteMountPoint = 9;
-    InodeDirectoryEntry inodeDirectory = 10;
-    InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;
-    InodeFileEntry inodeFileEntry = 12;
-    InodeLastModificationTimeEntry inodeLastModificationTime = 13;
-    LineageEntry lineageEntry = 14;
-    LineageIdGeneratorEntry lineageIdGenerator = 15;
-    PersistDirectoryEntry persistDirectory = 16;
-    PersistFileEntry persistFile = 17;
-    PersistFilesEntry persisterFiles = 18;
-    PersistFilesRequestEntry persistFilesRequest = 19;
-    RawTableEntry rawTable = 20;
-    ReinitializeFileEntry reinitializeFile = 21;
+    AddMountPointEntry add_mount_point = 2;
+    AsyncCompleteFileEntry async_complete_file = 3;
+    BlockContainerIdGeneratorEntry block_container_id_generator = 4;
+    BlockInfoEntry block_info = 5;
+    CompleteFileEntry complete_file = 6;
+    DeleteFileEntry delete_file = 7;
+    DeleteLineageEntry delete_lineage = 8;
+    DeleteMountPointEntry delete_mount_point = 9;
+    InodeDirectoryEntry inode_directory = 10;
+    InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;
+    InodeFileEntry inode_file_entry = 12;
+    InodeLastModificationTimeEntry inode_last_modification_time = 13;
+    LineageEntry lineage = 14;
+    LineageIdGeneratorEntry lineage_id_generator = 15;
+    PersistDirectoryEntry persist_directory = 16;
+    PersistFileEntry persist_file = 17;
+    PersistFilesEntry persist_files = 18;
+    PersistFilesRequestEntry persist_files_request = 19;
+    RawTableEntry raw_table = 20;
+    ReinitializeFileEntry reinitialize_file = 21;
     RenameEntry rename = 22;
-    SetStateEntry setState = 23;
-    UpdateMetadataEntry updateMetadata = 24;
+    SetStateEntry set_state = 23;
+    UpdateMetadataEntry update_metadata = 24;
   }
 }
 
 message AddMountPointEntry {
-  optional string tachyonPath = 1;
-  optional string ufsPath = 2;
+  optional string tachyon_path = 1;
+  optional string ufs_path = 2;
 }
 
 message AsyncCompleteFileEntry {
-  optional int64 fileId = 1;
+  optional int64 file_id = 1;
 }
 
 message BlockContainerIdGeneratorEntry {
-  optional int64 nextContainerId = 1;
+  optional int64 next_container_id = 1;
 }
 
 message BlockInfoEntry {
-  optional int64 blockId = 1;
+  optional int64 block_id = 1;
   optional int64 length = 2;
 }
 
 message CompleteFileEntry {
-  repeated int64 blockIds = 1;
+  repeated int64 block_ids = 1;
   optional int64 id = 2;
   optional int64 length = 3;
-  optional int64 opTimeMs = 4;
+  optional int64 op_time_ms = 4;
 }
 
 message DeleteFileEntry {
   optional int64 id = 1;
   optional bool recursive = 2;
-  optional int64 opTimeMs = 3;
+  optional int64 op_time_ms = 3;
 }
 
 message DeleteLineageEntry {
-  optional int64 lineageId = 1;
+  optional int64 lineage_id = 1;
   optional bool cascade = 2;
 }
 
 message DeleteMountPointEntry {
-  optional string tachyonPath = 1;
+  optional string tachyon_path = 1;
 }
 
 message InodeDirectoryEntry {
   optional int64 id = 1;
-  optional int64 parentId = 2;
+  optional int64 parent_id = 2;
   optional string name = 3;
   optional bool persisted = 4;
   optional bool pinned = 5;
-  optional int64 creationTimeMs = 6;
-  optional int64 lastModificationTimeMs = 7;
+  optional int64 creation_time_ms = 6;
+  optional int64 last_modification_time_ms = 7;
 }
 
 message InodeDirectoryIdGeneratorEntry {
-  optional int64 containerId = 1;
-  optional int64 sequenceNumber = 2;
+  optional int64 container_id = 1;
+  optional int64 sequence_number = 2;
 }
 
 message InodeFileEntry {
   optional int64 id = 1;
-  optional int64 parentId = 2;
+  optional int64 parent_id = 2;
   optional string name = 3;
   optional bool persisted = 4;
   optional bool pinned = 5;
-  optional int64 creationTimeMs = 6;
-  optional int64 lastModificationTimeMs = 7;
-  optional int64 blockSizeBytes = 8;
+  optional int64 creation_time_ms = 6;
+  optional int64 last_modification_time_ms = 7;
+  optional int64 block_size_bytes = 8;
   optional int64 length = 9;
   optional bool completed = 10;
   optional bool cacheable = 11;
@@ -103,17 +105,17 @@ message InodeFileEntry {
 
 message InodeLastModificationTimeEntry {
   optional int64 id = 1;
-  optional int64 lastModificationTimeMs = 2;
+  optional int64 last_modification_time_ms = 2;
 }
 
 message LineageEntry {
   optional int64 id = 1;
-  repeated int64 inputFiles = 2;
-  repeated int64 outputFileIds = 3;
-  repeated LineageFileState outputFileStates = 4;
-  optional string jobCommand = 5;
-  optional string jobOutputPath = 6;
-  optional int64 creationTimeMs = 7;
+  repeated int64 input_files = 2;
+  repeated int64 output_file_ids = 3;
+  repeated LineageFileState output_file_states = 4;
+  optional string job_command = 5;
+  optional string job_output_path = 6;
+  optional int64 creation_time_ms = 7;
 }
 
 enum LineageFileState {
@@ -125,7 +127,7 @@ enum LineageFileState {
 }
 
 message LineageIdGeneratorEntry {
-  optional int64 sequenceNumber = 1;
+  optional int64 sequence_number = 1;
 }
 
 message PersistDirectoryEntry {
@@ -135,15 +137,15 @@ message PersistDirectoryEntry {
 message PersistFileEntry {
   optional int64 id = 1;
   optional int64 length = 2;
-  optional int64 opTimeMs = 3;
+  optional int64 op_time_ms = 3;
 }
 
 message PersistFilesEntry {
-  repeated int64 fileIds = 1;
+  repeated int64 file_ids = 1;
 }
 
 message PersistFilesRequestEntry {
-  repeated int64 fileIds = 1;
+  repeated int64 file_ids = 1;
 }
 
 message RawTableEntry {
@@ -154,19 +156,19 @@ message RawTableEntry {
 
 message ReinitializeFileEntry {
   optional string path = 1;
-  optional int64 blockSizeBytes = 2;
+  optional int64 block_size_bytes = 2;
   optional int64 ttl = 3;
 }
 
 message RenameEntry {
   optional int64 id = 1;
-  optional string dstPath = 2;
-  optional int64 opTimeMs = 3;
+  optional string dst_path = 2;
+  optional int64 op_time_ms = 3;
 }
 
 message SetStateEntry {
   optional int64 id = 1;
-  optional int64 opTimeMs = 2;
+  optional int64 op_time_ms = 2;
   optional bool pinned = 3;
   optional int64 ttl = 4;
 }

@@ -122,271 +122,271 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     boolean hasSequenceNumber();
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     long getSequenceNumber();
 
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
      */
     boolean hasAddMountPoint();
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
      */
     tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint();
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
      */
     tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
      */
     boolean hasAsyncCompleteFile();
     /**
-     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
      */
     tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getAsyncCompleteFile();
     /**
-     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
      */
     tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder getAsyncCompleteFileOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
      */
     boolean hasBlockContainerIdGenerator();
     /**
-     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
      */
     tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getBlockContainerIdGenerator();
     /**
-     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
      */
     tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder getBlockContainerIdGeneratorOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
      */
     boolean hasBlockInfo();
     /**
-     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
      */
     tachyon.proto.JournalEntryProtos.BlockInfoEntry getBlockInfo();
     /**
-     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
      */
     tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder getBlockInfoOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
      */
     boolean hasCompleteFile();
     /**
-     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
      */
     tachyon.proto.JournalEntryProtos.CompleteFileEntry getCompleteFile();
     /**
-     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
      */
     tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder getCompleteFileOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
      */
     boolean hasDeleteFile();
     /**
-     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
      */
     tachyon.proto.JournalEntryProtos.DeleteFileEntry getDeleteFile();
     /**
-     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
      */
     tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder getDeleteFileOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
      */
     boolean hasDeleteLineage();
     /**
-     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
      */
     tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDeleteLineage();
     /**
-     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
      */
     tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
      */
     boolean hasDeleteMountPoint();
     /**
-     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
      */
     tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDeleteMountPoint();
     /**
-     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
      */
     tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
      */
     boolean hasInodeDirectory();
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getInodeDirectory();
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder getInodeDirectoryOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
      */
     boolean hasInodeDirectoryIdGenerator();
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getInodeDirectoryIdGenerator();
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
      */
     boolean hasInodeFileEntry();
     /**
-     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeFileEntry getInodeFileEntry();
     /**
-     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
      */
     boolean hasInodeLastModificationTime();
     /**
-     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getInodeLastModificationTime();
     /**
-     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
      */
     tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder getInodeLastModificationTimeOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
      */
-    boolean hasLineageEntry();
+    boolean hasLineage();
     /**
-     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
      */
-    tachyon.proto.JournalEntryProtos.LineageEntry getLineageEntry();
+    tachyon.proto.JournalEntryProtos.LineageEntry getLineage();
     /**
-     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
      */
-    tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageEntryOrBuilder();
+    tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
      */
     boolean hasLineageIdGenerator();
     /**
-     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
      */
     tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getLineageIdGenerator();
     /**
-     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
      */
     tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
      */
     boolean hasPersistDirectory();
     /**
-     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
      */
     tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getPersistDirectory();
     /**
-     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
      */
     tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
      */
     boolean hasPersistFile();
     /**
-     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
      */
     tachyon.proto.JournalEntryProtos.PersistFileEntry getPersistFile();
     /**
-     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
      */
     tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder getPersistFileOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
      */
-    boolean hasPersisterFiles();
+    boolean hasPersistFiles();
     /**
-     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
      */
-    tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersisterFiles();
+    tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersistFiles();
     /**
-     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
      */
-    tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersisterFilesOrBuilder();
+    tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersistFilesOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
      */
     boolean hasPersistFilesRequest();
     /**
-     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
      */
     tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getPersistFilesRequest();
     /**
-     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
      */
     tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
      */
     boolean hasRawTable();
     /**
-     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
      */
     tachyon.proto.JournalEntryProtos.RawTableEntry getRawTable();
     /**
-     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
      */
     tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder getRawTableOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
      */
     boolean hasReinitializeFile();
     /**
-     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
      */
     tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getReinitializeFile();
     /**
-     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
      */
     tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder();
 
@@ -404,33 +404,37 @@ public final class JournalEntryProtos {
     tachyon.proto.JournalEntryProtos.RenameEntryOrBuilder getRenameOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
      */
     boolean hasSetState();
     /**
-     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
      */
     tachyon.proto.JournalEntryProtos.SetStateEntry getSetState();
     /**
-     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
      */
     tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder getSetStateOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
      */
     boolean hasUpdateMetadata();
     /**
-     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
      */
     tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getUpdateMetadata();
     /**
-     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
      */
     tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder();
   }
   /**
    * Protobuf type {@code tachyon.proto.JournalEntry}
+   *
+   * <pre>
+   * next id: 25
+   * </pre>
    */
   public static final class JournalEntry extends
       com.google.protobuf.GeneratedMessage implements
@@ -829,29 +833,29 @@ public final class JournalEntryProtos {
     private java.lang.Object entry_;
     public enum EntryCase
         implements com.google.protobuf.Internal.EnumLite {
-      ADDMOUNTPOINT(2),
-      ASYNCCOMPLETEFILE(3),
-      BLOCKCONTAINERIDGENERATOR(4),
-      BLOCKINFO(5),
-      COMPLETEFILE(6),
-      DELETEFILE(7),
-      DELETELINEAGE(8),
-      DELETEMOUNTPOINT(9),
-      INODEDIRECTORY(10),
-      INODEDIRECTORYIDGENERATOR(11),
-      INODEFILEENTRY(12),
-      INODELASTMODIFICATIONTIME(13),
-      LINEAGEENTRY(14),
-      LINEAGEIDGENERATOR(15),
-      PERSISTDIRECTORY(16),
-      PERSISTFILE(17),
-      PERSISTERFILES(18),
-      PERSISTFILESREQUEST(19),
-      RAWTABLE(20),
-      REINITIALIZEFILE(21),
+      ADD_MOUNT_POINT(2),
+      ASYNC_COMPLETE_FILE(3),
+      BLOCK_CONTAINER_ID_GENERATOR(4),
+      BLOCK_INFO(5),
+      COMPLETE_FILE(6),
+      DELETE_FILE(7),
+      DELETE_LINEAGE(8),
+      DELETE_MOUNT_POINT(9),
+      INODE_DIRECTORY(10),
+      INODE_DIRECTORY_ID_GENERATOR(11),
+      INODE_FILE_ENTRY(12),
+      INODE_LAST_MODIFICATION_TIME(13),
+      LINEAGE(14),
+      LINEAGE_ID_GENERATOR(15),
+      PERSIST_DIRECTORY(16),
+      PERSIST_FILE(17),
+      PERSIST_FILES(18),
+      PERSIST_FILES_REQUEST(19),
+      RAW_TABLE(20),
+      REINITIALIZE_FILE(21),
       RENAME(22),
-      SETSTATE(23),
-      UPDATEMETADATA(24),
+      SET_STATE(23),
+      UPDATE_METADATA(24),
       ENTRY_NOT_SET(0);
       private int value = 0;
       private EntryCase(int value) {
@@ -859,29 +863,29 @@ public final class JournalEntryProtos {
       }
       public static EntryCase valueOf(int value) {
         switch (value) {
-          case 2: return ADDMOUNTPOINT;
-          case 3: return ASYNCCOMPLETEFILE;
-          case 4: return BLOCKCONTAINERIDGENERATOR;
-          case 5: return BLOCKINFO;
-          case 6: return COMPLETEFILE;
-          case 7: return DELETEFILE;
-          case 8: return DELETELINEAGE;
-          case 9: return DELETEMOUNTPOINT;
-          case 10: return INODEDIRECTORY;
-          case 11: return INODEDIRECTORYIDGENERATOR;
-          case 12: return INODEFILEENTRY;
-          case 13: return INODELASTMODIFICATIONTIME;
-          case 14: return LINEAGEENTRY;
-          case 15: return LINEAGEIDGENERATOR;
-          case 16: return PERSISTDIRECTORY;
-          case 17: return PERSISTFILE;
-          case 18: return PERSISTERFILES;
-          case 19: return PERSISTFILESREQUEST;
-          case 20: return RAWTABLE;
-          case 21: return REINITIALIZEFILE;
+          case 2: return ADD_MOUNT_POINT;
+          case 3: return ASYNC_COMPLETE_FILE;
+          case 4: return BLOCK_CONTAINER_ID_GENERATOR;
+          case 5: return BLOCK_INFO;
+          case 6: return COMPLETE_FILE;
+          case 7: return DELETE_FILE;
+          case 8: return DELETE_LINEAGE;
+          case 9: return DELETE_MOUNT_POINT;
+          case 10: return INODE_DIRECTORY;
+          case 11: return INODE_DIRECTORY_ID_GENERATOR;
+          case 12: return INODE_FILE_ENTRY;
+          case 13: return INODE_LAST_MODIFICATION_TIME;
+          case 14: return LINEAGE;
+          case 15: return LINEAGE_ID_GENERATOR;
+          case 16: return PERSIST_DIRECTORY;
+          case 17: return PERSIST_FILE;
+          case 18: return PERSIST_FILES;
+          case 19: return PERSIST_FILES_REQUEST;
+          case 20: return RAW_TABLE;
+          case 21: return REINITIALIZE_FILE;
           case 22: return RENAME;
-          case 23: return SETSTATE;
-          case 24: return UPDATEMETADATA;
+          case 23: return SET_STATE;
+          case 24: return UPDATE_METADATA;
           case 0: return ENTRY_NOT_SET;
           default: throw new java.lang.IllegalArgumentException(
             "Value is undefined for this oneof enum.");
@@ -898,30 +902,30 @@ public final class JournalEntryProtos {
           entryCase_);
     }
 
-    public static final int SEQUENCENUMBER_FIELD_NUMBER = 1;
+    public static final int SEQUENCE_NUMBER_FIELD_NUMBER = 1;
     private long sequenceNumber_;
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     public boolean hasSequenceNumber() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     public long getSequenceNumber() {
       return sequenceNumber_;
     }
 
-    public static final int ADDMOUNTPOINT_FIELD_NUMBER = 2;
+    public static final int ADD_MOUNT_POINT_FIELD_NUMBER = 2;
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
      */
     public boolean hasAddMountPoint() {
       return entryCase_ == 2;
     }
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
      */
     public tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint() {
       if (entryCase_ == 2) {
@@ -930,7 +934,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+     * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
      */
     public tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder() {
       if (entryCase_ == 2) {
@@ -939,15 +943,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.AddMountPointEntry.getDefaultInstance();
     }
 
-    public static final int ASYNCCOMPLETEFILE_FIELD_NUMBER = 3;
+    public static final int ASYNC_COMPLETE_FILE_FIELD_NUMBER = 3;
     /**
-     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
      */
     public boolean hasAsyncCompleteFile() {
       return entryCase_ == 3;
     }
     /**
-     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
      */
     public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getAsyncCompleteFile() {
       if (entryCase_ == 3) {
@@ -956,7 +960,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+     * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
      */
     public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder getAsyncCompleteFileOrBuilder() {
       if (entryCase_ == 3) {
@@ -965,15 +969,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.getDefaultInstance();
     }
 
-    public static final int BLOCKCONTAINERIDGENERATOR_FIELD_NUMBER = 4;
+    public static final int BLOCK_CONTAINER_ID_GENERATOR_FIELD_NUMBER = 4;
     /**
-     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
      */
     public boolean hasBlockContainerIdGenerator() {
       return entryCase_ == 4;
     }
     /**
-     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
      */
     public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getBlockContainerIdGenerator() {
       if (entryCase_ == 4) {
@@ -982,7 +986,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+     * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
      */
     public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder getBlockContainerIdGeneratorOrBuilder() {
       if (entryCase_ == 4) {
@@ -991,15 +995,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.getDefaultInstance();
     }
 
-    public static final int BLOCKINFO_FIELD_NUMBER = 5;
+    public static final int BLOCK_INFO_FIELD_NUMBER = 5;
     /**
-     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
      */
     public boolean hasBlockInfo() {
       return entryCase_ == 5;
     }
     /**
-     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
      */
     public tachyon.proto.JournalEntryProtos.BlockInfoEntry getBlockInfo() {
       if (entryCase_ == 5) {
@@ -1008,7 +1012,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+     * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
      */
     public tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder getBlockInfoOrBuilder() {
       if (entryCase_ == 5) {
@@ -1017,15 +1021,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.BlockInfoEntry.getDefaultInstance();
     }
 
-    public static final int COMPLETEFILE_FIELD_NUMBER = 6;
+    public static final int COMPLETE_FILE_FIELD_NUMBER = 6;
     /**
-     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
      */
     public boolean hasCompleteFile() {
       return entryCase_ == 6;
     }
     /**
-     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
      */
     public tachyon.proto.JournalEntryProtos.CompleteFileEntry getCompleteFile() {
       if (entryCase_ == 6) {
@@ -1034,7 +1038,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+     * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
      */
     public tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder getCompleteFileOrBuilder() {
       if (entryCase_ == 6) {
@@ -1043,15 +1047,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.CompleteFileEntry.getDefaultInstance();
     }
 
-    public static final int DELETEFILE_FIELD_NUMBER = 7;
+    public static final int DELETE_FILE_FIELD_NUMBER = 7;
     /**
-     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
      */
     public boolean hasDeleteFile() {
       return entryCase_ == 7;
     }
     /**
-     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
      */
     public tachyon.proto.JournalEntryProtos.DeleteFileEntry getDeleteFile() {
       if (entryCase_ == 7) {
@@ -1060,7 +1064,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+     * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
      */
     public tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder getDeleteFileOrBuilder() {
       if (entryCase_ == 7) {
@@ -1069,15 +1073,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.DeleteFileEntry.getDefaultInstance();
     }
 
-    public static final int DELETELINEAGE_FIELD_NUMBER = 8;
+    public static final int DELETE_LINEAGE_FIELD_NUMBER = 8;
     /**
-     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
      */
     public boolean hasDeleteLineage() {
       return entryCase_ == 8;
     }
     /**
-     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
      */
     public tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDeleteLineage() {
       if (entryCase_ == 8) {
@@ -1086,7 +1090,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+     * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
      */
     public tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder() {
       if (entryCase_ == 8) {
@@ -1095,15 +1099,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.DeleteLineageEntry.getDefaultInstance();
     }
 
-    public static final int DELETEMOUNTPOINT_FIELD_NUMBER = 9;
+    public static final int DELETE_MOUNT_POINT_FIELD_NUMBER = 9;
     /**
-     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
      */
     public boolean hasDeleteMountPoint() {
       return entryCase_ == 9;
     }
     /**
-     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
      */
     public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDeleteMountPoint() {
       if (entryCase_ == 9) {
@@ -1112,7 +1116,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+     * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
      */
     public tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder() {
       if (entryCase_ == 9) {
@@ -1121,15 +1125,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.getDefaultInstance();
     }
 
-    public static final int INODEDIRECTORY_FIELD_NUMBER = 10;
+    public static final int INODE_DIRECTORY_FIELD_NUMBER = 10;
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
      */
     public boolean hasInodeDirectory() {
       return entryCase_ == 10;
     }
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getInodeDirectory() {
       if (entryCase_ == 10) {
@@ -1138,7 +1142,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder getInodeDirectoryOrBuilder() {
       if (entryCase_ == 10) {
@@ -1147,15 +1151,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.getDefaultInstance();
     }
 
-    public static final int INODEDIRECTORYIDGENERATOR_FIELD_NUMBER = 11;
+    public static final int INODE_DIRECTORY_ID_GENERATOR_FIELD_NUMBER = 11;
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
      */
     public boolean hasInodeDirectoryIdGenerator() {
       return entryCase_ == 11;
     }
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getInodeDirectoryIdGenerator() {
       if (entryCase_ == 11) {
@@ -1164,7 +1168,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+     * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder() {
       if (entryCase_ == 11) {
@@ -1173,15 +1177,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
     }
 
-    public static final int INODEFILEENTRY_FIELD_NUMBER = 12;
+    public static final int INODE_FILE_ENTRY_FIELD_NUMBER = 12;
     /**
-     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
      */
     public boolean hasInodeFileEntry() {
       return entryCase_ == 12;
     }
     /**
-     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeFileEntry getInodeFileEntry() {
       if (entryCase_ == 12) {
@@ -1190,7 +1194,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+     * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder() {
       if (entryCase_ == 12) {
@@ -1199,15 +1203,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeFileEntry.getDefaultInstance();
     }
 
-    public static final int INODELASTMODIFICATIONTIME_FIELD_NUMBER = 13;
+    public static final int INODE_LAST_MODIFICATION_TIME_FIELD_NUMBER = 13;
     /**
-     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
      */
     public boolean hasInodeLastModificationTime() {
       return entryCase_ == 13;
     }
     /**
-     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getInodeLastModificationTime() {
       if (entryCase_ == 13) {
@@ -1216,7 +1220,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+     * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
      */
     public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder getInodeLastModificationTimeOrBuilder() {
       if (entryCase_ == 13) {
@@ -1225,41 +1229,41 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.getDefaultInstance();
     }
 
-    public static final int LINEAGEENTRY_FIELD_NUMBER = 14;
+    public static final int LINEAGE_FIELD_NUMBER = 14;
     /**
-     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
      */
-    public boolean hasLineageEntry() {
+    public boolean hasLineage() {
       return entryCase_ == 14;
     }
     /**
-     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
      */
-    public tachyon.proto.JournalEntryProtos.LineageEntry getLineageEntry() {
+    public tachyon.proto.JournalEntryProtos.LineageEntry getLineage() {
       if (entryCase_ == 14) {
          return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
       }
       return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+     * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
      */
-    public tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageEntryOrBuilder() {
+    public tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageOrBuilder() {
       if (entryCase_ == 14) {
          return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
       }
       return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
     }
 
-    public static final int LINEAGEIDGENERATOR_FIELD_NUMBER = 15;
+    public static final int LINEAGE_ID_GENERATOR_FIELD_NUMBER = 15;
     /**
-     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
      */
     public boolean hasLineageIdGenerator() {
       return entryCase_ == 15;
     }
     /**
-     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
      */
     public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getLineageIdGenerator() {
       if (entryCase_ == 15) {
@@ -1268,7 +1272,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+     * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
      */
     public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder() {
       if (entryCase_ == 15) {
@@ -1277,15 +1281,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.getDefaultInstance();
     }
 
-    public static final int PERSISTDIRECTORY_FIELD_NUMBER = 16;
+    public static final int PERSIST_DIRECTORY_FIELD_NUMBER = 16;
     /**
-     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
      */
     public boolean hasPersistDirectory() {
       return entryCase_ == 16;
     }
     /**
-     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
      */
     public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getPersistDirectory() {
       if (entryCase_ == 16) {
@@ -1294,7 +1298,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+     * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
      */
     public tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder() {
       if (entryCase_ == 16) {
@@ -1303,15 +1307,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.getDefaultInstance();
     }
 
-    public static final int PERSISTFILE_FIELD_NUMBER = 17;
+    public static final int PERSIST_FILE_FIELD_NUMBER = 17;
     /**
-     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
      */
     public boolean hasPersistFile() {
       return entryCase_ == 17;
     }
     /**
-     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
      */
     public tachyon.proto.JournalEntryProtos.PersistFileEntry getPersistFile() {
       if (entryCase_ == 17) {
@@ -1320,7 +1324,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+     * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
      */
     public tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder getPersistFileOrBuilder() {
       if (entryCase_ == 17) {
@@ -1329,41 +1333,41 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.PersistFileEntry.getDefaultInstance();
     }
 
-    public static final int PERSISTERFILES_FIELD_NUMBER = 18;
+    public static final int PERSIST_FILES_FIELD_NUMBER = 18;
     /**
-     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
      */
-    public boolean hasPersisterFiles() {
+    public boolean hasPersistFiles() {
       return entryCase_ == 18;
     }
     /**
-     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
      */
-    public tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersisterFiles() {
+    public tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersistFiles() {
       if (entryCase_ == 18) {
          return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
       }
       return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+     * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
      */
-    public tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersisterFilesOrBuilder() {
+    public tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersistFilesOrBuilder() {
       if (entryCase_ == 18) {
          return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
       }
       return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
     }
 
-    public static final int PERSISTFILESREQUEST_FIELD_NUMBER = 19;
+    public static final int PERSIST_FILES_REQUEST_FIELD_NUMBER = 19;
     /**
-     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
      */
     public boolean hasPersistFilesRequest() {
       return entryCase_ == 19;
     }
     /**
-     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
      */
     public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getPersistFilesRequest() {
       if (entryCase_ == 19) {
@@ -1372,7 +1376,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+     * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
      */
     public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder() {
       if (entryCase_ == 19) {
@@ -1381,15 +1385,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.getDefaultInstance();
     }
 
-    public static final int RAWTABLE_FIELD_NUMBER = 20;
+    public static final int RAW_TABLE_FIELD_NUMBER = 20;
     /**
-     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
      */
     public boolean hasRawTable() {
       return entryCase_ == 20;
     }
     /**
-     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
      */
     public tachyon.proto.JournalEntryProtos.RawTableEntry getRawTable() {
       if (entryCase_ == 20) {
@@ -1398,7 +1402,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+     * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
      */
     public tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder getRawTableOrBuilder() {
       if (entryCase_ == 20) {
@@ -1407,15 +1411,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.RawTableEntry.getDefaultInstance();
     }
 
-    public static final int REINITIALIZEFILE_FIELD_NUMBER = 21;
+    public static final int REINITIALIZE_FILE_FIELD_NUMBER = 21;
     /**
-     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
      */
     public boolean hasReinitializeFile() {
       return entryCase_ == 21;
     }
     /**
-     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
      */
     public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getReinitializeFile() {
       if (entryCase_ == 21) {
@@ -1424,7 +1428,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+     * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
      */
     public tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
       if (entryCase_ == 21) {
@@ -1459,15 +1463,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.RenameEntry.getDefaultInstance();
     }
 
-    public static final int SETSTATE_FIELD_NUMBER = 23;
+    public static final int SET_STATE_FIELD_NUMBER = 23;
     /**
-     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
      */
     public boolean hasSetState() {
       return entryCase_ == 23;
     }
     /**
-     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
      */
     public tachyon.proto.JournalEntryProtos.SetStateEntry getSetState() {
       if (entryCase_ == 23) {
@@ -1476,7 +1480,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+     * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
      */
     public tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder getSetStateOrBuilder() {
       if (entryCase_ == 23) {
@@ -1485,15 +1489,15 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.SetStateEntry.getDefaultInstance();
     }
 
-    public static final int UPDATEMETADATA_FIELD_NUMBER = 24;
+    public static final int UPDATE_METADATA_FIELD_NUMBER = 24;
     /**
-     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
      */
     public boolean hasUpdateMetadata() {
       return entryCase_ == 24;
     }
     /**
-     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
      */
     public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getUpdateMetadata() {
       if (entryCase_ == 24) {
@@ -1502,7 +1506,7 @@ public final class JournalEntryProtos {
       return tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+     * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
      */
     public tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder() {
       if (entryCase_ == 24) {
@@ -1784,6 +1788,10 @@ public final class JournalEntryProtos {
     }
     /**
      * Protobuf type {@code tachyon.proto.JournalEntry}
+     *
+     * <pre>
+     * next id: 25
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
@@ -1942,10 +1950,10 @@ public final class JournalEntryProtos {
           }
         }
         if (entryCase_ == 14) {
-          if (lineageEntryBuilder_ == null) {
+          if (lineageBuilder_ == null) {
             result.entry_ = entry_;
           } else {
-            result.entry_ = lineageEntryBuilder_.build();
+            result.entry_ = lineageBuilder_.build();
           }
         }
         if (entryCase_ == 15) {
@@ -1970,10 +1978,10 @@ public final class JournalEntryProtos {
           }
         }
         if (entryCase_ == 18) {
-          if (persisterFilesBuilder_ == null) {
+          if (persistFilesBuilder_ == null) {
             result.entry_ = entry_;
           } else {
-            result.entry_ = persisterFilesBuilder_.build();
+            result.entry_ = persistFilesBuilder_.build();
           }
         }
         if (entryCase_ == 19) {
@@ -2039,83 +2047,83 @@ public final class JournalEntryProtos {
           setSequenceNumber(other.getSequenceNumber());
         }
         switch (other.getEntryCase()) {
-          case ADDMOUNTPOINT: {
+          case ADD_MOUNT_POINT: {
             mergeAddMountPoint(other.getAddMountPoint());
             break;
           }
-          case ASYNCCOMPLETEFILE: {
+          case ASYNC_COMPLETE_FILE: {
             mergeAsyncCompleteFile(other.getAsyncCompleteFile());
             break;
           }
-          case BLOCKCONTAINERIDGENERATOR: {
+          case BLOCK_CONTAINER_ID_GENERATOR: {
             mergeBlockContainerIdGenerator(other.getBlockContainerIdGenerator());
             break;
           }
-          case BLOCKINFO: {
+          case BLOCK_INFO: {
             mergeBlockInfo(other.getBlockInfo());
             break;
           }
-          case COMPLETEFILE: {
+          case COMPLETE_FILE: {
             mergeCompleteFile(other.getCompleteFile());
             break;
           }
-          case DELETEFILE: {
+          case DELETE_FILE: {
             mergeDeleteFile(other.getDeleteFile());
             break;
           }
-          case DELETELINEAGE: {
+          case DELETE_LINEAGE: {
             mergeDeleteLineage(other.getDeleteLineage());
             break;
           }
-          case DELETEMOUNTPOINT: {
+          case DELETE_MOUNT_POINT: {
             mergeDeleteMountPoint(other.getDeleteMountPoint());
             break;
           }
-          case INODEDIRECTORY: {
+          case INODE_DIRECTORY: {
             mergeInodeDirectory(other.getInodeDirectory());
             break;
           }
-          case INODEDIRECTORYIDGENERATOR: {
+          case INODE_DIRECTORY_ID_GENERATOR: {
             mergeInodeDirectoryIdGenerator(other.getInodeDirectoryIdGenerator());
             break;
           }
-          case INODEFILEENTRY: {
+          case INODE_FILE_ENTRY: {
             mergeInodeFileEntry(other.getInodeFileEntry());
             break;
           }
-          case INODELASTMODIFICATIONTIME: {
+          case INODE_LAST_MODIFICATION_TIME: {
             mergeInodeLastModificationTime(other.getInodeLastModificationTime());
             break;
           }
-          case LINEAGEENTRY: {
-            mergeLineageEntry(other.getLineageEntry());
+          case LINEAGE: {
+            mergeLineage(other.getLineage());
             break;
           }
-          case LINEAGEIDGENERATOR: {
+          case LINEAGE_ID_GENERATOR: {
             mergeLineageIdGenerator(other.getLineageIdGenerator());
             break;
           }
-          case PERSISTDIRECTORY: {
+          case PERSIST_DIRECTORY: {
             mergePersistDirectory(other.getPersistDirectory());
             break;
           }
-          case PERSISTFILE: {
+          case PERSIST_FILE: {
             mergePersistFile(other.getPersistFile());
             break;
           }
-          case PERSISTERFILES: {
-            mergePersisterFiles(other.getPersisterFiles());
+          case PERSIST_FILES: {
+            mergePersistFiles(other.getPersistFiles());
             break;
           }
-          case PERSISTFILESREQUEST: {
+          case PERSIST_FILES_REQUEST: {
             mergePersistFilesRequest(other.getPersistFilesRequest());
             break;
           }
-          case RAWTABLE: {
+          case RAW_TABLE: {
             mergeRawTable(other.getRawTable());
             break;
           }
-          case REINITIALIZEFILE: {
+          case REINITIALIZE_FILE: {
             mergeReinitializeFile(other.getReinitializeFile());
             break;
           }
@@ -2123,11 +2131,11 @@ public final class JournalEntryProtos {
             mergeRename(other.getRename());
             break;
           }
-          case SETSTATE: {
+          case SET_STATE: {
             mergeSetState(other.getSetState());
             break;
           }
-          case UPDATEMETADATA: {
+          case UPDATE_METADATA: {
             mergeUpdateMetadata(other.getUpdateMetadata());
             break;
           }
@@ -2179,19 +2187,19 @@ public final class JournalEntryProtos {
 
       private long sequenceNumber_ ;
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public boolean hasSequenceNumber() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public long getSequenceNumber() {
         return sequenceNumber_;
       }
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public Builder setSequenceNumber(long value) {
         bitField0_ |= 0x00000001;
@@ -2200,7 +2208,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public Builder clearSequenceNumber() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -2212,13 +2220,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder> addMountPointBuilder_;
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public boolean hasAddMountPoint() {
         return entryCase_ == 2;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public tachyon.proto.JournalEntryProtos.AddMountPointEntry getAddMountPoint() {
         if (addMountPointBuilder_ == null) {
@@ -2234,7 +2242,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public Builder setAddMountPoint(tachyon.proto.JournalEntryProtos.AddMountPointEntry value) {
         if (addMountPointBuilder_ == null) {
@@ -2250,7 +2258,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public Builder setAddMountPoint(
           tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder builderForValue) {
@@ -2264,7 +2272,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public Builder mergeAddMountPoint(tachyon.proto.JournalEntryProtos.AddMountPointEntry value) {
         if (addMountPointBuilder_ == null) {
@@ -2286,7 +2294,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public Builder clearAddMountPoint() {
         if (addMountPointBuilder_ == null) {
@@ -2305,13 +2313,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder getAddMountPointBuilder() {
         return getAddMountPointFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       public tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder getAddMountPointOrBuilder() {
         if ((entryCase_ == 2) && (addMountPointBuilder_ != null)) {
@@ -2324,7 +2332,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.AddMountPointEntry addMountPoint = 2;</code>
+       * <code>optional .tachyon.proto.AddMountPointEntry add_mount_point = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.AddMountPointEntry, tachyon.proto.JournalEntryProtos.AddMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.AddMountPointEntryOrBuilder> 
@@ -2347,13 +2355,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder> asyncCompleteFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public boolean hasAsyncCompleteFile() {
         return entryCase_ == 3;
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry getAsyncCompleteFile() {
         if (asyncCompleteFileBuilder_ == null) {
@@ -2369,7 +2377,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public Builder setAsyncCompleteFile(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry value) {
         if (asyncCompleteFileBuilder_ == null) {
@@ -2385,7 +2393,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public Builder setAsyncCompleteFile(
           tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder builderForValue) {
@@ -2399,7 +2407,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public Builder mergeAsyncCompleteFile(tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry value) {
         if (asyncCompleteFileBuilder_ == null) {
@@ -2421,7 +2429,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public Builder clearAsyncCompleteFile() {
         if (asyncCompleteFileBuilder_ == null) {
@@ -2440,13 +2448,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder getAsyncCompleteFileBuilder() {
         return getAsyncCompleteFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       public tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder getAsyncCompleteFileOrBuilder() {
         if ((entryCase_ == 3) && (asyncCompleteFileBuilder_ != null)) {
@@ -2459,7 +2467,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.AsyncCompleteFileEntry asyncCompleteFile = 3;</code>
+       * <code>optional .tachyon.proto.AsyncCompleteFileEntry async_complete_file = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.AsyncCompleteFileEntryOrBuilder> 
@@ -2482,13 +2490,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder> blockContainerIdGeneratorBuilder_;
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public boolean hasBlockContainerIdGenerator() {
         return entryCase_ == 4;
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry getBlockContainerIdGenerator() {
         if (blockContainerIdGeneratorBuilder_ == null) {
@@ -2504,7 +2512,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public Builder setBlockContainerIdGenerator(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry value) {
         if (blockContainerIdGeneratorBuilder_ == null) {
@@ -2520,7 +2528,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public Builder setBlockContainerIdGenerator(
           tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder builderForValue) {
@@ -2534,7 +2542,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public Builder mergeBlockContainerIdGenerator(tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry value) {
         if (blockContainerIdGeneratorBuilder_ == null) {
@@ -2556,7 +2564,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public Builder clearBlockContainerIdGenerator() {
         if (blockContainerIdGeneratorBuilder_ == null) {
@@ -2575,13 +2583,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder getBlockContainerIdGeneratorBuilder() {
         return getBlockContainerIdGeneratorFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       public tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder getBlockContainerIdGeneratorOrBuilder() {
         if ((entryCase_ == 4) && (blockContainerIdGeneratorBuilder_ != null)) {
@@ -2594,7 +2602,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry blockContainerIdGenerator = 4;</code>
+       * <code>optional .tachyon.proto.BlockContainerIdGeneratorEntry block_container_id_generator = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntryOrBuilder> 
@@ -2617,13 +2625,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.BlockInfoEntry, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder, tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder> blockInfoBuilder_;
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public boolean hasBlockInfo() {
         return entryCase_ == 5;
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public tachyon.proto.JournalEntryProtos.BlockInfoEntry getBlockInfo() {
         if (blockInfoBuilder_ == null) {
@@ -2639,7 +2647,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public Builder setBlockInfo(tachyon.proto.JournalEntryProtos.BlockInfoEntry value) {
         if (blockInfoBuilder_ == null) {
@@ -2655,7 +2663,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public Builder setBlockInfo(
           tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder builderForValue) {
@@ -2669,7 +2677,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public Builder mergeBlockInfo(tachyon.proto.JournalEntryProtos.BlockInfoEntry value) {
         if (blockInfoBuilder_ == null) {
@@ -2691,7 +2699,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public Builder clearBlockInfo() {
         if (blockInfoBuilder_ == null) {
@@ -2710,13 +2718,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder getBlockInfoBuilder() {
         return getBlockInfoFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       public tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder getBlockInfoOrBuilder() {
         if ((entryCase_ == 5) && (blockInfoBuilder_ != null)) {
@@ -2729,7 +2737,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.BlockInfoEntry blockInfo = 5;</code>
+       * <code>optional .tachyon.proto.BlockInfoEntry block_info = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.BlockInfoEntry, tachyon.proto.JournalEntryProtos.BlockInfoEntry.Builder, tachyon.proto.JournalEntryProtos.BlockInfoEntryOrBuilder> 
@@ -2752,13 +2760,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.CompleteFileEntry, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder> completeFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public boolean hasCompleteFile() {
         return entryCase_ == 6;
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public tachyon.proto.JournalEntryProtos.CompleteFileEntry getCompleteFile() {
         if (completeFileBuilder_ == null) {
@@ -2774,7 +2782,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public Builder setCompleteFile(tachyon.proto.JournalEntryProtos.CompleteFileEntry value) {
         if (completeFileBuilder_ == null) {
@@ -2790,7 +2798,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public Builder setCompleteFile(
           tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder builderForValue) {
@@ -2804,7 +2812,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public Builder mergeCompleteFile(tachyon.proto.JournalEntryProtos.CompleteFileEntry value) {
         if (completeFileBuilder_ == null) {
@@ -2826,7 +2834,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public Builder clearCompleteFile() {
         if (completeFileBuilder_ == null) {
@@ -2845,13 +2853,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder getCompleteFileBuilder() {
         return getCompleteFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       public tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder getCompleteFileOrBuilder() {
         if ((entryCase_ == 6) && (completeFileBuilder_ != null)) {
@@ -2864,7 +2872,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.CompleteFileEntry completeFile = 6;</code>
+       * <code>optional .tachyon.proto.CompleteFileEntry complete_file = 6;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.CompleteFileEntry, tachyon.proto.JournalEntryProtos.CompleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.CompleteFileEntryOrBuilder> 
@@ -2887,13 +2895,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.DeleteFileEntry, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder> deleteFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public boolean hasDeleteFile() {
         return entryCase_ == 7;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteFileEntry getDeleteFile() {
         if (deleteFileBuilder_ == null) {
@@ -2909,7 +2917,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public Builder setDeleteFile(tachyon.proto.JournalEntryProtos.DeleteFileEntry value) {
         if (deleteFileBuilder_ == null) {
@@ -2925,7 +2933,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public Builder setDeleteFile(
           tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder builderForValue) {
@@ -2939,7 +2947,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public Builder mergeDeleteFile(tachyon.proto.JournalEntryProtos.DeleteFileEntry value) {
         if (deleteFileBuilder_ == null) {
@@ -2961,7 +2969,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public Builder clearDeleteFile() {
         if (deleteFileBuilder_ == null) {
@@ -2980,13 +2988,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder getDeleteFileBuilder() {
         return getDeleteFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder getDeleteFileOrBuilder() {
         if ((entryCase_ == 7) && (deleteFileBuilder_ != null)) {
@@ -2999,7 +3007,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.DeleteFileEntry deleteFile = 7;</code>
+       * <code>optional .tachyon.proto.DeleteFileEntry delete_file = 7;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.DeleteFileEntry, tachyon.proto.JournalEntryProtos.DeleteFileEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteFileEntryOrBuilder> 
@@ -3022,13 +3030,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.DeleteLineageEntry, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder> deleteLineageBuilder_;
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public boolean hasDeleteLineage() {
         return entryCase_ == 8;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteLineageEntry getDeleteLineage() {
         if (deleteLineageBuilder_ == null) {
@@ -3044,7 +3052,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public Builder setDeleteLineage(tachyon.proto.JournalEntryProtos.DeleteLineageEntry value) {
         if (deleteLineageBuilder_ == null) {
@@ -3060,7 +3068,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public Builder setDeleteLineage(
           tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder builderForValue) {
@@ -3074,7 +3082,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public Builder mergeDeleteLineage(tachyon.proto.JournalEntryProtos.DeleteLineageEntry value) {
         if (deleteLineageBuilder_ == null) {
@@ -3096,7 +3104,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public Builder clearDeleteLineage() {
         if (deleteLineageBuilder_ == null) {
@@ -3115,13 +3123,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder getDeleteLineageBuilder() {
         return getDeleteLineageFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder getDeleteLineageOrBuilder() {
         if ((entryCase_ == 8) && (deleteLineageBuilder_ != null)) {
@@ -3134,7 +3142,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.DeleteLineageEntry deleteLineage = 8;</code>
+       * <code>optional .tachyon.proto.DeleteLineageEntry delete_lineage = 8;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.DeleteLineageEntry, tachyon.proto.JournalEntryProtos.DeleteLineageEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteLineageEntryOrBuilder> 
@@ -3157,13 +3165,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.DeleteMountPointEntry, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder> deleteMountPointBuilder_;
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public boolean hasDeleteMountPoint() {
         return entryCase_ == 9;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry getDeleteMountPoint() {
         if (deleteMountPointBuilder_ == null) {
@@ -3179,7 +3187,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public Builder setDeleteMountPoint(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry value) {
         if (deleteMountPointBuilder_ == null) {
@@ -3195,7 +3203,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public Builder setDeleteMountPoint(
           tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder builderForValue) {
@@ -3209,7 +3217,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public Builder mergeDeleteMountPoint(tachyon.proto.JournalEntryProtos.DeleteMountPointEntry value) {
         if (deleteMountPointBuilder_ == null) {
@@ -3231,7 +3239,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public Builder clearDeleteMountPoint() {
         if (deleteMountPointBuilder_ == null) {
@@ -3250,13 +3258,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder getDeleteMountPointBuilder() {
         return getDeleteMountPointFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       public tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder getDeleteMountPointOrBuilder() {
         if ((entryCase_ == 9) && (deleteMountPointBuilder_ != null)) {
@@ -3269,7 +3277,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.DeleteMountPointEntry deleteMountPoint = 9;</code>
+       * <code>optional .tachyon.proto.DeleteMountPointEntry delete_mount_point = 9;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.DeleteMountPointEntry, tachyon.proto.JournalEntryProtos.DeleteMountPointEntry.Builder, tachyon.proto.JournalEntryProtos.DeleteMountPointEntryOrBuilder> 
@@ -3292,13 +3300,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeDirectoryEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder> inodeDirectoryBuilder_;
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public boolean hasInodeDirectory() {
         return entryCase_ == 10;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry getInodeDirectory() {
         if (inodeDirectoryBuilder_ == null) {
@@ -3314,7 +3322,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public Builder setInodeDirectory(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry value) {
         if (inodeDirectoryBuilder_ == null) {
@@ -3330,7 +3338,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public Builder setInodeDirectory(
           tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder builderForValue) {
@@ -3344,7 +3352,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public Builder mergeInodeDirectory(tachyon.proto.JournalEntryProtos.InodeDirectoryEntry value) {
         if (inodeDirectoryBuilder_ == null) {
@@ -3366,7 +3374,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public Builder clearInodeDirectory() {
         if (inodeDirectoryBuilder_ == null) {
@@ -3385,13 +3393,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder getInodeDirectoryBuilder() {
         return getInodeDirectoryFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder getInodeDirectoryOrBuilder() {
         if ((entryCase_ == 10) && (inodeDirectoryBuilder_ != null)) {
@@ -3404,7 +3412,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryEntry inodeDirectory = 10;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryEntry inode_directory = 10;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeDirectoryEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryEntryOrBuilder> 
@@ -3427,13 +3435,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder> inodeDirectoryIdGeneratorBuilder_;
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public boolean hasInodeDirectoryIdGenerator() {
         return entryCase_ == 11;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry getInodeDirectoryIdGenerator() {
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
@@ -3449,7 +3457,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public Builder setInodeDirectoryIdGenerator(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry value) {
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
@@ -3465,7 +3473,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public Builder setInodeDirectoryIdGenerator(
           tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder builderForValue) {
@@ -3479,7 +3487,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public Builder mergeInodeDirectoryIdGenerator(tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry value) {
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
@@ -3501,7 +3509,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public Builder clearInodeDirectoryIdGenerator() {
         if (inodeDirectoryIdGeneratorBuilder_ == null) {
@@ -3520,13 +3528,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder getInodeDirectoryIdGeneratorBuilder() {
         return getInodeDirectoryIdGeneratorFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder() {
         if ((entryCase_ == 11) && (inodeDirectoryIdGeneratorBuilder_ != null)) {
@@ -3539,7 +3547,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = 11;</code>
+       * <code>optional .tachyon.proto.InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntryOrBuilder> 
@@ -3562,13 +3570,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeFileEntry, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder, tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder> inodeFileEntryBuilder_;
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public boolean hasInodeFileEntry() {
         return entryCase_ == 12;
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeFileEntry getInodeFileEntry() {
         if (inodeFileEntryBuilder_ == null) {
@@ -3584,7 +3592,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public Builder setInodeFileEntry(tachyon.proto.JournalEntryProtos.InodeFileEntry value) {
         if (inodeFileEntryBuilder_ == null) {
@@ -3600,7 +3608,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public Builder setInodeFileEntry(
           tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder builderForValue) {
@@ -3614,7 +3622,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public Builder mergeInodeFileEntry(tachyon.proto.JournalEntryProtos.InodeFileEntry value) {
         if (inodeFileEntryBuilder_ == null) {
@@ -3636,7 +3644,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public Builder clearInodeFileEntry() {
         if (inodeFileEntryBuilder_ == null) {
@@ -3655,13 +3663,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder getInodeFileEntryBuilder() {
         return getInodeFileEntryFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder() {
         if ((entryCase_ == 12) && (inodeFileEntryBuilder_ != null)) {
@@ -3674,7 +3682,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeFileEntry inodeFileEntry = 12;</code>
+       * <code>optional .tachyon.proto.InodeFileEntry inode_file_entry = 12;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeFileEntry, tachyon.proto.JournalEntryProtos.InodeFileEntry.Builder, tachyon.proto.JournalEntryProtos.InodeFileEntryOrBuilder> 
@@ -3697,13 +3705,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder> inodeLastModificationTimeBuilder_;
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public boolean hasInodeLastModificationTime() {
         return entryCase_ == 13;
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry getInodeLastModificationTime() {
         if (inodeLastModificationTimeBuilder_ == null) {
@@ -3719,7 +3727,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public Builder setInodeLastModificationTime(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry value) {
         if (inodeLastModificationTimeBuilder_ == null) {
@@ -3735,7 +3743,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public Builder setInodeLastModificationTime(
           tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder builderForValue) {
@@ -3749,7 +3757,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public Builder mergeInodeLastModificationTime(tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry value) {
         if (inodeLastModificationTimeBuilder_ == null) {
@@ -3771,7 +3779,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public Builder clearInodeLastModificationTime() {
         if (inodeLastModificationTimeBuilder_ == null) {
@@ -3790,13 +3798,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder getInodeLastModificationTimeBuilder() {
         return getInodeLastModificationTimeFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       public tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder getInodeLastModificationTimeOrBuilder() {
         if ((entryCase_ == 13) && (inodeLastModificationTimeBuilder_ != null)) {
@@ -3809,7 +3817,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inodeLastModificationTime = 13;</code>
+       * <code>optional .tachyon.proto.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry.Builder, tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntryOrBuilder> 
@@ -3830,64 +3838,64 @@ public final class JournalEntryProtos {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder> lineageEntryBuilder_;
+          tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder> lineageBuilder_;
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public boolean hasLineageEntry() {
+      public boolean hasLineage() {
         return entryCase_ == 14;
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public tachyon.proto.JournalEntryProtos.LineageEntry getLineageEntry() {
-        if (lineageEntryBuilder_ == null) {
+      public tachyon.proto.JournalEntryProtos.LineageEntry getLineage() {
+        if (lineageBuilder_ == null) {
           if (entryCase_ == 14) {
             return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
           }
           return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
         } else {
           if (entryCase_ == 14) {
-            return lineageEntryBuilder_.getMessage();
+            return lineageBuilder_.getMessage();
           }
           return tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public Builder setLineageEntry(tachyon.proto.JournalEntryProtos.LineageEntry value) {
-        if (lineageEntryBuilder_ == null) {
+      public Builder setLineage(tachyon.proto.JournalEntryProtos.LineageEntry value) {
+        if (lineageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           entry_ = value;
           onChanged();
         } else {
-          lineageEntryBuilder_.setMessage(value);
+          lineageBuilder_.setMessage(value);
         }
         entryCase_ = 14;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public Builder setLineageEntry(
+      public Builder setLineage(
           tachyon.proto.JournalEntryProtos.LineageEntry.Builder builderForValue) {
-        if (lineageEntryBuilder_ == null) {
+        if (lineageBuilder_ == null) {
           entry_ = builderForValue.build();
           onChanged();
         } else {
-          lineageEntryBuilder_.setMessage(builderForValue.build());
+          lineageBuilder_.setMessage(builderForValue.build());
         }
         entryCase_ = 14;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public Builder mergeLineageEntry(tachyon.proto.JournalEntryProtos.LineageEntry value) {
-        if (lineageEntryBuilder_ == null) {
+      public Builder mergeLineage(tachyon.proto.JournalEntryProtos.LineageEntry value) {
+        if (lineageBuilder_ == null) {
           if (entryCase_ == 14 &&
               entry_ != tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder((tachyon.proto.JournalEntryProtos.LineageEntry) entry_)
@@ -3898,18 +3906,18 @@ public final class JournalEntryProtos {
           onChanged();
         } else {
           if (entryCase_ == 14) {
-            lineageEntryBuilder_.mergeFrom(value);
+            lineageBuilder_.mergeFrom(value);
           }
-          lineageEntryBuilder_.setMessage(value);
+          lineageBuilder_.setMessage(value);
         }
         entryCase_ = 14;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public Builder clearLineageEntry() {
-        if (lineageEntryBuilder_ == null) {
+      public Builder clearLineage() {
+        if (lineageBuilder_ == null) {
           if (entryCase_ == 14) {
             entryCase_ = 0;
             entry_ = null;
@@ -3920,22 +3928,22 @@ public final class JournalEntryProtos {
             entryCase_ = 0;
             entry_ = null;
           }
-          lineageEntryBuilder_.clear();
+          lineageBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public tachyon.proto.JournalEntryProtos.LineageEntry.Builder getLineageEntryBuilder() {
-        return getLineageEntryFieldBuilder().getBuilder();
+      public tachyon.proto.JournalEntryProtos.LineageEntry.Builder getLineageBuilder() {
+        return getLineageFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
-      public tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageEntryOrBuilder() {
-        if ((entryCase_ == 14) && (lineageEntryBuilder_ != null)) {
-          return lineageEntryBuilder_.getMessageOrBuilder();
+      public tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder getLineageOrBuilder() {
+        if ((entryCase_ == 14) && (lineageBuilder_ != null)) {
+          return lineageBuilder_.getMessageOrBuilder();
         } else {
           if (entryCase_ == 14) {
             return (tachyon.proto.JournalEntryProtos.LineageEntry) entry_;
@@ -3944,16 +3952,16 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.LineageEntry lineageEntry = 14;</code>
+       * <code>optional .tachyon.proto.LineageEntry lineage = 14;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder> 
-          getLineageEntryFieldBuilder() {
-        if (lineageEntryBuilder_ == null) {
+          getLineageFieldBuilder() {
+        if (lineageBuilder_ == null) {
           if (!(entryCase_ == 14)) {
             entry_ = tachyon.proto.JournalEntryProtos.LineageEntry.getDefaultInstance();
           }
-          lineageEntryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          lineageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               tachyon.proto.JournalEntryProtos.LineageEntry, tachyon.proto.JournalEntryProtos.LineageEntry.Builder, tachyon.proto.JournalEntryProtos.LineageEntryOrBuilder>(
                   (tachyon.proto.JournalEntryProtos.LineageEntry) entry_,
                   getParentForChildren(),
@@ -3961,19 +3969,19 @@ public final class JournalEntryProtos {
           entry_ = null;
         }
         entryCase_ = 14;
-        return lineageEntryBuilder_;
+        return lineageBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder> lineageIdGeneratorBuilder_;
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public boolean hasLineageIdGenerator() {
         return entryCase_ == 15;
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry getLineageIdGenerator() {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -3989,7 +3997,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public Builder setLineageIdGenerator(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry value) {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4005,7 +4013,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public Builder setLineageIdGenerator(
           tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder builderForValue) {
@@ -4019,7 +4027,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public Builder mergeLineageIdGenerator(tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry value) {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4041,7 +4049,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public Builder clearLineageIdGenerator() {
         if (lineageIdGeneratorBuilder_ == null) {
@@ -4060,13 +4068,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder getLineageIdGeneratorBuilder() {
         return getLineageIdGeneratorFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       public tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder getLineageIdGeneratorOrBuilder() {
         if ((entryCase_ == 15) && (lineageIdGeneratorBuilder_ != null)) {
@@ -4079,7 +4087,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineageIdGenerator = 15;</code>
+       * <code>optional .tachyon.proto.LineageIdGeneratorEntry lineage_id_generator = 15;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry.Builder, tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntryOrBuilder> 
@@ -4102,13 +4110,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistDirectoryEntry, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder> persistDirectoryBuilder_;
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public boolean hasPersistDirectory() {
         return entryCase_ == 16;
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry getPersistDirectory() {
         if (persistDirectoryBuilder_ == null) {
@@ -4124,7 +4132,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public Builder setPersistDirectory(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry value) {
         if (persistDirectoryBuilder_ == null) {
@@ -4140,7 +4148,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public Builder setPersistDirectory(
           tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder builderForValue) {
@@ -4154,7 +4162,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public Builder mergePersistDirectory(tachyon.proto.JournalEntryProtos.PersistDirectoryEntry value) {
         if (persistDirectoryBuilder_ == null) {
@@ -4176,7 +4184,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public Builder clearPersistDirectory() {
         if (persistDirectoryBuilder_ == null) {
@@ -4195,13 +4203,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder getPersistDirectoryBuilder() {
         return getPersistDirectoryFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder() {
         if ((entryCase_ == 16) && (persistDirectoryBuilder_ != null)) {
@@ -4214,7 +4222,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistDirectoryEntry persistDirectory = 16;</code>
+       * <code>optional .tachyon.proto.PersistDirectoryEntry persist_directory = 16;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistDirectoryEntry, tachyon.proto.JournalEntryProtos.PersistDirectoryEntry.Builder, tachyon.proto.JournalEntryProtos.PersistDirectoryEntryOrBuilder> 
@@ -4237,13 +4245,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistFileEntry, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder> persistFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public boolean hasPersistFile() {
         return entryCase_ == 17;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistFileEntry getPersistFile() {
         if (persistFileBuilder_ == null) {
@@ -4259,7 +4267,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public Builder setPersistFile(tachyon.proto.JournalEntryProtos.PersistFileEntry value) {
         if (persistFileBuilder_ == null) {
@@ -4275,7 +4283,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public Builder setPersistFile(
           tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder builderForValue) {
@@ -4289,7 +4297,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public Builder mergePersistFile(tachyon.proto.JournalEntryProtos.PersistFileEntry value) {
         if (persistFileBuilder_ == null) {
@@ -4311,7 +4319,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public Builder clearPersistFile() {
         if (persistFileBuilder_ == null) {
@@ -4330,13 +4338,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder getPersistFileBuilder() {
         return getPersistFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder getPersistFileOrBuilder() {
         if ((entryCase_ == 17) && (persistFileBuilder_ != null)) {
@@ -4349,7 +4357,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistFileEntry persistFile = 17;</code>
+       * <code>optional .tachyon.proto.PersistFileEntry persist_file = 17;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistFileEntry, tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFileEntryOrBuilder> 
@@ -4370,64 +4378,64 @@ public final class JournalEntryProtos {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder> persisterFilesBuilder_;
+          tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder> persistFilesBuilder_;
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public boolean hasPersisterFiles() {
+      public boolean hasPersistFiles() {
         return entryCase_ == 18;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersisterFiles() {
-        if (persisterFilesBuilder_ == null) {
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry getPersistFiles() {
+        if (persistFilesBuilder_ == null) {
           if (entryCase_ == 18) {
             return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
           }
           return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
         } else {
           if (entryCase_ == 18) {
-            return persisterFilesBuilder_.getMessage();
+            return persistFilesBuilder_.getMessage();
           }
           return tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public Builder setPersisterFiles(tachyon.proto.JournalEntryProtos.PersistFilesEntry value) {
-        if (persisterFilesBuilder_ == null) {
+      public Builder setPersistFiles(tachyon.proto.JournalEntryProtos.PersistFilesEntry value) {
+        if (persistFilesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           entry_ = value;
           onChanged();
         } else {
-          persisterFilesBuilder_.setMessage(value);
+          persistFilesBuilder_.setMessage(value);
         }
         entryCase_ = 18;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public Builder setPersisterFiles(
+      public Builder setPersistFiles(
           tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder builderForValue) {
-        if (persisterFilesBuilder_ == null) {
+        if (persistFilesBuilder_ == null) {
           entry_ = builderForValue.build();
           onChanged();
         } else {
-          persisterFilesBuilder_.setMessage(builderForValue.build());
+          persistFilesBuilder_.setMessage(builderForValue.build());
         }
         entryCase_ = 18;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public Builder mergePersisterFiles(tachyon.proto.JournalEntryProtos.PersistFilesEntry value) {
-        if (persisterFilesBuilder_ == null) {
+      public Builder mergePersistFiles(tachyon.proto.JournalEntryProtos.PersistFilesEntry value) {
+        if (persistFilesBuilder_ == null) {
           if (entryCase_ == 18 &&
               entry_ != tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.JournalEntryProtos.PersistFilesEntry.newBuilder((tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_)
@@ -4438,18 +4446,18 @@ public final class JournalEntryProtos {
           onChanged();
         } else {
           if (entryCase_ == 18) {
-            persisterFilesBuilder_.mergeFrom(value);
+            persistFilesBuilder_.mergeFrom(value);
           }
-          persisterFilesBuilder_.setMessage(value);
+          persistFilesBuilder_.setMessage(value);
         }
         entryCase_ = 18;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public Builder clearPersisterFiles() {
-        if (persisterFilesBuilder_ == null) {
+      public Builder clearPersistFiles() {
+        if (persistFilesBuilder_ == null) {
           if (entryCase_ == 18) {
             entryCase_ = 0;
             entry_ = null;
@@ -4460,22 +4468,22 @@ public final class JournalEntryProtos {
             entryCase_ = 0;
             entry_ = null;
           }
-          persisterFilesBuilder_.clear();
+          persistFilesBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder getPersisterFilesBuilder() {
-        return getPersisterFilesFieldBuilder().getBuilder();
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder getPersistFilesBuilder() {
+        return getPersistFilesFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
-      public tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersisterFilesOrBuilder() {
-        if ((entryCase_ == 18) && (persisterFilesBuilder_ != null)) {
-          return persisterFilesBuilder_.getMessageOrBuilder();
+      public tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder getPersistFilesOrBuilder() {
+        if ((entryCase_ == 18) && (persistFilesBuilder_ != null)) {
+          return persistFilesBuilder_.getMessageOrBuilder();
         } else {
           if (entryCase_ == 18) {
             return (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_;
@@ -4484,16 +4492,16 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesEntry persisterFiles = 18;</code>
+       * <code>optional .tachyon.proto.PersistFilesEntry persist_files = 18;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder> 
-          getPersisterFilesFieldBuilder() {
-        if (persisterFilesBuilder_ == null) {
+          getPersistFilesFieldBuilder() {
+        if (persistFilesBuilder_ == null) {
           if (!(entryCase_ == 18)) {
             entry_ = tachyon.proto.JournalEntryProtos.PersistFilesEntry.getDefaultInstance();
           }
-          persisterFilesBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          persistFilesBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               tachyon.proto.JournalEntryProtos.PersistFilesEntry, tachyon.proto.JournalEntryProtos.PersistFilesEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesEntryOrBuilder>(
                   (tachyon.proto.JournalEntryProtos.PersistFilesEntry) entry_,
                   getParentForChildren(),
@@ -4501,19 +4509,19 @@ public final class JournalEntryProtos {
           entry_ = null;
         }
         entryCase_ = 18;
-        return persisterFilesBuilder_;
+        return persistFilesBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder> persistFilesRequestBuilder_;
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public boolean hasPersistFilesRequest() {
         return entryCase_ == 19;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry getPersistFilesRequest() {
         if (persistFilesRequestBuilder_ == null) {
@@ -4529,7 +4537,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public Builder setPersistFilesRequest(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry value) {
         if (persistFilesRequestBuilder_ == null) {
@@ -4545,7 +4553,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public Builder setPersistFilesRequest(
           tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder builderForValue) {
@@ -4559,7 +4567,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public Builder mergePersistFilesRequest(tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry value) {
         if (persistFilesRequestBuilder_ == null) {
@@ -4581,7 +4589,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public Builder clearPersistFilesRequest() {
         if (persistFilesRequestBuilder_ == null) {
@@ -4600,13 +4608,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder getPersistFilesRequestBuilder() {
         return getPersistFilesRequestFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       public tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder() {
         if ((entryCase_ == 19) && (persistFilesRequestBuilder_ != null)) {
@@ -4619,7 +4627,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.PersistFilesRequestEntry persistFilesRequest = 19;</code>
+       * <code>optional .tachyon.proto.PersistFilesRequestEntry persist_files_request = 19;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntry.Builder, tachyon.proto.JournalEntryProtos.PersistFilesRequestEntryOrBuilder> 
@@ -4642,13 +4650,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.RawTableEntry, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder, tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder> rawTableBuilder_;
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public boolean hasRawTable() {
         return entryCase_ == 20;
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public tachyon.proto.JournalEntryProtos.RawTableEntry getRawTable() {
         if (rawTableBuilder_ == null) {
@@ -4664,7 +4672,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public Builder setRawTable(tachyon.proto.JournalEntryProtos.RawTableEntry value) {
         if (rawTableBuilder_ == null) {
@@ -4680,7 +4688,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public Builder setRawTable(
           tachyon.proto.JournalEntryProtos.RawTableEntry.Builder builderForValue) {
@@ -4694,7 +4702,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public Builder mergeRawTable(tachyon.proto.JournalEntryProtos.RawTableEntry value) {
         if (rawTableBuilder_ == null) {
@@ -4716,7 +4724,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public Builder clearRawTable() {
         if (rawTableBuilder_ == null) {
@@ -4735,13 +4743,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public tachyon.proto.JournalEntryProtos.RawTableEntry.Builder getRawTableBuilder() {
         return getRawTableFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       public tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder getRawTableOrBuilder() {
         if ((entryCase_ == 20) && (rawTableBuilder_ != null)) {
@@ -4754,7 +4762,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.RawTableEntry rawTable = 20;</code>
+       * <code>optional .tachyon.proto.RawTableEntry raw_table = 20;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.RawTableEntry, tachyon.proto.JournalEntryProtos.RawTableEntry.Builder, tachyon.proto.JournalEntryProtos.RawTableEntryOrBuilder> 
@@ -4777,13 +4785,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.ReinitializeFileEntry, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder, tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder> reinitializeFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public boolean hasReinitializeFile() {
         return entryCase_ == 21;
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry getReinitializeFile() {
         if (reinitializeFileBuilder_ == null) {
@@ -4799,7 +4807,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public Builder setReinitializeFile(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry value) {
         if (reinitializeFileBuilder_ == null) {
@@ -4815,7 +4823,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public Builder setReinitializeFile(
           tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder builderForValue) {
@@ -4829,7 +4837,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public Builder mergeReinitializeFile(tachyon.proto.JournalEntryProtos.ReinitializeFileEntry value) {
         if (reinitializeFileBuilder_ == null) {
@@ -4851,7 +4859,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public Builder clearReinitializeFile() {
         if (reinitializeFileBuilder_ == null) {
@@ -4870,13 +4878,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder getReinitializeFileBuilder() {
         return getReinitializeFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       public tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
         if ((entryCase_ == 21) && (reinitializeFileBuilder_ != null)) {
@@ -4889,7 +4897,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitializeFile = 21;</code>
+       * <code>optional .tachyon.proto.ReinitializeFileEntry reinitialize_file = 21;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.ReinitializeFileEntry, tachyon.proto.JournalEntryProtos.ReinitializeFileEntry.Builder, tachyon.proto.JournalEntryProtos.ReinitializeFileEntryOrBuilder> 
@@ -5047,13 +5055,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.SetStateEntry, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder, tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder> setStateBuilder_;
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public boolean hasSetState() {
         return entryCase_ == 23;
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public tachyon.proto.JournalEntryProtos.SetStateEntry getSetState() {
         if (setStateBuilder_ == null) {
@@ -5069,7 +5077,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public Builder setSetState(tachyon.proto.JournalEntryProtos.SetStateEntry value) {
         if (setStateBuilder_ == null) {
@@ -5085,7 +5093,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public Builder setSetState(
           tachyon.proto.JournalEntryProtos.SetStateEntry.Builder builderForValue) {
@@ -5099,7 +5107,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public Builder mergeSetState(tachyon.proto.JournalEntryProtos.SetStateEntry value) {
         if (setStateBuilder_ == null) {
@@ -5121,7 +5129,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public Builder clearSetState() {
         if (setStateBuilder_ == null) {
@@ -5140,13 +5148,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public tachyon.proto.JournalEntryProtos.SetStateEntry.Builder getSetStateBuilder() {
         return getSetStateFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       public tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder getSetStateOrBuilder() {
         if ((entryCase_ == 23) && (setStateBuilder_ != null)) {
@@ -5159,7 +5167,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.SetStateEntry setState = 23;</code>
+       * <code>optional .tachyon.proto.SetStateEntry set_state = 23;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.SetStateEntry, tachyon.proto.JournalEntryProtos.SetStateEntry.Builder, tachyon.proto.JournalEntryProtos.SetStateEntryOrBuilder> 
@@ -5182,13 +5190,13 @@ public final class JournalEntryProtos {
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.UpdateMetadataEntry, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder, tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder> updateMetadataBuilder_;
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public boolean hasUpdateMetadata() {
         return entryCase_ == 24;
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry getUpdateMetadata() {
         if (updateMetadataBuilder_ == null) {
@@ -5204,7 +5212,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public Builder setUpdateMetadata(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry value) {
         if (updateMetadataBuilder_ == null) {
@@ -5220,7 +5228,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public Builder setUpdateMetadata(
           tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder builderForValue) {
@@ -5234,7 +5242,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public Builder mergeUpdateMetadata(tachyon.proto.JournalEntryProtos.UpdateMetadataEntry value) {
         if (updateMetadataBuilder_ == null) {
@@ -5256,7 +5264,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public Builder clearUpdateMetadata() {
         if (updateMetadataBuilder_ == null) {
@@ -5275,13 +5283,13 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder getUpdateMetadataBuilder() {
         return getUpdateMetadataFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       public tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder() {
         if ((entryCase_ == 24) && (updateMetadataBuilder_ != null)) {
@@ -5294,7 +5302,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional .tachyon.proto.UpdateMetadataEntry updateMetadata = 24;</code>
+       * <code>optional .tachyon.proto.UpdateMetadataEntry update_metadata = 24;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.JournalEntryProtos.UpdateMetadataEntry, tachyon.proto.JournalEntryProtos.UpdateMetadataEntry.Builder, tachyon.proto.JournalEntryProtos.UpdateMetadataEntryOrBuilder> 
@@ -5330,29 +5338,29 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     boolean hasTachyonPath();
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     java.lang.String getTachyonPath();
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     com.google.protobuf.ByteString
         getTachyonPathBytes();
 
     /**
-     * <code>optional string ufsPath = 2;</code>
+     * <code>optional string ufs_path = 2;</code>
      */
     boolean hasUfsPath();
     /**
-     * <code>optional string ufsPath = 2;</code>
+     * <code>optional string ufs_path = 2;</code>
      */
     java.lang.String getUfsPath();
     /**
-     * <code>optional string ufsPath = 2;</code>
+     * <code>optional string ufs_path = 2;</code>
      */
     com.google.protobuf.ByteString
         getUfsPathBytes();
@@ -5461,16 +5469,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int TACHYONPATH_FIELD_NUMBER = 1;
+    public static final int TACHYON_PATH_FIELD_NUMBER = 1;
     private java.lang.Object tachyonPath_;
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     public boolean hasTachyonPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     public java.lang.String getTachyonPath() {
       java.lang.Object ref = tachyonPath_;
@@ -5487,7 +5495,7 @@ public final class JournalEntryProtos {
       }
     }
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     public com.google.protobuf.ByteString
         getTachyonPathBytes() {
@@ -5503,16 +5511,16 @@ public final class JournalEntryProtos {
       }
     }
 
-    public static final int UFSPATH_FIELD_NUMBER = 2;
+    public static final int UFS_PATH_FIELD_NUMBER = 2;
     private java.lang.Object ufsPath_;
     /**
-     * <code>optional string ufsPath = 2;</code>
+     * <code>optional string ufs_path = 2;</code>
      */
     public boolean hasUfsPath() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string ufsPath = 2;</code>
+     * <code>optional string ufs_path = 2;</code>
      */
     public java.lang.String getUfsPath() {
       java.lang.Object ref = ufsPath_;
@@ -5529,7 +5537,7 @@ public final class JournalEntryProtos {
       }
     }
     /**
-     * <code>optional string ufsPath = 2;</code>
+     * <code>optional string ufs_path = 2;</code>
      */
     public com.google.protobuf.ByteString
         getUfsPathBytes() {
@@ -5797,13 +5805,13 @@ public final class JournalEntryProtos {
 
       private java.lang.Object tachyonPath_ = "";
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public boolean hasTachyonPath() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public java.lang.String getTachyonPath() {
         java.lang.Object ref = tachyonPath_;
@@ -5820,7 +5828,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public com.google.protobuf.ByteString
           getTachyonPathBytes() {
@@ -5836,7 +5844,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public Builder setTachyonPath(
           java.lang.String value) {
@@ -5849,7 +5857,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public Builder clearTachyonPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -5858,7 +5866,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public Builder setTachyonPathBytes(
           com.google.protobuf.ByteString value) {
@@ -5873,13 +5881,13 @@ public final class JournalEntryProtos {
 
       private java.lang.Object ufsPath_ = "";
       /**
-       * <code>optional string ufsPath = 2;</code>
+       * <code>optional string ufs_path = 2;</code>
        */
       public boolean hasUfsPath() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional string ufsPath = 2;</code>
+       * <code>optional string ufs_path = 2;</code>
        */
       public java.lang.String getUfsPath() {
         java.lang.Object ref = ufsPath_;
@@ -5896,7 +5904,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string ufsPath = 2;</code>
+       * <code>optional string ufs_path = 2;</code>
        */
       public com.google.protobuf.ByteString
           getUfsPathBytes() {
@@ -5912,7 +5920,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string ufsPath = 2;</code>
+       * <code>optional string ufs_path = 2;</code>
        */
       public Builder setUfsPath(
           java.lang.String value) {
@@ -5925,7 +5933,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string ufsPath = 2;</code>
+       * <code>optional string ufs_path = 2;</code>
        */
       public Builder clearUfsPath() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -5934,7 +5942,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string ufsPath = 2;</code>
+       * <code>optional string ufs_path = 2;</code>
        */
       public Builder setUfsPathBytes(
           com.google.protobuf.ByteString value) {
@@ -5963,11 +5971,11 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 fileId = 1;</code>
+     * <code>optional int64 file_id = 1;</code>
      */
     boolean hasFileId();
     /**
-     * <code>optional int64 fileId = 1;</code>
+     * <code>optional int64 file_id = 1;</code>
      */
     long getFileId();
   }
@@ -6068,16 +6076,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int FILEID_FIELD_NUMBER = 1;
+    public static final int FILE_ID_FIELD_NUMBER = 1;
     private long fileId_;
     /**
-     * <code>optional int64 fileId = 1;</code>
+     * <code>optional int64 file_id = 1;</code>
      */
     public boolean hasFileId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 fileId = 1;</code>
+     * <code>optional int64 file_id = 1;</code>
      */
     public long getFileId() {
       return fileId_;
@@ -6314,19 +6322,19 @@ public final class JournalEntryProtos {
 
       private long fileId_ ;
       /**
-       * <code>optional int64 fileId = 1;</code>
+       * <code>optional int64 file_id = 1;</code>
        */
       public boolean hasFileId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 fileId = 1;</code>
+       * <code>optional int64 file_id = 1;</code>
        */
       public long getFileId() {
         return fileId_;
       }
       /**
-       * <code>optional int64 fileId = 1;</code>
+       * <code>optional int64 file_id = 1;</code>
        */
       public Builder setFileId(long value) {
         bitField0_ |= 0x00000001;
@@ -6335,7 +6343,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 fileId = 1;</code>
+       * <code>optional int64 file_id = 1;</code>
        */
       public Builder clearFileId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -6360,11 +6368,11 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 nextContainerId = 1;</code>
+     * <code>optional int64 next_container_id = 1;</code>
      */
     boolean hasNextContainerId();
     /**
-     * <code>optional int64 nextContainerId = 1;</code>
+     * <code>optional int64 next_container_id = 1;</code>
      */
     long getNextContainerId();
   }
@@ -6465,16 +6473,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int NEXTCONTAINERID_FIELD_NUMBER = 1;
+    public static final int NEXT_CONTAINER_ID_FIELD_NUMBER = 1;
     private long nextContainerId_;
     /**
-     * <code>optional int64 nextContainerId = 1;</code>
+     * <code>optional int64 next_container_id = 1;</code>
      */
     public boolean hasNextContainerId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 nextContainerId = 1;</code>
+     * <code>optional int64 next_container_id = 1;</code>
      */
     public long getNextContainerId() {
       return nextContainerId_;
@@ -6711,19 +6719,19 @@ public final class JournalEntryProtos {
 
       private long nextContainerId_ ;
       /**
-       * <code>optional int64 nextContainerId = 1;</code>
+       * <code>optional int64 next_container_id = 1;</code>
        */
       public boolean hasNextContainerId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 nextContainerId = 1;</code>
+       * <code>optional int64 next_container_id = 1;</code>
        */
       public long getNextContainerId() {
         return nextContainerId_;
       }
       /**
-       * <code>optional int64 nextContainerId = 1;</code>
+       * <code>optional int64 next_container_id = 1;</code>
        */
       public Builder setNextContainerId(long value) {
         bitField0_ |= 0x00000001;
@@ -6732,7 +6740,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 nextContainerId = 1;</code>
+       * <code>optional int64 next_container_id = 1;</code>
        */
       public Builder clearNextContainerId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -6757,11 +6765,11 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 blockId = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
     boolean hasBlockId();
     /**
-     * <code>optional int64 blockId = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
     long getBlockId();
 
@@ -6876,16 +6884,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int BLOCKID_FIELD_NUMBER = 1;
+    public static final int BLOCK_ID_FIELD_NUMBER = 1;
     private long blockId_;
     /**
-     * <code>optional int64 blockId = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
     public boolean hasBlockId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 blockId = 1;</code>
+     * <code>optional int64 block_id = 1;</code>
      */
     public long getBlockId() {
       return blockId_;
@@ -7154,19 +7162,19 @@ public final class JournalEntryProtos {
 
       private long blockId_ ;
       /**
-       * <code>optional int64 blockId = 1;</code>
+       * <code>optional int64 block_id = 1;</code>
        */
       public boolean hasBlockId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 blockId = 1;</code>
+       * <code>optional int64 block_id = 1;</code>
        */
       public long getBlockId() {
         return blockId_;
       }
       /**
-       * <code>optional int64 blockId = 1;</code>
+       * <code>optional int64 block_id = 1;</code>
        */
       public Builder setBlockId(long value) {
         bitField0_ |= 0x00000001;
@@ -7175,7 +7183,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 blockId = 1;</code>
+       * <code>optional int64 block_id = 1;</code>
        */
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -7232,15 +7240,15 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated int64 blockIds = 1;</code>
+     * <code>repeated int64 block_ids = 1;</code>
      */
     java.util.List<java.lang.Long> getBlockIdsList();
     /**
-     * <code>repeated int64 blockIds = 1;</code>
+     * <code>repeated int64 block_ids = 1;</code>
      */
     int getBlockIdsCount();
     /**
-     * <code>repeated int64 blockIds = 1;</code>
+     * <code>repeated int64 block_ids = 1;</code>
      */
     long getBlockIds(int index);
 
@@ -7263,11 +7271,11 @@ public final class JournalEntryProtos {
     long getLength();
 
     /**
-     * <code>optional int64 opTimeMs = 4;</code>
+     * <code>optional int64 op_time_ms = 4;</code>
      */
     boolean hasOpTimeMs();
     /**
-     * <code>optional int64 opTimeMs = 4;</code>
+     * <code>optional int64 op_time_ms = 4;</code>
      */
     long getOpTimeMs();
   }
@@ -7402,23 +7410,23 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int BLOCKIDS_FIELD_NUMBER = 1;
+    public static final int BLOCK_IDS_FIELD_NUMBER = 1;
     private java.util.List<java.lang.Long> blockIds_;
     /**
-     * <code>repeated int64 blockIds = 1;</code>
+     * <code>repeated int64 block_ids = 1;</code>
      */
     public java.util.List<java.lang.Long>
         getBlockIdsList() {
       return blockIds_;
     }
     /**
-     * <code>repeated int64 blockIds = 1;</code>
+     * <code>repeated int64 block_ids = 1;</code>
      */
     public int getBlockIdsCount() {
       return blockIds_.size();
     }
     /**
-     * <code>repeated int64 blockIds = 1;</code>
+     * <code>repeated int64 block_ids = 1;</code>
      */
     public long getBlockIds(int index) {
       return blockIds_.get(index);
@@ -7454,16 +7462,16 @@ public final class JournalEntryProtos {
       return length_;
     }
 
-    public static final int OPTIMEMS_FIELD_NUMBER = 4;
+    public static final int OP_TIME_MS_FIELD_NUMBER = 4;
     private long opTimeMs_;
     /**
-     * <code>optional int64 opTimeMs = 4;</code>
+     * <code>optional int64 op_time_ms = 4;</code>
      */
     public boolean hasOpTimeMs() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 opTimeMs = 4;</code>
+     * <code>optional int64 op_time_ms = 4;</code>
      */
     public long getOpTimeMs() {
       return opTimeMs_;
@@ -7770,26 +7778,26 @@ public final class JournalEntryProtos {
          }
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public java.util.List<java.lang.Long>
           getBlockIdsList() {
         return java.util.Collections.unmodifiableList(blockIds_);
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public int getBlockIdsCount() {
         return blockIds_.size();
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public long getBlockIds(int index) {
         return blockIds_.get(index);
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public Builder setBlockIds(
           int index, long value) {
@@ -7799,7 +7807,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public Builder addBlockIds(long value) {
         ensureBlockIdsIsMutable();
@@ -7808,7 +7816,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public Builder addAllBlockIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -7819,7 +7827,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 blockIds = 1;</code>
+       * <code>repeated int64 block_ids = 1;</code>
        */
       public Builder clearBlockIds() {
         blockIds_ = java.util.Collections.emptyList();
@@ -7894,19 +7902,19 @@ public final class JournalEntryProtos {
 
       private long opTimeMs_ ;
       /**
-       * <code>optional int64 opTimeMs = 4;</code>
+       * <code>optional int64 op_time_ms = 4;</code>
        */
       public boolean hasOpTimeMs() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional int64 opTimeMs = 4;</code>
+       * <code>optional int64 op_time_ms = 4;</code>
        */
       public long getOpTimeMs() {
         return opTimeMs_;
       }
       /**
-       * <code>optional int64 opTimeMs = 4;</code>
+       * <code>optional int64 op_time_ms = 4;</code>
        */
       public Builder setOpTimeMs(long value) {
         bitField0_ |= 0x00000008;
@@ -7915,7 +7923,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 opTimeMs = 4;</code>
+       * <code>optional int64 op_time_ms = 4;</code>
        */
       public Builder clearOpTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -7958,11 +7966,11 @@ public final class JournalEntryProtos {
     boolean getRecursive();
 
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     boolean hasOpTimeMs();
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     long getOpTimeMs();
   }
@@ -8103,16 +8111,16 @@ public final class JournalEntryProtos {
       return recursive_;
     }
 
-    public static final int OPTIMEMS_FIELD_NUMBER = 3;
+    public static final int OP_TIME_MS_FIELD_NUMBER = 3;
     private long opTimeMs_;
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public boolean hasOpTimeMs() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public long getOpTimeMs() {
       return opTimeMs_;
@@ -8447,19 +8455,19 @@ public final class JournalEntryProtos {
 
       private long opTimeMs_ ;
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public boolean hasOpTimeMs() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public long getOpTimeMs() {
         return opTimeMs_;
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder setOpTimeMs(long value) {
         bitField0_ |= 0x00000004;
@@ -8468,7 +8476,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder clearOpTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -8493,11 +8501,11 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 lineageId = 1;</code>
+     * <code>optional int64 lineage_id = 1;</code>
      */
     boolean hasLineageId();
     /**
-     * <code>optional int64 lineageId = 1;</code>
+     * <code>optional int64 lineage_id = 1;</code>
      */
     long getLineageId();
 
@@ -8612,16 +8620,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int LINEAGEID_FIELD_NUMBER = 1;
+    public static final int LINEAGE_ID_FIELD_NUMBER = 1;
     private long lineageId_;
     /**
-     * <code>optional int64 lineageId = 1;</code>
+     * <code>optional int64 lineage_id = 1;</code>
      */
     public boolean hasLineageId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 lineageId = 1;</code>
+     * <code>optional int64 lineage_id = 1;</code>
      */
     public long getLineageId() {
       return lineageId_;
@@ -8890,19 +8898,19 @@ public final class JournalEntryProtos {
 
       private long lineageId_ ;
       /**
-       * <code>optional int64 lineageId = 1;</code>
+       * <code>optional int64 lineage_id = 1;</code>
        */
       public boolean hasLineageId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 lineageId = 1;</code>
+       * <code>optional int64 lineage_id = 1;</code>
        */
       public long getLineageId() {
         return lineageId_;
       }
       /**
-       * <code>optional int64 lineageId = 1;</code>
+       * <code>optional int64 lineage_id = 1;</code>
        */
       public Builder setLineageId(long value) {
         bitField0_ |= 0x00000001;
@@ -8911,7 +8919,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 lineageId = 1;</code>
+       * <code>optional int64 lineage_id = 1;</code>
        */
       public Builder clearLineageId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -8968,15 +8976,15 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     boolean hasTachyonPath();
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     java.lang.String getTachyonPath();
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     com.google.protobuf.ByteString
         getTachyonPathBytes();
@@ -9079,16 +9087,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int TACHYONPATH_FIELD_NUMBER = 1;
+    public static final int TACHYON_PATH_FIELD_NUMBER = 1;
     private java.lang.Object tachyonPath_;
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     public boolean hasTachyonPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     public java.lang.String getTachyonPath() {
       java.lang.Object ref = tachyonPath_;
@@ -9105,7 +9113,7 @@ public final class JournalEntryProtos {
       }
     }
     /**
-     * <code>optional string tachyonPath = 1;</code>
+     * <code>optional string tachyon_path = 1;</code>
      */
     public com.google.protobuf.ByteString
         getTachyonPathBytes() {
@@ -9354,13 +9362,13 @@ public final class JournalEntryProtos {
 
       private java.lang.Object tachyonPath_ = "";
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public boolean hasTachyonPath() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public java.lang.String getTachyonPath() {
         java.lang.Object ref = tachyonPath_;
@@ -9377,7 +9385,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public com.google.protobuf.ByteString
           getTachyonPathBytes() {
@@ -9393,7 +9401,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public Builder setTachyonPath(
           java.lang.String value) {
@@ -9406,7 +9414,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public Builder clearTachyonPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -9415,7 +9423,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string tachyonPath = 1;</code>
+       * <code>optional string tachyon_path = 1;</code>
        */
       public Builder setTachyonPathBytes(
           com.google.protobuf.ByteString value) {
@@ -9453,11 +9461,11 @@ public final class JournalEntryProtos {
     long getId();
 
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     boolean hasParentId();
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     long getParentId();
 
@@ -9494,20 +9502,20 @@ public final class JournalEntryProtos {
     boolean getPinned();
 
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     boolean hasCreationTimeMs();
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     long getCreationTimeMs();
 
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     boolean hasLastModificationTimeMs();
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     long getLastModificationTimeMs();
   }
@@ -9654,16 +9662,16 @@ public final class JournalEntryProtos {
       return id_;
     }
 
-    public static final int PARENTID_FIELD_NUMBER = 2;
+    public static final int PARENT_ID_FIELD_NUMBER = 2;
     private long parentId_;
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     public boolean hasParentId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     public long getParentId() {
       return parentId_;
@@ -9741,31 +9749,31 @@ public final class JournalEntryProtos {
       return pinned_;
     }
 
-    public static final int CREATIONTIMEMS_FIELD_NUMBER = 6;
+    public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public boolean hasCreationTimeMs() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
     }
 
-    public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 7;
+    public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 7;
     private long lastModificationTimeMs_;
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     public boolean hasLastModificationTimeMs() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     public long getLastModificationTimeMs() {
       return lastModificationTimeMs_;
@@ -10138,19 +10146,19 @@ public final class JournalEntryProtos {
 
       private long parentId_ ;
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public boolean hasParentId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public long getParentId() {
         return parentId_;
       }
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public Builder setParentId(long value) {
         bitField0_ |= 0x00000002;
@@ -10159,7 +10167,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public Builder clearParentId() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -10310,19 +10318,19 @@ public final class JournalEntryProtos {
 
       private long creationTimeMs_ ;
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public boolean hasCreationTimeMs() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public long getCreationTimeMs() {
         return creationTimeMs_;
       }
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder setCreationTimeMs(long value) {
         bitField0_ |= 0x00000020;
@@ -10331,7 +10339,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder clearCreationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -10342,19 +10350,19 @@ public final class JournalEntryProtos {
 
       private long lastModificationTimeMs_ ;
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public boolean hasLastModificationTimeMs() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public long getLastModificationTimeMs() {
         return lastModificationTimeMs_;
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public Builder setLastModificationTimeMs(long value) {
         bitField0_ |= 0x00000040;
@@ -10363,7 +10371,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public Builder clearLastModificationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -10388,20 +10396,20 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 containerId = 1;</code>
+     * <code>optional int64 container_id = 1;</code>
      */
     boolean hasContainerId();
     /**
-     * <code>optional int64 containerId = 1;</code>
+     * <code>optional int64 container_id = 1;</code>
      */
     long getContainerId();
 
     /**
-     * <code>optional int64 sequenceNumber = 2;</code>
+     * <code>optional int64 sequence_number = 2;</code>
      */
     boolean hasSequenceNumber();
     /**
-     * <code>optional int64 sequenceNumber = 2;</code>
+     * <code>optional int64 sequence_number = 2;</code>
      */
     long getSequenceNumber();
   }
@@ -10507,31 +10515,31 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int CONTAINERID_FIELD_NUMBER = 1;
+    public static final int CONTAINER_ID_FIELD_NUMBER = 1;
     private long containerId_;
     /**
-     * <code>optional int64 containerId = 1;</code>
+     * <code>optional int64 container_id = 1;</code>
      */
     public boolean hasContainerId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 containerId = 1;</code>
+     * <code>optional int64 container_id = 1;</code>
      */
     public long getContainerId() {
       return containerId_;
     }
 
-    public static final int SEQUENCENUMBER_FIELD_NUMBER = 2;
+    public static final int SEQUENCE_NUMBER_FIELD_NUMBER = 2;
     private long sequenceNumber_;
     /**
-     * <code>optional int64 sequenceNumber = 2;</code>
+     * <code>optional int64 sequence_number = 2;</code>
      */
     public boolean hasSequenceNumber() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 sequenceNumber = 2;</code>
+     * <code>optional int64 sequence_number = 2;</code>
      */
     public long getSequenceNumber() {
       return sequenceNumber_;
@@ -10785,19 +10793,19 @@ public final class JournalEntryProtos {
 
       private long containerId_ ;
       /**
-       * <code>optional int64 containerId = 1;</code>
+       * <code>optional int64 container_id = 1;</code>
        */
       public boolean hasContainerId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 containerId = 1;</code>
+       * <code>optional int64 container_id = 1;</code>
        */
       public long getContainerId() {
         return containerId_;
       }
       /**
-       * <code>optional int64 containerId = 1;</code>
+       * <code>optional int64 container_id = 1;</code>
        */
       public Builder setContainerId(long value) {
         bitField0_ |= 0x00000001;
@@ -10806,7 +10814,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 containerId = 1;</code>
+       * <code>optional int64 container_id = 1;</code>
        */
       public Builder clearContainerId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -10817,19 +10825,19 @@ public final class JournalEntryProtos {
 
       private long sequenceNumber_ ;
       /**
-       * <code>optional int64 sequenceNumber = 2;</code>
+       * <code>optional int64 sequence_number = 2;</code>
        */
       public boolean hasSequenceNumber() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 sequenceNumber = 2;</code>
+       * <code>optional int64 sequence_number = 2;</code>
        */
       public long getSequenceNumber() {
         return sequenceNumber_;
       }
       /**
-       * <code>optional int64 sequenceNumber = 2;</code>
+       * <code>optional int64 sequence_number = 2;</code>
        */
       public Builder setSequenceNumber(long value) {
         bitField0_ |= 0x00000002;
@@ -10838,7 +10846,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 sequenceNumber = 2;</code>
+       * <code>optional int64 sequence_number = 2;</code>
        */
       public Builder clearSequenceNumber() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -10872,11 +10880,11 @@ public final class JournalEntryProtos {
     long getId();
 
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     boolean hasParentId();
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     long getParentId();
 
@@ -10913,29 +10921,29 @@ public final class JournalEntryProtos {
     boolean getPinned();
 
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     boolean hasCreationTimeMs();
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     long getCreationTimeMs();
 
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     boolean hasLastModificationTimeMs();
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     long getLastModificationTimeMs();
 
     /**
-     * <code>optional int64 blockSizeBytes = 8;</code>
+     * <code>optional int64 block_size_bytes = 8;</code>
      */
     boolean hasBlockSizeBytes();
     /**
-     * <code>optional int64 blockSizeBytes = 8;</code>
+     * <code>optional int64 block_size_bytes = 8;</code>
      */
     long getBlockSizeBytes();
 
@@ -11180,16 +11188,16 @@ public final class JournalEntryProtos {
       return id_;
     }
 
-    public static final int PARENTID_FIELD_NUMBER = 2;
+    public static final int PARENT_ID_FIELD_NUMBER = 2;
     private long parentId_;
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     public boolean hasParentId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 parentId = 2;</code>
+     * <code>optional int64 parent_id = 2;</code>
      */
     public long getParentId() {
       return parentId_;
@@ -11267,46 +11275,46 @@ public final class JournalEntryProtos {
       return pinned_;
     }
 
-    public static final int CREATIONTIMEMS_FIELD_NUMBER = 6;
+    public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public boolean hasCreationTimeMs() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional int64 creationTimeMs = 6;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
     }
 
-    public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 7;
+    public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 7;
     private long lastModificationTimeMs_;
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     public boolean hasLastModificationTimeMs() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
-     * <code>optional int64 lastModificationTimeMs = 7;</code>
+     * <code>optional int64 last_modification_time_ms = 7;</code>
      */
     public long getLastModificationTimeMs() {
       return lastModificationTimeMs_;
     }
 
-    public static final int BLOCKSIZEBYTES_FIELD_NUMBER = 8;
+    public static final int BLOCK_SIZE_BYTES_FIELD_NUMBER = 8;
     private long blockSizeBytes_;
     /**
-     * <code>optional int64 blockSizeBytes = 8;</code>
+     * <code>optional int64 block_size_bytes = 8;</code>
      */
     public boolean hasBlockSizeBytes() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
-     * <code>optional int64 blockSizeBytes = 8;</code>
+     * <code>optional int64 block_size_bytes = 8;</code>
      */
     public long getBlockSizeBytes() {
       return blockSizeBytes_;
@@ -11876,19 +11884,19 @@ public final class JournalEntryProtos {
 
       private long parentId_ ;
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public boolean hasParentId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public long getParentId() {
         return parentId_;
       }
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public Builder setParentId(long value) {
         bitField0_ |= 0x00000002;
@@ -11897,7 +11905,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 parentId = 2;</code>
+       * <code>optional int64 parent_id = 2;</code>
        */
       public Builder clearParentId() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -12048,19 +12056,19 @@ public final class JournalEntryProtos {
 
       private long creationTimeMs_ ;
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public boolean hasCreationTimeMs() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public long getCreationTimeMs() {
         return creationTimeMs_;
       }
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder setCreationTimeMs(long value) {
         bitField0_ |= 0x00000020;
@@ -12069,7 +12077,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 creationTimeMs = 6;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder clearCreationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -12080,19 +12088,19 @@ public final class JournalEntryProtos {
 
       private long lastModificationTimeMs_ ;
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public boolean hasLastModificationTimeMs() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public long getLastModificationTimeMs() {
         return lastModificationTimeMs_;
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public Builder setLastModificationTimeMs(long value) {
         bitField0_ |= 0x00000040;
@@ -12101,7 +12109,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 7;</code>
+       * <code>optional int64 last_modification_time_ms = 7;</code>
        */
       public Builder clearLastModificationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -12112,19 +12120,19 @@ public final class JournalEntryProtos {
 
       private long blockSizeBytes_ ;
       /**
-       * <code>optional int64 blockSizeBytes = 8;</code>
+       * <code>optional int64 block_size_bytes = 8;</code>
        */
       public boolean hasBlockSizeBytes() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       /**
-       * <code>optional int64 blockSizeBytes = 8;</code>
+       * <code>optional int64 block_size_bytes = 8;</code>
        */
       public long getBlockSizeBytes() {
         return blockSizeBytes_;
       }
       /**
-       * <code>optional int64 blockSizeBytes = 8;</code>
+       * <code>optional int64 block_size_bytes = 8;</code>
        */
       public Builder setBlockSizeBytes(long value) {
         bitField0_ |= 0x00000080;
@@ -12133,7 +12141,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 blockSizeBytes = 8;</code>
+       * <code>optional int64 block_size_bytes = 8;</code>
        */
       public Builder clearBlockSizeBytes() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -12361,11 +12369,11 @@ public final class JournalEntryProtos {
     long getId();
 
     /**
-     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     * <code>optional int64 last_modification_time_ms = 2;</code>
      */
     boolean hasLastModificationTimeMs();
     /**
-     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     * <code>optional int64 last_modification_time_ms = 2;</code>
      */
     long getLastModificationTimeMs();
   }
@@ -12486,16 +12494,16 @@ public final class JournalEntryProtos {
       return id_;
     }
 
-    public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 2;
+    public static final int LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 2;
     private long lastModificationTimeMs_;
     /**
-     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     * <code>optional int64 last_modification_time_ms = 2;</code>
      */
     public boolean hasLastModificationTimeMs() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 lastModificationTimeMs = 2;</code>
+     * <code>optional int64 last_modification_time_ms = 2;</code>
      */
     public long getLastModificationTimeMs() {
       return lastModificationTimeMs_;
@@ -12781,19 +12789,19 @@ public final class JournalEntryProtos {
 
       private long lastModificationTimeMs_ ;
       /**
-       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       * <code>optional int64 last_modification_time_ms = 2;</code>
        */
       public boolean hasLastModificationTimeMs() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       * <code>optional int64 last_modification_time_ms = 2;</code>
        */
       public long getLastModificationTimeMs() {
         return lastModificationTimeMs_;
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       * <code>optional int64 last_modification_time_ms = 2;</code>
        */
       public Builder setLastModificationTimeMs(long value) {
         bitField0_ |= 0x00000002;
@@ -12802,7 +12810,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 lastModificationTimeMs = 2;</code>
+       * <code>optional int64 last_modification_time_ms = 2;</code>
        */
       public Builder clearLastModificationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -12836,78 +12844,78 @@ public final class JournalEntryProtos {
     long getId();
 
     /**
-     * <code>repeated int64 inputFiles = 2;</code>
+     * <code>repeated int64 input_files = 2;</code>
      */
     java.util.List<java.lang.Long> getInputFilesList();
     /**
-     * <code>repeated int64 inputFiles = 2;</code>
+     * <code>repeated int64 input_files = 2;</code>
      */
     int getInputFilesCount();
     /**
-     * <code>repeated int64 inputFiles = 2;</code>
+     * <code>repeated int64 input_files = 2;</code>
      */
     long getInputFiles(int index);
 
     /**
-     * <code>repeated int64 outputFileIds = 3;</code>
+     * <code>repeated int64 output_file_ids = 3;</code>
      */
     java.util.List<java.lang.Long> getOutputFileIdsList();
     /**
-     * <code>repeated int64 outputFileIds = 3;</code>
+     * <code>repeated int64 output_file_ids = 3;</code>
      */
     int getOutputFileIdsCount();
     /**
-     * <code>repeated int64 outputFileIds = 3;</code>
+     * <code>repeated int64 output_file_ids = 3;</code>
      */
     long getOutputFileIds(int index);
 
     /**
-     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
      */
     java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> getOutputFileStatesList();
     /**
-     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
      */
     int getOutputFileStatesCount();
     /**
-     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
      */
     tachyon.proto.JournalEntryProtos.LineageFileState getOutputFileStates(int index);
 
     /**
-     * <code>optional string jobCommand = 5;</code>
+     * <code>optional string job_command = 5;</code>
      */
     boolean hasJobCommand();
     /**
-     * <code>optional string jobCommand = 5;</code>
+     * <code>optional string job_command = 5;</code>
      */
     java.lang.String getJobCommand();
     /**
-     * <code>optional string jobCommand = 5;</code>
+     * <code>optional string job_command = 5;</code>
      */
     com.google.protobuf.ByteString
         getJobCommandBytes();
 
     /**
-     * <code>optional string jobOutputPath = 6;</code>
+     * <code>optional string job_output_path = 6;</code>
      */
     boolean hasJobOutputPath();
     /**
-     * <code>optional string jobOutputPath = 6;</code>
+     * <code>optional string job_output_path = 6;</code>
      */
     java.lang.String getJobOutputPath();
     /**
-     * <code>optional string jobOutputPath = 6;</code>
+     * <code>optional string job_output_path = 6;</code>
      */
     com.google.protobuf.ByteString
         getJobOutputPathBytes();
 
     /**
-     * <code>optional int64 creationTimeMs = 7;</code>
+     * <code>optional int64 creation_time_ms = 7;</code>
      */
     boolean hasCreationTimeMs();
     /**
-     * <code>optional int64 creationTimeMs = 7;</code>
+     * <code>optional int64 creation_time_ms = 7;</code>
      */
     long getCreationTimeMs();
   }
@@ -13124,81 +13132,81 @@ public final class JournalEntryProtos {
       return id_;
     }
 
-    public static final int INPUTFILES_FIELD_NUMBER = 2;
+    public static final int INPUT_FILES_FIELD_NUMBER = 2;
     private java.util.List<java.lang.Long> inputFiles_;
     /**
-     * <code>repeated int64 inputFiles = 2;</code>
+     * <code>repeated int64 input_files = 2;</code>
      */
     public java.util.List<java.lang.Long>
         getInputFilesList() {
       return inputFiles_;
     }
     /**
-     * <code>repeated int64 inputFiles = 2;</code>
+     * <code>repeated int64 input_files = 2;</code>
      */
     public int getInputFilesCount() {
       return inputFiles_.size();
     }
     /**
-     * <code>repeated int64 inputFiles = 2;</code>
+     * <code>repeated int64 input_files = 2;</code>
      */
     public long getInputFiles(int index) {
       return inputFiles_.get(index);
     }
 
-    public static final int OUTPUTFILEIDS_FIELD_NUMBER = 3;
+    public static final int OUTPUT_FILE_IDS_FIELD_NUMBER = 3;
     private java.util.List<java.lang.Long> outputFileIds_;
     /**
-     * <code>repeated int64 outputFileIds = 3;</code>
+     * <code>repeated int64 output_file_ids = 3;</code>
      */
     public java.util.List<java.lang.Long>
         getOutputFileIdsList() {
       return outputFileIds_;
     }
     /**
-     * <code>repeated int64 outputFileIds = 3;</code>
+     * <code>repeated int64 output_file_ids = 3;</code>
      */
     public int getOutputFileIdsCount() {
       return outputFileIds_.size();
     }
     /**
-     * <code>repeated int64 outputFileIds = 3;</code>
+     * <code>repeated int64 output_file_ids = 3;</code>
      */
     public long getOutputFileIds(int index) {
       return outputFileIds_.get(index);
     }
 
-    public static final int OUTPUTFILESTATES_FIELD_NUMBER = 4;
+    public static final int OUTPUT_FILE_STATES_FIELD_NUMBER = 4;
     private java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> outputFileStates_;
     /**
-     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
      */
     public java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> getOutputFileStatesList() {
       return outputFileStates_;
     }
     /**
-     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
      */
     public int getOutputFileStatesCount() {
       return outputFileStates_.size();
     }
     /**
-     * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+     * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
      */
     public tachyon.proto.JournalEntryProtos.LineageFileState getOutputFileStates(int index) {
       return outputFileStates_.get(index);
     }
 
-    public static final int JOBCOMMAND_FIELD_NUMBER = 5;
+    public static final int JOB_COMMAND_FIELD_NUMBER = 5;
     private java.lang.Object jobCommand_;
     /**
-     * <code>optional string jobCommand = 5;</code>
+     * <code>optional string job_command = 5;</code>
      */
     public boolean hasJobCommand() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string jobCommand = 5;</code>
+     * <code>optional string job_command = 5;</code>
      */
     public java.lang.String getJobCommand() {
       java.lang.Object ref = jobCommand_;
@@ -13215,7 +13223,7 @@ public final class JournalEntryProtos {
       }
     }
     /**
-     * <code>optional string jobCommand = 5;</code>
+     * <code>optional string job_command = 5;</code>
      */
     public com.google.protobuf.ByteString
         getJobCommandBytes() {
@@ -13231,16 +13239,16 @@ public final class JournalEntryProtos {
       }
     }
 
-    public static final int JOBOUTPUTPATH_FIELD_NUMBER = 6;
+    public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 6;
     private java.lang.Object jobOutputPath_;
     /**
-     * <code>optional string jobOutputPath = 6;</code>
+     * <code>optional string job_output_path = 6;</code>
      */
     public boolean hasJobOutputPath() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string jobOutputPath = 6;</code>
+     * <code>optional string job_output_path = 6;</code>
      */
     public java.lang.String getJobOutputPath() {
       java.lang.Object ref = jobOutputPath_;
@@ -13257,7 +13265,7 @@ public final class JournalEntryProtos {
       }
     }
     /**
-     * <code>optional string jobOutputPath = 6;</code>
+     * <code>optional string job_output_path = 6;</code>
      */
     public com.google.protobuf.ByteString
         getJobOutputPathBytes() {
@@ -13273,16 +13281,16 @@ public final class JournalEntryProtos {
       }
     }
 
-    public static final int CREATIONTIMEMS_FIELD_NUMBER = 7;
+    public static final int CREATION_TIME_MS_FIELD_NUMBER = 7;
     private long creationTimeMs_;
     /**
-     * <code>optional int64 creationTimeMs = 7;</code>
+     * <code>optional int64 creation_time_ms = 7;</code>
      */
     public boolean hasCreationTimeMs() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 creationTimeMs = 7;</code>
+     * <code>optional int64 creation_time_ms = 7;</code>
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
@@ -13702,26 +13710,26 @@ public final class JournalEntryProtos {
          }
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public java.util.List<java.lang.Long>
           getInputFilesList() {
         return java.util.Collections.unmodifiableList(inputFiles_);
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public int getInputFilesCount() {
         return inputFiles_.size();
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public long getInputFiles(int index) {
         return inputFiles_.get(index);
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public Builder setInputFiles(
           int index, long value) {
@@ -13731,7 +13739,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public Builder addInputFiles(long value) {
         ensureInputFilesIsMutable();
@@ -13740,7 +13748,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public Builder addAllInputFiles(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -13751,7 +13759,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 inputFiles = 2;</code>
+       * <code>repeated int64 input_files = 2;</code>
        */
       public Builder clearInputFiles() {
         inputFiles_ = java.util.Collections.emptyList();
@@ -13768,26 +13776,26 @@ public final class JournalEntryProtos {
          }
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public java.util.List<java.lang.Long>
           getOutputFileIdsList() {
         return java.util.Collections.unmodifiableList(outputFileIds_);
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public int getOutputFileIdsCount() {
         return outputFileIds_.size();
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public long getOutputFileIds(int index) {
         return outputFileIds_.get(index);
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public Builder setOutputFileIds(
           int index, long value) {
@@ -13797,7 +13805,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public Builder addOutputFileIds(long value) {
         ensureOutputFileIdsIsMutable();
@@ -13806,7 +13814,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public Builder addAllOutputFileIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -13817,7 +13825,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 outputFileIds = 3;</code>
+       * <code>repeated int64 output_file_ids = 3;</code>
        */
       public Builder clearOutputFileIds() {
         outputFileIds_ = java.util.Collections.emptyList();
@@ -13835,25 +13843,25 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public java.util.List<tachyon.proto.JournalEntryProtos.LineageFileState> getOutputFileStatesList() {
         return java.util.Collections.unmodifiableList(outputFileStates_);
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public int getOutputFileStatesCount() {
         return outputFileStates_.size();
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public tachyon.proto.JournalEntryProtos.LineageFileState getOutputFileStates(int index) {
         return outputFileStates_.get(index);
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public Builder setOutputFileStates(
           int index, tachyon.proto.JournalEntryProtos.LineageFileState value) {
@@ -13866,7 +13874,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public Builder addOutputFileStates(tachyon.proto.JournalEntryProtos.LineageFileState value) {
         if (value == null) {
@@ -13878,7 +13886,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public Builder addAllOutputFileStates(
           java.lang.Iterable<? extends tachyon.proto.JournalEntryProtos.LineageFileState> values) {
@@ -13889,7 +13897,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated .tachyon.proto.LineageFileState outputFileStates = 4;</code>
+       * <code>repeated .tachyon.proto.LineageFileState output_file_states = 4;</code>
        */
       public Builder clearOutputFileStates() {
         outputFileStates_ = java.util.Collections.emptyList();
@@ -13900,13 +13908,13 @@ public final class JournalEntryProtos {
 
       private java.lang.Object jobCommand_ = "";
       /**
-       * <code>optional string jobCommand = 5;</code>
+       * <code>optional string job_command = 5;</code>
        */
       public boolean hasJobCommand() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>optional string jobCommand = 5;</code>
+       * <code>optional string job_command = 5;</code>
        */
       public java.lang.String getJobCommand() {
         java.lang.Object ref = jobCommand_;
@@ -13923,7 +13931,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string jobCommand = 5;</code>
+       * <code>optional string job_command = 5;</code>
        */
       public com.google.protobuf.ByteString
           getJobCommandBytes() {
@@ -13939,7 +13947,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string jobCommand = 5;</code>
+       * <code>optional string job_command = 5;</code>
        */
       public Builder setJobCommand(
           java.lang.String value) {
@@ -13952,7 +13960,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string jobCommand = 5;</code>
+       * <code>optional string job_command = 5;</code>
        */
       public Builder clearJobCommand() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -13961,7 +13969,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string jobCommand = 5;</code>
+       * <code>optional string job_command = 5;</code>
        */
       public Builder setJobCommandBytes(
           com.google.protobuf.ByteString value) {
@@ -13976,13 +13984,13 @@ public final class JournalEntryProtos {
 
       private java.lang.Object jobOutputPath_ = "";
       /**
-       * <code>optional string jobOutputPath = 6;</code>
+       * <code>optional string job_output_path = 6;</code>
        */
       public boolean hasJobOutputPath() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional string jobOutputPath = 6;</code>
+       * <code>optional string job_output_path = 6;</code>
        */
       public java.lang.String getJobOutputPath() {
         java.lang.Object ref = jobOutputPath_;
@@ -13999,7 +14007,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string jobOutputPath = 6;</code>
+       * <code>optional string job_output_path = 6;</code>
        */
       public com.google.protobuf.ByteString
           getJobOutputPathBytes() {
@@ -14015,7 +14023,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string jobOutputPath = 6;</code>
+       * <code>optional string job_output_path = 6;</code>
        */
       public Builder setJobOutputPath(
           java.lang.String value) {
@@ -14028,7 +14036,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string jobOutputPath = 6;</code>
+       * <code>optional string job_output_path = 6;</code>
        */
       public Builder clearJobOutputPath() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -14037,7 +14045,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string jobOutputPath = 6;</code>
+       * <code>optional string job_output_path = 6;</code>
        */
       public Builder setJobOutputPathBytes(
           com.google.protobuf.ByteString value) {
@@ -14052,19 +14060,19 @@ public final class JournalEntryProtos {
 
       private long creationTimeMs_ ;
       /**
-       * <code>optional int64 creationTimeMs = 7;</code>
+       * <code>optional int64 creation_time_ms = 7;</code>
        */
       public boolean hasCreationTimeMs() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       /**
-       * <code>optional int64 creationTimeMs = 7;</code>
+       * <code>optional int64 creation_time_ms = 7;</code>
        */
       public long getCreationTimeMs() {
         return creationTimeMs_;
       }
       /**
-       * <code>optional int64 creationTimeMs = 7;</code>
+       * <code>optional int64 creation_time_ms = 7;</code>
        */
       public Builder setCreationTimeMs(long value) {
         bitField0_ |= 0x00000040;
@@ -14073,7 +14081,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 creationTimeMs = 7;</code>
+       * <code>optional int64 creation_time_ms = 7;</code>
        */
       public Builder clearCreationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -14098,11 +14106,11 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     boolean hasSequenceNumber();
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     long getSequenceNumber();
   }
@@ -14203,16 +14211,16 @@ public final class JournalEntryProtos {
     }
 
     private int bitField0_;
-    public static final int SEQUENCENUMBER_FIELD_NUMBER = 1;
+    public static final int SEQUENCE_NUMBER_FIELD_NUMBER = 1;
     private long sequenceNumber_;
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     public boolean hasSequenceNumber() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 sequenceNumber = 1;</code>
+     * <code>optional int64 sequence_number = 1;</code>
      */
     public long getSequenceNumber() {
       return sequenceNumber_;
@@ -14449,19 +14457,19 @@ public final class JournalEntryProtos {
 
       private long sequenceNumber_ ;
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public boolean hasSequenceNumber() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public long getSequenceNumber() {
         return sequenceNumber_;
       }
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public Builder setSequenceNumber(long value) {
         bitField0_ |= 0x00000001;
@@ -14470,7 +14478,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 sequenceNumber = 1;</code>
+       * <code>optional int64 sequence_number = 1;</code>
        */
       public Builder clearSequenceNumber() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -14910,11 +14918,11 @@ public final class JournalEntryProtos {
     long getLength();
 
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     boolean hasOpTimeMs();
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     long getOpTimeMs();
   }
@@ -15055,16 +15063,16 @@ public final class JournalEntryProtos {
       return length_;
     }
 
-    public static final int OPTIMEMS_FIELD_NUMBER = 3;
+    public static final int OP_TIME_MS_FIELD_NUMBER = 3;
     private long opTimeMs_;
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public boolean hasOpTimeMs() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public long getOpTimeMs() {
       return opTimeMs_;
@@ -15399,19 +15407,19 @@ public final class JournalEntryProtos {
 
       private long opTimeMs_ ;
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public boolean hasOpTimeMs() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public long getOpTimeMs() {
         return opTimeMs_;
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder setOpTimeMs(long value) {
         bitField0_ |= 0x00000004;
@@ -15420,7 +15428,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder clearOpTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -15445,15 +15453,15 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     java.util.List<java.lang.Long> getFileIdsList();
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     int getFileIdsCount();
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     long getFileIds(int index);
   }
@@ -15572,23 +15580,23 @@ public final class JournalEntryProtos {
       return PARSER;
     }
 
-    public static final int FILEIDS_FIELD_NUMBER = 1;
+    public static final int FILE_IDS_FIELD_NUMBER = 1;
     private java.util.List<java.lang.Long> fileIds_;
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     public java.util.List<java.lang.Long>
         getFileIdsList() {
       return fileIds_;
     }
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     public int getFileIdsCount() {
       return fileIds_.size();
     }
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     public long getFileIds(int index) {
       return fileIds_.get(index);
@@ -15842,26 +15850,26 @@ public final class JournalEntryProtos {
          }
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public java.util.List<java.lang.Long>
           getFileIdsList() {
         return java.util.Collections.unmodifiableList(fileIds_);
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public int getFileIdsCount() {
         return fileIds_.size();
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public long getFileIds(int index) {
         return fileIds_.get(index);
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder setFileIds(
           int index, long value) {
@@ -15871,7 +15879,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder addFileIds(long value) {
         ensureFileIdsIsMutable();
@@ -15880,7 +15888,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder addAllFileIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -15891,7 +15899,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder clearFileIds() {
         fileIds_ = java.util.Collections.emptyList();
@@ -15916,15 +15924,15 @@ public final class JournalEntryProtos {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     java.util.List<java.lang.Long> getFileIdsList();
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     int getFileIdsCount();
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     long getFileIds(int index);
   }
@@ -16043,23 +16051,23 @@ public final class JournalEntryProtos {
       return PARSER;
     }
 
-    public static final int FILEIDS_FIELD_NUMBER = 1;
+    public static final int FILE_IDS_FIELD_NUMBER = 1;
     private java.util.List<java.lang.Long> fileIds_;
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     public java.util.List<java.lang.Long>
         getFileIdsList() {
       return fileIds_;
     }
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     public int getFileIdsCount() {
       return fileIds_.size();
     }
     /**
-     * <code>repeated int64 fileIds = 1;</code>
+     * <code>repeated int64 file_ids = 1;</code>
      */
     public long getFileIds(int index) {
       return fileIds_.get(index);
@@ -16313,26 +16321,26 @@ public final class JournalEntryProtos {
          }
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public java.util.List<java.lang.Long>
           getFileIdsList() {
         return java.util.Collections.unmodifiableList(fileIds_);
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public int getFileIdsCount() {
         return fileIds_.size();
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public long getFileIds(int index) {
         return fileIds_.get(index);
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder setFileIds(
           int index, long value) {
@@ -16342,7 +16350,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder addFileIds(long value) {
         ensureFileIdsIsMutable();
@@ -16351,7 +16359,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder addAllFileIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -16362,7 +16370,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>repeated int64 fileIds = 1;</code>
+       * <code>repeated int64 file_ids = 1;</code>
        */
       public Builder clearFileIds() {
         fileIds_ = java.util.Collections.emptyList();
@@ -16957,11 +16965,11 @@ public final class JournalEntryProtos {
         getPathBytes();
 
     /**
-     * <code>optional int64 blockSizeBytes = 2;</code>
+     * <code>optional int64 block_size_bytes = 2;</code>
      */
     boolean hasBlockSizeBytes();
     /**
-     * <code>optional int64 blockSizeBytes = 2;</code>
+     * <code>optional int64 block_size_bytes = 2;</code>
      */
     long getBlockSizeBytes();
 
@@ -17124,16 +17132,16 @@ public final class JournalEntryProtos {
       }
     }
 
-    public static final int BLOCKSIZEBYTES_FIELD_NUMBER = 2;
+    public static final int BLOCK_SIZE_BYTES_FIELD_NUMBER = 2;
     private long blockSizeBytes_;
     /**
-     * <code>optional int64 blockSizeBytes = 2;</code>
+     * <code>optional int64 block_size_bytes = 2;</code>
      */
     public boolean hasBlockSizeBytes() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 blockSizeBytes = 2;</code>
+     * <code>optional int64 block_size_bytes = 2;</code>
      */
     public long getBlockSizeBytes() {
       return blockSizeBytes_;
@@ -17497,19 +17505,19 @@ public final class JournalEntryProtos {
 
       private long blockSizeBytes_ ;
       /**
-       * <code>optional int64 blockSizeBytes = 2;</code>
+       * <code>optional int64 block_size_bytes = 2;</code>
        */
       public boolean hasBlockSizeBytes() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 blockSizeBytes = 2;</code>
+       * <code>optional int64 block_size_bytes = 2;</code>
        */
       public long getBlockSizeBytes() {
         return blockSizeBytes_;
       }
       /**
-       * <code>optional int64 blockSizeBytes = 2;</code>
+       * <code>optional int64 block_size_bytes = 2;</code>
        */
       public Builder setBlockSizeBytes(long value) {
         bitField0_ |= 0x00000002;
@@ -17518,7 +17526,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 blockSizeBytes = 2;</code>
+       * <code>optional int64 block_size_bytes = 2;</code>
        */
       public Builder clearBlockSizeBytes() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -17584,25 +17592,25 @@ public final class JournalEntryProtos {
     long getId();
 
     /**
-     * <code>optional string dstPath = 2;</code>
+     * <code>optional string dst_path = 2;</code>
      */
     boolean hasDstPath();
     /**
-     * <code>optional string dstPath = 2;</code>
+     * <code>optional string dst_path = 2;</code>
      */
     java.lang.String getDstPath();
     /**
-     * <code>optional string dstPath = 2;</code>
+     * <code>optional string dst_path = 2;</code>
      */
     com.google.protobuf.ByteString
         getDstPathBytes();
 
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     boolean hasOpTimeMs();
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     long getOpTimeMs();
   }
@@ -17729,16 +17737,16 @@ public final class JournalEntryProtos {
       return id_;
     }
 
-    public static final int DSTPATH_FIELD_NUMBER = 2;
+    public static final int DST_PATH_FIELD_NUMBER = 2;
     private java.lang.Object dstPath_;
     /**
-     * <code>optional string dstPath = 2;</code>
+     * <code>optional string dst_path = 2;</code>
      */
     public boolean hasDstPath() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string dstPath = 2;</code>
+     * <code>optional string dst_path = 2;</code>
      */
     public java.lang.String getDstPath() {
       java.lang.Object ref = dstPath_;
@@ -17755,7 +17763,7 @@ public final class JournalEntryProtos {
       }
     }
     /**
-     * <code>optional string dstPath = 2;</code>
+     * <code>optional string dst_path = 2;</code>
      */
     public com.google.protobuf.ByteString
         getDstPathBytes() {
@@ -17771,16 +17779,16 @@ public final class JournalEntryProtos {
       }
     }
 
-    public static final int OPTIMEMS_FIELD_NUMBER = 3;
+    public static final int OP_TIME_MS_FIELD_NUMBER = 3;
     private long opTimeMs_;
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public boolean hasOpTimeMs() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional int64 opTimeMs = 3;</code>
+     * <code>optional int64 op_time_ms = 3;</code>
      */
     public long getOpTimeMs() {
       return opTimeMs_;
@@ -18085,13 +18093,13 @@ public final class JournalEntryProtos {
 
       private java.lang.Object dstPath_ = "";
       /**
-       * <code>optional string dstPath = 2;</code>
+       * <code>optional string dst_path = 2;</code>
        */
       public boolean hasDstPath() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional string dstPath = 2;</code>
+       * <code>optional string dst_path = 2;</code>
        */
       public java.lang.String getDstPath() {
         java.lang.Object ref = dstPath_;
@@ -18108,7 +18116,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string dstPath = 2;</code>
+       * <code>optional string dst_path = 2;</code>
        */
       public com.google.protobuf.ByteString
           getDstPathBytes() {
@@ -18124,7 +18132,7 @@ public final class JournalEntryProtos {
         }
       }
       /**
-       * <code>optional string dstPath = 2;</code>
+       * <code>optional string dst_path = 2;</code>
        */
       public Builder setDstPath(
           java.lang.String value) {
@@ -18137,7 +18145,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string dstPath = 2;</code>
+       * <code>optional string dst_path = 2;</code>
        */
       public Builder clearDstPath() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -18146,7 +18154,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional string dstPath = 2;</code>
+       * <code>optional string dst_path = 2;</code>
        */
       public Builder setDstPathBytes(
           com.google.protobuf.ByteString value) {
@@ -18161,19 +18169,19 @@ public final class JournalEntryProtos {
 
       private long opTimeMs_ ;
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public boolean hasOpTimeMs() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public long getOpTimeMs() {
         return opTimeMs_;
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder setOpTimeMs(long value) {
         bitField0_ |= 0x00000004;
@@ -18182,7 +18190,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 opTimeMs = 3;</code>
+       * <code>optional int64 op_time_ms = 3;</code>
        */
       public Builder clearOpTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -18216,11 +18224,11 @@ public final class JournalEntryProtos {
     long getId();
 
     /**
-     * <code>optional int64 opTimeMs = 2;</code>
+     * <code>optional int64 op_time_ms = 2;</code>
      */
     boolean hasOpTimeMs();
     /**
-     * <code>optional int64 opTimeMs = 2;</code>
+     * <code>optional int64 op_time_ms = 2;</code>
      */
     long getOpTimeMs();
 
@@ -18369,16 +18377,16 @@ public final class JournalEntryProtos {
       return id_;
     }
 
-    public static final int OPTIMEMS_FIELD_NUMBER = 2;
+    public static final int OP_TIME_MS_FIELD_NUMBER = 2;
     private long opTimeMs_;
     /**
-     * <code>optional int64 opTimeMs = 2;</code>
+     * <code>optional int64 op_time_ms = 2;</code>
      */
     public boolean hasOpTimeMs() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int64 opTimeMs = 2;</code>
+     * <code>optional int64 op_time_ms = 2;</code>
      */
     public long getOpTimeMs() {
       return opTimeMs_;
@@ -18728,19 +18736,19 @@ public final class JournalEntryProtos {
 
       private long opTimeMs_ ;
       /**
-       * <code>optional int64 opTimeMs = 2;</code>
+       * <code>optional int64 op_time_ms = 2;</code>
        */
       public boolean hasOpTimeMs() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional int64 opTimeMs = 2;</code>
+       * <code>optional int64 op_time_ms = 2;</code>
        */
       public long getOpTimeMs() {
         return opTimeMs_;
       }
       /**
-       * <code>optional int64 opTimeMs = 2;</code>
+       * <code>optional int64 op_time_ms = 2;</code>
        */
       public Builder setOpTimeMs(long value) {
         bitField0_ |= 0x00000002;
@@ -18749,7 +18757,7 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 opTimeMs = 2;</code>
+       * <code>optional int64 op_time_ms = 2;</code>
        */
       public Builder clearOpTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -19441,92 +19449,94 @@ public final class JournalEntryProtos {
   static {
     java.lang.String[] descriptorData = {
       "\n\032journal_entry_protos.proto\022\rtachyon.pr" +
-      "oto\"\317\013\n\014JournalEntry\022\026\n\016sequenceNumber\030\001" +
-      " \001(\003\022:\n\raddMountPoint\030\002 \001(\0132!.tachyon.pr" +
-      "oto.AddMountPointEntryH\000\022B\n\021asyncComplet" +
-      "eFile\030\003 \001(\0132%.tachyon.proto.AsyncComplet" +
-      "eFileEntryH\000\022R\n\031blockContainerIdGenerato" +
-      "r\030\004 \001(\0132-.tachyon.proto.BlockContainerId" +
-      "GeneratorEntryH\000\0222\n\tblockInfo\030\005 \001(\0132\035.ta" +
-      "chyon.proto.BlockInfoEntryH\000\0228\n\014complete" +
-      "File\030\006 \001(\0132 .tachyon.proto.CompleteFileE",
-      "ntryH\000\0224\n\ndeleteFile\030\007 \001(\0132\036.tachyon.pro" +
-      "to.DeleteFileEntryH\000\022:\n\rdeleteLineage\030\010 " +
-      "\001(\0132!.tachyon.proto.DeleteLineageEntryH\000" +
-      "\022@\n\020deleteMountPoint\030\t \001(\0132$.tachyon.pro" +
-      "to.DeleteMountPointEntryH\000\022<\n\016inodeDirec" +
-      "tory\030\n \001(\0132\".tachyon.proto.InodeDirector" +
-      "yEntryH\000\022R\n\031inodeDirectoryIdGenerator\030\013 " +
-      "\001(\0132-.tachyon.proto.InodeDirectoryIdGene" +
-      "ratorEntryH\000\0227\n\016inodeFileEntry\030\014 \001(\0132\035.t" +
-      "achyon.proto.InodeFileEntryH\000\022R\n\031inodeLa",
-      "stModificationTime\030\r \001(\0132-.tachyon.proto" +
-      ".InodeLastModificationTimeEntryH\000\0223\n\014lin" +
-      "eageEntry\030\016 \001(\0132\033.tachyon.proto.LineageE" +
-      "ntryH\000\022D\n\022lineageIdGenerator\030\017 \001(\0132&.tac" +
-      "hyon.proto.LineageIdGeneratorEntryH\000\022@\n\020" +
-      "persistDirectory\030\020 \001(\0132$.tachyon.proto.P" +
-      "ersistDirectoryEntryH\000\0226\n\013persistFile\030\021 " +
-      "\001(\0132\037.tachyon.proto.PersistFileEntryH\000\022:" +
-      "\n\016persisterFiles\030\022 \001(\0132 .tachyon.proto.P" +
-      "ersistFilesEntryH\000\022F\n\023persistFilesReques",
-      "t\030\023 \001(\0132\'.tachyon.proto.PersistFilesRequ" +
-      "estEntryH\000\0220\n\010rawTable\030\024 \001(\0132\034.tachyon.p" +
-      "roto.RawTableEntryH\000\022@\n\020reinitializeFile" +
-      "\030\025 \001(\0132$.tachyon.proto.ReinitializeFileE" +
-      "ntryH\000\022,\n\006rename\030\026 \001(\0132\032.tachyon.proto.R" +
-      "enameEntryH\000\0220\n\010setState\030\027 \001(\0132\034.tachyon" +
-      ".proto.SetStateEntryH\000\022<\n\016updateMetadata" +
-      "\030\030 \001(\0132\".tachyon.proto.UpdateMetadataEnt" +
-      "ryH\000B\007\n\005entry\":\n\022AddMountPointEntry\022\023\n\013t" +
-      "achyonPath\030\001 \001(\t\022\017\n\007ufsPath\030\002 \001(\t\"(\n\026Asy",
-      "ncCompleteFileEntry\022\016\n\006fileId\030\001 \001(\003\"9\n\036B" +
-      "lockContainerIdGeneratorEntry\022\027\n\017nextCon" +
-      "tainerId\030\001 \001(\003\"1\n\016BlockInfoEntry\022\017\n\007bloc" +
-      "kId\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\"S\n\021CompleteFil" +
-      "eEntry\022\020\n\010blockIds\030\001 \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006" +
-      "length\030\003 \001(\003\022\020\n\010opTimeMs\030\004 \001(\003\"B\n\017Delete" +
-      "FileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010" +
-      "\022\020\n\010opTimeMs\030\003 \001(\003\"8\n\022DeleteLineageEntry" +
-      "\022\021\n\tlineageId\030\001 \001(\003\022\017\n\007cascade\030\002 \001(\010\",\n\025" +
-      "DeleteMountPointEntry\022\023\n\013tachyonPath\030\001 \001",
-      "(\t\"\234\001\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\020" +
-      "\n\010parentId\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpersis" +
-      "ted\030\004 \001(\010\022\016\n\006pinned\030\005 \001(\010\022\026\n\016creationTim" +
-      "eMs\030\006 \001(\003\022\036\n\026lastModificationTimeMs\030\007 \001(" +
-      "\003\"M\n\036InodeDirectoryIdGeneratorEntry\022\023\n\013c" +
-      "ontainerId\030\001 \001(\003\022\026\n\016sequenceNumber\030\002 \001(\003" +
-      "\"\202\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010paren" +
-      "tId\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpersisted\030\004 \001" +
-      "(\010\022\016\n\006pinned\030\005 \001(\010\022\026\n\016creationTimeMs\030\006 \001" +
-      "(\003\022\036\n\026lastModificationTimeMs\030\007 \001(\003\022\026\n\016bl",
-      "ockSizeBytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tco" +
-      "mpleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006bloc" +
-      "ks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\"L\n\036InodeLastModifi" +
-      "cationTimeEntry\022\n\n\002id\030\001 \001(\003\022\036\n\026lastModif" +
-      "icationTimeMs\030\002 \001(\003\"\303\001\n\014LineageEntry\022\n\n\002" +
-      "id\030\001 \001(\003\022\022\n\ninputFiles\030\002 \003(\003\022\025\n\routputFi" +
-      "leIds\030\003 \003(\003\0229\n\020outputFileStates\030\004 \003(\0162\037." +
-      "tachyon.proto.LineageFileState\022\022\n\njobCom" +
-      "mand\030\005 \001(\t\022\025\n\rjobOutputPath\030\006 \001(\t\022\026\n\016cre" +
-      "ationTimeMs\030\007 \001(\003\"1\n\027LineageIdGeneratorE",
-      "ntry\022\026\n\016sequenceNumber\030\001 \001(\003\"#\n\025PersistD" +
-      "irectoryEntry\022\n\n\002id\030\001 \001(\003\"@\n\020PersistFile" +
-      "Entry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\020\n\010opT" +
-      "imeMs\030\003 \001(\003\"$\n\021PersistFilesEntry\022\017\n\007file" +
-      "Ids\030\001 \003(\003\"+\n\030PersistFilesRequestEntry\022\017\n" +
-      "\007fileIds\030\001 \003(\003\">\n\rRawTableEntry\022\n\n\002id\030\001 " +
-      "\001(\003\022\017\n\007columns\030\002 \001(\005\022\020\n\010metadata\030\003 \001(\014\"J" +
-      "\n\025ReinitializeFileEntry\022\014\n\004path\030\001 \001(\t\022\026\n" +
-      "\016blockSizeBytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"<\n\013Re" +
-      "nameEntry\022\n\n\002id\030\001 \001(\003\022\017\n\007dstPath\030\002 \001(\t\022\020",
-      "\n\010opTimeMs\030\003 \001(\003\"J\n\rSetStateEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022\020\n\010opTimeMs\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022" +
-      "\013\n\003ttl\030\004 \001(\003\"3\n\023UpdateMetadataEntry\022\n\n\002i" +
-      "d\030\001 \001(\003\022\020\n\010metadata\030\002 \001(\014*a\n\020LineageFile" +
-      "State\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r\n\tPER" +
-      "SISTED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022\010\n\004LO" +
-      "ST\020\005B\017\n\rtachyon.proto"
+      "oto\"\352\013\n\014JournalEntry\022\027\n\017sequence_number\030" +
+      "\001 \001(\003\022<\n\017add_mount_point\030\002 \001(\0132!.tachyon" +
+      ".proto.AddMountPointEntryH\000\022D\n\023async_com" +
+      "plete_file\030\003 \001(\0132%.tachyon.proto.AsyncCo" +
+      "mpleteFileEntryH\000\022U\n\034block_container_id_" +
+      "generator\030\004 \001(\0132-.tachyon.proto.BlockCon" +
+      "tainerIdGeneratorEntryH\000\0223\n\nblock_info\030\005" +
+      " \001(\0132\035.tachyon.proto.BlockInfoEntryH\000\0229\n" +
+      "\rcomplete_file\030\006 \001(\0132 .tachyon.proto.Com",
+      "pleteFileEntryH\000\0225\n\013delete_file\030\007 \001(\0132\036." +
+      "tachyon.proto.DeleteFileEntryH\000\022;\n\016delet" +
+      "e_lineage\030\010 \001(\0132!.tachyon.proto.DeleteLi" +
+      "neageEntryH\000\022B\n\022delete_mount_point\030\t \001(\013" +
+      "2$.tachyon.proto.DeleteMountPointEntryH\000" +
+      "\022=\n\017inode_directory\030\n \001(\0132\".tachyon.prot" +
+      "o.InodeDirectoryEntryH\000\022U\n\034inode_directo" +
+      "ry_id_generator\030\013 \001(\0132-.tachyon.proto.In" +
+      "odeDirectoryIdGeneratorEntryH\000\0229\n\020inode_" +
+      "file_entry\030\014 \001(\0132\035.tachyon.proto.InodeFi",
+      "leEntryH\000\022U\n\034inode_last_modification_tim" +
+      "e\030\r \001(\0132-.tachyon.proto.InodeLastModific" +
+      "ationTimeEntryH\000\022.\n\007lineage\030\016 \001(\0132\033.tach" +
+      "yon.proto.LineageEntryH\000\022F\n\024lineage_id_g" +
+      "enerator\030\017 \001(\0132&.tachyon.proto.LineageId" +
+      "GeneratorEntryH\000\022A\n\021persist_directory\030\020 " +
+      "\001(\0132$.tachyon.proto.PersistDirectoryEntr" +
+      "yH\000\0227\n\014persist_file\030\021 \001(\0132\037.tachyon.prot" +
+      "o.PersistFileEntryH\000\0229\n\rpersist_files\030\022 " +
+      "\001(\0132 .tachyon.proto.PersistFilesEntryH\000\022",
+      "H\n\025persist_files_request\030\023 \001(\0132\'.tachyon" +
+      ".proto.PersistFilesRequestEntryH\000\0221\n\traw" +
+      "_table\030\024 \001(\0132\034.tachyon.proto.RawTableEnt" +
+      "ryH\000\022A\n\021reinitialize_file\030\025 \001(\0132$.tachyo" +
+      "n.proto.ReinitializeFileEntryH\000\022,\n\006renam" +
+      "e\030\026 \001(\0132\032.tachyon.proto.RenameEntryH\000\0221\n" +
+      "\tset_state\030\027 \001(\0132\034.tachyon.proto.SetStat" +
+      "eEntryH\000\022=\n\017update_metadata\030\030 \001(\0132\".tach" +
+      "yon.proto.UpdateMetadataEntryH\000B\007\n\005entry" +
+      "\"<\n\022AddMountPointEntry\022\024\n\014tachyon_path\030\001",
+      " \001(\t\022\020\n\010ufs_path\030\002 \001(\t\")\n\026AsyncCompleteF" +
+      "ileEntry\022\017\n\007file_id\030\001 \001(\003\";\n\036BlockContai" +
+      "nerIdGeneratorEntry\022\031\n\021next_container_id" +
+      "\030\001 \001(\003\"2\n\016BlockInfoEntry\022\020\n\010block_id\030\001 \001" +
+      "(\003\022\016\n\006length\030\002 \001(\003\"V\n\021CompleteFileEntry\022" +
+      "\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006length" +
+      "\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017DeleteFile" +
+      "Entry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\n" +
+      "op_time_ms\030\003 \001(\003\"9\n\022DeleteLineageEntry\022\022" +
+      "\n\nlineage_id\030\001 \001(\003\022\017\n\007cascade\030\002 \001(\010\"-\n\025D",
+      "eleteMountPointEntry\022\024\n\014tachyon_path\030\001 \001" +
+      "(\t\"\242\001\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021" +
+      "\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpersi" +
+      "sted\030\004 \001(\010\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_t" +
+      "ime_ms\030\006 \001(\003\022!\n\031last_modification_time_m" +
+      "s\030\007 \001(\003\"O\n\036InodeDirectoryIdGeneratorEntr" +
+      "y\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence_numb" +
+      "er\030\002 \001(\003\"\212\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022" +
+      "\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpers" +
+      "isted\030\004 \001(\010\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_",
+      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
+      "ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006le" +
+      "ngth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheab" +
+      "le\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\"O\n" +
+      "\036InodeLastModificationTimeEntry\022\n\n\002id\030\001 " +
+      "\001(\003\022!\n\031last_modification_time_ms\030\002 \001(\003\"\315" +
+      "\001\n\014LineageEntry\022\n\n\002id\030\001 \001(\003\022\023\n\013input_fil" +
+      "es\030\002 \003(\003\022\027\n\017output_file_ids\030\003 \003(\003\022;\n\022out" +
+      "put_file_states\030\004 \003(\0162\037.tachyon.proto.Li" +
+      "neageFileState\022\023\n\013job_command\030\005 \001(\t\022\027\n\017j",
+      "ob_output_path\030\006 \001(\t\022\030\n\020creation_time_ms" +
+      "\030\007 \001(\003\"2\n\027LineageIdGeneratorEntry\022\027\n\017seq" +
+      "uence_number\030\001 \001(\003\"#\n\025PersistDirectoryEn" +
+      "try\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002i" +
+      "d\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003 " +
+      "\001(\003\"%\n\021PersistFilesEntry\022\020\n\010file_ids\030\001 \003" +
+      "(\003\",\n\030PersistFilesRequestEntry\022\020\n\010file_i" +
+      "ds\030\001 \003(\003\">\n\rRawTableEntry\022\n\n\002id\030\001 \001(\003\022\017\n" +
+      "\007columns\030\002 \001(\005\022\020\n\010metadata\030\003 \001(\014\"L\n\025Rein" +
+      "itializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block",
+      "_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013Rename" +
+      "Entry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\no" +
+      "p_time_ms\030\003 \001(\003\"L\n\rSetStateEntry\022\n\n\002id\030\001" +
+      " \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010" +
+      "\022\013\n\003ttl\030\004 \001(\003\"3\n\023UpdateMetadataEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\020\n\010metadata\030\002 \001(\014*a\n\020LineageFil" +
+      "eState\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r\n\tPE" +
+      "RSISTED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022\010\n\004L" +
+      "OST\020\005B\017\n\rtachyon.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -19545,7 +19555,7 @@ public final class JournalEntryProtos {
     internal_static_tachyon_proto_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncCompleteFile", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFileEntry", "InodeLastModificationTime", "LineageEntry", "LineageIdGenerator", "PersistDirectory", "PersistFile", "PersisterFiles", "PersistFilesRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "Entry", });
+        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncCompleteFile", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFileEntry", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "PersistDirectory", "PersistFile", "PersistFiles", "PersistFilesRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "Entry", });
     internal_static_tachyon_proto_AddMountPointEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_tachyon_proto_AddMountPointEntry_fieldAccessorTable = new

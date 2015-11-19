@@ -27,51 +27,51 @@ public final class JournalProtoUtils {
 
   public static Message getMessage(JournalEntry entry) {
     switch (entry.getEntryCase()) {
-      case ADDMOUNTPOINT:
+      case ADD_MOUNT_POINT:
         return entry.getAddMountPoint();
-      case ASYNCCOMPLETEFILE:
+      case ASYNC_COMPLETE_FILE:
         return entry.getAsyncCompleteFile();
-      case BLOCKCONTAINERIDGENERATOR:
+      case BLOCK_CONTAINER_ID_GENERATOR:
         return entry.getBlockContainerIdGenerator();
-      case BLOCKINFO:
+      case BLOCK_INFO:
         return entry.getBlockInfo();
-      case COMPLETEFILE:
+      case COMPLETE_FILE:
         return entry.getCompleteFile();
-      case DELETEFILE:
+      case DELETE_FILE:
         return entry.getDeleteFile();
-      case DELETELINEAGE:
+      case DELETE_LINEAGE:
         return entry.getDeleteLineage();
-      case DELETEMOUNTPOINT:
+      case DELETE_MOUNT_POINT:
         return entry.getDeleteMountPoint();
-      case INODEDIRECTORY:
+      case INODE_DIRECTORY:
         return entry.getInodeDirectory();
-      case INODEDIRECTORYIDGENERATOR:
+      case INODE_DIRECTORY_ID_GENERATOR:
         return entry.getInodeDirectoryIdGenerator();
-      case INODEFILEENTRY:
+      case INODE_FILE_ENTRY:
         return entry.getInodeFileEntry();
-      case INODELASTMODIFICATIONTIME:
+      case INODE_LAST_MODIFICATION_TIME:
         return entry.getInodeLastModificationTime();
-      case LINEAGEENTRY:
-        return entry.getLineageEntry();
-      case LINEAGEIDGENERATOR:
+      case LINEAGE:
+        return entry.getLineage();
+      case LINEAGE_ID_GENERATOR:
         return entry.getLineageIdGenerator();
-      case PERSISTDIRECTORY:
+      case PERSIST_DIRECTORY:
         return entry.getPersistDirectory();
-      case PERSISTERFILES:
-        return entry.getPersisterFiles();
-      case PERSISTFILE:
+      case PERSIST_FILES:
+        return entry.getPersistFiles();
+      case PERSIST_FILE:
         return entry.getPersistFile();
-      case PERSISTFILESREQUEST:
+      case PERSIST_FILES_REQUEST:
         return entry.getPersistFilesRequest();
-      case RAWTABLE:
+      case RAW_TABLE:
         return entry.getRawTable();
-      case REINITIALIZEFILE:
+      case REINITIALIZE_FILE:
         return entry.getReinitializeFile();
       case RENAME:
         return entry.getRename();
-      case SETSTATE:
+      case SET_STATE:
         return entry.getSetState();
-      case UPDATEMETADATA:
+      case UPDATE_METADATA:
         return entry.getUpdateMetadata();
       case ENTRY_NOT_SET:
         // This could mean that the field was never set, or it was set with a different version of
