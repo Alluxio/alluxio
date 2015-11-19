@@ -495,7 +495,7 @@ public final class LineageMaster extends MasterBase {
       mLineageStore.commitFilePersistence(fileId);
     }
     PersistFilesEntry persistFiles = PersistFilesEntry.newBuilder().addAllFileIds(persistedFiles).build();
-    writeJournalEntry(JournalEntry.newBuilder().setPersisterFiles(persistFiles).build());
+    writeJournalEntry(JournalEntry.newBuilder().setPersistFiles(persistFiles).build());
     flushJournal();
   }
 

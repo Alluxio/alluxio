@@ -260,7 +260,7 @@ public final class Lineage implements JournalEntryRepresentable {
         .addAllInputFiles(inputFileIds).addAllOutputFileIds(outputFileIds)
         .addAllOutputFileStates(outputFileStates).setJobCommand(jobCommand)
         .setJobOutputPath(jobOutputPath).setCreationTimeMs(mCreationTimeMs).build();
-    return JournalEntry.newBuilder().setLineageEntry(lineage).build();
+    return JournalEntry.newBuilder().setLineage(lineage).build();
   }
 
   @Override
