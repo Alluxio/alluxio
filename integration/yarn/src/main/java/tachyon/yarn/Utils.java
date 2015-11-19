@@ -15,6 +15,8 @@
 
 package tachyon.yarn;
 
+import java.io.IOException;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -24,8 +26,6 @@ import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
-
-import java.io.IOException;
 
 /**
  * YARN related utils.
@@ -41,7 +41,7 @@ public final class Utils {
    * @throws IOException if the file can not be found on HDFS
    */
   public static LocalResource createLocalResourceOfFile(YarnConfiguration yarnConf,
-                                                        String resourcePath) throws IOException {
+      String resourcePath) throws IOException {
     LocalResource localResource = Records.newRecord(LocalResource.class);
 
     Path jarHdfsPath = new Path(resourcePath);

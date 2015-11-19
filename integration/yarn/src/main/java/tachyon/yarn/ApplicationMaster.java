@@ -227,10 +227,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk = new ContainerRequest(workerResource, null /* any hosts */,
-          null /* any racks */, priority);
-      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes", i,
-          workerResource.getVirtualCores(), workerResource.getMemory());
+      ContainerRequest containerAsk =
+          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
+      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes",
+          i, workerResource.getVirtualCores(), workerResource.getMemory());
       mRMClient.addContainerRequest(containerAsk);
     }
 
@@ -259,9 +259,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonMasterContainers(List<Container> containers) {
-    final String command = new CommandBuilder("./tachyon-yarn-setup.sh").addArg("master")
-        .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-        .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
+    final String command =
+        new CommandBuilder("./tachyon-yarn-setup.sh").addArg("master")
+            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
+            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
     List<String> commands = Lists.newArrayList(command);
 
@@ -275,10 +276,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
         // Setup local resources
         Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
-        localResources.put("tachyon.tar.gz", Utils.createLocalResourceOfFile(mYarnConf,
-            mResourcePath + "/tachyon.tar.gz"));
-        localResources.put("tachyon-yarn-setup.sh", Utils.createLocalResourceOfFile(mYarnConf,
-            mResourcePath + "/tachyon-yarn-setup.sh"));
+        localResources.put("tachyon.tar.gz",
+            Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
+        localResources.put("tachyon-yarn-setup.sh",
+            Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
         ctx.setLocalResources(localResources);
 
         // Setup the environment needed for the launch context.
@@ -290,7 +291,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
                 .append(File.pathSeparatorChar).append("./*").toString();
         env.put("CLASSPATH", classPath);
         env.put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$());
-         ctx.setEnvironment(env);
+        ctx.setEnvironment(env);
 
         LOG.info("Launching container {} for Tachyon master on {} with master command: {}",
             container.getId(), container.getNodeHttpAddress(), commands);
@@ -307,9 +308,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonWorkerContainers(List<Container> containers) {
-    final String command = new CommandBuilder("./tachyon-yarn-setup.sh").addArg("worker")
-        .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-        .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
+    final String command =
+        new CommandBuilder("./tachyon-yarn-setup.sh").addArg("worker")
+            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
+            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
     List<String> commands = Lists.newArrayList(command);
 
@@ -329,10 +331,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // Setup local resources
     Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
     try {
-      localResources.put("tachyon.tar.gz", Utils.createLocalResourceOfFile(mYarnConf,
-          mResourcePath + "/tachyon.tar.gz"));
-      localResources.put("tachyon-yarn-setup.sh", Utils.createLocalResourceOfFile(mYarnConf,
-          mResourcePath + "/tachyon-yarn-setup.sh"));
+      localResources.put("tachyon.tar.gz",
+          Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
+      localResources.put("tachyon-yarn-setup.sh",
+          Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
     } catch (IOException e) {
       throw new RuntimeException("Cannot find resource", e);
     }

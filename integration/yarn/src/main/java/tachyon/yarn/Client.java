@@ -62,8 +62,7 @@ import tachyon.util.io.PathUtils;
  * </p>
  * <code>
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
- * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
- * -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
+ * hdfs://HDFSMaster:port/path/ -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
  * </code>
  *
  * <p>
@@ -121,8 +120,8 @@ public final class Client {
     mOptions.addOption("resource_path", true,
         "(Required) HDFS path containing the Application Master");
     mOptions.addOption("tachyon_home", true,
-        "(Required) Path of the home dir of Tachyon deployment on YARN slave machines");
-    mOptions.addOption("master_address", true, "(Required) Address to run Tachyon master");
+        "Path of the home dir of Tachyon deployment on YARN slave machines");
+    mOptions.addOption("master_address", true, "Address to run Tachyon master");
     mOptions.addOption("help", false, "Print usage");
     mOptions.addOption("num_workers", true, "Number of Tachyon workers to launch. Default 1");
   }
@@ -187,8 +186,8 @@ public final class Client {
       printUsage();
       return false;
     }
-    if (!cliParser.hasOption("resource_path") || !cliParser.hasOption("master_address")) {
-      System.out.println("Required to specify resource_path and master_address");
+    if (!cliParser.hasOption("resource_path")) {
+      System.out.println("Required to specify resource_path");
       printUsage();
       return false;
     }
@@ -264,10 +263,8 @@ public final class Client {
   private void setupContainerLaunchContext() throws IOException {
     final String amCommand =
         new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
-            .addArg(AM_MAIN_CLASS)
-            .addArg("-num_workers", mNumWorkers)
-            .addArg("-master_address", mMasterAddress)
-            .addArg("-resource_path", mResourcePath)
+            .addArg(AM_MAIN_CLASS).addArg("-num_workers", mNumWorkers)
+            .addArg("-master_address", mMasterAddress).addArg("-resource_path", mResourcePath)
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
@@ -275,8 +272,8 @@ public final class Client {
     mAmContainer.setCommands(Collections.singletonList(amCommand));
 
     // Setup jar for ApplicationMaster
-    LocalResource appMasterJar = Utils.createLocalResourceOfFile(mYarnConf,
-        mResourcePath + "/tachyon.jar");
+    LocalResource appMasterJar =
+        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar");
     mAmContainer.setLocalResources(Collections.singletonMap("tachyon.jar", appMasterJar));
 
     // Setup CLASSPATH for ApplicationMaster
