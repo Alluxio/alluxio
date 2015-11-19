@@ -47,8 +47,7 @@ public final class RawTableMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public RawTableMasterClient(InetSocketAddress masterAddress,
-                              TachyonConf tachyonConf) {
+  public RawTableMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 

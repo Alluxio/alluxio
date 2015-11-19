@@ -45,8 +45,7 @@ public final class LineageMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress,
-                             TachyonConf tachyonConf) {
+  public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 

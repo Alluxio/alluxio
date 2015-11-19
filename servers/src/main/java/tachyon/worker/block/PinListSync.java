@@ -22,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,

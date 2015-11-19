@@ -62,7 +62,7 @@ public class RawTableMaster extends MasterBase {
   private final RawTables mRawTables = new RawTables();
 
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_NAME);
   }
 
   public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
@@ -86,7 +86,7 @@ public class RawTableMaster extends MasterBase {
 
   @Override
   public String getName() {
-    return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
+    return Constants.RAW_TABLE_MASTER_NAME;
   }
 
   @Override

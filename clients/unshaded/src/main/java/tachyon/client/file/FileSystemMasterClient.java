@@ -50,8 +50,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress,
-                                TachyonConf tachyonConf) {
+  public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 

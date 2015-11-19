@@ -109,7 +109,7 @@ public final class LineageMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_NAME);
   }
 
   /**
@@ -145,7 +145,7 @@ public final class LineageMaster extends MasterBase {
 
   @Override
   public String getName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+    return Constants.LINEAGE_MASTER_NAME;
   }
 
   @Override

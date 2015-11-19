@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Sessions;
-import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
@@ -34,6 +33,7 @@ import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
+import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
@@ -65,10 +65,8 @@ public final class BlockDataManager {
    * @param blockStore the block store manager
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource,
-                          BlockMasterClient blockMasterClient,
-                          FileSystemMasterClient fileSystemMasterClient, BlockStore blockStore)
-          throws IOException {
+  public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, BlockStore blockStore) throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = blockStore;
     mWorkerSource = workerSource;

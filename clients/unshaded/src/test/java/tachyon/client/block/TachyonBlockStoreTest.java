@@ -43,8 +43,8 @@ import tachyon.worker.WorkerClient;
  * Tests for {@link TachyonBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockStoreContext.class,
-    NetworkAddressUtils.class, WorkerClient.class})
+@PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, NetworkAddressUtils.class,
+    WorkerClient.class})
 public final class TachyonBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 1000L;

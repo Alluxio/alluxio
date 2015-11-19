@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.lineage.LineageMasterClient;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
@@ -53,13 +52,13 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Client for communicating to lineage master */
-  private final tachyon.worker.lineage.LineageMasterClient mMasterClient;
+  private final LineageMasterClient mMasterClient;
   /** The thread pool to persist file */
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
   public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
-      tachyon.worker.lineage.LineageMasterClient masterClient) {
+      LineageMasterClient masterClient) {
     mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
   }
