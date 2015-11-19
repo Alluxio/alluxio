@@ -40,6 +40,7 @@ public class PreconditionMessage {
   public static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
   public static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
   public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer";
+  public static final String RAW_TABLE_METADATA_NULL = "Raw table metadata cannot be null";
   public static final String INODE_TREE_UNINITIALIZED_IS_ROOT_ID =
       "Cannot call isRootId() before initializeRoot()";
   public static final String LINEAGE_DOES_NOT_EXIST = "Lineage id %s does not exist";
