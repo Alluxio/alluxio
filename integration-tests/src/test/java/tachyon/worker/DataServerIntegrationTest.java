@@ -35,7 +35,7 @@ import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.BlockMasterClient;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;

@@ -27,14 +27,16 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
-import tachyon.conf.TachyonConf;
+import tachyon.client.table.TachyonRawTables;
+import tachyon.exception.TachyonException;
 
 public class BasicRawTableOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -47,7 +49,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private final WriteType mWriteType;
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
-  private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
       ReadType readType, WriteType writeType) {
@@ -59,38 +60,42 @@ public class BasicRawTableOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFS tachyonClient = TachyonFS.get(mMasterAddress, new TachyonConf());
-    createRawTable(tachyonClient);
-    write(tachyonClient);
-    return read(tachyonClient);
+    TachyonRawTables tachyonRawTableClient = TachyonRawTables.TachyonRawTablesFactory.get();
+    TachyonFileSystem tachyonClient = TachyonFileSystem.TachyonFileSystemFactory.get();
+    createRawTable(tachyonRawTableClient);
+    write(tachyonRawTableClient);
+    return read(tachyonRawTableClient, tachyonClient);
   }
 
-  private void createRawTable(TachyonFS tachyonClient) throws IOException {
+  private void createRawTable(TachyonRawTables tachyonRawTableClient)
+      throws IOException, TachyonException {
     ByteBuffer data = ByteBuffer.allocate(mMetadataLength * 4);
     data.order(ByteOrder.nativeOrder());
     for (int k = -mMetadataLength; k < 0; k ++) {
       data.putInt(k);
     }
     data.flip();
-    mId = tachyonClient.createRawTable(mTablePath, 3, data);
+    tachyonRawTableClient.create(mTablePath, 3, data);
   }
 
-  private boolean read(TachyonFS tachyonClient) throws IOException {
+  private boolean read(TachyonRawTables tachyonRawTableClient, TachyonFileSystem tachyonClient)
+      throws IOException, TachyonException {
     boolean pass = true;
 
     LOG.debug("Reading data...");
-    RawTable rawTable = tachyonClient.getRawTable(mId);
-    ByteBuffer metadata = rawTable.getMetadata();
-    LOG.debug("Metadata: ");
+    RawTable rawTable = tachyonRawTableClient.open(mTablePath);
+    ByteBuffer metadata = tachyonRawTableClient.getInfo(rawTable).metadata;
+    LOG.debug("Metadata: " + metadata);
     metadata.order(ByteOrder.nativeOrder());
     for (int k = -mMetadataLength; k < 0; k ++) {
       pass = pass && (metadata.getInt() == k);
     }
 
     for (int column = 0; column < COLS; column ++) {
-      RawColumn rawColumn = rawTable.getRawColumn(column);
-      TachyonFile tFile = rawColumn.getPartition(0);
-      FileInStream is = tFile.getInStream(mReadType);
+      InStreamOptions readOptions = new InStreamOptions.Builder().setReadType(mReadType).build();
+      RawColumn rawColumn = rawTable.getColumn(column);
+      TachyonFile tFile = tachyonRawTableClient.openPartition(rawColumn, 0);
+      FileInStream is = tachyonClient.getInStream(tFile, readOptions);
       ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
@@ -102,17 +107,11 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     return pass;
   }
 
-  private void write(TachyonFS tachyonClient) throws IOException {
-    RawTable rawTable = tachyonClient.getRawTable(mTablePath);
+  private void write(TachyonRawTables tachyonRawTableClient) throws IOException, TachyonException {
+    RawTable rawTable = tachyonRawTableClient.open(mTablePath);
 
     LOG.debug("Writing data...");
     for (int column = 0; column < COLS; column ++) {
-      RawColumn rawColumn = rawTable.getRawColumn(column);
-      if (!rawColumn.createPartition(0)) {
-        throw new IOException("Failed to create partition in table " + mTablePath
-            + " under column " + column);
-      }
-
       ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
@@ -120,8 +119,8 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       }
       buf.flip();
 
-      TachyonFile tFile = rawColumn.getPartition(0);
-      FileOutStream os = tFile.getOutStream(mWriteType);
+      RawColumn rawColumn = rawTable.getColumn(column);
+      FileOutStream os = tachyonRawTableClient.createPartition(rawColumn, 0);
       os.write(buf.array());
       os.close();
     }

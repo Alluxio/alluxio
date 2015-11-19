@@ -29,7 +29,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
-import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon worker.
@@ -60,25 +59,6 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterService.Client(mProtocol);
-  }
-
-  /**
-   * Persists a file.
-   *
-   * @param fileId the file id
-   * @param length the checkpoint length
-   * @return whether operation succeeded or not
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized boolean persistFile(final long fileId, final long length)
-      throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-      @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.persistFile(fileId, length);
-      }
-    });
   }
 
   /**

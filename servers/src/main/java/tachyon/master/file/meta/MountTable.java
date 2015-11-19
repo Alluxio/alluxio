@@ -35,7 +35,7 @@ public final class MountTable {
   private Map<String, TachyonURI> mMountTable;
 
   /**
-   * Creates a new instance of <code>MountTable</code>.
+   * Creates a new instance of {@code MountTable}.
    */
   public MountTable() {
     final int initialCapacity = 10;

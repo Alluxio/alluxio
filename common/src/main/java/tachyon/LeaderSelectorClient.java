@@ -131,7 +131,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
       }
     } else {
       try {
-        LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
+        LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
       }
@@ -142,12 +142,12 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
-      LOG.info("deleting zk path: " + mLeaderFolder + mName);
+      LOG.info("deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
     }
-    LOG.info("creating zk path: " + mLeaderFolder + mName);
+    LOG.info("creating zk path: {}{}", mLeaderFolder, mName);
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
-    LOG.info(mName + " is now the leader.");
+    LOG.info("{} is now the leader.", mName);
     try {
       while (true) {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
@@ -158,9 +158,9 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     } finally {
       mIsLeader.set(false);
       mCurrentMasterThread = null;
-      LOG.warn(mName + " relinquishing leadership.");
-      LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
-      LOG.info("All participants: " + mLeaderSelector.getParticipants());
+      LOG.warn("{} relinquishing leadership.", mName);
+      LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
+      LOG.info("All participants: {}", mLeaderSelector.getParticipants());
       client.delete().forPath(mLeaderFolder + mName);
     }
   }

@@ -78,7 +78,8 @@ public final class AuthenticationUtils {
   public static TTransport getClientTransport(TachyonConf tachyonConf,
       InetSocketAddress serverAddress) throws IOException {
     AuthType authType = tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress);
+    TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress,
+        tachyonConf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
     switch (authType) {
       case NOSASL:
         return new TFramedTransport(tTransport);
@@ -101,10 +102,8 @@ public final class AuthenticationUtils {
    * @param address The given address to connect
    * @return An unconnected socket
    */
-  public static TSocket createTSocket(InetSocketAddress address) {
-    // TODO(gpang): make the timeout configurable.
-    return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort(),
-        30 * Constants.SECOND_MS);
+  public static TSocket createTSocket(InetSocketAddress address, int timeoutMs) {
+    return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort(), timeoutMs);
   }
 
   private AuthenticationUtils() {} // prevent instantiation

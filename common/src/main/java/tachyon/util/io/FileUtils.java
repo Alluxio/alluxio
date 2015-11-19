@@ -131,7 +131,7 @@ public final class FileUtils {
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the directory: " + dir);
+      LOG.info("Can not set the sticky bit of the directory: {}", dir);
     }
   }
 

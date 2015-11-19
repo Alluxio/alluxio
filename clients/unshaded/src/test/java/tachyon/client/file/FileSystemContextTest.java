@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 
 /**
  * Tests {@link FileSystemContext}.

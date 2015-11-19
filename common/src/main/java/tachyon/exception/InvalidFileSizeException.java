@@ -13,34 +13,27 @@
  * the License.
  */
 
-package tachyon.client.table;
+package tachyon.exception;
 
-import tachyon.annotation.PublicApi;
+public class InvalidFileSizeException extends TachyonException {
+  private static final long serialVersionUID = -4913703614829472342L;
 
-/**
- * Tachyon provides native support for tables with multiple columns. Each table contains one or more
- * columns. Each column contains one or more ordered files.
- */
-@PublicApi
-public class SimpleRawTable {
+  private static final TachyonExceptionType EXCEPTION_TYPE =
+      TachyonExceptionType.INVALID_FILE_SIZE;
 
-  /** Id of the raw table, which uniquely identifies this table */
-  private final long mRawTableId;
-
-  /**
-   * Creates a raw table which is used as a handler for accessing raw tables in
-   * {@link TachyonRawTables}
-   *
-   * @param rawTableId the id of the raw table
-   */
-  public SimpleRawTable(long rawTableId) {
-    mRawTableId = rawTableId;
+  public InvalidFileSizeException(String message) {
+    super(EXCEPTION_TYPE, message);
   }
 
-  /**
-   * @return the id of the raw table
-   */
-  public long getRawTableId() {
-    return mRawTableId;
+  public InvalidFileSizeException(String message, Throwable cause) {
+    super(EXCEPTION_TYPE, message, cause);
+  }
+
+  public InvalidFileSizeException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
+  }
+
+  public InvalidFileSizeException(ExceptionMessage message, Throwable cause, Object... params) {
+    this(message.getMessage(params), cause);
   }
 }

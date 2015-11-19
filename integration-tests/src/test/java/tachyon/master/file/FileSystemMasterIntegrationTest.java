@@ -39,14 +39,15 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.thrift.FileInfo;
@@ -509,23 +510,18 @@ public class FileSystemMasterIntegrationTest {
   public void getCapacityBytesTest() {
     BlockMaster blockMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+    // Sleep to give the workers time to register with the master
+    // TODO(andrew): Remove this when mLocalTachyonClusterResource.start() blocks until workers have
+    // registered with master.
+    CommonUtils.sleepMs(200);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
-  }
-
-  @Test
-  public void lastModificationTimeAddCheckpointTest() throws Exception {
-    long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.persistFileInternal(fileId, 1, opTimeMs);
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
 
   @Test
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, false, opTimeMs);
+    mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -618,20 +614,11 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void notFileCheckpointTest() throws Exception {
+  public void notFileCompletionTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.mkdir(new TachyonURI("/testFile"), MkdirOptions.defaults());
-    mFsMaster.persistFile(mFsMaster.getFileId(new TachyonURI("/testFile")), 0);
-  }
-
-  @Test
-  public void persistFileTest() throws Exception {
-    long fileId = mFsMaster.create(new TachyonURI("/testFile"), CreateOptions.defaults());
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPersisted);
-    mFsMaster.persistFile(fileId, 1);
-    fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertTrue(fileInfo.isPersisted);
+    CompleteFileOptions options = CompleteFileOptions.defaults();
+    mFsMaster.completeFile(mFsMaster.getFileId(new TachyonURI("/testFile")), options);
   }
 
   @Test

@@ -184,7 +184,7 @@ public abstract class MasterBase implements Master {
    * Flushes the journal.
    */
   protected void flushJournal() {
-    Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
+    Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
     } catch (IOException ioe) {

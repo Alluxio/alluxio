@@ -54,7 +54,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private long mWrittenBytes;
 
   /**
-   * Creates a new <code>NettyRemoteBlockWrite</code>.
+   * Creates a new {@code NettyRemoteBlockWrite}.
    */
   public NettyRemoteBlockWriter() {
     mHandler = new ClientHandler();
