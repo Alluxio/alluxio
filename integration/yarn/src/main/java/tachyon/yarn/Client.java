@@ -125,8 +125,6 @@ public final class Client {
     mOptions.addOption("master_address", true, "(Required) Address to run Tachyon master");
     mOptions.addOption("help", false, "Print usage");
     mOptions.addOption("num_workers", true, "Number of Tachyon workers to launch. Default 1");
-    mOptions.addOption("master_java_opts", true, "Java opts for Tachyon master");
-    mOptions.addOption("worker_java_opts", true, "Java opts for Tachyon worker");
   }
 
   /**

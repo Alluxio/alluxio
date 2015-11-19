@@ -48,7 +48,6 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.FormatUtils;
-import tachyon.util.io.PathUtils;
 
 /**
  * Actual owner of Tachyon running on Yarn. The YARN ResourceManager will launch this
