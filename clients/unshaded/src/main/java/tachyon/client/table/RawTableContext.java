@@ -18,8 +18,9 @@ package tachyon.client.table;
 import tachyon.client.ClientContext;
 
 /**
- * A shared context in each client JVM for common Raw Table client functionality such as a pool of
- * master clients. This class is thread safe.
+ * A shared context in each client JVM for common raw table master client functionality such as a
+ * pool of master clients. Any remote clients will be created and destroyed on a per use basis. This
+ * class is thread safe.
  */
 public enum RawTableContext {
   INSTANCE;

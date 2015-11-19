@@ -30,8 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
@@ -74,9 +73,9 @@ public final class BlockWorker extends WorkerBase {
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
   /** Client for all block master communication */
-  private final WorkerBlockMasterClient mBlockMasterClient;
+  private final BlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
-  private final WorkerFileSystemMasterClient mFileSystemMasterClient;
+  private final FileSystemMasterClient mFileSystemMasterClient;
   /** Net address of this worker */
   private final NetAddress mWorkerNetAddress;
   /** Configuration object */
@@ -165,10 +164,10 @@ public final class BlockWorker extends WorkerBase {
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup MasterClientBase
-    mBlockMasterClient = new WorkerBlockMasterClient(
+    mBlockMasterClient = new BlockMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
-    mFileSystemMasterClient = new WorkerFileSystemMasterClient(
+    mFileSystemMasterClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     // Set up BlockDataManager

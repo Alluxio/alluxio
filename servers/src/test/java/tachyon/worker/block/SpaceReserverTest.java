@@ -30,13 +30,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({WorkerFileSystemMasterClient.class, WorkerBlockMasterClient.class})
+@PrepareForTest({FileSystemMasterClient.class, BlockMasterClient.class})
 public class SpaceReserverTest {
   private static final long SESSION_ID = 1;
   private static final long BLOCK_SIZE = 100;
@@ -59,10 +58,11 @@ public class SpaceReserverTest {
 
   @Before
   public void before() throws Exception {
-    WorkerFileSystemMasterClient workerFileSystemMasterClient =
-        PowerMockito.mock(WorkerFileSystemMasterClient.class);
+    FileSystemMasterClient workerFileSystemMasterClient =
+        PowerMockito.mock(FileSystemMasterClient.class);
     WorkerSource workerSource = PowerMockito.mock(WorkerSource.class);
-    WorkerBlockMasterClient blockMasterClient = PowerMockito.mock(WorkerBlockMasterClient.class);
+    BlockMasterClient blockMasterClient =
+        PowerMockito.mock(BlockMasterClient.class);
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);

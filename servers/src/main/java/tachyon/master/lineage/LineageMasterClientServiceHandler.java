@@ -26,22 +26,21 @@ import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.thrift.CommandLineJobInfo;
-import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
-public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
+public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {
   private final LineageMaster mLineageMaster;
 
-  public LineageMasterServiceHandler(LineageMaster lineageMaster) {
+  public LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
     mLineageMaster = lineageMaster;
   }
 
   @Override
   public long getServiceVersion() {
-    return Constants.LINEAGE_MASTER_SERVICE_VERSION;
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override
@@ -104,16 +103,6 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles)
-      throws TachyonTException {
-    try {
-      return mLineageMaster.lineageWorkerHeartbeat(workerId, persistedFiles);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
     }
   }
 

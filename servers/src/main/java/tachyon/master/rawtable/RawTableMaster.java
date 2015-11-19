@@ -17,6 +17,8 @@ package tachyon.master.rawtable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 import org.apache.thrift.TProcessor;
@@ -45,7 +47,7 @@ import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 import tachyon.master.rawtable.meta.RawTables;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RawTableMasterClientService;
 import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
@@ -73,13 +75,17 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new RawTableMasterService.Processor<RawTableMasterServiceHandler>(
-        new RawTableMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME,
+        new RawTableMasterClientService.Processor<RawTableMasterClientServiceHandler>(
+            new RawTableMasterClientServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
+  public String getName() {
     return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
   }
 

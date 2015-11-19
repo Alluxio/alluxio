@@ -48,7 +48,8 @@ import tachyon.conf.TachyonConf;
  * Unit tests for TFS
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class,
+    UserGroupInformation.class})
 public class TFSTest {
   private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
 
@@ -143,7 +144,8 @@ public class TFSTest {
   private void mockMasterClient() {
     PowerMockito.mockStatic(FileSystemContext.class);
     FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient mockMaster = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient mockMaster =
+        PowerMockito.mock(FileSystemMasterClient.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
     Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
   }

@@ -54,8 +54,9 @@ import tachyon.util.io.BufferUtils;
 import tachyon.worker.WorkerClient;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
-    TachyonBlockStore.class, UnderFileSystem.class, WorkerClient.class})
+@PrepareForTest({FileSystemContext.class, BlockStoreContext.class,
+    FileSystemMasterClient.class, TachyonBlockStore.class, UnderFileSystem.class,
+    WorkerClient.class})
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;

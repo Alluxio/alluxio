@@ -29,7 +29,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
-import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.BlockMasterClientService;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMasterClient.class)
@@ -40,9 +40,9 @@ public class BlockMasterClientTest {
     // Client context needs to be initialized before the block store context can be used.
     ClientContext.reset();
 
-    BlockMasterService.Client mock = PowerMockito.mock(BlockMasterService.Client.class);
+    BlockMasterClientService.Client mock = PowerMockito.mock(BlockMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(BlockMasterService.Client.class).withAnyArguments().thenReturn(mock);
+    PowerMockito.whenNew(BlockMasterClientService.Client.class).withAnyArguments().thenReturn(mock);
 
     BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
@@ -53,8 +53,8 @@ public class BlockMasterClientTest {
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.BLOCK_MASTER_SERVICE_NAME, Constants.BLOCK_MASTER_SERVICE_VERSION, 0),
-          e.getMessage());
+          Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+          Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, 0), e.getMessage());
     } finally {
       BlockStoreContext.INSTANCE.releaseMasterClient(client);
     }

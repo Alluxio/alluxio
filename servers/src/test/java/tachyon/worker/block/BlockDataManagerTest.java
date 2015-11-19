@@ -31,8 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Sessions;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
@@ -43,7 +42,7 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({WorkerBlockMasterClient.class, WorkerFileSystemMasterClient.class,
+@PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
     UnderFileSystem.class})
@@ -51,9 +50,9 @@ public class BlockDataManagerTest {
   private TestHarness mHarness;
 
   private class TestHarness {
-    WorkerBlockMasterClient mBlockMasterClient;
+    BlockMasterClient mBlockMasterClient;
     BlockStore mBlockStore;
-    WorkerFileSystemMasterClient mFileSystemMasterClient;
+    FileSystemMasterClient mFileSystemMasterClient;
     BlockHeartbeatReporter mHeartbeatReporter;
     BlockDataManager mManager;
     BlockMetricsReporter mMetricsReporter;
@@ -65,9 +64,9 @@ public class BlockDataManagerTest {
     public TestHarness() throws IOException {
       mRandom = new Random();
 
-      mBlockMasterClient = PowerMockito.mock(WorkerBlockMasterClient.class);
+      mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
       mBlockStore = PowerMockito.mock(BlockStore.class);
-      mFileSystemMasterClient = PowerMockito.mock(WorkerFileSystemMasterClient.class);
+      mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
       mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);

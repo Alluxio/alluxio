@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Sessions;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
@@ -51,9 +50,9 @@ public final class BlockDataManager {
   private BlockMetricsReporter mMetricsReporter;
 
   /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
-  private WorkerBlockMasterClient mBlockMasterClient;
+  private BlockMasterClient mBlockMasterClient;
   /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
-  private WorkerFileSystemMasterClient mFileSystemMasterClient;
+  private FileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
   private Sessions mSessions = new Sessions();
 
@@ -61,22 +60,22 @@ public final class BlockDataManager {
    * Creates a BlockDataManager based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
-   * @param workerBlockMasterClient the block Tachyon master client for worker
-   * @param workerFileSystemMasterClient the file system Tachyon master client for worker
+   * @param blockMasterClient the block Tachyon master client for worker
+   * @param fileSystemMasterClient the file system Tachyon master client for worker
    * @param blockStore the block store manager
    * @throws IOException if fail to connect to under filesystem
    */
   public BlockDataManager(WorkerSource workerSource,
-      WorkerBlockMasterClient workerBlockMasterClient,
-      WorkerFileSystemMasterClient workerFileSystemMasterClient, BlockStore blockStore)
+                          BlockMasterClient blockMasterClient,
+                          FileSystemMasterClient fileSystemMasterClient, BlockStore blockStore)
           throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = blockStore;
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mBlockMasterClient = workerBlockMasterClient;
-    mFileSystemMasterClient = workerFileSystemMasterClient;
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -125,7 +124,7 @@ public final class BlockDataManager {
   /**
    * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
-   * {@link WorkerBlockMasterClient#commitBlock} succeeds.
+   * {@link BlockMasterClient#commitBlock} succeeds.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit

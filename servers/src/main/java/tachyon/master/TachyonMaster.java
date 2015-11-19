@@ -17,8 +17,10 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import org.apache.thrift.TMultiplexedProcessor;
+import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -335,12 +337,19 @@ public class TachyonMaster {
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    processor.registerProcessor(mBlockMaster.getServiceName(), mBlockMaster.getProcessor());
-    processor.registerProcessor(mFileSystemMaster.getServiceName(),
-        mFileSystemMaster.getProcessor());
-    processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
+    for (Map.Entry<String, TProcessor> service : mBlockMaster.getServices().entrySet()) {
+      processor.registerProcessor(service.getKey(), service.getValue());
+    }
+    for (Map.Entry<String, TProcessor> service : mFileSystemMaster.getServices().entrySet()) {
+      processor.registerProcessor(service.getKey(), service.getValue());
+    }
     if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
-      processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
+      for (Map.Entry<String, TProcessor> service : mLineageMaster.getServices().entrySet()) {
+        processor.registerProcessor(service.getKey(), service.getValue());
+      }
+    }
+    for (Map.Entry<String, TProcessor> service : mRawTableMaster.getServices().entrySet()) {
+      processor.registerProcessor(service.getKey(), service.getValue());
     }
 
     // Return a TTransportFactory based on the authentication type

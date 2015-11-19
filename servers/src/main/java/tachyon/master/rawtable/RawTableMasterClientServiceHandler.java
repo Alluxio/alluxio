@@ -23,23 +23,23 @@ import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
 import tachyon.replay.ReplayCache;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RawTableMasterClientService;
 import tachyon.thrift.RpcOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
-public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
+public class RawTableMasterClientServiceHandler implements RawTableMasterClientService.Iface {
   private final RawTableMaster mRawTableMaster;
   /** We use Object so that we can have one cache per master, not one per type of return value */
   private final ReplayCache<Object> mReplayCache = ReplayCache.newInstance();
 
-  public RawTableMasterServiceHandler(RawTableMaster rawTableMaster) {
+  public RawTableMasterClientServiceHandler(RawTableMaster rawTableMaster) {
     mRawTableMaster = rawTableMaster;
   }
 
   @Override
   public long getServiceVersion() {
-    return Constants.RAW_TABLE_MASTER_SERVICE_VERSION;
+    return Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override

@@ -27,7 +27,7 @@ import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.LineageCommand;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterWorkerService;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -35,27 +35,28 @@ import tachyon.thrift.LineageMasterService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public final class LineageMasterWorkerClient extends ClientBase {
+public final class LineageMasterClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private LineageMasterService.Client mClient = null;
+  private LineageMasterWorkerService.Client mClient = null;
 
   /**
    * @param masterAddress the master address
    * @param tachyonConf tachyonConf
    */
-  public LineageMasterWorkerClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+  public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf, "lineage-worker");
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+    return Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME;
   }
 
   @Override
-  protected void afterConnect() {
-    mClient = new LineageMasterService.Client(mProtocol);
+  protected void afterConnect() throws IOException {
+    mClient = new LineageMasterWorkerService.Client(mProtocol);
+    checkVersion(mClient, Constants.LINEAGE_MASTER_WORKER_SERVICE_VERSION);
   }
 
   /**
@@ -66,12 +67,12 @@ public final class LineageMasterWorkerClient extends ClientBase {
    * @return the command for checkpointing the blocks of a file
    * @throws IOException if file persistence fails
    */
-  public synchronized LineageCommand workerLineageHeartbeat(final long workerId,
+  public synchronized LineageCommand heartbeat(final long workerId,
       final List<Long> persistedFiles) throws IOException {
     return retryRPC(new RpcCallable<LineageCommand>() {
       @Override
       public LineageCommand call() throws TException {
-        return mClient.workerLineageHeartbeat(workerId, persistedFiles);
+        return mClient.heartbeat(workerId, persistedFiles);
       }
     });
   }

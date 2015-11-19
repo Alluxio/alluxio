@@ -53,13 +53,13 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Client for communicating to lineage master */
-  private final LineageMasterWorkerClient mMasterClient;
+  private final tachyon.worker.lineage.LineageMasterClient mMasterClient;
   /** The thread pool to persist file */
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
   public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
-      LineageMasterWorkerClient masterClient) {
+      tachyon.worker.lineage.LineageMasterClient masterClient) {
     mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
   }
@@ -73,7 +73,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     LineageCommand command = null;
     try {
-      command = mMasterClient.workerLineageHeartbeat(WorkerIdRegistry.getWorkerId(),
+      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(),
           persistedFiles);
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);

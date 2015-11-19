@@ -18,7 +18,7 @@ package tachyon.worker;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import tachyon.client.WorkerBlockMasterClient;
+import tachyon.worker.block.BlockMasterClient;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
@@ -54,9 +54,9 @@ public final class WorkerIdRegistry {
    * @param workerAddress current worker address
    * @throws IOException when fails to get a new worker ID
    */
-  public static void registerWithBlockMaster(WorkerBlockMasterClient masterClient,
+  public static void registerWithBlockMaster(BlockMasterClient masterClient,
       NetAddress workerAddress) throws IOException {
-    sWorkerId.set(masterClient.getId(workerAddress));
+    sWorkerId.set(masterClient.getWorkerId(workerAddress));
   }
 
   /**
