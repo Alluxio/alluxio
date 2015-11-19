@@ -15,7 +15,12 @@
 
 package tachyon.client.table;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.exception.TachyonException;
 
 /**
  * An implementation of Tachyon Raw Table client. This is simply a wrapper around
@@ -39,5 +44,13 @@ public class TachyonRawTables extends AbstractTachyonRawTables {
 
   private TachyonRawTables() {
     super();
+  }
+
+  /**
+   * Convenience method for {@link TachyonRawTables#create(TachyonURI, int, ByteBuffer)} with
+   * empty metadata.
+   */
+  public RawTable create(TachyonURI path, int numColumns) throws IOException, TachyonException {
+    return create(path, numColumns, ByteBuffer.allocate(0));
   }
 }
