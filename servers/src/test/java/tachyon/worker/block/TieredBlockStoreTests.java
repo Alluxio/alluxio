@@ -424,14 +424,24 @@ public final class TieredBlockStoreTests {
   }
 
   @Test
-  public void cacheSameBlockInDifferentTiersTest() throws Exception {
+  public void cacheSameBlockInDifferentDirsTest() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
     mThrown.expect(BlockAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
         FIRST_TIER_ALIAS));
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mEvictor);
+  }
 
+  @Test
+  public void cacheSameBlockInDifferentTiersTest() throws Exception {
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
+    mThrown.expect(BlockAlreadyExistsException.class);
+    mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(BLOCK_ID1,
+        FIRST_TIER_ALIAS));
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir3, mMetaManager,
         mEvictor);
   }
 

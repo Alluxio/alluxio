@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TableColumnException;
 import tachyon.exception.TableMetadataException;
 import tachyon.master.file.FileSystemMaster;
@@ -74,6 +75,7 @@ public class RawTableMasterIntegrationTest {
   @Test
   public void nullMetadataTest() throws Exception {
     mException.expect(NullPointerException.class);
+    mException.expectMessage(PreconditionMessage.RAW_TABLE_METADATA_NULL);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, null);
   }
 
