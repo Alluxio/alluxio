@@ -433,6 +433,7 @@ public final class JournalEntryProtos {
    * Protobuf type {@code tachyon.proto.JournalEntry}
    *
    * <pre>
+   * Wraps around all types of Tachyon journal messages.
    * next id: 25
    * </pre>
    */
@@ -1790,6 +1791,7 @@ public final class JournalEntryProtos {
      * Protobuf type {@code tachyon.proto.JournalEntry}
      *
      * <pre>
+     * Wraps around all types of Tachyon journal messages.
      * next id: 25
      * </pre>
      */
