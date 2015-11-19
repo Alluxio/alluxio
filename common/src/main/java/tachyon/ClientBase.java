@@ -30,10 +30,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
@@ -51,13 +53,20 @@ public abstract class ClientBase implements Closeable {
 
   protected InetSocketAddress mAddress = null;
   protected TProtocol mProtocol = null;
+
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
+
   /**
    * Is true if this client was closed by the user. No further actions are possible after the client
    * is closed.
    */
   protected boolean mClosed = false;
+
+  /**
+   * Stores the service version; used for detecting incompatible client-server pairs.
+   */
+  protected long mServiceVersion;
 
   /**
    * Creates a new client base.
@@ -70,6 +79,7 @@ public abstract class ClientBase implements Closeable {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
+    mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
   }
 
   /**
@@ -80,10 +90,30 @@ public abstract class ClientBase implements Closeable {
   protected abstract String getServiceName();
 
   /**
+   * Checks that the service version is compatible with the client.
+   *
+   * @param client the service client
+   * @param version the client version
+   */
+  protected void checkVersion(TachyonService.Client client, long version) throws IOException {
+    if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
+      try {
+        mServiceVersion = client.getServiceVersion();
+      } catch (TException e) {
+        throw new IOException(e.getMessage());
+      }
+      if (mServiceVersion != version) {
+        throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
+            version, mServiceVersion));
+      }
+    }
+  }
+
+  /**
    * This method is called after the connection is made to the remote. Implementations should create
    * internal state to finish the connection process.
    */
-  protected void afterConnect() {
+  protected void afterConnect() throws IOException {
     // Empty implementation.
   }
 
@@ -113,15 +143,15 @@ public abstract class ClientBase implements Closeable {
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
-      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with "
-          + getServiceName() + " " + mMode + " @ " + mAddress);
+      LOG.info("Tachyon client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
+              getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
-        LOG.info("Client registered with " + getServiceName() + " " + mMode + " @ " + mAddress);
+        LOG.info("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
         mConnected = true;
         afterConnect();
         return;
@@ -144,7 +174,7 @@ public abstract class ClientBase implements Closeable {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      LOG.debug("Disconnecting from the " + getServiceName() + " " + mMode + " {}", mAddress);
+      LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
       mConnected = false;
     }
     try {

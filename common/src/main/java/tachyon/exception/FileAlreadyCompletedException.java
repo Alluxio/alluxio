@@ -15,25 +15,26 @@
 
 package tachyon.exception;
 
-public class SuspectedFileSizeException extends TachyonException {
-  private static final long serialVersionUID = -4913703614829472342L;
+public class FileAlreadyCompletedException extends TachyonException {
+  private static final long serialVersionUID = -623565413624572542L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
-      TachyonExceptionType.SUSPECTED_FILE_SIZE;
+      TachyonExceptionType.FILE_ALREADY_COMPLETED;
 
-  public SuspectedFileSizeException(String message) {
+  public FileAlreadyCompletedException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
-  public SuspectedFileSizeException(String message, Throwable cause) {
+  public FileAlreadyCompletedException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
-  public SuspectedFileSizeException(ExceptionMessage message, Object... params) {
+  public FileAlreadyCompletedException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
-  public SuspectedFileSizeException(ExceptionMessage message, Throwable cause, Object... params) {
+  public FileAlreadyCompletedException(ExceptionMessage message,
+                                       Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 }

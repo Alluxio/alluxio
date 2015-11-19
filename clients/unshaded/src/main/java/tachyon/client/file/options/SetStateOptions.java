@@ -17,11 +17,13 @@ package tachyon.client.file.options;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
+@PublicApi
 public class SetStateOptions {
   public static class Builder implements OptionsBuilder<SetStateOptions> {
     private Boolean mPinned;

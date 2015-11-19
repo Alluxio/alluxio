@@ -166,12 +166,13 @@ public class RawTableMaster extends MasterBase {
       mFileSystemMaster.mkdir(columnPath(path, k), options);
     }
 
+    LOG.debug("writing journal entry for createRawTable {}", path);
     RawTableEntry rawTable = RawTableEntry.newBuilder().setId(id).setColumns(columns)
         .setMetadata(ByteString.copyFrom(metadata)).build();
     writeJournalEntry(JournalEntry.newBuilder().setRawTable(rawTable).build());
-
     flushJournal();
 
+    LOG.debug("created raw table with {} columns at {}", columns, path);
     return id;
   }
 

@@ -48,6 +48,11 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
 
+  @Override
+  public long getServiceVersion() {
+    return Constants.BLOCK_WORKER_SERVICE_VERSION;
+  }
+
   /**
    * This should be called whenever a client does a direct read in order to update the worker's
    * components that may care about the access times of the blocks (for example, Evictor, UI).
@@ -59,27 +64,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   public void accessBlock(long blockId) throws TachyonTException {
     try {
       mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  /**
-   * This should be called in order to persist a file that was written directly to the under storage
-   * system via a THROUGH type write. This will update the master with the appropriate metadata for
-   * the new block.
-   *
-   * @param fileId the file id
-   * @param nonce nonce a nonce used for temporary file creation
-   * @param path the UFS path of the file
-   */
-  @Override
-  public void persistFile(long fileId, long nonce, String path)
-      throws TachyonTException, ThriftIOException {
-    try {
-      mWorker.persistFile(fileId, nonce, path);
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

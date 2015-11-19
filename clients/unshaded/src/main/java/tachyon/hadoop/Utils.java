@@ -47,18 +47,18 @@ public final class Utils {
   }
 
   /**
-   * Given a <code>Path</code> path, it returns the path component of its URI, which has the form
+   * Given a {@code Path} path, it returns the path component of its URI, which has the form
    * scheme://authority/path.
    *
-   * @param path an HDFS <code>Path</code>
-   * @return the path component of the <code>Path</code> URI
+   * @param path an HDFS {@code Path}
+   * @return the path component of the {@code Path} URI
    */
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
   }
 
   /**
-   * Given a <code>String</code> path, returns an equivalent Tachyon path.
+   * Given a {@code String} path, returns an equivalent Tachyon path.
    *
    * @param path the path to parse
    * @return a valid Tachyon path
@@ -81,9 +81,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a Hadoop <code>FileSplit</code>.
+   * Returns a string representation of a Hadoop {@code FileSplit}.
    *
-   * @param fs Hadoop <code>FileSplit</code>
+   * @param fs Hadoop {@code FileSplit}
    * @return its string representation
    */
   public static String toStringHadoopFileSplit(FileSplit fs) {
@@ -107,9 +107,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a Hadoop <code>FileStatus</code>.
+   * Returns a string representation of a Hadoop {@code FileStatus}.
    *
-   * @param fs Hadoop <code>FileStatus</code>
+   * @param fs Hadoop {@code FileStatus}
    * @return its string representation
    */
   public static String toStringHadoopFileStatus(FileStatus fs) {
@@ -128,9 +128,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a <code>InputSplit</code>.
+   * Returns a string representation of a {@code InputSplit}.
    *
-   * @param is Hadoop <code>InputSplit</code>
+   * @param is Hadoop {@code InputSplit}
    * @return its string representation
    */
   public static String toStringHadoopInputSplit(InputSplit is) {

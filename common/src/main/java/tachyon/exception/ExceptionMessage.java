@@ -117,6 +117,9 @@ public enum ExceptionMessage {
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
   LINEAGE_OUTPUT_FILE_NOT_EXIST("No lineage has output file {0}"),
 
+  // client
+  INCOMPATIBLE_VERSION("{0}Client version {1} is not compatible with server version {2}"),
+
   // Tachyon Conf
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Tachyon properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid configuration key {0}"),

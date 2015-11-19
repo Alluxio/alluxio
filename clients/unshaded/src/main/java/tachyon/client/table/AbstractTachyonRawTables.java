@@ -18,11 +18,16 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.RawTableMasterClient;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
+import tachyon.util.io.PathUtils;
 
 /**
  * Tachyon Raw Table client. This class should be used to interface with the Tachyon Raw Table
@@ -30,27 +35,35 @@ import tachyon.thrift.RawTableInfo;
  */
 @PublicApi
 public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
-  protected RawTablesContext mContext;
+  protected RawTableContext mContext;
+  protected TachyonFileSystem mTachyonFileSystem;
 
   protected AbstractTachyonRawTables() {
-    mContext = RawTablesContext.INSTANCE;
+    mContext = RawTableContext.INSTANCE;
+    mTachyonFileSystem = TachyonFileSystemFactory.get();
   }
 
   // TODO(calvin): Consider different client options
   @Override
-  public SimpleRawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
+  public RawTable create(TachyonURI path, int numColumns, ByteBuffer metadata)
       throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long rawTableId = masterClient.createRawTable(path, numColumns, metadata);
-      return new SimpleRawTable(rawTableId);
+      return new RawTable(rawTableId);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
   }
 
   @Override
-  public RawTableInfo getInfo(SimpleRawTable rawTable) throws IOException, TachyonException {
+  public FileOutStream createPartition(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    return mTachyonFileSystem.getOutStream(getPartitionUri(column, partitionId));
+  }
+
+  @Override
+  public RawTableInfo getInfo(RawTable rawTable) throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getClientRawTableInfo(rawTable.getRawTableId());
@@ -60,18 +73,33 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
-  public SimpleRawTable open(TachyonURI path) throws IOException, TachyonException {
+  public TachyonFile openPartition(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    return mTachyonFileSystem.open(getPartitionUri(column, partitionId));
+  }
+
+  @Override
+  public int getPartitionCount(RawColumn column) throws IOException, TachyonException {
+    RawTableInfo info = getInfo(column.getRawTable());
+    TachyonURI columnUri = new TachyonURI(PathUtils.concatPath(info.getPath(),
+        Constants.MASTER_COLUMN_FILE_PREFIX + column.getColumnIndex()));
+    TachyonFile file = mTachyonFileSystem.open(columnUri);
+    return mTachyonFileSystem.listStatus(file).size();
+  }
+
+  @Override
+  public RawTable open(TachyonURI path) throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long rawTableId = masterClient.getClientRawTableInfo(path).getId();
-      return new SimpleRawTable(rawTableId);
+      return new RawTable(rawTableId);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
   }
 
   @Override
-  public void updateRawTableMetadata(SimpleRawTable rawTable, ByteBuffer metadata)
+  public void updateRawTableMetadata(RawTable rawTable, ByteBuffer metadata)
       throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -79,5 +107,12 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  private TachyonURI getPartitionUri(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    RawTableInfo info = getInfo(column.getRawTable());
+    return new TachyonURI(PathUtils.concatPath(info.getPath(), Constants.MASTER_COLUMN_FILE_PREFIX
+        + column.getColumnIndex(), partitionId));
   }
 }

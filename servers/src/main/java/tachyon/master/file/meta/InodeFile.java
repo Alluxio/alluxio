@@ -23,7 +23,8 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
-import tachyon.exception.SuspectedFileSizeException;
+import tachyon.exception.FileAlreadyCompletedException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.proto.JournalEntryProtos.InodeFileEntry;
 import tachyon.proto.JournalEntryProtos.JournalEntry;
@@ -240,30 +241,35 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Sets the complete flag true, and sets the length.
-   *
-   * @param length the length of the complete file
+   * @param completed the complete flag value to use
    */
-  public synchronized void setCompleted(long length) {
-    mCompleted = true;
+  public synchronized void setCompleted(boolean completed) {
+    mCompleted = completed;
+  }
+
+  /**
+   * @param length the length to use
+   */
+  public synchronized void setLength(long length) {
     mLength = length;
   }
 
   /**
-   * Sets the length of the file. Cannot set the length if the file is complete or the length is
+   * Completes the file. Cannot set the length if the file is already completed or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws SuspectedFileSizeException
+   * @throws InvalidFileSizeException if invalid file size is encountered
    */
-  public synchronized void setLength(long length)
-      throws SuspectedFileSizeException {
+  public synchronized void complete(long length)
+      throws InvalidFileSizeException, FileAlreadyCompletedException {
     if (mCompleted) {
-      throw new SuspectedFileSizeException("InodeFile has been completed.");
+      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
     if (length < 0) {
-      throw new SuspectedFileSizeException("InodeFile new length " + length + " is negative.");
+      throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
     }
+    mCompleted = true;
     mLength = length;
     mBlocks.clear();
     while (length > 0) {
@@ -271,7 +277,6 @@ public final class InodeFile extends Inode {
       getNewBlockId();
       length -= blockSize;
     }
-    setCompleted(mLength);
   }
 
   @Override
@@ -308,7 +313,6 @@ public final class InodeFile extends Inode {
             .build();
 
     inode.setBlockIds(entry.getBlocksList());
-    inode.setCompleted(entry.getLength());
     inode.setPersisted(entry.getPersisted());
     inode.setPinned(entry.getPinned());
     inode.setCacheable(entry.getCacheable());

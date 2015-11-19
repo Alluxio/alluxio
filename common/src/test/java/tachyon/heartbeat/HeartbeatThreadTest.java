@@ -27,6 +27,31 @@ import org.junit.Test;
 /**
  * Unit tests for {@link HeartbeatThread}. This test uses
  * {@link tachyon.heartbeat.HeartbeatScheduler} to have synchronous tests.
+ *
+ * Instructions for testing heartbeats using {@link ScheduledTimer}.
+ *
+ * Using {@link ScheduledTimer} for testing heartbeats removes the dependence on sleep() for
+ * thread timing. Instead, test cases can dictate an ordering between threads. Here are the
+ * steps required for using {@link ScheduledTimer}.
+ *
+ * 1. Set the timer class to use {@link ScheduledTimer}. This tells the heartbeat context
+ * that the given heartbeat thread will be using a schedule based timer, instead of a
+ * sleeping based timer. This is done with:
+ *
+ * HeartbeatContext.setTimerClass(THREAD_NAME, HeartbeatContext.SCHEDULED_TIMER_CLASS);
+ *
+ * 2. Call await() to make sure the first heartbeat is ready to run. In tests, the result
+ * should be within an assertTrue(). Here is an example:
+ *
+ * Assert.assertTrue(HeartbeatScheduler.await(THREAD_NAME, 5, TimeUnit.SECONDS));
+ *
+ * 3. Call schedule() and await() each time the heartbeat thread should be triggered. Test
+ * cases can now dictate the behavior of the heartbeat thread by calling schedule() and
+ * await() right afterwards. After await() returns successfully, it is guaranteed that the
+ * heartbeat thread ran exactly once. Here is an example of scheduling the heartbeat to run:
+ *
+ * HeartbeatScheduler.schedule(THREAD_NAME);
+ * Assert.assertTrue(HeartbeatScheduler.await(THREAD_NAME, 5, TimeUnit.SECONDS));
  */
 public final class HeartbeatThreadTest {
 

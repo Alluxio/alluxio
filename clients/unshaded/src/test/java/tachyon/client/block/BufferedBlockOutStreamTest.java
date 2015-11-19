@@ -58,7 +58,7 @@ public class BufferedBlockOutStreamTest {
     // Test writing an increasing byte array one byte at a time
     for (int i = 0; i < BLOCK_LENGTH; i ++) {
       mTestStream.write(INCREASING_BYTES[i]);
-      Assert.assertEquals(i + 1, mTestStream.getBytesWritten());
+      Assert.assertEquals(i + 1, mTestStream.getWrittenBytes());
     }
     Assert.assertArrayEquals(INCREASING_BYTES,
         Arrays.copyOfRange(mTestStream.getBuffer().array(), 0, (int) BLOCK_LENGTH));
@@ -68,7 +68,7 @@ public class BufferedBlockOutStreamTest {
   public void byteArrayWriteTest() throws Exception {
     // Test writing an increasing byte array
     mTestStream.write(INCREASING_BYTES);
-    Assert.assertEquals(INCREASING_BYTES.length, mTestStream.getBytesWritten());
+    Assert.assertEquals(INCREASING_BYTES.length, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(INCREASING_BYTES,
         Arrays.copyOfRange(mTestStream.getBuffer().array(), 0, (int) BLOCK_LENGTH));
   }
@@ -77,7 +77,7 @@ public class BufferedBlockOutStreamTest {
   public void byteArrayAtOffsetTest() throws Exception {
     // Test writing the middle half of an increasing byte array
     mTestStream.write(INCREASING_BYTES, 25, 50);
-    Assert.assertEquals(50, mTestStream.getBytesWritten());
+    Assert.assertEquals(50, mTestStream.getWrittenBytes());
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(25, 50),
         Arrays.copyOfRange(mTestStream.getBuffer().array(), 0, 50));
 
@@ -89,7 +89,7 @@ public class BufferedBlockOutStreamTest {
     Assert.assertSame(INCREASING_BYTES, mTestStream.mLastBufferedWriteArray);
     Assert.assertEquals(30, mTestStream.mLastBufferedWriteOffset);
     Assert.assertEquals(bytesToWrite, mTestStream.mLastBufferedWriteLen);
-    Assert.assertEquals(50 + mTestStream.mLastBufferedWriteLen, mTestStream.getBytesWritten());
+    Assert.assertEquals(50 + mTestStream.mLastBufferedWriteLen, mTestStream.getWrittenBytes());
   }
 
   @Test
@@ -106,5 +106,15 @@ public class BufferedBlockOutStreamTest {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK);
     mTestStream.write(0);
+  }
+
+  @Test
+  public void doubleFlush() throws Exception {
+    mTestStream.write(INCREASING_BYTES, 1, 10);
+    Assert.assertEquals(0, mTestStream.getFlushedBytes());
+    mTestStream.flush();
+    Assert.assertEquals(10, mTestStream.getFlushedBytes());
+    mTestStream.flush();
+    Assert.assertEquals(10, mTestStream.getFlushedBytes());
   }
 }

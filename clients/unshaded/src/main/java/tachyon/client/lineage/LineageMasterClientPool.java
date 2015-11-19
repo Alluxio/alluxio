@@ -17,11 +17,12 @@ package tachyon.client.lineage;
 
 import java.net.InetSocketAddress;
 
+import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 
 final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
-  private static final int CAPACITY = 10;
+
   private final InetSocketAddress mMasterAddress;
 
   /**
@@ -30,8 +31,7 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
    * @param masterAddress the master address
    */
   public LineageMasterClientPool(InetSocketAddress masterAddress) {
-    // TODO(yupeng): Get capacity from configuration.
-    super(CAPACITY);
+    super(ClientContext.getConf().getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 
