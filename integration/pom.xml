@@ -12,11 +12,6 @@
   <name>Tachyon Integration</name>
   <description>Parent POM for different integrations with Tachyon</description>
 
-  <modules>
-    <module>mesos</module>
-    <module>yarn</module>
-  </modules>
-
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
