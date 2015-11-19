@@ -15,6 +15,8 @@
 
 package tachyon.master.journal;
 
+import tachyon.proto.JournalEntryProtos.JournalEntry;
+
 /**
  * This interface enables representing a class as a {@link JournalEntry}.
  */

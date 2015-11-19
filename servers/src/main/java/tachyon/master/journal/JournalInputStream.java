@@ -17,6 +17,8 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+import tachyon.proto.JournalEntryProtos.JournalEntry;
+
 /**
  * This input stream retrieves {@link JournalEntry} from journal checkpoint files and journal log
  * files.

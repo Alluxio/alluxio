@@ -25,8 +25,8 @@ import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
-import tachyon.master.file.journal.InodeFileEntry;
-import tachyon.master.journal.JournalEntry;
+import tachyon.proto.JournalEntryProtos.InodeFileEntry;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -287,11 +287,44 @@ public final class InodeFile extends Inode {
     return sb.toString();
   }
 
+  /**
+   * Converts the entry to {@code InodeFile}.
+   *
+   * @return the {@code InodeFile} representation
+   */
+  public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+    InodeFile inode =
+        new InodeFile.Builder()
+            .setName(entry.getName())
+            .setBlockContainerId(BlockId.getContainerId(entry.getId()))
+            .setBlockSizeBytes(entry.getBlockSizeBytes())
+            .setCacheable(entry.getCacheable())
+            .setCreationTimeMs(entry.getCreationTimeMs())
+            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+            .setParentId(entry.getParentId())
+            .setPersisted(entry.getPersisted())
+            .setPinned(entry.getPinned())
+            .setTTL(entry.getTtl())
+            .build();
+
+    inode.setBlockIds(entry.getBlocksList());
+    inode.setCompleted(entry.getLength());
+    inode.setPersisted(entry.getPersisted());
+    inode.setPinned(entry.getPinned());
+    inode.setCacheable(entry.getCacheable());
+    inode.setLastModificationTimeMs(entry.getLastModificationTimeMs());
+
+    return inode;
+  }
+
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
-        isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
-        isCacheable(), mBlocks, mTTL);
+    InodeFileEntry inodeFile = InodeFileEntry.newBuilder().setCreationTimeMs(getCreationTimeMs())
+        .setId(getId()).setName(getName()).setParentId(getParentId()).setPersisted(isPersisted())
+        .setPinned(isPinned()).setLastModificationTimeMs(getLastModificationTimeMs())
+        .setBlockSizeBytes(getBlockSizeBytes()).setLength(getLength()).setCompleted(isCompleted())
+        .setCacheable(isCacheable()).addAllBlocks(mBlocks).setTtl(mTTL).build();
+    return JournalEntry.newBuilder().setInodeFileEntry(inodeFile).build();
   }
 
   /**

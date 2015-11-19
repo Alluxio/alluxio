@@ -33,6 +33,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -55,18 +56,6 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.journal.AddMountPointEntry;
-import tachyon.master.file.journal.CompleteFileEntry;
-import tachyon.master.file.journal.DeleteFileEntry;
-import tachyon.master.file.journal.DeleteMountPointEntry;
-import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
-import tachyon.master.file.journal.InodeEntry;
-import tachyon.master.file.journal.InodeLastModificationTimeEntry;
-import tachyon.master.file.journal.PersistDirectoryEntry;
-import tachyon.master.file.journal.PersistFileEntry;
-import tachyon.master.file.journal.ReinitializeFileEntry;
-import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.SetStateEntry;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -79,8 +68,23 @@ import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
+import tachyon.proto.JournalEntryProtos.AddMountPointEntry;
+import tachyon.proto.JournalEntryProtos.CompleteFileEntry;
+import tachyon.proto.JournalEntryProtos.DeleteFileEntry;
+import tachyon.proto.JournalEntryProtos.DeleteMountPointEntry;
+import tachyon.proto.JournalEntryProtos.InodeDirectoryEntry;
+import tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry;
+import tachyon.proto.JournalEntryProtos.InodeFileEntry;
+import tachyon.proto.JournalEntryProtos.InodeLastModificationTimeEntry;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.JournalEntryProtos.PersistDirectoryEntry;
+import tachyon.proto.JournalEntryProtos.PersistFileEntry;
+import tachyon.proto.JournalEntryProtos.PersistFileEntry.Builder;
+import tachyon.proto.JournalEntryProtos.ReinitializeFileEntry;
+import tachyon.proto.JournalEntryProtos.RenameEntry;
+import tachyon.proto.JournalEntryProtos.SetStateEntry;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -148,60 +152,61 @@ public final class FileSystemMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry instanceof InodeEntry) {
-      mInodeTree.addInodeFromJournal((InodeEntry) entry);
-    } else if (entry instanceof InodeLastModificationTimeEntry) {
-      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) entry;
+    Message innerEntry = JournalProtoUtils.getMessage(entry);
+    if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
+      mInodeTree.addInodeFromJournal(entry);
+    } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
+      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
       try {
         Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
         inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof PersistDirectoryEntry) {
-      PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) entry;
+    } else if (innerEntry instanceof PersistDirectoryEntry) {
+      PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
       try {
         Inode inode = mInodeTree.getInodeById(typedEntry.getId());
         inode.setPersisted(true);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof CompleteFileEntry) {
+    } else if (innerEntry instanceof CompleteFileEntry) {
       try {
-        completeFileFromEntry((CompleteFileEntry) entry);
+        completeFileFromEntry((CompleteFileEntry) innerEntry);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof PersistFileEntry) {
-      persistFileFromEntry((PersistFileEntry) entry);
-    } else if (entry instanceof SetStateEntry) {
+    } else if (innerEntry instanceof PersistFileEntry) {
+      persistFileFromEntry((PersistFileEntry) innerEntry);
+    } else if (innerEntry instanceof SetStateEntry) {
       try {
-        setStateFromEntry((SetStateEntry) entry);
+        setStateFromEntry((SetStateEntry) innerEntry);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof DeleteFileEntry) {
-      deleteFileFromEntry((DeleteFileEntry) entry);
-    } else if (entry instanceof RenameEntry) {
-      renameFromEntry((RenameEntry) entry);
-    } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
-      mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
-    } else if (entry instanceof ReinitializeFileEntry) {
-      resetBlockFileFromEntry((ReinitializeFileEntry) entry);
-    } else if (entry instanceof AddMountPointEntry) {
+    } else if (innerEntry instanceof DeleteFileEntry) {
+      deleteFileFromEntry((DeleteFileEntry) innerEntry);
+    } else if (innerEntry instanceof RenameEntry) {
+      renameFromEntry((RenameEntry) innerEntry);
+    } else if (innerEntry instanceof InodeDirectoryIdGeneratorEntry) {
+      mDirectoryIdGenerator.initFromJournalEntry((InodeDirectoryIdGeneratorEntry) innerEntry);
+    } else if (innerEntry instanceof ReinitializeFileEntry) {
+      resetBlockFileFromEntry((ReinitializeFileEntry) innerEntry);
+    } else if (innerEntry instanceof AddMountPointEntry) {
       try {
-        mountFromEntry((AddMountPointEntry) entry);
+        mountFromEntry((AddMountPointEntry) innerEntry);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof DeleteMountPointEntry) {
+    } else if (innerEntry instanceof DeleteMountPointEntry) {
       try {
-        unmountFromEntry((DeleteMountPointEntry) entry);
+        unmountFromEntry((DeleteMountPointEntry) innerEntry);
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
@@ -225,11 +230,9 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
-      mTTLCheckerService =
-          getExecutorService().submit(
-              new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
-                  new MasterInodeTTLCheckExecutor(), conf
-                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+      mTTLCheckerService = getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTTLCheckExecutor(),
+              conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
@@ -257,7 +260,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       if (persistFileInternal(fileId, length, opTimeMs)) {
-        writeJournalEntry(new PersistFileEntry(fileId, length, opTimeMs));
+        Builder persistFileEntry =
+            PersistFileEntry.newBuilder().setId(fileId).setLength(length).setOpTimeMs(opTimeMs);
+        writeJournalEntry(JournalEntry.newBuilder().setPersistFile(persistFileEntry).build());
         flushJournal();
       }
     }
@@ -282,8 +287,8 @@ public final class FileSystemMaster extends MasterBase {
 
     if (file.isCompleted()) {
       if (file.getLength() != length) {
-        throw new SuspectedFileSizeException(fileId + ". Original Size: " + file.getLength()
-            + ". New Size: " + length);
+        throw new SuspectedFileSizeException(
+            fileId + ". Original Size: " + file.getLength() + ". New Size: " + length);
       }
     } else {
       file.setLength(length);
@@ -375,8 +380,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private FileInfo getFileInfoInternal(Inode inode)
-      throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
@@ -457,8 +461,10 @@ public final class FileSystemMaster extends MasterBase {
       }
 
       completeFileInternal(fileInode.getBlockIds(), fileId, fileLength, false, opTimeMs);
-      writeJournalEntry(
-          new CompleteFileEntry(fileInode.getBlockIds(), fileId, fileLength, opTimeMs));
+      CompleteFileEntry completeFileEntry =
+          CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(fileId)
+              .setLength(fileLength).setOpTimeMs(opTimeMs).build();
+      writeJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
       flushJournal();
     }
   }
@@ -474,7 +480,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
     try {
-      completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(), true,
+      completeFileInternal(entry.getBlockIdsList(), entry.getId(), entry.getLength(), true,
           entry.getOpTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
@@ -539,7 +545,9 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException {
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
-      writeJournalEntry(new ReinitializeFileEntry(path.getPath(), blockSizeBytes, ttl));
+      ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder().setPath(path.getPath())
+          .setBlockSizeBytes(blockSizeBytes).setTtl(ttl).build();
+      writeJournalEntry(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       flushJournal();
       return id;
     }
@@ -548,7 +556,7 @@ public final class FileSystemMaster extends MasterBase {
   private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try {
       mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
-          entry.getTTL());
+          entry.getTtl());
     } catch (InvalidPathException e) {
       throw new RuntimeException(e);
     }
@@ -611,7 +619,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
-      writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
+      DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId).setRecursive(recursive)
+          .setOpTimeMs(opTimeMs).build();
+      writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
       flushJournal();
       return ret;
     }
@@ -959,14 +969,19 @@ public final class FileSystemMaster extends MasterBase {
    */
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
     for (Inode inode : createResult.getModified()) {
-      writeJournalEntry(
-          new InodeLastModificationTimeEntry(inode.getId(), inode.getLastModificationTimeMs()));
+      InodeLastModificationTimeEntry inodeLastModificationTime =
+          InodeLastModificationTimeEntry.newBuilder().setId(inode.getId())
+              .setLastModificationTimeMs(inode.getLastModificationTimeMs()).build();
+      writeJournalEntry(JournalEntry.newBuilder()
+          .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
     for (Inode inode : createResult.getCreated()) {
       writeJournalEntry(inode.toJournalEntry());
     }
     for (Inode inode : createResult.getPersisted()) {
-      writeJournalEntry(new PersistDirectoryEntry(inode.getId()));
+      PersistDirectoryEntry persistDirectory =
+          PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
+      writeJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
     }
   }
 
@@ -1038,7 +1053,9 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
-      writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
+      RenameEntry rename = RenameEntry.newBuilder().setId(fileId).setDstPath(dstPath.getPath())
+          .setOpTimeMs(opTimeMs).build();
+      writeJournalEntry(JournalEntry.newBuilder().setRename(rename).build());
       flushJournal();
 
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
@@ -1102,7 +1119,7 @@ public final class FileSystemMaster extends MasterBase {
   private void renameFromEntry(RenameEntry entry) {
     MasterContext.getMasterSource().incRenameOps();
     try {
-      renameInternal(entry.getId(), new TachyonURI(entry.getDestinationPath()), true,
+      renameInternal(entry.getId(), new TachyonURI(entry.getDstPath()), true,
           entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -1136,7 +1153,9 @@ public final class FileSystemMaster extends MasterBase {
       }
       handle.setPersisted(true);
       if (!replayed) {
-        writeJournalEntry(new PersistDirectoryEntry(inode.getId()));
+        PersistDirectoryEntry persistDirectory =
+            PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
+        writeJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
       }
     }
   }
@@ -1283,16 +1302,14 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long fileSizeByte = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        CreateOptions options =
-            new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
-                .setRecursive(recursive).setPersisted(true).build();
+        CreateOptions options = new CreateOptions.Builder(MasterContext.getConf())
+            .setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive).setPersisted(true).build();
         long fileId = create(path, options);
         persistFile(fileId, fileSizeByte);
         return fileId;
       } else {
-        MkdirOptions options =
-            new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
-                .setPersisted(true).build();
+        MkdirOptions options = new MkdirOptions.Builder(MasterContext.getConf())
+            .setRecursive(recursive).setPersisted(true).build();
         InodeTree.CreatePathResult result = mkdir(path, options);
         List<Inode> created = result.getCreated();
         return created.get(created.size() - 1).getId();
@@ -1311,7 +1328,9 @@ public final class FileSystemMaster extends MasterBase {
           new MkdirOptions.Builder(MasterContext.getConf()).setPersisted(true).build();
       InodeTree.CreatePathResult createResult = mkdir(tachyonPath, options);
       if (mountInternal(tachyonPath, ufsPath)) {
-        writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
+        AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder()
+            .setTachyonPath(tachyonPath.toString()).setUfsPath(ufsPath.toString()).build();
+        writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
         flushJournal();
         return true;
       }
@@ -1323,8 +1342,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException {
-    TachyonURI tachyonURI = entry.getTachyonURI();
-    TachyonURI ufsURI = entry.getUfsURI();
+    TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
+    TachyonURI ufsURI = new TachyonURI(entry.getUfsPath());
     if (!mountInternal(tachyonURI, ufsURI)) {
       LOG.error("Failed to mount {} at {}", ufsURI, tachyonURI);
     }
@@ -1344,8 +1363,12 @@ public final class FileSystemMaster extends MasterBase {
         long fileId = inode.getId();
         long opTimeMs = System.currentTimeMillis();
         deleteFileRecursiveInternal(fileId, true /* replayed */, opTimeMs);
-        writeJournalEntry(new DeleteFileEntry(fileId, true /* recursive */, opTimeMs));
-        writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
+        DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true)
+            .setOpTimeMs(opTimeMs).build();
+        writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+        DeleteMountPointEntry deleteMountPoint =
+            DeleteMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString()).build();
+        writeJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
         flushJournal();
         return true;
       }
@@ -1394,7 +1417,9 @@ public final class FileSystemMaster extends MasterBase {
       setStateInternal(fileId, opTimeMs, options);
       Boolean pinned = options.hasPinned() ? options.getPinned() : null;
       Long ttl = options.hasTTL() ? options.getTTL() : null;
-      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, pinned, ttl));
+      SetStateEntry setState = SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs)
+          .setPinned(pinned).setTtl(ttl).build();
+      writeJournalEntry(JournalEntry.newBuilder().setSetState(setState).build());
       flushJournal();
     }
   }
@@ -1419,13 +1444,11 @@ public final class FileSystemMaster extends MasterBase {
 
   private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
     SetStateOptions.Builder builder = new SetStateOptions.Builder();
-    if (entry.getPinned() != null) {
-      builder.setPinned(entry.getPinned());
+    builder.setPinned(entry.getPinned());
+    if (entry.getTtl() != 0) {
+      builder.setTTL(entry.getTtl());
     }
-    if (entry.getTTL() != null) {
-      builder.setTTL(entry.getTTL());
-    }
-    setStateInternal(entry.getId(), entry.getOperationTimeMs(), builder.build());
+    setStateInternal(entry.getId(), entry.getOpTimeMs(), builder.build());
   }
 
   /**
@@ -1444,8 +1467,8 @@ public final class FileSystemMaster extends MasterBase {
               try {
                 deleteFile(file.getId(), false);
               } catch (Exception e) {
-                LOG.error("Exception trying to clean up {} for ttl check: {}",
-                    file.toString(), e.toString());
+                LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+                    e.toString());
               }
             }
           }

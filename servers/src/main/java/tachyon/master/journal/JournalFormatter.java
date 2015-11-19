@@ -23,6 +23,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
 import tachyon.util.CommonUtils;
 
 /**
@@ -51,7 +52,7 @@ public interface JournalFormatter {
    * @param outputStream the output stream to serialize the entry to
    * @throws IOException
    */
-  void serialize(SerializableJournalEntry entry, OutputStream outputStream) throws IOException;
+  void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
 
   /**
    * Returns a {@link JournalInputStream} from the given input stream. The returned input stream

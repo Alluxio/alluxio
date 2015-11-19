@@ -30,6 +30,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -42,12 +43,13 @@ import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.master.MasterContext;
 import tachyon.master.block.ContainerIdGenerable;
-import tachyon.master.file.journal.InodeDirectoryEntry;
-import tachyon.master.file.journal.InodeEntry;
-import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
+import tachyon.proto.JournalEntryProtos.InodeDirectoryEntry;
+import tachyon.proto.JournalEntryProtos.InodeFileEntry;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
@@ -466,12 +468,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *
    * @param entry the journal entry representing an inode
    */
-  public void addInodeFromJournal(InodeEntry entry) {
-    if (entry instanceof InodeFileEntry) {
-      InodeFile file = ((InodeFileEntry) entry).toInodeFile();
+  public void addInodeFromJournal(JournalEntry entry) {
+    Message innerEntry = JournalProtoUtils.getMessage(entry);
+    if (innerEntry instanceof InodeFileEntry) {
+      InodeFile file = InodeFile.fromJournalEntry((InodeFileEntry) innerEntry);
       addInodeFromJournalInternal(file);
-    } else if (entry instanceof InodeDirectoryEntry) {
-      InodeDirectory directory = ((InodeDirectoryEntry) entry).toInodeDirectory();
+    } else if (innerEntry instanceof InodeDirectoryEntry) {
+      InodeDirectory directory = InodeDirectory.fromJournalEntry((InodeDirectoryEntry) innerEntry);
 
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
