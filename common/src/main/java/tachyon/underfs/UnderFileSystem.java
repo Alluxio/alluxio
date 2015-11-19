@@ -20,6 +20,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
@@ -32,6 +35,8 @@ import tachyon.conf.TachyonConf;
  * can be a valid under layer file system
  */
 public abstract class UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   protected final TachyonConf mTachyonConf;
 
   /**
@@ -93,11 +98,15 @@ public abstract class UnderFileSystem {
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object ufsConf, TachyonConf tachyonConf) {
+    long startNanos = System.nanoTime();
     Preconditions.checkArgument(path != null, "path may not be null");
     Preconditions.checkNotNull(tachyonConf);
 
     // Use the registry to determine the factory to use to create the client
-    return UnderFileSystemRegistry.create(path, tachyonConf, ufsConf);
+    UnderFileSystem ufs = UnderFileSystemRegistry.create(path, tachyonConf, ufsConf);
+    long endNanos = System.nanoTime();
+    LOG.debug("Spent {}ns getting ufs for {}", endNanos - startNanos, path);
+    return ufs;
   }
 
   /**
