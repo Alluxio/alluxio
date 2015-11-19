@@ -26,6 +26,7 @@ import tachyon.thrift.MkdirTOptions;
 @PublicApi
 public final class MkdirOptions {
   public static class Builder implements OptionsBuilder<MkdirOptions> {
+    private boolean mAllowExists;
     private boolean mRecursive;
     private UnderStorageType mUnderStorageType;
 
@@ -43,9 +44,20 @@ public final class MkdirOptions {
      */
     public Builder(TachyonConf conf) {
       mRecursive = false;
+      mAllowExists = false;
       WriteType defaultWriteType =
           conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
       mUnderStorageType = defaultWriteType.getUnderStorageType();
+    }
+
+    /**
+     * @param allowExists the allowExists flag value to use; it specifies whether an exception
+     *        should be thrown if the directory being made already exists.
+     * @return the builder
+     */
+    public Builder setAllowExists(boolean allowExists) {
+      mAllowExists = allowExists;
+      return this;
     }
 
     /**
@@ -96,12 +108,22 @@ public final class MkdirOptions {
     return new Builder().build();
   }
 
+  private final boolean mAllowExists;
   private final boolean mRecursive;
   private final UnderStorageType mUnderStorageType;
 
   private MkdirOptions(MkdirOptions.Builder builder) {
+    mAllowExists = builder.mAllowExists;
     mRecursive = builder.mRecursive;
     mUnderStorageType = builder.mUnderStorageType;
+  }
+
+  /**
+   * @return the allowExists flag value; it specifies whether an exception should be thrown if the
+   *         directory being made already exists
+   */
+  public boolean isAllowExists() {
+    return mRecursive;
   }
 
   /**
@@ -125,6 +147,7 @@ public final class MkdirOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("MkdirOptions(");
+    sb.append(super.toString()).append(", AllowExists: ").append(mAllowExists);
     sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(")");
@@ -136,8 +159,9 @@ public final class MkdirOptions {
    */
   public MkdirTOptions toThrift() {
     MkdirTOptions options = new MkdirTOptions();
-    options.setPersisted(mUnderStorageType.isSyncPersist());
+    options.setAllowExists(mAllowExists);
     options.setRecursive(mRecursive);
+    options.setPersisted(mUnderStorageType.isSyncPersist());
     return options;
   }
 }
