@@ -29,9 +29,9 @@ public final class RawColumn {
   private final int mColumnIndex;
 
   /**
-   * Creates a new <code>RawColumn</code>.
+   * Creates a new {@code RawColumn}.
    *
-   * @param rawTable the <code>RawTable</code> table this column belongs to
+   * @param rawTable the {@code RawTable} table this column belongs to
    * @param columnIndex the column index
    */
   RawColumn(RawTable rawTable, int columnIndex) {
