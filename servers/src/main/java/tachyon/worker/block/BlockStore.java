@@ -65,7 +65,7 @@ interface BlockStore {
    * location named after the the session ID) to store its data. This method only creates the meta
    * data but adds NO data to this temporary location. The location can be a location with specific
    * tier and dir, or {@link BlockStoreLocation#anyTier()}, or
-   * {@link BlockStoreLocation#anyDirInTier(int)}.
+   * {@link BlockStoreLocation#anyDirInTier(String)}.
    * <p>
    * Before commit, all the data written to this block will be stored in the temp path and the block
    * is only "visible" to its writer client.
