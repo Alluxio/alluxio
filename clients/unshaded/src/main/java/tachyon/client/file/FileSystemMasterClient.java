@@ -32,7 +32,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.TachyonTException;
 
 /**
@@ -42,7 +42,7 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class FileSystemMasterClient extends MasterClientBase {
-  private FileSystemMasterService.Client mClient = null;
+  private FileSystemMasterClientService.Client mClient = null;
 
   /**
    * Creates a new file system master client.
@@ -50,19 +50,20 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+  public FileSystemMasterClient(InetSocketAddress masterAddress,
+                                TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
+    return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new FileSystemMasterService.Client(mProtocol);
-    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION);
+    mClient = new FileSystemMasterClientService.Client(mProtocol);
+    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**

@@ -65,8 +65,9 @@ public class ServiceSocketBindIntegrationTest {
   private void connectServices() throws IOException {
     // connect Master RPC service
     mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mMasterTachyonConf);
+        new BlockMasterClient(new InetSocketAddress(
+            mLocalTachyonCluster.getMasterHostname(), mLocalTachyonCluster.getMasterPort()),
+            mMasterTachyonConf);
     mBlockMasterClient.connect();
 
     // connect Worker RPC service

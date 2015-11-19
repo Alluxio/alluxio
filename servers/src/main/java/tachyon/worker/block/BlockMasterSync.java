@@ -26,7 +26,6 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
@@ -39,7 +38,7 @@ import tachyon.worker.WorkerIdRegistry;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
- * heartbeat. This class manages its own {@link tachyon.client.WorkerBlockMasterClient}.
+ * heartbeat. This class manages its own {@link BlockMasterClient}.
  *
  * When running, this task first requests a block report from the
  * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
@@ -62,7 +61,7 @@ public final class BlockMasterSync implements Runnable {
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
-  private final WorkerBlockMasterClient mMasterClient;
+  private final BlockMasterClient mMasterClient;
 
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
@@ -78,7 +77,7 @@ public final class BlockMasterSync implements Runnable {
    * @param masterClient the Tachyon master client
    */
   BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
-      WorkerBlockMasterClient masterClient) {
+      BlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     TachyonConf conf = WorkerContext.getConf();

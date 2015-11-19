@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -28,7 +28,7 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;
@@ -39,9 +39,9 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public final class WorkerBlockMasterClient extends MasterClientBase {
+public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private BlockMasterService.Client mClient = null;
+  private BlockMasterWorkerService.Client mClient = null;
 
   /**
    * Creates a new block master client for the worker.
@@ -49,18 +49,19 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public WorkerBlockMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+  public BlockMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.BLOCK_MASTER_SERVICE_NAME;
+    return Constants.BLOCK_MASTER_WORKER_SERVICE_NAME;
   }
 
   @Override
-  protected void afterConnect() {
-    mClient = new BlockMasterService.Client(mProtocol);
+  protected void afterConnect() throws IOException {
+    mClient = new BlockMasterWorkerService.Client(mProtocol);
+    checkVersion(mClient, Constants.BLOCK_MASTER_WORKER_SERVICE_VERSION);
   }
 
   /**
@@ -78,7 +79,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.workerCommitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
         return null;
       }
     });
@@ -91,11 +92,11 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getId(final NetAddress address) throws IOException {
+  public synchronized long getWorkerId(final NetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.workerGetWorkerId(address);
+        return mClient.getWorkerId(address);
       }
     });
   }
@@ -116,7 +117,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
-        return mClient.workerHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
+        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
       }
     });
   }
@@ -138,7 +139,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return null;
       }

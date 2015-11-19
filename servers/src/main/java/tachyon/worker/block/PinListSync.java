@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
@@ -45,7 +45,7 @@ public final class PinListSync implements Runnable {
   private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
-  private WorkerFileSystemMasterClient mMasterClient;
+  private FileSystemMasterClient mMasterClient;
   /** Flag to indicate if the syncing should continue */
   private volatile boolean mRunning;
 
@@ -55,7 +55,8 @@ public final class PinListSync implements Runnable {
    * @param blockDataManager the blockDataManager this syncer is updating to
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {
+  public PinListSync(BlockDataManager blockDataManager,
+      FileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     TachyonConf conf = WorkerContext.getConf();
 

@@ -101,8 +101,8 @@ public class MasterClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
-            mLocalTachyonClusterResource.get().getMasterTachyonConf());
+        new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster()
+            .getAddress(), mLocalTachyonClusterResource.get().getMasterTachyonConf());
     try {
       Assert.assertFalse(masterClient.isConnected());
       masterClient.connect();
@@ -120,8 +120,8 @@ public class MasterClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster().getAddress(),
-            mLocalTachyonClusterResource.get().getMasterTachyonConf());
+        new FileSystemMasterClient(mLocalTachyonClusterResource.get().getMaster()
+            .getAddress(), mLocalTachyonClusterResource.get().getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

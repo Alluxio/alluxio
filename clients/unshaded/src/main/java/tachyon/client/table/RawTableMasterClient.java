@@ -27,7 +27,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RawTableMasterClientService;
 import tachyon.thrift.RpcOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.IdUtils;
@@ -39,7 +39,7 @@ import tachyon.util.IdUtils;
  * to provide retries.
  */
 public final class RawTableMasterClient extends MasterClientBase {
-  private RawTableMasterService.Client mClient = null;
+  private RawTableMasterClientService.Client mClient = null;
 
   /**
    * Creates a new raw table master client.
@@ -47,19 +47,20 @@ public final class RawTableMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public RawTableMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+  public RawTableMasterClient(InetSocketAddress masterAddress,
+                              TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
+    return Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new RawTableMasterService.Client(mProtocol);
-    checkVersion(mClient, Constants.RAW_TABLE_MASTER_SERVICE_VERSION);
+    mClient = new RawTableMasterClientService.Client(mProtocol);
+    checkVersion(mClient, Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**

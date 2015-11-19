@@ -20,32 +20,30 @@ import java.util.Map;
 
 import tachyon.Constants;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.WorkerInfo;
 
-public class BlockMasterServiceHandler implements BlockMasterService.Iface {
+public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 
-  public BlockMasterServiceHandler(BlockMaster blockMaster) {
+  public BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
   }
 
   @Override
   public long getServiceVersion() {
-    return Constants.BLOCK_MASTER_SERVICE_VERSION;
+    return Constants.BLOCK_MASTER_WORKER_SERVICE_VERSION;
   }
 
   @Override
-  public long workerGetWorkerId(NetAddress workerNetAddress) {
+  public long getWorkerId(NetAddress workerNetAddress) {
     return mBlockMaster.getWorkerId(workerNetAddress);
   }
 
   @Override
-  public void workerRegister(long workerId, List<String> storageTiers,
+  public void registerWorker(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers) throws TachyonTException {
     try {
@@ -57,39 +55,15 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
   }
 
   @Override
-  public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
+  public Command heartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
     return mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
         addedBlocksOnTiers);
   }
 
   @Override
-  public void workerCommitBlock(long workerId, long usedBytesOnTier, String tierAlias,
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
       long blockId, long length) {
     mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-  }
-
-  @Override
-  public List<WorkerInfo> getWorkerInfoList() {
-    return mBlockMaster.getWorkerInfoList();
-  }
-
-  @Override
-  public long getCapacityBytes() {
-    return mBlockMaster.getCapacityBytes();
-  }
-
-  @Override
-  public long getUsedBytes() {
-    return mBlockMaster.getUsedBytes();
-  }
-
-  @Override
-  public BlockInfo getBlockInfo(long blockId) throws TachyonTException {
-    try {
-      return mBlockMaster.getBlockInfo(blockId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
   }
 }

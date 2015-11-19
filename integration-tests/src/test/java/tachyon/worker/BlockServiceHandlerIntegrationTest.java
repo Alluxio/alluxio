@@ -80,8 +80,8 @@ public class BlockServiceHandlerIntegrationTest {
     mWorkerServiceHandler = mLocalTachyonCluster.get().getWorker().getWorkerServiceHandler();
 
     mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.get().getMasterHostname(),
-            mLocalTachyonCluster.get().getMasterPort()), mWorkerTachyonConf);
+        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.get()
+            .getMasterHostname(), mLocalTachyonCluster.get().getMasterPort()), mWorkerTachyonConf);
   }
 
   // Tests that caching a block successfully persists the block if the block exists

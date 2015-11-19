@@ -66,7 +66,7 @@ public final class JournalTailerThread extends Thread {
    * Initiate the shutdown of this tailer thread.
    */
   public void shutdown() {
-    LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getServiceName());
+    LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getName());
     mInitiateShutdown = true;
   }
 
@@ -79,7 +79,7 @@ public final class JournalTailerThread extends Thread {
       // Wait for the thread to finish.
       join();
     } catch (InterruptedException ie) {
-      LOG.warn("{}: stopping the journal tailer caused exception: {}", mMaster.getServiceName(),
+      LOG.warn("{}: stopping the journal tailer caused exception: {}", mMaster.getName(),
           ie.getMessage());
     }
   }
@@ -99,7 +99,7 @@ public final class JournalTailerThread extends Thread {
 
   @Override
   public void run() {
-    LOG.info("{}: Journal tailer started.", mMaster.getServiceName());
+    LOG.info("{}: Journal tailer started.", mMaster.getName());
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (!mInitiateShutdown) {
@@ -108,7 +108,7 @@ public final class JournalTailerThread extends Thread {
         long waitForShutdownStart = -1;
 
         // Load the checkpoint file.
-        LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getServiceName());
+        LOG.info("{}: Waiting to load the checkpoint file.", mMaster.getName());
         mJournalTailer = new JournalTailer(mMaster, mJournal);
         while (!mJournalTailer.checkpointExists()) {
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
@@ -118,9 +118,9 @@ public final class JournalTailerThread extends Thread {
             return;
           }
         }
-        LOG.info("{}: Start loading the checkpoint file.", mMaster.getServiceName());
+        LOG.info("{}: Start loading the checkpoint file.", mMaster.getName());
         mJournalTailer.processJournalCheckpoint(true);
-        LOG.info("{}: Checkpoint file has been loaded.", mMaster.getServiceName());
+        LOG.info("{}: Checkpoint file has been loaded.", mMaster.getName());
 
         // Continually process completed log files.
         while (mJournalTailer.isValid()) {
@@ -135,25 +135,25 @@ public final class JournalTailerThread extends Thread {
                   - waitForShutdownStart) > mShutdownQuietWaitTimeMs) {
                 // There have been no new logs for the quiet period. Shutdown now.
                 LOG.info("{}: Journal tailer has been shutdown. No new logs for the quiet period.",
-                    mMaster.getServiceName());
+                    mMaster.getName());
                 mStopped = true;
                 return;
               }
             }
             LOG.debug("{}: The next complete log file does not exist yet. "
-                + "Sleeping and checking again.", mMaster.getServiceName());
+                + "Sleeping and checking again.", mMaster.getName());
             CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           }
         }
         LOG.info("{}: The checkpoint is out of date. Will reload the checkpoint file.",
-            mMaster.getServiceName());
+            mMaster.getName());
         CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
       }
     }
-    LOG.info("{}: Journal tailer has been shutdown.", mMaster.getServiceName());
+    LOG.info("{}: Journal tailer has been shutdown.", mMaster.getName());
     mStopped = true;
   }
 }

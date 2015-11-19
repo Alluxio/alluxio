@@ -29,7 +29,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
-import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RawTableMasterClientService;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(RawTableMasterClient.class)
@@ -40,9 +40,11 @@ public class RawTableMasterClientTest {
     // Client context needs to be initialized before the raw table context can be used.
     ClientContext.reset();
 
-    RawTableMasterService.Client mock = PowerMockito.mock(RawTableMasterService.Client.class);
+    RawTableMasterClientService.Client mock =
+        PowerMockito.mock(RawTableMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(RawTableMasterService.Client.class).withAnyArguments().thenReturn(mock);
+    PowerMockito.whenNew(RawTableMasterClientService.Client.class).withAnyArguments()
+        .thenReturn(mock);
 
     RawTableMasterClient client = RawTableContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
@@ -53,8 +55,8 @@ public class RawTableMasterClientTest {
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.RAW_TABLE_MASTER_SERVICE_NAME, Constants.RAW_TABLE_MASTER_SERVICE_VERSION, 0),
-          e.getMessage());
+          Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME,
+          Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION, 0), e.getMessage());
     } finally {
       RawTableContext.INSTANCE.releaseMasterClient(client);
     }

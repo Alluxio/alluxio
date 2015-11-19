@@ -29,7 +29,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
-import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.FileSystemMasterClientService;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(FileSystemMasterClient.class)
@@ -40,9 +40,11 @@ public class FileSystemMasterClientTest {
     // Client context needs to be initialized before the file system context can be used.
     ClientContext.reset();
 
-    FileSystemMasterService.Client mock = PowerMockito.mock(FileSystemMasterService.Client.class);
+    FileSystemMasterClientService.Client mock =
+        PowerMockito.mock(FileSystemMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(FileSystemMasterService.Client.class).withAnyArguments().thenReturn(mock);
+    PowerMockito.whenNew(FileSystemMasterClientService.Client.class).withAnyArguments()
+        .thenReturn(mock);
 
     FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
     TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
@@ -53,8 +55,8 @@ public class FileSystemMasterClientTest {
       Assert.fail("connect() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.FILE_SYSTEM_MASTER_SERVICE_NAME, Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION,
-          0), e.getMessage());
+          Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+          Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION, 0), e.getMessage());
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
