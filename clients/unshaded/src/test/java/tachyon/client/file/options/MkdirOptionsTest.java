@@ -30,14 +30,12 @@ public class MkdirOptionsTest {
   @Test
   public void builderTest() {
     Random random = new Random();
+    boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
 
-    MkdirOptions options =
-        new MkdirOptions.Builder(new TachyonConf())
-            .setRecursive(recursive)
-            .setUnderStorageType(ufsType)
-            .build();
+    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setAllowExists(allowExists)
+        .setRecursive(recursive).setUnderStorageType(ufsType).build();
 
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
@@ -45,14 +43,16 @@ public class MkdirOptionsTest {
 
   @Test
   public void defaultsTest() {
-    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+    WriteType writeType = WriteType.CACHE_THROUGH;
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
+    conf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, writeType.toString());
     ClientContext.reset(conf);
 
     MkdirOptions options = MkdirOptions.defaults();
 
+    Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
+    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
     ClientContext.reset();
   }
 }
