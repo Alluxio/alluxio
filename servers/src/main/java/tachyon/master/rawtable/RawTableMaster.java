@@ -158,11 +158,11 @@ public class RawTableMaster extends MasterBase {
       mFileSystemMaster.mkdir(columnPath(path, k), options);
     }
 
-    LOG.debug("writing journal entry for createRawTable {0}", path);
+    LOG.debug("writing journal entry for createRawTable {}", path);
     writeJournalEntry(new RawTableEntry(id, columns, metadata));
     flushJournal();
 
-    LOG.debug("created raw table with {0} columns at {0}", columns, path);
+    LOG.debug("created raw table with {} columns at {}", columns, path);
     return id;
   }
 
