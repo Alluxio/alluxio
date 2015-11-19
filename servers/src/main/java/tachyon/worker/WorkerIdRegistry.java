@@ -18,11 +18,11 @@ package tachyon.worker;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import tachyon.worker.block.BlockMasterClient;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.worker.block.BlockMasterClient;
 import tachyon.worker.block.BlockMasterSync;
 
 /**

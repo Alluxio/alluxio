@@ -122,7 +122,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
   }
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
@@ -155,7 +155,7 @@ public final class FileSystemMaster extends MasterBase {
 
   @Override
   public String getName() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
+    return Constants.FILE_SYSTEM_MASTER_NAME;
   }
 
   @Override

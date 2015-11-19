@@ -141,7 +141,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
   }
 
   public BlockMaster(Journal journal) {
@@ -165,7 +165,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public String getName() {
-    return Constants.BLOCK_MASTER_SERVICE_NAME;
+    return Constants.BLOCK_MASTER_NAME;
   }
 
   @Override

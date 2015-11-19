@@ -27,7 +27,7 @@ import tachyon.master.journal.ReadWriteJournal;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
-   * @return a map from service names to {@link TProcessor}s serving RPC services for this master
+   * @return a map from service names to {@link TProcessor}s that serve RPCs for this master
    */
   Map<String, TProcessor> getServices();
 
