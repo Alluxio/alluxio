@@ -230,7 +230,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Whether or not the TachyonURI contains wildcard(s).
    *
-   * @return <code>boolean</code> that indicates whether the TachyonURI contains wildcard(s)
+   * @return {@code boolean} that indicates whether the TachyonURI contains wildcard(s)
    */
   public boolean containsWildcard() {
     return mUri.getPath().contains(WILDCARD);

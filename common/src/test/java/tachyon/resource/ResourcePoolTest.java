@@ -25,7 +25,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 /**
- * Unit test for <code>ResourcePool</code> class.
+ * Unit test for {@code ResourcePool} class.
  */
 public class ResourcePoolTest {
   @Rule
