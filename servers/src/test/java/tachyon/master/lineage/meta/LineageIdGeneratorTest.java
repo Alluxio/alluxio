@@ -18,8 +18,8 @@ package tachyon.master.lineage.meta;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.master.journal.JournalEntry;
-import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry;
 
 /**
  * Tests lineage id generator.
@@ -32,7 +32,7 @@ public final class LineageIdGeneratorTest {
     long id = generator.generateId();
     JournalEntry entry = generator.toJournalEntry();
     generator = new LineageIdGenerator();
-    generator.fromJournalEntry((LineageIdGeneratorEntry) entry);
+    generator.initFromJournalEntry((LineageIdGeneratorEntry) entry.getLineageIdGenerator());
     Assert.assertEquals(id + 1, generator.generateId());
   }
 }

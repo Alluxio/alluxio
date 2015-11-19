@@ -24,8 +24,11 @@ import com.google.common.collect.Lists;
 import tachyon.client.file.TachyonFile;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
+import tachyon.job.JobConf;
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.master.lineage.journal.LineageEntry;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.JournalEntryProtos.LineageEntry;
+import tachyon.proto.JournalEntryProtos.LineageFileState;
 import tachyon.thrift.LineageFileInfo;
 import tachyon.thrift.LineageInfo;
 
@@ -220,9 +223,44 @@ public final class Lineage implements JournalEntryRepresentable {
     throw new RuntimeException("Output file " + fileId + " not found");
   }
 
+  public static Lineage fromJournal(LineageEntry entry) {
+    List<TachyonFile> inputFiles = Lists.newArrayList();
+    for (long file : entry.getInputFilesList()) {
+      inputFiles.add(new TachyonFile(file));
+    }
+
+    List<LineageFile> outputFiles = Lists.newArrayList();
+    for (int i = 0; i < entry.getOutputFileIdsCount(); i ++) {
+      outputFiles.add(new LineageFile(entry.getOutputFileIds(i), entry.getOutputFileStates(i)));
+    }
+
+    Job job = new CommandLineJob(entry.getJobCommand(), new JobConf(entry.getJobOutputPath()));
+
+    return new Lineage(entry.getId(), inputFiles, outputFiles, job, entry.getCreationTimeMs());
+  }
+
   @Override
-  public synchronized LineageEntry toJournalEntry() {
-    return new LineageEntry(mId, mInputFiles, mOutputFiles, mJob, mCreationTimeMs);
+  public synchronized JournalEntry toJournalEntry() {
+    List<Long> inputFileIds = Lists.newArrayList();
+    for (TachyonFile inputFile : mInputFiles) {
+      inputFileIds.add(inputFile.getFileId());
+    }
+    List<Long> outputFileIds = Lists.newArrayList();
+    List<LineageFileState> outputFileStates = Lists.newArrayList();
+    for (LineageFile file : mOutputFiles) {
+      outputFileIds.add(file.getFileId());
+      outputFileStates.add(file.getState());
+    }
+    Preconditions.checkState(mJob instanceof CommandLineJob);
+    CommandLineJob commandLineJob = (CommandLineJob) mJob;
+    String jobCommand = commandLineJob.getCommand();
+    String jobOutputPath = commandLineJob.getJobConf().getOutputFilePath();
+
+    LineageEntry lineage = tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder().setId(mId)
+        .addAllInputFiles(inputFileIds).addAllOutputFileIds(outputFileIds)
+        .addAllOutputFileStates(outputFileStates).setJobCommand(jobCommand)
+        .setJobOutputPath(jobOutputPath).setCreationTimeMs(mCreationTimeMs).build();
+    return JournalEntry.newBuilder().setLineageEntry(lineage).build();
   }
 
   @Override

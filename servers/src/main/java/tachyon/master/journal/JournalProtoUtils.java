@@ -29,6 +29,50 @@ public final class JournalProtoUtils {
     switch (entry.getEntryCase()) {
       case ADDMOUNTPOINT:
         return entry.getAddMountPoint();
+      case ASYNCCOMPLETEFILE:
+        return entry.getAsyncCompleteFile();
+      case BLOCKCONTAINERIDGENERATOR:
+        return entry.getBlockContainerIdGenerator();
+      case BLOCKINFO:
+        return entry.getBlockInfo();
+      case COMPLETEFILE:
+        return entry.getCompleteFile();
+      case DELETEFILE:
+        return entry.getDeleteFile();
+      case DELETELINEAGE:
+        return entry.getDeleteLineage();
+      case DELETEMOUNTPOINT:
+        return entry.getDeleteMountPoint();
+      case INODEDIRECTORY:
+        return entry.getInodeDirectory();
+      case INODEDIRECTORYIDGENERATOR:
+        return entry.getInodeDirectoryIdGenerator();
+      case INODEFILEENTRY:
+        return entry.getInodeFileEntry();
+      case INODELASTMODIFICATIONTIME:
+        return entry.getInodeLastModificationTime();
+      case LINEAGEENTRY:
+        return entry.getLineageEntry();
+      case LINEAGEIDGENERATOR:
+        return entry.getLineageIdGenerator();
+      case PERSISTDIRECTORY:
+        return entry.getPersistDirectory();
+      case PERSISTERFILES:
+        return entry.getPersisterFiles();
+      case PERSISTFILE:
+        return entry.getPersistFile();
+      case PERSISTFILESREQUEST:
+        return entry.getPersistFilesRequest();
+      case RAWTABLE:
+        return entry.getRawTable();
+      case REINITIALIZEFILE:
+        return entry.getReinitializeFile();
+      case RENAME:
+        return entry.getRename();
+      case SETSTATE:
+        return entry.getSetState();
+      case UPDATEMETADATA:
+        return entry.getUpdateMetadata();
       case ENTRY_NOT_SET:
         // This could mean that the field was never set, or it was set with a different version of
         // this message. Given the history of the JournalEntry protobuf message, the keys of the

@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.master.Master;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
 
 /**
  * This class tails the journal for a master. It will process the journal checkpoint file, and then

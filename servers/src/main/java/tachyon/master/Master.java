@@ -20,9 +20,9 @@ import java.io.IOException;
 import org.apache.thrift.TProcessor;
 
 import tachyon.master.journal.JournalCheckpointStreamable;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.proto.JournalEntryProtos.JournalEntry;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
