@@ -170,13 +170,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message message = JournalProtoUtils.getMessage(entry);
+    Message innerEntry = JournalProtoUtils.getInnerEntry(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
-    if (message instanceof BlockContainerIdGeneratorEntry) {
+    if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
-          .setNextContainerId(((BlockContainerIdGeneratorEntry) message).getNextContainerId());
-    } else if (message instanceof BlockInfoEntry) {
-      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) message;
+          .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
+    } else if (innerEntry instanceof BlockInfoEntry) {
+      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
       mBlocks.put(blockInfoEntry.getBlockId(),
           new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
     } else {

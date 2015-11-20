@@ -469,7 +469,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param entry the journal entry representing an inode
    */
   public void addInodeFromJournal(JournalEntry entry) {
-    Message innerEntry = JournalProtoUtils.getMessage(entry);
+    Message innerEntry = JournalProtoUtils.getInnerEntry(entry);
     if (innerEntry instanceof InodeFileEntry) {
       InodeFile file = InodeFile.fromJournalEntry((InodeFileEntry) innerEntry);
       addInodeFromJournalInternal(file);

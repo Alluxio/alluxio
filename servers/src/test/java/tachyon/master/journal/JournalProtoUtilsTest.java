@@ -48,7 +48,7 @@ public final class JournalProtoUtilsTest {
     AddMountPointEntry addMountEntry = AddMountPointEntry.newBuilder().build();
     tachyon.proto.JournalEntryProtos.JournalEntry entry =
         JournalEntryProtos.JournalEntry.newBuilder().setAddMountPoint(addMountEntry).build();
-    Message message = JournalProtoUtils.getMessage(entry);
+    Message message = JournalProtoUtils.getInnerEntry(entry);
     Assert.assertTrue(message instanceof AddMountPointEntry);
     Assert.assertEquals(message, addMountEntry);
   }
@@ -61,7 +61,7 @@ public final class JournalProtoUtilsTest {
     tachyon.proto.JournalEntryProtos.JournalEntry entry =
         JournalEntryProtos.JournalEntry.newBuilder().build();
     try {
-      JournalProtoUtils.getMessage(entry);
+      JournalProtoUtils.getInnerEntry(entry);
       Assert.fail("getMessage() should fail when no messages is set");
     } catch (RuntimeException e) {
       Assert.assertEquals(ExceptionMessage.NO_ENTRY_TYPE.getMessage("[]"), e.getMessage());
@@ -79,7 +79,7 @@ public final class JournalProtoUtilsTest {
         UnknownFieldSet.newBuilder().addField(46264, Field.newBuilder().build()).build());
     Mockito.when(unknownEntry.getEntryCase()).thenReturn(EntryCase.ENTRY_NOT_SET);
     try {
-      JournalProtoUtils.getMessage(unknownEntry);
+      JournalProtoUtils.getInnerEntry(unknownEntry);
       Assert.fail("getMessage() should fail when no messages is set");
     } catch (RuntimeException e) {
       Assert.assertEquals(ExceptionMessage.NO_ENTRY_TYPE.getMessage("[46264]"), e.getMessage());

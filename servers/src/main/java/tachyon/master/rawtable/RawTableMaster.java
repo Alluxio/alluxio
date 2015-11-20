@@ -89,7 +89,7 @@ public class RawTableMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.getMessage(entry);
+    Message innerEntry = JournalProtoUtils.getInnerEntry(entry);
     if (innerEntry instanceof RawTableEntry) {
       RawTableEntry tableEntry = (RawTableEntry) innerEntry;
       mRawTables.add(tableEntry.getId(), tableEntry.getColumns(),
