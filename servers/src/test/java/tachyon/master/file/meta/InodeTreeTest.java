@@ -116,8 +116,8 @@ public final class InodeTreeTest {
     Inode test = mTree.getInodeByPath(TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
     Assert.assertTrue(test.isDirectory());
-    Assert.assertEquals("user1", test.getUsername());
-    Assert.assertTrue(test.getGroupname().isEmpty());
+    Assert.assertEquals("user1", test.getUserName());
+    Assert.assertTrue(test.getGroupName().isEmpty());
     Assert.assertEquals((short)0755, test.getPermission());
 
     // create nested directory
@@ -126,8 +126,8 @@ public final class InodeTreeTest {
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
     Assert.assertTrue(test.isDirectory());
-    Assert.assertEquals("user1", test.getUsername());
-    Assert.assertTrue(test.getGroupname().isEmpty());
+    Assert.assertEquals("user1", test.getUserName());
+    Assert.assertTrue(test.getGroupName().isEmpty());
     Assert.assertEquals((short)0755, test.getPermission());
   }
 
@@ -170,8 +170,8 @@ public final class InodeTreeTest {
     Assert.assertEquals("file", nestedFile.getName());
     Assert.assertEquals(2, nestedFile.getParentId());
     Assert.assertTrue(nestedFile.isFile());
-    Assert.assertEquals("user1", nestedFile.getUsername());
-    Assert.assertTrue(nestedFile.getGroupname().isEmpty());
+    Assert.assertEquals("user1", nestedFile.getUserName());
+    Assert.assertTrue(nestedFile.getGroupName().isEmpty());
     Assert.assertEquals((short)0644, nestedFile.getPermission());
   }
 
