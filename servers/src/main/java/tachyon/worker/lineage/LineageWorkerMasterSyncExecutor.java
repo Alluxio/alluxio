@@ -78,8 +78,8 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
           persistedFiles);
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
-    }  catch (ConnectionFailedException cfe) {
-      LOG.error("Failed to heartbeat to master", cfe);
+    }  catch (ConnectionFailedException e) {
+      LOG.error("Failed to heartbeat to master", e);
     }
     Preconditions.checkState(command.commandType == CommandType.Persist);
 

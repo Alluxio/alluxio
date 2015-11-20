@@ -154,8 +154,8 @@ public final class BlockDataManager {
           loc.tierAlias(), blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
-    } catch (ConnectionFailedException cfe) {
-      throw new IOException("Failed to commit block to master.", cfe);
+    } catch (ConnectionFailedException e) {
+      throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }

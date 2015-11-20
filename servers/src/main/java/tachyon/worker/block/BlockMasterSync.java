@@ -125,8 +125,8 @@ public final class BlockMasterSync implements Runnable {
     } catch (IOException ioe) {
       // If failed to register when the thread starts, no retry will happen.
       throw new RuntimeException("Failed to register with master.", ioe);
-    } catch (ConnectionFailedException cfe) {
-      throw new RuntimeException("Failed to register with master.", cfe);
+    } catch (ConnectionFailedException e) {
+      throw new RuntimeException("Failed to register with master.", e);
     }
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval
