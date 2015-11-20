@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
-import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.FileSystemPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
@@ -119,7 +119,7 @@ public final class UiFileInfo {
     mIsPinned = false;
     mUserName = "";
     mGroupName = "";
-    mPermission = FsPermission.getNoneFsPermission().toShort();
+    mPermission = FileSystemPermission.getNoneFsPermission().toShort();
     mIsPersisted = false;
     mFileLocations = new ArrayList<String>();
   }

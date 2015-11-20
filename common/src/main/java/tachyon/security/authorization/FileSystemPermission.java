@@ -22,28 +22,29 @@ import tachyon.exception.ExceptionMessage;
 /**
  * A class for file/directory permissions.
  */
-public final class FsPermission {
+public final class FileSystemPermission {
   //POSIX permission style
-  private FsAction mUseraction;
-  private FsAction mGroupaction;
-  private FsAction mOtheraction;
+  private FileSystemAction mUseraction;
+  private FileSystemAction mGroupaction;
+  private FileSystemAction mOtheraction;
 
   /**
-   * Constructs an instance of {@link FsPermission} with the given {@link FsAction}.
-   * @param userFsAction user action
-   * @param groupFsAction group action
-   * @param otherFsAction other action
+   * Constructs an instance of {@link FileSystemPermission} with the given {@link FileSystemAction}.
+   * @param userFileSystemAction user action
+   * @param groupFileSystemAction group action
+   * @param otherFileSystemAction other action
    */
-  public FsPermission(FsAction userFsAction, FsAction groupFsAction, FsAction otherFsAction) {
-    set(userFsAction, groupFsAction, otherFsAction);
+  public FileSystemPermission(FileSystemAction userFileSystemAction, FileSystemAction
+      groupFileSystemAction, FileSystemAction otherFileSystemAction) {
+    set(userFileSystemAction, groupFileSystemAction, otherFileSystemAction);
   }
 
   /**
-   * Constructs an instance of {@link FsPermission} with the given mode.
+   * Constructs an instance of {@link FileSystemPermission} with the given mode.
    * @param mode
    * @see #toShort()
    */
-  public FsPermission(short mode) {
+  public FileSystemPermission(short mode) {
     fromShort(mode);
   }
 
@@ -51,42 +52,42 @@ public final class FsPermission {
    * Copy constructor.
    * @param otherPermission
    */
-  public FsPermission(FsPermission otherPermission) {
+  public FileSystemPermission(FileSystemPermission otherPermission) {
     set(otherPermission.mUseraction, otherPermission.mGroupaction, otherPermission.mOtheraction);
   }
 
   /**
    * Get user action
-   * @return the user {@link FsAction}
+   * @return the user {@link FileSystemAction}
    */
-  public FsAction getUserAction() {
+  public FileSystemAction getUserAction() {
     return mUseraction;
   }
 
   /**
    * Get group action
-   * @return the group {@link FsAction}
+   * @return the group {@link FileSystemAction}
    */
-  public FsAction getGroupAction() {
+  public FileSystemAction getGroupAction() {
     return mGroupaction;
   }
 
   /**
    * Get other action
-   * @return the other {@link FsAction}
+   * @return the other {@link FileSystemAction}
    */
-  public FsAction getOtherAction() {
+  public FileSystemAction getOtherAction() {
     return mOtheraction;
   }
 
-  private void set(FsAction u, FsAction g, FsAction o) {
+  private void set(FileSystemAction u, FileSystemAction g, FileSystemAction o) {
     mUseraction = u;
     mGroupaction = g;
     mOtheraction = o;
   }
 
   public void fromShort(short n) {
-    FsAction[] v = FsAction.values();
+    FileSystemAction[] v = FileSystemAction.values();
     set(v[(n >>> 6) & 7], v[(n >>> 3) & 7], v[n & 7]);
   }
 
@@ -101,8 +102,8 @@ public final class FsPermission {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FsPermission) {
-      FsPermission that = (FsPermission)obj;
+    if (obj instanceof FileSystemPermission) {
+      FileSystemPermission that = (FileSystemPermission)obj;
       return mUseraction == that.mUseraction
           && mGroupaction == that.mGroupaction
           && mOtheraction == that.mOtheraction;
@@ -124,11 +125,11 @@ public final class FsPermission {
   /**
    * Applies a umask to this permission and return a new one.
    *
-   * @param umask the umask {@link FsPermission}
-   * @return a new {@link FsPermission}
+   * @param umask the umask {@link FileSystemPermission}
+   * @return a new {@link FileSystemPermission}
    */
-  public FsPermission applyUMask(FsPermission umask) {
-    return new FsPermission(mUseraction.and(umask.mUseraction.not()),
+  public FileSystemPermission applyUMask(FileSystemPermission umask) {
+    return new FileSystemPermission(mUseraction.and(umask.mUseraction.not()),
         mGroupaction.and(umask.mGroupaction.not()),
         mOtheraction.and(umask.mOtheraction.not()));
   }
@@ -137,33 +138,34 @@ public final class FsPermission {
    * Applies a umask to this permission and return a new one.
    *
    * @param conf the configuration to read the umask permission from
-   * @return a new {@link FsPermission}
+   * @return a new {@link FileSystemPermission}
    */
-  public FsPermission applyUMask(TachyonConf conf) {
+  public FileSystemPermission applyUMask(TachyonConf conf) {
     return applyUMask(getUMask(conf));
   }
 
   /**
    * Get the default permission.
-   * @return the default {@link FsPermission}
+   * @return the default {@link FileSystemPermission}
    */
-  public static FsPermission getDefault() {
-    return new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION);
+  public static FileSystemPermission getDefault() {
+    return new FileSystemPermission(Constants.DEFAULT_TFS_FULL_PERMISSION);
   }
 
   /**
    * Get the none permission for NOSASL authentication mode
-   * @return the none {@link FsPermission}
+   * @return the none {@link FileSystemPermission}
    */
-  public static FsPermission getNoneFsPermission() {
-    return new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
+  public static FileSystemPermission getNoneFsPermission() {
+    return new FileSystemPermission(FileSystemAction.NONE, FileSystemAction.NONE,
+        FileSystemAction.NONE);
   }
 
   /**
    * Get the file/directory creation umask
-   * @return the umask {@link FsPermission}
+   * @return the umask {@link FileSystemPermission}
    */
-  public static FsPermission getUMask(TachyonConf conf) {
+  public static FileSystemPermission getUMask(TachyonConf conf) {
     int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
     if (conf != null) {
       String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK);
@@ -180,7 +182,7 @@ public final class FsPermission {
         umask = newUmask;
       }
     }
-    return new FsPermission((short)umask);
+    return new FileSystemPermission((short)umask);
   }
 
   private static boolean tryParseInt(String value) {

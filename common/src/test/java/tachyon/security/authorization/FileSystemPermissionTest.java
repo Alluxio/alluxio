@@ -24,7 +24,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 
-public class FsPermissionTest {
+public class FileSystemPermissionTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -32,50 +32,52 @@ public class FsPermissionTest {
 
   @Test
   public void toShortTest() throws Exception {
-    FsPermission permission =
-        new FsPermission(FsAction.ALL, FsAction.READ_EXECUTE, FsAction.READ_EXECUTE);
+    FileSystemPermission permission =
+        new FileSystemPermission(FileSystemAction.ALL, FileSystemAction.READ_EXECUTE,
+            FileSystemAction.READ_EXECUTE);
     Assert.assertEquals(0755, permission.toShort());
 
-    permission = FsPermission.getDefault();
+    permission = FileSystemPermission.getDefault();
     Assert.assertEquals(0777, permission.toShort());
 
-    permission = new FsPermission(FsAction.READ_WRITE, FsAction.READ, FsAction.READ);
+    permission = new FileSystemPermission(FileSystemAction.READ_WRITE, FileSystemAction.READ,
+        FileSystemAction.READ);
     Assert.assertEquals(0644, permission.toShort());
   }
 
   @Test
   public void fromShortTest() throws Exception {
-    FsPermission permission = new FsPermission((short)0777);
-    Assert.assertEquals(FsAction.ALL, permission.getUserAction());
-    Assert.assertEquals(FsAction.ALL, permission.getGroupAction());
-    Assert.assertEquals(FsAction.ALL, permission.getOtherAction());
+    FileSystemPermission permission = new FileSystemPermission((short)0777);
+    Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
+    Assert.assertEquals(FileSystemAction.ALL, permission.getGroupAction());
+    Assert.assertEquals(FileSystemAction.ALL, permission.getOtherAction());
 
-    permission = new FsPermission((short)0644);
-    Assert.assertEquals(FsAction.READ_WRITE, permission.getUserAction());
-    Assert.assertEquals(FsAction.READ, permission.getGroupAction());
-    Assert.assertEquals(FsAction.READ, permission.getOtherAction());
+    permission = new FileSystemPermission((short)0644);
+    Assert.assertEquals(FileSystemAction.READ_WRITE, permission.getUserAction());
+    Assert.assertEquals(FileSystemAction.READ, permission.getGroupAction());
+    Assert.assertEquals(FileSystemAction.READ, permission.getOtherAction());
 
-    permission = new FsPermission((short)0755);
-    Assert.assertEquals(FsAction.ALL, permission.getUserAction());
-    Assert.assertEquals(FsAction.READ_EXECUTE, permission.getGroupAction());
-    Assert.assertEquals(FsAction.READ_EXECUTE, permission.getOtherAction());
+    permission = new FileSystemPermission((short)0755);
+    Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
+    Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getGroupAction());
+    Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getOtherAction());
   }
 
   @Test
   public void copyConstructorTest() throws Exception {
-    FsPermission permission = new FsPermission(FsPermission.getDefault());
-    Assert.assertEquals(FsAction.ALL, permission.getUserAction());
-    Assert.assertEquals(FsAction.ALL, permission.getGroupAction());
-    Assert.assertEquals(FsAction.ALL, permission.getOtherAction());
+    FileSystemPermission permission = new FileSystemPermission(FileSystemPermission.getDefault());
+    Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
+    Assert.assertEquals(FileSystemAction.ALL, permission.getGroupAction());
+    Assert.assertEquals(FileSystemAction.ALL, permission.getOtherAction());
     Assert.assertEquals(0777, permission.toShort());
   }
 
   @Test
   public void getNoneFsPermissionTest() throws Exception {
-    FsPermission permission = FsPermission.getNoneFsPermission();
-    Assert.assertEquals(FsAction.NONE, permission.getUserAction());
-    Assert.assertEquals(FsAction.NONE, permission.getGroupAction());
-    Assert.assertEquals(FsAction.NONE, permission.getOtherAction());
+    FileSystemPermission permission = FileSystemPermission.getNoneFsPermission();
+    Assert.assertEquals(FileSystemAction.NONE, permission.getUserAction());
+    Assert.assertEquals(FileSystemAction.NONE, permission.getGroupAction());
+    Assert.assertEquals(FileSystemAction.NONE, permission.getOtherAction());
     Assert.assertEquals(0000, permission.toShort());
   }
 
@@ -83,12 +85,12 @@ public class FsPermissionTest {
   public void umaskTest() throws Exception {
     String umask = "0022";
     mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
-    FsPermission umaskPermission = FsPermission.getUMask(mConf);
+    FileSystemPermission umaskPermission = FileSystemPermission.getUMask(mConf);
     // after umask 0022, 0777 should change to 0755
-    FsPermission permission = FsPermission.getDefault().applyUMask(umaskPermission);
-    Assert.assertEquals(FsAction.ALL, permission.getUserAction());
-    Assert.assertEquals(FsAction.READ_EXECUTE, permission.getGroupAction());
-    Assert.assertEquals(FsAction.READ_EXECUTE, permission.getOtherAction());
+    FileSystemPermission permission = FileSystemPermission.getDefault().applyUMask(umaskPermission);
+    Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
+    Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getGroupAction());
+    Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getOtherAction());
     Assert.assertEquals(0755, permission.toShort());
   }
 
@@ -99,7 +101,7 @@ public class FsPermissionTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK));
-    FsPermission.getUMask(mConf);
+    FileSystemPermission.getUMask(mConf);
   }
 
   @Test
@@ -109,6 +111,6 @@ public class FsPermissionTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK));
-    FsPermission.getUMask(mConf);
+    FileSystemPermission.getUMask(mConf);
   }
 }
