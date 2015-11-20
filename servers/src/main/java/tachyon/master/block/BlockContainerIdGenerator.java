@@ -44,9 +44,12 @@ public final class BlockContainerIdGenerator
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    BlockContainerIdGeneratorEntry blockContainerIdGenerator = BlockContainerIdGeneratorEntry
-        .newBuilder().setNextContainerId(mNextContainerId.get()).build();
-    return JournalEntry.newBuilder().setBlockContainerIdGenerator(blockContainerIdGenerator)
+    BlockContainerIdGeneratorEntry blockContainerIdGenerator =
+        BlockContainerIdGeneratorEntry.newBuilder()
+        .setNextContainerId(mNextContainerId.get())
+        .build();
+    return JournalEntry.newBuilder()
+        .setBlockContainerIdGenerator(blockContainerIdGenerator)
         .build();
   }
 }

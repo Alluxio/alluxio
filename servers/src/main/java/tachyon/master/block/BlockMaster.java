@@ -189,7 +189,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
-          .setBlockId(blockInfo.getBlockId()).setLength(blockInfo.getLength()).build();
+          .setBlockId(blockInfo.getBlockId())
+          .setLength(blockInfo.getLength())
+          .build();
       outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
@@ -349,9 +351,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
-          BlockInfoEntry blockInfo =
-              BlockInfoEntry.newBuilder().setBlockId(masterBlockInfo.getBlockId())
-                  .setLength(masterBlockInfo.getLength()).build();
+          BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
+              .setBlockId(masterBlockInfo.getBlockId())
+              .setLength(masterBlockInfo.getLength())
+              .build();
           writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           flushJournal();
         }
@@ -377,9 +380,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         masterBlockInfo = new MasterBlockInfo(blockId, length);
         mBlocks.put(blockId, masterBlockInfo);
 
-        BlockInfoEntry blockInfo =
-            BlockInfoEntry.newBuilder().setBlockId(masterBlockInfo.getBlockId())
-                .setLength(masterBlockInfo.getLength()).build();
+        BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
+            .setBlockId(masterBlockInfo.getBlockId())
+            .setLength(masterBlockInfo.getLength())
+            .build();
         writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
         flushJournal();
       }
