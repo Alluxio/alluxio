@@ -54,8 +54,9 @@ public final class LineageIdGenerator implements JournalEntryRepresentable {
 
   @Override
   public JournalEntry toJournalEntry() {
-    LineageIdGeneratorEntry lineageIdGenerator =
-        LineageIdGeneratorEntry.newBuilder().setSequenceNumber(mSequenceNumber.longValue()).build();
+    LineageIdGeneratorEntry lineageIdGenerator = LineageIdGeneratorEntry.newBuilder()
+        .setSequenceNumber(mSequenceNumber.longValue())
+        .build();
     return JournalEntry.newBuilder().setLineageIdGenerator(lineageIdGenerator).build();
   }
 }

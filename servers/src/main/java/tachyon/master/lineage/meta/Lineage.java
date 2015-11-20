@@ -256,10 +256,15 @@ public final class Lineage implements JournalEntryRepresentable {
     String jobCommand = commandLineJob.getCommand();
     String jobOutputPath = commandLineJob.getJobConf().getOutputFilePath();
 
-    LineageEntry lineage = tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder().setId(mId)
-        .addAllInputFiles(inputFileIds).addAllOutputFileIds(outputFileIds)
-        .addAllOutputFileStates(outputFileStates).setJobCommand(jobCommand)
-        .setJobOutputPath(jobOutputPath).setCreationTimeMs(mCreationTimeMs).build();
+    LineageEntry lineage = tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder()
+        .setId(mId)
+        .addAllInputFiles(inputFileIds)
+        .addAllOutputFileIds(outputFileIds)
+        .addAllOutputFileStates(outputFileStates)
+        .setJobCommand(jobCommand)
+        .setJobOutputPath(jobOutputPath)
+        .setCreationTimeMs(mCreationTimeMs)
+        .build();
     return JournalEntry.newBuilder().setLineage(lineage).build();
   }
 

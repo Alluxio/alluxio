@@ -22,10 +22,11 @@ import java.io.OutputStream;
 import tachyon.proto.JournalEntryProtos.JournalEntry;
 
 /**
- * Reads and writes protocol buffer journal entries.
+ * Reads and writes protocol buffer journal entries. The entries contain headers describing their
+ * length. This framing is handled by entirely by {@code writeDelimitedTo} and
+ * {@code parseDelimitedFrom}.
  */
 public final class ProtoBufJournalFormatter implements JournalFormatter {
-
   @Override
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
     entry.writeDelimitedTo(outputStream);

@@ -324,11 +324,21 @@ public final class InodeFile extends Inode {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    InodeFileEntry inodeFile = InodeFileEntry.newBuilder().setCreationTimeMs(getCreationTimeMs())
-        .setId(getId()).setName(getName()).setParentId(getParentId()).setPersisted(isPersisted())
-        .setPinned(isPinned()).setLastModificationTimeMs(getLastModificationTimeMs())
-        .setBlockSizeBytes(getBlockSizeBytes()).setLength(getLength()).setCompleted(isCompleted())
-        .setCacheable(isCacheable()).addAllBlocks(mBlocks).setTtl(mTTL).build();
+    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+        .setCreationTimeMs(getCreationTimeMs())
+        .setId(getId())
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersisted(isPersisted())
+        .setPinned(isPinned())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .setLength(getLength())
+        .setCompleted(isCompleted())
+        .setCacheable(isCacheable())
+        .addAllBlocks(mBlocks)
+        .setTtl(mTTL)
+        .build();
     return JournalEntry.newBuilder().setInodeFileEntry(inodeFile).build();
   }
 

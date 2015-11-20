@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.proto.JournalEntryProtos.JournalEntry;
-import tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry;
 
 /**
  * Tests lineage id generator.
@@ -32,7 +31,7 @@ public final class LineageIdGeneratorTest {
     long id = generator.generateId();
     JournalEntry entry = generator.toJournalEntry();
     generator = new LineageIdGenerator();
-    generator.initFromJournalEntry((LineageIdGeneratorEntry) entry.getLineageIdGenerator());
+    generator.initFromJournalEntry(entry.getLineageIdGenerator());
     Assert.assertEquals(id + 1, generator.generateId());
   }
 }

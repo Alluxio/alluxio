@@ -193,10 +193,15 @@ public final class InodeDirectory extends Inode {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    InodeDirectoryEntry inodeDirectory =
-        InodeDirectoryEntry.newBuilder().setCreationTimeMs(getCreationTimeMs()).setId(getId())
-            .setName(getName()).setParentId(getParentId()).setPersisted(isPersisted())
-            .setPinned(isPinned()).setLastModificationTimeMs(getLastModificationTimeMs()).build();
+    InodeDirectoryEntry inodeDirectory = InodeDirectoryEntry.newBuilder()
+        .setCreationTimeMs(getCreationTimeMs())
+        .setId(getId())
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersisted(isPersisted())
+        .setPinned(isPinned())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
 }

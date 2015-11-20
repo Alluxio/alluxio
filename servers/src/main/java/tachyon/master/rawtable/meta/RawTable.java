@@ -83,8 +83,11 @@ public class RawTable implements JournalEntryRepresentable {
 
   @Override
   public JournalEntry toJournalEntry() {
-    RawTableEntry rawTable = RawTableEntry.newBuilder().setId(mId).setColumns(mColumns)
-        .setMetadata(ByteString.copyFrom(mMetadata)).build();
+    RawTableEntry rawTable = RawTableEntry.newBuilder()
+        .setId(mId)
+        .setColumns(mColumns)
+        .setMetadata(ByteString.copyFrom(mMetadata))
+        .build();
     return JournalEntry.newBuilder().setRawTable(rawTable).build();
   }
 }
