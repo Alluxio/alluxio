@@ -111,7 +111,7 @@ public final class ReplayCache<V> {
 
   /**
    * Same with {@link ReplayCallable} except that this handler method throws {@link IOException} and
-   * is to be executed in {@link #run(String, ReplayCallableThrowsIOException}.
+   * is to be executed in {@link #run(String, ReplayCallableThrowsIOException)}.
    *
    * @param <V> the return type of {@link #call()}
    */
