@@ -1365,6 +1365,7 @@ public final class FileSystemMaster extends MasterBase {
     Inode inode = mInodeTree.getInodeById(fileId);
     if (options.hasPinned()) {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
+      inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.hasTTL()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
@@ -1374,6 +1375,7 @@ public final class FileSystemMaster extends MasterBase {
         mTTLBuckets.remove(file);
         file.setTTL(ttl);
         mTTLBuckets.insert(file);
+        file.setLastModificationTimeMs(opTimeMs);
       }
     }
     if (options.hasPersisted()) {
@@ -1387,9 +1389,9 @@ public final class FileSystemMaster extends MasterBase {
       if (!file.isPersisted()) {
         file.setPersisted(true);
         propagatePersisted(file, false);
+        file.setLastModificationTimeMs(opTimeMs);
+        MasterContext.getMasterSource().incFilesCheckpointed();
       }
-      file.setLastModificationTimeMs(opTimeMs);
-      MasterContext.getMasterSource().incFilesCheckpointed();
     }
   }
 
