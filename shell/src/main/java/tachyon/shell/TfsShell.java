@@ -577,7 +577,7 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUsername(),
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
           file.getPath());
     }
   }
@@ -607,7 +607,7 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUsername(),
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
           file.getPath());
       if (file.isFolder) {
         lsr(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()));

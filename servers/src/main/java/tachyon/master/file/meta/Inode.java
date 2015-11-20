@@ -298,7 +298,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   /**
    * @return the username of the inode
    */
-  public synchronized String getUsername() {
+  public synchronized String getUserName() {
     return mUserName;
   }
 
@@ -314,7 +314,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   /**
    * @return the groupname of the inode
    */
-  public synchronized String getGroupname() {
+  public synchronized String getGroupName() {
     return mGroupName;
   }
 

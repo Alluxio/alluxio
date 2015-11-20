@@ -98,8 +98,8 @@ public final class UiFileInfo {
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
-    mUserName = fileInfo.getUsername();
-    mGroupName = fileInfo.getGroupname();
+    mUserName = fileInfo.getUserName();
+    mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();
     mIsPersisted = fileInfo.isPersisted;
     mFileLocations = new ArrayList<String>();

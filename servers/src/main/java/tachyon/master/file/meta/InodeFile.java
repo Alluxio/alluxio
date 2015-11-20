@@ -153,8 +153,8 @@ public final class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = mTTL;
-    ret.username = getUsername();
-    ret.groupname = getGroupname();
+    ret.userName = getUserName();
+    ret.groupName = getGroupName();
     ret.permission = getPermission();
     return ret;
   }
@@ -310,7 +310,7 @@ public final class InodeFile extends Inode {
   public synchronized JournalEntry toJournalEntry() {
     return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
         isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
-        isCacheable(), mBlocks, mTTL, getUsername(), getGroupname(), getPermission());
+        isCacheable(), mBlocks, mTTL, getUserName(), getGroupName(), getPermission());
   }
 
   /**
