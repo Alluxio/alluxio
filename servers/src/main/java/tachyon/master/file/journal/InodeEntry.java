@@ -127,16 +127,25 @@ public abstract class InodeEntry extends JournalEntry {
     return mLastModificationTimeMs;
   }
 
+  /**
+   * @return the user name
+   */
   @JsonGetter
   public String getUsername() {
     return mUsername;
   }
 
+  /**
+   * @return the group name
+   */
   @JsonGetter
   public String getGroupname() {
     return mGroupname;
   }
 
+  /**
+   * @return the permission
+   */
   @JsonGetter
   public short getPermission() {
     return mPermission;

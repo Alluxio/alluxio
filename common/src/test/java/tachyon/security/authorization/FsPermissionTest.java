@@ -22,10 +22,13 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 
 public class FsPermissionTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  private TachyonConf mConf = new TachyonConf();
 
   @Test
   public void toShortTest() throws Exception {
@@ -36,8 +39,7 @@ public class FsPermissionTest {
     permission = FsPermission.getDefault();
     Assert.assertEquals(0777, permission.toShort());
 
-    permission =
-        new FsPermission(FsAction.READ_WRITE, FsAction.READ, FsAction.READ);
+    permission = new FsPermission(FsAction.READ_WRITE, FsAction.READ, FsAction.READ);
     Assert.assertEquals(0644, permission.toShort());
   }
 
@@ -60,11 +62,28 @@ public class FsPermissionTest {
   }
 
   @Test
+  public void copyConstructorTest() throws Exception {
+    FsPermission permission = new FsPermission(FsPermission.getDefault());
+    Assert.assertEquals(FsAction.ALL, permission.getUserAction());
+    Assert.assertEquals(FsAction.ALL, permission.getGroupAction());
+    Assert.assertEquals(FsAction.ALL, permission.getOtherAction());
+    Assert.assertEquals(0777, permission.toShort());
+  }
+
+  @Test
+  public void getNoneFsPermissionTest() throws Exception {
+    FsPermission permission = FsPermission.getNoneFsPermission();
+    Assert.assertEquals(FsAction.NONE, permission.getUserAction());
+    Assert.assertEquals(FsAction.NONE, permission.getGroupAction());
+    Assert.assertEquals(FsAction.NONE, permission.getOtherAction());
+    Assert.assertEquals(0000, permission.toShort());
+  }
+
+  @Test
   public void umaskTest() throws Exception {
     String umask = "0022";
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
-    FsPermission umaskPermission = FsPermission.getUMask(conf);
+    mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
+    FsPermission umaskPermission = FsPermission.getUMask(mConf);
     // after umask 0022, 0777 should change to 0755
     FsPermission permission = FsPermission.getDefault().applyUMask(umaskPermission);
     Assert.assertEquals(FsAction.ALL, permission.getUserAction());
@@ -76,20 +95,20 @@ public class FsPermissionTest {
   @Test
   public void umaskExceedLengthTest() throws Exception {
     String umask = "00022";
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
+    mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Invalid configure value for key");
-    FsPermission.getUMask(conf);
+    mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
+        Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK));
+    FsPermission.getUMask(mConf);
   }
 
   @Test
   public void umaskNotIntegerTest() throws Exception {
     String umask = "NotInteger";
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
+    mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Invalid configure value for key");
-    FsPermission.getUMask(conf);
+    mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
+        Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK));
+    FsPermission.getUMask(mConf);
   }
 }

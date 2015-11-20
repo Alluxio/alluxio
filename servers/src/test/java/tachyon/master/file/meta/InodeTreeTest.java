@@ -56,7 +56,8 @@ public final class InodeTreeTest {
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
-  private static final PermissionStatus TEST_PS = new PermissionStatus("user1", "", (short)0755);
+  private static final PermissionStatus TEST_PERMISSION_STATUS =
+      new PermissionStatus("user1", "", (short)0755);
   private static CreatePathOptions sFileOptions;
   private static CreatePathOptions sDirectoryOptions;
   private static CreatePathOptions sNestedFileOptions;
@@ -79,32 +80,31 @@ public final class InodeTreeTest {
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
-    mTree.initializeRoot(TEST_PS);
+    mTree.initializeRoot(TEST_PERMISSION_STATUS);
   }
 
   @BeforeClass
   public static void beforeClass() {
     sFileOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PS).build();
+            .setPermissionStatus(TEST_PERMISSION_STATUS).build();
     sDirectoryOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setDirectory(true)
-            .setPermissionStatus(TEST_PS)
-            .build();
+            .setDirectory(true).setPermissionStatus(TEST_PERMISSION_STATUS).build();
     sNestedFileOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PS).setRecursive(true).build();
+            .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true).build();
     sNestedDirectoryOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PS).setDirectory(true).setRecursive(true).build();
+            .setPermissionStatus(TEST_PERMISSION_STATUS).setDirectory(true).setRecursive(true)
+            .build();
   }
 
   @Test
   public void initializeRootTwiceTest() throws Exception {
     Inode root = mTree.getInodeByPath(new TachyonURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_PS);
+    mTree.initializeRoot(TEST_PERMISSION_STATUS);
     Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -351,7 +351,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Inode id 1 does not exist");
 
     Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1)
-        .setPermissionStatus(TEST_PS).build();
+        .setPermissionStatus(TEST_PERMISSION_STATUS).build();
     mTree.deleteInode(testFile);
   }
 

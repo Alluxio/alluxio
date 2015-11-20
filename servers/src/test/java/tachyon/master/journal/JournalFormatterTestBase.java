@@ -92,7 +92,8 @@ public abstract class JournalFormatterTestBase {
   protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
   protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
   protected static final Job TEST_JOB = new CommandLineJob("Command", new JobConf("/test/path"));
-  protected static final PermissionStatus TEST_PERMISSION_STATUS = PermissionStatus.getDirDefault();
+  protected static final PermissionStatus TEST_PERMISSION_STATUS =
+      new PermissionStatus("user1", "group1", (short)0777);
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;

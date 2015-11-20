@@ -22,24 +22,24 @@ public class FsActionTest {
 
   @Test
   public void impliesTest() throws Exception {
-    Assert.assertTrue(FsAction.ALL.implies(FsAction.READ));
-    Assert.assertTrue(FsAction.ALL.implies(FsAction.WRITE));
-    Assert.assertTrue(FsAction.ALL.implies(FsAction.EXECUTE));
-    Assert.assertTrue(FsAction.ALL.implies(FsAction.READ_EXECUTE));
-    Assert.assertTrue(FsAction.ALL.implies(FsAction.WRITE_EXECUTE));
-    Assert.assertTrue(FsAction.ALL.implies(FsAction.ALL));
+    Assert.assertTrue(FsAction.ALL.imply(FsAction.READ));
+    Assert.assertTrue(FsAction.ALL.imply(FsAction.WRITE));
+    Assert.assertTrue(FsAction.ALL.imply(FsAction.EXECUTE));
+    Assert.assertTrue(FsAction.ALL.imply(FsAction.READ_EXECUTE));
+    Assert.assertTrue(FsAction.ALL.imply(FsAction.WRITE_EXECUTE));
+    Assert.assertTrue(FsAction.ALL.imply(FsAction.ALL));
 
-    Assert.assertTrue(FsAction.READ_EXECUTE.implies(FsAction.READ));
-    Assert.assertTrue(FsAction.READ_EXECUTE.implies(FsAction.EXECUTE));
-    Assert.assertFalse(FsAction.READ_EXECUTE.implies(FsAction.WRITE));
+    Assert.assertTrue(FsAction.READ_EXECUTE.imply(FsAction.READ));
+    Assert.assertTrue(FsAction.READ_EXECUTE.imply(FsAction.EXECUTE));
+    Assert.assertFalse(FsAction.READ_EXECUTE.imply(FsAction.WRITE));
 
-    Assert.assertTrue(FsAction.WRITE_EXECUTE.implies(FsAction.WRITE));
-    Assert.assertTrue(FsAction.WRITE_EXECUTE.implies(FsAction.EXECUTE));
-    Assert.assertFalse(FsAction.WRITE_EXECUTE.implies(FsAction.READ));
+    Assert.assertTrue(FsAction.WRITE_EXECUTE.imply(FsAction.WRITE));
+    Assert.assertTrue(FsAction.WRITE_EXECUTE.imply(FsAction.EXECUTE));
+    Assert.assertFalse(FsAction.WRITE_EXECUTE.imply(FsAction.READ));
 
-    Assert.assertTrue(FsAction.READ_WRITE.implies(FsAction.WRITE));
-    Assert.assertTrue(FsAction.READ_WRITE.implies(FsAction.READ));
-    Assert.assertFalse(FsAction.READ_WRITE.implies(FsAction.EXECUTE));
+    Assert.assertTrue(FsAction.READ_WRITE.imply(FsAction.WRITE));
+    Assert.assertTrue(FsAction.READ_WRITE.imply(FsAction.READ));
+    Assert.assertFalse(FsAction.READ_WRITE.imply(FsAction.EXECUTE));
   }
 
   @Test

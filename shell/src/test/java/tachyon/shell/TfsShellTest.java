@@ -22,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Field;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -30,6 +29,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -92,9 +93,7 @@ public class TfsShellTest {
     mOldOutput = System.out;
     System.setOut(mNewOutput);
     // clear the loginUser
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
   }
 
   @Test
@@ -215,7 +214,7 @@ public class TfsShellTest {
     // when
     mFsShell.run("copyFromLocal", testFile.getPath(), tachyonURI);
     String cmdOut =
-        getCommandOutput(new String[] {"copyFromLocal", testFile.getPath(), tachyonURI});
+        getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), tachyonURI});
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
     TachyonFile file = mTfs.open(new TachyonURI("/destFileURI"));
@@ -546,9 +545,8 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(
-        getCommandOutput(new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}),
-        mOutput.toString());
+    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,"
+        + ".?/File"}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
@@ -569,7 +567,7 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
+    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
         mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
@@ -582,8 +580,7 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}),
-        mOutput.toString());
+    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", qualifiedPath}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
@@ -602,7 +599,7 @@ public class TfsShellTest {
     mFsShell.run("mkdir", "/test/File1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
     mFsShell.rename(new String[] {"rename", "/test", "/test2"});
-    toCompare.append(getCommandOutput(new String[] {"mv", "/test", "/test2"}));
+    toCompare.append(getCommandOutput(new String[]{"mv", "/test", "/test2"}));
     Assert.assertTrue(fileExist(new TachyonURI("/test2/File1")));
     Assert.assertFalse(fileExist(new TachyonURI("/test")));
     Assert.assertFalse(fileExist(new TachyonURI("/test/File1")));
@@ -613,10 +610,10 @@ public class TfsShellTest {
   public void renameTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1");
-    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
+    toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder1")));
-    mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
-    toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
+    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
+    toCompare.append(getCommandOutput(new String[]{"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder")));
     Assert.assertFalse(fileExist(new TachyonURI("/testFolder1")));
@@ -825,8 +822,8 @@ public class TfsShellTest {
     Assert.assertTrue(isInMemoryTest("/testWildCards/foobar4"));
 
     ret = mFsShell.run("free", "/testWild*/*/");
-    CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    CommonUtils.sleepMs(null, tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
+        * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
@@ -1080,8 +1077,8 @@ public class TfsShellTest {
   @Test
   public void unsetTTLTest() throws Exception {
     String filePath = "/testFile";
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 1);
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType
+        .STORE, UnderStorageType.NO_PERSIST, 1);
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
 
     // unsetTTL on a file originally with no TTL will leave the TTL unchanged.
