@@ -35,7 +35,7 @@
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
-                  <th><%= fileInfo.getUsername() %></th>
+                  <th><%= fileInfo.getUserName() %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
