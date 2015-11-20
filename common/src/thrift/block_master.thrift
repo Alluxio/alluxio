@@ -13,6 +13,9 @@ struct WorkerInfo {
   7: i64 startTimeMs
 }
 
+/**
+ * This service contains block master service endpoints for Tachyon clients.
+ */
 service BlockMasterClientService extends common.TachyonService {
 
   /*
@@ -36,6 +39,9 @@ service BlockMasterClientService extends common.TachyonService {
   list<WorkerInfo> getWorkerInfoList()
 }
 
+/**
+ * This service contains block master service endpoints for Tachyon workers.
+ */
 service BlockMasterWorkerService extends common.TachyonService {
 
   /*

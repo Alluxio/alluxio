@@ -28,6 +28,7 @@ import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 
 /**
@@ -50,14 +51,23 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
     return Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
+  protected long getServiceVersion() {
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = new LineageMasterClientService.Client(mProtocol);
-    checkVersion(mClient, Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   public synchronized long createLineage(final List<String> inputFiles,

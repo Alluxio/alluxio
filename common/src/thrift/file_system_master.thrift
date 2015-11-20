@@ -44,6 +44,9 @@ struct SetStateTOptions {
   2: optional i64 ttl
 }
 
+/**
+ * This service contains file system master service endpoints for Tachyon clients.
+ */
 service FileSystemMasterClientService extends common.TachyonService {
 
   /*
@@ -154,6 +157,9 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 }
 
+/**
+ * This service contains file system master service endpoints for Tachyon workers.
+ */
 service FileSystemMasterWorkerService extends common.TachyonService {
 
   /*

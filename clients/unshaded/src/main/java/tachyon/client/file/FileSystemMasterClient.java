@@ -33,6 +33,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterClientService;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 
 /**
@@ -55,14 +56,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
     return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
+  protected long getServiceVersion() {
+    return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
-    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**

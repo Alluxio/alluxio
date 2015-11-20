@@ -27,6 +27,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterClientService;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
 
@@ -50,14 +51,23 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
     return Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
+  protected long getServiceVersion() {
+    return Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = new BlockMasterClientService.Client(mProtocol);
-    checkVersion(mClient, Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**

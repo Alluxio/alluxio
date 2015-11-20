@@ -32,7 +32,7 @@ public interface Master extends JournalCheckpointStreamable {
   Map<String, TProcessor> getServices();
 
   /**
-   * @return the master name
+   * @return the master's name
    */
   String getName();
 

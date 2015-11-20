@@ -83,11 +83,19 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
-   * Returns the name of the service.
-   *
-   * @return A string representing the specific service
+   * @return a Thrift service client
+   */
+  protected abstract TachyonService.Client getClient();
+
+  /**
+   * @return a string representing the specific service
    */
   protected abstract String getServiceName();
+
+  /**
+   * @return the client service version
+   */
+  protected abstract long getServiceVersion();
 
   /**
    * Checks that the service version is compatible with the client.
@@ -95,7 +103,7 @@ public abstract class ClientBase implements Closeable {
    * @param client the service client
    * @param version the client version
    */
-  protected void checkVersion(TachyonService.Client client, long version) throws IOException {
+  private void checkVersion(TachyonService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServiceVersion = client.getServiceVersion();
@@ -154,6 +162,7 @@ public abstract class ClientBase implements Closeable {
         LOG.info("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
         mConnected = true;
         afterConnect();
+        checkVersion(getClient(), getServiceVersion());
         return;
       } catch (TTransportException e) {
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "

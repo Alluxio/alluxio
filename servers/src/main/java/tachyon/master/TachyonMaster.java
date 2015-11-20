@@ -334,23 +334,21 @@ public class TachyonMaster {
     mWebServer.startWebServer();
   }
 
+  private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
+    for (Map.Entry<String, TProcessor> service : services.entrySet()) {
+      processor.registerProcessor(service.getKey(), service.getValue());
+    }
+  }
+
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    for (Map.Entry<String, TProcessor> service : mBlockMaster.getServices().entrySet()) {
-      processor.registerProcessor(service.getKey(), service.getValue());
-    }
-    for (Map.Entry<String, TProcessor> service : mFileSystemMaster.getServices().entrySet()) {
-      processor.registerProcessor(service.getKey(), service.getValue());
-    }
+    registerServices(processor, mBlockMaster.getServices());
+    registerServices(processor, mFileSystemMaster.getServices());
     if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
-      for (Map.Entry<String, TProcessor> service : mLineageMaster.getServices().entrySet()) {
-        processor.registerProcessor(service.getKey(), service.getValue());
-      }
+      registerServices(processor, mLineageMaster.getServices());
     }
-    for (Map.Entry<String, TProcessor> service : mRawTableMaster.getServices().entrySet()) {
-      processor.registerProcessor(service.getKey(), service.getValue());
-    }
+    registerServices(processor, mRawTableMaster.getServices());
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
