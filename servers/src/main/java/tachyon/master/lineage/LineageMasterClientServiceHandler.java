@@ -18,6 +18,7 @@ package tachyon.master.lineage;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -31,10 +32,14 @@ import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
+/**
+ * This class is a Thrift handler for lineage master RPCs invoked by a Tachyon client.
+ */
 public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {
   private final LineageMaster mLineageMaster;
 
   public LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
+    Preconditions.checkNotNull(lineageMaster);
     mLineageMaster = lineageMaster;
   }
 
