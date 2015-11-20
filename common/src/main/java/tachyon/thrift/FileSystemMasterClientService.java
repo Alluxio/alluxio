@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class FileSystemMasterClientService {
 
   /**
-   * This service contains file system master service endpoints for Tachyon clients.
+   * This interface contains file system master service endpoints for Tachyon clients.
    */
   public interface Iface extends tachyon.thrift.TachyonService.Iface {
 

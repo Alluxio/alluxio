@@ -17,7 +17,6 @@ package tachyon.worker.file;
 
 import java.io.IOException;
 
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,19 +43,16 @@ public class FileSystemMasterClientTest {
     FileSystemMasterWorkerService.Client mock =
         PowerMockito.mock(FileSystemMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(FileSystemMasterWorkerService.Client.class).withAnyArguments()
-        .thenReturn(mock);
 
     FileSystemMasterClient client =
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(
             NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
             WorkerContext.getConf());
-    TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
-    Whitebox.setInternalState(client, "mProtocol", mockProtocol);
 
     try {
-      client.afterConnect();
-      Assert.fail("connect() should fail");
+      Whitebox.invokeMethod(client, "checkVersion", mock,
+          Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION);
+      Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
           Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,

@@ -17,7 +17,6 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,16 +42,12 @@ public class LineageMasterClientTest {
     LineageMasterClientService.Client mock =
         PowerMockito.mock(LineageMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(LineageMasterClientService.Client.class).withAnyArguments()
-        .thenReturn(mock);
 
     LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient();
-    TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
-    Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-
     try {
-      client.afterConnect();
-      Assert.fail("connect() should fail");
+      Whitebox.invokeMethod(client, "checkVersion", mock,
+          Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
+      Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
           Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,

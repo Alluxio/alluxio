@@ -41,7 +41,7 @@ struct LineageInfo {
 }
 
 /**
- * This service contains lineage master service endpoints for Tachyon clients.
+ * This interface contains lineage master service endpoints for Tachyon clients.
  */
 service LineageMasterClientService extends common.TachyonService {
 
@@ -82,7 +82,7 @@ service LineageMasterClientService extends common.TachyonService {
 }
 
 /**
- * This service contains lineage master service endpoints for Tachyon workers.
+ * This interface contains lineage master service endpoints for Tachyon workers.
  */
 service LineageMasterWorkerService extends common.TachyonService {
 

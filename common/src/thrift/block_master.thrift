@@ -14,7 +14,7 @@ struct WorkerInfo {
 }
 
 /**
- * This service contains block master service endpoints for Tachyon clients.
+ * This interface contains block master service endpoints for Tachyon clients.
  */
 service BlockMasterClientService extends common.TachyonService {
 
@@ -40,7 +40,7 @@ service BlockMasterClientService extends common.TachyonService {
 }
 
 /**
- * This service contains block master service endpoints for Tachyon workers.
+ * This interface contains block master service endpoints for Tachyon workers.
  */
 service BlockMasterWorkerService extends common.TachyonService {
 
