@@ -69,10 +69,10 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Base class for testing different {@link JournalFormatter}'s serialization/deserialization
- * correctness of each entry type defined in {@link JournalEntryType}.
+ * correctness of each entry type defined in {@link JournalEntry.EntryCase}.
  * <p>
- * To test an implementation of {@link JournalFormatter} like {@link JsonJournalFormatter}, extend
- * this class and override method {@link #getFormatter()}.
+ * To test an implementation of {@link JournalFormatter}, extend this class and override method
+ * {@link #getFormatter()}.
  * <p>
  * See example usage in {@link ProtoJournalFormatterTest}.
  */
