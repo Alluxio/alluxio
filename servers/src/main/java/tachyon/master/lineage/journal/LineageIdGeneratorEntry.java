@@ -29,7 +29,7 @@ public class LineageIdGeneratorEntry extends JournalEntry {
   private final long mSequenceNumber;
 
   /**
-   * Creates a new instance of {@link LineageIdGeneratorEntry}.
+   * Creates a new instance of {@code LineageIdGeneratorEntry}.
    *
    * @param sequenceNumber the sequence number
    */

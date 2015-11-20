@@ -32,7 +32,7 @@ public class UpdateMetadataEntry extends JournalEntry {
   private final ByteBuffer mMetadata;
 
   /**
-   * Creates a new instance of {@link UpdateMetadataEntry}.
+   * Creates a new instance of {@code UpdateMetadataEntry}.
    *
    * @param id table id
    * @param metadata the metadata to be set for the table

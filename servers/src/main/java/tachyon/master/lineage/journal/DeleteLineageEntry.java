@@ -30,7 +30,7 @@ public final class DeleteLineageEntry extends JournalEntry {
   private boolean mCascade;
 
   /**
-   * Creates a new instance of {@link DeleteLineageEntry}.
+   * Creates a new instance of {@code DeleteLineageEntry}.
    *
    * @param lineageId the lineage id
    * @param cascade the cascade flag

@@ -79,7 +79,7 @@ public final class StorageTier {
   }
 
   /**
-   * Factory method to create {@link StorageTier}.
+   * Factory method to create {@code StorageTier}.
    *
    * @param tierAlias the tier alias
    * @return a new storage tier

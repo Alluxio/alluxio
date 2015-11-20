@@ -115,7 +115,7 @@ public final class BlockStoreLocation {
    * Compares to a specific object.
    *
    * @param o the object to compare
-   * @return true if object is also {@link BlockStoreLocation} and represents the same tier and dir
+   * @return true if object is also {@code BlockStoreLocation} and represents the same tier and dir
    */
   @Override
   public boolean equals(Object o) {
