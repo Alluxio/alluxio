@@ -177,6 +177,11 @@ public final class InodeDirectory extends Inode {
     return sb.toString();
   }
 
+  /**
+   * Converts the entry to an {@code InodeDirectory}.
+   *
+   * @return the {@code InodeDirectory} representation
+   */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
     InodeDirectory inode =
         new InodeDirectory.Builder()

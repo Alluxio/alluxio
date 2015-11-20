@@ -293,7 +293,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Converts the entry to {@code InodeFile}.
+   * Converts the entry to an {@code InodeFile}.
    *
    * @return the {@code InodeFile} representation
    */
@@ -314,6 +314,7 @@ public final class InodeFile extends Inode {
 
     inode.setBlockIds(entry.getBlocksList());
     inode.setCompleted(entry.getCompleted());
+    inode.setLength(entry.getLength());
     inode.setPersisted(entry.getPersisted());
     inode.setPinned(entry.getPinned());
     inode.setCacheable(entry.getCacheable());
