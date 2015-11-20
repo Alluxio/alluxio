@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.lineage.LineageMasterClient;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
@@ -76,6 +77,8 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
       command = mMasterClient.workerLineageHeartbeat(WorkerIdRegistry.getWorkerId(),
           persistedFiles);
     } catch (IOException e) {
+      LOG.error("Failed to heartbeat to master", e);
+    }  catch (ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
     }
     Preconditions.checkState(command.commandType == CommandType.Persist);

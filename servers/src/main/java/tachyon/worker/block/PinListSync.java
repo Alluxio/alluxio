@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -87,7 +86,7 @@ public final class PinListSync implements Runnable {
         Set<Long> pinList = mMasterClient.getPinList();
         mBlockDataManager.updatePinList(pinList);
         lastSyncMs = System.currentTimeMillis();
-      } catch (IOException e) {
+      } catch (Exception e) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", e);
         // TODO(gene): Add this method to MasterClientBase.
