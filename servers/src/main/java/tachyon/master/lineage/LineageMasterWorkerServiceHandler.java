@@ -17,16 +17,22 @@ package tachyon.master.lineage;
 
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.thrift.TachyonTException;
 
+/**
+ * This class is a Thrift handler for lineage master RPCs invoked by a Tachyon worker.
+ */
 public final class LineageMasterWorkerServiceHandler implements LineageMasterWorkerService.Iface {
   private final LineageMaster mLineageMaster;
 
   public LineageMasterWorkerServiceHandler(LineageMaster lineageMaster) {
+    Preconditions.checkNotNull(lineageMaster);
     mLineageMaster = lineageMaster;
   }
 

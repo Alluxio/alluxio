@@ -18,6 +18,8 @@ package tachyon.master.file;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
@@ -35,11 +37,15 @@ import tachyon.thrift.SetStateTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
+/**
+ * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
+ */
 public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
+    Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
 

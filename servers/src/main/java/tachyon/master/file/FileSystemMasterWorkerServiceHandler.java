@@ -17,17 +17,23 @@ package tachyon.master.file;
 
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.TachyonTException;
 
+/**
+ * This class is a Thrift handler for file system master RPCs invoked by a Tachyon worker.
+ */
 public final class FileSystemMasterWorkerServiceHandler implements
     FileSystemMasterWorkerService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
   public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
+    Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
 

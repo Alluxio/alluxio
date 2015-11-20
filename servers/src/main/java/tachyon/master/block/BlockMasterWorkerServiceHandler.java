@@ -18,6 +18,8 @@ package tachyon.master.block;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterWorkerService;
@@ -25,10 +27,14 @@ import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;
 
+/**
+ * This class is a Thrift handler for block master RPCs invoked by a Tachyon worker.
+ */
 public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 
   public BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
+    Preconditions.checkNotNull(blockMaster);
     mBlockMaster = blockMaster;
   }
 

@@ -18,6 +18,8 @@ package tachyon.master.rawtable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
@@ -28,12 +30,16 @@ import tachyon.thrift.RpcOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
+/**
+ * This class is a Thrift handler for raw table master RPCs invoked by a Tachyon client.
+ */
 public class RawTableMasterClientServiceHandler implements RawTableMasterClientService.Iface {
   private final RawTableMaster mRawTableMaster;
   /** We use Object so that we can have one cache per master, not one per type of return value */
   private final ReplayCache<Object> mReplayCache = ReplayCache.newInstance();
 
   public RawTableMasterClientServiceHandler(RawTableMaster rawTableMaster) {
+    Preconditions.checkNotNull(rawTableMaster);
     mRawTableMaster = rawTableMaster;
   }
 
