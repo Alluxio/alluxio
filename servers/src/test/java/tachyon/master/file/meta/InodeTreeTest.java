@@ -132,6 +132,20 @@ public final class InodeTreeTest {
   }
 
   @Test
+  public void createExistingDirectoryTest() throws Exception {
+    // create directory
+    mTree.createPath(TEST_URI, sDirectoryOptions);
+
+    // create again with allowExists true
+    mTree.createPath(TEST_URI, new CreatePathOptions.Builder().setAllowExists(true).build());
+
+    // create again with allowExists false
+    mThrown.expect(FileAlreadyExistsException.class);
+    mThrown.expectMessage(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(TEST_URI));
+    mTree.createPath(TEST_URI, new CreatePathOptions.Builder().setAllowExists(false).build());
+  }
+
+  @Test
   public void createFileUnderPinnedDirectoryTest() throws Exception {
     // create nested directory
     InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
