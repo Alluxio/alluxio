@@ -42,8 +42,8 @@
       "id":1,
       "persisted":true,
       "lastModificationTimeMs":1409349750338,
-      "username":"",
-      "groupname":"",
+      "username":"user1",
+      "groupname":"group1",
       "permission":511
     }
   },
@@ -58,8 +58,8 @@
       "persisted":true,
       "parentId":1,
       "lastModificationTimeMs":1409349750338,
-      "username":"",
-      "groupname":"",
+      "username":"user1",
+      "groupname":"group1",
       "permission":511
     }
   },

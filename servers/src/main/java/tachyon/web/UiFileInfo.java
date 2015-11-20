@@ -76,8 +76,8 @@ public final class UiFileInfo {
   private final int mInMemoryPercent;
   private final boolean mIsDirectory;
   private final boolean mIsPinned;
-  private final String mUsername;
-  private final String mGroupname;
+  private final String mUserName;
+  private final String mGroupName;
   private final int mPermission;
   private final boolean mIsPersisted;
   private List<String> mFileLocations;
@@ -98,8 +98,8 @@ public final class UiFileInfo {
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
-    mUsername = fileInfo.getUsername();
-    mGroupname = fileInfo.getGroupname();
+    mUserName = fileInfo.getUsername();
+    mGroupName = fileInfo.getGroupname();
     mPermission = fileInfo.getPermission();
     mIsPersisted = fileInfo.isPersisted;
     mFileLocations = new ArrayList<String>();
@@ -117,8 +117,8 @@ public final class UiFileInfo {
     mInMemoryPercent = 0;
     mIsDirectory = fileInfo.mIsDirectory;
     mIsPinned = false;
-    mUsername = "";
-    mGroupname = "";
+    mUserName = "";
+    mGroupName = "";
     mPermission = FsPermission.getNoneFsPermission().toShort();
     mIsPersisted = false;
     mFileLocations = new ArrayList<String>();
@@ -218,12 +218,12 @@ public final class UiFileInfo {
     }
   }
 
-  public String getUsername() {
-    return mUsername;
+  public String getUserName() {
+    return mUserName;
   }
 
-  public String getGroupname() {
-    return mGroupname;
+  public String getGroupName() {
+    return mGroupName;
   }
 
   public int getPermission() {

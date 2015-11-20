@@ -28,7 +28,7 @@ public class CreatePathOptions {
     private boolean mPersisted;
     private boolean mRecursive;
     private long mTTL;
-    private PermissionStatus mPs;
+    private PermissionStatus mPermissionStatus;
 
     /**
      * Creates a new builder for {@link CreatePathOptions}.
@@ -42,7 +42,7 @@ public class CreatePathOptions {
       mRecursive = false;
       mPersisted = false;
       mTTL = Constants.NO_TTL;
-      mPs = PermissionStatus.getDirDefault();
+      mPermissionStatus = PermissionStatus.getDirDefault();
     }
 
     /**
@@ -108,7 +108,7 @@ public class CreatePathOptions {
      * @return the builder
      */
     public Builder setPermissionStatus(PermissionStatus ps) {
-      mPs = ps;
+      mPermissionStatus = ps;
       return this;
     }
 
@@ -135,7 +135,7 @@ public class CreatePathOptions {
   private final boolean mPersisted;
   private final boolean mRecursive;
   private final long mTTL;
-  private PermissionStatus mPs;
+  private PermissionStatus mPermissionStatus;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
@@ -144,7 +144,7 @@ public class CreatePathOptions {
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
-    mPs = builder.mPs;
+    mPermissionStatus = builder.mPermissionStatus;
   }
 
   /**
@@ -192,9 +192,9 @@ public class CreatePathOptions {
   }
 
   /**
-   * @return the permission status of this create option
+   * @return the permission status
    */
   public PermissionStatus getPermissionStatus() {
-    return mPs;
+    return mPermissionStatus;
   }
 }

@@ -36,8 +36,8 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
-  /** The default permission for file is used the directory permission umasked 0111 */
-  private static final FsPermission SUMASK = new FsPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+  /** This default umask is used to calculate file permission from directory permission. */
+  private static final FsPermission UMASK = new FsPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
@@ -102,7 +102,7 @@ public final class InodeFile extends Inode {
 
     @Override
     public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
-      return super.setPermissionStatus(ps.applyUMask(SUMASK));
+      return super.setPermissionStatus(ps.applyUMask(UMASK));
     }
   }
 

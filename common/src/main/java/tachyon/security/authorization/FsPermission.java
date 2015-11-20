@@ -17,28 +17,29 @@ package tachyon.security.authorization;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 
 /**
  * A class for file/directory permissions.
  */
-public class FsPermission {
+public final class FsPermission {
   //POSIX permission style
-  private FsAction mUseraction = null;
-  private FsAction mGroupaction = null;
-  private FsAction mOtheraction = null;
+  private FsAction mUseraction;
+  private FsAction mGroupaction;
+  private FsAction mOtheraction;
 
   /**
-   * Construct by the given {@link FsAction}.
-   * @param u user action
-   * @param g group action
-   * @param o other action
+   * Constructs an instance of {@link FsPermission} with the given {@link FsAction}.
+   * @param userFsAction user action
+   * @param groupFsAction group action
+   * @param otherFsAction other action
    */
-  public FsPermission(FsAction u, FsAction g, FsAction o) {
-    set(u, g, o);
+  public FsPermission(FsAction userFsAction, FsAction groupFsAction, FsAction otherFsAction) {
+    set(userFsAction, groupFsAction, otherFsAction);
   }
 
   /**
-   * Construct by the given mode.
+   * Constructs an instance of {@link FsPermission} with the given mode.
    * @param mode
    * @see #toShort()
    */
@@ -47,27 +48,33 @@ public class FsPermission {
   }
 
   /**
-   * Copy constructor
-   *
+   * Copy constructor.
    * @param otherPermission
    */
   public FsPermission(FsPermission otherPermission) {
-    mUseraction = otherPermission.mUseraction;
-    mGroupaction = otherPermission.mGroupaction;
-    mOtheraction = otherPermission.mOtheraction;
+    set(otherPermission.mUseraction, otherPermission.mGroupaction, otherPermission.mOtheraction);
   }
 
-  /** Return user {@link FsAction}. */
+  /**
+   * Get user action
+   * @return the user {@link FsAction}
+   */
   public FsAction getUserAction() {
     return mUseraction;
   }
 
-  /** Return group {@link FsAction}. */
+  /**
+   * Get group action
+   * @return the group {@link FsAction}
+   */
   public FsAction getGroupAction() {
     return mGroupaction;
   }
 
-  /** Return other {@link FsAction}. */
+  /**
+   * Get other action
+   * @return the other {@link FsAction}
+   */
   public FsAction getOtherAction() {
     return mOtheraction;
   }
@@ -84,7 +91,7 @@ public class FsPermission {
   }
 
   /**
-   * Encode the object to a short.
+   * Encodes the object to a short.
    */
   public short toShort() {
     int s = (mUseraction.ordinal() << 6) | (mGroupaction.ordinal() << 3)
@@ -115,10 +122,10 @@ public class FsPermission {
   }
 
   /**
-   * Apply a umask to this permission and return a new one
+   * Applies a umask to this permission and return a new one.
    *
-   * @param umask the umask {@code FsPermission}
-   * @return a new FsPermission
+   * @param umask the umask {@link FsPermission}
+   * @return a new {@link FsPermission}
    */
   public FsPermission applyUMask(FsPermission umask) {
     return new FsPermission(mUseraction.and(umask.mUseraction.not()),
@@ -127,28 +134,34 @@ public class FsPermission {
   }
 
   /**
-   * Apply a umask to this permission and return a new one
+   * Applies a umask to this permission and return a new one.
    *
-   * @param conf Get the umask permission from the configuration
-   * @return a new FsPermission
+   * @param conf the configuration to read the umask permission from
+   * @return a new {@link FsPermission}
    */
   public FsPermission applyUMask(TachyonConf conf) {
     return applyUMask(getUMask(conf));
   }
 
-  /** Get the default permission. */
+  /**
+   * Get the default permission.
+   * @return the default {@link FsPermission}
+   */
   public static FsPermission getDefault() {
     return new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION);
   }
 
-  /** Get the none permission for NOSASL authentication mode*/
+  /**
+   * Get the none permission for NOSASL authentication mode
+   * @return the none {@link FsPermission}
+   */
   public static FsPermission getNoneFsPermission() {
     return new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
   }
 
   /**
    * Get the file/directory creation umask
-   *
+   * @return the umask {@link FsPermission}
    */
   public static FsPermission getUMask(TachyonConf conf) {
     int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
@@ -156,8 +169,8 @@ public class FsPermission {
       String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK);
       if (confUmask != null) {
         if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
-          throw new IllegalArgumentException("Invalid configure value for key:"
-        + Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK + " e.g. \"0022\"");
+          throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE
+              .getMessage(confUmask, Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK));
         }
         int newUmask = 0;
         int lastIndex = confUmask.length() - 1;

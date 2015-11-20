@@ -28,6 +28,12 @@ public class PermissionStatusTest {
     Assert.assertEquals("user1", permissionStatus.getUserName());
     Assert.assertEquals("group1", permissionStatus.getGroupName());
     Assert.assertEquals(0777, permissionStatus.getPermission().toShort());
+
+    permissionStatus = PermissionStatus.getDirDefault();
+
+    Assert.assertEquals("", permissionStatus.getUserName());
+    Assert.assertEquals("", permissionStatus.getGroupName());
+    Assert.assertEquals(0777, permissionStatus.getPermission().toShort());
   }
 
   @Test

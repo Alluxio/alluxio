@@ -74,7 +74,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      setAuthenticateUserforConcurrentOperation(TEST_AUTHENTICATE_USER);
+      AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -91,11 +91,12 @@ public class FileSystemMasterIntegrationTest {
         Assert.assertEquals(0644, (short)fileInfo.getPermission());
       } else {
         mFsMaster.mkdir(path, MkdirOptions.defaults());
+        Assert.assertNotNull(mFsMaster.getFileId(path));
         long dirId = mFsMaster.getFileId(path);
         Assert.assertNotEquals(-1, dirId);
         FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
-        Assert.assertEquals(TEST_AUTHENTICATE_USER,dirInfo.getUsername());
-        Assert.assertEquals(0755, (short)dirInfo.getPermission());
+        Assert.assertEquals(TEST_AUTHENTICATE_USER, dirInfo.getUsername());
+        Assert.assertEquals(0755, (short) dirInfo.getPermission());
       }
 
       if (concurrencyDepth > 0) {
@@ -188,7 +189,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      setAuthenticateUserforConcurrentOperation(TEST_AUTHENTICATE_USER);
+      AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -245,6 +246,11 @@ public class FileSystemMasterIntegrationTest {
   // this specified time and always using System.currentTimeMillis()
   private static final long TEST_CURRENT_TIME = 300;
 
+  /**
+   * The authenticate user is gotten from current thread local. If MasterInfo starts a concurrent
+   * thread to do operations, AuthorizedClientUser will be null. So AuthorizedClientUser.set()
+   * should be called in the Callable.call to set this user for testing.
+   */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
   private ExecutorService mExecutorService = null;
@@ -265,8 +271,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    // mock the authentication user f
-    setAuthenticateUserforConcurrentOperation(TEST_AUTHENTICATE_USER);
+    // mock the authentication user
+    AuthorizedClientUser.set(TEST_AUTHENTICATE_USER);
 
     mExecutorService = Executors.newFixedThreadPool(2);
     mFsMaster =
@@ -366,8 +372,8 @@ public class FileSystemMasterIntegrationTest {
         ROOT_PATH2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
-    Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2)).size());
+    Assert.assertEquals(numFiles, mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2))
+        .size());
   }
 
   @Test
@@ -383,7 +389,7 @@ public class FileSystemMasterIntegrationTest {
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertTrue(fileInfo.isFolder);
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUsername());
-    Assert.assertEquals(0755, (short)fileInfo.getPermission());
+    Assert.assertEquals(0755, (short) fileInfo.getPermission());
   }
 
   @Test
@@ -705,16 +711,6 @@ public class FileSystemMasterIntegrationTest {
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.ttl);
-  }
-
-  private void setAuthenticateUserforConcurrentOperation(String username) {
-    /**
-     * The authenticate user is gotten from the current thread local,
-     * if MasterInfo starts a concurrent thread to do some operation,
-     * AuthorizedClientUser will return null. So setAuthenticateUserforConcurrentOperation
-     * should be called in the Callable.call for testing
-     */
-    AuthorizedClientUser.set(username);
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back

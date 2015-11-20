@@ -43,27 +43,45 @@ public enum FsAction {
   }
 
   /**
-   * Returns true if this action implies that action.
-   * @param that
+   * Check whether this action implies the passed-in action.
+   * @param that a passed-in action
+   * @return true when this action implies the passed-in action
    */
-  public boolean implies(FsAction that) {
+  public boolean imply(FsAction that) {
     if (that != null) {
       return (ordinal() & that.ordinal()) == that.ordinal();
     }
     return false;
   }
 
-  /** AND operation. */
+  /**
+   * AND operation
+   * @param that a passed-in action
+   * @return the intersection of this action and the passed-in action
+   */
   public FsAction and(FsAction that) {
-    return SVALS[ordinal() & that.ordinal()];
+    if (that != null) {
+      return SVALS[ordinal() & that.ordinal()];
+    }
+    throw new IllegalArgumentException("The passed-in Action cannot be null for [and] operation.");
   }
 
-  /** OR operation. */
+  /**
+   * OR operation
+   * @param that a passed-in action
+   * @return the union of this action and the passed-in action
+   */
   public FsAction or(FsAction that) {
-    return SVALS[ordinal() | that.ordinal()];
+    if (that != null) {
+      return SVALS[ordinal() | that.ordinal()];
+    }
+    throw new IllegalArgumentException("The passed-in Action cannot be null for [or] operation.");
   }
 
-  /** NOT operation. */
+  /**
+   * NOT operation
+   * @return the complement of this action
+   */
   public FsAction not() {
     return SVALS[7 - ordinal()];
   }
