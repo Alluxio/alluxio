@@ -45,7 +45,7 @@ struct SetStateTOptions {
 }
 
 /**
- * This service contains file system master service endpoints for Tachyon clients.
+ * This interface contains file system master service endpoints for Tachyon clients.
  */
 service FileSystemMasterClientService extends common.TachyonService {
 
@@ -158,7 +158,7 @@ service FileSystemMasterClientService extends common.TachyonService {
 }
 
 /**
- * This service contains file system master service endpoints for Tachyon workers.
+ * This interface contains file system master service endpoints for Tachyon workers.
  */
 service FileSystemMasterWorkerService extends common.TachyonService {
 

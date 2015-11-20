@@ -13,7 +13,7 @@ struct RawTableInfo {
 }
 
 /**
- * This service contains raw table master service endpoints for Tachyon clients.
+ * This interface contains raw table master service endpoints for Tachyon clients.
  */
 service RawTableMasterClientService extends common.TachyonService {
 

@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class RawTableMasterClientService {
 
   /**
-   * This service contains raw table master service endpoints for Tachyon clients.
+   * This interface contains raw table master service endpoints for Tachyon clients.
    */
   public interface Iface extends tachyon.thrift.TachyonService.Iface {
 

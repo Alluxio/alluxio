@@ -17,7 +17,6 @@ package tachyon.client.table;
 
 import java.io.IOException;
 
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,16 +42,12 @@ public class RawTableMasterClientTest {
     RawTableMasterClientService.Client mock =
         PowerMockito.mock(RawTableMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(RawTableMasterClientService.Client.class).withAnyArguments()
-        .thenReturn(mock);
 
     RawTableMasterClient client = RawTableContext.INSTANCE.acquireMasterClient();
-    TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
-    Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-
     try {
-      client.afterConnect();
-      Assert.fail("connect() should fail");
+      Whitebox.invokeMethod(client, "checkVersion", mock,
+          Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION);
+      Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
           Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME,

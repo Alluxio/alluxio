@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class LineageMasterClientService {
 
   /**
-   * This service contains lineage master service endpoints for Tachyon clients.
+   * This interface contains lineage master service endpoints for Tachyon clients.
    */
   public interface Iface extends tachyon.thrift.TachyonService.Iface {
 
