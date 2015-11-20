@@ -211,7 +211,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
-    } catch (ConnectionFailedException cfe) {
+    } catch (ConnectionFailedException e) {
       // This is expected, since Master RPC service is NOT listening on loopback.
     }
 
