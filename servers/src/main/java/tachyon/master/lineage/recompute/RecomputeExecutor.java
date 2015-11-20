@@ -63,7 +63,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
    *
    * @return the {@code Future} representing completion of the recompute plan
    */
-  public Future<?> heartbeatWithFuture() {
+  Future<?> heartbeatWithFuture() {
     RecomputePlan plan = mPlanner.plan();
     if (plan != null && !plan.isEmpty()) {
       return mFixedExecutionService.submit(new RecomputeLauncher(plan));
