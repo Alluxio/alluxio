@@ -178,7 +178,7 @@ public final class FileSystemMaster extends MasterBase {
         throw new RuntimeException(e);
       } catch (InvalidFileSizeException e) {
         throw new RuntimeException(e);
-      }  catch (FileAlreadyCompletedException e) {
+      } catch (FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof SetStateEntry) {
@@ -358,9 +358,9 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
-  public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
-      FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
-      FileAlreadyCompletedException {
+  public void completeFile(long fileId, CompleteFileOptions options)
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
+      InvalidFileSizeException, FileAlreadyCompletedException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -426,8 +426,8 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException,
- InvalidFileSizeException, FileAlreadyCompletedException {
+  private void completeFileFromEntry(CompleteFileEntry entry)
+      throws InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException {
     try {
       completeFileInternal(entry.getBlockIdsList(), entry.getId(), entry.getLength(),
           entry.getOpTimeMs());
@@ -898,10 +898,13 @@ public final class FileSystemMaster extends MasterBase {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
-        CreatePathOptions createPathOptions =
-            new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
-                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-                .setOperationTimeMs(options.getOperationTimeMs()).build();
+        CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
+            .setAllowExists(options.isAllowExists())
+            .setDirectory(true)
+            .setPersisted(options.isPersisted())
+            .setRecursive(options.isRecursive())
+            .setOperationTimeMs(options.getOperationTimeMs())
+            .build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         LOG.debug("writing journal entry for mkdir {}", path);
@@ -1254,8 +1257,7 @@ public final class FileSystemMaster extends MasterBase {
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException,
-      IOException {
+      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
       ufsPath = mMountTable.resolve(path);
@@ -1269,9 +1271,11 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long ufsLength = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        CreateOptions createOptions =
-            new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
-                .setRecursive(recursive).setPersisted(true).build();
+        CreateOptions createOptions = new CreateOptions.Builder(MasterContext.getConf())
+            .setBlockSizeBytes(ufsBlockSizeByte)
+            .setRecursive(recursive)
+            .setPersisted(true)
+            .build();
         long fileId = create(path, createOptions);
         CompleteFileOptions completeOptions =
             new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
@@ -1449,8 +1453,8 @@ public final class FileSystemMaster extends MasterBase {
               try {
                 deleteFile(file.getId(), false);
               } catch (Exception e) {
-                LOG.error("Exception trying to clean up {} for ttl check: {}",
-                    file.toString(), e.toString());
+                LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+                    e.toString());
               }
             }
           }
