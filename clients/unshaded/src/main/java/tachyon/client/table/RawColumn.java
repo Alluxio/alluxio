@@ -15,102 +15,42 @@
 
 package tachyon.client.table;
 
-import java.io.IOException;
-
-import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
-import tachyon.util.io.PathUtils;
+import tachyon.annotation.PublicApi;
 
 /**
- * The column of a <code>RawTable</code>.
+ * The column of a {@link RawTable}. A RawColumn is uniquely identified by the raw table it
+ * belongs to and its column index. Instances of this class should be used as arguments to the
+ * column specific commands in {@link TachyonRawTables}. An instance of this class can be
+ * obtained through {@link RawTable#getColumn}.
  */
-public class RawColumn {
-  private final TachyonFS mTachyonFS;
+@PublicApi
+public final class RawColumn {
   private final RawTable mRawTable;
   private final int mColumnIndex;
 
   /**
-   * Creates a new <code>RawColumn</code>.
+   * Creates a new {@code RawColumn}.
    *
-   * @param tachyonClient the <code>TachyonFS</code> client
-   * @param rawTable the <code>RawTable</code> table this column belongs to
+   * @param rawTable the {@code RawTable} table this column belongs to
    * @param columnIndex the column index
    */
-  RawColumn(TachyonFS tachyonClient, RawTable rawTable, int columnIndex) {
-    mTachyonFS = tachyonClient;
+  RawColumn(RawTable rawTable, int columnIndex) {
     mRawTable = rawTable;
     mColumnIndex = columnIndex;
   }
 
   /**
-   * @param tablePath path of the table
-   * @param columnIndex column ID
-   * @return path of the column
+   * @return the index of the column within its raw table, the first column of a raw table has
+   * column index 0
    */
-  public static String getColumnPath(String tablePath, int columnIndex) {
-    return PathUtils.concatPath(tablePath, Constants.MASTER_COLUMN_FILE_PREFIX + columnIndex);
+  public int getColumnIndex() {
+    return mColumnIndex;
   }
 
   /**
-   * Creates a new column partition.
-   *
-   * TODO(hy): Creating file here should be based on id.
-   *
-   * @param pId the partition id
-   * @return whether operation succeeded
-   * @throws IOException when the partition the path is invalid or points to an existing object
+   * @return the raw table which contains this column
    */
-  public boolean createPartition(int pId) throws IOException {
-    TachyonURI tUri = new TachyonURI(PathUtils.concatPath(getColumnPath(mRawTable.getPath(),
-        mColumnIndex), pId));
-    return mTachyonFS.createFile(tUri) > 0;
-  }
-
-  /**
-   * Gets an existing partition.
-   *
-   * TODO(hy): Creating file here should be based on id.
-   *
-   * @param pId the partition id
-   * @return <code>TachyonFile</code> with the given partition
-   * @throws IOException when the partition the path is invalid or points to a non-existing object
-   */
-  public TachyonFile getPartition(int pId) throws IOException {
-    return getPartition(pId, false);
-  }
-
-  /**
-   * Gets an existing partition.
-   *
-   * TODO(hy): Creating file here should be based on id.
-   *
-   * @param pId the partition id
-   * @param cachedMetadata whether to use the file metadata cache
-   * @return <code>TachyonFile</code> with the given partition
-   * @throws IOException when the partition the path is invalid or points to a non-existing object
-   */
-  public TachyonFile getPartition(int pId, boolean cachedMetadata) throws IOException {
-    TachyonURI tUri =
-        new TachyonURI(PathUtils.concatPath(mRawTable.getPath(),
-            Constants.MASTER_COLUMN_FILE_PREFIX + mColumnIndex, pId));
-    return mTachyonFS.getFile(tUri, cachedMetadata);
-  }
-
-  /**
-   * Identifies the number of column partitions.
-   *
-   * TODO(hy): Creating file here should be based on id.
-   *
-   * @return the number of column partitions
-   * @throws IOException when any of the partition paths is invalid or points to a non-existing
-   *         object
-   */
-  public int partitions() throws IOException {
-    TachyonURI tUri =
-        new TachyonURI(PathUtils.concatPath(mRawTable.getPath(),
-            Constants.MASTER_COLUMN_FILE_PREFIX + mColumnIndex));
-    return mTachyonFS.listStatus(tUri).size();
+  public RawTable getRawTable() {
+    return mRawTable;
   }
 }

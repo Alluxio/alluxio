@@ -20,7 +20,7 @@ import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
- * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
+ * {@code Inode} is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
   public abstract static class Builder<T extends Builder<T>> {
