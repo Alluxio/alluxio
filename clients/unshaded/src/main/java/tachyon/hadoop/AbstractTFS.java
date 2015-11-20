@@ -39,9 +39,9 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -212,8 +212,7 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    DeleteOptions options =
-        new DeleteOptions.Builder().setRecursive(recursive).build();
+    DeleteOptions options = new DeleteOptions.Builder().setRecursive(recursive).build();
     try {
       TachyonFile file = mTFS.open(path);
       mTFS.delete(file, options);
@@ -420,13 +419,9 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
+    MkdirOptions options =
+        new MkdirOptions.Builder(mTachyonConf).setRecursive(true).setAllowExists(true).build();
     try {
-      TachyonFile fileId = mTFS.openIfExists(path);
-      if (fileId != null && mTFS.getInfo(fileId).isIsFolder()) {
-        // The directory already exists, nothing to do here
-        return true;
-      }
       return mTFS.mkdir(path, options);
     } catch (TachyonException e) {
       throw new IOException(e);
