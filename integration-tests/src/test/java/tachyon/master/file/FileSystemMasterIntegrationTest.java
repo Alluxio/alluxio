@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -295,7 +296,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPersisted);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
-    Assert.assertEquals(0755, (short)fileInfo.getPermission());
+    Assert.assertEquals(0755, (short) fileInfo.getPermission());
   }
 
   @Test
@@ -321,6 +322,7 @@ public class FileSystemMasterIntegrationTest {
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
   // avoid invalid lease exception. This should be fixed.
+  @Ignore
   @Test
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates
@@ -372,8 +374,8 @@ public class FileSystemMasterIntegrationTest {
         ROOT_PATH2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
-    Assert.assertEquals(numFiles, mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2))
-        .size());
+    Assert.assertEquals(numFiles,
+        mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2)).size());
   }
 
   @Test
@@ -432,7 +434,7 @@ public class FileSystemMasterIntegrationTest {
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile")));
     Assert.assertFalse(fileInfo.isFolder);
     Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
-    Assert.assertEquals(0644, (short)fileInfo.getPermission());
+    Assert.assertEquals(0644, (short) fileInfo.getPermission());
   }
 
   @Test
