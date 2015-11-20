@@ -173,12 +173,12 @@ public final class TachyonFileSystemUtils {
       }
       OutputStream out = closer.register(ufs.create(dstPath.getPath()));
       ret = IOUtils.copyLarge(in, out);
-    } catch (Throwable e) {
+    } catch (Exception e) {
       throw closer.rethrow(e);
     } finally {
       closer.close();
     }
-    // Tell the master to persist the file
+    // Tell the master to mark the file as persisted
     tfs.setState(file, (new SetStateOptions.Builder()).setPersisted(true).build());
     return ret;
   }
