@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
@@ -103,7 +104,8 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
+  public synchronized List<LineageInfo> getLineageInfoList()
+      throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
