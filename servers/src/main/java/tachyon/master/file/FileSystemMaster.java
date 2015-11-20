@@ -880,9 +880,12 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       try {
         CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
-            .setAllowExists(options.isAllowExists()).setDirectory(true)
-            .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-            .setOperationTimeMs(options.getOperationTimeMs()).build();
+            .setAllowExists(options.isAllowExists())
+            .setDirectory(true)
+            .setPersisted(options.isPersisted())
+            .setRecursive(options.isRecursive())
+            .setOperationTimeMs(options.getOperationTimeMs())
+            .build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         LOG.debug("writing journal entry for mkdir {0}", path);
@@ -1233,7 +1236,10 @@ public final class FileSystemMaster extends MasterBase {
         long ufsLength = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
         CreateOptions createOptions = new CreateOptions.Builder(MasterContext.getConf())
-            .setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive).setPersisted(true).build();
+            .setBlockSizeBytes(ufsBlockSizeByte)
+            .setRecursive(recursive)
+            .setPersisted(true)
+            .build();
         long fileId = create(path, createOptions);
         CompleteFileOptions completeOptions =
             new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)

@@ -31,8 +31,11 @@ public class MkdirOptionsTest {
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
 
-    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setAllowExists(allowExists)
-        .setOperationTimeMs(operationTimeMs).setPersisted(persisted).setRecursive(recursive)
+    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf())
+        .setAllowExists(allowExists)
+        .setOperationTimeMs(operationTimeMs)
+        .setPersisted(persisted)
+        .setRecursive(recursive)
         .build();
 
     Assert.assertEquals(allowExists, options.isAllowExists());

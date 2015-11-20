@@ -37,9 +37,14 @@ public class CreatePathOptionsTest {
     long ttl = random.nextLong();
 
     CreatePathOptions options = new CreatePathOptions.Builder(new TachyonConf())
-        .setAllowExists(allowExists).setBlockSizeBytes(blockSize).setDirectory(directory)
-        .setOperationTimeMs(operationTimeMs).setPersisted(persisted).setRecursive(recursive)
-        .setTTL(ttl).build();
+        .setAllowExists(allowExists)
+        .setBlockSizeBytes(blockSize)
+        .setDirectory(directory)
+        .setOperationTimeMs(operationTimeMs)
+        .setPersisted(persisted)
+        .setRecursive(recursive)
+        .setTTL(ttl)
+        .build();
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());

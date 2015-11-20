@@ -34,9 +34,13 @@ public class MkdirOptionsTest {
     boolean recursive = random.nextBoolean();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
 
-    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setAllowExists(allowExists)
-        .setRecursive(recursive).setUnderStorageType(ufsType).build();
+    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf())
+        .setAllowExists(allowExists)
+        .setRecursive(recursive)
+        .setUnderStorageType(ufsType)
+        .build();
 
+    Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
