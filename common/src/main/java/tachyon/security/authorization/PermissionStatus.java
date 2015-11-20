@@ -27,15 +27,15 @@ import tachyon.security.authentication.PlainSaslServer;
 public final class PermissionStatus {
   private String mUserName;
   private String mGroupName;
-  private FsPermission mPermission;
+  private FileSystemPermission mPermission;
 
   /**
    * Constructs an instance of {@link PermissionStatus}
    * @param userName the user name
    * @param groupName the group name which the user belongs to
-   * @param permission the {@link FsPermission}
+   * @param permission the {@link FileSystemPermission}
    */
-  public PermissionStatus(String userName, String groupName, FsPermission permission) {
+  public PermissionStatus(String userName, String groupName, FileSystemPermission permission) {
     mUserName = userName;
     mGroupName = groupName;
     if (permission == null) {
@@ -48,10 +48,10 @@ public final class PermissionStatus {
    * Constructs an instance of {@link PermissionStatus}. The permission is represented by short.
    * @param userName the user name
    * @param groupName the group name which the user belongs to
-   * @param permission the {@link FsPermission} represented by short value
+   * @param permission the {@link FileSystemPermission} represented by short value
    */
   public PermissionStatus(String userName, String groupName, short permission) {
-    this(userName, groupName, new FsPermission(permission));
+    this(userName, groupName, new FileSystemPermission(permission));
   }
 
   /**
@@ -72,20 +72,20 @@ public final class PermissionStatus {
 
   /**
    * Return permission
-   * @return the {@link FsPermission}
+   * @return the {@link FileSystemPermission}
    */
-  public FsPermission getPermission() {
+  public FileSystemPermission getPermission() {
     return mPermission;
   }
 
   /**
    * Applies umask.
    * @return a new {@link PermissionStatus}
-   * @see FsPermission#applyUMask(FsPermission)
+   * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
-  public PermissionStatus applyUMask(FsPermission umask) {
-    FsPermission newFsPermission = mPermission.applyUMask(umask);
-    return new PermissionStatus(mUserName, mGroupName, newFsPermission);
+  public PermissionStatus applyUMask(FileSystemPermission umask) {
+    FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
+    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
   }
 
   /**
@@ -93,7 +93,8 @@ public final class PermissionStatus {
    * @return the default {@link PermissionStatus} for directories
    */
   public static PermissionStatus getDirDefault() {
-    return new PermissionStatus("", "", new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION));
+    return new PermissionStatus("", "",
+        new FileSystemPermission(Constants.DEFAULT_TFS_FULL_PERMISSION));
   }
 
   /**
@@ -109,20 +110,20 @@ public final class PermissionStatus {
     AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     if (authType == AuthType.NOSASL) {
       // no authentication
-      return new PermissionStatus("", "", FsPermission.getNoneFsPermission());
+      return new PermissionStatus("", "", FileSystemPermission.getNoneFsPermission());
     }
     if (remote) {
       // get the username through the authentication mechanism
       return new PermissionStatus(PlainSaslServer.AuthorizedClientUser.get().getName(),
           "",//TODO(dong) group permission binding into Inode
-          FsPermission.getDefault().applyUMask(conf));
+          FileSystemPermission.getDefault().applyUMask(conf));
     }
 
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
     return new PermissionStatus(loginUserName,
         "",//TODO(dong) group permission binding into Inode
-        FsPermission.getDefault().applyUMask(conf));
+        FileSystemPermission.getDefault().applyUMask(conf));
   }
 
   @Override

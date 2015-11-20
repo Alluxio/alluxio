@@ -28,7 +28,7 @@ import tachyon.exception.BlockInfoException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.FileSystemPermission;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
@@ -37,7 +37,8 @@ import tachyon.thrift.FileInfo;
  */
 public final class InodeFile extends Inode {
   /** This default umask is used to calculate file permission from directory permission. */
-  private static final FsPermission UMASK = new FsPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+  private static final FileSystemPermission UMASK =
+      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;

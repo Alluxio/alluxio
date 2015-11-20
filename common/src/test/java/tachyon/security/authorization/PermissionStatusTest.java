@@ -23,7 +23,7 @@ public class PermissionStatusTest {
   @Test
   public void permissionStatusTest() {
     PermissionStatus permissionStatus =
-        new PermissionStatus("user1", "group1", FsPermission.getDefault());
+        new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
 
     Assert.assertEquals("user1", permissionStatus.getUserName());
     Assert.assertEquals("group1", permissionStatus.getGroupName());
@@ -38,14 +38,16 @@ public class PermissionStatusTest {
 
   @Test
   public void applyUMaskTest() {
-    FsPermission umaskPermission = new FsPermission((short)0022);
+    FileSystemPermission umaskPermission = new FileSystemPermission((short)0022);
     PermissionStatus permissionStatus =
-        new PermissionStatus("user1", "group1", FsPermission.getDefault());
+        new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
     permissionStatus = permissionStatus.applyUMask(umaskPermission);
 
-    Assert.assertEquals(FsAction.ALL, permissionStatus.getPermission().getUserAction());
-    Assert.assertEquals(FsAction.READ_EXECUTE, permissionStatus.getPermission().getGroupAction());
-    Assert.assertEquals(FsAction.READ_EXECUTE, permissionStatus.getPermission().getOtherAction());
+    Assert.assertEquals(FileSystemAction.ALL, permissionStatus.getPermission().getUserAction());
+    Assert.assertEquals(FileSystemAction.READ_EXECUTE,
+        permissionStatus.getPermission().getGroupAction());
+    Assert.assertEquals(FileSystemAction.READ_EXECUTE,
+        permissionStatus.getPermission().getOtherAction());
     Assert.assertEquals(0755, permissionStatus.getPermission().toShort());
 
   }

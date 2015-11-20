@@ -18,7 +18,7 @@ package tachyon.security.authorization;
 /**
  * POSIX style file system actions, e.g. read, write, etc.
  */
-public enum FsAction {
+public enum FileSystemAction {
   NONE("---"),
   EXECUTE("--x"),
   WRITE("-w-"),
@@ -32,9 +32,9 @@ public enum FsAction {
   private final String mSymbol;
 
   /** Retain reference to value array. */
-  private static final FsAction[] SVALS = values();
+  private static final FileSystemAction[] SVALS = values();
 
-  FsAction(String s) {
+  FileSystemAction(String s) {
     mSymbol = s;
   }
 
@@ -47,7 +47,7 @@ public enum FsAction {
    * @param that a passed-in action
    * @return true when this action implies the passed-in action
    */
-  public boolean imply(FsAction that) {
+  public boolean imply(FileSystemAction that) {
     if (that != null) {
       return (ordinal() & that.ordinal()) == that.ordinal();
     }
@@ -59,7 +59,7 @@ public enum FsAction {
    * @param that a passed-in action
    * @return the intersection of this action and the passed-in action
    */
-  public FsAction and(FsAction that) {
+  public FileSystemAction and(FileSystemAction that) {
     if (that != null) {
       return SVALS[ordinal() & that.ordinal()];
     }
@@ -71,7 +71,7 @@ public enum FsAction {
    * @param that a passed-in action
    * @return the union of this action and the passed-in action
    */
-  public FsAction or(FsAction that) {
+  public FileSystemAction or(FileSystemAction that) {
     if (that != null) {
       return SVALS[ordinal() | that.ordinal()];
     }
@@ -82,7 +82,7 @@ public enum FsAction {
    * NOT operation
    * @return the complement of this action
    */
-  public FsAction not() {
+  public FileSystemAction not() {
     return SVALS[7 - ordinal()];
   }
 }
