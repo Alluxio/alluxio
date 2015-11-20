@@ -36,7 +36,7 @@ public class SetStateEntry extends JournalEntry {
   private final Long mTTL;
 
   /**
-   * Creates a new instance of <code>SetStateEntry</code>.
+   * Creates a new instance of {@code SetStateEntry}.
    *
    * @param id  the id of the entry
    * @param opTimeMs the operation timestamp (in milliseconds)

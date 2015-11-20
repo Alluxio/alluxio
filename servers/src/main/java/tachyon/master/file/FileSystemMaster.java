@@ -900,10 +900,11 @@ public final class FileSystemMaster extends MasterBase {
                 .setOperationTimeMs(options.getOperationTimeMs()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
-        LOG.debug("writing journal entry for mkdir {0}", path);
+        LOG.debug("writing journal entry for mkdir {}", path);
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
         flushJournal();
+        LOG.debug("flushed journal for mkdir {}", path);
         return createResult;
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should

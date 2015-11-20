@@ -31,6 +31,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
@@ -60,6 +61,9 @@ public class ServiceSocketBindIntegrationTest {
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    // sleep to wait for services to start.
+    // TODO(TACHYON-1324) change LocalTachyonCluster.start() to wait until all services have started
+    CommonUtils.sleepMs(200);
   }
 
   private void connectServices() throws IOException {
