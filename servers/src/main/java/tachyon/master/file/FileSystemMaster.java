@@ -1396,7 +1396,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      SetStateEntry.Builder setState = SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
+      SetStateEntry.Builder setState = SetStateEntry.newBuilder()
+          .setId(fileId)
+          .setOpTimeMs(opTimeMs);
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
