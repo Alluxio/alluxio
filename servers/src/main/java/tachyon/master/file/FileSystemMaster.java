@@ -1449,8 +1449,8 @@ public final class FileSystemMaster extends MasterBase {
               try {
                 deleteFile(file.getId(), false);
               } catch (Exception e) {
-                LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
-                    e.toString());
+                LOG.error("Exception trying to clean up {} for ttl check: {}",
+                    file.toString(), e.toString());
               }
             }
           }

@@ -74,7 +74,7 @@ import tachyon.util.io.BufferUtils;
  * To test an implementation of {@link JournalFormatter}, extend this class and override method
  * {@link #getFormatter()}.
  * <p>
- * See example usage in {@link ProtoJournalFormatterTest}.
+ * See example usage in {@link ProtoBufJournalFormatterTest}.
  */
 public abstract class JournalFormatterTestBase {
   protected static final long TEST_CONTAINER_ID = 2011L;
@@ -97,8 +97,8 @@ public abstract class JournalFormatterTestBase {
   protected OutputStream mOs;
   protected InputStream mIs;
 
-  // set that holds test journal entries
-  protected static final List<JournalEntry> DATA_SET;
+  // List containing every type of journal entry
+  protected static final List<JournalEntry> ENTRIES_LIST;
 
   static {
     List<JournalEntry> entries = ImmutableList.<JournalEntry>builder()
@@ -253,7 +253,8 @@ public abstract class JournalFormatterTestBase {
                 .setTtl(TEST_TTL))
             .build())
         .build();
-    DATA_SET = Lists.transform(entries, new Function<JournalEntry, JournalEntry>() {
+    // Add the test sequence number to every journal entry
+    ENTRIES_LIST = Lists.transform(entries, new Function<JournalEntry, JournalEntry>() {
       @Override
       public JournalEntry apply(JournalEntry entry) {
         return entry.toBuilder().setSequenceNumber(TEST_SEQUENCE_NUMBER).build();
@@ -307,12 +308,12 @@ public abstract class JournalFormatterTestBase {
   @Test
   public void checkEntriesNumberTest() {
     // Subtract one to exclude ENTRY_NOT_SET
-    Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, DATA_SET.size());
+    Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
 
   @Test
   public void entriesTest() throws IOException {
-    for (JournalEntry entry : DATA_SET) {
+    for (JournalEntry entry : ENTRIES_LIST) {
       entryTest(entry);
     }
   }

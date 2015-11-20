@@ -57,9 +57,13 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator = InodeDirectoryIdGeneratorEntry
-        .newBuilder().setContainerId(mContainerId).setSequenceNumber(mSequenceNumber).build();
-    return JournalEntry.newBuilder().setInodeDirectoryIdGenerator(inodeDirectoryIdGenerator)
+    InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator =
+        InodeDirectoryIdGeneratorEntry.newBuilder()
+        .setContainerId(mContainerId)
+        .setSequenceNumber(mSequenceNumber)
+        .build();
+    return JournalEntry.newBuilder()
+        .setInodeDirectoryIdGenerator(inodeDirectoryIdGenerator)
         .build();
   }
 

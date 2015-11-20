@@ -104,8 +104,7 @@ public class RawTableMaster extends MasterBase {
         throw new IOException(tdnee);
       }
     } else {
-      throw new IOException(
-          ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(innerEntry.getClass().getSimpleName()));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
@@ -167,8 +166,11 @@ public class RawTableMaster extends MasterBase {
     }
 
     LOG.debug("writing journal entry for createRawTable {}", path);
-    RawTableEntry rawTable = RawTableEntry.newBuilder().setId(id).setColumns(columns)
-        .setMetadata(ByteString.copyFrom(metadata)).build();
+    RawTableEntry rawTable = RawTableEntry.newBuilder()
+        .setId(id)
+        .setColumns(columns)
+        .setMetadata(ByteString.copyFrom(metadata))
+        .build();
     writeJournalEntry(JournalEntry.newBuilder().setRawTable(rawTable).build());
     flushJournal();
 
@@ -193,8 +195,10 @@ public class RawTableMaster extends MasterBase {
     }
     mRawTables.updateMetadata(tableId, metadata);
 
-    UpdateMetadataEntry updateMetadata = UpdateMetadataEntry.newBuilder().setId(tableId)
-        .setMetadata(ByteString.copyFrom(metadata)).build();
+    UpdateMetadataEntry updateMetadata = UpdateMetadataEntry.newBuilder()
+        .setId(tableId)
+        .setMetadata(ByteString.copyFrom(metadata))
+        .build();
     writeJournalEntry(JournalEntry.newBuilder().setUpdateMetadata(updateMetadata).build());
     flushJournal();
   }
