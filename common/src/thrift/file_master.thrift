@@ -36,6 +36,7 @@ struct CreateTOptions {
 struct MkdirTOptions {
   1: optional bool persisted
   2: optional bool recursive
+  3: optional bool allowExists
 }
 
 struct SetStateTOptions {
