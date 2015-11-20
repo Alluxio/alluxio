@@ -70,11 +70,11 @@ public class InodeFileEntry extends InodeEntry {
       @JsonProperty("cacheable") boolean cacheable,
       @JsonProperty("blocks") List<Long> blocks,
       @JsonProperty("ttl") long ttl,
-      @JsonProperty("username") String username,
-      @JsonProperty("groupname") String groupname,
+      @JsonProperty("userName") String userName,
+      @JsonProperty("groupName") String groupName,
       @JsonProperty("permission") short permission) {
     super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs,
-        username, groupname, permission);
+        userName, groupName, permission);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mCompleted = completed;
@@ -101,7 +101,7 @@ public class InodeFileEntry extends InodeEntry {
             .setPersisted(mPersisted)
             .setPinned(mPinned)
             .setTTL(mTTL)
-            .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
+            .setPermissionStatus(new PermissionStatus(mUserName, mGroupName, mPermission))
             .build();
 
     if (mBlocks != null) {

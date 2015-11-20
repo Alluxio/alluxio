@@ -47,11 +47,11 @@ public class InodeDirectoryEntry extends InodeEntry {
       @JsonProperty("persisted") boolean persisted,
       @JsonProperty("pinned") boolean pinned,
       @JsonProperty("lastModificationTimeMs") long lastModificationTimeMs,
-      @JsonProperty("username") String username,
-      @JsonProperty("groupname") String groupname,
+      @JsonProperty("userName") String userName,
+      @JsonProperty("groupName") String groupName,
       @JsonProperty("permission") short permission) {
     super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs,
-        username, groupname, permission);
+        userName, groupName, permission);
   }
 
   /**
@@ -67,7 +67,7 @@ public class InodeDirectoryEntry extends InodeEntry {
             .setParentId(mParentId)
             .setCreationTimeMs(mCreationTimeMs)
             .setPersisted(mPersisted)
-            .setPermissionStatus(new PermissionStatus(mUsername, mGroupname, mPermission))
+            .setPermissionStatus(new PermissionStatus(mUserName, mGroupName, mPermission))
             .build();
     inode.setPersisted(mPersisted);
     inode.setPinned(mPinned);

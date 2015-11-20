@@ -117,7 +117,7 @@
                     <% } %>
                   </th>
                   <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
-                    <th><%= fileInfo.getUsername() %></th>
+                    <th><%= fileInfo.getUserName() %></th>
                   <% } %>
                   <th><%= (fileInfo.getPersisted() ? "YES" : "NO") %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
