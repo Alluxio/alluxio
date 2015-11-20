@@ -25,7 +25,7 @@ import tachyon.proto.JournalEntryProtos.JournalEntry;
  */
 public final class JournalProtoUtils {
 
-  public static Message getMessage(JournalEntry entry) {
+  public static Message getInnerEntry(JournalEntry entry) {
     switch (entry.getEntryCase()) {
       case ADD_MOUNT_POINT:
         return entry.getAddMountPoint();

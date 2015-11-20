@@ -142,7 +142,7 @@ public final class LineageMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.getMessage(entry);
+    Message innerEntry = JournalProtoUtils.getInnerEntry(entry);
     if (innerEntry instanceof LineageEntry) {
       mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
     } else if (innerEntry instanceof LineageIdGeneratorEntry) {
