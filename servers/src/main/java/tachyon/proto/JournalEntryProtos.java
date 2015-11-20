@@ -18244,11 +18244,11 @@ public final class JournalEntryProtos {
     boolean getPinned();
 
     /**
-     * <code>optional int64 ttl = 4 [default = -1];</code>
+     * <code>optional int64 ttl = 4;</code>
      */
     boolean hasTtl();
     /**
-     * <code>optional int64 ttl = 4 [default = -1];</code>
+     * <code>optional int64 ttl = 4;</code>
      */
     long getTtl();
   }
@@ -18412,13 +18412,13 @@ public final class JournalEntryProtos {
     public static final int TTL_FIELD_NUMBER = 4;
     private long ttl_;
     /**
-     * <code>optional int64 ttl = 4 [default = -1];</code>
+     * <code>optional int64 ttl = 4;</code>
      */
     public boolean hasTtl() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 ttl = 4 [default = -1];</code>
+     * <code>optional int64 ttl = 4;</code>
      */
     public long getTtl() {
       return ttl_;
@@ -18428,7 +18428,7 @@ public final class JournalEntryProtos {
       id_ = 0L;
       opTimeMs_ = 0L;
       pinned_ = false;
-      ttl_ = -1L;
+      ttl_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -18603,7 +18603,7 @@ public final class JournalEntryProtos {
         bitField0_ = (bitField0_ & ~0x00000002);
         pinned_ = false;
         bitField0_ = (bitField0_ & ~0x00000004);
-        ttl_ = -1L;
+        ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
@@ -18800,21 +18800,21 @@ public final class JournalEntryProtos {
         return this;
       }
 
-      private long ttl_ = -1L;
+      private long ttl_ ;
       /**
-       * <code>optional int64 ttl = 4 [default = -1];</code>
+       * <code>optional int64 ttl = 4;</code>
        */
       public boolean hasTtl() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional int64 ttl = 4 [default = -1];</code>
+       * <code>optional int64 ttl = 4;</code>
        */
       public long getTtl() {
         return ttl_;
       }
       /**
-       * <code>optional int64 ttl = 4 [default = -1];</code>
+       * <code>optional int64 ttl = 4;</code>
        */
       public Builder setTtl(long value) {
         bitField0_ |= 0x00000008;
@@ -18823,11 +18823,11 @@ public final class JournalEntryProtos {
         return this;
       }
       /**
-       * <code>optional int64 ttl = 4 [default = -1];</code>
+       * <code>optional int64 ttl = 4;</code>
        */
       public Builder clearTtl() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        ttl_ = -1L;
+        ttl_ = 0L;
         onChanged();
         return this;
       }
@@ -19532,13 +19532,13 @@ public final class JournalEntryProtos {
       "itializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block",
       "_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013Rename" +
       "Entry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\no" +
-      "p_time_ms\030\003 \001(\003\"P\n\rSetStateEntry\022\n\n\002id\030\001" +
+      "p_time_ms\030\003 \001(\003\"L\n\rSetStateEntry\022\n\n\002id\030\001" +
       " \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010" +
-      "\022\017\n\003ttl\030\004 \001(\003:\002-1\"3\n\023UpdateMetadataEntry" +
-      "\022\n\n\002id\030\001 \001(\003\022\020\n\010metadata\030\002 \001(\014*a\n\020Lineag" +
-      "eFileState\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r" +
-      "\n\tPERSISTED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022" +
-      "\010\n\004LOST\020\005B\017\n\rtachyon.proto"
+      "\022\013\n\003ttl\030\004 \001(\003\"3\n\023UpdateMetadataEntry\022\n\n\002" +
+      "id\030\001 \001(\003\022\020\n\010metadata\030\002 \001(\014*a\n\020LineageFil" +
+      "eState\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r\n\tPE" +
+      "RSISTED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022\010\n\004L" +
+      "OST\020\005B\017\n\rtachyon.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

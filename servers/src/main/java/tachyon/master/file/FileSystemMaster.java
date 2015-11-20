@@ -1428,10 +1428,10 @@ public final class FileSystemMaster extends MasterBase {
 
   private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
     SetStateOptions.Builder builder = new SetStateOptions.Builder();
-    builder.setPinned(entry.getPinned());
-    // The default ttl value and the field name may change, but the field number should never
-    long defaultTtl = (Long) SetStateEntry.getDescriptor().findFieldByNumber(4).getDefaultValue();
-    if (entry.getTtl() != defaultTtl) {
+    if (entry.hasPinned()) {
+      builder.setPinned(entry.getPinned());
+    }
+    if (entry.hasTtl()) {
       builder.setTTL(entry.getTtl());
     }
     setStateInternal(entry.getId(), entry.getOpTimeMs(), builder.build());
