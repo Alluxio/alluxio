@@ -28,6 +28,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterWorkerService;
+import tachyon.thrift.TachyonService;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -49,14 +50,23 @@ public final class LineageMasterClient extends ClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
     return Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME;
   }
 
   @Override
+  protected long getServiceVersion() {
+    return Constants.LINEAGE_MASTER_WORKER_SERVICE_VERSION;
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = new LineageMasterWorkerService.Client(mProtocol);
-    checkVersion(mClient, Constants.LINEAGE_MASTER_WORKER_SERVICE_VERSION);
   }
 
   /**

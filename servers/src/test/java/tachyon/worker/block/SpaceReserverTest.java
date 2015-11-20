@@ -61,8 +61,7 @@ public class SpaceReserverTest {
     FileSystemMasterClient workerFileSystemMasterClient =
         PowerMockito.mock(FileSystemMasterClient.class);
     WorkerSource workerSource = PowerMockito.mock(WorkerSource.class);
-    BlockMasterClient blockMasterClient =
-        PowerMockito.mock(BlockMasterClient.class);
+    BlockMasterClient blockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);

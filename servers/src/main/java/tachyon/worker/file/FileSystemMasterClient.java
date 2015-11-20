@@ -29,6 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterWorkerService;
+import tachyon.thrift.TachyonService;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon worker.
@@ -52,14 +53,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
     return Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME;
   }
 
   @Override
+  protected long getServiceVersion() {
+    return Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION;
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemMasterWorkerService.Client(mProtocol);
-    checkVersion(mClient, Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION);
   }
 
   /**
@@ -68,7 +78,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  // TODO(jiri): Factor this method out to a common client.
   public synchronized FileInfo getFileInfo(final long fileId) throws TachyonException, IOException {
     return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
       @Override

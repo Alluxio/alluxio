@@ -70,6 +70,7 @@ public class Format {
       String[] masterServiceNames = new String[] {
           Constants.BLOCK_MASTER_NAME,
           Constants.FILE_SYSTEM_MASTER_NAME,
+          Constants.LINEAGE_MASTER_NAME,
           Constants.RAW_TABLE_MASTER_NAME,
       };
       for (String masterServiceName : masterServiceNames) {

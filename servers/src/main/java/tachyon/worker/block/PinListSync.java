@@ -55,8 +55,7 @@ public final class PinListSync implements Runnable {
    * @param blockDataManager the blockDataManager this syncer is updating to
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager,
-      FileSystemMasterClient masterClient) {
+  public PinListSync(BlockDataManager blockDataManager, FileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     TachyonConf conf = WorkerContext.getConf();
 

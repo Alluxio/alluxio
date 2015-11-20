@@ -40,6 +40,9 @@ struct LineageInfo {
   7: list<i64> children
 }
 
+/**
+ * This service contains lineage master service endpoints for Tachyon clients.
+ */
 service LineageMasterClientService extends common.TachyonService {
 
   /*
@@ -78,6 +81,9 @@ service LineageMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 }
 
+/**
+ * This service contains lineage master service endpoints for Tachyon workers.
+ */
 service LineageMasterWorkerService extends common.TachyonService {
 
   /*

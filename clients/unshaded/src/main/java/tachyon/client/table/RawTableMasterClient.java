@@ -29,6 +29,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterClientService;
 import tachyon.thrift.RpcOptions;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.IdUtils;
 
@@ -52,14 +53,23 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
     return Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
+  protected long getServiceVersion() {
+    return Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
   protected void afterConnect() throws IOException {
     mClient = new RawTableMasterClientService.Client(mProtocol);
-    checkVersion(mClient, Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**
