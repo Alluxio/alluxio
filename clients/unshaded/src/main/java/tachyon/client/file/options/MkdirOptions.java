@@ -123,7 +123,7 @@ public final class MkdirOptions {
    *         directory being made already exists
    */
   public boolean isAllowExists() {
-    return mRecursive;
+    return mAllowExists;
   }
 
   /**
