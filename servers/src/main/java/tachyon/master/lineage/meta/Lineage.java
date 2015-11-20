@@ -223,6 +223,11 @@ public final class Lineage implements JournalEntryRepresentable {
     throw new RuntimeException("Output file " + fileId + " not found");
   }
 
+  /**
+   * Converts the entry to a {@code Lineage}.
+   *
+   * @return the {@code Lineage} representation
+   */
   public static Lineage fromJournal(LineageEntry entry) {
     List<TachyonFile> inputFiles = Lists.newArrayList();
     for (long file : entry.getInputFilesList()) {
