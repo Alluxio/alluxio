@@ -99,7 +99,11 @@ To set these options, you can configure your `TACHYON_JAVA_OPTS` to include:
 If you are using a cluster of ZooKeeper nodes, you can specify multiple addresses by separating them
 with commas, like:
 
-     -Dtachyon.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
+    -Dtachyon.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
+
+Alternatively, these configuration settings can be set in the `tachyon-site.properties` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html).
 
 ### Master Configuration
 
