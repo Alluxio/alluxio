@@ -45,11 +45,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.FileAlreadyCompletedException;
-import tachyon.exception.InvalidPathException;
 import tachyon.exception.InvalidFileSizeException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -185,7 +185,7 @@ public final class FileSystemMaster extends MasterBase {
         throw new RuntimeException(e);
       } catch (InvalidFileSizeException e) {
         throw new RuntimeException(e);
-      }  catch (FileAlreadyCompletedException e) {
+      } catch (FileAlreadyCompletedException e) {
         throw new RuntimeException(e);
       }
 
@@ -240,11 +240,9 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
-      mTTLCheckerService =
-          getExecutorService().submit(
-              new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
-                  new MasterInodeTTLCheckExecutor(), conf
-                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+      mTTLCheckerService = getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTTLCheckExecutor(),
+              conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
@@ -314,8 +312,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private FileInfo getFileInfoInternal(Inode inode)
-      throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
@@ -369,9 +366,9 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
-  public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
-      FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
-      FileAlreadyCompletedException {
+  public void completeFile(long fileId, CompleteFileOptions options)
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
+      InvalidFileSizeException, FileAlreadyCompletedException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -406,8 +403,7 @@ public final class FileSystemMaster extends MasterBase {
       long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
 
       completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
-      writeJournalEntry(
-          new CompleteFileEntry(fileInode.getBlockIds(), fileId, length, opTimeMs));
+      writeJournalEntry(new CompleteFileEntry(fileInode.getBlockIds(), fileId, length, opTimeMs));
       flushJournal();
     }
   }
@@ -432,8 +428,8 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException {
+  private void completeFileFromEntry(CompleteFileEntry entry)
+      throws InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException {
     try {
       completeFileInternal(entry.getBlockIds(), entry.getId(), entry.getLength(),
           entry.getOpTimeMs());
@@ -894,10 +890,13 @@ public final class FileSystemMaster extends MasterBase {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
-        CreatePathOptions createPathOptions =
-            new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
-                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
-                .setOperationTimeMs(options.getOperationTimeMs()).build();
+        CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
+            .setAllowExists(options.isAllowExists())
+            .setDirectory(true)
+            .setPersisted(options.isPersisted())
+            .setRecursive(options.isRecursive())
+            .setOperationTimeMs(options.getOperationTimeMs())
+            .build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         LOG.debug("writing journal entry for mkdir {}", path);
@@ -1234,8 +1233,7 @@ public final class FileSystemMaster extends MasterBase {
   // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException,
-      IOException {
+      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
       ufsPath = mMountTable.resolve(path);
@@ -1249,9 +1247,11 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long ufsLength = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        CreateOptions createOptions =
-            new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
-                .setRecursive(recursive).setPersisted(true).build();
+        CreateOptions createOptions = new CreateOptions.Builder(MasterContext.getConf())
+            .setBlockSizeBytes(ufsBlockSizeByte)
+            .setRecursive(recursive)
+            .setPersisted(true)
+            .build();
         long fileId = create(path, createOptions);
         CompleteFileOptions completeOptions =
             new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
@@ -1259,9 +1259,8 @@ public final class FileSystemMaster extends MasterBase {
         completeFile(fileId, completeOptions);
         return fileId;
       } else {
-        MkdirOptions options =
-            new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
-                .setPersisted(true).build();
+        MkdirOptions options = new MkdirOptions.Builder(MasterContext.getConf())
+            .setRecursive(recursive).setPersisted(true).build();
         InodeTree.CreatePathResult result = mkdir(path, options);
         List<Inode> created = result.getCreated();
         return created.get(created.size() - 1).getId();
@@ -1413,8 +1412,8 @@ public final class FileSystemMaster extends MasterBase {
               try {
                 deleteFile(file.getId(), false);
               } catch (Exception e) {
-                LOG.error("Exception trying to clean up {} for ttl check: {}",
-                    file.toString(), e.toString());
+                LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+                    e.toString());
               }
             }
           }
