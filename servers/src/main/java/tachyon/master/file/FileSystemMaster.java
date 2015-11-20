@@ -395,9 +395,12 @@ public final class FileSystemMaster extends MasterBase {
       long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
 
       completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
-      CompleteFileEntry completeFileEntry =
-          CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(fileId)
-              .setLength(length).setOpTimeMs(opTimeMs).build();
+      CompleteFileEntry completeFileEntry = CompleteFileEntry.newBuilder()
+          .addAllBlockIds(fileInode.getBlockIds())
+          .setId(fileId)
+          .setLength(length)
+          .setOpTimeMs(opTimeMs)
+          .build();
       writeJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
       flushJournal();
     }
@@ -492,7 +495,10 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
-          .setPath(path.getPath()).setBlockSizeBytes(blockSizeBytes).setTtl(ttl).build();
+          .setPath(path.getPath())
+          .setBlockSizeBytes(blockSizeBytes)
+          .setTtl(ttl)
+          .build();
       writeJournalEntry(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       flushJournal();
       return id;
@@ -565,8 +571,11 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
-      DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId)
-          .setRecursive(recursive).setOpTimeMs(opTimeMs).build();
+      DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
+          .setId(fileId)
+          .setRecursive(recursive)
+          .setOpTimeMs(opTimeMs)
+          .build();
       writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
       flushJournal();
       return ret;
@@ -919,8 +928,10 @@ public final class FileSystemMaster extends MasterBase {
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
     for (Inode inode : createResult.getModified()) {
       InodeLastModificationTimeEntry inodeLastModificationTime =
-          InodeLastModificationTimeEntry.newBuilder().setId(inode.getId())
-              .setLastModificationTimeMs(inode.getLastModificationTimeMs()).build();
+          InodeLastModificationTimeEntry.newBuilder()
+          .setId(inode.getId())
+          .setLastModificationTimeMs(inode.getLastModificationTimeMs())
+          .build();
       writeJournalEntry(JournalEntry.newBuilder()
           .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
@@ -928,8 +939,9 @@ public final class FileSystemMaster extends MasterBase {
       writeJournalEntry(inode.toJournalEntry());
     }
     for (Inode inode : createResult.getPersisted()) {
-      PersistDirectoryEntry persistDirectory =
-          PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
+      PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
+          .setId(inode.getId())
+          .build();
       writeJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
     }
   }
@@ -1002,8 +1014,11 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
-      RenameEntry rename = RenameEntry.newBuilder().setId(fileId).setDstPath(dstPath.getPath())
-          .setOpTimeMs(opTimeMs).build();
+      RenameEntry rename = RenameEntry.newBuilder()
+          .setId(fileId)
+          .setDstPath(dstPath.getPath())
+          .setOpTimeMs(opTimeMs)
+          .build();
       writeJournalEntry(JournalEntry.newBuilder().setRename(rename).build());
       flushJournal();
 
@@ -1102,8 +1117,9 @@ public final class FileSystemMaster extends MasterBase {
       }
       handle.setPersisted(true);
       if (!replayed) {
-        PersistDirectoryEntry persistDirectory =
-            PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
+        PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
+            .setId(inode.getId())
+            .build();
         writeJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
       }
     }
@@ -1284,7 +1300,9 @@ public final class FileSystemMaster extends MasterBase {
       InodeTree.CreatePathResult createResult = mkdir(tachyonPath, options);
       if (mountInternal(tachyonPath, ufsPath)) {
         AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder()
-            .setTachyonPath(tachyonPath.toString()).setUfsPath(ufsPath.toString()).build();
+            .setTachyonPath(tachyonPath.toString())
+            .setUfsPath(ufsPath.toString())
+            .build();
         writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
         flushJournal();
         return true;
@@ -1318,11 +1336,15 @@ public final class FileSystemMaster extends MasterBase {
         long fileId = inode.getId();
         long opTimeMs = System.currentTimeMillis();
         deleteFileRecursiveInternal(fileId, true /* replayed */, opTimeMs);
-        DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true)
-            .setOpTimeMs(opTimeMs).build();
+        DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
+            .setId(fileId)
+            .setRecursive(true)
+            .setOpTimeMs(opTimeMs)
+            .build();
         writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
-        DeleteMountPointEntry deleteMountPoint =
-            DeleteMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString()).build();
+        DeleteMountPointEntry deleteMountPoint = DeleteMountPointEntry.newBuilder()
+            .setTachyonPath(tachyonPath.toString())
+            .build();
         writeJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
         flushJournal();
         return true;
@@ -1370,8 +1392,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      SetStateEntry.Builder setState =
-          SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
+      SetStateEntry.Builder setState = SetStateEntry.newBuilder()
+          .setId(fileId)
+          .setOpTimeMs(opTimeMs);
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
