@@ -21,6 +21,7 @@ import tachyon.thrift.MkdirTOptions;
 
 public final class MkdirOptions {
   public static class Builder {
+    private boolean mAllowExists;
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
@@ -34,6 +35,16 @@ public final class MkdirOptions {
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
+    }
+
+    /**
+     * @param allowExists the allowExists flag value to use; it specifies whether an exception
+     *        should be thrown if the directory being made already exists.
+     * @return the builder
+     */
+    public Builder setAllowExists(boolean allowExists) {
+      mAllowExists = allowExists;
+      return this;
     }
 
     /**
@@ -82,11 +93,13 @@ public final class MkdirOptions {
     return new Builder(MasterContext.getConf()).build();
   }
 
+  private boolean mAllowExists;
   private long mOperationTimeMs;
   private boolean mPersisted;
   private boolean mRecursive;
 
   private MkdirOptions(MkdirOptions.Builder builder) {
+    mAllowExists = builder.mAllowExists;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
@@ -98,9 +111,18 @@ public final class MkdirOptions {
    * @param options Thrift options
    */
   public MkdirOptions(MkdirTOptions options) {
+    mAllowExists = options.isAllowExists();
     mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
+  }
+
+  /**
+   * @return the allowExists flag; it specifies whether an exception should be thrown if the
+   *         directory being made already exists.
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
   }
 
   /**
@@ -119,7 +141,7 @@ public final class MkdirOptions {
 
   /**
    * @return the recursive flag value; it specifies whether parent directories should be created if
-   * they do not already exist
+   *         they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
