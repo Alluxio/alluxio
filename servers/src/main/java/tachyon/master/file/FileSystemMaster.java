@@ -1392,9 +1392,7 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      SetStateEntry.Builder setState = SetStateEntry.newBuilder()
-          .setId(fileId)
-          .setOpTimeMs(opTimeMs);
+      SetStateEntry.Builder setState = SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
@@ -1427,7 +1425,9 @@ public final class FileSystemMaster extends MasterBase {
   private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
     SetStateOptions.Builder builder = new SetStateOptions.Builder();
     builder.setPinned(entry.getPinned());
-    if (entry.getTtl() != 0) {
+    // The default ttl value and the field name may change, but the field number should never
+    long defaultTtl = (Long) SetStateEntry.getDescriptor().findFieldByNumber(4).getDefaultValue();
+    if (entry.getTtl() != defaultTtl) {
       builder.setTTL(entry.getTtl());
     }
     setStateInternal(entry.getId(), entry.getOpTimeMs(), builder.build());

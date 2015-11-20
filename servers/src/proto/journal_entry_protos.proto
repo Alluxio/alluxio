@@ -170,7 +170,7 @@ message SetStateEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
   optional bool pinned = 3;
-  optional int64 ttl = 4;
+  optional int64 ttl = 4 [default = -1];
 }
 
 message UpdateMetadataEntry {
