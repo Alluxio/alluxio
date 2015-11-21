@@ -32,7 +32,7 @@ public final class PersistFilesRequestEntry extends JournalEntry {
   private final List<Long> mFileIds;
 
   /**
-   * Creates a new instance of {@link PersistFilesRequestEntry}
+   * Creates a new instance of {@code PersistFilesRequestEntry}
    * @param fileIds
    */
   @JsonCreator

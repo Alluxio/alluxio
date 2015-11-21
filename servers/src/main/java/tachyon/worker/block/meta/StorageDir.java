@@ -74,7 +74,7 @@ public final class StorageDir {
   }
 
   /**
-   * Factory method to create {@link StorageDir}.
+   * Factory method to create {@code StorageDir}.
    *
    * It will load meta data of existing committed blocks in the dirPath specified. Only files with
    * directory depth 1 under dirPath and whose file name can be parsed into {@code long} will be

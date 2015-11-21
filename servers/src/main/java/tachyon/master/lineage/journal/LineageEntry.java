@@ -46,7 +46,7 @@ public class LineageEntry extends JournalEntry {
   private final long mCreationTimeMs;
 
   /**
-   * Creates a new instance of {@link LineageEntry}.
+   * Creates a new instance of {@code LineageEntry}.
    *
    * @param id the id
    * @param inputFiles the input files
@@ -75,7 +75,7 @@ public class LineageEntry extends JournalEntry {
   }
 
   /**
-   * Creates a new instance of {@link LineageEntry}.
+   * Creates a new instance of {@code LineageEntry}.
    *
    * @param id the id
    * @param inputFiles the input files

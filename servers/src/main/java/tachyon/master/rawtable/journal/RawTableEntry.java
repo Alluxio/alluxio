@@ -33,7 +33,7 @@ public class RawTableEntry extends JournalEntry {
   private final ByteBuffer mMetadata;
 
   /**
-   * Creates a new instance of {@link RawTableEntry}.
+   * Creates a new instance of {@code RawTableEntry}.
    *
    * @param id table id
    * @param columns the columns to be set for the table
