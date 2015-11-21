@@ -1264,8 +1264,19 @@ public final class FileSystemMaster extends MasterBase {
         MkdirOptions options = new MkdirOptions.Builder(MasterContext.getConf())
             .setRecursive(recursive).setPersisted(true).build();
         InodeTree.CreatePathResult result = mkdir(path, options);
-        List<Inode> created = result.getCreated();
-        return created.get(created.size() - 1).getId();
+        List<Inode> inodes = null;
+        if (result.getCreated().size() > 0) {
+          inodes = result.getCreated();
+        } else if (result.getPersisted().size() > 0) {
+          inodes = result.getPersisted();
+        } else if (result.getModified().size() > 0) {
+          inodes = result.getModified();
+        }
+        if (inodes == null) {
+          throw new FileAlreadyExistsException(
+              ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        }
+        return inodes.get(inodes.size() - 1).getId();
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));

@@ -179,10 +179,29 @@ public class TfsShellTest {
     // First run ls to create the data
     mFsShell.run("ls", "/dir1");
     Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isIsPersisted());
-    // Load all metadata
+    // Load metadata
     mFsShell.run("loadMetadata", "/dir1");
     Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",
         mOutput.toString());
+  }
+
+  @Test
+  public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, TachyonException {
+    // Construct a situation where the directory exists in the inode tree and the UFS, but is not
+    // marked as persisted.
+    TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 10);
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    String ufsRoot =
+        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
+            Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
+    ufs.mkdirs(PathUtils.concatPath(ufsRoot, "testDir"), false);
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    // Load metadata, which should mark the testDir as persisted
+    mFsShell.run("loadMetadata", "/testDir");
+    Assert.assertEquals("", mOutput.toString());
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
   }
 
   @Test
@@ -569,7 +588,7 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
+    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
@@ -582,8 +601,8 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", qualifiedPath}),
-        mOutput.toString());
+    Assert
+        .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
@@ -615,7 +634,7 @@ public class TfsShellTest {
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder1")));
-    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
+    mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
     toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder")));
@@ -629,10 +648,10 @@ public class TfsShellTest {
 
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder");
-    toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder"}));
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
+    mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
   }
 
   @Test
