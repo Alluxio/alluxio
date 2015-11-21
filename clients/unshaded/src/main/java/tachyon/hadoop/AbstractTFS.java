@@ -53,6 +53,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -525,6 +526,8 @@ abstract class AbstractTFS extends FileSystem {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       return master.getUfsAddress();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(master);
     }

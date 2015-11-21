@@ -370,7 +370,7 @@ public abstract class UnderFileSystem {
    * @param path the folder to create
    * @param createParent If true, the method creates any necessary but nonexistent parent
    *        directories. Otherwise, the method does not create nonexistent parent directories.
-   * @return <code>true</code> if and only if the directory was created; <code>false</code>
+   * @return {@code true} if and only if the directory was created; {@code false}
    *         otherwise
    * @throws IOException
    */

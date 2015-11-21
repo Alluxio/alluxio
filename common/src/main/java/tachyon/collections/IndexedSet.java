@@ -62,9 +62,8 @@ import com.google.common.collect.Sets;
  * </pre>
  *
  * We want to be able to retrieve the set of puppies via a puppy's id or name, one way is to have
- * two maps like <code>Map&ltString, Puppy&gt nameToPuppy</code> and
- * <code>Map&ltLong, Puppy&gt idToPuppy</code>, another way is to use a single instance of
- * {@link IndexedSet}!
+ * two maps like {@code Map<String, Puppy> nameToPuppy} and {@code Map<Long, Puppy> idToPuppy},
+ * another way is to use a single instance of {@link IndexedSet}!
  *
  * First, define the fields to be indexed:
  * <pre>

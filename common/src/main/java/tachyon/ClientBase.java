@@ -32,6 +32,7 @@ import com.google.common.base.Preconditions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.authentication.AuthenticationUtils;
@@ -129,8 +130,9 @@ public abstract class ClientBase implements Closeable {
    * Connects with the remote.
    *
    * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized void connect() throws IOException {
+  public synchronized void connect() throws IOException, ConnectionFailedException {
     if (mConnected) {
       return;
     }
@@ -164,8 +166,8 @@ public abstract class ClientBase implements Closeable {
       }
     }
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to " + getServiceName() + " " + mMode + " @ "
-        + mAddress + " after " + (retry.getRetryCount()) + " attempts");
+    throw new ConnectionFailedException("Failed to connect to " + getServiceName() + " " + mMode
+        + " @ " + mAddress + " after " + (retry.getRetryCount()) + " attempts");
   }
 
   /**
@@ -265,8 +267,9 @@ public abstract class ClientBase implements Closeable {
    * @return the return value of the RPC call
    * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
    *         been called before calling this method or during the retry
+   * @throws ConnectionFailedException if network connection failed
    */
-  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
+  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException, ConnectionFailedException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();

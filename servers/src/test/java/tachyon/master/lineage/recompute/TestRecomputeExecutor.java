@@ -15,6 +15,8 @@
 
 package tachyon.master.lineage.recompute;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -56,7 +58,8 @@ public final class TestRecomputeExecutor {
     FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
 
     RecomputeExecutor executor = new RecomputeExecutor(planner, fileSystemMaster);
-    executor.heartbeat();
+    // wait for the executor to finish running
+    executor.heartbeatWithFuture().get(1, TimeUnit.SECONDS);
 
     Mockito.verify(fileSystemMaster).resetFile(fileId);
     Mockito.verify(job).run();
