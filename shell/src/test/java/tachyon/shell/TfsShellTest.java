@@ -45,6 +45,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
@@ -166,6 +167,22 @@ public class TfsShellTest {
     fileInfoB = mTfs.getInfo(fileB);
     Assert.assertTrue(fileInfoA.getInMemoryPercentage() == 100);
     Assert.assertTrue(fileInfoB.getInMemoryPercentage() == 100);
+  }
+
+  @Test
+  public void lsThenloadMetadataTest() throws IOException, TachyonException {
+    String ufsRoot =
+        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
+            Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
+    ufs.mkdirs(PathUtils.concatPath(ufsRoot, "dir1"), false);
+    // First run ls to create the data
+    mFsShell.run("ls", "/dir1");
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isIsPersisted());
+    // Load all metadata
+    mFsShell.run("loadMetadata", "/dir1");
+    Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",
+        mOutput.toString());
   }
 
   @Test
@@ -552,7 +569,7 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
+    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
         mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
@@ -598,7 +615,7 @@ public class TfsShellTest {
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder1")));
-    mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
+    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
     toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder")));
@@ -612,7 +629,7 @@ public class TfsShellTest {
 
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder");
-    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
+    toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder"}));
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
     mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
