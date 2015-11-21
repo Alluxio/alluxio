@@ -54,14 +54,14 @@ service LineageMasterService extends common.TachyonService {
   i64 createLineage( /** the list of input files */ 1: list<string> inputFiles,
       /** the list of output files */ 2: list<string> outputFiles,
       /** the command line job info */ 3: CommandLineJobInfo job)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Deletes a lineage and returns whether the deletion succeeded.
    */
   bool deleteLineage( /** the lineage id */ 1: i64 lineageId,
       /** whether to delete the lineage in cascade */ 2: bool cascade)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Returns a list of existing lineages.
@@ -75,7 +75,7 @@ service LineageMasterService extends common.TachyonService {
   i64 reinitializeFile( /** the path of the file */ 1: string path,
       /** block size in bytes */ 2: i64 blockSizeBytes,
       /** time to live */ 3: i64 ttl)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Reports file as lost.
@@ -89,5 +89,5 @@ service LineageMasterService extends common.TachyonService {
    */
   LineageCommand workerLineageHeartbeat( /** the id of the worker */ 1: i64 workerId,
       /** the list of persisted files */ 2: list<i64> persistedFiles)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 }

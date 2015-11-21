@@ -19,7 +19,7 @@ service BlockMasterService extends common.TachyonService {
    * Returns the block information for the given block id.
    */
   common.BlockInfo getBlockInfo( /** the id of the block */  1: i64 blockId)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Returns the capacity (in bytes).
