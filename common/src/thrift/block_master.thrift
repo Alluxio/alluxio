@@ -19,7 +19,7 @@ service BlockMasterService extends common.TachyonService {
    * Returns the block information for the given block id.
    */
   common.BlockInfo getBlockInfo( /** the id of the block */  1: i64 blockId)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Returns the capacity (in bytes).
@@ -57,10 +57,10 @@ service BlockMasterService extends common.TachyonService {
       /** the map of space used in bytes on all tiers */ 2: map<string, i64> usedBytesOnTiers,
       /** the list of removed block Ids */ 3: list<i64> removedBlockIds,
       /** the map of added blocks on all tiers */ 4: map<string, list<i64>> addedBlocksOnTiers)
+
   /**
    * Registers a worker.
    */
-
   void workerRegister( /** the id of the worker */  1: i64 workerId,
       /** the list of storage tiers */  2: list<string> storageTiers,
       /** the map of total bytes on each tier */  3: map<string, i64> totalBytesOnTiers,

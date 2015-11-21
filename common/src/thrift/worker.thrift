@@ -14,7 +14,7 @@ service WorkerService extends common.TachyonService {
    * asynchronously checkpoint a file: return whether the checkpoint operation succeeded
    */
   bool asyncCheckpoint( /** the id of the file being accessed */ 1: i64 fileId)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Used to cache a block into Tachyon space, worker will move the temporary block file from session
@@ -23,7 +23,7 @@ service WorkerService extends common.TachyonService {
    */
   void cacheBlock( /** the id of the current session */ 1: i64 sessionId,
       /** the id of the block being accessed */ 2: i64 blockId)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
@@ -31,7 +31,7 @@ service WorkerService extends common.TachyonService {
    */
   void cancelBlock( /** the id of the current session */ 1: i64 sessionId,
       /** the id of the block being accessed */ 2: i64 blockId)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block file
@@ -40,7 +40,7 @@ service WorkerService extends common.TachyonService {
    */
   string lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
       /** the id of the current session */ 2: i64 sessionId)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
@@ -60,7 +60,7 @@ service WorkerService extends common.TachyonService {
   string requestBlockLocation( /** the id of the current session */ 1: i64 sessionId,
       /** the id of the block being accessed */ 2: i64 blockId,
       /** initial number of bytes requested */ 3: i64 initialBytes)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
@@ -70,7 +70,7 @@ service WorkerService extends common.TachyonService {
   bool requestSpace( /** the id of the current session */ 1: i64 sessionId,
       /** the id of the block being accessed */ 2: i64 blockId,
       /** the number of bytes requested */ 3: i64 requestBytes)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
