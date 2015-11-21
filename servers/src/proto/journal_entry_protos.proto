@@ -171,6 +171,7 @@ message SetStateEntry {
   optional int64 op_time_ms = 2;
   optional bool pinned = 3;
   optional int64 ttl = 4;
+  optional bool persisted = 5;
 }
 
 message UpdateMetadataEntry {

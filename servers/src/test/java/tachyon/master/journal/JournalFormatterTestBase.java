@@ -250,6 +250,7 @@ public abstract class JournalFormatterTestBase {
                 .setId(TEST_FILE_ID)
                 .setOpTimeMs(TEST_OP_TIME_MS)
                 .setPinned(true)
+                .setPersisted(true)
                 .setTtl(TEST_TTL))
             .build())
         .build();

@@ -18251,6 +18251,15 @@ public final class JournalEntryProtos {
      * <code>optional int64 ttl = 4;</code>
      */
     long getTtl();
+
+    /**
+     * <code>optional bool persisted = 5;</code>
+     */
+    boolean hasPersisted();
+    /**
+     * <code>optional bool persisted = 5;</code>
+     */
+    boolean getPersisted();
   }
   /**
    * Protobuf type {@code tachyon.proto.SetStateEntry}
@@ -18322,6 +18331,11 @@ public final class JournalEntryProtos {
             case 32: {
               bitField0_ |= 0x00000008;
               ttl_ = input.readInt64();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              persisted_ = input.readBool();
               break;
             }
           }
@@ -18424,11 +18438,27 @@ public final class JournalEntryProtos {
       return ttl_;
     }
 
+    public static final int PERSISTED_FIELD_NUMBER = 5;
+    private boolean persisted_;
+    /**
+     * <code>optional bool persisted = 5;</code>
+     */
+    public boolean hasPersisted() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bool persisted = 5;</code>
+     */
+    public boolean getPersisted() {
+      return persisted_;
+    }
+
     private void initFields() {
       id_ = 0L;
       opTimeMs_ = 0L;
       pinned_ = false;
       ttl_ = 0L;
+      persisted_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -18455,6 +18485,9 @@ public final class JournalEntryProtos {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(4, ttl_);
       }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBool(5, persisted_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -18479,6 +18512,10 @@ public final class JournalEntryProtos {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, ttl_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, persisted_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -18605,6 +18642,8 @@ public final class JournalEntryProtos {
         bitField0_ = (bitField0_ & ~0x00000004);
         ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
+        persisted_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -18649,6 +18688,10 @@ public final class JournalEntryProtos {
           to_bitField0_ |= 0x00000008;
         }
         result.ttl_ = ttl_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.persisted_ = persisted_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -18676,6 +18719,9 @@ public final class JournalEntryProtos {
         }
         if (other.hasTtl()) {
           setTtl(other.getTtl());
+        }
+        if (other.hasPersisted()) {
+          setPersisted(other.getPersisted());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -18828,6 +18874,38 @@ public final class JournalEntryProtos {
       public Builder clearTtl() {
         bitField0_ = (bitField0_ & ~0x00000008);
         ttl_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private boolean persisted_ ;
+      /**
+       * <code>optional bool persisted = 5;</code>
+       */
+      public boolean hasPersisted() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool persisted = 5;</code>
+       */
+      public boolean getPersisted() {
+        return persisted_;
+      }
+      /**
+       * <code>optional bool persisted = 5;</code>
+       */
+      public Builder setPersisted(boolean value) {
+        bitField0_ |= 0x00000010;
+        persisted_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool persisted = 5;</code>
+       */
+      public Builder clearPersisted() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        persisted_ = false;
         onChanged();
         return this;
       }
@@ -19532,13 +19610,14 @@ public final class JournalEntryProtos {
       "itializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block",
       "_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013Rename" +
       "Entry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\no" +
-      "p_time_ms\030\003 \001(\003\"L\n\rSetStateEntry\022\n\n\002id\030\001" +
+      "p_time_ms\030\003 \001(\003\"_\n\rSetStateEntry\022\n\n\002id\030\001" +
       " \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010" +
-      "\022\013\n\003ttl\030\004 \001(\003\"3\n\023UpdateMetadataEntry\022\n\n\002" +
-      "id\030\001 \001(\003\022\020\n\010metadata\030\002 \001(\014*a\n\020LineageFil" +
-      "eState\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r\n\tPE" +
-      "RSISTED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022\010\n\004L" +
-      "OST\020\005B\017\n\rtachyon.proto"
+      "\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\"3\n\023Upda" +
+      "teMetadataEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010metadata\030" +
+      "\002 \001(\014*a\n\020LineageFileState\022\013\n\007CREATED\020\001\022\r" +
+      "\n\tCOMPLETED\020\002\022\r\n\tPERSISTED\020\003\022\030\n\024PERSISEN" +
+      "CE_REQUESTED\020\004\022\010\n\004LOST\020\005B\017\n\rtachyon.prot" +
+      "o"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -19689,7 +19768,7 @@ public final class JournalEntryProtos {
     internal_static_tachyon_proto_SetStateEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_SetStateEntry_descriptor,
-        new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", });
+        new java.lang.String[] { "Id", "OpTimeMs", "Pinned", "Ttl", "Persisted", });
     internal_static_tachyon_proto_UpdateMetadataEntry_descriptor =
       getDescriptor().getMessageTypes().get(23);
     internal_static_tachyon_proto_UpdateMetadataEntry_fieldAccessorTable = new

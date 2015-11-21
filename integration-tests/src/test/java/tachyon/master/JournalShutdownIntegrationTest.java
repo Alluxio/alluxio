@@ -33,6 +33,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TableDoesNotExistException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
@@ -149,7 +150,8 @@ public class JournalShutdownIntegrationTest {
     fsMaster.stop();
   }
 
-  private LocalTachyonClusterMultiMaster setupMultiMasterCluster() throws IOException {
+  private LocalTachyonClusterMultiMaster setupMultiMasterCluster()
+      throws IOException, ConnectionFailedException {
     // Setup and start the tachyon-ft cluster.
     LocalTachyonClusterMultiMaster cluster =
         new LocalTachyonClusterMultiMaster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
@@ -162,7 +164,8 @@ public class JournalShutdownIntegrationTest {
     return cluster;
   }
 
-  private LocalTachyonCluster setupSingleMasterCluster() throws IOException {
+  private LocalTachyonCluster setupSingleMasterCluster()
+      throws IOException, ConnectionFailedException {
     // Setup and start the local tachyon cluster.
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 100, TEST_BLOCK_SIZE);
     cluster.start();
