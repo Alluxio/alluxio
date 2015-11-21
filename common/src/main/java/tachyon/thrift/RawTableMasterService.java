@@ -43,12 +43,12 @@ public class RawTableMasterService {
      * Creates a raw table and returns the raw table id
      * 
      * @param rpcOptions the RPC options
+     * 
      * @param path the path of the raw table
+     * 
      * @param columns the number of columns
+     * 
      * @param metadata the metadata for the table
-     * @return the raw table id
-     * @throws TachyonTException
-     * @throws ThriftIOException
      */
     public long createRawTable(tachyon.thrift.RpcOptions rpcOptions, String path, int columns, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
@@ -56,8 +56,6 @@ public class RawTableMasterService {
      * Returns raw table information for the given id.
      * 
      * @param id the id of the table
-     * @return raw table information for the given id
-     * @throws TachyonTException
      */
     public RawTableInfo getClientRawTableInfoById(long id) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -65,8 +63,6 @@ public class RawTableMasterService {
      * Returns raw table information for the given path.
      * 
      * @param path the path of the table
-     * @return raw table information for the given path
-     * @throws TachyonTException
      */
     public RawTableInfo getClientRawTableInfoByPath(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -74,8 +70,6 @@ public class RawTableMasterService {
      * Returns raw table id for the given path.
      * 
      * @param path the path of the table
-     * @return raw table id for the given path
-     * @throws TachyonTException
      */
     public long getRawTableId(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -84,7 +78,6 @@ public class RawTableMasterService {
      * 
      * @param tableId the id of the table
      * @param metadata the metadata for the table
-     * @throws TachyonTException
      */
     public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
