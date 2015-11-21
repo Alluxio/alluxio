@@ -43,7 +43,6 @@ public class LineageMasterService {
      * Marks a file as completed and initiates asynchronous persistence (if applicable).
      * 
      * @param fileId the id of the file
-     * @throws TachyonTException
      */
     public void asyncCompleteFile(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -52,10 +51,8 @@ public class LineageMasterService {
      * 
      * @param inputFiles the list of input files
      * @param outputFiles the list of output files
+     * 
      * @param job the command line job info
-     * @return lineageId
-     * @throws TachyonTException
-     * @throws ThriftIOException
      */
     public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
@@ -64,8 +61,6 @@ public class LineageMasterService {
      * 
      * @param lineageId the lineage id
      * @param cascade whether to delete the lineage in cascade
-     * @return whether deletion succeeded
-     * @throws TachyonTException
      */
     public boolean deleteLineage(long lineageId, boolean cascade) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -80,30 +75,25 @@ public class LineageMasterService {
      * 
      * @param path the path of the file
      * @param blockSizeBytes block size in bytes
+     * 
      * @param ttl time to live
-     * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
-     * @throws TachyonTException
      */
     public long reinitializeFile(String path, long blockSizeBytes, long ttl) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Reports file as lost.
-     * @param path
-     * @throws TachyonTException
      * 
-     * @param path
+     * @param path the path of the file
      */
     public void reportLostFile(String path) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
-     * Periodic lineage worker heartbeat.
-     * @param workerId
-     * @param persistedFiles
-     * @return the command for checkpointing the blocks of a file
-     * @throws TachyonTException
+     * Periodic lineage worker heartbeat. Returns the command for checkpointing
+     * the blocks of a file
      * 
-     * @param workerId
-     * @param persistedFiles
+     * @param workerId the id of the worker
+     * 
+     * @param persistedFiles the list of persisted files
      */
     public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
