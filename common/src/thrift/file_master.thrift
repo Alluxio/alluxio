@@ -52,14 +52,14 @@ service FileSystemMasterService extends common.TachyonService {
    */
   void completeFile( /** the id of the file */ 1: i64 fileId,
        /** the options for completing the file */ 2: CompleteFileTOptions options)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Creates a file and returns the id of the file
    */
   i64 create( /** the path of the file */ 1: string path,
       /** the options for completing the file */ 2: CreateTOptions options)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Frees the given file from Tachyon and returns whether the free operation succeeded
@@ -73,7 +73,7 @@ service FileSystemMasterService extends common.TachyonService {
    */
   common.FileBlockInfo getFileBlockInfo( /** the id of the file */ 1: i64 fileId,
       /** the index of the file block */ 2: i32 fileBlockIndex)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Returns the list of file blocks information for the given file.
@@ -118,14 +118,14 @@ service FileSystemMasterService extends common.TachyonService {
   // TODO(jiri): Get rid of this.
   i64 loadMetadata( /** the path of the under file system */ 1: string ufsPath,
       /** whether to load meta data recursively */ 2: bool recursive)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Creates a directory and returns whether the directory is
    * created successfully
    */
   bool mkdir( /** the path of the directory */ 1: string path,
-    /** the options of this command */ 2: MkdirTOptions options)
+      /** the options of this command */ 2: MkdirTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -134,7 +134,7 @@ service FileSystemMasterService extends common.TachyonService {
    */
   bool mount( /** the path of tachyon mount point */ 1: string tachyonPath,
       /** the path of the under file system */ 2: string ufsPath)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Deletes a file or a directory and returns whether the remove operation succeeded
@@ -142,14 +142,14 @@ service FileSystemMasterService extends common.TachyonService {
    */
   bool remove( /** the id of the file or directory */ 1: i64 id,
       /** whether to remove recursively */ 2: bool recursive)
-      throws (1: exception.TachyonTException e)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Renames a file or a directory and returns whether the rename operation succeeded
    */
   bool rename( /** the id of the file */ 1: i64 fileId,
       /** the desinationpath of the file */ 2: string dstPath)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Sets file state.
@@ -163,7 +163,7 @@ service FileSystemMasterService extends common.TachyonService {
    * will be persisted before they are removed from the Tachyon namespace.
    */
   bool unmount( /** the path of the tachyon mount point */ 1: string tachyonPath)
-      throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Returns the set of pinned files.
