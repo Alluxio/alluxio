@@ -50,7 +50,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.RemoteBlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.RemoteBlockInStream}.
  */
 @RunWith(Parameterized.class)
 public class RemoteBlockInStreamIntegrationTest {
@@ -120,7 +120,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read()</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read()}. Read from underfs.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -181,7 +181,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -218,7 +218,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -255,7 +255,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read()</code>. Read from remote data server.
+   * Test {@link RemoteBlockInStream#read()}. Read from remote data server.
    */
   @Test
   public void readTest4() throws IOException, TachyonException {
@@ -287,7 +287,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>. Read from remote data server.
+   * Test {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
    */
   @Test
   public void readTest5() throws IOException, TachyonException {
@@ -315,7 +315,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>. Read from remote data server.
+   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
    */
   @Test
   public void readTest6() throws IOException, TachyonException {
@@ -343,7 +343,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest7() throws IOException, TachyonException {
@@ -363,8 +363,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
-   * position.
+   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * negative position.
    *
    * @throws IOException
    * @throws TachyonException
@@ -388,8 +388,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
-   * that is past block size.
+   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * position that is past block size.
    *
    * @throws IOException
    * @throws TachyonException
@@ -413,7 +413,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test {@link RemoteBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws TachyonException
@@ -439,7 +439,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {
