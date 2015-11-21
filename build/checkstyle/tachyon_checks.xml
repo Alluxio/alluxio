@@ -214,6 +214,7 @@
       <property name="format" value="^\s*this\."/>
       <property name="message" value="keyword this is not needed"/>
     </module>
+    <module name="MissingDeprecated"/>
   </module>
 
   <!-- always use Unix-style line separators -->
