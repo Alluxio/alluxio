@@ -202,7 +202,7 @@ public class FileInStreamIntegrationTest {
    * position.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
