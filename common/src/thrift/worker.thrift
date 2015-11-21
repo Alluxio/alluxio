@@ -4,9 +4,16 @@ include "common.thrift"
 include "exception.thrift"
 
 service WorkerService extends common.TachyonService {
-  void accessBlock(1: i64 blockId)
 
-  bool asyncCheckpoint(1: i64 fileId)
+  /**
+   * access a block given the block id
+   */
+  void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
+
+  /**
+   * asynchronously checkpoint a file: return whether the checkpoint operation succeeded
+   */
+  bool asyncCheckpoint( /** the id of the file being accessed */ 1: i64 fileId)
     throws (1: exception.TachyonTException e)
 
   /**
@@ -14,14 +21,16 @@ service WorkerService extends common.TachyonService {
    * folder to data folder, and update the space usage information related. then update the block
    * information to master.
    */
-  void cacheBlock(1: i64 sessionId, 2: i64 blockId)
+  void cacheBlock( /** the id of the current session */ 1: i64 sessionId,
+      /** the id of the block being accessed */ 2: i64 blockId)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
    * the location and space information related, then reclaim space allocated to the block.
    */
-  void cancelBlock(1: i64 sessionId, 2: i64 blockId)
+  void cancelBlock( /** the id of the current session */ 1: i64 sessionId,
+      /** the id of the block being accessed */ 2: i64 blockId)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -29,7 +38,8 @@ service WorkerService extends common.TachyonService {
    * locked will be returned, if the block file is not found, FileDoesNotExistException will be
    * thrown.
    */
-  string lockBlock(1: i64 blockId, 2: i64 sessionId)
+  string lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
+      /** the id of the current session */ 2: i64 sessionId)
     throws (1: exception.TachyonTException e)
 
   /**
@@ -37,7 +47,7 @@ service WorkerService extends common.TachyonService {
    * storage layers in Tachyon's space. return true if the block is successfully promoted, false
    * otherwise.
    */
-  bool promoteBlock(1: i64 blockId)
+  bool promoteBlock( /** the id of the block being accessed */ 1: i64 blockId)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -47,7 +57,9 @@ service WorkerService extends common.TachyonService {
    * storage OutOfSpaceException will be thrown, if the file is already being written by the session,
    * FileAlreadyExistsException will be thrown.
    */
-  string requestBlockLocation(1: i64 sessionId, 2: i64 blockId, 3: i64 initialBytes)
+  string requestBlockLocation( /** the id of the current session */ 1: i64 sessionId,
+      /** the id of the block being accessed */ 2: i64 blockId,
+      /** initial number of bytes requested */ 3: i64 initialBytes)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -55,19 +67,23 @@ service WorkerService extends common.TachyonService {
    * space for the block on block’s location, false if there is no enough space, if there is no
    * information of the block on worker, FileDoesNotExistException will be thrown.
    */
-  bool requestSpace(1: i64 sessionId, 2: i64 blockId, 3: i64 requestBytes)
+  bool requestSpace( /** the id of the current session */ 1: i64 sessionId,
+      /** the id of the block being accessed */ 2: i64 blockId,
+      /** the number of bytes requested */ 3: i64 requestBytes)
     throws (1: exception.TachyonTException e)
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
    * metrics to the worker.
    */
-  void sessionHeartbeat(1: i64 sessionId, 2: list<i64> metrics)
+  void sessionHeartbeat( /** the id of the current session */ 1: i64 sessionId,
+      /** the client metrics */ 2: list<i64> metrics)
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
    * block file. return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block.
    */
-  bool unlockBlock(1: i64 blockId, 2: i64 sessionId)
+  bool unlockBlock( /** the id of the block being accessed */ 1: i64 blockId,
+      /** the id of the current session */ 2: i64 sessionId)
 }
