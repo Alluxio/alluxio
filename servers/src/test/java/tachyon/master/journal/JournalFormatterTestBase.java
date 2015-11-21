@@ -140,7 +140,8 @@ public abstract class JournalFormatterTestBase {
       .put(JournalEntryType.PERSIST_FILES, new PersistFilesEntry(Arrays.asList(1L, 2L)))
       .put(JournalEntryType.PERSIST_FILES_REQUEST,
           new PersistFilesRequestEntry(Arrays.asList(1L, 2L)))
-      .put(JournalEntryType.SET_STATE, new SetStateEntry(TEST_FILE_ID, TEST_OP_TIME_MS, true, null))
+      .put(JournalEntryType.SET_STATE,
+          new SetStateEntry(TEST_FILE_ID, TEST_OP_TIME_MS, true, null, null))
       .build();
 
   /**

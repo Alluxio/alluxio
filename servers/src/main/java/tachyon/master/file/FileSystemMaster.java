@@ -183,6 +183,8 @@ public final class FileSystemMaster extends MasterBase {
         setStateFromEntry((SetStateEntry) entry);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
       }
     } else if (entry instanceof DeleteFileEntry) {
       deleteFileFromEntry((DeleteFileEntry) entry);
@@ -1344,23 +1346,26 @@ public final class FileSystemMaster extends MasterBase {
    * @param options state options to be set, see {@link SetStateOptions}
    * @throws FileDoesNotExistException if the file doesn't exist
    */
-  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+  public void setState(long fileId, SetStateOptions options)
+      throws FileDoesNotExistException, InvalidPathException {
     // TODO(gene) Metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
       Boolean pinned = options.hasPinned() ? options.getPinned() : null;
       Long ttl = options.hasTTL() ? options.getTTL() : null;
-      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, pinned, ttl));
+      Boolean persisted = options.hasPersisted() ? options.getPersisted() : null;
+      writeJournalEntry(new SetStateEntry(fileId, opTimeMs, pinned, ttl, persisted));
       flushJournal();
     }
   }
 
   private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, InvalidPathException {
     Inode inode = mInodeTree.getInodeById(fileId);
     if (options.hasPinned()) {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
+      inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.hasTTL()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
@@ -1370,17 +1375,37 @@ public final class FileSystemMaster extends MasterBase {
         mTTLBuckets.remove(file);
         file.setTTL(ttl);
         mTTLBuckets.insert(file);
+        file.setLastModificationTimeMs(opTimeMs);
+      }
+    }
+    if (options.hasPersisted()) {
+      Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
+      Preconditions.checkArgument(((InodeFile) inode).isCompleted(),
+          PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
+      InodeFile file = (InodeFile) inode;
+      // TODO(manugoyal) figure out valid behavior in the un-persist case
+      Preconditions.checkArgument(options.getPersisted(),
+          PreconditionMessage.ERR_SET_STATE_UNPERSIST);
+      if (!file.isPersisted()) {
+        file.setPersisted(true);
+        propagatePersisted(file, false);
+        file.setLastModificationTimeMs(opTimeMs);
+        MasterContext.getMasterSource().incFilesCheckpointed();
       }
     }
   }
 
-  private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
+  private void setStateFromEntry(SetStateEntry entry)
+      throws FileDoesNotExistException, InvalidPathException {
     SetStateOptions.Builder builder = new SetStateOptions.Builder();
     if (entry.getPinned() != null) {
       builder.setPinned(entry.getPinned());
     }
     if (entry.getTTL() != null) {
       builder.setTTL(entry.getTTL());
+    }
+    if (entry.getPersisted() != null) {
+      builder.setPersisted(entry.getPersisted());
     }
     setStateInternal(entry.getId(), entry.getOperationTimeMs(), builder.build());
   }
