@@ -214,6 +214,8 @@
       <property name="format" value="^\s*this\."/>
       <property name="message" value="keyword this is not needed"/>
     </module>
+
+    <module name="EqualsHashCode"/>
   </module>
 
   <!-- always use Unix-style line separators -->
