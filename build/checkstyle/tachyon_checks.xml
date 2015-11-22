@@ -114,6 +114,7 @@
                value="WhitespaceAround: ''{0}'' is not preceded with whitespace."/>
     </module>
     <module name="OneStatementPerLine"/>
+    <module name="EmptyStatement"/>
     <module name="MultipleVariableDeclarations"/>
     <module name="ArrayTypeStyle"/>
     <module name="MissingSwitchDefault"/>
@@ -215,6 +216,7 @@
       <property name="message" value="keyword this is not needed"/>
     </module>
     <module name="MissingDeprecated"/>
+    <module name="EqualsHashCode"/>
   </module>
 
   <!-- always use Unix-style line separators -->
