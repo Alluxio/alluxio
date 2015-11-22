@@ -54,7 +54,7 @@ public final class RawTableContextTest {
     @Override
     public void run() {
       RawTableMasterClient client = RawTableContext.INSTANCE.acquireMasterClient();
-      RawTableContext.INSTANCE.releaseMasterClient(client);;
+      RawTableContext.INSTANCE.releaseMasterClient(client);
     }
   }
 }
