@@ -54,7 +54,7 @@ public final class LineageContextTest {
     @Override
     public void run() {
       LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient();
-      LineageContext.INSTANCE.releaseMasterClient(client);;
+      LineageContext.INSTANCE.releaseMasterClient(client);
     }
   }
 }
