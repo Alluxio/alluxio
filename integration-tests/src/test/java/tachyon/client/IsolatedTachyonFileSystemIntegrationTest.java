@@ -58,10 +58,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     TachyonConf workerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         workerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mWriteBoth =
-        new OutStreamOptions.Builder(workerTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(workerTachyonConf);
   }
 
   @Test
