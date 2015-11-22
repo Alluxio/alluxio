@@ -37,6 +37,11 @@ public class CommandBuilder {
     return this;
   }
 
+  public CommandBuilder addArg(String opt, Object arg) {
+    mArgs.add(opt + " " + String.valueOf(arg));
+    return this;
+  }
+
   // Get final command
   @Override
   public String toString() {
