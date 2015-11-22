@@ -148,9 +148,9 @@ public final class LRFUEvictor extends EvictorBase {
       @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
         double res = o1.getValue() - o2.getValue();
-        if (res < 0) {
+        if (Double.compare(res, 0) < 0) {
           return -1;
-        } else if (res > 0) {
+        } else if (Double.compare(res, 0) > 0) {
           return 1;
         } else {
           return 0;
