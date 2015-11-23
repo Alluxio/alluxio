@@ -37,6 +37,9 @@ import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.lineage.LineageWorker;
 
+/**
+ * Local Tachyon cluster.
+ */
 public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -60,26 +63,12 @@ public abstract class AbstractLocalTachyonCluster {
     mUserBlockSize = userBlockSize;
   }
 
-  public abstract TachyonFileSystem getClient() throws IOException;
-
-  public abstract int getMasterPort();
-
-  public TachyonConf getMasterTachyonConf() {
-    return mMasterConf;
-  }
-
-  protected void resetContext() {}
-
-  protected void setHostname() {
-    mHostname = NetworkAddressUtils.getLocalHostName(100);
-  }
-
-  protected void setTachyonHome() throws IOException {
-    mTachyonHome =
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-  }
-
-  public void start() throws IOException, ConnectionFailedException {
+  /**
+   * Starts both a master and a worker using the default test configurations.
+   *
+   * @throws IOException when the operation fails
+   */
+  public void start() throws IOException, ConnectionFailedException  {
     start(newTestConf());
   }
 
@@ -104,13 +93,35 @@ public abstract class AbstractLocalTachyonCluster {
     CommonUtils.sleepMs(100);
   }
 
+  /**
+   * Configure and start master.
+   *
+   * @param conf configuration of this test
+   * @throws IOException when the operation fails
+   */
   protected abstract void startMaster(TachyonConf conf) throws IOException;
 
-  protected abstract void startWorker(TachyonConf conf) throws IOException,
-      ConnectionFailedException;
+  /**
+   * Configure and start worker.
+   *
+   * @param conf configuration of this test
+   * @throws IOException when the operation fails
+   */
+  protected abstract void startWorker(TachyonConf conf) throws IOException, ConnectionFailedException;
 
+  /**
+   * Sets up corresponding directories for tests.
+   *
+   * @param conf configuration of this test
+   * @throws IOException when creating or deleting dirs failed
+   */
   protected abstract void setupTest(TachyonConf conf) throws IOException;
 
+  /**
+   * Stop both of the tachyon and underfs service threads.
+   *
+   * @throws Exception when the operation fails
+   */
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
@@ -118,10 +129,26 @@ public abstract class AbstractLocalTachyonCluster {
     resetContext();
   }
 
+  /**
+   * Stop the tachyon filesystem's service thread only.
+   *
+   * @throws Exception when the operation fails
+   */
   public abstract void stopTFS() throws Exception;
 
+  /**
+   * Cleanup the underfs cluster test folder only.
+   *
+   * @throws Exception when the operation fails
+   */
   public abstract void stopUFS() throws Exception;
 
+  /**
+   * Create a default {@link tachyon.conf.TachyonConf} for testing.
+   *
+   * @return a testing TachyonConf
+   * @throws IOException when the operation fails
+   */
   public TachyonConf newTestConf() throws IOException {
     TachyonConf testConf = new TachyonConf();
     setTachyonHome();
@@ -140,6 +167,9 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
     testConf.set(Constants.THRIFT_STOP_TIMEOUT_SECONDS, "0");
 
+    testConf.set(Constants.MASTER_BIND_HOST, mHostname);
+    testConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
+
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
     testConf.set(Constants.MASTER_RETRY_COUNT, "3");
@@ -150,7 +180,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     testConf.set(Constants.WEB_THREAD_COUNT, "1");
     testConf.set(Constants.WEB_RESOURCES,
-            PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
+        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default tachyon storage is STORE, and under storage is SYNC_PERSIST for tests.
@@ -167,6 +197,10 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
     testConf.set(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
+    testConf.set(Constants.WORKER_BIND_HOST, mHostname);
+    testConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
+    testConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
+
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
@@ -175,14 +209,14 @@ public abstract class AbstractLocalTachyonCluster {
     String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
-            ramdiskPath);
+        ramdiskPath);
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-            Long.toString(mWorkerCapacityBytes));
+        Long.toString(mWorkerCapacityBytes));
 
     int numLevel = testConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level ++) {
       String tierLevelDirPath =
-              String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = testConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
@@ -220,6 +254,48 @@ public abstract class AbstractLocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
+  }
+
+  /**
+   * Returns a {@link tachyon.client.file.TachyonFileSystem} client.
+   *
+   * @return a TachyonFS client
+   * @throws IOException when the operation fails
+   */
+  public abstract TachyonFileSystem getClient() throws IOException;
+
+  /**
+   * Get master's actual port that the RPC service is listening on.
+   */
+  public abstract int getMasterPort();
+
+  /**
+   * Get master's {@link tachyon.conf.TachyonConf}.
+   */
+  public TachyonConf getMasterTachyonConf() {
+    return mMasterConf;
+  }
+
+  /**
+   * Reset context when stop the local tachyon cluster.
+   */
+  protected void resetContext() {}
+
+  /**
+   * Set hostname.
+   */
+  protected void setHostname() {
+    mHostname = NetworkAddressUtils.getLocalHostName(100);
+  }
+
+  /**
+   * Set tachyon home.
+   *
+   * @throws IOException when the operation fails
+   */
+  protected void setTachyonHome() throws IOException {
+    mTachyonHome =
+        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
   }
 
 }

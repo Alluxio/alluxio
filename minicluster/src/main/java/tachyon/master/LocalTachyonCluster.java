@@ -47,6 +47,7 @@ import tachyon.worker.lineage.LineageWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
+
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
@@ -111,12 +112,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mWorker.getWorkerNetAddress();
   }
 
-  /**
-   * Sets up corresponding directories for tests.
-   *
-   * @param testConf configuration of this test
-   * @throws IOException when creating or deleting dirs failed
-   */
+  @Override
   protected void setupTest(TachyonConf testConf) throws IOException {
     String tachyonHome = testConf.get(Constants.TACHYON_HOME);
     // Delete the tachyon home dir for this test from ufs to avoid permission problems
@@ -138,11 +134,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     }
   }
 
-  /**
-   * Configures and starts master.
-   *
-   * @throws IOException when the operation fails
-   */
   @Override
   protected void startMaster(TachyonConf testConf) throws IOException {
     mMasterConf = new TachyonConf(testConf.getInternalProperties());
@@ -173,12 +164,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     ClientContext.reset(mClientConf);
   }
 
-  /**
-   * Configure and start worker.
-   *
-   * @throws IOException when the operation fails
-   * @throws ConnectionFailedException if network connection failed
-   */
   @Override
   protected void startWorker(TachyonConf testConf) throws IOException, ConnectionFailedException  {
     // We need to update the worker context with the most recent configuration so they know the
@@ -196,11 +181,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     ClientContext.reset();
   }
 
-  /**
-   * Stop the tachyon filesystem's service thread only.
-   *
-   * @throws Exception when the operation fails
-   */
   @Override
   public void stopTFS() throws Exception {
     LOG.info("stop Tachyon filesytstem");
@@ -213,11 +193,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mMaster.stop();
   }
 
-  /**
-   * Cleanup the underfs cluster test folder only.
-   *
-   * @throws Exception when the operation fails
-   */
   @Override
   public void stopUFS() throws Exception {
     LOG.info("stop under storage system");
