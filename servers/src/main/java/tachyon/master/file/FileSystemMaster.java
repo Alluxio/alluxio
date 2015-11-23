@@ -152,7 +152,7 @@ public final class FileSystemMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.getInnerEntry(entry);
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
     if (innerEntry instanceof InodeFileEntry || innerEntry instanceof InodeDirectoryEntry) {
       mInodeTree.addInodeFromJournal(entry);
     } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
