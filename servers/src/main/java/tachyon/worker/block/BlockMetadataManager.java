@@ -139,6 +139,7 @@ public class BlockMetadataManager {
    * @param sessionId the ID of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids
    *        will be ignored.
+   * @deprecated As of version 0.8.
    */
   @Deprecated
   public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
@@ -376,6 +377,7 @@ public class BlockMetadataManager {
    * @throws BlockAlreadyExistsException when the block to move already exists in the destination
    * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
    *         move
+   * @deprecated As of version 0.8. Use {@link #moveBlockMeta(BlockMeta, TempBlockMeta)} instead.
    */
   @Deprecated
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
