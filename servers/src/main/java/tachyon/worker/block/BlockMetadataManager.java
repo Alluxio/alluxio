@@ -127,6 +127,12 @@ public class BlockMetadataManager {
    */
   public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
       throws WorkerOutOfSpaceException, BlockAlreadyExistsException, BlockDoesNotExistException {
+    long blockId = tempBlockMeta.getBlockId();
+    if (hasBlockMeta(blockId)) {
+      BlockMeta blockMeta = getBlockMeta(blockId);
+      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+          blockMeta.getBlockLocation().tierAlias()));
+    }
     BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);

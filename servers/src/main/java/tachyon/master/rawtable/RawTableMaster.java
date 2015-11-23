@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TableColumnException;
 import tachyon.exception.TableDoesNotExistException;
 import tachyon.exception.TableMetadataException;
@@ -292,6 +294,7 @@ public class RawTableMaster extends MasterBase {
    * @throws TableMetadataException if the metadata is too large
    */
   private void validateMetadataSize(ByteBuffer metadata) throws TableMetadataException {
+    Preconditions.checkNotNull(metadata, PreconditionMessage.RAW_TABLE_METADATA_NULL);
     long metadataSize = metadata.limit() - metadata.position();
     if (metadataSize >= mMaxTableMetadataBytes) {
       throw new TableMetadataException(
