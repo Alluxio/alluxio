@@ -1,5 +1,5 @@
-package tachyon.proto;
-option java_package = "tachyon.proto";
+package tachyon.proto.journal;
+option java_package = "tachyon.proto.journal";
 
 // Wraps around all types of Tachyon journal messages.
 // next available id: 25
