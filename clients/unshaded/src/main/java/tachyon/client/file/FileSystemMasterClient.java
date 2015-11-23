@@ -29,6 +29,7 @@ import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -78,9 +79,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param path the path
    * @return the file id for the given path, or -1 if the path does not point to a file
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getFileId(final String path) throws IOException {
+  public synchronized long getFileId(final String path)
+      throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -174,9 +177,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   /**
    * @return the under file system address
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized String getUfsAddress() throws IOException {
+  public synchronized String getUfsAddress() throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<String>() {
       @Override
       public String call() throws TException {

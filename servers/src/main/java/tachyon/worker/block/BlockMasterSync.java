@@ -28,6 +28,7 @@ import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.Command;
@@ -93,8 +94,9 @@ public final class BlockMasterSync implements Runnable {
    * begins. The workerId will be set after this method is successful.
    *
    * @throws IOException when workerId cannot be found
+   * @throws ConnectionFailedException if network connection failed
    */
-  private void registerWithMaster() throws IOException {
+  private void registerWithMaster() throws IOException, ConnectionFailedException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
@@ -122,6 +124,8 @@ public final class BlockMasterSync implements Runnable {
     } catch (IOException ioe) {
       // If failed to register when the thread starts, no retry will happen.
       throw new RuntimeException("Failed to register with master.", ioe);
+    } catch (ConnectionFailedException e) {
+      throw new RuntimeException("Failed to register with master.", e);
     }
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval

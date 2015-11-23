@@ -47,9 +47,15 @@ public class PreconditionMessage {
       "The output file %s is not associated with any lineage";
   public static final String MUST_SET_PINNED = "The pinned flag must be set";
   public static final String MUST_SET_TTL = "The TTL value must be set";
+  public static final String MUST_SET_PERSISTED = "The persisted value must be set";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
   public static final String TTL_ONLY_FOR_FILE = "TTL can only be set for files";
+  public static final String PERSIST_ONLY_FOR_FILE = "Only files can be persisted";
+  public static final String FILE_TO_PERSIST_MUST_BE_COMPLETE =
+      "File being persisted must be complete";
+  public static final String ERR_SET_STATE_UNPERSIST =
+      "Cannot set the state of a file to not-persisted";
 
   private PreconditionMessage() {} // to prevent initialization
 }

@@ -85,8 +85,8 @@ public enum BlockStoreContext {
           return worker.getAddress();
         }
       }
-    } catch (IOException ioe) {
-      Throwables.propagate(ioe);
+    } catch (Exception e) {
+      Throwables.propagate(e);
     } finally {
       releaseMasterClient(masterClient);
     }

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterWorkerService;
@@ -89,9 +90,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   /**
    * @return the set of pinned file ids
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Set<Long> getPinList() throws IOException {
+  public synchronized Set<Long> getPinList() throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {
