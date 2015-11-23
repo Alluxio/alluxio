@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.thrift.TException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -63,16 +62,9 @@ public class FileInStreamIntegrationTest {
   public static final void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    sWriteUnderStore =
-        new OutStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(sTachyonConf);
   }
 
   /**
@@ -202,7 +194,7 @@ public class FileInStreamIntegrationTest {
    * position.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
@@ -252,7 +244,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>void seek(long pos)</code>.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekTest() throws IOException, TachyonException {

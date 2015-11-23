@@ -239,7 +239,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
 
   @Override
   public void setState(TachyonFile file, SetStateOptions options)
-      throws IOException, FileDoesNotExistException, TachyonException {
+      throws IOException, FileDoesNotExistException, InvalidPathException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setState(file.getFileId(), options);
@@ -258,5 +258,4 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       mContext.releaseMasterClient(masterClient);
     }
   }
-
 }

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
@@ -177,6 +178,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getCapacityBytes();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }
@@ -191,6 +194,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getUsedBytes();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }

@@ -45,6 +45,7 @@ struct MkdirTOptions {
 struct SetStateTOptions {
   1: optional bool pinned
   2: optional i64 ttl
+  3: optional bool persisted
 }
 
 service FileSystemMasterService extends common.TachyonService {

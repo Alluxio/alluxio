@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
 import tachyon.Constants;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
 
@@ -62,7 +63,11 @@ public class TachyonFSContract extends AbstractFSContract {
 
     // Start local Tachyon cluster
     LocalTachyonCluster localcluster = new LocalTachyonCluster(100000000, 100000, 1024);
-    localcluster.start();
+    try {
+      localcluster.start();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
+    }
     URI uri = URI.create(localcluster.getMasterUri());
 
     mFS = FileSystem.get(uri, conf);
