@@ -59,7 +59,7 @@ public class TFSBlockLocationIntegrationTest {
   }
 
   /**
-   * Test <code>BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)</code>.
+   * Test {@code BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)}.
    * Test the different situations of different start and len.
    */
   @Test

@@ -36,7 +36,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.BlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.BlockInStream}.
  */
 public class BufferedBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
@@ -62,7 +62,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read()</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -92,7 +92,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -118,7 +118,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -145,7 +145,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {
