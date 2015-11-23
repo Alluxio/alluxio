@@ -18,6 +18,7 @@ package tachyon.worker;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
+import tachyon.exception.ConnectionFailedException;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
@@ -53,10 +54,11 @@ public final class WorkerIdRegistry {
    * @param masterClient the master client to be used for RPC
    * @param workerAddress current worker address
    * @throws IOException when fails to get a new worker ID
+   * @throws ConnectionFailedException if network connection failed
    */
   public static void registerWithBlockMaster(BlockMasterClient masterClient,
-      NetAddress workerAddress) throws IOException {
-    sWorkerId.set(masterClient.getWorkerId(workerAddress));
+      NetAddress workerAddress) throws IOException, ConnectionFailedException {
+    sWorkerId.set(masterClient.getId(workerAddress));
   }
 
   /**

@@ -42,7 +42,6 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Integration tests for <code>tachyon.client.FileOutStream</code>.
@@ -73,26 +72,10 @@ public final class FileOutStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mTestConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
-    mWriteBoth =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .build();
-    mWriteTachyon =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .build();
-    mWriteUnderStore =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .build();
-    mWriteLocal =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .setHostname(NetworkAddressUtils.getLocalHostName(mTestConf)).build();
+    mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(mTestConf);
+    mWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(mTestConf);
+    mWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(mTestConf);
+    mWriteLocal = StreamOptionUtils.getOutStreamOptionsWriteLocal(mTestConf);
     mTfs = mLocalTachyonClusterResource.get().getClient();
   }
 

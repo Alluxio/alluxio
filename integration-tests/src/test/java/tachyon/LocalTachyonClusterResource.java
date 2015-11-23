@@ -26,6 +26,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -134,8 +135,9 @@ public class LocalTachyonClusterResource implements TestRule {
   /**
    * Explicitly starts the LocalTachyonCluster.
    * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
-  public void start() throws IOException {
+  public void start() throws IOException, ConnectionFailedException {
     mLocalTachyonCluster.start(mTestConf);
   }
 
@@ -165,6 +167,8 @@ public class LocalTachyonClusterResource implements TestRule {
         mLocalTachyonCluster.start(mTestConf);
       }
     } catch (IOException e) {
+      throw new RuntimeException(e);
+    }  catch (ConnectionFailedException e) {
       throw new RuntimeException(e);
     }
     return new Statement() {

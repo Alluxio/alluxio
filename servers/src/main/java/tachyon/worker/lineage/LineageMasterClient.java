@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.thrift.TachyonService;
@@ -76,9 +77,10 @@ public final class LineageMasterClient extends ClientBase {
    * @param persistedFiles the persisted files
    * @return the command for checkpointing the blocks of a file
    * @throws IOException if file persistence fails
+   * @throws ConnectionFailedException if network connection failed
    */
   public synchronized LineageCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) throws IOException {
+      final List<Long> persistedFiles) throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<LineageCommand>() {
       @Override
       public LineageCommand call() throws TException {
