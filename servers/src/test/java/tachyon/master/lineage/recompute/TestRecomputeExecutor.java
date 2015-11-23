@@ -30,7 +30,7 @@ import tachyon.job.Job;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
-import tachyon.proto.journal.Lineage.LineageFileState;
+import tachyon.master.lineage.meta.LineageFileState;
 
 /**
  * Tests {@link RecomputeExecutor}.

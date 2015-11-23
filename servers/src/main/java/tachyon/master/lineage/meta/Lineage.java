@@ -28,7 +28,6 @@ import tachyon.job.JobConf;
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
-import tachyon.proto.journal.Lineage.LineageFileState;
 import tachyon.thrift.LineageFileInfo;
 import tachyon.thrift.LineageInfo;
 
@@ -236,7 +235,8 @@ public final class Lineage implements JournalEntryRepresentable {
 
     List<LineageFile> outputFiles = Lists.newArrayList();
     for (int i = 0; i < entry.getOutputFileIdsCount(); i ++) {
-      outputFiles.add(new LineageFile(entry.getOutputFileIds(i), entry.getOutputFileStates(i)));
+      outputFiles.add(new LineageFile(entry.getOutputFileIds(i),
+          LineageFileState.fromProtobuf(entry.getOutputFileStates(i))));
     }
 
     Job job = new CommandLineJob(entry.getJobCommand(), new JobConf(entry.getJobOutputPath()));
@@ -251,10 +251,10 @@ public final class Lineage implements JournalEntryRepresentable {
       inputFileIds.add(inputFile.getFileId());
     }
     List<Long> outputFileIds = Lists.newArrayList();
-    List<LineageFileState> outputFileStates = Lists.newArrayList();
+    List<tachyon.proto.journal.Lineage.LineageFileState> outputFileStates = Lists.newArrayList();
     for (LineageFile file : mOutputFiles) {
       outputFileIds.add(file.getFileId());
-      outputFileStates.add(file.getState());
+      outputFileStates.add(file.getState().toProtobuf());
     }
     Preconditions.checkState(mJob instanceof CommandLineJob);
     CommandLineJob commandLineJob = (CommandLineJob) mJob;

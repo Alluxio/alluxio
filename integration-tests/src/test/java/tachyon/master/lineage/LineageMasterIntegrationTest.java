@@ -40,7 +40,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
-import tachyon.proto.journal.Lineage.LineageFileState;
+import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.thrift.LineageInfo;
 import tachyon.util.CommonUtils;
 

@@ -48,7 +48,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.meta.LineageFile;
-import tachyon.proto.journal.Lineage.LineageFileState;
+import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CommandType;
