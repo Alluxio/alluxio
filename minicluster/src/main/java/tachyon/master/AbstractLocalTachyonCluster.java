@@ -66,7 +66,8 @@ public abstract class AbstractLocalTachyonCluster {
   /**
    * Starts both a master and a worker using the default test configurations.
    *
-   * @throws IOException when the operation fails
+   * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
   public void start() throws IOException, ConnectionFailedException  {
     start(newTestConf());
@@ -75,7 +76,8 @@ public abstract class AbstractLocalTachyonCluster {
   /**
    * Starts both master and a worker using the configurations in test conf respectively.
    *
-   * @throws IOException when the operation fails
+   * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
   public void start(TachyonConf conf) throws IOException, ConnectionFailedException {
     // Disable hdfs client caching to avoid file system close() affecting other clients
@@ -105,9 +107,11 @@ public abstract class AbstractLocalTachyonCluster {
    * Configure and start worker.
    *
    * @param conf configuration of this test
-   * @throws IOException when the operation fails
+   * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
-  protected abstract void startWorker(TachyonConf conf) throws IOException, ConnectionFailedException;
+  protected abstract void startWorker(TachyonConf conf) throws IOException,
+      ConnectionFailedException;
 
   /**
    * Sets up corresponding directories for tests.
@@ -229,6 +233,12 @@ public abstract class AbstractLocalTachyonCluster {
     return testConf;
   }
 
+  /**
+   * Run a worker.
+   *
+   * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
+   */
   protected void runWorker() throws IOException, ConnectionFailedException {
     mWorker = new BlockWorker();
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
