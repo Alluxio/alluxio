@@ -29,7 +29,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.underfs.UnderFileSystem;
 
 /**

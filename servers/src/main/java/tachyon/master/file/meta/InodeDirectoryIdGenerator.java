@@ -20,8 +20,8 @@ import com.google.common.base.Preconditions;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.proto.JournalEntryProtos.InodeDirectoryIdGeneratorEntry;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * Inode id management for directory inodes. Keep track of a block container id, along with a block

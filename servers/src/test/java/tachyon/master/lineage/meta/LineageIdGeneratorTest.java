@@ -18,7 +18,7 @@ package tachyon.master.lineage.meta;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * Tests lineage id generator.

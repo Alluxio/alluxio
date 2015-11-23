@@ -26,8 +26,8 @@ import tachyon.exception.BlockInfoException;
 import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidFileSizeException;
 import tachyon.master.block.BlockId;
-import tachyon.proto.JournalEntryProtos.InodeFileEntry;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.File.InodeFileEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.thrift.FileInfo;
 
 /**

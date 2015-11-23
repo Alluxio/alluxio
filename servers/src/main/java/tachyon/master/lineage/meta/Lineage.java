@@ -26,9 +26,9 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
-import tachyon.proto.JournalEntryProtos.LineageEntry;
-import tachyon.proto.JournalEntryProtos.LineageFileState;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.LineageEntry;
+import tachyon.proto.journal.Lineage.LineageFileState;
 import tachyon.thrift.LineageFileInfo;
 import tachyon.thrift.LineageInfo;
 
@@ -261,7 +261,7 @@ public final class Lineage implements JournalEntryRepresentable {
     String jobCommand = commandLineJob.getCommand();
     String jobOutputPath = commandLineJob.getJobConf().getOutputFilePath();
 
-    LineageEntry lineage = tachyon.proto.JournalEntryProtos.LineageEntry.newBuilder()
+    LineageEntry lineage = LineageEntry.newBuilder()
         .setId(mId)
         .addAllInputFiles(inputFileIds)
         .addAllOutputFileIds(outputFileIds)

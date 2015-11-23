@@ -23,7 +23,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.util.CommonUtils;
 
 /**

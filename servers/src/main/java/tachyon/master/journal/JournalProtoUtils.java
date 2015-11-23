@@ -18,7 +18,7 @@ package tachyon.master.journal;
 import com.google.protobuf.Message;
 
 import tachyon.exception.ExceptionMessage;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * Utils for working with the journal.

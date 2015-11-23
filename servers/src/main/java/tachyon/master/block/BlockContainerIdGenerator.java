@@ -18,8 +18,8 @@ package tachyon.master.block;
 import java.util.concurrent.atomic.AtomicLong;
 
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.proto.JournalEntryProtos.BlockContainerIdGeneratorEntry;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * This class generates unique block container ids.

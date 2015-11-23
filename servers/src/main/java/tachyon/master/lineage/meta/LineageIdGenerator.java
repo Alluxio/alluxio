@@ -18,8 +18,8 @@ package tachyon.master.lineage.meta;
 import java.util.concurrent.atomic.AtomicLong;
 
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
-import tachyon.proto.JournalEntryProtos.LineageIdGeneratorEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
 
 /**
  * Generates the lineage id as sequence number.

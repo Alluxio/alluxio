@@ -23,10 +23,8 @@ import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.UnknownFieldSet.Field;
 
 import tachyon.exception.ExceptionMessage;
-import tachyon.proto.JournalEntryProtos;
-import tachyon.proto.JournalEntryProtos.AddMountPointEntry;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
-
+import tachyon.proto.journal.File.AddMountPointEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 /**
  * Tests for {@link JournalUtils}.
  */
@@ -38,7 +36,7 @@ public final class JournalProtoUtilsTest {
   @Test
   public void getMessageTest() {
     AddMountPointEntry addMountEntry = AddMountPointEntry.newBuilder().build();
-    JournalEntry entry = JournalEntryProtos.JournalEntry.newBuilder()
+    JournalEntry entry = JournalEntry.newBuilder()
         .setAddMountPoint(addMountEntry)
         .build();
     Message message = JournalProtoUtils.getInnerEntry(entry);
@@ -51,7 +49,7 @@ public final class JournalProtoUtilsTest {
    */
   @Test
   public void getUnknownMessageTest() {
-    JournalEntry unknownEntry = JournalEntryProtos.JournalEntry.newBuilder().build();
+    JournalEntry unknownEntry = JournalEntry.newBuilder().build();
     unknownEntry = unknownEntry.toBuilder()
         .setUnknownFields(
             UnknownFieldSet.newBuilder().addField(46264, Field.newBuilder().build()).build())

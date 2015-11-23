@@ -33,8 +33,8 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.proto.JournalEntryProtos.LineageEntry;
-import tachyon.proto.JournalEntryProtos.LineageFileState;
+import tachyon.proto.journal.Lineage.LineageEntry;
+import tachyon.proto.journal.Lineage.LineageFileState;
 
 /**
  * A store of lineages. This class is thread-safe.
