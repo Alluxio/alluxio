@@ -16,7 +16,6 @@
 package tachyon.master.lineage.meta;
 
 import tachyon.client.file.TachyonFile;
-import tachyon.proto.journal.Lineage.LineageFileState;
 import tachyon.thrift.LineageFileInfo;
 
 /**
