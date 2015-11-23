@@ -166,26 +166,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(conf);
 
-    // Setup conf for worker
-    int numLevels = 1;
-    mWorkerConf.set(Constants.WORKER_TIERED_STORE_LEVELS, Integer.toString(numLevels));
-
-    for (int level = 1; level < numLevels; level ++) {
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
-      String newPath = "";
-      for (String dirPath : dirPaths) {
-        newPath += mTachyonHome + dirPath + ",";
-      }
-      mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
-          newPath.substring(0, newPath.length() - 1));
-    }
-
-    mWorkerConf.set(Constants.WORKER_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, "1");
     mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
 
     runWorker();
@@ -200,8 +180,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   protected void startMaster(TachyonConf conf) throws IOException {
     mMasterConf = conf;
     mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
-    mMasterConf.set(Constants.MASTER_BIND_HOST, mHostname);
-    mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
