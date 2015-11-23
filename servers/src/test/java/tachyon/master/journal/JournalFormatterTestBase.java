@@ -115,7 +115,7 @@ public abstract class JournalFormatterTestBase {
                 .setLength(TEST_LENGTH_BYTES))
             .build())
         .add(JournalEntry.newBuilder()
-            .setInodeFileEntry(InodeFileEntry.newBuilder()
+            .setInodeFile(InodeFileEntry.newBuilder()
                 .setCreationTimeMs(TEST_OP_TIME_MS)
                 .setId(TEST_FILE_ID)
                 .setName(TEST_FILE_NAME)

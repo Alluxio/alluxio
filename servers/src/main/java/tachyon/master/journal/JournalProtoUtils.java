@@ -46,8 +46,8 @@ public final class JournalProtoUtils {
         return entry.getInodeDirectory();
       case INODE_DIRECTORY_ID_GENERATOR:
         return entry.getInodeDirectoryIdGenerator();
-      case INODE_FILE_ENTRY:
-        return entry.getInodeFileEntry();
+      case INODE_FILE:
+        return entry.getInodeFile();
       case INODE_LAST_MODIFICATION_TIME:
         return entry.getInodeLastModificationTime();
       case LINEAGE:
