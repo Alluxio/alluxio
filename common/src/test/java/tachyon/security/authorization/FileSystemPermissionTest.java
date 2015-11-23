@@ -24,7 +24,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 
-public class FileSystemPermissionTest {
+public final class FileSystemPermissionTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 

@@ -296,32 +296,28 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the username of the inode
+   * @return the user name of the inode
    */
   public synchronized String getUserName() {
     return mUserName;
   }
 
   /**
-   * Sets the userName of the inode.
-   *
-   * @param userName the userName of the inode
+   * @param userName the user name of the inode
    */
   public synchronized void setUserName(String userName) {
     mUserName = userName;
   }
 
   /**
-   * @return the groupname of the inode
+   * @return the group name of the inode
    */
   public synchronized String getGroupName() {
     return mGroupName;
   }
 
   /**
-   * Sets the groupName of the inode.
-   *
-   * @param groupName the groupName of the inode
+   * @param groupName the group name of the inode
    */
   public synchronized void setGroupName(String groupName) {
     mGroupName = groupName;
@@ -335,8 +331,6 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the permission of the inode.
-   *
    * @param permission the permission of the inode
    */
   public synchronized void setPermission(short permission) {

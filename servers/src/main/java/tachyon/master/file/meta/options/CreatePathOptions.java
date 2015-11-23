@@ -123,11 +123,11 @@ public class CreatePathOptions {
     }
 
     /**
-     * @param ps the permission status to use
+     * @param permissionStatus the permission status to use
      * @return the builder
      */
-    public Builder setPermissionStatus(PermissionStatus ps) {
-      mPermissionStatus = ps;
+    public Builder setPermissionStatus(PermissionStatus permissionStatus) {
+      mPermissionStatus = permissionStatus;
       return this;
     }
 

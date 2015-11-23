@@ -74,8 +74,6 @@ public class TfsShellTest {
     mFsShell.close();
     mLocalTachyonCluster.stop();
     System.setOut(mOldOutput);
-    // clear testing username
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Before
@@ -93,8 +91,6 @@ public class TfsShellTest {
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
     System.setOut(mNewOutput);
-    // clear the loginUser
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
   }
 
   @Test
@@ -479,6 +475,9 @@ public class TfsShellTest {
 
   @Test
   public void lsrTest() throws IOException, TachyonException {
+    // clear the loginUser
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_lsr";
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
@@ -508,10 +507,15 @@ public class TfsShellTest {
         TfsShell.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory", testUser,
         "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
   public void lsTest() throws IOException, TachyonException {
+    // clear the loginUser
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+
     FileInfo[] files = new FileInfo[4];
     String testUser = "test_user_ls";
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
@@ -538,6 +542,8 @@ public class TfsShellTest {
         TfsShell.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
         testUser, "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
@@ -837,6 +843,9 @@ public class TfsShellTest {
 
   @Test
   public void lsWildcardTest() throws IOException, TachyonException {
+    // clear the loginUser
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+
     String testUser = "test_user_lsWildcard";
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
@@ -855,6 +864,8 @@ public class TfsShellTest {
     expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   private String getLsResultStr(TachyonURI tUri, int size, String testUser) throws IOException,

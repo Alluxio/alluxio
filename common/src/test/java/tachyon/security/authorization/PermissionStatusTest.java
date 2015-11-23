@@ -18,22 +18,26 @@ package tachyon.security.authorization;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PermissionStatusTest {
+import org.powermock.reflect.Whitebox;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.AuthType;
+import tachyon.security.authentication.PlainSaslServer;
+
+public final class PermissionStatusTest {
 
   @Test
   public void permissionStatusTest() {
     PermissionStatus permissionStatus =
         new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
 
-    Assert.assertEquals("user1", permissionStatus.getUserName());
-    Assert.assertEquals("group1", permissionStatus.getGroupName());
-    Assert.assertEquals(0777, permissionStatus.getPermission().toShort());
+    verifyPermissionStatus("user1", "group1", (short) 0777, permissionStatus);
 
     permissionStatus = PermissionStatus.getDirDefault();
 
-    Assert.assertEquals("", permissionStatus.getUserName());
-    Assert.assertEquals("", permissionStatus.getGroupName());
-    Assert.assertEquals(0777, permissionStatus.getPermission().toShort());
+    verifyPermissionStatus("", "", (short) 0777, permissionStatus);
   }
 
   @Test
@@ -49,6 +53,36 @@ public class PermissionStatusTest {
     Assert.assertEquals(FileSystemAction.READ_EXECUTE,
         permissionStatus.getPermission().getOtherAction());
     Assert.assertEquals(0755, permissionStatus.getPermission().toShort());
+  }
 
+  @Test
+  public void getPermissionStatusTest() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    PermissionStatus permissionStatus;
+
+    // no authentication
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    permissionStatus = PermissionStatus.get(conf, true);
+    verifyPermissionStatus("", "", (short) 0000, permissionStatus);
+
+    // authentication is enabled, and remote is true
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    permissionStatus = PermissionStatus.get(conf, true);
+    verifyPermissionStatus("test_client_user", "", (short) 0755, permissionStatus);
+
+    // authentication is enabled, and remote is false
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
+    permissionStatus = PermissionStatus.get(conf, false);
+    verifyPermissionStatus("test_login_user", "", (short) 0755, permissionStatus);
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+  }
+
+  private void verifyPermissionStatus(String user, String group, short permission,
+      PermissionStatus permissionStatus) {
+    Assert.assertEquals(user, permissionStatus.getUserName());
+    Assert.assertEquals(group, permissionStatus.getGroupName());
+    Assert.assertEquals(permission, permissionStatus.getPermission().toShort());
   }
 }
