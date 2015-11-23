@@ -16,6 +16,7 @@
 package tachyon.master.lineage;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +78,8 @@ import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
+import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
@@ -107,7 +109,7 @@ public final class LineageMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_NAME);
   }
 
   /**
@@ -128,14 +130,22 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new LineageMasterService.Processor<LineageMasterServiceHandler>(
-        new LineageMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
+        new LineageMasterClientService.Processor<LineageMasterClientServiceHandler>(
+            new LineageMasterClientServiceHandler(this)));
+    services.put(
+        Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME,
+        new LineageMasterWorkerService.Processor<LineageMasterWorkerServiceHandler>(
+            new LineageMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.LINEAGE_MASTER_NAME;
   }
 
   @Override

@@ -45,9 +45,10 @@ struct SetStateTOptions {
   3: optional bool persisted
 }
 
-service FileSystemMasterService extends common.TachyonService {
-
-  // Tachyon Client API
+/**
+ * This interface contains file system master service endpoints for Tachyon clients.
+ */
+service FileSystemMasterClientService extends common.TachyonService {
 
   /*
    * Marks a file as completed.
@@ -113,7 +114,6 @@ service FileSystemMasterService extends common.TachyonService {
   /*
    * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
    */
-  // TODO(jiri): Get rid of this.
   i64 loadMetadata(1: string ufsPath, 2: bool recursive)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
@@ -155,12 +155,22 @@ service FileSystemMasterService extends common.TachyonService {
    * will be persisted before they are removed from the Tachyon namespace.
    */
   bool unmount(1: string tachyonPath)
-  throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+}
 
-  // Tachyon Worker API
+/**
+ * This interface contains file system master service endpoints for Tachyon workers.
+ */
+service FileSystemMasterWorkerService extends common.TachyonService {
+
+  /*
+   * Returns the file information.
+   */
+  FileInfo getFileInfo(1: i64 fileId)
+    throws (1: exception.TachyonTException e)
 
   /*
    * Returns the set of pinned files.
    */
-  set<i64> workerGetPinIdList()
+  set<i64> getPinIdList()
 }

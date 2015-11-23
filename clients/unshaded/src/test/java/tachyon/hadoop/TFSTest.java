@@ -143,7 +143,8 @@ public class TFSTest {
   private void mockMasterClient() {
     PowerMockito.mockStatic(FileSystemContext.class);
     FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient mockMaster = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient mockMaster =
+        PowerMockito.mock(FileSystemMasterClient.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
     Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
   }
