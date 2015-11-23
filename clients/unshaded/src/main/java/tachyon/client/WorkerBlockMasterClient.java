@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
@@ -71,10 +72,12 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param tierAlias the alias of the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length) throws IOException {
+      final String tierAlias, final long blockId, final long length)
+          throws IOException, ConnectionFailedException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -89,9 +92,11 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    *
    * @param address the net address to get a worker id for
    * @return a worker id
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getId(final NetAddress address) throws IOException {
+  public synchronized long getId(final NetAddress address)
+      throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
@@ -108,11 +113,12 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
    * @return an optional command for the worker to execute
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) throws IOException {
+      final Map<String, List<Long>> addedBlocks) throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {

@@ -17,11 +17,13 @@ package tachyon.master.lineage.recompute;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.Futures;
 
 import tachyon.Constants;
 import tachyon.exception.FileDoesNotExistException;
@@ -52,10 +54,21 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
+    heartbeatWithFuture();
+  }
+
+  /**
+   * A version of {@code heartbeat} which returns a {@link Future} representing completion of the
+   * recompute plan. This is especially useful for tests.
+   *
+   * @return the {@code Future} representing completion of the recompute plan
+   */
+  Future<?> heartbeatWithFuture() {
     RecomputePlan plan = mPlanner.plan();
     if (plan != null && !plan.isEmpty()) {
-      mFixedExecutionService.submit(new RecomputeLauncher(plan));
+      return mFixedExecutionService.submit(new RecomputeLauncher(plan));
     }
+    return Futures.<Void>immediateFuture(null);
   }
 
   /**
