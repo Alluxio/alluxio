@@ -4,7 +4,7 @@
     <Or>
       <Package name="org.apache.thrift"/>
       <Package name="tachyon.thrift"/>
-      <Package name="tachyon.proto"/>
+      <Package name="tachyon.proto.journal.*"/>
     </Or>
   </Match>
 
