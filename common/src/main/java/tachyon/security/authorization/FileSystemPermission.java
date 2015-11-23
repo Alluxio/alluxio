@@ -30,18 +30,20 @@ public final class FileSystemPermission {
 
   /**
    * Constructs an instance of {@link FileSystemPermission} with the given {@link FileSystemAction}.
-   * @param userFileSystemAction user action
+   *
+   * @param userFileSystemAction  user action
    * @param groupFileSystemAction group action
    * @param otherFileSystemAction other action
    */
-  public FileSystemPermission(FileSystemAction userFileSystemAction, FileSystemAction
-      groupFileSystemAction, FileSystemAction otherFileSystemAction) {
+  public FileSystemPermission(FileSystemAction userFileSystemAction,
+      FileSystemAction groupFileSystemAction, FileSystemAction otherFileSystemAction) {
     set(userFileSystemAction, groupFileSystemAction, otherFileSystemAction);
   }
 
   /**
    * Constructs an instance of {@link FileSystemPermission} with the given mode.
-   * @param mode
+   *
+   * @param mode the digital representation of a {@link FileSystemPermission}
    * @see #toShort()
    */
   public FileSystemPermission(short mode) {
@@ -50,14 +52,14 @@ public final class FileSystemPermission {
 
   /**
    * Copy constructor.
-   * @param otherPermission
+   *
+   * @param otherPermission another {@link FileSystemPermission}
    */
   public FileSystemPermission(FileSystemPermission otherPermission) {
     set(otherPermission.mUseraction, otherPermission.mGroupaction, otherPermission.mOtheraction);
   }
 
   /**
-   * Get user action
    * @return the user {@link FileSystemAction}
    */
   public FileSystemAction getUserAction() {
@@ -65,7 +67,6 @@ public final class FileSystemPermission {
   }
 
   /**
-   * Get group action
    * @return the group {@link FileSystemAction}
    */
   public FileSystemAction getGroupAction() {
@@ -73,7 +74,6 @@ public final class FileSystemPermission {
   }
 
   /**
-   * Get other action
    * @return the other {@link FileSystemAction}
    */
   public FileSystemAction getOtherAction() {
@@ -86,6 +86,11 @@ public final class FileSystemPermission {
     mOtheraction = o;
   }
 
+  /**
+   * Sets attributes of {@link FileSystemPermission} from its digital representation.
+   *
+   * @param n the digital representation of a {@link FileSystemPermission}
+   */
   public void fromShort(short n) {
     FileSystemAction[] v = FileSystemAction.values();
     set(v[(n >>> 6) & 7], v[(n >>> 3) & 7], v[n & 7]);
@@ -93,20 +98,20 @@ public final class FileSystemPermission {
 
   /**
    * Encodes the object to a short.
+   *
+   * @return the digital representation of this {@link FileSystemPermission}
    */
   public short toShort() {
-    int s = (mUseraction.ordinal() << 6) | (mGroupaction.ordinal() << 3)
-        | mOtheraction.ordinal();
-    return (short)s;
+    int s = (mUseraction.ordinal() << 6) | (mGroupaction.ordinal() << 3) | mOtheraction.ordinal();
+    return (short) s;
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof FileSystemPermission) {
-      FileSystemPermission that = (FileSystemPermission)obj;
-      return mUseraction == that.mUseraction
-          && mGroupaction == that.mGroupaction
-          && mOtheraction == that.mOtheraction;
+      FileSystemPermission that = (FileSystemPermission) obj;
+      return mUseraction == that.mUseraction && mGroupaction == that.mGroupaction && mOtheraction
+          == that.mOtheraction;
     }
     return false;
   }
@@ -118,8 +123,7 @@ public final class FileSystemPermission {
 
   @Override
   public String toString() {
-    return mUseraction.getSymbol() + mGroupaction.getSymbol()
-        + mOtheraction.getSymbol();
+    return mUseraction.getSymbol() + mGroupaction.getSymbol() + mOtheraction.getSymbol();
   }
 
   /**
@@ -130,8 +134,7 @@ public final class FileSystemPermission {
    */
   public FileSystemPermission applyUMask(FileSystemPermission umask) {
     return new FileSystemPermission(mUseraction.and(umask.mUseraction.not()),
-        mGroupaction.and(umask.mGroupaction.not()),
-        mOtheraction.and(umask.mOtheraction.not()));
+        mGroupaction.and(umask.mGroupaction.not()), mOtheraction.and(umask.mOtheraction.not()));
   }
 
   /**
@@ -145,7 +148,8 @@ public final class FileSystemPermission {
   }
 
   /**
-   * Get the default permission.
+   * Gets the default permission.
+   *
    * @return the default {@link FileSystemPermission}
    */
   public static FileSystemPermission getDefault() {
@@ -153,7 +157,8 @@ public final class FileSystemPermission {
   }
 
   /**
-   * Get the none permission for NOSASL authentication mode
+   * Gets the none permission for NOSASL authentication mode.
+   *
    * @return the none {@link FileSystemPermission}
    */
   public static FileSystemPermission getNoneFsPermission() {
@@ -162,7 +167,8 @@ public final class FileSystemPermission {
   }
 
   /**
-   * Get the file/directory creation umask
+   * Gets the file/directory creation umask.
+   *
    * @return the umask {@link FileSystemPermission}
    */
   public static FileSystemPermission getUMask(TachyonConf conf) {
@@ -176,13 +182,13 @@ public final class FileSystemPermission {
         }
         int newUmask = 0;
         int lastIndex = confUmask.length() - 1;
-        for (int i = 0; i <= lastIndex; i ++) {
+        for (int i = 0; i <= lastIndex; i++) {
           newUmask += (confUmask.charAt(i) - '0') << 3 * (lastIndex - i);
         }
         umask = newUmask;
       }
     }
-    return new FileSystemPermission((short)umask);
+    return new FileSystemPermission((short) umask);
   }
 
   private static boolean tryParseInt(String value) {

@@ -38,12 +38,16 @@ public enum FileSystemAction {
     mSymbol = s;
   }
 
+  /**
+   * @return the symbolic representation of this action
+   */
   public String getSymbol() {
     return mSymbol;
   }
 
   /**
-   * Check whether this action implies the passed-in action.
+   * Checks whether this action implies the passed-in action.
+   *
    * @param that a passed-in action
    * @return true when this action implies the passed-in action
    */
@@ -55,7 +59,6 @@ public enum FileSystemAction {
   }
 
   /**
-   * AND operation
    * @param that a passed-in action
    * @return the intersection of this action and the passed-in action
    */
@@ -67,7 +70,6 @@ public enum FileSystemAction {
   }
 
   /**
-   * OR operation
    * @param that a passed-in action
    * @return the union of this action and the passed-in action
    */
@@ -79,7 +81,6 @@ public enum FileSystemAction {
   }
 
   /**
-   * NOT operation
    * @return the complement of this action
    */
   public FileSystemAction not() {

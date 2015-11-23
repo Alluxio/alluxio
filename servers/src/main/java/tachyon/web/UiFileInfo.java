@@ -218,14 +218,23 @@ public final class UiFileInfo {
     }
   }
 
+  /**
+   * @return the user name of the file
+   */
   public String getUserName() {
     return mUserName;
   }
 
+  /**
+   * @return the group name of the file
+   */
   public String getGroupName() {
     return mGroupName;
   }
 
+  /**
+   * @return the permission of the file
+   */
   public int getPermission() {
     return mPermission;
   }

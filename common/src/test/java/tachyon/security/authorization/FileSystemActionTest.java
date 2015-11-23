@@ -18,7 +18,7 @@ package tachyon.security.authorization;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class FileSystemActionTest {
+public final class FileSystemActionTest {
 
   @Test
   public void impliesTest() throws Exception {
