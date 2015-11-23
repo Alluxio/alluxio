@@ -81,7 +81,7 @@ public final class JournalProtoUtils {
             ExceptionMessage.NO_ENTRY_TYPE.getMessage(entry.getUnknownFields().asMap().keySet()));
       default:
         throw new IllegalStateException(
-            ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(entry.getEntryCase()));
+            ExceptionMessage.UNKNOWN_JOURNAL_ENTRY_TYPE.getMessage(entry.getEntryCase()));
     }
   }
 
