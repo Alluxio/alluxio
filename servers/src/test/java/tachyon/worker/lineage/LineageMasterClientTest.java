@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.block;
+package tachyon.worker.lineage;
 
 import java.io.IOException;
 
@@ -26,33 +26,37 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
-import tachyon.thrift.BlockMasterClientService;
+import tachyon.thrift.LineageMasterWorkerService;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerContext;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(BlockMasterClient.class)
-public class BlockMasterClientTest {
+@PrepareForTest(LineageMasterClient.class)
+public class LineageMasterClientTest {
 
   @Test
   public void unsupportedVersionTest() throws Exception {
-    // Client context needs to be initialized before the block store context can be used.
-    ClientContext.reset();
+    // Client context needs to be initialized before the lineage context can be used.
+    WorkerContext.reset();
 
-    BlockMasterClientService.Client mock = PowerMockito.mock(BlockMasterClientService.Client.class);
+    LineageMasterWorkerService.Client mock =
+        PowerMockito.mock(LineageMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
 
-    BlockMasterClient client = BlockStoreContext.INSTANCE.acquireMasterClient();
+    LineageMasterClient client =
+        new LineageMasterClient(NetworkAddressUtils.getConnectAddress(
+            NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
+            WorkerContext.getConf());
+
     try {
       Whitebox.invokeMethod(client, "checkVersion", mock,
-          Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
+          Constants.LINEAGE_MASTER_WORKER_SERVICE_VERSION);
       Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-          Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, 0), e.getMessage());
-    } finally {
-      BlockStoreContext.INSTANCE.releaseMasterClient(client);
+          Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME,
+          Constants.LINEAGE_MASTER_WORKER_SERVICE_VERSION, 0), e.getMessage());
     }
   }
 }

@@ -17,8 +17,10 @@ package tachyon.master.file;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -86,7 +88,8 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.FileSystemMasterClientService;
+import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
@@ -119,7 +122,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
   }
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
@@ -137,14 +140,22 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new FileSystemMasterService.Processor<FileSystemMasterServiceHandler>(
-        new FileSystemMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+        new FileSystemMasterClientService.Processor<FileSystemMasterClientServiceHandler>(
+            new FileSystemMasterClientServiceHandler(this)));
+    services.put(
+        Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+        new FileSystemMasterWorkerService.Processor<FileSystemMasterWorkerServiceHandler>(
+            new FileSystemMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.FILE_SYSTEM_MASTER_NAME;
   }
 
   @Override

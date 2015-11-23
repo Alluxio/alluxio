@@ -17,7 +17,8 @@ package tachyon.master.file;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -30,22 +31,27 @@ import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateTOptions;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.MkdirTOptions;
 import tachyon.thrift.SetStateTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
-public final class FileSystemMasterServiceHandler implements FileSystemMasterService.Iface {
+/**
+ * This class is a Thrift handler for file system master RPCs invoked by a Tachyon client.
+ */
+public final class FileSystemMasterClientServiceHandler implements
+    FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
-  public FileSystemMasterServiceHandler(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
+    Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;
   }
 
   @Override
   public long getServiceVersion() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_VERSION;
+    return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override
@@ -212,10 +218,4 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       throw new ThriftIOException(e.getMessage());
     }
   }
-
-  @Override
-  public Set<Long> workerGetPinIdList() {
-    return mFileSystemMaster.getPinIdList();
-  }
-
 }

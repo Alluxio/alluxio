@@ -17,7 +17,6 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +28,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(LineageMasterClient.class)
@@ -40,21 +39,19 @@ public class LineageMasterClientTest {
     // Client context needs to be initialized before the lineage context can be used.
     ClientContext.reset();
 
-    LineageMasterService.Client mock = PowerMockito.mock(LineageMasterService.Client.class);
+    LineageMasterClientService.Client mock =
+        PowerMockito.mock(LineageMasterClientService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
-    PowerMockito.whenNew(LineageMasterService.Client.class).withAnyArguments().thenReturn(mock);
 
     LineageMasterClient client = LineageContext.INSTANCE.acquireMasterClient();
-    TMultiplexedProtocol mockProtocol = PowerMockito.mock(TMultiplexedProtocol.class);
-    Whitebox.setInternalState(client, "mProtocol", mockProtocol);
-
     try {
-      client.afterConnect();
-      Assert.fail("connect() should fail");
+      Whitebox.invokeMethod(client, "checkVersion", mock,
+          Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
+      Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(
-          Constants.LINEAGE_MASTER_SERVICE_NAME, Constants.LINEAGE_MASTER_SERVICE_VERSION, 0),
-          e.getMessage());
+          Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
+          Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION, 0), e.getMessage());
     } finally {
       LineageContext.INSTANCE.releaseMasterClient(client);
     }

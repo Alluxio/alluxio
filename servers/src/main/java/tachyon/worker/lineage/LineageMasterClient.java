@@ -28,7 +28,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.LineageCommand;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterWorkerService;
+import tachyon.thrift.TachyonService;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -36,27 +37,37 @@ import tachyon.thrift.LineageMasterService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public final class LineageMasterWorkerClient extends ClientBase {
+public final class LineageMasterClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private LineageMasterService.Client mClient = null;
+  private LineageMasterWorkerService.Client mClient = null;
 
   /**
    * @param masterAddress the master address
    * @param tachyonConf tachyonConf
    */
-  public LineageMasterWorkerClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+  public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf, "lineage-worker");
   }
 
   @Override
-  protected String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+  protected TachyonService.Client getClient() {
+    return mClient;
   }
 
   @Override
-  protected void afterConnect() {
-    mClient = new LineageMasterService.Client(mProtocol);
+  protected String getServiceName() {
+    return Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.LINEAGE_MASTER_WORKER_SERVICE_VERSION;
+  }
+
+  @Override
+  protected void afterConnect() throws IOException {
+    mClient = new LineageMasterWorkerService.Client(mProtocol);
   }
 
   /**
@@ -68,12 +79,12 @@ public final class LineageMasterWorkerClient extends ClientBase {
    * @throws IOException if file persistence fails
    * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized LineageCommand workerLineageHeartbeat(final long workerId,
+  public synchronized LineageCommand heartbeat(final long workerId,
       final List<Long> persistedFiles) throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<LineageCommand>() {
       @Override
       public LineageCommand call() throws TException {
-        return mClient.workerLineageHeartbeat(workerId, persistedFiles);
+        return mClient.heartbeat(workerId, persistedFiles);
       }
     });
   }
