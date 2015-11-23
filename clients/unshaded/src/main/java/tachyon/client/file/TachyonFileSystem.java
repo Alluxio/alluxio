@@ -186,9 +186,10 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   /**
    * Alternative way to get a FileOutStream to a file that has already been created. This should not
-   * be used. Deprecated in version v0.8 and will be removed in v0.9.
+   * be used.
    *
    * @see #getOutStream(TachyonURI path, OutStreamOptions options)
+   * @deprecated Deprecated in version v0.8 and will be removed in v0.9.
    */
   // TODO(calvin): We should remove this when the TachyonFS code is fully deprecated.
   @Deprecated
