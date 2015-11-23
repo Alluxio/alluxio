@@ -1,0 +1,14 @@
+package tachyon.proto.journal;
+
+// next available id: 4
+message RawTableEntry {
+  optional int64 id = 1;
+  optional int32 columns = 2;
+  optional bytes metadata = 3;
+}
+
+// next available id: 3
+message UpdateMetadataEntry {
+  optional int64 id = 1;
+  optional bytes metadata = 2;
+}

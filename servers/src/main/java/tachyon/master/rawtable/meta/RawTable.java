@@ -20,8 +20,8 @@ import java.nio.ByteBuffer;
 import com.google.protobuf.ByteString;
 
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
-import tachyon.proto.JournalEntryProtos.RawTableEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
 public class RawTable implements JournalEntryRepresentable {

@@ -35,7 +35,7 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.proto.JournalEntryProtos.LineageFileState;
+import tachyon.proto.journal.Lineage.LineageFileState;
 
 public final class LineageStoreTest {
   private LineageStore mLineageStore;

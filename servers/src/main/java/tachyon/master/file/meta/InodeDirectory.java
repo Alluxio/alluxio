@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.collections.IndexedSet;
-import tachyon.proto.JournalEntryProtos.InodeDirectoryEntry;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.File.InodeDirectoryEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.thrift.FileInfo;
 
 /**

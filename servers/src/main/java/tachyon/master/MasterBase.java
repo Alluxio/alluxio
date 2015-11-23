@@ -31,7 +31,7 @@ import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.proto.JournalEntryProtos.JournalEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
