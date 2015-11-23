@@ -66,13 +66,14 @@ public abstract class ResourcePool<T> {
    * @return a resource taken from the pool
    */
   public T acquire() {
-    // If the resource pool is empty but capacity is not yet full, create a new resource.
+    // Try to take a resource without blocking
     T resource = mResources.poll();
     if (resource != null) {
       return resource;
     }
 
     if (mCurrentCapacity.getAndIncrement() < mMaxCapacity) {
+      // If the resource pool is empty but capacity is not yet full, create a new resource.
       return createNewResource();
     }
 
@@ -85,7 +86,6 @@ public abstract class ResourcePool<T> {
         while (true) {
           resource = mResources.poll();
           if (resource != null) {
-            mNotEmpty.signal();
             return resource;
           }
           mNotEmpty.await();
