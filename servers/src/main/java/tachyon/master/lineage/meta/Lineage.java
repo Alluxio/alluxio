@@ -224,9 +224,9 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * Converts the entry to a {@code Lineage}.
+   * Converts the entry to a {@link Lineage}.
    *
-   * @return the {@code Lineage} representation
+   * @return the {@link Lineage} representation
    */
   public static Lineage fromJournal(LineageEntry entry) {
     List<TachyonFile> inputFiles = Lists.newArrayList();

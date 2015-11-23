@@ -24,7 +24,13 @@ import tachyon.proto.journal.Journal.JournalEntry;
  * Utils for working with the journal.
  */
 public final class JournalProtoUtils {
-  public static Message getInnerEntry(JournalEntry entry) {
+  /**
+   * Returns the journal entry wrapped by the given {@link JournalEntry}.
+   *
+   * @param entry the journal entry to unwrap
+   * @return the specific entry wrapped within the given {@link JournalEntry}
+   */
+  public static Message unwrap(JournalEntry entry) {
     switch (entry.getEntryCase()) {
       case ADD_MOUNT_POINT:
         return entry.getAddMountPoint();

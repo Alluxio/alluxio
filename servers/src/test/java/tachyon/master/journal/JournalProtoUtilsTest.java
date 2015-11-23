@@ -39,7 +39,7 @@ public final class JournalProtoUtilsTest {
     JournalEntry entry = JournalEntry.newBuilder()
         .setAddMountPoint(addMountEntry)
         .build();
-    Message message = JournalProtoUtils.getInnerEntry(entry);
+    Message message = JournalProtoUtils.unwrap(entry);
     Assert.assertTrue(message instanceof AddMountPointEntry);
     Assert.assertEquals(message, addMountEntry);
   }
@@ -55,7 +55,7 @@ public final class JournalProtoUtilsTest {
             UnknownFieldSet.newBuilder().addField(46264, Field.newBuilder().build()).build())
         .build();
     try {
-      JournalProtoUtils.getInnerEntry(unknownEntry);
+      JournalProtoUtils.unwrap(unknownEntry);
       Assert.fail("getMessage() should fail when no messages is set");
     } catch (RuntimeException e) {
       Assert.assertEquals(ExceptionMessage.NO_ENTRY_TYPE.getMessage("[46264]"), e.getMessage());

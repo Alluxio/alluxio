@@ -170,7 +170,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    Message innerEntry = JournalProtoUtils.getInnerEntry(entry);
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
     if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator

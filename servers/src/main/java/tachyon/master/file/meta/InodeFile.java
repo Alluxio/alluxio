@@ -293,9 +293,9 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Converts the entry to an {@code InodeFile}.
+   * Converts the entry to an {@link InodeFile}.
    *
-   * @return the {@code InodeFile} representation
+   * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
     InodeFile inode =

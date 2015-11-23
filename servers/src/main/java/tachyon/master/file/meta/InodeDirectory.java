@@ -178,9 +178,9 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Converts the entry to an {@code InodeDirectory}.
+   * Converts the entry to an {@link InodeDirectory}.
    *
-   * @return the {@code InodeDirectory} representation
+   * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
     InodeDirectory inode =
