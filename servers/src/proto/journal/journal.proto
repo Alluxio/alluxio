@@ -21,7 +21,7 @@ message JournalEntry {
     DeleteMountPointEntry delete_mount_point = 9;
     InodeDirectoryEntry inode_directory = 10;
     InodeDirectoryIdGeneratorEntry inode_directory_id_generator = 11;
-    InodeFileEntry inode_file_entry = 12;
+    InodeFileEntry inode_file = 12;
     InodeLastModificationTimeEntry inode_last_modification_time = 13;
     LineageEntry lineage = 14;
     LineageIdGeneratorEntry lineage_id_generator = 15;

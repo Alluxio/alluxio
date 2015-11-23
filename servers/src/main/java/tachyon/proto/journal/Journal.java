@@ -152,17 +152,17 @@ public final class Journal {
     tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntryOrBuilder getInodeDirectoryIdGeneratorOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
      */
-    boolean hasInodeFileEntry();
+    boolean hasInodeFile();
     /**
-     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
      */
-    tachyon.proto.journal.File.InodeFileEntry getInodeFileEntry();
+    tachyon.proto.journal.File.InodeFileEntry getInodeFile();
     /**
-     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
      */
-    tachyon.proto.journal.File.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder();
+    tachyon.proto.journal.File.InodeFileEntryOrBuilder getInodeFileOrBuilder();
 
     /**
      * <code>optional .tachyon.proto.journal.InodeLastModificationTimeEntry inode_last_modification_time = 13;</code>
@@ -735,7 +735,7 @@ public final class Journal {
       DELETE_MOUNT_POINT(9),
       INODE_DIRECTORY(10),
       INODE_DIRECTORY_ID_GENERATOR(11),
-      INODE_FILE_ENTRY(12),
+      INODE_FILE(12),
       INODE_LAST_MODIFICATION_TIME(13),
       LINEAGE(14),
       LINEAGE_ID_GENERATOR(15),
@@ -765,7 +765,7 @@ public final class Journal {
           case 9: return DELETE_MOUNT_POINT;
           case 10: return INODE_DIRECTORY;
           case 11: return INODE_DIRECTORY_ID_GENERATOR;
-          case 12: return INODE_FILE_ENTRY;
+          case 12: return INODE_FILE;
           case 13: return INODE_LAST_MODIFICATION_TIME;
           case 14: return LINEAGE;
           case 15: return LINEAGE_ID_GENERATOR;
@@ -1069,26 +1069,26 @@ public final class Journal {
       return tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry.getDefaultInstance();
     }
 
-    public static final int INODE_FILE_ENTRY_FIELD_NUMBER = 12;
+    public static final int INODE_FILE_FIELD_NUMBER = 12;
     /**
-     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
      */
-    public boolean hasInodeFileEntry() {
+    public boolean hasInodeFile() {
       return entryCase_ == 12;
     }
     /**
-     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
      */
-    public tachyon.proto.journal.File.InodeFileEntry getInodeFileEntry() {
+    public tachyon.proto.journal.File.InodeFileEntry getInodeFile() {
       if (entryCase_ == 12) {
          return (tachyon.proto.journal.File.InodeFileEntry) entry_;
       }
       return tachyon.proto.journal.File.InodeFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+     * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
      */
-    public tachyon.proto.journal.File.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder() {
+    public tachyon.proto.journal.File.InodeFileEntryOrBuilder getInodeFileOrBuilder() {
       if (entryCase_ == 12) {
          return (tachyon.proto.journal.File.InodeFileEntry) entry_;
       }
@@ -1829,10 +1829,10 @@ public final class Journal {
           }
         }
         if (entryCase_ == 12) {
-          if (inodeFileEntryBuilder_ == null) {
+          if (inodeFileBuilder_ == null) {
             result.entry_ = entry_;
           } else {
-            result.entry_ = inodeFileEntryBuilder_.build();
+            result.entry_ = inodeFileBuilder_.build();
           }
         }
         if (entryCase_ == 13) {
@@ -1980,8 +1980,8 @@ public final class Journal {
             mergeInodeDirectoryIdGenerator(other.getInodeDirectoryIdGenerator());
             break;
           }
-          case INODE_FILE_ENTRY: {
-            mergeInodeFileEntry(other.getInodeFileEntry());
+          case INODE_FILE: {
+            mergeInodeFile(other.getInodeFile());
             break;
           }
           case INODE_LAST_MODIFICATION_TIME: {
@@ -3461,64 +3461,64 @@ public final class Journal {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.File.InodeFileEntry, tachyon.proto.journal.File.InodeFileEntry.Builder, tachyon.proto.journal.File.InodeFileEntryOrBuilder> inodeFileEntryBuilder_;
+          tachyon.proto.journal.File.InodeFileEntry, tachyon.proto.journal.File.InodeFileEntry.Builder, tachyon.proto.journal.File.InodeFileEntryOrBuilder> inodeFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public boolean hasInodeFileEntry() {
+      public boolean hasInodeFile() {
         return entryCase_ == 12;
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public tachyon.proto.journal.File.InodeFileEntry getInodeFileEntry() {
-        if (inodeFileEntryBuilder_ == null) {
+      public tachyon.proto.journal.File.InodeFileEntry getInodeFile() {
+        if (inodeFileBuilder_ == null) {
           if (entryCase_ == 12) {
             return (tachyon.proto.journal.File.InodeFileEntry) entry_;
           }
           return tachyon.proto.journal.File.InodeFileEntry.getDefaultInstance();
         } else {
           if (entryCase_ == 12) {
-            return inodeFileEntryBuilder_.getMessage();
+            return inodeFileBuilder_.getMessage();
           }
           return tachyon.proto.journal.File.InodeFileEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public Builder setInodeFileEntry(tachyon.proto.journal.File.InodeFileEntry value) {
-        if (inodeFileEntryBuilder_ == null) {
+      public Builder setInodeFile(tachyon.proto.journal.File.InodeFileEntry value) {
+        if (inodeFileBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           entry_ = value;
           onChanged();
         } else {
-          inodeFileEntryBuilder_.setMessage(value);
+          inodeFileBuilder_.setMessage(value);
         }
         entryCase_ = 12;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public Builder setInodeFileEntry(
+      public Builder setInodeFile(
           tachyon.proto.journal.File.InodeFileEntry.Builder builderForValue) {
-        if (inodeFileEntryBuilder_ == null) {
+        if (inodeFileBuilder_ == null) {
           entry_ = builderForValue.build();
           onChanged();
         } else {
-          inodeFileEntryBuilder_.setMessage(builderForValue.build());
+          inodeFileBuilder_.setMessage(builderForValue.build());
         }
         entryCase_ = 12;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public Builder mergeInodeFileEntry(tachyon.proto.journal.File.InodeFileEntry value) {
-        if (inodeFileEntryBuilder_ == null) {
+      public Builder mergeInodeFile(tachyon.proto.journal.File.InodeFileEntry value) {
+        if (inodeFileBuilder_ == null) {
           if (entryCase_ == 12 &&
               entry_ != tachyon.proto.journal.File.InodeFileEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.journal.File.InodeFileEntry.newBuilder((tachyon.proto.journal.File.InodeFileEntry) entry_)
@@ -3529,18 +3529,18 @@ public final class Journal {
           onChanged();
         } else {
           if (entryCase_ == 12) {
-            inodeFileEntryBuilder_.mergeFrom(value);
+            inodeFileBuilder_.mergeFrom(value);
           }
-          inodeFileEntryBuilder_.setMessage(value);
+          inodeFileBuilder_.setMessage(value);
         }
         entryCase_ = 12;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public Builder clearInodeFileEntry() {
-        if (inodeFileEntryBuilder_ == null) {
+      public Builder clearInodeFile() {
+        if (inodeFileBuilder_ == null) {
           if (entryCase_ == 12) {
             entryCase_ = 0;
             entry_ = null;
@@ -3551,22 +3551,22 @@ public final class Journal {
             entryCase_ = 0;
             entry_ = null;
           }
-          inodeFileEntryBuilder_.clear();
+          inodeFileBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public tachyon.proto.journal.File.InodeFileEntry.Builder getInodeFileEntryBuilder() {
-        return getInodeFileEntryFieldBuilder().getBuilder();
+      public tachyon.proto.journal.File.InodeFileEntry.Builder getInodeFileBuilder() {
+        return getInodeFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
-      public tachyon.proto.journal.File.InodeFileEntryOrBuilder getInodeFileEntryOrBuilder() {
-        if ((entryCase_ == 12) && (inodeFileEntryBuilder_ != null)) {
-          return inodeFileEntryBuilder_.getMessageOrBuilder();
+      public tachyon.proto.journal.File.InodeFileEntryOrBuilder getInodeFileOrBuilder() {
+        if ((entryCase_ == 12) && (inodeFileBuilder_ != null)) {
+          return inodeFileBuilder_.getMessageOrBuilder();
         } else {
           if (entryCase_ == 12) {
             return (tachyon.proto.journal.File.InodeFileEntry) entry_;
@@ -3575,16 +3575,16 @@ public final class Journal {
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file_entry = 12;</code>
+       * <code>optional .tachyon.proto.journal.InodeFileEntry inode_file = 12;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.InodeFileEntry, tachyon.proto.journal.File.InodeFileEntry.Builder, tachyon.proto.journal.File.InodeFileEntryOrBuilder> 
-          getInodeFileEntryFieldBuilder() {
-        if (inodeFileEntryBuilder_ == null) {
+          getInodeFileFieldBuilder() {
+        if (inodeFileBuilder_ == null) {
           if (!(entryCase_ == 12)) {
             entry_ = tachyon.proto.journal.File.InodeFileEntry.getDefaultInstance();
           }
-          inodeFileEntryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+          inodeFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
               tachyon.proto.journal.File.InodeFileEntry, tachyon.proto.journal.File.InodeFileEntry.Builder, tachyon.proto.journal.File.InodeFileEntryOrBuilder>(
                   (tachyon.proto.journal.File.InodeFileEntry) entry_,
                   getParentForChildren(),
@@ -3592,7 +3592,7 @@ public final class Journal {
           entry_ = null;
         }
         entryCase_ = 12;
-        return inodeFileEntryBuilder_;
+        return inodeFileBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -5243,7 +5243,7 @@ public final class Journal {
       "\n\025journal/journal.proto\022\025tachyon.proto.j" +
       "ournal\032\023journal/block.proto\032\022journal/fil" +
       "e.proto\032\025journal/lineage.proto\032\027journal/" +
-      "raw_table.proto\"\242\r\n\014JournalEntry\022\027\n\017sequ" +
+      "raw_table.proto\"\234\r\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022D\n\017add_mount_point\030\002 \001" +
       "(\0132).tachyon.proto.journal.AddMountPoint" +
       "EntryH\000\022L\n\023async_complete_file\030\003 \001(\0132-.t" +
@@ -5263,30 +5263,30 @@ public final class Journal {
       "urnal.InodeDirectoryEntryH\000\022]\n\034inode_dir" +
       "ectory_id_generator\030\013 \001(\01325.tachyon.prot" +
       "o.journal.InodeDirectoryIdGeneratorEntry" +
-      "H\000\022A\n\020inode_file_entry\030\014 \001(\0132%.tachyon.p" +
-      "roto.journal.InodeFileEntryH\000\022]\n\034inode_l" +
-      "ast_modification_time\030\r \001(\01325.tachyon.pr" +
-      "oto.journal.InodeLastModificationTimeEnt" +
-      "ryH\000\0226\n\007lineage\030\016 \001(\0132#.tachyon.proto.jo" +
-      "urnal.LineageEntryH\000\022N\n\024lineage_id_gener" +
-      "ator\030\017 \001(\0132..tachyon.proto.journal.Linea",
-      "geIdGeneratorEntryH\000\022I\n\021persist_director" +
-      "y\030\020 \001(\0132,.tachyon.proto.journal.PersistD" +
-      "irectoryEntryH\000\022?\n\014persist_file\030\021 \001(\0132\'." +
-      "tachyon.proto.journal.PersistFileEntryH\000" +
-      "\022A\n\rpersist_files\030\022 \001(\0132(.tachyon.proto." +
-      "journal.PersistFilesEntryH\000\022P\n\025persist_f" +
-      "iles_request\030\023 \001(\0132/.tachyon.proto.journ" +
-      "al.PersistFilesRequestEntryH\000\0229\n\traw_tab" +
-      "le\030\024 \001(\0132$.tachyon.proto.journal.RawTabl" +
-      "eEntryH\000\022I\n\021reinitialize_file\030\025 \001(\0132,.ta",
-      "chyon.proto.journal.ReinitializeFileEntr" +
-      "yH\000\0224\n\006rename\030\026 \001(\0132\".tachyon.proto.jour" +
-      "nal.RenameEntryH\000\0229\n\tset_state\030\027 \001(\0132$.t" +
-      "achyon.proto.journal.SetStateEntryH\000\022E\n\017" +
-      "update_metadata\030\030 \001(\0132*.tachyon.proto.jo" +
-      "urnal.UpdateMetadataEntryH\000B\007\n\005entryB\027\n\025" +
-      "tachyon.proto.journal"
+      "H\000\022;\n\ninode_file\030\014 \001(\0132%.tachyon.proto.j" +
+      "ournal.InodeFileEntryH\000\022]\n\034inode_last_mo" +
+      "dification_time\030\r \001(\01325.tachyon.proto.jo" +
+      "urnal.InodeLastModificationTimeEntryH\000\0226" +
+      "\n\007lineage\030\016 \001(\0132#.tachyon.proto.journal." +
+      "LineageEntryH\000\022N\n\024lineage_id_generator\030\017" +
+      " \001(\0132..tachyon.proto.journal.LineageIdGe",
+      "neratorEntryH\000\022I\n\021persist_directory\030\020 \001(" +
+      "\0132,.tachyon.proto.journal.PersistDirecto" +
+      "ryEntryH\000\022?\n\014persist_file\030\021 \001(\0132\'.tachyo" +
+      "n.proto.journal.PersistFileEntryH\000\022A\n\rpe" +
+      "rsist_files\030\022 \001(\0132(.tachyon.proto.journa" +
+      "l.PersistFilesEntryH\000\022P\n\025persist_files_r" +
+      "equest\030\023 \001(\0132/.tachyon.proto.journal.Per" +
+      "sistFilesRequestEntryH\000\0229\n\traw_table\030\024 \001" +
+      "(\0132$.tachyon.proto.journal.RawTableEntry" +
+      "H\000\022I\n\021reinitialize_file\030\025 \001(\0132,.tachyon.",
+      "proto.journal.ReinitializeFileEntryH\000\0224\n" +
+      "\006rename\030\026 \001(\0132\".tachyon.proto.journal.Re" +
+      "nameEntryH\000\0229\n\tset_state\030\027 \001(\0132$.tachyon" +
+      ".proto.journal.SetStateEntryH\000\022E\n\017update" +
+      "_metadata\030\030 \001(\0132*.tachyon.proto.journal." +
+      "UpdateMetadataEntryH\000B\007\n\005entryB\027\n\025tachyo" +
+      "n.proto.journal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5309,7 +5309,7 @@ public final class Journal {
     internal_static_tachyon_proto_journal_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncCompleteFile", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFileEntry", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "PersistDirectory", "PersistFile", "PersistFiles", "PersistFilesRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "Entry", });
+        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncCompleteFile", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "PersistDirectory", "PersistFile", "PersistFiles", "PersistFilesRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "Entry", });
     tachyon.proto.journal.Block.getDescriptor();
     tachyon.proto.journal.File.getDescriptor();
     tachyon.proto.journal.Lineage.getDescriptor();

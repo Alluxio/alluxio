@@ -340,7 +340,7 @@ public final class InodeFile extends Inode {
         .addAllBlocks(mBlocks)
         .setTtl(mTTL)
         .build();
-    return JournalEntry.newBuilder().setInodeFileEntry(inodeFile).build();
+    return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
   /**
