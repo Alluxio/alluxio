@@ -46,6 +46,7 @@ import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseFillDir;
+import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 import static jnr.constants.platform.OpenFlags.O_RDONLY;
@@ -58,7 +59,7 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
  * Implements the FUSE callbacks defined by jnr-fuse
  * @author Andrea Reale <realean2@ie.ibm.com>
  */
-public final class TachyonFuseFs extends FuseStubFSWithOptions {
+public final class TachyonFuseFs extends FuseStubFS {
   private final static int MAX_OPEN_FILES = Integer.MAX_VALUE;
   // Limits the number of translated (FUSE to TachyonURI)  paths that are kept
   // in memory

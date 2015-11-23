@@ -10,7 +10,7 @@ lazy val root = (project in file(".")).
     ),
 
     libraryDependencies ++= Seq(
-      "com.github.serceman" % "jnr-fuse" % "0.1",
+      "com.github.serceman" % "jnr-fuse" % "0.2.1",
       "org.slf4j" % "slf4j-api" % "1.7.13",
       "com.google.guava" % "guava" % "18.0",
       "commons-cli" % "commons-cli" % "1.3.1",
