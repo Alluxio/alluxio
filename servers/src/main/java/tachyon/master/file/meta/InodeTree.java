@@ -321,9 +321,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
       UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
       // Persists only the last directory, recursively creating necessary parent directories. Even
       // if the directory already exists in the ufs, we mark it as persisted.
-      ufs.mkdirs(ufsPath, true);
-      for (Inode inode : toPersistDirectories) {
-        inode.setPersisted(true);
+      if (ufs.exists(ufsPath) || ufs.mkdirs(ufsPath, true)) {
+        for (Inode inode : toPersistDirectories) {
+          inode.setPersisted(true);
+        }
       }
     }
 
