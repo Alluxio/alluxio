@@ -27,9 +27,9 @@ import tachyon.thrift.NetAddress;
 import tachyon.worker.WorkerClient;
 
 /**
- * Class for managing local block worker clients. After obtaining a client with {@link
- * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
- * using the client.
+ * Class for managing local block worker clients. After obtaining a client with
+ * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
+ * thread is done using the client.
  */
 final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
