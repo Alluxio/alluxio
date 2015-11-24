@@ -26,7 +26,7 @@ public enum LineageFileState {
   /**
    * @return the corresponding protobuf {@link tachyon.proto.journal.Lineage.LineageFileState}
    */
-  public tachyon.proto.journal.Lineage.LineageFileState toProtobuf() {
+  public tachyon.proto.journal.Lineage.LineageFileState toJournalEntry() {
     switch (this) {
       case CREATED:
         return tachyon.proto.journal.Lineage.LineageFileState.CREATED;
@@ -48,7 +48,7 @@ public enum LineageFileState {
    * @param state a protocol buffer lineage file state
    * @return the corresponding {@link LineageFileState} for the given protocol buffer
    */
-  public static LineageFileState fromProtobuf(
+  public static LineageFileState fromJournalEntry(
       tachyon.proto.journal.Lineage.LineageFileState state) {
     switch (state) {
       case CREATED:

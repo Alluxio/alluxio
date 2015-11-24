@@ -227,7 +227,7 @@ public final class Lineage implements JournalEntryRepresentable {
    *
    * @return the {@link Lineage} representation
    */
-  public static Lineage fromJournal(LineageEntry entry) {
+  public static Lineage fromJournalEntry(LineageEntry entry) {
     List<TachyonFile> inputFiles = Lists.newArrayList();
     for (long file : entry.getInputFilesList()) {
       inputFiles.add(new TachyonFile(file));
@@ -236,7 +236,7 @@ public final class Lineage implements JournalEntryRepresentable {
     List<LineageFile> outputFiles = Lists.newArrayList();
     for (int i = 0; i < entry.getOutputFileIdsCount(); i ++) {
       outputFiles.add(new LineageFile(entry.getOutputFileIds(i),
-          LineageFileState.fromProtobuf(entry.getOutputFileStates(i))));
+          LineageFileState.fromJournalEntry(entry.getOutputFileStates(i))));
     }
 
     Job job = new CommandLineJob(entry.getJobCommand(), new JobConf(entry.getJobOutputPath()));
@@ -254,7 +254,7 @@ public final class Lineage implements JournalEntryRepresentable {
     List<tachyon.proto.journal.Lineage.LineageFileState> outputFileStates = Lists.newArrayList();
     for (LineageFile file : mOutputFiles) {
       outputFileIds.add(file.getFileId());
-      outputFileStates.add(file.getState().toProtobuf());
+      outputFileStates.add(file.getState().toJournalEntry());
     }
     Preconditions.checkState(mJob instanceof CommandLineJob);
     CommandLineJob commandLineJob = (CommandLineJob) mJob;
