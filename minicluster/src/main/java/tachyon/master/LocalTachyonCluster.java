@@ -17,6 +17,7 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +74,9 @@ public final class LocalTachyonCluster {
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
+  private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
+  private static final String ELLIPSIS = "...";
   private BlockWorker mWorker = null;
   private LineageWorker mLineageWorker = null;
   private long mWorkerCapacityBytes;
@@ -336,9 +340,78 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(10);
 
     startWorker(conf);
-    // wait until worker registered with master
-    // TODO(binfan): use callback to ensure LocalTachyonCluster setup rather than sleep
-    CommonUtils.sleepMs(100);
+
+    waitForClusterReady();
+  }
+
+  /**
+   * Waits for the cluster to be ready for tests. Specifically, waits for the worker to register
+   * with the master and for all servers to be serving.
+   */
+  private void waitForClusterReady() {
+    long startTime = System.currentTimeMillis();
+    String actionMessage = "waiting for worker to register with master";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!workerRegistered()) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for worker to register with master";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for worker to serve data";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for worker to serve rpc";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for master to serve web";
+    LOG.info(actionMessage + ELLIPSIS);
+    while(!isServing(mMaster.getWebBindHost(), mMaster.getWebLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for master to serve rpc...";
+    LOG.info(actionMessage + ELLIPSIS);
+    while(!isServing(mMaster.getRPCBindHost(), mMaster.getRPCLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+  }
+
+  private void waitAndCheckTimeout(long startTime, String actionMessage) {
+    if (System.currentTimeMillis() - startTime > CLUSTER_READY_TIMEOUT_MS) {
+      throw new RuntimeException("Failed to start cluster. Timed out " + actionMessage);
+    }
+    CommonUtils.sleepMs(CLUSTER_READY_POLL_INTERVAL_MS);
+  }
+
+  /**
+   * @return whether the worker has registered with the master
+   */
+  private boolean workerRegistered() {
+    return WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID;
+  }
+
+  /**
+   * @param host the host to try to connect to
+   * @param port the port to try to connect on
+   * @return whether a socket connection can be made to the given host on the given port
+   */
+  private static boolean isServing(String host, int port) {
+    if (port < 0) {
+      return false;
+    }
+    try {
+      Socket socket = new Socket(host, port);
+      socket.close();
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   /**
