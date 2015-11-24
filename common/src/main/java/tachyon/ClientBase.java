@@ -189,11 +189,18 @@ public abstract class ClientBase implements Closeable {
       mConnected = false;
     }
     try {
-      if (mProtocol != null) {
-        mProtocol.getTransport().close();
-      }
+      closeOperation();
     } finally {
       afterDisconnect();
+    }
+  }
+
+  /**
+   * Close the connection.
+   */
+  protected void closeOperation() {
+    if (mProtocol != null) {
+      mProtocol.getTransport().close();
     }
   }
 

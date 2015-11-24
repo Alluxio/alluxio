@@ -543,4 +543,21 @@ public final class NetworkAddressUtils {
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
+
+  /**
+   * Extract InetSocketAddress from Tachyon representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @return InetSocketAddress
+   * @throws RuntimeException if the host is not known
+   */
+  public static InetSocketAddress getSocketAddress(NetAddress netAddress) {
+    try {
+      String host = getFqdnHost(netAddress);
+      int port = netAddress.rpcPort;
+      return new InetSocketAddress(host, port);
+    } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
 }
