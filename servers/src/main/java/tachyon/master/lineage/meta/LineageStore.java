@@ -67,7 +67,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param entry the journal entry
    */
   public synchronized void addLineageFromJournal(LineageEntry entry) {
-    Lineage lineage = Lineage.fromJournal(entry);
+    Lineage lineage = Lineage.fromJournalEntry(entry);
     addLineageInternal(lineage);
   }
 
