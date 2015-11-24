@@ -23,7 +23,7 @@ import tachyon.resource.ResourcePool;
 
 /**
  * Class for managing block master clients. After obtaining a client with
- * {@link ResourcePool#acquire()}}, {@link ResourcePool#release(Object)}} must be called when the
+ * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
  * thread is done using the client.
  */
 final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
