@@ -15,7 +15,6 @@
 
 package tachyon.worker;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonExceptionType;
@@ -38,6 +38,7 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerService;
 import tachyon.util.network.NetworkAddressUtils;
@@ -47,7 +48,7 @@ import tachyon.util.network.NetworkAddressUtils;
  *
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safety.
  */
-public final class WorkerClient implements Closeable {
+public final class WorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
@@ -57,14 +58,8 @@ public final class WorkerClient implements Closeable {
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private long mSessionId;
-  private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
-  // TODO(hy): This boolean indicates whether or not the client is connected to the worker. However,
-  // since error exceptions are returned through thrift, all api errors look like fatal errors like
-  // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
-  // independent from thrift exceptions.
-  private boolean mConnected = false;
   private final ExecutorService mExecutorService;
   private final HeartbeatExecutor mHeartbeatExecutor;
   private Future<?> mHeartbeat;
@@ -82,6 +77,7 @@ public final class WorkerClient implements Closeable {
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+    super(NetworkAddressUtils.getSocketAddress(workerNetAddress), conf, "worker");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mTachyonConf = Preconditions.checkNotNull(conf);
@@ -89,6 +85,7 @@ public final class WorkerClient implements Closeable {
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
     mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
+
   }
 
   /**
@@ -169,36 +166,48 @@ public final class WorkerClient implements Closeable {
    * Closes the connection to worker. Shutdown the heartbeat thread.
    */
   @Override
-  public synchronized void close() {
-    if (mConnected) {
-      try {
-        // Heartbeat to send the client metrics.
-        if (mHeartbeatExecutor != null) {
-          mHeartbeatExecutor.heartbeat();
-        }
-        mProtocol.getTransport().close();
-      } finally {
-        if (mHeartbeat != null) {
-          mHeartbeat.cancel(true);
-        }
-      }
-      mConnected = false;
+  protected void closeOperation() {
+    // Heartbeat to send the client metrics.
+    if (mHeartbeatExecutor != null) {
+      mHeartbeatExecutor.heartbeat();
     }
+
+    super.closeOperation();
+  }
+
+  @Override
+  protected void afterDisconnect() {
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
+    }
+  }
+
+  @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
+  protected String getServiceName() {
+    return Constants.WORKER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.WORKER_CLIENT_SERVICE_VERSION;
   }
 
   /**
    * Opens the connection to the worker. And start the heartbeat thread.
    *
-   * @return true if succeed, false otherwise
    * @throws IOException
    */
-  private synchronized boolean connect() throws IOException {
+  public synchronized void connect() throws IOException {
     if (!mConnected) {
       String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
       int port = mWorkerNetAddress.rpcPort;
-      mWorkerAddress = new InetSocketAddress(host, port);
       mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
-      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mWorkerAddress);
+      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
           mTachyonConf, new InetSocketAddress(host, port)));
@@ -208,7 +217,7 @@ public final class WorkerClient implements Closeable {
         mProtocol.getTransport().open();
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
-        return false;
+        return;
       }
       mConnected = true;
 
@@ -221,8 +230,6 @@ public final class WorkerClient implements Closeable {
                 mHeartbeatExecutor, interval));
       }
     }
-
-    return mConnected;
   }
 
   /**
@@ -240,7 +247,7 @@ public final class WorkerClient implements Closeable {
    * @return the address of the worker
    */
   public synchronized InetSocketAddress getAddress() {
-    return mWorkerAddress;
+    return mAddress;
   }
 
   /**
@@ -252,13 +259,6 @@ public final class WorkerClient implements Closeable {
 
   public synchronized long getSessionId() {
     return mSessionId;
-  }
-
-  /**
-   * @return true if it's connected to the worker, false otherwise
-   */
-  public synchronized boolean isConnected() {
-    return mConnected;
   }
 
   /**
@@ -302,7 +302,8 @@ public final class WorkerClient implements Closeable {
   public synchronized void mustConnect() throws IOException {
     int tries = 0;
     while (tries ++ <= CONNECTION_RETRY_TIMES) {
-      if (connect()) {
+      connect();
+      if (isConnected()) {
         return;
       }
     }
