@@ -18,6 +18,7 @@ package tachyon.master.lineage;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -26,22 +27,25 @@ import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.thrift.CommandLineJobInfo;
-import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
-public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
+/**
+ * This class is a Thrift handler for lineage master RPCs invoked by a Tachyon client.
+ */
+public final class LineageMasterClientServiceHandler implements LineageMasterClientService.Iface {
   private final LineageMaster mLineageMaster;
 
-  public LineageMasterServiceHandler(LineageMaster lineageMaster) {
+  public LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
+    Preconditions.checkNotNull(lineageMaster);
     mLineageMaster = lineageMaster;
   }
 
   @Override
   public long getServiceVersion() {
-    return Constants.LINEAGE_MASTER_SERVICE_VERSION;
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override
@@ -104,16 +108,6 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles)
-      throws TachyonTException {
-    try {
-      return mLineageMaster.lineageWorkerHeartbeat(workerId, persistedFiles);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
     }
   }
 

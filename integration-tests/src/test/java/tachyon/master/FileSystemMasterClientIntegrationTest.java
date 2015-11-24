@@ -64,7 +64,7 @@ public class FileSystemMasterClientIntegrationTest {
   }
 
   @Test(timeout = 3000, expected = TachyonException.class)
-  public void user_getClientBlockInfoReturnsOnError() throws IOException, TachyonException {
+  public void getFileInfoReturnsOnErrorTest() throws IOException, TachyonException {
     // This test was created to show that an infinite loop occurs.
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
@@ -73,17 +73,4 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.getFileInfo(Long.MAX_VALUE);
     fsMasterClient.close();
   }
-
-  // TODO(gene): Cannot find counterpart for {@link MasterClientBase#user_getWorker} in new master
-  // clients.
-  // @Test(timeout = 3000, expected = NoWorkerException.class)
-  // public void user_getWorkerReturnsWhenNotLocal() throws Exception {
-  // // This test was created to show that an infinite loop occurs.
-  // // The timeout will protect against this, and the change was to throw a IOException
-  // // in the cases we don't want to disconnect from master
-  // MasterClientBase masterClient =
-  // new MasterClientBase(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
-  // masterClient.user_getWorker(false, "host.doesnotexist.fail");
-  // masterClient.close();
-  // }
 }

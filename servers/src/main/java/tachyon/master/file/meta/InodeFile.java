@@ -22,9 +22,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.exception.InvalidFileSizeException;
-import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.BlockInfoException;
+import tachyon.exception.FileAlreadyCompletedException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
@@ -170,7 +170,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @oaram blockSizeBytes the block size to use
+   * @param blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");

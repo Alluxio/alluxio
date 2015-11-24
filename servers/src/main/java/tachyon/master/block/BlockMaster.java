@@ -60,7 +60,8 @@ import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
-import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.BlockMasterClientService;
+import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
@@ -140,7 +141,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
   }
 
   public BlockMaster(Journal journal) {
@@ -149,14 +150,22 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new BlockMasterService.Processor<BlockMasterServiceHandler>(
-        new BlockMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+        new BlockMasterClientService.Processor<BlockMasterClientServiceHandler>(
+        new BlockMasterClientServiceHandler(this)));
+    services.put(
+        Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+        new BlockMasterWorkerService.Processor<BlockMasterWorkerServiceHandler>(
+            new BlockMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.BLOCK_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.BLOCK_MASTER_NAME;
   }
 
   @Override

@@ -215,7 +215,7 @@
       <property name="format" value="^\s*this\."/>
       <property name="message" value="keyword this is not needed"/>
     </module>
-
+    <module name="MissingDeprecated"/>
     <module name="EqualsHashCode"/>
   </module>
 

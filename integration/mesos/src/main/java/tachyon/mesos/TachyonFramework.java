@@ -35,7 +35,7 @@ import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * <code>TachyonFramework</code> is an implementation of a Mesos framework that is responsible for
+ * {@link TachyonFramework} is an implementation of a Mesos framework that is responsible for
  * starting Tachyon processes. The current implementation starts a single Tachyon master and n
  * Tachyon workers (one per Mesos slave).
  *
