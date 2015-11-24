@@ -1,5 +1,7 @@
 package tachyon.proto.journal;
 
+// Journal entry messages for the lineage master.
+
 // next available id: 2
 message AsyncCompleteFileEntry {
   optional int64 file_id = 1;

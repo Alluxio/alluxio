@@ -1,5 +1,7 @@
 package tachyon.proto.journal;
 
+// Journal entry messages for the file master.
+
 // next available id: 3
 message AddMountPointEntry {
   optional string tachyon_path = 1;
@@ -66,7 +68,7 @@ message InodeLastModificationTimeEntry {
   optional int64 last_modification_time_ms = 2;
 }
 
-// next available id: 1
+// next available id: 2
 message PersistDirectoryEntry {
   optional int64 id = 1;
 }
