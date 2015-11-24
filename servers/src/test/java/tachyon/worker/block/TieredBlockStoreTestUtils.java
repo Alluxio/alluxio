@@ -113,7 +113,6 @@ public class TieredBlockStoreTestUtils {
    *        into `baseDir/tierPath`.
    * @param tierCapacity Capacity of this tier
    * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property
-   * @return The created TachyonConf
    * @throws Exception When error happens during creating temporary folder
    */
   public static void setupTachyonConfWithSingleTier(String baseDir, int tierOrdinal,
