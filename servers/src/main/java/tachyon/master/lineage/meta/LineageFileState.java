@@ -45,7 +45,7 @@ public enum LineageFileState {
   }
 
   /**
-   * @param state a protocol buffer lineage file state.
+   * @param state a protocol buffer lineage file state
    * @return the corresponding {@link LineageFileState} for the given protocol buffer
    */
   public static LineageFileState fromProtobuf(
