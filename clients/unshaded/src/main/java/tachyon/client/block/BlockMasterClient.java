@@ -89,10 +89,10 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Returns the BlockInfo for a block id.
+   * Returns the {@link BlockInfo} for a block id.
    *
    * @param blockId the block id to get the BlockInfo for
-   * @return the BlockInfo
+   * @return the {@link BlockInfo}
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
