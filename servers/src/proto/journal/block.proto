@@ -1,5 +1,7 @@
 package tachyon.proto.journal;
 
+// Journal entry messages for the block master.
+
 // next available id: 2
 message BlockContainerIdGeneratorEntry {
   optional int64 next_container_id = 1;
