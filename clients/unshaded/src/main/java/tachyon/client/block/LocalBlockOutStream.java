@@ -66,6 +66,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
       // Change the permission of the temporary file in order that the worker can move it.
+      FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: " + blockPath);
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
