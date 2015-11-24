@@ -1244,7 +1244,7 @@ public final class FileSystemMaster extends MasterBase {
     try {
       if (!ufs.exists(ufsPath.getPath())) {
         throw new FileDoesNotExistException(
-            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
       if (ufs.isFile(ufsPath.getPath())) {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
