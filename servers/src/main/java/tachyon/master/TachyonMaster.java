@@ -198,7 +198,7 @@ public class TachyonMaster {
    * @return the actual bind hostname on RPC service (used by unit test only)
    */
   public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
+    return NetworkAddressUtils.getThriftSocket(mTServerSocket).getInetAddress().getHostAddress();
   }
 
   /**
