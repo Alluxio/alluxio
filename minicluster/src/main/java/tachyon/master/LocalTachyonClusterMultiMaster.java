@@ -83,12 +83,12 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMasterPort();
+    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
   }
 
   @Override
-  public int getMasterPort() {
-    return mMasters.get(0).getRPCLocalPort();
+  public LocalTachyonMaster getMaster() {
+    return mMasters.get(0);
   }
 
   /**
@@ -216,7 +216,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+    mMasterConf.set(Constants.MASTER_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
   @Override

@@ -121,7 +121,7 @@ public final class NIODataServer implements Runnable, DataServer {
 
   @Override
   public String getBindHost() {
-    return mServerChannel.socket().getLocalSocketAddress().toString();
+    return mServerChannel.socket().getInetAddress().getHostAddress();
   }
 
   @Override
