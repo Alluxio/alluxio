@@ -65,7 +65,7 @@ public final class TachyonBlockStore {
    * Gets the block info of a block, if it exists.
    *
    * @param blockId the blockId to obtain information about
-   * @return a {@link tachyon.thrift.FileBlockInfo} containing the metadata of the block
+   * @return a {@link BlockInfo} containing the metadata of the block
    * @throws IOException if the block does not exist
    */
   public BlockInfo getInfo(long blockId) throws IOException {
