@@ -45,6 +45,14 @@ get_env() {
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 }
 
+run_command() {
+  if [ "$RUN_IN_FOREGROUND" = "true" ]; then
+    "$@"
+  else
+    (nohup "$@") &
+  fi
+}
+
 check_mount_mode() {
   case "${1}" in
     Mount);;
@@ -102,7 +110,7 @@ start_master() {
   fi
 
   echo "Starting master @ $MASTER_ADDRESS. Logging to $TACHYON_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type="MASTER_LOGGER" -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS tachyon.master.TachyonMaster > $TACHYON_LOGS_DIR/master.out 2>&1) &
+  run_command $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type="MASTER_LOGGER" -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS tachyon.master.TachyonMaster > $TACHYON_LOGS_DIR/master.out 2>&1
 }
 
 start_worker() {
@@ -117,7 +125,7 @@ start_worker() {
   fi
 
   echo "Starting worker @ `hostname -f`. Logging to $TACHYON_LOGS_DIR"
-  (nohup $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type="WORKER_LOGGER" -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker > $TACHYON_LOGS_DIR/worker.out 2>&1 ) &
+  run_command $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type="WORKER_LOGGER" -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker > $TACHYON_LOGS_DIR/worker.out 2>&1
 }
 
 restart_worker() {
@@ -128,7 +136,7 @@ restart_worker() {
   RUN=`ps -ef | grep "tachyon.worker.TachyonWorker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting worker @ `hostname -f`. Logging to $TACHYON_LOGS_DIR"
-    (nohup $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type="WORKER_LOGGER" -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker > $TACHYON_LOGS_DIR/worker.out 2>&1) &
+    run_command $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type="WORKER_LOGGER" -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker > $TACHYON_LOGS_DIR/worker.out 2>&1
   fi
 }
 
