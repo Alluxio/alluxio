@@ -44,7 +44,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.FileOutStream</code>.
+ * Integration tests for {@link tachyon.client.file.FileOutStream}.
  * TODO(binfan): Run tests with local writes enabled and disabled.
  */
 public final class FileOutStreamIntegrationTest {
@@ -124,7 +124,7 @@ public final class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void write(int b)</code>.
+   * Test {@link FileOutStream#write(int)}.
    */
   @Test
   public void writeTest1() throws IOException, TachyonException {
@@ -147,7 +147,7 @@ public final class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void write(byte[] b)</code>.
+   * Test {@link FileOutStream#write(byte[])}.
    */
   @Test
   public void writeTest2() throws IOException, TachyonException {
@@ -168,7 +168,7 @@ public final class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void write(byte[] b, int off, int len)</code>.
+   * Test {@link FileOutStream#write(byte[], int, int)}.
    */
   @Test
   public void writeTest3() throws IOException, TachyonException {

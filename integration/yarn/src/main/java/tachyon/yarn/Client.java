@@ -66,18 +66,18 @@ import tachyon.util.io.PathUtils;
  * <p>
  * Launch Tachyon on YARN:
  * </p>
- * <code>
+ * {@code
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
  * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
  * -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
- * </code>
+ * }
  *
  * <p>
  * Get help and a full list of options:
  * </p>
- * <code>
+ * {@code
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -help
- * </code>
+ * }
  */
 public final class Client {
   /** Main class to invoke ApplicationMaster. */
