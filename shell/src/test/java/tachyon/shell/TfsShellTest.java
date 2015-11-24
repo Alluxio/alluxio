@@ -186,6 +186,14 @@ public class TfsShellTest {
   }
 
   @Test
+  public void loadMetadataErrorMessageTest() {
+    int ret = mFsShell.run("loadMetadata", "/nonexistent");
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nonexistent") + "\n",
+        mOutput.toString());
+  }
+
+  @Test
   public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, TachyonException {
     // Construct a situation where the directory exists in the inode tree and the UFS, but is not
     // marked as persisted.
@@ -1186,4 +1194,5 @@ public class TfsShellTest {
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/bar/foobar3")), 30);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
   }
+
 }
