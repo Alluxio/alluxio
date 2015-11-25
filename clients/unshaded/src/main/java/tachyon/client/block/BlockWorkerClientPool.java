@@ -59,7 +59,7 @@ final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
     try {
       // Heartbeat to send the client metrics.
       workerClient.sessionHeartbeat();
-    } catch (IOException ioe) {
+    } catch (Exception ioe) {
       LOG.warn("Failed sending client metrics before releasing the worker client", ioe);
     }
     workerClient.createNewSession(ClientContext.getRandomNonNegativeLong());
