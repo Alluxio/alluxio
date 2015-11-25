@@ -50,6 +50,7 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.File.InodeDirectoryEntry;
 import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
@@ -108,11 +109,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
     mMountTable = mountTable;
   }
 
-  public void initializeRoot() {
+  public void initializeRoot(PermissionStatus rootPermissionStatus) {
     if (mRoot == null) {
       mRoot =
           new InodeDirectory.Builder().setName(ROOT_INODE_NAME)
-              .setId(mDirectoryIdGenerator.getNewDirectoryId()).setParentId(NO_PARENT).build();
+              .setId(mDirectoryIdGenerator.getNewDirectoryId())
+              .setPermissionStatus(rootPermissionStatus).setParentId(NO_PARENT).build();
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
@@ -260,7 +262,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
               .setId(mDirectoryIdGenerator.getNewDirectoryId())
               .setParentId(currentInodeDirectory.getId())
               .setPersisted(options.isPersisted())
-              .setCreationTimeMs(options.getOperationTimeMs()).build();
+              .setCreationTimeMs(options.getOperationTimeMs())
+              .setPermissionStatus(options.getPermissionStatus())
+              .build();
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -293,7 +297,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
         lastInode =
             new InodeDirectory.Builder().setName(name)
                 .setId(mDirectoryIdGenerator.getNewDirectoryId())
-                .setParentId(currentInodeDirectory.getId()).build();
+                .setParentId(currentInodeDirectory.getId())
+                .setPermissionStatus(options.getPermissionStatus())
+                .build();
         if (options.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
@@ -303,6 +309,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
                 .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL())
                 .setName(name).setParentId(currentInodeDirectory.getId())
                 .setPersisted(options.isPersisted()).setCreationTimeMs(options.getOperationTimeMs())
+                .setPermissionStatus(options.getPermissionStatus())
                 .build();
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
@@ -321,8 +328,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       Inode lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
       String ufsPath = mMountTable.resolve(getPath(lastToPersistInode)).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-      // Persists only the last directory, recursively creating necessary parent directories.
-      if (ufs.mkdirs(ufsPath, true)) {
+      // Persists only the last directory, recursively creating necessary parent directories. Even
+      // if the directory already exists in the ufs, we mark it as persisted.
+      if (ufs.exists(ufsPath) || ufs.mkdirs(ufsPath, true)) {
         for (Inode inode : toPersistDirectories) {
           inode.setPersisted(true);
         }

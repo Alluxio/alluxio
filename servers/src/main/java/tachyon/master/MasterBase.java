@@ -73,7 +73,7 @@ public abstract class MasterBase implements Master {
   @Override
   public void start(boolean isLeader) throws IOException {
     mIsLeader = isLeader;
-    LOG.info("{}: Starting {} master.", getServiceName(), mIsLeader ? "leader" : "standby");
+    LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       Preconditions.checkState(mJournal instanceof ReadWriteJournal);
       mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
@@ -108,7 +108,7 @@ public abstract class MasterBase implements Master {
         // This master was previously in standby mode, and processed some of the journal. Re-use the
         // same tailer (still valid) to continue processing any remaining journal entries.
         LOG.info("{}: finish processing remaining journal entries (standby -> master).",
-            getServiceName());
+            getName());
         catchupTailer = mStandbyJournalTailer.getLatestJournalTailer();
         catchupTailer.processNextJournalLogFiles();
       } else {
@@ -116,11 +116,11 @@ public abstract class MasterBase implements Master {
         // to process the entire journal.
         catchupTailer = new JournalTailer(this, mJournal);
         if (catchupTailer.checkpointExists()) {
-          LOG.info("{}: process entire journal before becoming leader master.", getServiceName());
+          LOG.info("{}: process entire journal before becoming leader master.", getName());
           catchupTailer.processJournalCheckpoint(true);
           catchupTailer.processNextJournalLogFiles();
         } else {
-          LOG.info("{}: journal checkpoint does not exist, nothing to process.", getServiceName());
+          LOG.info("{}: journal checkpoint does not exist, nothing to process.", getName());
         }
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
@@ -142,7 +142,7 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info("{}: Stopping {} master.", getServiceName(), mIsLeader ? "leader" : "standby");
+    LOG.info("{}: Stopping {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       // Stop this leader master.
       if (mJournalWriter != null) {

@@ -98,7 +98,7 @@ public class JournalIntegrationTest {
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalTachyonCluster.getMaster().getJournalFolder();
     Journal journal = new ReadWriteJournal(
-        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME));
+        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
     UnderFileSystem.get(journalFolder, mMasterTachyonConf).delete(journal.getCurrentLogFilePath(),
         true);
   }

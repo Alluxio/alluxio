@@ -41,7 +41,7 @@ public final class LineageWorker extends WorkerBase {
   private final LineageDataManager mLineageDataManager;
   /** Threadpool for the lineage master sync */
   /** Client for lineage master communication. */
-  private final LineageMasterWorkerClient mLineageMasterWorkerClient;
+  private final LineageMasterClient mLineageMasterWorkerClient;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
 
@@ -58,7 +58,7 @@ public final class LineageWorker extends WorkerBase {
         new LineageDataManager(Preconditions.checkNotNull(blockDataManager));
 
     // Setup MasterClientBase
-    mLineageMasterWorkerClient = new LineageMasterWorkerClient(
+    mLineageMasterWorkerClient = new LineageMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
   }
 

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -29,7 +29,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.FileSystemMasterWorkerService;
+import tachyon.thrift.TachyonService;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon worker.
@@ -37,10 +38,10 @@ import tachyon.thrift.FileSystemMasterService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public final class WorkerFileSystemMasterClient extends MasterClientBase {
+public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private FileSystemMasterService.Client mClient = null;
+  private FileSystemMasterWorkerService.Client mClient = null;
 
   /**
    * Creates a new file system master client for the worker.
@@ -48,18 +49,28 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
    */
-  public WorkerFileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+  public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
   }
 
   @Override
-  protected String getServiceName() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
+  protected TachyonService.Client getClient() {
+    return mClient;
   }
 
   @Override
-  protected void afterConnect() {
-    mClient = new FileSystemMasterService.Client(mProtocol);
+  protected String getServiceName() {
+    return Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION;
+  }
+
+  @Override
+  protected void afterConnect() throws IOException {
+    mClient = new FileSystemMasterWorkerService.Client(mProtocol);
   }
 
   /**
@@ -68,7 +79,6 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  // TODO(jiri): Factor this method out to a common client.
   public synchronized FileInfo getFileInfo(final long fileId) throws TachyonException, IOException {
     return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
       @Override
@@ -87,7 +97,7 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallable<Set<Long>>() {
       @Override
       public Set<Long> call() throws TException {
-        return mClient.workerGetPinIdList();
+        return mClient.getPinIdList();
       }
     });
   }

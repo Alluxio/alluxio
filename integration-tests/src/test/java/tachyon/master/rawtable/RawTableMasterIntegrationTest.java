@@ -15,9 +15,10 @@
 
 package tachyon.master.rawtable;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -26,7 +27,9 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TableColumnException;
+import tachyon.exception.TableMetadataException;
 import tachyon.master.file.FileSystemMaster;
 
 public class RawTableMasterIntegrationTest {
@@ -49,10 +52,9 @@ public class RawTableMasterIntegrationTest {
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
   }
 
-  @Ignore
   @Test
   public void createRawTableTest() throws Exception {
-    mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, null);
+    mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, ByteBuffer.allocate(0));
     Assert.assertTrue(
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isFolder);
   }
@@ -68,5 +70,19 @@ public class RawTableMasterIntegrationTest {
     mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"),
         mMasterConf.getInt(Constants.MAX_COLUMNS) + 1, null);
+  }
+
+  @Test
+  public void nullMetadataTest() throws Exception {
+    mException.expect(NullPointerException.class);
+    mException.expectMessage(PreconditionMessage.RAW_TABLE_METADATA_NULL);
+    mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, null);
+  }
+
+  @Test
+  public void tooBigMetadataTest() throws Exception {
+    mException.expect(TableMetadataException.class);
+    mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1,
+        ByteBuffer.allocate((int) mMasterConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE) + 1));
   }
 }

@@ -28,7 +28,8 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 
 /**
@@ -38,7 +39,7 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class LineageMasterClient extends MasterClientBase {
-  private LineageMasterService.Client mClient = null;
+  private LineageMasterClientService.Client mClient = null;
 
   /**
    * Creates a new lineage master client.
@@ -51,14 +52,23 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
   protected String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new LineageMasterService.Client(mProtocol);
-    checkVersion(mClient, Constants.LINEAGE_MASTER_SERVICE_VERSION);
+    mClient = new LineageMasterClientService.Client(mProtocol);
   }
 
   public synchronized long createLineage(final List<String> inputFiles,

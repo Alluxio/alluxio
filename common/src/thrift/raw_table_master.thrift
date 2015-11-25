@@ -12,14 +12,15 @@ struct RawTableInfo {
   5: binary metadata
 }
 
-service RawTableMasterService extends common.TachyonService {
-
-  // Tachyon Client API
+/**
+ * This interface contains raw table master service endpoints for Tachyon clients.
+ */
+service RawTableMasterClientService extends common.TachyonService {
 
   /*
    * Creates a raw table.
    */
-  i64 createRawTable(1: common.RpcOptions rpcOptions, 2: string path, 3: i32 columns, 
+  i64 createRawTable(1: common.RpcOptions rpcOptions, 2: string path, 3: i32 columns,
       4: binary metadata)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 

@@ -82,10 +82,10 @@ public final class LocalTachyonMaster {
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
     String[] masterServiceNames = new String[] {
-        Constants.BLOCK_MASTER_SERVICE_NAME,
-        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
-        Constants.RAW_TABLE_MASTER_SERVICE_NAME,
-        Constants.LINEAGE_MASTER_SERVICE_NAME,
+        Constants.BLOCK_MASTER_NAME,
+        Constants.FILE_SYSTEM_MASTER_NAME,
+        Constants.RAW_TABLE_MASTER_NAME,
+        Constants.LINEAGE_MASTER_NAME,
     };
     for (String masterServiceName : masterServiceNames) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
