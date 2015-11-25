@@ -357,20 +357,21 @@ public final class WorkerClient extends ClientBase {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long blockId, long requestBytes) throws IOException {
-    connect();
-
+  public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
+          IOException {
     try {
-      return mClient.requestSpace(mSessionId, blockId, requestBytes);
-    } catch (TachyonTException e) {
+      return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+        @Override
+        public Boolean call() throws TachyonTException, TException {
+          return mClient.requestSpace(mSessionId, blockId, requestBytes);
+        }
+      });
+    } catch (TachyonException e) {
       if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
         return false;
       } else {
         throw new IOException(e);
       }
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
     }
   }
 
