@@ -34,9 +34,9 @@ public final class ListStatusOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@code ListStatusOptions}.
+     * Builds a new instance of {@link ListStatusOptions}.
      *
-     * @return a {@code ListStatusOptions} instance
+     * @return a {@link ListStatusOptions} instance
      */
     @Override
     public ListStatusOptions build() {
@@ -45,7 +45,7 @@ public final class ListStatusOptions {
   }
 
   /**
-   * @return the default {@code ListStatusOptions}
+   * @return the default {@link ListStatusOptions}
    */
   public static ListStatusOptions defaults() {
     return new Builder().build();
