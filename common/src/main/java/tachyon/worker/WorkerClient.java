@@ -22,7 +22,6 @@ import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +56,6 @@ public final class WorkerClient extends ClientBase {
   private final boolean mIsLocal;
 
   private WorkerService.Client mClient;
-  private TProtocol mProtocol;
   private long mSessionId;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
