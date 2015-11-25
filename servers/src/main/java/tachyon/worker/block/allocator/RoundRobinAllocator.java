@@ -102,7 +102,7 @@ public final class RoundRobinAllocator implements Allocator {
    *
    * @param tierView: the tier to find a dir
    * @param blockSize: the requested block size
-   * @return: the index of the dir if nonnegative; -1 if fail to find a dir
+   * @return the index of the dir if nonnegative; -1 if fail to find a dir
    */
   private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) {
     int dirViewIndex = mTierToLastDirMap.get(tierView);
