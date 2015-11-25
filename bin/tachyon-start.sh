@@ -6,6 +6,9 @@ if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
 
+# If set to "true", tachyon will not background the tasks
+RUN_IN_FOREGROUND="${RUN_IN_FOREGROUND:-false}"
+
 #start up tachyon
 
 Usage="Usage: tachyon-start.sh [-hN] WHAT [MOPT] [-f]
