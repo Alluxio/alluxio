@@ -16,7 +16,7 @@ MESOS_MASTER_ADDRESS is of the form 'mesos.example.com:5050'
 -h  display this help."
 
 run_command() {
-  if [ "${run_in_foreground}" = "true" ]; then
+  if [ "${run_in_foreground}" = "yes" ]; then
     "$@"
   else
     (nohup "$@") &
@@ -26,7 +26,7 @@ run_command() {
 while getopts "Fh" o; do
   case "${o}" in
     F)
-      run_in_foreground="true"
+      run_in_foreground="yes"
       ;;
     h)
       echo -e "$Usage"

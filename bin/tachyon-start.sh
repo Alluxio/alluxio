@@ -89,7 +89,7 @@ stop() {
 }
 
 run_command() {
-  if [ "${run_in_foreground}" = "true" ]; then
+  if [ "${run_in_foreground}" = "yes" ]; then
     "$@"
   else
     (nohup "$@") &
