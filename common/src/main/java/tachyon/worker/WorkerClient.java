@@ -130,17 +130,14 @@ public final class WorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @throws IOException
    */
-  public synchronized void cacheBlock(long blockId) throws IOException {
-    connect();
-
-    try {
-      mClient.cacheBlock(mSessionId, blockId);
-    } catch (TachyonTException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void cacheBlock(final long blockId) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.cacheBlock(mSessionId, blockId);
+        return null;
+      }
+    });
   }
 
   /**

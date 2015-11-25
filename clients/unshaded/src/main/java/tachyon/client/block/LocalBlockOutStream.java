@@ -28,6 +28,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -94,7 +95,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     flush();
     mCloser.close();
     if (mWrittenBytes > 0) {
-      mWorkerClient.cacheBlock(mBlockId);
+      try {
+        mWorkerClient.cacheBlock(mBlockId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
       ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
     }
     mContext.releaseWorkerClient(mWorkerClient);
