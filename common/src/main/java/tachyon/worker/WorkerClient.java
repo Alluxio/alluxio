@@ -65,7 +65,6 @@ public final class WorkerClient extends ClientBase {
   private final HeartbeatExecutor mHeartbeatExecutor;
   private Future<?> mHeartbeat;
 
-  private final TachyonConf mTachyonConf;
   private final ClientMetrics mClientMetrics;
 
   /**
@@ -81,7 +80,6 @@ public final class WorkerClient extends ClientBase {
     super(NetworkAddressUtils.getSocketAddress(workerNetAddress), conf, "worker");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mTachyonConf = Preconditions.checkNotNull(conf);
     mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
@@ -294,6 +292,7 @@ public final class WorkerClient extends ClientBase {
    *
    * @throws IOException
    */
+  @Override
   public synchronized void connect() throws IOException {
     int tries = 0;
     while (tries ++ <= CONNECTION_RETRY_TIMES) {
