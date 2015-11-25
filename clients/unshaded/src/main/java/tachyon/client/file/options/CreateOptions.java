@@ -84,7 +84,7 @@ public final class CreateOptions {
     }
 
     /**
-     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
      *
      * @param underStorageType the under storage type to use
      * @return the builder
@@ -104,9 +104,9 @@ public final class CreateOptions {
     }
 
     /**
-     * Builds a new instance of {@code CreateOptions}.
+     * Builds a new instance of {@link CreateOptions}.
      *
-     * @return a {@code CreateOptions} instance
+     * @return a {@link CreateOptions} instance
      */
     @Override
     public CreateOptions build() {
@@ -115,7 +115,7 @@ public final class CreateOptions {
   }
 
   /**
-   * @return the default {@code CreateOptions}
+   * @return the default {@link CreateOptions}
    */
   public static CreateOptions defaults() {
     return new Builder().build();

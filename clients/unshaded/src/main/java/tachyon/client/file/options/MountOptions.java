@@ -34,9 +34,9 @@ public final class MountOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@code MountOptions}.
+     * Builds a new instance of {@link MountOptions}.
      *
-     * @return a {@code MountOptions} instance
+     * @return a {@link MountOptions} instance
      */
     @Override
     public MountOptions build() {
@@ -45,7 +45,7 @@ public final class MountOptions {
   }
 
   /**
-   * @return the default {@code MountOptions}
+   * @return the default {@link MountOptions}
    */
   public static MountOptions defaults() {
     return new Builder().build();

@@ -42,9 +42,9 @@ public final class CompleteFileOptions {
     }
 
     /**
-     * Builds a new instance of {@code CompleteFileOptions}.
+     * Builds a new instance of {@link CompleteFileOptions}.
      *
-     * @return a {@code CompleteFileOptions} instance
+     * @return a {@link CompleteFileOptions} instance
      */
     public CompleteFileOptions build() {
       return new CompleteFileOptions(this);
@@ -52,7 +52,7 @@ public final class CompleteFileOptions {
   }
 
   /**
-   * @return the default {@code CompleteFileOptions}
+   * @return the default {@link CompleteFileOptions}
    */
   public static CompleteFileOptions defaults() {
     return new Builder(ClientContext.getConf()).build();

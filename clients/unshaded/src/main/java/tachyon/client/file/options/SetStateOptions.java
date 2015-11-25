@@ -81,9 +81,9 @@ public class SetStateOptions {
     }
 
     /**
-     * Builds a new instance of {@code SetStateOptions}.
+     * Builds a new instance of {@link SetStateOptions}.
      *
-     * @return a {@code SetStateOptions} instance
+     * @return a {@link SetStateOptions} instance
      */
     @Override
     public SetStateOptions build() {
@@ -92,7 +92,7 @@ public class SetStateOptions {
   }
 
   /**
-   * @return the default {@code SetStateOptions}
+   * @return the default {@link SetStateOptions}
    */
   public static SetStateOptions defaults() {
     return new Builder().build();
