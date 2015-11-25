@@ -16,6 +16,7 @@
 package tachyon.master.file.meta;
 
 import tachyon.master.journal.JournalEntryRepresentable;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -30,6 +31,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private String mName;
     private long mParentId;
     private boolean mPersisted;
+    private PermissionStatus mPermissionStatus;
     private boolean mPinned;
 
     public Builder() {
@@ -41,6 +43,7 @@ public abstract class Inode implements JournalEntryRepresentable {
       mParentId = InodeTree.NO_PARENT;
       mPersisted = false;
       mPinned = false;
+      mPermissionStatus = null;
     }
 
     public T setCreationTimeMs(long creationTimeMs) {
@@ -73,6 +76,11 @@ public abstract class Inode implements JournalEntryRepresentable {
       return getThis();
     }
 
+    public T setPermissionStatus(PermissionStatus ps) {
+      mPermissionStatus = ps;
+      return getThis();
+    }
+
     public T setPinned(boolean pinned) {
       mPinned = pinned;
       return getThis();
@@ -92,6 +100,10 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   private final long mCreationTimeMs;
+
+  private String mUserName;
+  private String mGroupName;
+  private short mPermission;
 
   /**
    * Indicates whether an inode is deleted or not.
@@ -129,6 +141,11 @@ public abstract class Inode implements JournalEntryRepresentable {
     mPersisted = builder.mPersisted;
     mParentId = builder.mParentId;
     mPinned = builder.mPinned;
+    if (builder.mPermissionStatus != null) {
+      mUserName = builder.mPermissionStatus.getUserName();
+      mGroupName = builder.mPermissionStatus.getGroupName();
+      mPermission = builder.mPermissionStatus.getPermission().toShort();
+    }
   }
 
   @Override
@@ -278,6 +295,48 @@ public abstract class Inode implements JournalEntryRepresentable {
     mPinned = pinned;
   }
 
+  /**
+   * @return the user name of the inode
+   */
+  public synchronized String getUserName() {
+    return mUserName;
+  }
+
+  /**
+   * @param userName the user name of the inode
+   */
+  public synchronized void setUserName(String userName) {
+    mUserName = userName;
+  }
+
+  /**
+   * @return the group name of the inode
+   */
+  public synchronized String getGroupName() {
+    return mGroupName;
+  }
+
+  /**
+   * @param groupName the group name of the inode
+   */
+  public synchronized void setGroupName(String groupName) {
+    mGroupName = groupName;
+  }
+
+  /**
+   * @return the permission of the inode
+   */
+  public synchronized short getPermission() {
+    return mPermission;
+  }
+
+  /**
+   * @param permission the permission of the inode
+   */
+  public synchronized void setPermission(short permission) {
+    mPermission = permission;
+  }
+
   @Override
   public synchronized String toString() {
     return new StringBuilder("Inode(")
@@ -287,6 +346,7 @@ public abstract class Inode implements JournalEntryRepresentable {
         .append(", CREATION_TIME_MS:").append(mCreationTimeMs)
         .append(", PINNED:").append(mPinned).append("DELETED:")
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
-        .append(")").toString();
+        .append(", USER_NAME:").append(mUserName).append(", GROUP_NAME:").append(mGroupName)
+        .append(", PERMISSION:").append(")").toString();
   }
 }
