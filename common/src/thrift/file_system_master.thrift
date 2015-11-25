@@ -20,6 +20,9 @@ struct FileInfo {
   15: i32 inMemoryPercentage
   16: i64 lastModificationTimeMs
   17: i64 ttl
+  18: string userName
+  19: string groupName
+  20: i32 permission
 }
 
 struct CompleteFileTOptions {

@@ -360,6 +360,12 @@ public final class Constants {
       "tachyon.security.authentication.custom.provider.class";
   public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
       "tachyon.security.authentication.socket.timeout.ms";
+  // Authorization
+  public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
+      "tachyon.security.authorization.permission.umask";
+  public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
+  public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
+  public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
 
   private Constants() {} // prevent instantiation
 }
