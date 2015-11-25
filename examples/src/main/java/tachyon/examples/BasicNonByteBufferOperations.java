@@ -30,6 +30,7 @@ import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -73,7 +74,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+    TachyonFileSystem tFS = TachyonFileSystemFactory.get();
     write(tFS, mFilePath, mWriteType, mDeleteIfExists, mLength);
     return read(tFS, mFilePath, mReadType);
   }

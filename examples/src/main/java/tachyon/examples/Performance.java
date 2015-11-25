@@ -38,6 +38,8 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
@@ -184,7 +186,7 @@ public class Performance {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      mTFS = TachyonFileSystemFactory.get();
     }
 
     public void writePartition()
@@ -223,7 +225,7 @@ public class Performance {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      mTFS = TachyonFileSystemFactory.get();
     }
 
     public void readPartition()
@@ -541,13 +543,13 @@ public class Performance {
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      sTFS = TachyonFileSystemFactory.get();
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      sTFS = TachyonFileSystemFactory.get();
       sTachyonStreamingRead = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {
