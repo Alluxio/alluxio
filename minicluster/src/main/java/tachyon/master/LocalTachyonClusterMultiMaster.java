@@ -83,7 +83,12 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
+    return new StringBuilder()
+        .append(Constants.HEADER_FT)
+        .append(mHostname)
+        .append(":")
+        .append(getMaster().getRPCLocalPort())
+        .toString();
   }
 
   @Override
