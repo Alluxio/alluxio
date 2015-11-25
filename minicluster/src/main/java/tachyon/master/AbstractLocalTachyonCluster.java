@@ -47,7 +47,7 @@ public abstract class AbstractLocalTachyonCluster {
 
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
   private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
-  private static final String ELLIPSIS = "...";
+  private static final String ELLIPSIS = "\u2026";
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
@@ -93,18 +93,39 @@ public abstract class AbstractLocalTachyonCluster {
 
     startMaster(conf);
 
-    CommonUtils.sleepMs(10);
+    waitForMasterReady();
 
     startWorker(conf);
 
-    waitForClusterReady();
+    waitForWorkerReady();
   }
 
   /**
-   * Waits for the cluster to be ready for tests. Specifically, waits for the worker to register
-   * with the master and for all servers to be serving.
+   * Waits for the master to be ready.
+   *
+   * Specifically, waits for it to be possible to connect to the master's rpc and web ports.
    */
-  private void waitForClusterReady() {
+  private void waitForMasterReady() {
+    long startTime = System.currentTimeMillis();
+    String actionMessage = "waiting for master to serve web";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!isServing(getMaster().getWebBindHost(), getMaster().getWebLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for master to serve rpc";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!isServing(getMaster().getRPCBindHost(), getMaster().getRPCLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+  }
+
+  /**
+   * Waits for the worker to be ready.
+   *
+   * Specifically, waits for the worker to register with the master and for it to be possible to
+   * connect to the worker's data, rpc, and web ports.
+   */
+  private void waitForWorkerReady() {
     long startTime = System.currentTimeMillis();
     String actionMessage = "waiting for worker to register with master";
     LOG.info(actionMessage + ELLIPSIS);
@@ -124,16 +145,6 @@ public abstract class AbstractLocalTachyonCluster {
     actionMessage = "waiting for worker to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
     while (!isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for master to serve web";
-    LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(getMaster().getWebBindHost(), getMaster().getWebLocalPort())) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for master to serve rpc...";
-    LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(getMaster().getRPCBindHost(), getMaster().getRPCLocalPort())) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }

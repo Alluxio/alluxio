@@ -181,6 +181,10 @@ public class TachyonMaster {
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
       mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
+
+      mWebServer =
+          new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+              ServiceType.MASTER_WEB, conf), this, conf);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -324,13 +328,9 @@ public class TachyonMaster {
   }
 
   protected void startServingWebServer() {
-    // start web ui
-    TachyonConf conf = MasterContext.getConf();
-    mWebServer =
-        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-            ServiceType.MASTER_WEB, conf), this, conf);
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
+    // start web ui
     mWebServer.startWebServer();
   }
 
