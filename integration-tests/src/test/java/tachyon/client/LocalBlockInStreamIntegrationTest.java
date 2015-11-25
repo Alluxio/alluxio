@@ -41,7 +41,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.LocalBlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.LocalBlockInStream}.
  */
 public class LocalBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
@@ -65,22 +65,14 @@ public class LocalBlockInStreamIntegrationTest {
   public static final void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    sReadCache =
-        new InStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .build();
-    sReadNoCache =
-        new InStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sReadCache = StreamOptionUtils.getInStreamOptionsReadCache(sTachyonConf);
+    sReadNoCache = StreamOptionUtils.getInStreamOptionsReadNoCache(sTachyonConf);
   }
 
   /**
-   * Test <code>void read()</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -125,7 +117,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -154,7 +146,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -183,8 +175,8 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
-   * position.
+   * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}. Validate the expected
+   * exception for seeking a negative position.
    *
    * @throws IOException
    * @throws TException
@@ -212,8 +204,8 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
-   * that is past buffer limit.
+   * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}. Validate the expected
+   * exception for seeking a position that is past buffer limit.
    *
    * @throws IOException
    * @throws TException
@@ -241,7 +233,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws TException
@@ -269,7 +261,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {

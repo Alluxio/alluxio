@@ -13,14 +13,6 @@
  * The thrift service is mostly responsible for metadata operations (with a few operations that
  * effect the worker's cached memory).
  *
- * <h3>Checkpoint</h3>
- *
- * The act of moving temporary data into accessible data on {@link tachyon.underfs.UnderFileSystem}.
- * This is triggered by {@link tachyon.client.WriteType#isThrough()} operations.
- *
- * Implementation can be found at
- * {@link tachyon.worker.block.BlockDataManager#persistFile(long, long, String)}
- *
  * <h3>Cache Block</h3>
  *
  * Move's user generated blocks to the tachyon data directory. This operation expects that the

@@ -65,6 +65,7 @@ import tachyon.proto.journal.Lineage.PersistFilesEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -92,6 +93,8 @@ public abstract class JournalFormatterTestBase {
   protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
   protected static final String TEST_JOB_COMMAND = "Command";
   protected static final String TEST_JOB_OUTPUT_PATH = "/test/path";
+  protected static final PermissionStatus TEST_PERMISSION_STATUS =
+      new PermissionStatus("user1", "group1", (short)0777);
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -130,7 +133,10 @@ public abstract class JournalFormatterTestBase {
                 .addAllBlocks(ContiguousSet.create(
                     Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10), DiscreteDomain.longs())
                     .asList())
-                .setTtl(Constants.NO_TTL))
+                .setTtl(Constants.NO_TTL)
+                .setUserName(TEST_PERMISSION_STATUS.getUserName())
+                .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
+                .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
             .build())
         .add(JournalEntry.newBuilder()
             .setInodeDirectory(InodeDirectoryEntry.newBuilder()
@@ -140,7 +146,10 @@ public abstract class JournalFormatterTestBase {
                 .setParentId(TEST_FILE_ID)
                 .setPersisted(true)
                 .setPinned(true)
-                .setLastModificationTimeMs(TEST_OP_TIME_MS))
+                .setLastModificationTimeMs(TEST_OP_TIME_MS)
+                .setUserName(TEST_PERMISSION_STATUS.getUserName())
+                .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
+                .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
             .build())
         .add(JournalEntry.newBuilder()
             .setInodeLastModificationTime(InodeLastModificationTimeEntry.newBuilder()

@@ -28,7 +28,7 @@ message DeleteMountPointEntry {
   optional string tachyon_path = 1;
 }
 
-// next available id: 8
+// next available id: 11
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -37,6 +37,9 @@ message InodeDirectoryEntry {
   optional bool pinned = 5;
   optional int64 creation_time_ms = 6;
   optional int64 last_modification_time_ms = 7;
+  optional string user_name = 8;
+  optional string group_name = 9;
+  optional int32 permission = 10;
 }
 
 // next available id: 3
@@ -45,7 +48,7 @@ message InodeDirectoryIdGeneratorEntry {
   optional int64 sequence_number = 2;
 }
 
-// next available id: 14
+// next available id: 17
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -60,6 +63,9 @@ message InodeFileEntry {
   optional bool cacheable = 11;
   repeated int64 blocks = 12;
   optional int64 ttl = 13;
+  optional string user_name = 14;
+  optional string group_name = 15;
+  optional int32 permission = 16;
 }
 
 // next available id: 3

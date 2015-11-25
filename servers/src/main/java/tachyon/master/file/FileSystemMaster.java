@@ -17,8 +17,10 @@ package tachyon.master.file;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -85,11 +87,13 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.FileSystemMasterClientService;
+import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
@@ -122,7 +126,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
   }
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
@@ -140,14 +144,22 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new FileSystemMasterService.Processor<FileSystemMasterServiceHandler>(
-        new FileSystemMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+        new FileSystemMasterClientService.Processor<FileSystemMasterClientServiceHandler>(
+            new FileSystemMasterClientServiceHandler(this)));
+    services.put(
+        Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+        new FileSystemMasterWorkerService.Processor<FileSystemMasterWorkerServiceHandler>(
+            new FileSystemMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.FILE_SYSTEM_MASTER_NAME;
   }
 
   @Override
@@ -227,7 +239,7 @@ public final class FileSystemMaster extends MasterBase {
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       TachyonConf conf = MasterContext.getConf();
-      mInodeTree.initializeRoot();
+      mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
       String defaultUFS = conf.get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
@@ -468,7 +480,8 @@ public final class FileSystemMaster extends MasterBase {
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
         .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
         .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
-        .setRecursive(options.isRecursive()).setTTL(options.getTTL()).build();
+        .setRecursive(options.isRecursive()).setTTL(options.getTTL())
+        .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true)).build();
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
@@ -906,6 +919,7 @@ public final class FileSystemMaster extends MasterBase {
             .setPersisted(options.isPersisted())
             .setRecursive(options.isRecursive())
             .setOperationTimeMs(options.getOperationTimeMs())
+            .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true))
             .build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
@@ -1267,7 +1281,8 @@ public final class FileSystemMaster extends MasterBase {
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
     try {
       if (!ufs.exists(ufsPath.getPath())) {
-        throw new FileDoesNotExistException(ufsPath.getPath());
+        throw new FileDoesNotExistException(
+            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
       if (ufs.isFile(ufsPath.getPath())) {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
@@ -1288,8 +1303,19 @@ public final class FileSystemMaster extends MasterBase {
         MkdirOptions options = new MkdirOptions.Builder(MasterContext.getConf())
             .setRecursive(recursive).setPersisted(true).build();
         InodeTree.CreatePathResult result = mkdir(path, options);
-        List<Inode> created = result.getCreated();
-        return created.get(created.size() - 1).getId();
+        List<Inode> inodes = null;
+        if (result.getCreated().size() > 0) {
+          inodes = result.getCreated();
+        } else if (result.getPersisted().size() > 0) {
+          inodes = result.getPersisted();
+        } else if (result.getModified().size() > 0) {
+          inodes = result.getModified();
+        }
+        if (inodes == null) {
+          throw new FileAlreadyExistsException(
+              ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        }
+        return inodes.get(inodes.size() - 1).getId();
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));

@@ -191,6 +191,14 @@ abstract class AbstractTFS extends FileSystem {
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
+  /**
+   * Attempts to delete the file or directory with the specified path.
+   *
+   * @param path path to delete
+   * @return true if one or more files/directories were deleted; false otherwise
+   * @throws IOException if the path failed to be deleted due to some constraint
+   * @deprecated Use {@link #delete(Path, boolean)} instead.
+   */
   @Override
   @Deprecated
   public boolean delete(Path path) throws IOException {

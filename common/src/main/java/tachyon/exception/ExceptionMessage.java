@@ -119,16 +119,20 @@ public enum ExceptionMessage {
   UNKNOWN_LINEAGE_FILE_STATE("Unknown LineageFileState: {0}"),
 
   // client
-  INCOMPATIBLE_VERSION("{0}Client version {1} is not compatible with server version {2}"),
+  INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
 
   // Tachyon Conf
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Tachyon properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid configuration key {0}"),
+  INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
   UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Tachyon properties file"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
+
+  // security
+  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 

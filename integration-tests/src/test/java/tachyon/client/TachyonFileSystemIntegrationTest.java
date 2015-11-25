@@ -61,10 +61,8 @@ public class TachyonFileSystemIntegrationTest {
   public static void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
 
-    sWriteBoth =
-        new OutStreamOptions.Builder(sLocalTachyonClusterResource.get().getMasterTachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    TachyonConf conf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(conf);
   }
 
   @Test

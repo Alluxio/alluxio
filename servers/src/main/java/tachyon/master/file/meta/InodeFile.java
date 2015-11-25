@@ -28,12 +28,18 @@ import tachyon.exception.InvalidFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.authorization.FileSystemPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
+  /** This default umask is used to calculate file permission from directory permission. */
+  private static final FileSystemPermission UMASK =
+      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
@@ -94,6 +100,11 @@ public final class InodeFile extends Inode {
     protected InodeFile.Builder getThis() {
       return this;
     }
+
+    @Override
+    public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
+      return super.setPermissionStatus(ps.applyUMask(UMASK));
+    }
   }
 
   private long mBlockContainerId;
@@ -142,6 +153,9 @@ public final class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = mTTL;
+    ret.userName = getUserName();
+    ret.groupName = getGroupName();
+    ret.permission = getPermission();
     return ret;
   }
 
@@ -156,7 +170,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @oaram blockSizeBytes the block size to use
+   * @param blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
@@ -298,6 +312,8 @@ public final class InodeFile extends Inode {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
+        entry.getGroupName(), (short) entry.getPermission());
     InodeFile inode =
         new InodeFile.Builder()
             .setName(entry.getName())
@@ -310,6 +326,7 @@ public final class InodeFile extends Inode {
             .setPersisted(entry.getPersisted())
             .setPinned(entry.getPinned())
             .setTTL(entry.getTtl())
+            .setPermissionStatus(permissionStatus)
             .build();
 
     inode.setBlockIds(entry.getBlocksList());
@@ -339,6 +356,9 @@ public final class InodeFile extends Inode {
         .setCacheable(isCacheable())
         .addAllBlocks(mBlocks)
         .setTtl(mTTL)
+        .setUserName(getUserName())
+        .setGroupName(getGroupName())
+        .setPermission(getPermission())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }

@@ -54,7 +54,7 @@ public final class FileSystemContextTest {
     @Override
     public void run() {
       FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-      FileSystemContext.INSTANCE.releaseMasterClient(client);;
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
   }
 }

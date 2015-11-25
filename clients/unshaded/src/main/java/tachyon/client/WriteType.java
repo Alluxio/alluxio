@@ -32,9 +32,11 @@ public enum WriteType {
    */
   MUST_CACHE(1),
   /**
-   * Write the file and try to cache it. This write type is deprecated as of v0.8 and not
-   * recommended for use. Use either MUST_CACHE or CACHE_THROUGH depending on your data
-   * persistence requirements.
+   * Write the file and try to cache it.
+   *
+   * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use either
+   *             {@link #MUST_CACHE} or {@link #CACHE_THROUGH} depending on your data persistence
+   *             requirements.
    */
   @Deprecated
   TRY_CACHE(2),
@@ -49,8 +51,11 @@ public enum WriteType {
   THROUGH(4),
   /**
    * [Experimental] Write the file asynchronously to the under fs (either must cache or must
-   * through). This write type is deprecated as of v0.8 and not recommended for use. Use {@link
-   * tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data persistence.
+   * through).
+   *
+   * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use
+   *             {@link tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data
+   *             persistence.
    */
   @Deprecated
   ASYNC_THROUGH(5);
@@ -89,10 +94,11 @@ public enum WriteType {
   }
 
   /**
-   * This method is deprecated, it is not recommended to use ASYNC_THROUGH. Use {@link
-   * tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data persistence.
+   * This method is deprecated, it is not recommended to use ASYNC_THROUGH.
    *
    * @return true if the write type is ASYNC_THROUGH, false otherwise
+   * @deprecated Use {@link tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data
+   *             persistence.
    */
   @Deprecated
   public boolean isAsync() {
