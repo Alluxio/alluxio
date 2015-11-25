@@ -380,17 +380,16 @@ public final class WorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean unlockBlock(long blockId) throws IOException {
-    connect();
-
-    try {
-      return mClient.unlockBlock(blockId, mSessionId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized boolean unlockBlock(final long blockId) throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.unlockBlock(blockId, mSessionId);
+      }
+    });
   }
 
   /**
@@ -398,15 +397,16 @@ public final class WorkerClient extends ClientBase {
    * locks and temporary files and updates the worker's metrics.
    *
    * @throws IOException if an error occurs during the heartbeat
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void sessionHeartbeat() throws IOException {
-    connect();
-    try {
-      mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void sessionHeartbeat() throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
+        return null;
+      }
+    });
   }
 
   /**
@@ -417,7 +417,7 @@ public final class WorkerClient extends ClientBase {
   public synchronized void periodicHeartbeat() {
     try {
       sessionHeartbeat();
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.error("Periodic heartbeat failed, cleaning up.", e);
       if (mHeartbeat != null) {
         mHeartbeat.cancel(true);
