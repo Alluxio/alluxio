@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
+import tachyon.exception.TachyonException;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -92,7 +93,11 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     flush();
     mRemoteWriter.close();
     if (mFlushedBytes > 0) {
-      mWorkerClient.cacheBlock(mBlockId);
+      try {
+        mWorkerClient.cacheBlock(mBlockId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
       ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
       mWorkerClient.cancelBlock(mBlockId);
