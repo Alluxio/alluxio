@@ -58,7 +58,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   protected FileSystemContext mContext;
 
   /**
-   * Constructor, currently TachyonFileSystem does not retain any state
+   * Constructor, currently {@link TachyonFileSystem} does not retain any state
    */
   protected AbstractTachyonFileSystem() {
     mContext = FileSystemContext.INSTANCE;
@@ -193,7 +193,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param openOptions method options
-   * @return a TachyonFile which acts as a file handler for the path
+   * @return a {@link TachyonFile} which acts as a file handler for the path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws InvalidPathException if there is no file at the given path
    * @throws TachyonException if an unexpected tachyon exception is thrown
