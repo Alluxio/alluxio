@@ -80,7 +80,11 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       return;
     }
     mRemoteWriter.close();
-    mWorkerClient.cancelBlock(mBlockId);
+    try {
+      mWorkerClient.cancelBlock(mBlockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
@@ -100,7 +104,11 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       }
       ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
-      mWorkerClient.cancelBlock(mBlockId);
+      try {
+        mWorkerClient.cancelBlock(mBlockId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;

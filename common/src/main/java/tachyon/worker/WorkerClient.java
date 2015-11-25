@@ -126,7 +126,8 @@ public final class WorkerClient extends ClientBase {
    * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized void cacheBlock(final long blockId) throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
@@ -142,17 +143,17 @@ public final class WorkerClient extends ClientBase {
    * Notifies worker that the block has been cancelled
    *
    * @param blockId The Id of the block to be cancelled
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void cancelBlock(long blockId) throws IOException {
-    connect();
-
-    try {
-      mClient.cancelBlock(mSessionId, blockId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void cancelBlock(final long blockId) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.cancelBlock(mSessionId, blockId);
+        return null;
+      }
+    });
   }
 
   /**
