@@ -270,21 +270,21 @@ public final class WorkerClient extends ClientBase {
    * @return the path of the block file locked
    * @throws IOException
    */
-  public synchronized String lockBlock(long blockId) throws IOException {
-    connect();
-
+  public synchronized String lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
-      return mClient.lockBlock(blockId, mSessionId);
-    } catch (TachyonTException e) {
+      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+        @Override
+        public String call() throws TachyonTException, TException {
+          return mClient.lockBlock(blockId, mSessionId);
+        }
+      });
+    } catch (TachyonException e) {
       if (e.getType().equals(TachyonExceptionType.FILE_DOES_NOT_EXIST.name())) {
         return null;
       } else {
         throw new IOException(e);
       }
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
     }
   }
 
@@ -310,17 +310,17 @@ public final class WorkerClient extends ClientBase {
    *
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean promoteBlock(long blockId) throws IOException {
-    connect();
-
-    try {
-      return mClient.promoteBlock(blockId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized boolean promoteBlock(final long blockId) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.promoteBlock(blockId);
+      }
+    });
   }
 
   /**
@@ -331,21 +331,21 @@ public final class WorkerClient extends ClientBase {
    * @return the temporary path of the block
    * @throws IOException
    */
-  public synchronized String requestBlockLocation(long blockId, long initialBytes)
+  public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
-    connect();
-
     try {
-      return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
-    } catch (TachyonTException e) {
+      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+        @Override
+        public String call() throws TachyonTException, TException {
+          return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
+        }
+      });
+    } catch (TachyonException e) {
       if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
         throw new IOException("Failed to request " + initialBytes, e);
       } else {
         throw new IOException(e);
       }
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
     }
   }
 
