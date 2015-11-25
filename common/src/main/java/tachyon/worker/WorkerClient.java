@@ -32,6 +32,7 @@ import com.google.common.base.Preconditions;
 import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -92,18 +93,17 @@ public final class WorkerClient extends ClientBase {
    * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void accessBlock(long blockId) throws IOException {
-    mustConnect();
-
-    try {
-      mClient.accessBlock(blockId);
-    } catch (TException e) {
-      LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void accessBlock(final long blockId) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.accessBlock(blockId);
+        return null;
+      }
+    });
   }
 
   /**
@@ -111,19 +111,17 @@ public final class WorkerClient extends ClientBase {
    *
    * @param fileId The id of the file
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean asyncCheckpoint(long fileId) throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.asyncCheckpoint(fileId);
-    } catch (TachyonTException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.asyncCheckpoint(fileId);
+      }
+    });
   }
 
   /**
@@ -133,7 +131,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
-    mustConnect();
+    connect();
 
     try {
       mClient.cacheBlock(mSessionId, blockId);
@@ -152,7 +150,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException
    */
   public synchronized void cancelBlock(long blockId) throws IOException {
-    mustConnect();
+    connect();
 
     try {
       mClient.cancelBlock(mSessionId, blockId);
@@ -202,7 +200,7 @@ public final class WorkerClient extends ClientBase {
    *
    * @throws IOException
    */
-  public synchronized void connect() throws IOException {
+  public synchronized void connectEachTime() throws IOException {
     if (!mConnected) {
       String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
       int port = mWorkerNetAddress.rpcPort;
@@ -277,7 +275,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException
    */
   public synchronized String lockBlock(long blockId) throws IOException {
-    mustConnect();
+    connect();
 
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
@@ -299,10 +297,10 @@ public final class WorkerClient extends ClientBase {
    *
    * @throws IOException
    */
-  public synchronized void mustConnect() throws IOException {
+  public synchronized void connect() throws IOException {
     int tries = 0;
     while (tries ++ <= CONNECTION_RETRY_TIMES) {
-      connect();
+      connectEachTime();
       if (isConnected()) {
         return;
       }
@@ -318,7 +316,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException
    */
   public synchronized boolean promoteBlock(long blockId) throws IOException {
-    mustConnect();
+    connect();
 
     try {
       return mClient.promoteBlock(blockId);
@@ -338,7 +336,7 @@ public final class WorkerClient extends ClientBase {
    */
   public synchronized String requestBlockLocation(long blockId, long initialBytes)
       throws IOException {
-    mustConnect();
+    connect();
 
     try {
       return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
@@ -363,7 +361,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException
    */
   public synchronized boolean requestSpace(long blockId, long requestBytes) throws IOException {
-    mustConnect();
+    connect();
 
     try {
       return mClient.requestSpace(mSessionId, blockId, requestBytes);
@@ -387,7 +385,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException
    */
   public synchronized boolean unlockBlock(long blockId) throws IOException {
-    mustConnect();
+    connect();
 
     try {
       return mClient.unlockBlock(blockId, mSessionId);
@@ -404,7 +402,7 @@ public final class WorkerClient extends ClientBase {
    * @throws IOException if an error occurs during the heartbeat
    */
   public synchronized void sessionHeartbeat() throws IOException {
-    mustConnect();
+    connect();
     try {
       mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
     } catch (TException e) {
