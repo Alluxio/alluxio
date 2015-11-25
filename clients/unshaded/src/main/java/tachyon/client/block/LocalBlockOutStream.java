@@ -82,7 +82,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       return;
     }
     mCloser.close();
-    mWorkerClient.cancelBlock(mBlockId);
+    try {
+      mWorkerClient.cancelBlock(mBlockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
