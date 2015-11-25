@@ -47,7 +47,7 @@ public abstract class AbstractLocalTachyonCluster {
 
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
   private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
-  private static final String ELLIPSIS = "\u2026";
+  private static final String ELLIPSIS = "…";
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
