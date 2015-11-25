@@ -56,7 +56,7 @@ public final class InStreamOptions {
     }
 
     /**
-     * This is an advanced API, use {@link Builder#setReadType} when possible.
+     * This is an advanced API, use {@link Builder#setReadType(ReadType)} when possible.
      *
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
@@ -67,9 +67,9 @@ public final class InStreamOptions {
     }
 
     /**
-     * Builds a new instance of {@code InStreamOptions}.
+     * Builds a new instance of {@link InStreamOptions}.
      *
-     * @return a {@code InStreamOptions} instance
+     * @return a {@link InStreamOptions} instance
      */
     @Override
     public InStreamOptions build() {
@@ -80,7 +80,7 @@ public final class InStreamOptions {
   private final TachyonStorageType mTachyonStorageType;
 
   /**
-   * @return the default {@code InStreamOptions}
+   * @return the default {@link InStreamOptions}
    */
   public static InStreamOptions defaults() {
     return new Builder().build();

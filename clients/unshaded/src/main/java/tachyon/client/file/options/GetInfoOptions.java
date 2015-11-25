@@ -34,9 +34,9 @@ public final class GetInfoOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@code GetInfoOptions}.
+     * Builds a new instance of {@link GetInfoOptions}.
      *
-     * @return a {@code GetInfoOptions} instance
+     * @return a {@link GetInfoOptions} instance
      */
     @Override
     public GetInfoOptions build() {
@@ -45,7 +45,7 @@ public final class GetInfoOptions {
   }
 
   /**
-   * @return the default {@code GetInfoOptions}
+   * @return the default {@link GetInfoOptions}
    */
   public static GetInfoOptions defaults() {
     return new Builder().build();
