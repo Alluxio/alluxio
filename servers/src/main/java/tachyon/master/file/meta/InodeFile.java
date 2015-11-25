@@ -227,7 +227,7 @@ public final class InodeFile extends Inode {
   }
 
   public synchronized void setBlockIds(List<Long> blockIds) {
-    mBlocks = Preconditions.checkNotNull(Lists.newArrayList(blockIds));
+    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
   }
 
   /**

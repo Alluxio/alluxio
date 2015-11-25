@@ -24,7 +24,7 @@ import tachyon.proto.journal.Journal.JournalEntry;
 /**
  * Reads and writes protocol buffer journal entries. The entries contain headers describing their
  * length. This framing is handled entirely by {@link JournalEntry#writeDelimitedTo} and
- * {@link JournalEntry#parseDelimitedFrom}.
+ * {@link JournalEntry#parseDelimitedFrom}. This class is thread-safe.
  */
 public final class ProtoBufJournalFormatter implements JournalFormatter {
   @Override
