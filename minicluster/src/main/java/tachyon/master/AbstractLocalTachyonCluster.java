@@ -17,7 +17,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,12 +108,14 @@ public abstract class AbstractLocalTachyonCluster {
     long startTime = System.currentTimeMillis();
     String actionMessage = "waiting for master to serve web";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(getMaster().getWebBindHost(), getMaster().getWebLocalPort())) {
+    while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
+        getMaster().getWebLocalPort())) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for master to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(getMaster().getRPCBindHost(), getMaster().getRPCLocalPort())) {
+    while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
+        getMaster().getRPCLocalPort())) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -134,17 +135,17 @@ public abstract class AbstractLocalTachyonCluster {
     }
     actionMessage = "waiting for worker to register with master";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())) {
+    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve data";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())) {
+    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
+    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -169,24 +170,6 @@ public abstract class AbstractLocalTachyonCluster {
    */
   private boolean workerRegistered() {
     return WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID;
-  }
-
-  /**
-   * @param host the host to try to connect to
-   * @param port the port to try to connect on
-   * @return whether a socket connection can be made to the given host on the given port
-   */
-  private static boolean isServing(String host, int port) {
-    if (port < 0) {
-      return false;
-    }
-    try {
-      Socket socket = new Socket(host, port);
-      socket.close();
-      return true;
-    } catch (IOException e) {
-      return false;
-    }
   }
 
   /**
@@ -369,7 +352,7 @@ public abstract class AbstractLocalTachyonCluster {
   public abstract TachyonFileSystem getClient() throws IOException;
 
   /**
-   * Get the master which should be listening for RPC and Web requests.
+   * Gets the master which should be listening for RPC and Web requests.
    */
   protected abstract LocalTachyonMaster getMaster();
 
