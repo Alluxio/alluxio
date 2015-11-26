@@ -236,7 +236,7 @@ public class LocalBlockInStreamIntegrationTest {
    * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekTest() throws IOException, TachyonException {
