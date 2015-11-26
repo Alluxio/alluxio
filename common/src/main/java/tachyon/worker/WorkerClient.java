@@ -31,6 +31,7 @@ import com.google.common.base.Preconditions;
 import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.heartbeat.HeartbeatContext;
@@ -71,7 +72,7 @@ public final class WorkerClient extends ClientBase {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
-   * @param clientMetrics metrics of the lcient
+   * @param clientMetrics metrics of the client
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
@@ -89,13 +90,14 @@ public final class WorkerClient extends ClientBase {
    * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void accessBlock(final long blockId) throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+  public synchronized void accessBlock(final long blockId) throws ConnectionFailedException,
+      IOException {
+    retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TachyonTException, TException {
+      public Void call() throws TException {
         mClient.accessBlock(blockId);
         return null;
       }
@@ -378,13 +380,14 @@ public final class WorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
+   * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean unlockBlock(final long blockId) throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+  public synchronized boolean unlockBlock(final long blockId) throws ConnectionFailedException,
+      IOException {
+    return retryRPC(new RpcCallable<Boolean>() {
       @Override
-      public Boolean call() throws TachyonTException, TException {
+      public Boolean call() throws TException {
         return mClient.unlockBlock(blockId, mSessionId);
       }
     });
@@ -394,13 +397,13 @@ public final class WorkerClient extends ClientBase {
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
    * locks and temporary files and updates the worker's metrics.
    *
-   * @throws IOException if an error occurs during the heartbeat
-   * @throws TachyonException if a Tachyon error occurs
+   * @throws ConnectionFailedException if network connection failed
+   * @throws IOException if an I/O error occurs
    */
-  public synchronized void sessionHeartbeat() throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+  public synchronized void sessionHeartbeat() throws ConnectionFailedException, IOException {
+    retryRPC(new RpcCallable<Void>() {
       @Override
-      public Void call() throws TachyonTException, TException {
+      public Void call() throws TException {
         mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
         return null;
       }
