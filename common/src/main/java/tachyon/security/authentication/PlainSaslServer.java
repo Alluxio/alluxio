@@ -115,9 +115,6 @@ public final class PlainSaslServer implements SaslServer {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
       mAuthorizationId = authCallback.getAuthorizedID();
-
-      // After verification succeeds, a user with this authz id will be set to a Threadlocal.
-      AuthorizedClientUser.set(mAuthorizationId);
     } catch (Exception e) {
       throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
     }
@@ -206,6 +203,9 @@ public final class PlainSaslServer implements SaslServer {
 
       if (ac != null) {
         ac.setAuthorized(true);
+
+        // After verification succeeds, a user with this authz id will be set to a Threadlocal.
+        AuthorizedClientUser.set(ac.getAuthorizedID());
       }
     }
   }
