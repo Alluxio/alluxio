@@ -46,9 +46,9 @@ public final class NettyClient {
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
       .getClientChannelClass(CHANNEL_TYPE);
   /**
-   * Reuse EventLoopGroup for all clients. Use daemon threads so the JVM is allowed to shutdown even
-   * when daemon threads are alive. If number of worker threads is 0, Netty creates (#processors *
-   * 2) threads by default.
+   * Reuse {@link EventLoopGroup} for all clients. Use daemon threads so the JVM is allowed to
+   * shutdown even when daemon threads are alive. If number of worker threads is 0, Netty creates
+   * (#processors * 2) threads by default.
    */
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
       TACHYON_CONF.getInt(Constants.USER_NETWORK_NETTY_WORKER_THREADS), "netty-client-worker-%d",
