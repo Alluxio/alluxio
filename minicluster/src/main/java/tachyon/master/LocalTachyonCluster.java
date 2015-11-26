@@ -75,6 +75,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mMaster.getClient();
   }
 
+  @Override
   public LocalTachyonMaster getMaster() {
     return mMaster;
   }
@@ -87,7 +88,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mMaster.getUri();
   }
 
-  @Override
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
   }

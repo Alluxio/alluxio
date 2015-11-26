@@ -114,8 +114,8 @@ public final class BlockWorker extends WorkerBase {
    * @return the worker RPC service bind host
    */
   public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
-        .toString();
+    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+        .getHostAddress();
   }
 
   /**

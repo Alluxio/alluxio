@@ -20,9 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Joiner;
 
 import tachyon.Constants;
 import tachyon.client.file.TachyonFileSystem;
@@ -42,6 +43,10 @@ import tachyon.worker.lineage.LineageWorker;
  */
 public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
+  private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
+  private static final String ELLIPSIS = "…";
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
@@ -87,12 +92,84 @@ public abstract class AbstractLocalTachyonCluster {
 
     startMaster(conf);
 
-    CommonUtils.sleepMs(10);
+    waitForMasterReady();
 
     startWorker(conf);
-    // wait until worker registered with master
-    // TODO(binfan): use callback to ensure LocalTachyonCluster setup rather than sleep
-    CommonUtils.sleepMs(100);
+
+    waitForWorkerReady();
+  }
+
+  /**
+   * Waits for the master to be ready.
+   *
+   * Specifically, waits for it to be possible to connect to the master's rpc and web ports.
+   */
+  private void waitForMasterReady() {
+    long startTime = System.currentTimeMillis();
+    String actionMessage = "waiting for master to serve web";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
+        getMaster().getWebLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for master to serve rpc";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
+        getMaster().getRPCLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+  }
+
+  /**
+   * Waits for the worker to be ready.
+   *
+   * Specifically, waits for the worker to register with the master and for it to be possible to
+   * connect to the worker's data, rpc, and web ports.
+   */
+  private void waitForWorkerReady() {
+    long startTime = System.currentTimeMillis();
+    String actionMessage = "waiting for worker to register with master";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!workerRegistered()) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for worker to register with master";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for worker to serve data";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+    actionMessage = "waiting for worker to serve rpc";
+    LOG.info(actionMessage + ELLIPSIS);
+    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
+      waitAndCheckTimeout(startTime, actionMessage);
+    }
+  }
+
+  /**
+   * Checks whether the time since startTime has exceeded the maximum timeout, then sleeps for
+   * {@link CLUSTER_READY_POLL_INTERVAL_MS}ms
+   *
+   * @param startTime the time to compare against the current time to check for timeout
+   * @param actionMessage a message describing the action being waited for; this message is included
+   *        in the error message reported if timeout occurs
+   */
+  private void waitAndCheckTimeout(long startTime, String actionMessage) {
+    if (System.currentTimeMillis() - startTime > CLUSTER_READY_TIMEOUT_MS) {
+      throw new RuntimeException("Failed to start cluster. Timed out " + actionMessage);
+    }
+    CommonUtils.sleepMs(CLUSTER_READY_POLL_INTERVAL_MS);
+  }
+
+  /**
+   * @return whether the worker has registered with the master
+   */
+  private boolean workerRegistered() {
+    return WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID;
   }
 
   /**
@@ -275,9 +352,9 @@ public abstract class AbstractLocalTachyonCluster {
   public abstract TachyonFileSystem getClient() throws IOException;
 
   /**
-   * Get master's actual port that the RPC service is listening on.
+   * Gets the master which should be listening for RPC and Web requests.
    */
-  public abstract int getMasterPort();
+  protected abstract LocalTachyonMaster getMaster();
 
   /**
    * Get master's {@link tachyon.conf.TachyonConf}.
