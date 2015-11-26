@@ -278,7 +278,7 @@ public final class WorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType().equals(TachyonExceptionType.FILE_DOES_NOT_EXIST.name())) {
+      if (e.getType() == TachyonExceptionType.FILE_DOES_NOT_EXIST) {
         return null;
       } else {
         throw new IOException(e);
@@ -339,7 +339,7 @@ public final class WorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
+      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
         throw new IOException("Failed to request " + initialBytes, e);
       } else {
         throw new IOException(e);
@@ -365,7 +365,7 @@ public final class WorkerClient extends ClientBase {
         }
       });
     } catch (TachyonException e) {
-      if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
+      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
         return false;
       } else {
         throw new IOException(e);
