@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -396,6 +397,24 @@ public final class NetworkAddressUtils {
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @param host the host to try to connect to
+   * @param port the port to try to connect on
+   * @return whether a socket connection can be made to the given host on the given port
+   */
+  public static boolean isServing(String host, int port) {
+    if (port < 0) {
+      return false;
+    }
+    try {
+      Socket socket = new Socket(host, port);
+      socket.close();
+      return true;
+    } catch (IOException e) {
+      return false;
     }
   }
 
