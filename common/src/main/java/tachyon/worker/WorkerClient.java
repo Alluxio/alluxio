@@ -196,7 +196,7 @@ public final class WorkerClient extends ClientBase {
    *
    * @throws IOException
    */
-  public synchronized void connectEachTime() throws IOException {
+  public synchronized void connectOperation() throws IOException {
     if (!mConnected) {
       String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
       int port = mWorkerNetAddress.rpcPort;
@@ -297,7 +297,7 @@ public final class WorkerClient extends ClientBase {
   public synchronized void connect() throws IOException {
     int tries = 0;
     while (tries ++ <= CONNECTION_RETRY_TIMES) {
-      connectEachTime();
+      connectOperation();
       if (isConnected()) {
         return;
       }
