@@ -15,10 +15,10 @@
 
 package tachyon.resource;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import com.google.common.base.Preconditions;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
@@ -29,10 +29,11 @@ import com.google.common.base.Preconditions;
  * @param <T> the type of resource this pool manages
  */
 public abstract class ResourcePool<T> {
-  protected final Object mCapacityLock;
+  private final ReentrantLock mTakeLock;
+  private final Condition mNotEmpty;
   protected final int mMaxCapacity;
-  protected final BlockingQueue<T> mResources;
-  protected int mCurrentCapacity;
+  protected final ConcurrentLinkedQueue<T> mResources;
+  protected final AtomicInteger mCurrentCapacity;
 
   /**
    * Creates a {@link ResourcePool} instance with the specified capacity.
@@ -40,7 +41,7 @@ public abstract class ResourcePool<T> {
    * @param maxCapacity the maximum of resources in this pool
    */
   public ResourcePool(int maxCapacity) {
-    this(maxCapacity, new LinkedBlockingQueue<T>(maxCapacity));
+    this(maxCapacity, new ConcurrentLinkedQueue<T>());
   }
 
   /**
@@ -49,36 +50,50 @@ public abstract class ResourcePool<T> {
    * @param maxCapacity bhe maximum of resources in this pool
    * @param resources blocking queue to use
    */
-  protected ResourcePool(int maxCapacity, BlockingQueue<T> resources) {
-    Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
-    mCapacityLock = new Object();
+  protected ResourcePool(int maxCapacity, ConcurrentLinkedQueue<T> resources) {
+    mTakeLock = new ReentrantLock();
+    mNotEmpty = mTakeLock.newCondition();
     mMaxCapacity = maxCapacity;
-    mCurrentCapacity = 0;
+    mCurrentCapacity = new AtomicInteger();
     mResources = resources;
   }
 
   /**
    * Acquires an object of type {@code T} from the pool. This operation is blocking if no resource
-   * is available. Each call of {@link #acquire} should be paired with another call of
+   * is available. Each call of {@code acquire} should be paired with another call of
    * {@link #release} after the use of this resource completes to return this resource to the pool.
    *
    * @return a resource taken from the pool
    */
   public T acquire() {
-    // If the resource pool is empty but capacity is not yet full, create a new resource.
-    synchronized (mCapacityLock) {
-      if (mResources.isEmpty() && mCurrentCapacity < mMaxCapacity) {
-        T newResource = createNewResource();
-        mCurrentCapacity ++;
-        return newResource;
-      }
+    // Try to take a resource without blocking
+    T resource = mResources.poll();
+    if (resource != null) {
+      return resource;
     }
+
+    if (mCurrentCapacity.getAndIncrement() < mMaxCapacity) {
+      // If the resource pool is empty but capacity is not yet full, create a new resource.
+      return createNewResource();
+    }
+
+    mCurrentCapacity.decrementAndGet();
 
     // Otherwise, try to take a resource from the pool, blocking if none are available.
     try {
-      return mResources.take();
+      mTakeLock.lockInterruptibly();
+      try {
+        while (true) {
+          resource = mResources.poll();
+          if (resource != null) {
+            return resource;
+          }
+          mNotEmpty.await();
+        }
+      } finally {
+        mTakeLock.unlock();
+      }
     } catch (InterruptedException ie) {
-      // TODO(calvin): Investigate the best way to handle this.
       throw new RuntimeException(ie);
     }
   }
@@ -97,6 +112,12 @@ public abstract class ResourcePool<T> {
    */
   public void release(T resource) {
     mResources.add(resource);
+    mTakeLock.lock();
+    try {
+      mNotEmpty.signal();
+    } finally {
+      mTakeLock.unlock();
+    }
   }
 
   /**

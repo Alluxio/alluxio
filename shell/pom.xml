@@ -42,6 +42,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>

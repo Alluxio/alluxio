@@ -54,7 +54,6 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetStateEntry;
@@ -67,6 +66,7 @@ import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -92,6 +92,8 @@ public abstract class JournalFormatterTestBase {
   protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
   protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
   protected static final Job TEST_JOB = new CommandLineJob("Command", new JobConf("/test/path"));
+  protected static final PermissionStatus TEST_PERMISSION_STATUS =
+      new PermissionStatus("user1", "group1", (short)0777);
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -108,16 +110,18 @@ public abstract class JournalFormatterTestBase {
           new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
               true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true,
               ContiguousSet.create(Range.closedOpen(TEST_BLOCK_ID, TEST_BLOCK_ID + 10),
-                  DiscreteDomain.longs()).asList(), Constants.NO_TTL))
+                  DiscreteDomain.longs()).asList(), Constants.NO_TTL,
+              TEST_PERMISSION_STATUS.getUserName(),TEST_PERMISSION_STATUS.getGroupName(),
+              TEST_PERMISSION_STATUS.getPermission().toShort()))
       .put(
           JournalEntryType.INODE_DIRECTORY,
           new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
-              true, true, TEST_OP_TIME_MS))
+              true, true, TEST_OP_TIME_MS,
+              TEST_PERMISSION_STATUS.getUserName(),TEST_PERMISSION_STATUS.getGroupName(),
+              TEST_PERMISSION_STATUS.getPermission().toShort()))
       .put(JournalEntryType.INODE_MTIME,
           new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS))
       .put(JournalEntryType.INODE_PERSISTED, new PersistDirectoryEntry(TEST_FILE_ID))
-      .put(JournalEntryType.ADD_CHECKPOINT,
-          new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS))
       .put(JournalEntryType.COMPLETE_FILE,
           new CompleteFileEntry(Arrays.asList(1L, 2L, 3L), TEST_FILE_ID, TEST_LENGTH_BYTES,
               TEST_OP_TIME_MS))
@@ -143,7 +147,8 @@ public abstract class JournalFormatterTestBase {
       .put(JournalEntryType.PERSIST_FILES, new PersistFilesEntry(Arrays.asList(1L, 2L)))
       .put(JournalEntryType.PERSIST_FILES_REQUEST,
           new PersistFilesRequestEntry(Arrays.asList(1L, 2L)))
-      .put(JournalEntryType.SET_STATE, new SetStateEntry(TEST_FILE_ID, TEST_OP_TIME_MS, true, null))
+      .put(JournalEntryType.SET_STATE,
+          new SetStateEntry(TEST_FILE_ID, TEST_OP_TIME_MS, true, null, null))
       .build();
 
   /**
@@ -200,5 +205,4 @@ public abstract class JournalFormatterTestBase {
       entryTest(entry.getValue());
     }
   }
-
 }

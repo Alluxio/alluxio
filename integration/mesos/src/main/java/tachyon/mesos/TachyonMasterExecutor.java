@@ -25,7 +25,7 @@ import tachyon.master.TachyonMaster;
 import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * <code>TachyonMasterExecutor</code> is an implementation of a Mesos executor responsible for
+ * {@link TachyonMasterExecutor} is an implementation of a Mesos executor responsible for
  * starting the Tachyon master.
  */
 public class TachyonMasterExecutor implements Executor {

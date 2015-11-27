@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
@@ -59,7 +58,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   protected FileSystemContext mContext;
 
   /**
-   * Constructor, currently TachyonFileSystem does not retain any state
+   * Constructor, currently {@link TachyonFileSystem} does not retain any state
    */
   protected AbstractTachyonFileSystem() {
     mContext = FileSystemContext.INSTANCE;
@@ -194,7 +193,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param openOptions method options
-   * @return a TachyonFile which acts as a file handler for the path
+   * @return a {@link TachyonFile} which acts as a file handler for the path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws InvalidPathException if there is no file at the given path
    * @throws TachyonException if an unexpected tachyon exception is thrown
@@ -240,7 +239,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
 
   @Override
   public void setState(TachyonFile file, SetStateOptions options)
-      throws IOException, FileDoesNotExistException, TachyonException {
+      throws IOException, FileDoesNotExistException, InvalidPathException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setState(file.getFileId(), options);
@@ -259,5 +258,4 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       mContext.releaseMasterClient(masterClient);
     }
   }
-
 }

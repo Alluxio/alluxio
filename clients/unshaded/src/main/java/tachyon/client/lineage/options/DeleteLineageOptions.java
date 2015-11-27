@@ -45,7 +45,7 @@ public final class DeleteLineageOptions {
     }
 
     /**
-     * @return builds a new instance of {@code DeleteLineageOptions}
+     * @return builds a new instance of {@link DeleteLineageOptions}
      */
     public DeleteLineageOptions build() {
       return new DeleteLineageOptions(this);

@@ -31,22 +31,18 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Sessions;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.underfs.local.LocalUnderFileSystem;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
+import tachyon.worker.file.FileSystemMasterClient;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({WorkerBlockMasterClient.class, WorkerFileSystemMasterClient.class,
+@PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
     UnderFileSystem.class})
@@ -54,9 +50,9 @@ public class BlockDataManagerTest {
   private TestHarness mHarness;
 
   private class TestHarness {
-    WorkerBlockMasterClient mBlockMasterClient;
+    BlockMasterClient mBlockMasterClient;
     BlockStore mBlockStore;
-    WorkerFileSystemMasterClient mFileSystemMasterClient;
+    FileSystemMasterClient mFileSystemMasterClient;
     BlockHeartbeatReporter mHeartbeatReporter;
     BlockDataManager mManager;
     BlockMetricsReporter mMetricsReporter;
@@ -68,9 +64,9 @@ public class BlockDataManagerTest {
     public TestHarness() throws IOException {
       mRandom = new Random();
 
-      mBlockMasterClient = PowerMockito.mock(WorkerBlockMasterClient.class);
+      mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
       mBlockStore = PowerMockito.mock(BlockStore.class);
-      mFileSystemMasterClient = PowerMockito.mock(WorkerFileSystemMasterClient.class);
+      mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
       mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
@@ -107,27 +103,6 @@ public class BlockDataManagerTest {
     long sessionId = mHarness.mRandom.nextLong();
     mHarness.mManager.accessBlock(sessionId, blockId);
     Mockito.verify(mHarness.mBlockStore).accessBlock(sessionId, blockId);
-  }
-
-  @Test
-  public void addCheckpointTest() throws Exception {
-    long fileId = mHarness.mRandom.nextLong();
-    long fileSize = mHarness.mRandom.nextLong();
-    long nonce = mHarness.mRandom.nextLong();
-    String dstPath = "/tmp/foo/bar";
-    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setUfsPath(dstPath);
-    LocalUnderFileSystem ufs = PowerMockito.mock(LocalUnderFileSystem.class);
-
-    // TODO(jiri): Test error cases.
-    Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
-    PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystem.get(srcPath, WorkerContext.getConf())).thenReturn(ufs);
-    Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
-    Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
-    mHarness.mManager.persistFile(fileId, nonce, dstPath);
-    Mockito.verify(mHarness.mFileSystemMasterClient).persistFile(fileId, fileSize);
   }
 
   @Test

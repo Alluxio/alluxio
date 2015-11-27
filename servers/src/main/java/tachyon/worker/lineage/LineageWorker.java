@@ -15,7 +15,7 @@
 
 package tachyon.worker.lineage;
 
-import java.util.concurrent.ExecutorService;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -28,6 +28,7 @@ import tachyon.heartbeat.HeartbeatThread;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockDataManager;
@@ -35,21 +36,21 @@ import tachyon.worker.block.BlockDataManager;
 /**
  * This class is responsible for managing all top level components of the lineage worker.
  */
-public final class LineageWorker {
+public final class LineageWorker extends WorkerBase {
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Threadpool for the lineage master sync */
-  /** The executor service for the master sync */
-  private final ExecutorService mSyncExecutorService;
   /** Client for lineage master communication. */
-  private final LineageMasterWorkerClient mLineageMasterWorkerClient;
+  private final LineageMasterClient mLineageMasterWorkerClient;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
 
   /** The service that persists files for lineage checkpointing */
   private Future<?> mFilePersistenceService;
 
-  public LineageWorker(BlockDataManager blockDataManager) {
+  public LineageWorker(BlockDataManager blockDataManager) throws IOException {
+    super(Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("lineage-worker-heartbeat-%d",
+        true)));
     Preconditions.checkState(WorkerIdRegistry.getWorkerId() != 0, "Failed to register worker");
 
     mTachyonConf = WorkerContext.getConf();
@@ -57,16 +58,13 @@ public final class LineageWorker {
         new LineageDataManager(Preconditions.checkNotNull(blockDataManager));
 
     // Setup MasterClientBase
-    mLineageMasterWorkerClient = new LineageMasterWorkerClient(
+    mLineageMasterWorkerClient = new LineageMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
-
-    mSyncExecutorService = Executors.newFixedThreadPool(3,
-        ThreadFactoryUtils.build("lineage-worker-heartbeat-%d", true));
   }
 
   public void start() {
     mFilePersistenceService =
-        mSyncExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_LINEAGE_SYNC,
+        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.WORKER_LINEAGE_SYNC,
             new LineageWorkerMasterSyncExecutor(mLineageDataManager, mLineageMasterWorkerClient),
             mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
   }
@@ -76,6 +74,6 @@ public final class LineageWorker {
       mFilePersistenceService.cancel(true);
     }
     mLineageMasterWorkerClient.close();
-    mSyncExecutorService.shutdown();
+    getExecutorService().shutdown();
   }
 }

@@ -40,9 +40,10 @@ struct LineageInfo {
   7: list<i64> children
 }
 
-service LineageMasterService {
-
-  // Tachyon Client API
+/**
+ * This interface contains lineage master service endpoints for Tachyon clients.
+ */
+service LineageMasterClientService extends common.TachyonService {
 
   /*
    * Marks a file as completed and initiates asynchronous persistence (if applicable).
@@ -78,12 +79,16 @@ service LineageMasterService {
    */
   void reportLostFile(1: string path)
     throws (1: exception.TachyonTException e)
+}
 
-  // Tachyon Worker API
+/**
+ * This interface contains lineage master service endpoints for Tachyon workers.
+ */
+service LineageMasterWorkerService extends common.TachyonService {
 
   /*
    * Periodic lineage worker heartbeat.
    */
-  LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
+  LineageCommand heartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
     throws (1: exception.TachyonTException e)
 }

@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.ClientContext;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.table.TachyonRawTables;
+import tachyon.client.table.TachyonRawTables.TachyonRawTablesFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -143,7 +143,9 @@ public class JournalCrashTest {
             }
             sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
           } else if (ClientOpType.CREATE_TABLE == mOpType) {
-            if (sOldTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
+            try {
+              sTachyonRawTables.create(new TachyonURI(mWorkDir + mSuccessNum), 1, null);
+            } catch (Exception e) {
               break;
             }
           }
@@ -178,7 +180,7 @@ public class JournalCrashTest {
   /** The Tachyon Client. This can be shared by all the threads. */
   private static TachyonFileSystem sTfs = null;
   /** Old Tachyon client, only be used for raw table functionality */
-  private static TachyonFS sOldTfs = null;
+  private static TachyonRawTables sTachyonRawTables = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -277,7 +279,7 @@ public class JournalCrashTest {
 
       System.out.println("Round " + rounds + " : Launch Clients...");
       sTfs = TachyonFileSystemFactory.get();
-      sOldTfs = TachyonFS.get(ClientContext.getConf());
+      sTachyonRawTables = TachyonRawTablesFactory.get();
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
       } catch (Exception ioe) {
@@ -322,7 +324,7 @@ public class JournalCrashTest {
 
   /**
    * Parse the input args with a command line format, using
-   * <code>org.apache.commons.cli.CommandLineParser</code>.
+   * {@link org.apache.commons.cli.CommandLineParser}.
    * @param args the input args
    * @return true if parse successfully and can run the next step, false if parse failed or need to
    * print out the help information.
@@ -406,7 +408,7 @@ public class JournalCrashTest {
 
   /**
    * Stop the current Tachyon cluster. This is used for preparation and clean up.
-   * To crash the Master, use <code>killMaster</code>.
+   * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
     String stopClusterCommand = new TachyonConf().get(Constants.TACHYON_HOME)

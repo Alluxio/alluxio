@@ -16,6 +16,7 @@
 package tachyon.master.lineage;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,8 +38,10 @@ import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
@@ -48,6 +51,7 @@ import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
@@ -74,7 +78,8 @@ import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
+import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
@@ -104,7 +109,7 @@ public final class LineageMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_NAME);
   }
 
   /**
@@ -125,14 +130,22 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new LineageMasterService.Processor<LineageMasterServiceHandler>(
-        new LineageMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
+        new LineageMasterClientService.Processor<LineageMasterClientServiceHandler>(
+            new LineageMasterClientServiceHandler(this)));
+    services.put(
+        Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME,
+        new LineageMasterWorkerService.Processor<LineageMasterWorkerServiceHandler>(
+            new LineageMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.LINEAGE_MASTER_NAME;
   }
 
   @Override
@@ -318,11 +331,12 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if the completion fails
    */
   public synchronized void asyncCompleteFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException {
+      throws FileDoesNotExistException, BlockInfoException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     LOG.info("Async complete file {}", fileId);
     // complete file in Tachyon.
     try {
-      mFileSystemMaster.completeFile(fileId);
+      mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
     } catch (InvalidPathException e) {
       // should not happen
       throw new RuntimeException(e);

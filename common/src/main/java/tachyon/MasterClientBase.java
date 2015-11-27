@@ -33,6 +33,9 @@ import tachyon.util.network.NetworkAddressUtils;
 public abstract class MasterClientBase extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Identifies whether the ZooKeeper service should be used for obtaining master address.
+   */
   protected final boolean mUseZookeeper;
 
   /**
@@ -62,7 +65,7 @@ public abstract class MasterClientBase extends ClientBase {
     Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
         LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH), mTachyonConf);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
