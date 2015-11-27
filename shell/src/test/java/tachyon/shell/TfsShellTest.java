@@ -1113,8 +1113,8 @@ public class TfsShellTest {
    * Checks whether the given file is actually persisted by freeing it, then
    * reading it and comparing it against the expected byte array.
    *
-   * @param file The file to persist.
-   * @param size The size of the file.
+   * @param file The file to persist
+   * @param size The size of the file
    * @throws TachyonException
    * @throws IOException
    */
