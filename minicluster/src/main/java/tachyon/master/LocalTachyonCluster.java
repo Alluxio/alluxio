@@ -225,8 +225,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     if (mUfsCluster != null) {
       mUfsCluster.cleanup();
     }
-    // TODO(gpang): is this line necessary?
-    System.clearProperty("tachyon.underfs.address");
   }
 
   /**
