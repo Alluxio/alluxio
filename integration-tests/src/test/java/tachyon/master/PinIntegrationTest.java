@@ -31,12 +31,12 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -45,14 +45,14 @@ public class PinIntegrationTest {
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private TachyonFileSystem mTfs = null;
-  private WorkerFileSystemMasterClient mFSMasterClient;
+  private FileSystemMasterClient mFSMasterClient;
   private SetStateOptions mSetPinned;
   private SetStateOptions mUnsetPinned;
 
   @Before
   public final void before() throws Exception {
     mTfs = mLocalTachyonClusterResource.get().getClient();
-    mFSMasterClient = new WorkerFileSystemMasterClient(
+    mFSMasterClient = new FileSystemMasterClient(
         new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
             mLocalTachyonClusterResource.get().getMasterPort()),
         mLocalTachyonClusterResource.get().getWorkerTachyonConf());

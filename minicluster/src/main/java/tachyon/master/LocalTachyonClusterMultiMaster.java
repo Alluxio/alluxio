@@ -15,14 +15,11 @@
 
 package tachyon.master;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.curator.test.TestingServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
@@ -31,17 +28,16 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.LineageUtils;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockWorker;
 
 /**
  * A local Tachyon cluster with Multiple masters
  */
-public class LocalTachyonClusterMultiMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
 
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
@@ -59,15 +55,6 @@ public class LocalTachyonClusterMultiMaster {
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
-  private BlockWorker mWorker = null;
-  private long mWorkerCapacityBytes;
-  private int mUserBlockSize;
-
-  private String mTachyonHome;
-  private String mWorkerDataFolder;
-  private String mHostname;
-
-  private Thread mWorkerThread = null;
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
@@ -79,14 +66,9 @@ public class LocalTachyonClusterMultiMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
 
-  private TachyonConf mMasterConf;
-
-  private TachyonConf mWorkerConf;
-
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
+    super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
-    mWorkerCapacityBytes = workerCapacityBytes;
-    mUserBlockSize = userBlockSize;
 
     try {
       mCuratorServer = new TestingServer();
@@ -95,20 +77,23 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
+  @Override
   public synchronized TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(ClientContext.getConf());
   }
 
-  public TachyonConf getMasterTachyonConf() {
-    return mMasterConf;
-  }
-
   public String getUri() {
-    return Constants.HEADER_FT + mHostname + ":" + getMasterPort();
+    return new StringBuilder()
+        .append(Constants.HEADER_FT)
+        .append(mHostname)
+        .append(":")
+        .append(getMaster().getRPCLocalPort())
+        .toString();
   }
 
-  public int getMasterPort() {
-    return mMasters.get(0).getRPCLocalPort();
+  @Override
+  public LocalTachyonMaster getMaster() {
+    return mMasters.get(0);
   }
 
   /**
@@ -181,35 +166,28 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public void start() throws IOException {
-    int numLevels = 1;
-    mTachyonHome =
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
-    mWorkerDataFolder = "/datastore";
+  @Override
+  protected void startWorker(TachyonConf conf) throws IOException, ConnectionFailedException {
+    mWorkerConf = WorkerContext.getConf();
+    mWorkerConf.merge(conf);
 
-    mHostname = NetworkAddressUtils.getLocalHostName(100);
+    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
 
-    mMasterConf = MasterContext.getConf();
-    mMasterConf.set(Constants.IN_TEST_MODE, "true");
-    mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
+    runWorker();
+    // The client context should reflect the updates to the conf.
+    ClientContext.reset(mWorkerConf);
+  }
+
+  @Override
+  protected void setupTest(TachyonConf conf) throws IOException {}
+
+  @Override
+  protected void startMaster(TachyonConf conf) throws IOException {
+    mMasterConf = conf;
     mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
-    mMasterConf.set(Constants.MASTER_HOSTNAME, mHostname);
-    mMasterConf.set(Constants.MASTER_BIND_HOST, mHostname);
-    mMasterConf.set(Constants.MASTER_PORT, "0");
-    mMasterConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
-    mMasterConf.set(Constants.MASTER_WEB_PORT, "0");
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-    mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, "10000");
-    mMasterConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
-    mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    mMasterConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
-
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
@@ -243,88 +221,24 @@ public class LocalTachyonClusterMultiMaster {
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");
-
-    CommonUtils.sleepMs(10);
-
-    mWorkerConf = WorkerContext.getConf();
-    mWorkerConf.merge(mMasterConf);
-    mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
-    mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, mWorkerCapacityBytes + "");
-    mWorkerConf.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15 + "");
-
-    // Setup conf for worker
-    mWorkerConf.set(Constants.WORKER_TIERED_STORE_LEVELS, Integer.toString(numLevels));
-    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mTachyonHome + "/ramdisk");
-    mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        mWorkerCapacityBytes + "");
-
-    // Since tests are always running on a single host keep the resolution timeout low as otherwise
-    // people running with strange network configurations will see very slow tests
-    mWorkerConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
-
-    for (int level = 1; level < numLevels; level ++) {
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
-      String newPath = "";
-      for (String dirPath : dirPaths) {
-        newPath += mTachyonHome + dirPath + ",";
-      }
-      mWorkerConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
-          newPath.substring(0, newPath.length() - 1));
-    }
-
-    mWorkerConf.set(Constants.WORKER_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_DATA_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
-    mWorkerConf.set(Constants.WORKER_WEB_PORT, "0");
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, "1");
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
-
-    // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
-
-    mWorker = new BlockWorker();
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mWorker.process();
-        } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
-        }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
-    // The client context should reflect the updates to the conf.
-    ClientContext.reset(mWorkerConf);
+    mMasterConf.set(Constants.MASTER_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
-  public void stop() throws Exception {
-    stopTFS();
-    stopUFS();
-
-    // clear HDFS client caching
-    System.clearProperty("fs.hdfs.impl.disable.cache");
-  }
-
+  @Override
   public void stopTFS() throws Exception {
     mClientPool.close();
 
     mWorker.stop();
+    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
+      mLineageWorker.stop();
+    }
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasters.get(k).stop();
     }
     mCuratorServer.stop();
   }
 
+  @Override
   public void stopUFS() throws Exception {
     // TODO(gpang): clean up UFS here.
   }

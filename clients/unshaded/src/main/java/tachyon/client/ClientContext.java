@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.table.RawTableContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.util.ThreadFactoryUtils;
@@ -76,11 +77,14 @@ public final class ClientContext {
     sExecutorService = Executors.newFixedThreadPool(
         sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-    // We must set sInitialized to true before resetting BlockStoreContext and FileSystemContext
-    // as they need ClientContext initialized.
+    // If this isn't the first time setting the ClientContext, we should reset other contexts so
+    // that they can see the latest changes
+    if (sInitialized) {
+      BlockStoreContext.INSTANCE.reset();
+      FileSystemContext.INSTANCE.reset();
+      RawTableContext.INSTANCE.reset();
+    }
     sInitialized = true;
-    BlockStoreContext.INSTANCE.reset();
-    FileSystemContext.INSTANCE.reset();
   }
 
   /**

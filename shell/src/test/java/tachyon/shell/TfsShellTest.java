@@ -30,8 +30,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.powermock.reflect.Whitebox;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -43,7 +46,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.AuthType;
 import tachyon.thrift.FileInfo;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
@@ -77,6 +83,8 @@ public class TfsShellTest {
     TachyonConf conf = mLocalTachyonCluster.newTestConf();
     // Make sure files in ttl related tests won't be deleted by the TTL checker.
     conf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
+    // enable simple authentication
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     mLocalTachyonCluster.start(conf);
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TfsShell(new TachyonConf());
@@ -168,6 +176,49 @@ public class TfsShellTest {
   }
 
   @Test
+  public void lsThenloadMetadataTest() throws IOException, TachyonException {
+    String ufsRoot =
+        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
+            Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
+    ufs.mkdirs(PathUtils.concatPath(ufsRoot, "dir1"), false);
+    // First run ls to create the data
+    mFsShell.run("ls", "/dir1");
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isIsPersisted());
+    // Load metadata
+    mFsShell.run("loadMetadata", "/dir1");
+    Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",
+        mOutput.toString());
+  }
+
+  @Test
+  public void loadMetadataErrorMessageTest() {
+    int ret = mFsShell.run("loadMetadata", "/nonexistent");
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nonexistent") + "\n",
+        mOutput.toString());
+  }
+
+  @Test
+  public void createCacheInsertInUfsThenloadMetadataTest() throws IOException, TachyonException {
+    // Construct a situation where the directory exists in the inode tree and the UFS, but is not
+    // marked as persisted.
+    TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 10);
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    String ufsRoot =
+        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
+            Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
+    ufs.mkdirs(PathUtils.concatPath(ufsRoot, "testDir"), false);
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+    // Load metadata, which should mark the testDir as persisted
+    mFsShell.run("loadMetadata", "/testDir");
+    Assert.assertEquals("", mOutput.toString());
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
+  }
+
+  @Test
   public void copyFromLocalTest() throws IOException, TachyonException {
     File testDir = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir");
     testDir.mkdir();
@@ -180,7 +231,7 @@ public class TfsShellTest {
 
     mFsShell.run("copyFromLocal", testFile.getParent(), "/testDir");
     Assert.assertEquals(
-        getCommandOutput(new String[] {"copyFromLocal", testFile.getParent(), "/testDir"}),
+        getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"}),
         mOutput.toString());
     TachyonFile file1 = mTfs.open(new TachyonURI("/testDir/testFile"));
     TachyonFile file2 = mTfs.open(new TachyonURI("/testDir/testDirInner/testFile2"));
@@ -204,7 +255,7 @@ public class TfsShellTest {
     // when
     mFsShell.run("copyFromLocal", testFile.getPath(), tachyonURI);
     String cmdOut =
-        getCommandOutput(new String[] {"copyFromLocal", testFile.getPath(), tachyonURI});
+        getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), tachyonURI});
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
     TachyonFile file = mTfs.open(new TachyonURI("/destFileURI"));
@@ -465,9 +516,15 @@ public class TfsShellTest {
    * locationsList.iterator(); int i = 3; while (iter.hasNext()) { commandParameters[i ++] =
    * iter.next(); } Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString()); }
    */
+
   @Test
   public void lsrTest() throws IOException, TachyonException {
+    // clear the loginUser
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+
     FileInfo[] files = new FileInfo[4];
+    String testUser = "test_user_lsr";
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -481,23 +538,31 @@ public class TfsShellTest {
     files[3] = mTfs.getInfo(fileC);
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
-    String format = "%-10s%-25s%-15s%-5s\n";
+    String format = "%-10s%-25s%-15s%-15s%-5s\n";
     expected += String.format(format, FormatUtils.getSizeFromBytes(10),
-        TfsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory", "/testRoot/testFileA");
+        TfsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory", testUser,
+        "/testRoot/testFileA");
     expected += String.format(format, FormatUtils.getSizeFromBytes(0),
-        TfsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
+        TfsShell.convertMsToDate(files[1].getCreationTimeMs()), "", testUser, "/testRoot/testDir");
     expected += String.format(format, FormatUtils.getSizeFromBytes(20),
-        TfsShell.convertMsToDate(files[2].getCreationTimeMs()), "In Memory",
+        TfsShell.convertMsToDate(files[2].getCreationTimeMs()), "In Memory", testUser,
         "/testRoot/testDir/testFileB");
     expected += String.format(format, FormatUtils.getSizeFromBytes(30),
-        TfsShell.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
+        TfsShell.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory", testUser,
         "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
   public void lsTest() throws IOException, TachyonException {
+    // clear the loginUser
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+
     FileInfo[] files = new FileInfo[4];
+    String testUser = "test_user_ls";
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
@@ -510,15 +575,19 @@ public class TfsShellTest {
     files[2] = mTfs.getInfo(fileC);
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    String format = "%-10s%-25s%-15s%-5s\n";
+    String format = "%-10s%-25s%-15s%-15s%-5s\n";
     expected += String.format(format, FormatUtils.getSizeFromBytes(10),
-        TfsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory", "/testRoot/testFileA");
+        TfsShell.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
+        testUser, "/testRoot/testFileA");
     expected += String.format(format, FormatUtils.getSizeFromBytes(0),
-        TfsShell.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
+        TfsShell.convertMsToDate(files[1].getCreationTimeMs()), "",
+        testUser, "/testRoot/testDir");
     expected += String.format(format, FormatUtils.getSizeFromBytes(30),
         TfsShell.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
-        "/testRoot/testFileC");
+        testUser, "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
@@ -527,9 +596,8 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(
-        getCommandOutput(new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}),
-        mOutput.toString());
+    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,"
+        + ".?/File"}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
@@ -550,7 +618,7 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
+    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
         mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
@@ -563,8 +631,8 @@ public class TfsShellTest {
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}),
-        mOutput.toString());
+    Assert
+        .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
@@ -583,7 +651,7 @@ public class TfsShellTest {
     mFsShell.run("mkdir", "/test/File1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
     mFsShell.rename(new String[] {"rename", "/test", "/test2"});
-    toCompare.append(getCommandOutput(new String[] {"mv", "/test", "/test2"}));
+    toCompare.append(getCommandOutput(new String[]{"mv", "/test", "/test2"}));
     Assert.assertTrue(fileExist(new TachyonURI("/test2/File1")));
     Assert.assertFalse(fileExist(new TachyonURI("/test")));
     Assert.assertFalse(fileExist(new TachyonURI("/test/File1")));
@@ -594,10 +662,10 @@ public class TfsShellTest {
   public void renameTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1");
-    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
+    toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder1")));
-    mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
-    toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
+    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
+    toCompare.append(getCommandOutput(new String[]{"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExist(new TachyonURI("/testFolder")));
     Assert.assertFalse(fileExist(new TachyonURI("/testFolder1")));
@@ -776,7 +844,6 @@ public class TfsShellTest {
   @Test
   public void catWildcardTest() throws IOException, TachyonException {
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
-
     // the expect contents (remember that the order is based on path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testWildCards/bar/foobar3
     byte[] exp2 = BufferUtils.getIncreasingByteArray(10); // testWildCards/foo/foobar1
@@ -807,8 +874,8 @@ public class TfsShellTest {
     Assert.assertTrue(isInMemoryTest("/testWildCards/foobar4"));
 
     ret = mFsShell.run("free", "/testWild*/*/");
-    CommonUtils.sleepMs(null,
-        tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    CommonUtils.sleepMs(null, tachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
+        * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
@@ -820,28 +887,37 @@ public class TfsShellTest {
 
   @Test
   public void lsWildcardTest() throws IOException, TachyonException {
+    // clear the loginUser
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+
+    String testUser = "test_user_lsWildcard";
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
+
     TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
 
     String expect = "";
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser);
     mFsShell.run("ls", "/testWildCards/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20);
-    expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20, testUser);
+    expect += getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40, testUser);
     mFsShell.run("ls", "/testWildCards/*");
     Assert.assertEquals(expect, mOutput.toString());
+    // clear testing username
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
-  private String getLsResultStr(TachyonURI tUri, int size) throws IOException, TachyonException {
-    String format = "%-10s%-25s%-15s%-5s\n";
+  private String getLsResultStr(TachyonURI tUri, int size, String testUser) throws IOException,
+  TachyonException {
+    String format = "%-10s%-25s%-15s%-15s%-5s\n";
     return String.format(format, FormatUtils.getSizeFromBytes(size),
         TfsShell.convertMsToDate(mTfs.getInfo(mTfs.open(tUri)).getCreationTimeMs()), "In Memory",
-        tUri.getPath());
+        testUser, tUri.getPath());
   }
 
   @Test
@@ -1033,6 +1109,21 @@ public class TfsShellTest {
     fileReadTest("/testDir/foobar4", 40);
   }
 
+  /**
+   * Checks whether the given file is actually persisted by freeing it, then
+   * reading it and comparing it against the expected byte array.
+   *
+   * @param file
+   */
+  private void checkFilePersisted(TachyonFile file, int size) throws TachyonException, IOException {
+    Assert.assertTrue(mTfs.getInfo(file).isIsPersisted());
+    mTfs.free(file);
+    FileInStream tfis = mTfs.getInStream(file);
+    byte[] actual = new byte[size];
+    tfis.read(actual);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
+  }
+
   @Test
   public void setTTLNegativeTest() throws IOException {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, "/testFile",
@@ -1058,8 +1149,8 @@ public class TfsShellTest {
   @Test
   public void unsetTTLTest() throws Exception {
     String filePath = "/testFile";
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 1);
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, filePath, TachyonStorageType
+        .STORE, UnderStorageType.NO_PERSIST, 1);
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
 
     // unsetTTL on a file originally with no TTL will leave the TTL unchanged.
@@ -1072,4 +1163,66 @@ public class TfsShellTest {
     Assert.assertEquals(0, mFsShell.run("unsetTTL", filePath));
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
   }
+
+  public void persistTest() throws IOException, TachyonException {
+    String testFilePath = "/testPersist/testFile";
+    TachyonFile testFile = TachyonFSTestUtils.createByteFile(mTfs, testFilePath,
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
+    Assert.assertFalse(mTfs.getInfo(testFile).isIsPersisted());
+
+    int ret = mFsShell.run("persist", testFilePath);
+    Assert.assertEquals(0, ret);
+    Assert.assertEquals("persisted file " + testFilePath + " with size 10\n", mOutput.toString());
+    checkFilePersisted(testFile, 10);
+  }
+
+  @Test
+  public void persistTwiceTest() throws IOException, TachyonException {
+    // Persisting an already-persisted file is okay
+    String testFilePath = "/testPersist/testFile";
+    TachyonFile testFile = TachyonFSTestUtils.createByteFile(mTfs, testFilePath,
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
+    Assert.assertFalse(mTfs.getInfo(testFile).isIsPersisted());
+    int ret = mFsShell.run("persist", testFilePath);
+    Assert.assertEquals(0, ret);
+    ret = mFsShell.run("persist", testFilePath);
+    Assert.assertEquals(0, ret);
+    Assert.assertEquals("persisted file " + testFilePath + " with size 10\n" + testFilePath
+        + " is already persisted\n", mOutput.toString());
+    checkFilePersisted(testFile, 10);
+  }
+
+  @Test
+  public void persistNonexistentFileTest() throws IOException, TachyonException {
+    // Cannot persist a nonexistent file
+    String path = "/testPersistNonexistent";
+    int ret = mFsShell.run("persist", path);
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path) + "\n",
+        mOutput.toString());
+  }
+
+  @Test
+  public void persistDirectoryTest() throws IOException, TachyonException {
+    // Set the default write type to MUST_CACHE, so that directories are not persisted by default
+    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    TfsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards"))).isIsPersisted());
+    Assert
+        .assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards/foo"))).isIsPersisted());
+    Assert
+        .assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards/bar"))).isIsPersisted());
+    int ret = mFsShell.run("persist", "/testWildCards");
+    Assert.assertEquals(0, ret);
+    Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards"))).isIsPersisted());
+    Assert
+        .assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards/foo"))).isIsPersisted());
+    Assert
+        .assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/testWildCards/bar"))).isIsPersisted());
+    checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foo/foobar1")), 10);
+    checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foo/foobar2")), 20);
+    checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/bar/foobar3")), 30);
+    checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
+  }
+
 }

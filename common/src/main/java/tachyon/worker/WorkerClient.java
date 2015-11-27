@@ -110,27 +110,6 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notifies the worker that a file has been persisted in a temporary UFS location.
-   *
-   * @param fileId the file id
-   * @param nonce nonce a nonce used for temporary file creation
-   * @param path the UFS path where the file should be eventually stored
-   * @throws IOException
-   */
-  public synchronized void persistFile(long fileId, long nonce, String path) throws IOException {
-    mustConnect();
-
-    try {
-      mClient.persistFile(fileId, nonce, path);
-    } catch (TachyonTException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  /**
    * Notifies the worker to checkpoint the file asynchronously.
    *
    * @param fileId The id of the file
@@ -219,7 +198,7 @@ public final class WorkerClient implements Closeable {
       int port = mWorkerNetAddress.rpcPort;
       mWorkerAddress = new InetSocketAddress(host, port);
       mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
-      LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
+      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mWorkerAddress);
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
           mTachyonConf, new InetSocketAddress(host, port)));

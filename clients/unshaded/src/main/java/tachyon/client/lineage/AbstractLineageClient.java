@@ -35,6 +35,7 @@ import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.thrift.LineageInfo;
@@ -90,6 +91,8 @@ public abstract class AbstractLineageClient implements LineageClient {
 
     try {
       return masterClient.getLineageInfoList();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

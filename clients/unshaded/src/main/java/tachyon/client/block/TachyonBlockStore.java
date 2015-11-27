@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
@@ -34,8 +34,8 @@ import tachyon.worker.WorkerClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
- * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
- * class are completely opaque to user input. This class is thread safe.
+ * An instance of this class can be obtained via {@link TachyonBlockStore#get()}. The methods in
+ * this class are completely opaque to user input. This class is thread safe.
  */
 public final class TachyonBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -65,7 +65,7 @@ public final class TachyonBlockStore {
    * Gets the block info of a block, if it exists.
    *
    * @param blockId the blockId to obtain information about
-   * @return a FileBlockInfo containing the metadata of the block
+   * @return a {@link BlockInfo} containing the metadata of the block
    * @throws IOException if the block does not exist
    */
   public BlockInfo getInfo(long blockId) throws IOException {
@@ -83,7 +83,7 @@ public final class TachyonBlockStore {
    * Gets a stream to read the data of a block. The stream is backed by Tachyon storage.
    *
    * @param blockId the block to read from
-   * @return a BlockInStream which can be used to read the data in a streaming fashion
+   * @return a {@link BlockInStream} which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
@@ -132,7 +132,8 @@ public final class TachyonBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and
    *                  this stream is just storing the block in Tachyon again)
    * @param location the worker to write the block to, fails if the worker cannot serve the request
-   * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
+   * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
+   *         streaming fashion
    * @throws IOException if the block cannot be written
    */
   public BufferedBlockOutStream getOutStream(long blockId, long blockSize, String location)
@@ -178,6 +179,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getCapacityBytes();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }
@@ -192,6 +195,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getUsedBytes();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }

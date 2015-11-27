@@ -20,26 +20,21 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Sessions;
-import tachyon.client.UnderStorageType;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
-import tachyon.exception.FailedToCheckpointException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.thrift.FileInfo;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
-import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.TempBlockMeta;
+import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
@@ -56,9 +51,9 @@ public final class BlockDataManager {
   private BlockMetricsReporter mMetricsReporter;
 
   /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
-  private WorkerBlockMasterClient mBlockMasterClient;
+  private BlockMasterClient mBlockMasterClient;
   /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
-  private WorkerFileSystemMasterClient mFileSystemMasterClient;
+  private FileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
   private Sessions mSessions = new Sessions();
 
@@ -66,22 +61,20 @@ public final class BlockDataManager {
    * Creates a BlockDataManager based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
-   * @param workerBlockMasterClient the block Tachyon master client for worker
-   * @param workerFileSystemMasterClient the file system Tachyon master client for worker
+   * @param blockMasterClient the block Tachyon master client for worker
+   * @param fileSystemMasterClient the file system Tachyon master client for worker
    * @param blockStore the block store manager
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource,
-      WorkerBlockMasterClient workerBlockMasterClient,
-      WorkerFileSystemMasterClient workerFileSystemMasterClient, BlockStore blockStore)
-          throws IOException {
+  public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, BlockStore blockStore) throws IOException {
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = blockStore;
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mBlockMasterClient = workerBlockMasterClient;
-    mFileSystemMasterClient = workerFileSystemMasterClient;
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -117,48 +110,6 @@ public final class BlockDataManager {
   }
 
   /**
-   * Completes the process of persisting a file by renaming it to its final destination.
-   *
-   * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isAsyncPersist()} or {@link UnderStorageType#isSyncPersist()}
-   * is true. The current implementation of persistence is that through
-   * {@link tachyon.client.UnderStorageType} operations write to
-   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
-   *
-   * @param fileId a file id
-   * @param nonce a nonce used for temporary file creation
-   * @param ufsPath the UFS path of the file
-   * @throws IOException if the update to the master fails
-   * @throws TachyonException if the file does not exist or cannot be renamed
-   */
-  public void persistFile(long fileId, long nonce, String ufsPath)
-      throws IOException, TachyonException {
-    String tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
-    UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
-    try {
-      if (!ufs.exists(tmpPath)) {
-        // Location of the temporary file has changed, recompute it.
-        FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
-        ufsPath = fileInfo.getUfsPath();
-        tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
-      }
-      if (!ufs.rename(tmpPath, ufsPath)) {
-        throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + ufsPath);
-      }
-    } catch (IOException ioe) {
-      throw new FailedToCheckpointException(
-          "Failed to rename " + tmpPath + " to " + ufsPath + ": " + ioe);
-    }
-    long fileSize;
-    try {
-      fileSize = ufs.getFileSize(ufsPath);
-    } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to getFileSize " + ufsPath);
-    }
-    mFileSystemMasterClient.persistFile(fileId, fileSize);
-  }
-
-  /**
    * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
    * {@link SessionCleaner} thread.
    */
@@ -172,7 +123,7 @@ public final class BlockDataManager {
   /**
    * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
-   * {@link WorkerBlockMasterClient#commitBlock} succeeds.
+   * {@link BlockMasterClient#commitBlock} succeeds.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
@@ -200,6 +151,8 @@ public final class BlockDataManager {
           loc.tierAlias(), blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
+    } catch (ConnectionFailedException e) {
+      throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }

@@ -46,11 +46,12 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
 /**
- * A TachyonFileSystem implementation including convenience methods as well as a streaming API to
- * read and write files. This class does not access the master client directly but goes through the
- * implementations provided in {@link AbstractTachyonFileSystem}. The create API for creating files
- * is not supported by this TachyonFileSystem because the files should only be written once, thus
- * getOutStream is sufficient for creating and writing to a file.
+ * A {@link TachyonFileSystem} implementation including convenience methods as well as a streaming
+ * API to read and write files. This class does not access the master client directly but goes
+ * through the implementations provided in {@link AbstractTachyonFileSystem}. The create API for
+ * creating files is not supported by this TachyonFileSystem because the files should only be
+ * written once, thus {@link #getOutStream(TachyonURI)} is sufficient for creating and writing to a
+ * file.
  */
 @PublicApi
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
@@ -60,13 +61,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     private TachyonFileSystemFactory() {} // to prevent initialization
 
     public static synchronized TachyonFileSystem get() {
-      if (sTachyonFileSystem == null) {
-        boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
-        sTachyonFileSystem =
-            enableLineage ? TachyonLineageFileSystem.get() : new TachyonFileSystem();
-      }
-      return sTachyonFileSystem;
+      boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
+      return enableLineage ? TachyonLineageFileSystem.get() : TachyonFileSystem.get();
     }
+  }
+
+  static synchronized TachyonFileSystem get() {
+    if (sTachyonFileSystem == null) {
+      sTachyonFileSystem = new TachyonFileSystem();
+    }
+    return sTachyonFileSystem;
   }
 
   protected TachyonFileSystem() {
@@ -182,10 +186,11 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Alternative way to get a FileOutStream to a file that has already been created. This should not
-   * be used. Deprecated in version v0.8 and will be removed in v0.9.
+   * Alternative way to get a {@link FileOutStream} to a file that has already been created. This
+   * should not be used.
    *
    * @see #getOutStream(TachyonURI path, OutStreamOptions options)
+   * @deprecated Deprecated in version v0.8 and will be removed in v0.9.
    */
   // TODO(calvin): We should remove this when the TachyonFS code is fully deprecated.
   @Deprecated

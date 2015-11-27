@@ -120,6 +120,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
     will fail if "destination" already exists.</td>
   </tr>
   <tr>
+    <td>persist</td>
+    <td>persist "path"</td>
+    <td>Persist a file or directory currently stored only in Tachyon to the underlying file system.</td>
+  </tr>
+  <tr>
     <td>pin</td>
     <td>pin "path"</td>
     <td>Pin the given file to avoid evicting it from memory. If the given path is a directory, it

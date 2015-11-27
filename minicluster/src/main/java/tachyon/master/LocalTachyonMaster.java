@@ -24,7 +24,6 @@ import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.UnderFileSystemUtils;
@@ -55,8 +54,6 @@ public final class LocalTachyonMaster {
     }
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
-
-  private final OldClientPool mOldClientPool = new OldClientPool(mClientSupplier);
 
   private LocalTachyonMaster(final String tachyonHome)
       throws IOException {
@@ -144,7 +141,6 @@ public final class LocalTachyonMaster {
 
   public void clearClients() throws IOException {
     mClientPool.close();
-    mOldClientPool.close();
   }
 
   /**
@@ -199,10 +195,6 @@ public final class LocalTachyonMaster {
 
   public String getUri() {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
-  }
-
-  public TachyonFS getOldClient() throws IOException {
-    return mOldClientPool.getClient(ClientContext.getConf());
   }
 
   public TachyonFileSystem getClient() throws IOException {

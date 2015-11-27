@@ -17,8 +17,11 @@ package tachyon.master.rawtable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TableColumnException;
 import tachyon.exception.TableDoesNotExistException;
 import tachyon.exception.TableMetadataException;
@@ -45,10 +49,10 @@ import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 import tachyon.master.rawtable.meta.RawTables;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RawTableMasterClientService;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.IdUtils;
 
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -60,7 +64,7 @@ public class RawTableMaster extends MasterBase {
   private final RawTables mRawTables = new RawTables();
 
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_NAME);
   }
 
   public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
@@ -73,14 +77,18 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new RawTableMasterService.Processor<RawTableMasterServiceHandler>(
-        new RawTableMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME,
+        new RawTableMasterClientService.Processor<RawTableMasterClientServiceHandler>(
+            new RawTableMasterClientServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.RAW_TABLE_MASTER_NAME;
   }
 
   @Override
@@ -158,9 +166,11 @@ public class RawTableMaster extends MasterBase {
       mFileSystemMaster.mkdir(columnPath(path, k), options);
     }
 
+    LOG.debug("writing journal entry for createRawTable {}", path);
     writeJournalEntry(new RawTableEntry(id, columns, metadata));
     flushJournal();
 
+    LOG.debug("created raw table with {} columns at {}", columns, path);
     return id;
   }
 
@@ -284,6 +294,7 @@ public class RawTableMaster extends MasterBase {
    * @throws TableMetadataException if the metadata is too large
    */
   private void validateMetadataSize(ByteBuffer metadata) throws TableMetadataException {
+    Preconditions.checkNotNull(metadata, PreconditionMessage.RAW_TABLE_METADATA_NULL);
     long metadataSize = metadata.limit() - metadata.position();
     if (metadataSize >= mMaxTableMetadataBytes) {
       throw new TableMetadataException(

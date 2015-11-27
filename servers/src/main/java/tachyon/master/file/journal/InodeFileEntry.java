@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.journal.JournalEntryType;
+import tachyon.security.authorization.PermissionStatus;
 
 /**
  * This class represents a journal entry for a file inode.
@@ -68,8 +69,12 @@ public class InodeFileEntry extends InodeEntry {
       @JsonProperty("completed") boolean completed,
       @JsonProperty("cacheable") boolean cacheable,
       @JsonProperty("blocks") List<Long> blocks,
-      @JsonProperty("ttl") long ttl) {
-    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
+      @JsonProperty("ttl") long ttl,
+      @JsonProperty("userName") String userName,
+      @JsonProperty("groupName") String groupName,
+      @JsonProperty("permission") short permission) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs,
+        userName, groupName, permission);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mCompleted = completed;
@@ -96,14 +101,18 @@ public class InodeFileEntry extends InodeEntry {
             .setPersisted(mPersisted)
             .setPinned(mPinned)
             .setTTL(mTTL)
+            .setPermissionStatus(new PermissionStatus(mUserName, mGroupName, mPermission))
             .build();
 
-    if (mCompleted) {
-      inode.setCompleted(mLength);
-    }
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
+    inode.setCompleted(mCompleted);
+    inode.setLength(mLength);
+    inode.setPersisted(mPersisted);
+    inode.setPinned(mPinned);
+    inode.setCacheable(mCacheable);
+    inode.setLastModificationTimeMs(mLastModificationTimeMs);
 
     return inode;
   }

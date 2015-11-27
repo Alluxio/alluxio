@@ -39,9 +39,9 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -53,6 +53,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -190,6 +191,14 @@ abstract class AbstractTFS extends FileSystem {
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
+  /**
+   * Attempts to delete the file or directory with the specified path.
+   *
+   * @param path path to delete
+   * @return true if one or more files/directories were deleted; false otherwise
+   * @throws IOException if the path failed to be deleted due to some constraint
+   * @deprecated Use {@link #delete(Path, boolean)} instead.
+   */
   @Override
   @Deprecated
   public boolean delete(Path path) throws IOException {
@@ -212,8 +221,7 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    DeleteOptions options =
-        new DeleteOptions.Builder().setRecursive(recursive).build();
+    DeleteOptions options = new DeleteOptions.Builder().setRecursive(recursive).build();
     try {
       TachyonFile file = mTFS.open(path);
       mTFS.delete(file, options);
@@ -420,13 +428,9 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
+    MkdirOptions options =
+        new MkdirOptions.Builder(mTachyonConf).setRecursive(true).setAllowExists(true).build();
     try {
-      TachyonFile fileId = mTFS.openIfExists(path);
-      if (fileId != null && mTFS.getInfo(fileId).isIsFolder()) {
-        // The directory already exists, nothing to do here
-        return true;
-      }
       return mTFS.mkdir(path, options);
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -530,6 +534,8 @@ abstract class AbstractTFS extends FileSystem {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       return master.getUfsAddress();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(master);
     }

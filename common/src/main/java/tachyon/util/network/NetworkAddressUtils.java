@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -400,14 +401,31 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * @param host the host to try to connect to
+   * @param port the port to try to connect on
+   * @return whether a socket connection can be made to the given host on the given port
+   */
+  public static boolean isServing(String host, int port) {
+    if (port < 0) {
+      return false;
+    }
+    try {
+      Socket socket = new Socket(host, port);
+      socket.close();
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  /**
    * Tests if the address is externally resolvable. Address must not be wildcard, link local,
    * loopback address, non-IPv4, or other unreachable addresses.
    *
    * @param address The testing address
    * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
-   * @return a <code>boolean</code> indicating if the given address is externally resolvable
-   *         address.
+   * @return a {@code boolean} indicating if the given address is externally resolvable address
    * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {

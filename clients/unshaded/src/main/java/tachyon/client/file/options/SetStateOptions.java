@@ -17,15 +17,18 @@ package tachyon.client.file.options;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
+@PublicApi
 public class SetStateOptions {
   public static class Builder implements OptionsBuilder<SetStateOptions> {
     private Boolean mPinned;
     private Long mTTL;
+    private Boolean mPersisted;
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
@@ -42,6 +45,7 @@ public class SetStateOptions {
     public Builder(TachyonConf conf) {
       mPinned = null;
       mTTL = null;
+      mPersisted = null;
     }
 
     /**
@@ -67,9 +71,19 @@ public class SetStateOptions {
     }
 
     /**
-     * Builds a new instance of {@code SetStateOptions}.
+     * @param persisted the persisted flag value to use; it specifies whether the file has been
+     *        persisted in the under file system or not.
+     * @return the builder
+     */
+    public Builder setPersisted(boolean persisted) {
+      mPersisted = persisted;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link SetStateOptions}.
      *
-     * @return a {@code SetStateOptions} instance
+     * @return a {@link SetStateOptions} instance
      */
     @Override
     public SetStateOptions build() {
@@ -78,7 +92,7 @@ public class SetStateOptions {
   }
 
   /**
-   * @return the default {@code SetStateOptions}
+   * @return the default {@link SetStateOptions}
    */
   public static SetStateOptions defaults() {
     return new Builder().build();
@@ -86,15 +100,18 @@ public class SetStateOptions {
 
   private final Boolean mPinned;
   private final Long mTTL;
+  private final Boolean mPersisted;
 
   public SetStateOptions(SetStateTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTTL = options.isSetTtl() ? options.getTtl() : null;
+    mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
   }
 
   private SetStateOptions(SetStateOptions.Builder builder) {
     mPinned = builder.mPinned;
     mTTL = builder.mTTL;
+    mPersisted = builder.mPersisted;
   }
 
   /**
@@ -130,6 +147,22 @@ public class SetStateOptions {
   }
 
   /**
+   * @return true if the persisted value is set, otherwise false
+   */
+  public boolean hasPersisted() {
+    return mPersisted != null;
+  }
+
+  /**
+   * @return the persisted value of the file; it denotes whether the file has been persisted to the
+   *         under file system or not.
+   */
+  public boolean getPersisted() {
+    Preconditions.checkState(hasPersisted(), PreconditionMessage.MUST_SET_PERSISTED);
+    return mPersisted;
+  }
+
+  /**
    * @return Thrift representation of the options
    */
   public SetStateTOptions toThrift() {
@@ -140,6 +173,9 @@ public class SetStateOptions {
     if (mTTL != null) {
       options.setTtl(mTTL);
     }
+    if (mPersisted != null) {
+      options.setPersisted(mPersisted);
+    }
     return options;
   }
 
@@ -149,8 +185,8 @@ public class SetStateOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("SetStateOptions(");
-    sb.append(super.toString()).append(", Pinned: ").append(mPinned)
-        .append(", TTL: ").append(mTTL);
+    sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTTL)
+        .append(", Persisted: ").append(mPersisted);
     sb.append(")");
     return sb.toString();
   }

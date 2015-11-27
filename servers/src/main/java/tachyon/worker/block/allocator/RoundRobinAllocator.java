@@ -52,9 +52,11 @@ public final class RoundRobinAllocator implements Allocator {
   }
 
   /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class. Allocates a block from
-   * the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   * Should only be accessed by
+   * {@link #allocateBlockWithView(long, long, BlockStoreLocation, BlockMetadataManagerView)} inside
+   * class. Allocates a block from the given block store location. The location can be a specific
+   * location, or {@link BlockStoreLocation#anyTier()} or
+   * {@link BlockStoreLocation#anyDirInTier(String)}.
    *
    * @param sessionId the ID of session to apply for the block allocation
    * @param blockSize the size of block in bytes
@@ -98,9 +100,9 @@ public final class RoundRobinAllocator implements Allocator {
   /**
    * Find an available dir in a given tier for a block with blockSize
    *
-   * @param tier: the tier to find a dir
+   * @param tierView: the tier to find a dir
    * @param blockSize: the requested block size
-   * @return: the index of the dir if nonnegative; -1 if fail to find a dir
+   * @return the index of the dir if nonnegative; -1 if fail to find a dir
    */
   private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) {
     int dirViewIndex = mTierToLastDirMap.get(tierView);

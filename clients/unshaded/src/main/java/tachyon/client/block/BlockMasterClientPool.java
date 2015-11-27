@@ -18,14 +18,13 @@ package tachyon.client.block;
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 
 /**
  * Class for managing block master clients. After obtaining a client with
- * {@link ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
- * using the client.
+ * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
+ * thread is done using the client.
  */
 final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final InetSocketAddress mMasterAddress;

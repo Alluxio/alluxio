@@ -13,9 +13,10 @@ struct WorkerInfo {
   7: i64 startTimeMs
 }
 
-service BlockMasterService {
-
-  // Tachyon Client API
+/**
+ * This interface contains block master service endpoints for Tachyon clients.
+ */
+service BlockMasterClientService extends common.TachyonService {
 
   /*
    * Returns the block information for the given block id.
@@ -36,30 +37,34 @@ service BlockMasterService {
    * Returns a list of workers information.
    */
   list<WorkerInfo> getWorkerInfoList()
+}
 
-  // Tachyon Worker API
+/**
+ * This interface contains block master service endpoints for Tachyon workers.
+ */
+service BlockMasterWorkerService extends common.TachyonService {
 
   /*
    * Marks the given block as committed.
    */
-  void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: string tierAlias, 4: i64 blockId,
+  void commitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: string tierAlias, 4: i64 blockId,
       5: i64 length)
 
   /*
    * Returns a worker id for the given network address.
    */
-  i64 workerGetWorkerId(1: common.NetAddress workerNetAddress)
+  i64 getWorkerId(1: common.NetAddress workerNetAddress)
 
   /*
    * Periodic worker heartbeat.
    */
-  common.Command workerHeartbeat(1: i64 workerId, 2: map<string, i64> usedBytesOnTiers,
+  common.Command heartbeat(1: i64 workerId, 2: map<string, i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<string, list<i64>> addedBlocksOnTiers)
 
   /*
    * Registers a worker.
    */
-  void workerRegister(1: i64 workerId, 2: list<string> storageTiers, 3: map<string, i64> totalBytesOnTiers,
+  void registerWorker(1: i64 workerId, 2: list<string> storageTiers, 3: map<string, i64> totalBytesOnTiers,
       4: map<string, i64> usedBytesOnTiers, 5: map<string, list<i64>> currentBlocksOnTiers)
     throws (1: exception.TachyonTException e)
 }

@@ -46,6 +46,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.TachyonFileSystemUtils;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.InStreamOptions;
@@ -173,6 +174,41 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.println(filePath + " loaded");
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  /**
+   * Persist a file or directory currently stored only in Tachyon to the UnderFileSystem
+   *
+   * @param filePath the TachyonURI path to persist to the UnderFileSystem
+   * @throws IOException when a Tachyon or I/O error occurs
+   */
+  public void persist(TachyonURI filePath) throws IOException {
+    try {
+      TachyonFile fd = mTfs.open(filePath);
+      FileInfo fInfo = mTfs.getInfo(fd);
+      if (fInfo.isFolder) {
+        List<FileInfo> files = mTfs.listStatus(fd);
+        List<String> errorMessages = new ArrayList<String>();
+        for (FileInfo file : files) {
+          TachyonURI newPath = new TachyonURI(file.getPath());
+          try {
+            persist(newPath);
+          } catch (IOException e) {
+            errorMessages.add(e.getMessage());
+          }
+        }
+        if (errorMessages.size() != 0) {
+          throw new IOException(Joiner.on('\n').join(errorMessages));
+        }
+      } else if (fInfo.isIsPersisted()) {
+        System.out.println(filePath + " is already persisted");
+      } else {
+        long size = TachyonFileSystemUtils.persistFile(mTfs, fd, fInfo, mTachyonConf);
+        System.out.println("persisted file " + filePath + " with size " + size);
+      }
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
@@ -566,7 +602,7 @@ public class TfsShell implements Closeable {
    */
   public void ls(TachyonURI path) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-5s%n";
+    String format = "%-10s%-25s%-15s%-15s%-5s%n";
     for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -577,7 +613,8 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
+          file.getPath());
     }
   }
 
@@ -595,7 +632,7 @@ public class TfsShell implements Closeable {
    */
   public void lsr(TachyonURI path) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-5s%n";
+    String format = "%-10s%-25s%-15s%-15s%-5s%n";
     for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -606,7 +643,8 @@ public class TfsShell implements Closeable {
         }
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
-          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
+          convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
+          file.getPath());
       if (file.isFolder) {
         lsr(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()));
       }
@@ -733,7 +771,7 @@ public class TfsShell implements Closeable {
         || cmd.equals("touch") || cmd.equals("load") || cmd.equals("fileinfo")
         || cmd.equals("location") || cmd.equals("report") || cmd.equals("pin")
         || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du") || cmd.equals("unmount")
-        || cmd.equals("loadMetadata") || cmd.equals("unsetTTL")) {
+        || cmd.equals("loadMetadata") || cmd.equals("unsetTTL") || cmd.equals("persist")) {
       return 1;
     } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
         || cmd.equals("mount") || cmd.equals("mv") || cmd.equals("deleteLineage")
@@ -944,6 +982,8 @@ public class TfsShell implements Closeable {
         } else if (cmd.equals("unsetTTL")) {
           setTTL(inputPath, Constants.NO_TTL);
           System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
+        } else if (cmd.equals("persist")) {
+          persist(inputPath);
         } else {
           List<TachyonURI> paths = null;
           paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);

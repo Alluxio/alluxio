@@ -30,7 +30,7 @@ public final class ClientMockUtils {
   }
 
   /**
-   * When {@link UnderFileSystem.get(filename, tachyonConf)} is called to get an
+   * When {@link UnderFileSystem#get(String, TachyonConf)} is called to get an
    * {@link UnderFileSystem}, it will instead return the mock returned by this method, as long as
    * `filename` matches `ufsPathMatcher`
    *
