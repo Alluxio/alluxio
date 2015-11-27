@@ -131,6 +131,7 @@ public enum ExceptionMessage {
 
   // security
   PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
+  AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
