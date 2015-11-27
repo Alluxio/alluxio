@@ -63,7 +63,9 @@ public class TfsShellTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.GB);
+      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.GB,
+          Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE),
+          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
   private TfsShell mFsShell = null;
@@ -83,12 +85,6 @@ public class TfsShellTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = mLocalTachyonClusterResource.get();
-    TachyonConf conf = mLocalTachyonCluster.newTestConf();
-    // Make sure files in ttl related tests won't be deleted by the TTL checker.
-    conf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
-    // enable simple authentication
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mLocalTachyonCluster.start(conf);
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TfsShell(new TachyonConf());
     mOutput = new ByteArrayOutputStream();
