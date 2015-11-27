@@ -93,11 +93,8 @@ public final class UfsUtils {
    *        mTachyonFS.
    * @param tachyonConf instance of TachyonConf
    * @throws IOException when an event that prevents the operation from completing is encountered
-   * @deprecated As of version 0.8.
-   *             Use {@link #loadUfs(TachyonURI, TachyonURI, String, TachyonConf)} instead.
    */
-  @Deprecated
-  public static void loadUfs(TachyonFileSystem tfs, TachyonURI tachyonPath, TachyonURI
+  private static void loadUfs(TachyonFileSystem tfs, TachyonURI tachyonPath, TachyonURI
       ufsAddrRootPath, PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException,
       TachyonException {
     LOG.info("Loading to {} {} {}", tachyonPath, ufsAddrRootPath, excludePathPrefix);
