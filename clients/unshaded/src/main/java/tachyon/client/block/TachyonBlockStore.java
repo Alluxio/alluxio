@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.worker.WorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -30,7 +31,6 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.

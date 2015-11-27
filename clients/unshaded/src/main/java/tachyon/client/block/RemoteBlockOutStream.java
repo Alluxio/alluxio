@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
-import tachyon.worker.WorkerClient;
+import tachyon.client.worker.WorkerClient;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
