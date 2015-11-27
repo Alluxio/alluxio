@@ -237,9 +237,4 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     }
     mCuratorServer.stop();
   }
-
-  @Override
-  public void stopUFS() throws Exception {
-    // TODO(gpang): clean up UFS here.
-  }
 }
