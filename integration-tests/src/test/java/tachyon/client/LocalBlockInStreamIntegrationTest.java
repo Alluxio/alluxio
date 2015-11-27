@@ -179,7 +179,7 @@ public class LocalBlockInStreamIntegrationTest {
    * exception for seeking a negative position.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
@@ -208,7 +208,7 @@ public class LocalBlockInStreamIntegrationTest {
    * exception for seeking a position that is past buffer limit.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest2() throws IOException, TachyonException {
