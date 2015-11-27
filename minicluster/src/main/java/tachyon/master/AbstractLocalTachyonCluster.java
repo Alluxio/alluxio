@@ -108,14 +108,16 @@ public abstract class AbstractLocalTachyonCluster {
     long startTime = System.currentTimeMillis();
     String actionMessage = "waiting for master to serve web";
     LOG.info(actionMessage + ELLIPSIS);
+    // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
-        getMaster().getWebLocalPort())) {
+        getMaster().getWebLocalPort()) || mMasterConf.getInt(Constants.MASTER_WEB_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for master to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
+    // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
-        getMaster().getRPCLocalPort())) {
+        getMaster().getRPCLocalPort()) || mMasterConf.getInt(Constants.MASTER_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -133,19 +135,25 @@ public abstract class AbstractLocalTachyonCluster {
     while (!workerRegistered()) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
-    actionMessage = "waiting for worker to register with master";
+    actionMessage = "waiting for worker to serve web";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())) {
+    // The port should be set properly after the server has started
+    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())
+        || mWorkerConf.getInt(Constants.WORKER_WEB_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve data";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())) {
+    // The port should be set properly after the server has started
+    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())
+        || mWorkerConf.getInt(Constants.WORKER_DATA_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
+    // The port should be set properly after the server has started
+    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())
+        || mWorkerConf.getInt(Constants.WORKER_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
