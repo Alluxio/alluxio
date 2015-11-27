@@ -156,10 +156,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mMaster.stop();
   }
 
-  @Override
-  public void stopUFS() throws Exception {
-  }
-
   /**
    * Cleanup the worker state from the master and stop the worker.
    *
