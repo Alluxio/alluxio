@@ -18,7 +18,7 @@ package tachyon.client;
 import tachyon.annotation.PublicApi;
 
 /**
- * Convenience modes for commonly used read types for a TachyonFile.
+ * Convenience modes for commonly used read types for a {@link tachyon.client.file.TachyonFile}.
  *
  * For finer grained control over data storage, advanced users may specify
  * {@link tachyon.client.TachyonStorageType} and {@link tachyon.client.UnderStorageType}.
@@ -32,8 +32,8 @@ public enum ReadType {
   NO_CACHE(1),
   /**
    * Read the file and cache it in the highest tier of a local worker. This read type will not move
-   * data between tiers of Tachyon Storage. Users should use CACHE_PROMOTE for more optimized
-   * performance with tiered storage.
+   * data between tiers of Tachyon Storage. Users should use {@link #CACHE_PROMOTE} for more
+   * optimized performance with tiered storage.
    */
   CACHE(2),
   /**
@@ -70,14 +70,14 @@ public enum ReadType {
   }
 
   /**
-   * @return true if the read type is CACHE, false otherwise
+   * @return true if the read type is {@link #CACHE}, false otherwise
    */
   public boolean isCache() {
     return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
   }
 
   /**
-   * @return true if the read type is CACHE_PROMOTE, false otherwise
+   * @return true if the read type is {@link #CACHE_PROMOTE}, false otherwise
    */
   public boolean isPromote() {
     return mValue == CACHE_PROMOTE.mValue;

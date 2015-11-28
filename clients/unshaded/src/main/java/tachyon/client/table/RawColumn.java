@@ -18,10 +18,10 @@ package tachyon.client.table;
 import tachyon.annotation.PublicApi;
 
 /**
- * The column of a {@link RawTable}. A RawColumn is uniquely identified by the raw table it
+ * The column of a {@link RawTable}. A {@link RawColumn} is uniquely identified by the raw table it
  * belongs to and its column index. Instances of this class should be used as arguments to the
  * column specific commands in {@link TachyonRawTables}. An instance of this class can be
- * obtained through {@link RawTable#getColumn}.
+ * obtained through {@link RawTable#getColumn(int)}.
  */
 @PublicApi
 public final class RawColumn {
@@ -29,9 +29,9 @@ public final class RawColumn {
   private final int mColumnIndex;
 
   /**
-   * Creates a new {@code RawColumn}.
+   * Creates a new {@link RawColumn}.
    *
-   * @param rawTable the {@code RawTable} table this column belongs to
+   * @param rawTable the {@link RawTable} table this column belongs to
    * @param columnIndex the column index
    */
   RawColumn(RawTable rawTable, int columnIndex) {
