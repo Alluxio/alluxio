@@ -53,7 +53,6 @@ public final class WorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
-  private final NetAddress mWorkerNetAddress;
   private final boolean mIsLocal;
 
   private WorkerService.Client mClient;
@@ -76,8 +75,8 @@ public final class WorkerClient extends ClientBase {
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    super(NetworkAddressUtils.getSocketAddress(workerNetAddress), conf, "worker");
-    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "worker");
+    mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
     mIsLocal = isLocal;
@@ -188,7 +187,7 @@ public final class WorkerClient extends ClientBase {
 
   @Override
   protected long getServiceVersion() {
-    return Constants.WORKER_CLIENT_SERVICE_VERSION;
+    return Constants.BLOCK_WORKER_SERVICE_VERSION;
   }
 
   /**
@@ -198,13 +197,10 @@ public final class WorkerClient extends ClientBase {
    */
   public synchronized void connectOperation() throws IOException {
     if (!mConnected) {
-      String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
-      int port = mWorkerNetAddress.rpcPort;
-      mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
-          mTachyonConf, new InetSocketAddress(host, port)));
+          mTachyonConf, mAddress));
       mClient = new WorkerService.Client(mProtocol);
 
       try {
