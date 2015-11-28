@@ -154,17 +154,12 @@ public final class WorkerClient extends ClientBase {
     });
   }
 
-  /**
-   * Closes the connection to worker. Shutdown the heartbeat thread.
-   */
   @Override
-  protected void closeOperation() {
+  protected void beforeDisconnect() {
     // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
     }
-
-    super.closeOperation();
   }
 
   @Override
