@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
@@ -49,15 +50,16 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
-import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
-import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterBlockLocation;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
+import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
+import tachyon.proto.journal.Block.BlockInfoEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterClientService;
@@ -177,12 +179,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
-    if (entry instanceof BlockContainerIdGeneratorEntry) {
+    if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
-          .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
-    } else if (entry instanceof BlockInfoEntry) {
-      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) entry;
+          .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
+    } else if (innerEntry instanceof BlockInfoEntry) {
+      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
       mBlocks.put(blockInfoEntry.getBlockId(),
           new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
     } else {
@@ -194,15 +197,18 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
-      outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
+      BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
+          .setBlockId(blockInfo.getBlockId())
+          .setLength(blockInfo.getLength())
+          .build();
+      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
 
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
-    mGlobalStorageTierAssoc =
-        new MasterStorageTierAssoc(MasterContext.getConf());
+    mGlobalStorageTierAssoc = new MasterStorageTierAssoc(MasterContext.getConf());
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
@@ -354,8 +360,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
-          writeJournalEntry(
-              new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+          BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
+              .setBlockId(masterBlockInfo.getBlockId())
+              .setLength(masterBlockInfo.getLength())
+              .build();
+          writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           flushJournal();
         }
         masterBlockInfo.addWorker(workerId, tierAlias);
@@ -379,8 +388,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         // The block has not been committed previously, so add the metadata to commit the block.
         masterBlockInfo = new MasterBlockInfo(blockId, length);
         mBlocks.put(blockId, masterBlockInfo);
-        writeJournalEntry(
-            new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+
+        BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
+            .setBlockId(masterBlockInfo.getBlockId())
+            .setLength(masterBlockInfo.getLength())
+            .build();
+        writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
         flushJournal();
       }
     }
@@ -479,8 +492,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       }
 
       if (mLostWorkers.contains(mAddressIndex, workerAddress)) { // this is one of the lost workers
-        final MasterWorkerInfo lostWorkerInfo = mLostWorkers.getFirstByField(mAddressIndex,
-            workerAddress);
+        final MasterWorkerInfo lostWorkerInfo =
+            mLostWorkers.getFirstByField(mAddressIndex, workerAddress);
         final long lostWorkerId = lostWorkerInfo.getId();
         LOG.warn("A lost worker {} has requested its old id {}.", workerAddress, lostWorkerId);
 
@@ -603,6 +616,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   /**
    * Called by the heartbeat thread whenever a worker is lost.
+   *
    * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
    */
   // Synchronized on mBlocks by the caller
