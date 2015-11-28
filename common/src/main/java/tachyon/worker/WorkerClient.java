@@ -195,7 +195,7 @@ public final class WorkerClient extends ClientBase {
    *
    * @throws IOException
    */
-  public synchronized void connectOperation() throws IOException {
+  private synchronized void connectOperation() throws IOException {
     if (!mConnected) {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
