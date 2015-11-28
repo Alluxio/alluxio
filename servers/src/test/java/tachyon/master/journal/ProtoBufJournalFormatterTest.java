@@ -15,26 +15,12 @@
 
 package tachyon.master.journal;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-// TODO(cc): In the future, implementations of this interface can be represented as ProtoBuf.
-public abstract class JournalEntry {
-
-  /**
-   * @return the {@link JournalEntryType} of this entry
-   */
-  @JsonIgnore
-  public abstract JournalEntryType getType();
-
+/**
+ * Tests for {@link ProtoBufJournalFormatter}.
+ */
+public class ProtoBufJournalFormatterTest extends JournalFormatterTestBase {
   @Override
-  public boolean equals(Object o) {
-    return EqualsBuilder.reflectionEquals(this, o);
-  }
-
-  @Override
-  public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this, false);
+  protected JournalFormatter getFormatter() {
+    return new ProtoBufJournalFormatter();
   }
 }

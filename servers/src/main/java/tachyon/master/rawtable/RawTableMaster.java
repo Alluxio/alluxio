@@ -26,6 +26,9 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
@@ -42,11 +45,12 @@ import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.rawtable.journal.RawTableEntry;
-import tachyon.master.rawtable.journal.UpdateMetadataEntry;
+import tachyon.master.journal.JournalProtoUtils;
 import tachyon.master.rawtable.meta.RawTables;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.RawTable.RawTableEntry;
+import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterClientService;
@@ -93,19 +97,22 @@ public class RawTableMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry instanceof RawTableEntry) {
-      RawTableEntry tableEntry = (RawTableEntry) entry;
-      mRawTables.add(tableEntry.getId(), tableEntry.getColumns(), tableEntry.getMetadata());
-    } else if (entry instanceof UpdateMetadataEntry) {
-      UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) entry;
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
+    if (innerEntry instanceof RawTableEntry) {
+      RawTableEntry tableEntry = (RawTableEntry) innerEntry;
+      mRawTables.add(tableEntry.getId(), tableEntry.getColumns(),
+          ByteBuffer.wrap(tableEntry.getMetadata().toByteArray()));
+    } else if (innerEntry instanceof UpdateMetadataEntry) {
+      UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) innerEntry;
       try {
-        mRawTables.updateMetadata(updateEntry.getId(), updateEntry.getMetadata());
+        mRawTables.updateMetadata(updateEntry.getId(),
+            ByteBuffer.wrap(updateEntry.getMetadata().toByteArray()));
       } catch (TableDoesNotExistException tdnee) {
         // should not reach here since before writing the journal, the same operation succeeded
         throw new IOException(tdnee);
       }
     } else {
-      throw new IOException(ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(entry.getType()));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
@@ -167,7 +174,12 @@ public class RawTableMaster extends MasterBase {
     }
 
     LOG.debug("writing journal entry for createRawTable {}", path);
-    writeJournalEntry(new RawTableEntry(id, columns, metadata));
+    RawTableEntry rawTable = RawTableEntry.newBuilder()
+        .setId(id)
+        .setColumns(columns)
+        .setMetadata(ByteString.copyFrom(metadata))
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setRawTable(rawTable).build());
     flushJournal();
 
     LOG.debug("created raw table with {} columns at {}", columns, path);
@@ -191,7 +203,11 @@ public class RawTableMaster extends MasterBase {
     }
     mRawTables.updateMetadata(tableId, metadata);
 
-    writeJournalEntry(new UpdateMetadataEntry(tableId, metadata));
+    UpdateMetadataEntry updateMetadata = UpdateMetadataEntry.newBuilder()
+        .setId(tableId)
+        .setMetadata(ByteString.copyFrom(metadata))
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setUpdateMetadata(updateMetadata).build());
     flushJournal();
   }
 

@@ -26,8 +26,8 @@ import tachyon.exception.BlockInfoException;
 import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.InvalidFileSizeException;
 import tachyon.master.block.BlockId;
-import tachyon.master.file.journal.InodeFileEntry;
-import tachyon.master.journal.JournalEntry;
+import tachyon.proto.journal.File.InodeFileEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
@@ -241,7 +241,7 @@ public final class InodeFile extends Inode {
   }
 
   public synchronized void setBlockIds(List<Long> blockIds) {
-    mBlocks = Preconditions.checkNotNull(blockIds);
+    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
   }
 
   /**
@@ -306,11 +306,61 @@ public final class InodeFile extends Inode {
     return sb.toString();
   }
 
+  /**
+   * Converts the entry to an {@link InodeFile}.
+   *
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
+        entry.getGroupName(), (short) entry.getPermission());
+    InodeFile inode =
+        new InodeFile.Builder()
+            .setName(entry.getName())
+            .setBlockContainerId(BlockId.getContainerId(entry.getId()))
+            .setBlockSizeBytes(entry.getBlockSizeBytes())
+            .setCacheable(entry.getCacheable())
+            .setCreationTimeMs(entry.getCreationTimeMs())
+            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+            .setParentId(entry.getParentId())
+            .setPersisted(entry.getPersisted())
+            .setPinned(entry.getPinned())
+            .setTTL(entry.getTtl())
+            .setPermissionStatus(permissionStatus)
+            .build();
+
+    inode.setBlockIds(entry.getBlocksList());
+    inode.setCompleted(entry.getCompleted());
+    inode.setLength(entry.getLength());
+    inode.setPersisted(entry.getPersisted());
+    inode.setPinned(entry.getPinned());
+    inode.setCacheable(entry.getCacheable());
+    inode.setLastModificationTimeMs(entry.getLastModificationTimeMs());
+
+    return inode;
+  }
+
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
-        isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
-        isCacheable(), mBlocks, mTTL, getUserName(), getGroupName(), getPermission());
+    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+        .setCreationTimeMs(getCreationTimeMs())
+        .setId(getId())
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersisted(isPersisted())
+        .setPinned(isPinned())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .setLength(getLength())
+        .setCompleted(isCompleted())
+        .setCacheable(isCacheable())
+        .addAllBlocks(mBlocks)
+        .setTtl(mTTL)
+        .setUserName(getUserName())
+        .setGroupName(getGroupName())
+        .setPermission(getPermission())
+        .build();
+    return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
   /**

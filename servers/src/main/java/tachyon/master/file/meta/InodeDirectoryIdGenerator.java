@@ -19,14 +19,14 @@ import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
 import tachyon.master.block.ContainerIdGenerable;
-import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryRepresentable;
+import tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
- * Inode id management for directory inodes. Keep track of a block container id, along with a
- * block sequence number. If the block sequence number reaches the limit, a new block container id
- * is retrieved.
+ * Inode id management for directory inodes. Keep track of a block container id, along with a block
+ * sequence number. If the block sequence number reaches the limit, a new block container id is
+ * retrieved.
  */
 public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   private final ContainerIdGenerable mContainerIdGenerator;
@@ -57,10 +57,17 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new InodeDirectoryIdGeneratorEntry(mContainerId, mSequenceNumber);
+    InodeDirectoryIdGeneratorEntry inodeDirectoryIdGenerator =
+        InodeDirectoryIdGeneratorEntry.newBuilder()
+        .setContainerId(mContainerId)
+        .setSequenceNumber(mSequenceNumber)
+        .build();
+    return JournalEntry.newBuilder()
+        .setInodeDirectoryIdGenerator(inodeDirectoryIdGenerator)
+        .build();
   }
 
-  public void fromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
+  public void initFromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
     mContainerId = entry.getContainerId();
     mSequenceNumber = entry.getSequenceNumber();
     mInitialized = true;

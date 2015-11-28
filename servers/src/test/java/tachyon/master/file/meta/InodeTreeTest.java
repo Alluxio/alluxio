@@ -40,7 +40,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
@@ -423,25 +422,25 @@ public final class InodeTreeTest {
     Inode file1 = test1.getChild("file1");
 
     // reset the tree
-    mTree.addInodeFromJournal((InodeEntry) root.toJournalEntry());
+    mTree.addInodeFromJournal(root.toJournalEntry());
 
     // re-init the root since the tree was reset above
     root = mTree.getRoot();
 
     Assert.assertEquals(0, mTree.getInodeChildrenRecursive(root).size());
-    mTree.addInodeFromJournal((InodeEntry) nested.toJournalEntry());
+    mTree.addInodeFromJournal(nested.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested"));
 
-    mTree.addInodeFromJournal((InodeEntry) test.toJournalEntry());
+    mTree.addInodeFromJournal(test.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test"));
 
-    mTree.addInodeFromJournal((InodeEntry) test1.toJournalEntry());
+    mTree.addInodeFromJournal(test1.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1"));
 
-    mTree.addInodeFromJournal((InodeEntry) file.toJournalEntry());
+    mTree.addInodeFromJournal(file.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file"));
 
-    mTree.addInodeFromJournal((InodeEntry) file1.toJournalEntry());
+    mTree.addInodeFromJournal(file1.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file", "file1"));
   }
 

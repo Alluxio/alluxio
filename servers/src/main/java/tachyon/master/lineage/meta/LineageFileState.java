@@ -15,9 +15,56 @@
 
 package tachyon.master.lineage.meta;
 
+import tachyon.exception.ExceptionMessage;
+
 /**
  * The state of a lineage file.
  */
 public enum LineageFileState {
-  CREATED, COMPLETED, PERSISTED, PERSISENCE_REQUESTED, LOST
+  CREATED, COMPLETED, PERSISTED, PERSISENCE_REQUESTED, LOST;
+
+  /**
+   * @return the corresponding protobuf {@link tachyon.proto.journal.Lineage.LineageFileState}
+   */
+  public tachyon.proto.journal.Lineage.LineageFileState toJournalEntry() {
+    switch (this) {
+      case CREATED:
+        return tachyon.proto.journal.Lineage.LineageFileState.CREATED;
+      case COMPLETED:
+        return tachyon.proto.journal.Lineage.LineageFileState.COMPLETED;
+      case LOST:
+        return tachyon.proto.journal.Lineage.LineageFileState.LOST;
+      case PERSISENCE_REQUESTED:
+        return tachyon.proto.journal.Lineage.LineageFileState.PERSISENCE_REQUESTED;
+      case PERSISTED:
+        return tachyon.proto.journal.Lineage.LineageFileState.PERSISTED;
+      default:
+        throw new IllegalStateException(
+            ExceptionMessage.UNKNOWN_LINEAGE_FILE_STATE.getMessage(this.toString()));
+    }
+  }
+
+  /**
+   * @param state a protocol buffer lineage file state
+   * @return the corresponding {@link LineageFileState} for the given protocol buffer
+   */
+  public static LineageFileState fromJournalEntry(
+      tachyon.proto.journal.Lineage.LineageFileState state) {
+    switch (state) {
+      case CREATED:
+        return CREATED;
+      case COMPLETED:
+        return COMPLETED;
+      case LOST:
+        return LOST;
+      case PERSISENCE_REQUESTED:
+        return PERSISENCE_REQUESTED;
+      case PERSISTED:
+        return PERSISTED;
+      default:
+        throw new IllegalStateException(
+            ExceptionMessage.UNKNOWN_LINEAGE_FILE_STATE.getMessage(state.toString()));
+    }
+  }
 }
+
