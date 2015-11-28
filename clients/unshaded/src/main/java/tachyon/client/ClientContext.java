@@ -88,7 +88,7 @@ public final class ClientContext {
   }
 
   /**
-   * @return the tachyonConf for the client process
+   * @return the {@link TachyonConf} for the client process
    */
   public static synchronized TachyonConf getConf() {
     checkContextInitialized();
@@ -96,7 +96,7 @@ public final class ClientContext {
   }
 
   /**
-   * @return the ClientMetrics for this client
+   * @return the {@link ClientMetrics} for this client
    */
   public static synchronized ClientMetrics getClientMetrics() {
     checkContextInitialized();
