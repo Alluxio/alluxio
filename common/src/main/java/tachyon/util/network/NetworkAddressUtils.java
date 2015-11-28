@@ -545,7 +545,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extract rpcPort InetSocketAddress from Tachyon representation of network address.
+   * Extracts rpcPort InetSocketAddress from Tachyon representation of network address.
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress
@@ -562,7 +562,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extract dataPort InetSocketAddress from Tachyon representation of network address.
+   * Extracts dataPort InetSocketAddress from Tachyon representation of network address.
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress
