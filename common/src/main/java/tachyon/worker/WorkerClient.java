@@ -283,6 +283,7 @@ public final class WorkerClient extends ClientBase {
    *
    * @throws IOException
    */
+  // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
   @Override
   public synchronized void connect() throws IOException {
     int tries = 0;
