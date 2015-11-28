@@ -135,6 +135,14 @@ public abstract class ClientBase implements Closeable {
   }
 
   /**
+   * This method is called before the connection is disconnected. Implementations should add any
+   * additional operations before the connection is disconnected.
+   */
+  protected void beforeDisconnect() {
+    // Empty implementation.
+  }
+
+  /**
    * Connects with the remote.
    *
    * @throws IOException if an I/O error occurs
@@ -189,18 +197,12 @@ public abstract class ClientBase implements Closeable {
       mConnected = false;
     }
     try {
-      closeOperation();
+      beforeDisconnect();
+      if (mProtocol != null) {
+        mProtocol.getTransport().close();
+      }
     } finally {
       afterDisconnect();
-    }
-  }
-
-  /**
-   * Close the connection.
-   */
-  protected void closeOperation() {
-    if (mProtocol != null) {
-      mProtocol.getTransport().close();
     }
   }
 
