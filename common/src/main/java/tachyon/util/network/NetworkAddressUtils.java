@@ -545,16 +545,33 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Extract InetSocketAddress from Tachyon representation of network address.
+   * Extract rpcPort InetSocketAddress from Tachyon representation of network address.
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress
    * @throws RuntimeException if the host is not known
    */
-  public static InetSocketAddress getSocketAddress(NetAddress netAddress) {
+  public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
       int port = netAddress.rpcPort;
+      return new InetSocketAddress(host, port);
+    } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Extract dataPort InetSocketAddress from Tachyon representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @return InetSocketAddress
+   * @throws RuntimeException if the host is not known
+   */
+  public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
+    try {
+      String host = getFqdnHost(netAddress);
+      int port = netAddress.dataPort;
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);
