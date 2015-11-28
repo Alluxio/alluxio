@@ -82,7 +82,6 @@ public final class WorkerClient extends ClientBase {
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
     mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
-
   }
 
   /**
