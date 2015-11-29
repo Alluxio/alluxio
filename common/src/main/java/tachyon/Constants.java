@@ -171,7 +171,7 @@ public final class Constants {
 
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
   public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
-  public static final String MASTER_PORT = "tachyon.master.port";
+  public static final String MASTER_RPC_PORT = "tachyon.master.port";
   public static final String MASTER_ADDRESS = "tachyon.master.address";
   public static final String MASTER_WEB_HOSTNAME = "tachyon.master.web.hostname";
   public static final String MASTER_WEB_BIND_HOST = "tachyon.master.web.bind.host";
@@ -202,7 +202,7 @@ public final class Constants {
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
   public static final String WORKER_BIND_HOST = "tachyon.worker.bind.host";
-  public static final String WORKER_PORT = "tachyon.worker.port";
+  public static final String WORKER_RPC_PORT = "tachyon.worker.port";
   public static final String WORKER_DATA_HOSTNAME = "tachyon.worker.data.hostname";
   public static final String WORKER_DATA_BIND_HOST = "tachyon.worker.data.bind.host";
   public static final String WORKER_DATA_PORT = "tachyon.worker.data.port";

@@ -366,7 +366,7 @@ abstract class AbstractTFS extends FileSystem {
       mTachyonConf.merge(siteConf);
     }
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 

@@ -167,7 +167,7 @@ public final class TachyonConf {
 
     // Update tachyon.master_address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
+    String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
