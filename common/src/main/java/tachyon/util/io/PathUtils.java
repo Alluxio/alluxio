@@ -181,7 +181,7 @@ public final class PathUtils {
    * @param path a file path
    * @return a deterministic temporary file name
    */
-  public static final String temporaryFileName(long fileId, long nonce, String path) {
+  public static String temporaryFileName(long fileId, long nonce, String path) {
     return path + ".tachyon." + fileId + "." + String.format("0x%16X", nonce) + ".tmp";
   }
 
@@ -190,7 +190,7 @@ public final class PathUtils {
    *
    * @return unique path based off the caller
    */
-  public static final String uniqPath() {
+  public static String uniqPath() {
     StackTraceElement caller = new Throwable().getStackTrace()[1];
     long time = System.nanoTime();
     return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
