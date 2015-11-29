@@ -56,10 +56,11 @@ public class ConfUtils {
   }
 
   /**
-   * Loads {@link TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration} source.
+   * Loads {@link tachyon.conf.TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration}
+   * source.
    *
    * @param source the {@link org.apache.hadoop.conf.Configuration} to load from
-   * @return instance of {@link TachyonConf} to be loaded
+   * @return instance of {@link tachyon.conf.TachyonConf} to be loaded
    */
   public static TachyonConf loadFromHadoopConfiguration(Configuration source) {
     // Load TachyonConf if any and merge to the one in TachyonFS
