@@ -78,7 +78,7 @@ public class TfsShellUtils {
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      int port =  tachyonConf.getInt(Constants.MASTER_RPC_PORT);
       if (tachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }

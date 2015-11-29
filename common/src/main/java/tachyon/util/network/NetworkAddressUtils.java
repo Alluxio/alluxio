@@ -68,7 +68,7 @@ public final class NetworkAddressUtils {
      * Master RPC service (Thrift)
      */
     MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
-        Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT),
+        Constants.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
      * Master web service (Jetty)
@@ -81,7 +81,7 @@ public final class NetworkAddressUtils {
      * Worker RPC service (Thrift)
      */
     WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
-        Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT),
+        Constants.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
      * Worker data service (Netty)

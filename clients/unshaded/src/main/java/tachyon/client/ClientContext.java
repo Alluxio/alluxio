@@ -65,7 +65,7 @@ public final class ClientContext {
     sTachyonConf = conf;
 
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
+    int masterPort = sTachyonConf.getInt(Constants.MASTER_RPC_PORT);
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
     sClientMetrics = new ClientMetrics();
