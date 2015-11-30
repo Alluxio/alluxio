@@ -29,7 +29,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.FormatUtils;
 
 /**
- * Parent class for command ls and lsr.
+ * Parent class for commands ls and lsr.
  */
 public abstract class AbstractLsCommand extends WithWildCardPathCommand {
 

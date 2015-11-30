@@ -47,5 +47,4 @@ public final class UnsetTTLCommand extends AbstractTfsShellCommand {
     CommandUtils.setTTL(mTfs, inputPath, Constants.NO_TTL);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
-
 }

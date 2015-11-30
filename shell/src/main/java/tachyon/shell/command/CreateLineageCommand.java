@@ -30,6 +30,9 @@ import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 
+/**
+ * TODO(yupeng): add javadoc
+ */
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   public CreateLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
@@ -88,5 +91,4 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
     }
     System.out.println("Lineage " + lineageId + " has been created.");
   }
-
 }

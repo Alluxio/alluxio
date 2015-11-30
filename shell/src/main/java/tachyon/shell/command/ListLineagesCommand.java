@@ -16,10 +16,16 @@
 package tachyon.shell.command;
 
 import java.io.IOException;
+import java.util.List;
 
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.lineage.TachyonLineage;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.LineageInfo;
 
+/**
+ * TODO(yupeng): add javadoc
+ */
 public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   public ListLineagesCommand(TachyonConf conf, TachyonFileSystem tfs) {
@@ -38,7 +44,10 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   @Override
   public void run(String... args) throws IOException {
-    CommandUtils.listLineages();
+    TachyonLineage tl = TachyonLineage.get();
+    List<LineageInfo> infos = tl.getLineageInfoList();
+    for (LineageInfo info : infos) {
+      System.out.println(info);
+    }
   }
-
 }

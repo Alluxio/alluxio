@@ -42,10 +42,8 @@ public final class ReportCommand extends WithWildCardPathCommand {
     try {
       TachyonLineageFileSystem.get().reportLostFile(path);
       System.out.println(path + " has reported been reported as lost.");
-      CommandUtils.listLineages();
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
   }
-
 }

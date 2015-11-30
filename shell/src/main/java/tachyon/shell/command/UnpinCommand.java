@@ -41,5 +41,4 @@ public final class UnpinCommand extends WithWildCardPathCommand {
     CommandUtils.setPinned(mTfs, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
   }
-
 }

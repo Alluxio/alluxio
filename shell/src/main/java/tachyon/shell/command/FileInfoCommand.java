@@ -59,5 +59,4 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
       System.out.println(TachyonBlockStore.get().getInfo(blockId));
     }
   }
-
 }
