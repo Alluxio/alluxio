@@ -341,7 +341,7 @@ public final class FileSystemMaster extends MasterBase {
    * only contains a single object. If it is a directory, the resulting list contains all direct
    * children of the directory. Called via RPC, as well as internal masters.
    *
-   * @param fileId
+   * @param fileId the file id from which to get the {@link FileInfo} for
    * @return the list of {@link FileInfo}s
    * @throws FileDoesNotExistException
    */
