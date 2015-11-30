@@ -25,7 +25,7 @@ import tachyon.exception.TachyonException;
 /**
  * Unmounts a Tachyon path.
  */
-public class UnmountCommand extends AbstractTfsShellCommand {
+public final class UnmountCommand extends AbstractTfsShellCommand {
 
   public UnmountCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

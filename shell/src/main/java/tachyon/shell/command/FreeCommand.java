@@ -25,10 +25,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
 /**
- * Free the given file or folder from tachyon in-memory (recursively freeing all children if a
+ * Frees the given file or folder from tachyon in-memory (recursively freeing all children if a
  * folder)
  */
-public class FreeCommand extends WithWildCardPathCommand {
+public final class FreeCommand extends WithWildCardPathCommand {
 
   public FreeCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

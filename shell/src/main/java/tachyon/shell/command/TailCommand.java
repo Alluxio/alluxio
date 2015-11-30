@@ -32,7 +32,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Prints the file's last 1KB of contents to the console.
  */
-public class TailCommand extends WithWildCardPathCommand {
+public final class TailCommand extends WithWildCardPathCommand {
 
   public TailCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

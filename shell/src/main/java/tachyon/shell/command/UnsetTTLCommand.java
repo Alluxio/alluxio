@@ -23,9 +23,9 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unset the TTL value for the given path.
+ * Unsets the TTL value for the given path.
  */
-public class UnsetTTLCommand extends AbstractTfsShellCommand {
+public final class UnsetTTLCommand extends AbstractTfsShellCommand {
 
   public UnsetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

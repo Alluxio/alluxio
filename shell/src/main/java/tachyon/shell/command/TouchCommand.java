@@ -27,7 +27,7 @@ import tachyon.exception.TachyonException;
 /**
  * Creates a 0 byte file specified by argv. The file will be written to UnderFileSystem.
  */
-public class TouchCommand extends AbstractTfsShellCommand {
+public final class TouchCommand extends AbstractTfsShellCommand {
 
   public TouchCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

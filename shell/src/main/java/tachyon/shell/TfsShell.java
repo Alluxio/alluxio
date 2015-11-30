@@ -18,6 +18,7 @@ package tachyon.shell;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.reflections.Reflections;
@@ -70,22 +71,23 @@ public class TfsShell implements Closeable {
   }
 
   /**
-   * Use reflection to get all the Command classes and store them in a map.
+   * Uses reflection to get all the {@link TfsShellCommand} classes and store them in a map.
    */
   private void loadCommands() {
-    Reflections reflections = new Reflections("tachyon.shell.command");
+    String pkgName = TfsShellCommand.class.getPackage().getName();
+    Reflections reflections = new Reflections(pkgName);
     for (Class<? extends TfsShellCommand> cls : reflections.getSubTypesOf(TfsShellCommand.class)) {
-      try {
-        // Only instantiate a concrete class
-        if (!Modifier.isAbstract(cls.getModifiers())) {
-          TfsShellCommand cmd =
-              CommonUtils.createNewClassInstance(cls,
-                  new Class[] { TachyonConf.class, TachyonFileSystem.class },
-                  new Object[] { mTachyonConf, mTfs });
-          mCommands.put(cmd.getCommandName(), cmd);
+      // Only instantiate a concrete class
+      if (!Modifier.isAbstract(cls.getModifiers())) {
+        TfsShellCommand cmd;
+        try {
+          cmd = CommonUtils.createNewClassInstance(cls,
+              new Class[] { TachyonConf.class, TachyonFileSystem.class },
+              new Object[] { mTachyonConf, mTfs });
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
         }
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
+        mCommands.put(cmd.getCommandName(), cmd);
       }
     }
   }
@@ -126,20 +128,6 @@ public class TfsShell implements Closeable {
   }
 
   /**
-   * Take out the command name arg
-   *
-   * @param argv the input args
-   * @return args without the command name
-   */
-  private static String[] stripNameArg(String[] argv) {
-    String[] args = new String[argv.length - 1];
-    for (int i = 1; i < argv.length; ++ i) {
-      args[i - 1] = argv[i];
-    }
-    return args;
-  }
-
-  /**
    * Method which determines how to handle the user's request, will display usage help to the user
    * if command format is incorrect.
    *
@@ -162,7 +150,7 @@ public class TfsShell implements Closeable {
       return -1;
     }
 
-    String[] args = stripNameArg(argv);
+    String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     if (!command.validateArgs(args)) {
       printUsage();
       return -1;
@@ -177,5 +165,4 @@ public class TfsShell implements Closeable {
       return -1;
     }
   }
-
 }

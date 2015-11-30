@@ -41,10 +41,10 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
 /**
- * Copy the specified file specified by "source path" to the path specified by "remote path".
+ * Copies the specified file specified by "source path" to the path specified by "remote path".
  * This command will fail if "remote path" already exists.
  */
-public class CopyFromLocalCommand extends AbstractTfsShellCommand {
+public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
   public CopyFromLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

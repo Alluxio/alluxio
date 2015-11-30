@@ -22,7 +22,7 @@ import tachyon.client.lineage.TachyonLineage;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 
-public class DeleteLineageCommand extends AbstractTfsShellCommand {
+public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
   public DeleteLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

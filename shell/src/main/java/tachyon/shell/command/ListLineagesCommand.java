@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
-public class ListLineagesCommand extends AbstractTfsShellCommand {
+public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   public ListLineagesCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

@@ -25,7 +25,7 @@ import tachyon.conf.TachyonConf;
  * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
  * are never evicted from memory, so this method will allow such files to be evicted.
  */
-public class UnpinCommand extends WithWildCardPathCommand {
+public final class UnpinCommand extends WithWildCardPathCommand {
 
   public UnpinCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

@@ -27,7 +27,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Removes the file specified by argv.
  */
-public class RmCommand extends WithWildCardPathCommand {
+public final class RmCommand extends WithWildCardPathCommand {
 
   public RmCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

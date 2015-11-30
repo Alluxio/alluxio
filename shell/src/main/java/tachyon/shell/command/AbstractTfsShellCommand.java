@@ -19,8 +19,8 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * The base class for all the TfsShellCommand classes, provide a default argument validation method
- * and a place to hold the TachyonFileSystemt client.
+ * The base class for all the TfsShellCommand classes. It provides a default argument validation
+ * method and a place to hold the TachyonFileSystemt client.
  */
 public abstract class AbstractTfsShellCommand implements TfsShellCommand {
 
@@ -33,7 +33,7 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
   }
 
   /**
-   * The expected number of arguments of the command, excluding the command name.
+   * Gets the expected number of arguments of the command.
    *
    * @return the number of arguments
    */
@@ -48,5 +48,4 @@ public abstract class AbstractTfsShellCommand implements TfsShellCommand {
     }
     return valid;
   }
-
 }

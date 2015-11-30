@@ -27,7 +27,7 @@ import tachyon.exception.TachyonException;
  * Creates a new directory specified by the path in args, including any parent folders that are
  * required. This command fails if a directory or file with the same path already exists.
  */
-public class MkdirCommand extends AbstractTfsShellCommand {
+public final class MkdirCommand extends AbstractTfsShellCommand {
 
   public MkdirCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
