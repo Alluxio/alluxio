@@ -48,6 +48,7 @@ import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthType;
+import tachyon.shell.command.CommandUtils;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
