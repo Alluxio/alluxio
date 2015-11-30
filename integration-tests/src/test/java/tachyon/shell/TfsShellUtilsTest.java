@@ -23,12 +23,13 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.thrift.TException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
@@ -47,19 +48,14 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class TfsShellUtilsTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.GB);
   private TachyonFileSystem mTfs = null;
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonClusterResource.get().getClient();
   }
 
   @Test
@@ -118,7 +114,7 @@ public class TfsShellUtilsTest {
   }
 
   public String resetLocalFileHierarchy() throws IOException {
-    return resetLocalFileHierarchy(mLocalTachyonCluster);
+    return resetLocalFileHierarchy(mLocalTachyonClusterResource.get());
   }
 
   public static String resetLocalFileHierarchy(LocalTachyonCluster localTachyonCluster)
