@@ -62,7 +62,7 @@ public class BasicOperations implements Callable<Boolean> {
   public Boolean call() throws Exception {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
+    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
     TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     writeFile(tFS);
