@@ -29,7 +29,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Displays a list of hosts that have the file specified in args stored.
  */
-public class LocationCommand extends WithWildCardPathCommand {
+public final class LocationCommand extends WithWildCardPathCommand {
 
   public LocationCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

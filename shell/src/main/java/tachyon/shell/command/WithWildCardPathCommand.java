@@ -29,10 +29,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.shell.TfsShellUtils;
 
 /**
- * An abstract class for the commands that take exact one path that could contain wildcard
+ * An abstract class for the commands that take exactly one path that could contain wildcard
  * characters.
  *
- * It will first do a glob against the input pattern and run the command for each expanded path.
+ * It will first do a glob against the input pattern then run the command for each expanded path.
  */
 public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
 
@@ -41,10 +41,10 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
   }
 
   /**
-   * Actually run the command against one expanded path.
+   * Actually runs the command against one expanded path.
    *
    * @param path the expanded input path
-   * @throws IOException
+   * @throws IOException if the command fails
    */
   abstract void runCommand(TachyonURI path) throws IOException;
 
@@ -57,8 +57,7 @@ public abstract class WithWildCardPathCommand extends AbstractTfsShellCommand {
   public void run(String... args) throws IOException {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
-    List<TachyonURI> paths = null;
-    paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
+    List<TachyonURI> paths = TfsShellUtils.getTachyonURIs(mTfs, inputPath);
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(inputPath + " does not exist.");
     }

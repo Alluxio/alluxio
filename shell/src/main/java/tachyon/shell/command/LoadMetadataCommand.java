@@ -26,7 +26,7 @@ import tachyon.exception.TachyonException;
 /**
  * Loads metadata for the given Tachyon path from UFS.
  */
-public class LoadMetadataCommand extends AbstractTfsShellCommand {
+public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
   public LoadMetadataCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

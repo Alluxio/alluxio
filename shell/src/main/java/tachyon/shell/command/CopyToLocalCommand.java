@@ -40,7 +40,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
  */
-public class CopyToLocalCommand extends AbstractTfsShellCommand {
+public final class CopyToLocalCommand extends AbstractTfsShellCommand {
 
   public CopyToLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

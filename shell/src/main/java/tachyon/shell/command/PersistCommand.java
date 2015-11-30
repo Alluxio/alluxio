@@ -32,7 +32,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Persist a file or directory currently stored only in Tachyon to the UnderFileSystem
  */
-public class PersistCommand extends AbstractTfsShellCommand {
+public final class PersistCommand extends AbstractTfsShellCommand {
 
   public PersistCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

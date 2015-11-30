@@ -28,7 +28,7 @@ import tachyon.exception.TachyonException;
  * Removes the file or directory specified by args. Will remove all files and directories in the
  * directory if a directory is specified.
  */
-public class RmrCommand extends WithWildCardPathCommand {
+public final class RmrCommand extends WithWildCardPathCommand {
 
   public RmrCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

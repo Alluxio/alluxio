@@ -30,7 +30,7 @@ import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 
-public class CreateLineageCommand extends AbstractTfsShellCommand {
+public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   public CreateLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

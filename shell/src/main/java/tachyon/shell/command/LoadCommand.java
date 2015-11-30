@@ -33,9 +33,9 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
 /**
- * Load a file or directory in Tachyon space, makes it resident in memory.
+ * Loads a file or directory in Tachyon space, makes it resident in memory.
  */
-public class LoadCommand extends WithWildCardPathCommand {
+public final class LoadCommand extends WithWildCardPathCommand {
 
   public LoadCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

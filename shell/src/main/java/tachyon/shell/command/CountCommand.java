@@ -29,7 +29,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Displays the number of folders and files matching the specified prefix in args.
  */
-public class CountCommand extends AbstractTfsShellCommand {
+public final class CountCommand extends AbstractTfsShellCommand {
 
   public CountCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

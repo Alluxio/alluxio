@@ -28,7 +28,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Displays the file's all blocks info.
  */
-public class FileInfoCommand extends WithWildCardPathCommand {
+public final class FileInfoCommand extends WithWildCardPathCommand {
 
   public FileInfoCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

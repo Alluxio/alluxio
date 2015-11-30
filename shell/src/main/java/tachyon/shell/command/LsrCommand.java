@@ -25,7 +25,7 @@ import tachyon.conf.TachyonConf;
  * Displays information for all directories and files under the path specified in args
  * recursively.
  */
-public class LsrCommand extends WithWildCardPathCommand {
+public final class LsrCommand extends AbstractLsCommand {
 
   public LsrCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
@@ -38,7 +38,6 @@ public class LsrCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.ls(mTfs, path, true);
+    ls(path, true);
   }
-
 }

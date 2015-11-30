@@ -26,7 +26,7 @@ import tachyon.exception.TachyonException;
 /**
  * Renames a file or directory specified by args. Will fail if the new path name already exists.
  */
-public class MvCommand extends AbstractTfsShellCommand {
+public final class MvCommand extends AbstractTfsShellCommand {
 
   public MvCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

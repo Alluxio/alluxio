@@ -25,7 +25,7 @@ import tachyon.conf.TachyonConf;
  * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
  * never evicted from memory.
  */
-public class PinCommand extends WithWildCardPathCommand {
+public final class PinCommand extends WithWildCardPathCommand {
 
   public PinCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

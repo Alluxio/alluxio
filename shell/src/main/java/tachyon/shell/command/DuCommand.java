@@ -28,7 +28,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Displays the size of a file or a directory specified by argv.
  */
-public class DuCommand extends WithWildCardPathCommand {
+public final class DuCommand extends WithWildCardPathCommand {
 
   public DuCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
