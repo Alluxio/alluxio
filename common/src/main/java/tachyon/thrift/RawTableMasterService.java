@@ -77,6 +77,7 @@ public class RawTableMasterService {
      * Updates raw table metadata.
      * 
      * @param tableId the id of the table
+     *
      * @param metadata the metadata for the table
      */
     public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;

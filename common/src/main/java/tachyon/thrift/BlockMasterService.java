@@ -41,6 +41,7 @@ public class BlockMasterService {
 
     /**
      * Returns the block information for the given block id.
+     *
      * @param blockId the id of the block
      */
     public tachyon.thrift.BlockInfo getBlockInfo(long blockId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
