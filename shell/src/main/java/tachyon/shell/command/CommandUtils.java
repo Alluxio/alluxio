@@ -56,7 +56,7 @@ public final class CommandUtils {
   }
 
   /**
-   * Convert a millisecond number to a formatted date String.
+   * Converts a millisecond number to a formatted date String.
    *
    * @param millis a long millisecond number
    * @return formatted date String
@@ -67,7 +67,7 @@ public final class CommandUtils {
   }
 
   /**
-   * Set pin state for the input path
+   * Sets pin state for the input path
    *
    * @param tfs The TachyonFileSystem client
    * @param path The TachyonURI path as the input of the command
