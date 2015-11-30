@@ -22,6 +22,9 @@ import tachyon.client.lineage.TachyonLineage;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 
+/**
+ * TODO(yupeng): add javadoc
+ */
 public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
   public DeleteLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
@@ -53,5 +56,4 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
     }
     System.out.println("Lineage " + lineageId + " has been deleted.");
   }
-
 }

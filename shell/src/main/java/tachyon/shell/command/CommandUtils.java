@@ -19,16 +19,13 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.SetStateOptions;
-import tachyon.client.lineage.TachyonLineage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.LineageInfo;
 
 /**
  * Common util methods for executing commands.
@@ -40,7 +37,7 @@ public final class CommandUtils {
   }
 
   /**
-   * Sets a new TTL value or unset an existing TTL value for file at path.
+   * Sets a new TTL value or unsets an existing TTL value for file at path.
    *
    * @param path the file path
    * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
@@ -59,21 +56,14 @@ public final class CommandUtils {
   }
 
   /**
-   * Convert a millisecond number to a formatted date String
+   * Convert a millisecond number to a formatted date String.
+   *
    * @param millis a long millisecond number
    * @return formatted date String
    */
   public static String convertMsToDate(long millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(millis));
-  }
-
-  public static void listLineages() throws IOException {
-    TachyonLineage tl = TachyonLineage.get();
-    List<LineageInfo> infos = tl.getLineageInfoList();
-    for (LineageInfo info : infos) {
-      System.out.println(info);
-    }
   }
 
   /**

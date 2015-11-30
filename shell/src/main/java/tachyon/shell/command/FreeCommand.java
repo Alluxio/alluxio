@@ -50,5 +50,4 @@ public final class FreeCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
   }
-
 }

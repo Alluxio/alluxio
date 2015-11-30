@@ -52,5 +52,4 @@ public final class SetTTLCommand extends AbstractTfsShellCommand {
     System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
         + " milliseconds.");
   }
-
 }

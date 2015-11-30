@@ -57,5 +57,4 @@ public final class MvCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
   }
-
 }

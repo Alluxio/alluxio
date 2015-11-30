@@ -86,5 +86,4 @@ public final class CountCommand extends AbstractTfsShellCommand {
     }
     return rtn;
   }
-
 }

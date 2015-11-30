@@ -200,5 +200,4 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
   }
-
 }

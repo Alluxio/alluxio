@@ -60,5 +60,4 @@ public final class RmCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
   }
-
 }

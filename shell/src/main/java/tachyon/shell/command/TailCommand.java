@@ -81,5 +81,4 @@ public final class TailCommand extends WithWildCardPathCommand {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
   }
-
 }
