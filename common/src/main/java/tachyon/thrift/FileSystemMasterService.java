@@ -44,7 +44,7 @@ public class FileSystemMasterService {
      * 
      * @param fileId the id of the file
      * 
-     * @param options the options for completing the file
+     * @param options the method options
      */
     public void completeFile(long fileId, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
@@ -2908,7 +2908,7 @@ public class FileSystemMasterService {
      */
     public long fileId; // required
     /**
-     * the options for completing the file
+     * the method options
      */
     public CompleteFileTOptions options; // required
 
@@ -2919,7 +2919,7 @@ public class FileSystemMasterService {
        */
       FILE_ID((short)1, "fileId"),
       /**
-       * the options for completing the file
+       * the method options
        */
       OPTIONS((short)2, "options");
 
@@ -3058,14 +3058,14 @@ public class FileSystemMasterService {
     }
 
     /**
-     * the options for completing the file
+     * the method options
      */
     public CompleteFileTOptions getOptions() {
       return this.options;
     }
 
     /**
-     * the options for completing the file
+     * the method options
      */
     public completeFile_args setOptions(CompleteFileTOptions options) {
       this.options = options;
