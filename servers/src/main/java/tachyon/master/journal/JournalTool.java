@@ -15,14 +15,15 @@
 
 package tachyon.master.journal;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.commons.lang3.StringUtils;
 
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.util.CommonUtils;
 
 /**
  * Tool for reading the journal. It reads binary journal entries and prints human-readable ones to
@@ -30,31 +31,28 @@ import tachyon.proto.journal.Journal.JournalEntry;
  *
  * <pre>
  * java -cp assembly/target/tachyon-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
- *   tachyon.master.journal.JournalTool journal/FileSystemMaster/log.out
+ *   tachyon.master.journal.JournalTool < journal/FileSystemMaster/log.out
  * </pre>
  */
 public final class JournalTool {
-  /** Number of dashes to place on a newline at the end of each journal entry. */
-  private static final int NUM_DASHES = 80;
+  /** Separator to place at the end of each journal entry. */
+  private static final String ENTRY_SEPARATOR = StringUtils.repeat('-', 80);
   /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
-  private static final long TIMEOUT_MS = 500;
+  private static final long TIMEOUT_MS =
+      new TachyonConf().getLong(Constants.MASTER_JOURNAL_TOOL_STDIN_TIMEOUT_MS);
 
   public static void main(String[] args) throws FileNotFoundException, IOException {
-    InputStream inStream = null;
-    if (args.length == 0 && stdinHasData()) {
-      inStream = System.in;
-    } else if (args.length == 1) {
-      inStream = new FileInputStream(args[0]);
-    } else {
+    if (!(args.length == 0 && stdinHasData())) {
       usage();
       System.exit(-1);
     }
+
     JournalFormatter formatter = new ProtoBufJournalFormatter();
-    JournalInputStream journalStream = formatter.deserialize(inStream);
+    JournalInputStream journalStream = formatter.deserialize(System.in);
     JournalEntry entry;
     while ((entry = journalStream.getNextEntry()) != null) {
       System.out.print(entry);
-      System.out.println(StringUtils.repeat('-', NUM_DASHES));
+      System.out.println(ENTRY_SEPARATOR);
     }
   }
 
@@ -67,14 +65,13 @@ public final class JournalTool {
       if (System.currentTimeMillis() - start > TIMEOUT_MS) {
         return false;
       }
+      CommonUtils.sleepMs(50);
     }
     return true;
   }
 
   private static void usage() {
-    System.out.println(
-        "JournalTool [journal_file]\n"
-      + "            The journal file to read may either be streamed through stdin, or\n"
-      + "            provided on the command line.");
+    System.out.println("JournalTool < /path/to/journal");
+    System.out.println("            The journal file should be provided through stdin.");
   }
 }
