@@ -31,8 +31,8 @@ storage system address. You specify it by modifying `conf/tachyon-env.sh` to inc
 export TACHYON_UNDERFS_ADDRESS=swift://containter.swift1
 ```
 
-Where `container` is an existing Swift container and `swift1` is a profile in `core-sites.xml`. By
-default, Tachyon uses the `conf` directory to load `core-sites.xml`. To specify a different location,
+Where `container` is an existing Swift container and `swift1` is a profile in `core-site.xml`. By
+default, Tachyon uses the `conf` directory to load `core-site.xml`. To specify a different location,
 please configure `tachyon.underfs.hadoop.configuration` accordingly.
 
 Swift depends on Hadoop version 2.3.0 or later and can be configured via `hadoop-openstack.version`
@@ -45,8 +45,8 @@ $ mvn -Dhadoop.version=2.4.0 clean package
 
 # Configuring Hadoop
 
-After the build is successful, the `core-sites.xml` configuration file needs to be changed. The
-configuration template can be found in the `conf/core-sites.xml.template` file; it
+After the build is successful, the `core-site.xml` configuration file needs to be changed. The
+configuration template can be found in the `conf/core-site.xml.template` file; it
 contains three example sections: local Swift based on Keystone authentication model, local Swift
 based on temp authentication model, and SoftLayer public object store. The general structure of the
 parameters is `fs.swift.service.<PROFILE>.<PARAMETER>` where `<PROFILE>` is a name that will be
@@ -55,7 +55,7 @@ would be
 
 	swift://<SWIFT CONTAINER>.swift1/
 
-Edit `core-sites.xml` and update `fs.swift.service.<PROFILE>.auth.url`.
+Edit `core-site.xml` and update `fs.swift.service.<PROFILE>.auth.url`.
 
 For Swift using Temp Auth or SoftLayer, update:
 
