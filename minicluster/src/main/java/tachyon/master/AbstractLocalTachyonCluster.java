@@ -50,7 +50,7 @@ public abstract class AbstractLocalTachyonCluster {
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
   private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
   private static final String ELLIPSIS = "…";
-  private static Random sRandomGenerator = new Random();
+  private static final Random RANDOM_GENERATOR = new Random();
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
@@ -235,7 +235,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     // Set the journal folder
     String journalFolder =
-        mUfsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
+        mUfsCluster.getUnderFilesystemAddress() + "/journal" + RANDOM_GENERATOR.nextLong();
     conf.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
 
     // Format the journal
