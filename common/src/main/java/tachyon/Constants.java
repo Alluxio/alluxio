@@ -166,6 +166,8 @@ public final class Constants {
       "tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms";
   public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
       "tachyon.master.journal.tailer.sleep.time.ms";
+  public static final String MASTER_JOURNAL_TOOL_STDIN_TIMEOUT_MS =
+      "tachyon.master.journal.tool.stdin.timeout.ms";
   public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       "tachyon.master.journal.log.size.bytes.max";
 
