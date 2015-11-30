@@ -143,7 +143,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mMaster.start();
 
     // Update the test conf with actual RPC port.
-    testConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+    testConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
 
     // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
     // the cluster's current address. This must happen here because the cluster isn't initialized
