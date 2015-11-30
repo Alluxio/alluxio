@@ -61,7 +61,7 @@ public abstract class AbstractLocalTachyonCluster {
 
   protected BlockWorker mWorker;
   protected LineageWorker mLineageWorker;
-  protected UnderFileSystemCluster mUfsCluster = null;
+  protected UnderFileSystemCluster mUfsCluster;
 
   protected String mTachyonHome;
   protected String mHostname;
