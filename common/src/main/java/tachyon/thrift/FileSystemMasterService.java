@@ -77,12 +77,14 @@ public class FileSystemMasterService {
 
     /**
      * Returns the list of file blocks information for the given file.
+     *
      * @param fileId the id of the file
      */
     public List<tachyon.thrift.FileBlockInfo> getFileBlockInfoList(long fileId) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Returns the file id for the given path.
+     *
      * @param path the path of the file
      */
     public long getFileId(String path) throws org.apache.thrift.TException;

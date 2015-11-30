@@ -50,6 +50,10 @@ public class LineageMasterService {
      * Creates a lineage and returns the lineage id
      * 
      * @param inputFiles the list of input files
+<<<<<<< HEAD
+=======
+     * 
+>>>>>>> c2dc974c1019680fd2858737d7f5b636c147ad51
      * @param outputFiles the list of output files
      * 
      * @param job the command line job info
@@ -60,6 +64,10 @@ public class LineageMasterService {
      * Deletes a lineage and returns whether the deletion succeeded.
      * 
      * @param lineageId the lineage id
+<<<<<<< HEAD
+=======
+     * 
+>>>>>>> c2dc974c1019680fd2858737d7f5b636c147ad51
      * @param cascade whether to delete the lineage in cascade
      */
     public boolean deleteLineage(long lineageId, boolean cascade) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
@@ -74,6 +82,7 @@ public class LineageMasterService {
      * file is lost or not completed, -1 otherwise
      * 
      * @param path the path of the file
+     *
      * @param blockSizeBytes block size in bytes
      * 
      * @param ttl time to live

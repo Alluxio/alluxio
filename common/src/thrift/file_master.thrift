@@ -56,6 +56,7 @@ service FileSystemMasterService extends common.TachyonService {
 
   /**
    * Creates a file and returns the id of the file
+   */
   i64 create( /** the path of the file */ 1: string path,
       /** the options for completing the file */ 2: CreateTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
