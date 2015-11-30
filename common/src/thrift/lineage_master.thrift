@@ -49,7 +49,7 @@ service LineageMasterService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Creates a lineage and returns the lineage id
+   * Creates a lineage and returns the lineage id.
    */
   i64 createLineage( /** the list of input files */ 1: list<string> inputFiles,
       /** the list of output files */ 2: list<string> outputFiles,
@@ -70,7 +70,7 @@ service LineageMasterService extends common.TachyonService {
 
   /**
    * Reinitializes a file. Returns the id of the reinitialized file when the
-   * file is lost or not completed, -1 otherwise
+   * file is lost or not completed, -1 otherwise.
    */
   i64 reinitializeFile( /** the path of the file */ 1: string path,
       /** block size in bytes */ 2: i64 blockSizeBytes,
@@ -85,7 +85,7 @@ service LineageMasterService extends common.TachyonService {
 
   /**
    * Periodic lineage worker heartbeat. Returns the command for checkpointing
-   * the blocks of a file
+   * the blocks of a file.
    */
   LineageCommand workerLineageHeartbeat( /** the id of the worker */ 1: i64 workerId,
       /** the list of persisted files */ 2: list<i64> persistedFiles)

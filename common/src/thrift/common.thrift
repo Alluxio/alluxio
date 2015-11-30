@@ -21,7 +21,7 @@ struct BlockLocation {
 
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
-* offset in the file, and the under file system locations of the block replicas
+* offset in the file, and the under file system locations of the block replicas.
 */
 struct FileBlockInfo {
   1: BlockInfo blockInfo

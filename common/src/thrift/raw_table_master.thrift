@@ -17,7 +17,7 @@ struct RawTableInfo {
 service RawTableMasterService extends common.TachyonService {
 
   /**
-   * Creates a raw table and returns the raw table id
+   * Creates a raw table and returns the raw table id.
    */
   i64 createRawTable( /** the RPC options */ 1: common.RpcOptions rpcOptions,
       /** the path of the raw table */ 2: string path,
