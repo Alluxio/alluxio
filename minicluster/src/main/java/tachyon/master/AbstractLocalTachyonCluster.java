@@ -68,6 +68,14 @@ public abstract class AbstractLocalTachyonCluster {
 
   protected Thread mWorkerThread;
 
+  /** The names of all the master services, for creating journal folders. */
+  protected String[] mMasterServiceNames = new String[] {
+      Constants.BLOCK_MASTER_NAME,
+      Constants.FILE_SYSTEM_MASTER_NAME,
+      Constants.LINEAGE_MASTER_NAME,
+      Constants.RAW_TABLE_MASTER_NAME,
+  };
+
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
@@ -232,13 +240,7 @@ public abstract class AbstractLocalTachyonCluster {
 
     // Format the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder, conf);
-    String[] masterServiceNames = new String[] {
-        Constants.BLOCK_MASTER_NAME,
-        Constants.FILE_SYSTEM_MASTER_NAME,
-        Constants.RAW_TABLE_MASTER_NAME,
-        Constants.LINEAGE_MASTER_NAME,
-    };
-    for (String masterServiceName : masterServiceNames) {
+    for (String masterServiceName : mMasterServiceNames) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
           conf);
     }
