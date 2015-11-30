@@ -6,12 +6,12 @@ include "exception.thrift"
 service WorkerService extends common.TachyonService {
 
   /**
-   * access a block given the block id
+   * access a block given the block id.
    */
   void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
 
   /**
-   * asynchronously checkpoint a file: return whether the checkpoint operation succeeded
+   * asynchronously checkpoint a file: return whether the checkpoint operation succeeded.
    */
   bool asyncCheckpoint( /** the id of the file being accessed */ 1: i64 fileId)
     throws (1: exception.TachyonTException e)

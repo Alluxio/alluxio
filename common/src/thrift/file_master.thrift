@@ -55,14 +55,14 @@ service FileSystemMasterService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Creates a file and returns the id of the file
+   * Creates a file and returns the id of the file.
    */
   i64 create( /** the path of the file */ 1: string path,
       /** the options for completing the file */ 2: CreateTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Frees the given file from Tachyon and returns whether the free operation succeeded
+   * Frees the given file from Tachyon and returns whether the free operation succeeded.
    */
   bool free( /** the id of the file */ 1: i64 fileId,
       /** whether to free recursively */ 2: bool recursive)
@@ -121,11 +121,10 @@ service FileSystemMasterService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Creates a directory and returns whether the directory is
-   * created successfully
+   * Creates a directory and returns whether the directory is created successfully.
    */
   bool mkdir( /** the path of the directory */ 1: string path,
-      /** the options of this command */ 2: MkdirTOptions options)
+      /** the method options */ 2: MkdirTOptions options)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
@@ -137,7 +136,7 @@ service FileSystemMasterService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Deletes a file or a directory and returns whether the remove operation succeeded
+   * Deletes a file or a directory and returns whether the remove operation succeeded.
    * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
    */
   bool remove( /** the id of the file or directory */ 1: i64 id,
@@ -145,7 +144,7 @@ service FileSystemMasterService extends common.TachyonService {
     throws (1: exception.TachyonTException e)
 
   /**
-   * Renames a file or a directory and returns whether the rename operation succeeded
+   * Renames a file or a directory and returns whether the rename operation succeeded.
    */
   bool rename( /** the id of the file */ 1: i64 fileId,
       /** the desinationpath of the file */ 2: string dstPath)
@@ -155,7 +154,7 @@ service FileSystemMasterService extends common.TachyonService {
    * Sets file state.
    */
   void setState( /** the id of the file */ 1: i64 fileId,
-       /** the options of setting the file state */ 2: SetStateTOptions options)
+       /** the method options */ 2: SetStateTOptions options)
 
   /**
    * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
