@@ -1106,8 +1106,8 @@ public class TfsShellTest {
    *
    * @param file The file to persist
    * @param size The size of the file
-   * @throws TachyonException
-   * @throws IOException
+   * @throws TachyonException Thrown when the file cannot be freed
+   * @throws IOException Thrown either when the file cannot be freed or read
    */
   private void checkFilePersisted(TachyonFile file, int size) throws TachyonException, IOException {
     Assert.assertTrue(mTfs.getInfo(file).isIsPersisted());
