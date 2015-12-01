@@ -60,8 +60,8 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
 /**
- * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class
- * really just delegates to {@link TachyonFileSystem} for most operations.
+ * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
+ * to {@link TachyonFileSystem} for most operations.
  *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
