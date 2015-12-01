@@ -19,8 +19,9 @@ import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 
 /**
- * A shared context in each client JVM for common File System client functionality such as a pool
- * of master clients. This class is thread safe.
+ * A shared context in each client JVM for common file master client functionality such as a pool of
+ * master clients. Any remote clients will be created and destroyed on a per use basis. This class
+ * is thread safe.
  */
 public enum FileSystemContext {
   INSTANCE;
@@ -49,9 +50,10 @@ public enum FileSystemContext {
   /**
    * Releases a block master client into the block master client pool.
    *
-   * NOTE: the client pool is already thread-safe. Synchronizing on FileSystemContext will lead to
-   * deadlock: thread A acquired a client and awaits for FileSystemContext to release the client,
-   * while thread B holds the lock of FileSystemContext but waits for available clients.
+   * NOTE: the client pool is already thread-safe. Synchronizing on {@link FileSystemContext} will
+   * lead to deadlock: thread A acquired a client and awaits for {@link FileSystemContext} to
+   * release the client, while thread B holds the lock of {@link FileSystemContext} but waits for
+   * available clients.
    *
    * @param masterClient a block master client to release
    */

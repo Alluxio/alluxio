@@ -33,8 +33,8 @@ import tachyon.job.Job;
 import tachyon.thrift.LineageInfo;
 
 /**
- * A LineageClient implementation. This class does not access the master client directly but goes
- * through the implementations provided in {@link AbstractLineageClient}.
+ * A {@link LineageClient} implementation. This class does not access the master client directly
+ * but goes through the implementations provided in {@link AbstractLineageClient}.
  */
 @PublicApi
 public final class TachyonLineage extends AbstractLineageClient {

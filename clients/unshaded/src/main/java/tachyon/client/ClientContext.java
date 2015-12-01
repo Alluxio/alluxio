@@ -65,7 +65,7 @@ public final class ClientContext {
     sTachyonConf = conf;
 
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
+    int masterPort = sTachyonConf.getInt(Constants.MASTER_RPC_PORT);
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
     sClientMetrics = new ClientMetrics();
@@ -77,16 +77,18 @@ public final class ClientContext {
     sExecutorService = Executors.newFixedThreadPool(
         sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-    // We must set sInitialized to true before resetting BlockStoreContext and FileSystemContext
-    // as they need ClientContext initialized.
+    // If this isn't the first time setting the ClientContext, we should reset other contexts so
+    // that they can see the latest changes
+    if (sInitialized) {
+      BlockStoreContext.INSTANCE.reset();
+      FileSystemContext.INSTANCE.reset();
+      RawTableContext.INSTANCE.reset();
+    }
     sInitialized = true;
-    BlockStoreContext.INSTANCE.reset();
-    FileSystemContext.INSTANCE.reset();
-    RawTableContext.INSTANCE.reset();
   }
 
   /**
-   * @return the tachyonConf for the client process
+   * @return the {@link TachyonConf} for the client process
    */
   public static synchronized TachyonConf getConf() {
     checkContextInitialized();
@@ -94,7 +96,7 @@ public final class ClientContext {
   }
 
   /**
-   * @return the ClientMetrics for this client
+   * @return the {@link ClientMetrics} for this client
    */
   public static synchronized ClientMetrics getClientMetrics() {
     checkContextInitialized();

@@ -199,7 +199,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.master.journal.formatter.class</td>
-  <td>tachyon.master.journal.&#8203;JsonJournalFormatter</td>
+  <td>tachyon.master.journal.&#8203;ProtoBufJournalFormatter</td>
   <td>The class to serialize the journal in a specified format.</td>
 </tr>
 <tr>

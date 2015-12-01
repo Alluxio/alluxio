@@ -58,8 +58,8 @@ public class TfsShellUtils {
   }
 
   /**
-   * Validates the path, verifying that it contains the <code>Constants.HEADER </code> or
-   * <code>Constants.HEADER_FT</code> and a hostname:port specified.
+   * Validates the path, verifying that it contains the {@link Constants#HEADER} or
+   * {@link Constants#HEADER_FT} and a hostname:port specified.
    *
    * @param path the path to be verified
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used
@@ -78,7 +78,7 @@ public class TfsShellUtils {
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      int port =  tachyonConf.getInt(Constants.MASTER_RPC_PORT);
       if (tachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }

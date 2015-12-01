@@ -17,8 +17,10 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import org.apache.thrift.TMultiplexedProcessor;
+import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -149,7 +151,7 @@ public class TachyonMaster {
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master port
-      conf.set(Constants.MASTER_PORT, Integer.toString(mPort));
+      conf.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
 
       // Check the journal directory
@@ -179,6 +181,10 @@ public class TachyonMaster {
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
       mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
+
+      mWebServer =
+          new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+              ServiceType.MASTER_WEB, conf), this, conf);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -196,7 +202,7 @@ public class TachyonMaster {
    * @return the actual bind hostname on RPC service (used by unit test only)
    */
   public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
+    return NetworkAddressUtils.getThriftSocket(mTServerSocket).getInetAddress().getHostAddress();
   }
 
   /**
@@ -322,26 +328,27 @@ public class TachyonMaster {
   }
 
   protected void startServingWebServer() {
-    // start web ui
-    TachyonConf conf = MasterContext.getConf();
-    mWebServer =
-        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-            ServiceType.MASTER_WEB, conf), this, conf);
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
+    // start web ui
     mWebServer.startWebServer();
+  }
+
+  private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
+    for (Map.Entry<String, TProcessor> service : services.entrySet()) {
+      processor.registerProcessor(service.getKey(), service.getValue());
+    }
   }
 
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    processor.registerProcessor(mBlockMaster.getServiceName(), mBlockMaster.getProcessor());
-    processor.registerProcessor(mFileSystemMaster.getServiceName(),
-        mFileSystemMaster.getProcessor());
-    processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
+    registerServices(processor, mBlockMaster.getServices());
+    registerServices(processor, mFileSystemMaster.getServices());
     if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
-      processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
+      registerServices(processor, mLineageMaster.getServices());
     }
+    registerServices(processor, mRawTableMaster.getServices());
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;

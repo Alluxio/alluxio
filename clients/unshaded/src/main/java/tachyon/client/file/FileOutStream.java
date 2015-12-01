@@ -45,8 +45,8 @@ import tachyon.util.io.PathUtils;
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
  * Tachyon space in the local machine or remote machines. If the
- * {@link tachyon.client.UnderStorageType} is SYNC_PERSIST, another stream will write the data to
- * the under storage system.
+ * {@link UnderStorageType} is {@link UnderStorageType#SYNC_PERSIST}, another stream will write the
+ * data to the under storage system.
  */
 @PublicApi
 public class FileOutStream extends OutputStream implements Cancelable {

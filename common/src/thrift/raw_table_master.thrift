@@ -14,7 +14,10 @@ struct RawTableInfo {
   5: binary metadata
 }
 
-service RawTableMasterService extends common.TachyonService {
+/**
+ * This interface contains raw table master service endpoints for Tachyon clients.
+ */
+service RawTableMasterClientService extends common.TachyonService {
 
   /**
    * Creates a raw table and returns the raw table id.

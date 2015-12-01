@@ -71,7 +71,7 @@ public final class MkdirOptions {
     }
 
     /**
-     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
      *
      * @param underStorageType the under storage type to use
      * @return the builder
@@ -91,9 +91,9 @@ public final class MkdirOptions {
     }
 
     /**
-     * Builds a new instance of {@code MkdirOptions}.
+     * Builds a new instance of {@link MkdirOptions}.
      *
-     * @return a {@code MkdirOptions} instance
+     * @return a {@link MkdirOptions} instance
      */
     @Override
     public MkdirOptions build() {
@@ -102,7 +102,7 @@ public final class MkdirOptions {
   }
 
   /**
-   * @return the default {@code MkdirOptions}
+   * @return the default {@link MkdirOptions}
    */
   public static MkdirOptions defaults() {
     return new Builder().build();

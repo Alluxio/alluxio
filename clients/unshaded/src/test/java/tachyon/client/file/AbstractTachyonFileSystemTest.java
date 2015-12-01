@@ -268,7 +268,7 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileSystemMasterClient.getFileId("/")).thenReturn(NO_FILE_CODE);
     try {
       mFileSystem.open(new TachyonURI("/"), openOptions);
-      Assert.fail("open should throw InvalidPathException if the file doesn't exist");;
+      Assert.fail("open should throw InvalidPathException if the file doesn't exist");
     } catch (InvalidPathException e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/"), e.getMessage());
     }

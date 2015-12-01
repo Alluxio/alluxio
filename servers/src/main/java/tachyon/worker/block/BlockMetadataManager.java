@@ -127,6 +127,12 @@ public class BlockMetadataManager {
    */
   public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
       throws WorkerOutOfSpaceException, BlockAlreadyExistsException, BlockDoesNotExistException {
+    long blockId = tempBlockMeta.getBlockId();
+    if (hasBlockMeta(blockId)) {
+      BlockMeta blockMeta = getBlockMeta(blockId);
+      throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
+          blockMeta.getBlockLocation().tierAlias()));
+    }
     BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
@@ -139,6 +145,7 @@ public class BlockMetadataManager {
    * @param sessionId the ID of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids
    *        will be ignored.
+   * @deprecated As of version 0.8.
    */
   @Deprecated
   public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
@@ -376,6 +383,7 @@ public class BlockMetadataManager {
    * @throws BlockAlreadyExistsException when the block to move already exists in the destination
    * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
    *         move
+   * @deprecated As of version 0.8. Use {@link #moveBlockMeta(BlockMeta, TempBlockMeta)} instead.
    */
   @Deprecated
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)

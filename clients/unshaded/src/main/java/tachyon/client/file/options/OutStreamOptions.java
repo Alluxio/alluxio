@@ -73,7 +73,7 @@ public final class OutStreamOptions {
     }
 
     /**
-     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
      *
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
@@ -84,7 +84,7 @@ public final class OutStreamOptions {
     }
 
     /**
-     * This is an advanced API, use {@link Builder#setWriteType} when possible.
+     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
      *
      * @param underStorageType the under storage type to use
      * @return the builder
@@ -117,9 +117,9 @@ public final class OutStreamOptions {
     }
 
     /**
-     * Builds a new instance of {@code OutStreamOptions}.
+     * Builds a new instance of {@link OutStreamOptions}.
      *
-     * @return a {@code OutStreamOptions} instance
+     * @return a {@link OutStreamOptions} instance
      */
     @Override
     public OutStreamOptions build() {
@@ -134,7 +134,7 @@ public final class OutStreamOptions {
   private final long mTTL;
 
   /**
-   * @return the default {@code OutStreamOptions}
+   * @return the default {@link OutStreamOptions}
    */
   public static OutStreamOptions defaults() {
     return new Builder().build();
