@@ -15,13 +15,17 @@
 
 package tachyon.master.journal;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
+import tachyon.Version;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.util.CommonUtils;
 
@@ -38,13 +42,27 @@ public final class JournalTool {
   /** Separator to place at the end of each journal entry. */
   private static final String ENTRY_SEPARATOR = StringUtils.repeat('-', 80);
   /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
-  private static final long TIMEOUT_MS =
-      new TachyonConf().getLong(Constants.MASTER_JOURNAL_TOOL_STDIN_TIMEOUT_MS);
+  private static final long TIMEOUT_MS = 2000;
+  private static final int EXIT_FAILED = -1;
+  private static final int EXIT_SUCCEEDED = -1;
+  private static final Options OPTIONS = new Options()
+      .addOption("help", false, "Show help for this test")
+      .addOption("noTimeout", false, "Wait indefinitely for stdin to supply input");
 
-  public static void main(String[] args) throws FileNotFoundException, IOException {
-    if (!(args.length == 0 && stdinHasData())) {
+  private static boolean sNoTimeout = false;
+  private static boolean sHelp = false;
+
+  public static void main(String[] args) throws IOException {
+    if (!parseInputArgs(args)) {
       usage();
-      System.exit(-1);
+      System.exit(EXIT_FAILED);
+    }
+    if (sHelp) {
+      usage();
+      System.exit(EXIT_SUCCEEDED);
+    }
+    if (!sNoTimeout && !stdinHasData()) {
+      System.exit(EXIT_FAILED);
     }
 
     JournalFormatter formatter = new ProtoBufJournalFormatter();
@@ -57,12 +75,35 @@ public final class JournalTool {
   }
 
   /**
+   * Parse the input args with a command line format, using
+   * {@link org.apache.commons.cli.CommandLineParser}.
+   *
+   * @param args the input args
+   * @return true if parsing succeeded.
+   */
+  private static boolean parseInputArgs(String[] args) {
+    CommandLineParser parser = new BasicParser();
+    CommandLine cmd = null;
+    try {
+      cmd = parser.parse(OPTIONS, args);
+    } catch (ParseException e) {
+      System.out.println("Failed to parse input args: " + e);
+      return false;
+    }
+    sNoTimeout = cmd.hasOption("noTimeout");
+    sHelp = cmd.hasOption("help");
+    return true;
+  }
+
+  /**
    * @return true if stdin has data before TIMEOUT_MS elapses
    */
   private static boolean stdinHasData() throws IOException {
     long start = System.currentTimeMillis();
     while (System.in.available() == 0) {
       if (System.currentTimeMillis() - start > TIMEOUT_MS) {
+        System.out.println(
+            "Timed out waiting for input from stdin. Use -noTimeout to wait longer.");
         return false;
       }
       CommonUtils.sleepMs(50);
@@ -71,7 +112,10 @@ public final class JournalTool {
   }
 
   private static void usage() {
-    System.out.println("JournalTool < /path/to/journal");
-    System.out.println("            The journal file should be provided through stdin.");
+    new HelpFormatter().printHelp(
+        "java -cp tachyon-" + Version.VERSION
+            + "-jar-with-dependencies.jar tachyon.master.journal.JournalTool",
+        "Read a tachyon journal from stdin and write it human-readably to stdout", OPTIONS, "",
+        true);
   }
 }
