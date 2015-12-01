@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -345,11 +346,28 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        if (mFs.exists(new Path(path))) {
+        Path hdfsPath = new Path(path);
+        if (mFs.exists(hdfsPath)) {
           LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
-        return mFs.mkdirs(new Path(path), PERMISSION);
+        Stack<Path> toCreate = new Stack<Path>();
+        toCreate.push(hdfsPath);
+        Path parent = hdfsPath.getParent();
+        // Create parents one by one with explicit permissions to ensure no umask is applied, using
+        // mkdirs will apply the permission only to the last directory
+        while (!mFs.exists(parent)) {
+          toCreate.push(parent);
+          parent = parent.getParent();
+        }
+        while (!toCreate.empty()) {
+          LOG.info("Creating directory: " + path + " with permission " + PERMISSION);
+          if (!FileSystem.mkdirs(mFs, toCreate.pop(), PERMISSION)) {
+            return false;
+          }
+          LOG.info("Dir has permission " + mFs.getFileStatus(new Path(path)).getPermission());
+        }
+        return true;
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " try to make directory for " + path + " : " + e.getMessage(), e);
