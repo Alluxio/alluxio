@@ -27,7 +27,7 @@ public class TachyonConfTest {
   @AfterClass
   public static void afterClass() {
     System.clearProperty(Constants.MASTER_HOSTNAME);
-    System.clearProperty(Constants.MASTER_PORT);
+    System.clearProperty(Constants.MASTER_RPC_PORT);
     System.clearProperty(Constants.ZOOKEEPER_ENABLED);
   }
 
@@ -45,7 +45,7 @@ public class TachyonConfTest {
 
     // initialize the system properties
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
-    System.setProperty(Constants.MASTER_PORT, "20001");
+    System.setProperty(Constants.MASTER_RPC_PORT, "20001");
     System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
 
     // initialize
@@ -131,7 +131,7 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT);
+    int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_RPC_PORT);
     Assert.assertEquals(19998, intValue);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_WEB_BIND_HOST);
@@ -164,7 +164,7 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
+    int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_RPC_PORT);
     Assert.assertEquals(29998, intValue);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_DATA_BIND_HOST);

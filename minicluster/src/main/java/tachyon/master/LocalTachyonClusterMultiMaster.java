@@ -200,7 +200,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      mMasterConf.set(Constants.MASTER_PORT, "0");
+      mMasterConf.set(Constants.MASTER_RPC_PORT, "0");
     }
 
     // Create the UFS directory after LocalTachyonMaster construction, because LocalTachyonMaster
@@ -221,7 +221,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    mMasterConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
   @Override

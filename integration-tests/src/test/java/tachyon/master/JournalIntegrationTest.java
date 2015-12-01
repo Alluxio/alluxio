@@ -150,8 +150,6 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * mLocalTachyonCluster is not closed in after(). Need to be closed by any test method.
-   *
    * @throws Exception
    */
   @After

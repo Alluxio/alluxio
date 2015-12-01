@@ -33,7 +33,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.lineage.journal.LineageEntry;
+import tachyon.proto.journal.Lineage.LineageEntry;
 
 /**
  * A store of lineages. This class is thread-safe.
@@ -67,7 +67,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param entry the journal entry
    */
   public synchronized void addLineageFromJournal(LineageEntry entry) {
-    Lineage lineage = entry.toLineage();
+    Lineage lineage = Lineage.fromJournalEntry(entry);
     addLineageInternal(lineage);
   }
 
