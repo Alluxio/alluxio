@@ -542,10 +542,6 @@ public class FileSystemMasterIntegrationTest {
   public void getCapacityBytesTest() {
     BlockMaster blockMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
-    // Sleep to give the workers time to register with the master
-    // TODO(andrew): Remove this when mLocalTachyonClusterResource.start() blocks until workers have
-    // registered with master.
-    CommonUtils.sleepMs(200);
     Assert.assertEquals(1000, blockMaster.getCapacityBytes());
   }
 
