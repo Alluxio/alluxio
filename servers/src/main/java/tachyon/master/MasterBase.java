@@ -17,6 +17,7 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
@@ -53,9 +55,15 @@ public abstract class MasterBase implements Master {
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
 
-  protected MasterBase(Journal journal, ExecutorService executorService) {
+  /**
+   * @param journal the journal to use for tracking master operations
+   * @param executorService the name for the executor service to use for asynchronous tasks
+   */
+  protected MasterBase(Journal journal, String executorServiceNamePattern) {
+    Preconditions.checkNotNull(executorServiceNamePattern);
     mJournal = Preconditions.checkNotNull(journal);
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build(executorServiceNamePattern, true));
   }
 
   @Override
@@ -155,6 +163,7 @@ public abstract class MasterBase implements Master {
         mStandbyJournalTailer.shutdownAndJoin();
       }
     }
+    mExecutorService.shutdownNow();
   }
 
   @Override

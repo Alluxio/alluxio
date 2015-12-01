@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -97,7 +96,6 @@ import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -130,8 +128,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
+    super(journal, "file-system-master-%d");
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -251,14 +248,6 @@ public final class FileSystemMaster extends MasterBase {
               conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mTTLCheckerService != null) {
-      mTTLCheckerService.cancel(true);
-    }
   }
 
   /**
@@ -1498,7 +1487,10 @@ public final class FileSystemMaster extends MasterBase {
   private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
+      LOG.info("entered TTL heartbeat in thread " + Thread.currentThread().getId() + ": "
+          + System.currentTimeMillis());
       synchronized (mInodeTree) {
+        LOG.info("acquired lock in TTL heartbeat: " + System.currentTimeMillis());
         Set<TTLBucket> expiredBuckets = mTTLBuckets.getExpiredBuckets(System.currentTimeMillis());
         for (TTLBucket bucket : expiredBuckets) {
           for (InodeFile file : bucket.getFiles()) {
@@ -1507,6 +1499,7 @@ public final class FileSystemMaster extends MasterBase {
               // whether the file is pinned.
               try {
                 deleteFile(file.getId(), false);
+                LOG.info("Deleted file: " + System.currentTimeMillis());
               } catch (Exception e) {
                 LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
                     e.toString());
@@ -1516,6 +1509,7 @@ public final class FileSystemMaster extends MasterBase {
         }
 
         mTTLBuckets.removeBuckets(expiredBuckets);
+        LOG.info("Finished TTL heartbeat: " + System.currentTimeMillis());
       }
     }
   }
