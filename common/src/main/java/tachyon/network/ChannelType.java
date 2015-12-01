@@ -18,7 +18,7 @@ package tachyon.network;
 import io.netty.channel.epoll.Epoll;
 
 /**
- * What type of netty channel to use. NIO and EPOLL are supported currently.
+ * What type of netty channel to use. {@link #NIO} and {@link #EPOLL} are supported currently.
  */
 public enum ChannelType {
   NIO,

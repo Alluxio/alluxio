@@ -179,7 +179,8 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that FileInStream.remaining() is correctly updated during reads, skips, and seeks.
+   * Tests that {@link FileInStream#remaining()} is correctly updated during reads, skips, and
+   * seeks.
    */
   @Test
   public void testRemaining() throws IOException {
