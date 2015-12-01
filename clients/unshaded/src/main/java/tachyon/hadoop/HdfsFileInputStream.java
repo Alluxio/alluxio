@@ -105,7 +105,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in {@link tachyon.hadoop.HdfsFileInputStream}.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @return N/A
    * @throws IOException always
@@ -291,7 +291,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in {@link tachyon.hadoop.HdfsFileInputStream}.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @throws IOException always
    */
@@ -301,7 +301,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in {@link tachyon.hadoop.HdfsFileInputStream}.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @throws IOException always
    */
@@ -336,7 +336,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in {@link tachyon.hadoop.HdfsFileInputStream}.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @return N/A
    * @throws IOException always
