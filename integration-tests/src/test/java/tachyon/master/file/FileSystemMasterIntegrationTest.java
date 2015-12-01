@@ -31,6 +31,8 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -47,6 +49,7 @@ import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
@@ -62,6 +65,8 @@ import tachyon.util.IdUtils;
  * For example, (concurrently) creating/deleting/renaming files.
  */
 public class FileSystemMasterIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
@@ -279,6 +284,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    TTLBucket.setTTlIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
   }
 
   @Test
@@ -697,12 +703,14 @@ public class FileSystemMasterIntegrationTest {
     long ttl = 1;
     CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTTL(ttl).build();
     long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
+    LOG.info("Created file at  " + System.currentTimeMillis());
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.fileId);
     Assert.assertEquals(ttl, folderInfo.ttl);
     CommonUtils.sleepMs(5000);
     mThrown.expect(FileDoesNotExistException.class);
+    LOG.info("Done sleeping at: " + System.currentTimeMillis());
     mFsMaster.getFileInfo(fileId);
   }
 

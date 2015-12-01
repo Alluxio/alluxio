@@ -15,8 +15,15 @@
 
 package tachyon.master.file.meta;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 
@@ -29,6 +36,8 @@ import tachyon.Constants;
  * Thread-safety is guaranteed by {@link ConcurrentSkipListSet}.
  */
 public final class TTLBucketList {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /**
    * List of buckets sorted by interval start time. SkipList is used for O(logn) insertion and
    * retrieval, see {@link ConcurrentSkipListSet}.
@@ -121,6 +130,14 @@ public final class TTLBucketList {
    * @return a set of expired buckets or an empty set if no buckets have expired
    */
   public Set<TTLBucket> getExpiredBuckets(long time) {
+    LOG.info("Bucket list: " + Lists.transform(
+        Arrays.asList(mBucketList.toArray(new TTLBucket[0])), new Function<TTLBucket, String>() {
+          @Override
+          public String apply(TTLBucket input) {
+            return "(" + input.getTTLIntervalStartTimeMs() + " - " + input.getFiles() + " - "
+                + input.getTTLIntervalEndTimeMs() + ")";
+          }
+        }));
     return mBucketList.headSet(new TTLBucket(time - TTLBucket.getTTLIntervalMs()), true);
   }
 
