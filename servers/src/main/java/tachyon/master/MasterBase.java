@@ -17,6 +17,8 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
@@ -40,6 +43,8 @@ import tachyon.proto.journal.Journal.JournalEntry;
  */
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
   /** The executor used for running maintenance threads for the master. */
   private final ExecutorService mExecutorService;
@@ -53,9 +58,15 @@ public abstract class MasterBase implements Master {
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
 
-  protected MasterBase(Journal journal, ExecutorService executorService) {
+  /**
+   * @param journal the journal to use for tracking master operations
+   * @param executorService the name pattern for the executor service to use for asynchronous tasks
+   */
+  protected MasterBase(Journal journal, String executorServiceNamePattern) {
+    Preconditions.checkNotNull(executorServiceNamePattern);
     mJournal = Preconditions.checkNotNull(journal);
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build(executorServiceNamePattern, true));
   }
 
   @Override
@@ -154,6 +165,16 @@ public abstract class MasterBase implements Master {
         // stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
       }
+    }
+    mExecutorService.shutdownNow();
+    String awaitFailureMessage =
+        "waiting for {} executor service to shut down. Daemons may still be running";
+    try {
+      if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+      }
+    } catch (InterruptedException e) {
+      LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
     }
   }
 

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -97,7 +96,6 @@ import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -116,7 +114,11 @@ public final class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
-  /** The service that tries to check inodefiles with ttl set */
+  /**
+   * The service that tries to check inodefiles with ttl set.
+   * We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mTTLCheckerService;
 
   private final TTLBucketList mTTLBuckets = new TTLBucketList();
@@ -130,8 +132,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
+    super(journal, "file-system-master-%d");
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -251,14 +252,6 @@ public final class FileSystemMaster extends MasterBase {
               conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mTTLCheckerService != null) {
-      mTTLCheckerService.cancel(true);
-    }
   }
 
   /**
