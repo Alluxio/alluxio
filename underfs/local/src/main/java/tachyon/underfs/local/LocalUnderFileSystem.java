@@ -189,19 +189,18 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       }
       return false;
     }
-
     // create parent directories one by one and set their permissions to 777
-    Stack<File> toCreate = new Stack<File>();
-    toCreate.push(file);
+    Stack<File> dirsToMake = new Stack<File>();
+    dirsToMake.push(file);
     File parent = file.getParentFile();
     while (!parent.exists()) {
-      toCreate.push(parent);
+      dirsToMake.push(parent);
       parent = parent.getParentFile();
     }
-    while (!toCreate.empty()) {
-      File nextFileToCreate = toCreate.pop();
-      if (nextFileToCreate.mkdir()) {
-        setPermission(nextFileToCreate.getAbsolutePath(), "777");
+    while (!dirsToMake.empty()) {
+      File dirToMake = dirsToMake.pop();
+      if (dirToMake.mkdir()) {
+        setPermission(dirToMake.getAbsolutePath(), "777");
         FileUtils.setLocalDirStickyBit(file.getPath());
       } else {
         return false;
