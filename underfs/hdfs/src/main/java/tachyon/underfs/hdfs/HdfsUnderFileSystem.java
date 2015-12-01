@@ -351,21 +351,19 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
           LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
+        // Create directories one by one with explicit permissions to ensure no umask is applied,
+        // using mkdirs will apply the permission only to the last directory
         Stack<Path> toCreate = new Stack<Path>();
         toCreate.push(hdfsPath);
         Path parent = hdfsPath.getParent();
-        // Create parents one by one with explicit permissions to ensure no umask is applied, using
-        // mkdirs will apply the permission only to the last directory
         while (!mFs.exists(parent)) {
           toCreate.push(parent);
           parent = parent.getParent();
         }
         while (!toCreate.empty()) {
-          LOG.info("Creating directory: " + path + " with permission " + PERMISSION);
           if (!FileSystem.mkdirs(mFs, toCreate.pop(), PERMISSION)) {
             return false;
           }
-          LOG.info("Dir has permission " + mFs.getFileStatus(new Path(path)).getPermission());
         }
         return true;
       } catch (IOException e) {
