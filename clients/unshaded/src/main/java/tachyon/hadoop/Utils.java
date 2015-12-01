@@ -47,11 +47,11 @@ public final class Utils {
   }
 
   /**
-   * Given a {@link org.apache.hadoop.fs.Path} path, it returns the path component of its URI,
-   * which has the form scheme://authority/path.
+   * Given a {@link Path} path, it returns the path component of its URI, which has the form
+   * scheme://authority/path.
    *
-   * @param path an HDFS {@link org.apache.hadoop.fs.Path}
-   * @return the path component of the {@link org.apache.hadoop.fs.Path} URI
+   * @param path an HDFS {@link Path}
+   * @return the path component of the {@link Path} URI
    */
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
@@ -81,9 +81,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a Hadoop {@link org.apache.hadoop.mapred.FileSplit}.
+   * Returns a string representation of a Hadoop {@link FileSplit}.
    *
-   * @param fs Hadoop {@link org.apache.hadoop.mapred.FileSplit}
+   * @param fs Hadoop {@link FileSplit}
    * @return its string representation
    */
   public static String toStringHadoopFileSplit(FileSplit fs) {
@@ -107,9 +107,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a Hadoop {@link org.apache.hadoop.fs.FileStatus}.
+   * Returns a string representation of a Hadoop {@link FileStatus}.
    *
-   * @param fs Hadoop {@link org.apache.hadoop.fs.FileStatus}
+   * @param fs Hadoop {@link FileStatus}
    * @return its string representation
    */
   public static String toStringHadoopFileStatus(FileStatus fs) {
@@ -128,9 +128,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a {@link org.apache.hadoop.mapred.InputSplit}.
+   * Returns a string representation of a {@link InputSplit}.
    *
-   * @param is Hadoop {@link org.apache.hadoop.mapred.InputSplit}
+   * @param is Hadoop {@link InputSplit}
    * @return its string representation
    */
   public static String toStringHadoopInputSplit(InputSplit is) {

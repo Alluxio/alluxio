@@ -25,7 +25,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 
 /**
- * Tests {@link tachyon.client.block.BlockStoreContext}.
+ * Tests {@link BlockStoreContext}.
  */
 public final class BlockStoreContextTest {
 

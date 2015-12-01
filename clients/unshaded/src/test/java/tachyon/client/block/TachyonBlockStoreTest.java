@@ -40,7 +40,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
 
 /**
- * Tests for {@link tachyon.client.block.TachyonBlockStore}.
+ * Tests for {@link TachyonBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, NetworkAddressUtils.class,
@@ -77,11 +77,9 @@ public final class TachyonBlockStoreTest {
   private WorkerClient mWorkerClient;
 
   /**
-   * Sets up a testable {@link tachyon.client.block.TachyonBlockStore}. Setup consists of the
-   * following:
+   * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
    *
-   * 1. The singleton {@link tachyon.client.block.BlockStoreContext} is replaced with
-   *    {@link #mBlockStoreContext}<br>
+   * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
    * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and {@link #mWorkerClient}
    *    when asked for master/worker clients<br>
    * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
@@ -108,8 +106,8 @@ public final class TachyonBlockStoreTest {
   }
 
   /**
-   * Tests {@link tachyon.client.block.TachyonBlockStore#getInStream(long)} when a local block
-   * exists, making sure that the local block is preferred.
+   * Tests {@link TachyonBlockStore#getInStream(long)} when a local block exists, making sure that
+   * the local block is preferred.
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
@@ -128,9 +126,8 @@ public final class TachyonBlockStoreTest {
   }
 
   /**
-   * Tests {@link tachyon.client.block.TachyonBlockStore#getInStream(long)} when no local block
-   * exists, making sure that the first {@link tachyon.thrift.BlockLocation} in the
-   * {@link tachyon.thrift.BlockInfo} list is chosen.
+   * Tests {@link TachyonBlockStore#getInStream(long)} when no local block exists, making sure that
+   * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {

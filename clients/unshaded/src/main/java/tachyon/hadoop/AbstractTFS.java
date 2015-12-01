@@ -60,8 +60,8 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
 /**
- * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class
- * really just delegates to {@link tachyon.client.file.TachyonFileSystem} for most operations.
+ * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class
+ * really just delegates to {@link TachyonFileSystem} for most operations.
  *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
@@ -120,8 +120,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param replication under filesystem replication factor
    * @param blockSize block size in bytes
    * @param progress queryable progress
-   * @return an {@link org.apache.hadoop.fs.FSDataOutputStream} created at the indicated path of a
-   *         file
+   * @return an {@link FSDataOutputStream} created at the indicated path of a file
    * @throws IOException if overwrite is not specified and the path already exists or if the path is
    *         a folder
    */
@@ -165,7 +164,7 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Opens an {@link org.apache.hadoop.fs.FSDataOutputStream} at the indicated Path with
+   * Opens an {@link FSDataOutputStream} at the indicated Path with
    * write-progress reporting. Same as
    * {@link #create(Path, boolean, int, short, long, Progressable)}, except fails if parent
    * directory doesn't already exist.
@@ -323,15 +322,13 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Gets the URI schema that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was
-   * introduced in Hadoop 2.x as a means to make loading new
-   * {@link org.apache.hadoop.fs.FileSystem}s simpler. This doesn't exist in Hadoop 1.x, so cannot
-   * put {@literal @Override}.
+   * Gets the URI schema that maps to the {@link FileSystem}. This was introduced in Hadoop 2.x as
+   * a means to make loading new {@link FileSystem}s simpler. This doesn't exist in Hadoop 1.x, so
+   * cannot put {@literal @Override}.
    *
    * @return schema hadoop should map to
    *
-   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
-   *      org.apache.hadoop.conf.Configuration)
+   * @see FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
    */
   public abstract String getScheme();
 
@@ -381,9 +378,8 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Determines if zookeeper should be used for the {@link org.apache.hadoop.fs.FileSystem}. This
-   * method should only be used for
-   * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
+   * Determines if zookeeper should be used for the {@link FileSystem}. This method should only be
+   * used for {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used
    */
@@ -447,7 +443,7 @@ abstract class AbstractTFS extends FileSystem {
    *
    * @param cPath the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
-   * @return an {@link org.apache.hadoop.fs.FSDataInputStream} at the indicated path of a file
+   * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
   @Override
@@ -510,8 +506,8 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Convenience method which opens a {@link tachyon.client.file.TachyonFile} for the given path,
-   * wrapping any {@link tachyon.exception.TachyonException} in {@link java.io.IOException}.
+   * Convenience method which opens a {@link TachyonFile} for the given path, wrapping any
+   * {@link TachyonException} in {@link IOException}.
    *
    * @param path the path to look up
    * @throws IOException if a Tachyon exception occurs

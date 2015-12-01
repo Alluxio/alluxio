@@ -25,7 +25,7 @@ import tachyon.Constants;
  * on top of.
  *
  * <p>
- * Unlike {@link tachyon.hadoop.TFS}, this class enables Zookeeper.
+ * Unlike {@link TFS}, this class enables Zookeeper.
  * </p>
  */
 public final class TFSFT extends AbstractTFS {
