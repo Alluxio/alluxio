@@ -79,7 +79,7 @@ public final class JournalTool {
    * {@link org.apache.commons.cli.CommandLineParser}.
    *
    * @param args the input args
-   * @return true if parsing succeeded.
+   * @return true if parsing succeeded
    */
   private static boolean parseInputArgs(String[] args) {
     CommandLineParser parser = new BasicParser();
