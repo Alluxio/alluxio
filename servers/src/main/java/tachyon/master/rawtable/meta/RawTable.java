@@ -17,9 +17,11 @@ package tachyon.master.rawtable.meta;
 
 import java.nio.ByteBuffer;
 
-import tachyon.master.journal.JournalEntry;
+import com.google.protobuf.ByteString;
+
 import tachyon.master.journal.JournalEntryRepresentable;
-import tachyon.master.rawtable.journal.RawTableEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
 public class RawTable implements JournalEntryRepresentable {
@@ -81,6 +83,11 @@ public class RawTable implements JournalEntryRepresentable {
 
   @Override
   public JournalEntry toJournalEntry() {
-    return new RawTableEntry(mId, mColumns, mMetadata);
+    RawTableEntry rawTable = RawTableEntry.newBuilder()
+        .setId(mId)
+        .setColumns(mColumns)
+        .setMetadata(ByteString.copyFrom(mMetadata))
+        .build();
+    return JournalEntry.newBuilder().setRawTable(rawTable).build();
   }
 }

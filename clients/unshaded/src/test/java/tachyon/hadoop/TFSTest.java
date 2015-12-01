@@ -95,7 +95,7 @@ public class TFSTest {
     final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     ClientContext.reset(mTachyonConf);
     mockMasterClient();
@@ -119,7 +119,7 @@ public class TFSTest {
     final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "false");
     ClientContext.reset(mTachyonConf);
     mockMasterClient();

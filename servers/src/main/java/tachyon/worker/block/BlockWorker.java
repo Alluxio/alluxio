@@ -196,7 +196,7 @@ public final class BlockWorker extends WorkerBase {
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
     // reset worker RPC port
-    mTachyonConf.set(Constants.WORKER_PORT, Integer.toString(mPort));
+    mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),

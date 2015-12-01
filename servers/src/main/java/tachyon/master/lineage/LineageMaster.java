@@ -31,6 +31,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -54,16 +55,10 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
-import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
-import tachyon.master.lineage.journal.DeleteLineageEntry;
-import tachyon.master.lineage.journal.LineageEntry;
-import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
-import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
@@ -72,6 +67,13 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.AsyncCompleteFileEntry;
+import tachyon.proto.journal.Lineage.DeleteLineageEntry;
+import tachyon.proto.journal.Lineage.LineageEntry;
+import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
+import tachyon.proto.journal.Lineage.PersistFilesEntry;
+import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
@@ -150,20 +152,21 @@ public final class LineageMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry instanceof LineageEntry) {
-      mLineageStore.addLineageFromJournal((LineageEntry) entry);
-    } else if (entry instanceof LineageIdGeneratorEntry) {
-      mLineageIdGenerator.fromJournalEntry((LineageIdGeneratorEntry) entry);
-    } else if (entry instanceof AsyncCompleteFileEntry) {
-      asyncCompleteFileFromEntry((AsyncCompleteFileEntry) entry);
-    } else if (entry instanceof PersistFilesEntry) {
-      persistFilesFromEntry((PersistFilesEntry) entry);
-    } else if (entry instanceof PersistFilesRequestEntry) {
-      requestFilePersistenceFromEntry((PersistFilesRequestEntry) entry);
-    } else if (entry instanceof DeleteLineageEntry) {
-      deleteLineageFromEntry((DeleteLineageEntry) entry);
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
+    if (innerEntry instanceof LineageEntry) {
+      mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
+    } else if (innerEntry instanceof LineageIdGeneratorEntry) {
+      mLineageIdGenerator.initFromJournalEntry((LineageIdGeneratorEntry) innerEntry);
+    } else if (innerEntry instanceof AsyncCompleteFileEntry) {
+      asyncCompleteFileFromEntry((AsyncCompleteFileEntry) innerEntry);
+    } else if (innerEntry instanceof PersistFilesEntry) {
+      persistFilesFromEntry((PersistFilesEntry) innerEntry);
+    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+      requestFilePersistenceFromEntry((PersistFilesRequestEntry) innerEntry);
+    } else if (innerEntry instanceof DeleteLineageEntry) {
+      deleteLineageFromEntry((DeleteLineageEntry) innerEntry);
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
@@ -269,7 +272,11 @@ public final class LineageMaster extends MasterBase {
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     deleteLineageInternal(lineageId, cascade);
-    writeJournalEntry(new DeleteLineageEntry(lineageId, cascade));
+    DeleteLineageEntry deleteLineage = DeleteLineageEntry.newBuilder()
+        .setLineageId(lineageId)
+        .setCascade(cascade)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setDeleteLineage(deleteLineage).build());
     flushJournal();
     return true;
   }
@@ -295,7 +302,7 @@ public final class LineageMaster extends MasterBase {
 
   private void deleteLineageFromEntry(DeleteLineageEntry entry) {
     try {
-      deleteLineageInternal(entry.getLineageId(), entry.isCascade());
+      deleteLineageInternal(entry.getLineageId(), entry.getCascade());
     } catch (LineageDoesNotExistException e) {
       LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
     } catch (LineageDeletionException e) {
@@ -342,7 +349,10 @@ public final class LineageMaster extends MasterBase {
       throw new RuntimeException(e);
     }
     mLineageStore.completeFile(fileId);
-    writeJournalEntry(new AsyncCompleteFileEntry(fileId));
+    AsyncCompleteFileEntry asyncCompleteFile = AsyncCompleteFileEntry.newBuilder()
+        .setFileId(fileId)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setAsyncCompleteFile(asyncCompleteFile).build());
     flushJournal();
   }
 
@@ -474,12 +484,16 @@ public final class LineageMaster extends MasterBase {
     for (long fileId : fileIds) {
       mLineageStore.requestFilePersistence(fileId);
     }
-    writeJournalEntry(new PersistFilesRequestEntry(fileIds));
+    PersistFilesRequestEntry persistFilesRequest = PersistFilesRequestEntry.newBuilder()
+        .addAllFileIds(fileIds)
+        .build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
     flushJournal();
   }
 
   private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry) {
-    for (long fileId : entry.getFileIds()) {
+    for (long fileId : entry.getFileIdsList()) {
       mLineageStore.requestFilePersistence(fileId);
     }
   }
@@ -499,12 +513,15 @@ public final class LineageMaster extends MasterBase {
     for (Long fileId : persistedFiles) {
       mLineageStore.commitFilePersistence(fileId);
     }
-    writeJournalEntry(new PersistFilesEntry(persistedFiles));
+    PersistFilesEntry persistFiles = PersistFilesEntry.newBuilder()
+        .addAllFileIds(persistedFiles)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setPersistFiles(persistFiles).build());
     flushJournal();
   }
 
   private synchronized void persistFilesFromEntry(PersistFilesEntry entry) {
-    for (Long fileId : entry.getFileIds()) {
+    for (Long fileId : entry.getFileIdsList()) {
       mLineageStore.commitFilePersistence(fileId);
     }
   }
