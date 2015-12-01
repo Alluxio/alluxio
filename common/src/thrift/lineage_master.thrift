@@ -96,7 +96,7 @@ service LineageMasterWorkerService extends common.TachyonService {
    * Periodic lineage worker heartbeat. Returns the command for checkpointing
    * the blocks of a file.
    */
-  LineageCommand workerLineageHeartbeat( /** the id of the worker */ 1: i64 workerId,
+  LineageCommand heartbeat( /** the id of the worker */ 1: i64 workerId,
       /** the list of persisted files */ 2: list<i64> persistedFiles)
     throws (1: exception.TachyonTException e)
 }
