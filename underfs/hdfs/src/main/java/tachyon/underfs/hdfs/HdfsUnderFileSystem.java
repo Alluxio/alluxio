@@ -353,15 +353,15 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         }
         // Create directories one by one with explicit permissions to ensure no umask is applied,
         // using mkdirs will apply the permission only to the last directory
-        Stack<Path> toCreate = new Stack<Path>();
-        toCreate.push(hdfsPath);
+        Stack<Path> dirsToMake = new Stack<Path>();
+        dirsToMake.push(hdfsPath);
         Path parent = hdfsPath.getParent();
         while (!mFs.exists(parent)) {
-          toCreate.push(parent);
+          dirsToMake.push(parent);
           parent = parent.getParent();
         }
-        while (!toCreate.empty()) {
-          if (!FileSystem.mkdirs(mFs, toCreate.pop(), PERMISSION)) {
+        while (!dirsToMake.empty()) {
+          if (!FileSystem.mkdirs(mFs, dirsToMake.pop(), PERMISSION)) {
             return false;
           }
         }
