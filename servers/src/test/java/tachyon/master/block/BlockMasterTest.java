@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -278,6 +280,19 @@ public class BlockMasterTest {
     // No workers should be considered lost.
     Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
+  }
+
+  @Test
+  public void stopTest() throws Exception {
+    ExecutorService service =
+        (ExecutorService) Whitebox.getInternalState(mMaster, "mExecutorService");
+    Future<?> lostWorkerThread =
+        (Future<?>) Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
+    Assert.assertFalse(lostWorkerThread.isDone());
+    Assert.assertFalse(service.isShutdown());
+    mMaster.stop();
+    Assert.assertTrue(lostWorkerThread.isDone());
+    Assert.assertTrue(service.isShutdown());
   }
 
   private void addWorker(BlockMaster master, long workerId, List<String> storageTierAliases,
