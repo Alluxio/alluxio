@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.master.Master;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 /**
  * This class tails the journal for a master. It will process the journal checkpoint file, and then
@@ -86,7 +87,7 @@ public final class JournalTailer {
    */
   public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
     // Load the checkpoint file.
-    LOG.info("{}: Loading checkpoint file: {}", mMaster.getServiceName(),
+    LOG.info("{}: Loading checkpoint file: {}", mMaster.getName(),
         mJournal.getCheckpointFilePath());
     // The checkpoint stream must be retrieved before retrieving any log file streams, because the
     // journal reader verifies that the checkpoint was read before the log files.
@@ -116,7 +117,7 @@ public final class JournalTailer {
       // Process the new completed log file, if it exists.
       JournalInputStream inputStream = mReader.getNextInputStream();
       if (inputStream != null) {
-        LOG.info("{}: Processing a completed log file.", mMaster.getServiceName());
+        LOG.info("{}: Processing a completed log file.", mMaster.getName());
         JournalEntry entry;
         while ((entry = inputStream.getNextEntry()) != null) {
           mMaster.processJournalEntry(entry);
@@ -125,13 +126,13 @@ public final class JournalTailer {
         }
         inputStream.close();
         numFilesProcessed ++;
-        LOG.info("{}: Finished processing the log file.", mMaster.getServiceName());
+        LOG.info("{}: Finished processing the log file.", mMaster.getName());
       } else {
         return numFilesProcessed;
       }
     }
     LOG.info("{}: The checkpoint is out of date. Must reload checkpoint file.",
-        mMaster.getServiceName(), mJournal.getCheckpointFilePath());
+        mMaster.getName(), mJournal.getCheckpointFilePath());
     return numFilesProcessed;
   }
 }

@@ -91,7 +91,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test <code>int read()</code>.
+   * Test {@link HdfsFileInputStream#read()}.
    */
   @Test
   public void readTest1() throws IOException {
@@ -111,7 +111,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test <code>int read(byte[] b, int off, int len)</code>.
+   * Test {@link HdfsFileInputStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest2() throws IOException {
@@ -133,7 +133,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test <code>int read(long position, byte[] buffer, int offset, int length)</code>.
+   * Test {@link HdfsFileInputStream#read(long, byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException {

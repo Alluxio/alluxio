@@ -191,6 +191,14 @@ abstract class AbstractTFS extends FileSystem {
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
+  /**
+   * Attempts to delete the file or directory with the specified path.
+   *
+   * @param path path to delete
+   * @return true if one or more files/directories were deleted; false otherwise
+   * @throws IOException if the path failed to be deleted due to some constraint
+   * @deprecated Use {@link #delete(Path, boolean)} instead.
+   */
   @Override
   @Deprecated
   public boolean delete(Path path) throws IOException {
@@ -358,7 +366,7 @@ abstract class AbstractTFS extends FileSystem {
       mTachyonConf.merge(siteConf);
     }
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 

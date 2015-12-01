@@ -324,7 +324,7 @@ public class JournalCrashTest {
 
   /**
    * Parse the input args with a command line format, using
-   * <code>org.apache.commons.cli.CommandLineParser</code>.
+   * {@link org.apache.commons.cli.CommandLineParser}.
    * @param args the input args
    * @return true if parse successfully and can run the next step, false if parse failed or need to
    * print out the help information.
@@ -408,7 +408,7 @@ public class JournalCrashTest {
 
   /**
    * Stop the current Tachyon cluster. This is used for preparation and clean up.
-   * To crash the Master, use <code>killMaster</code>.
+   * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
     String stopClusterCommand = new TachyonConf().get(Constants.TACHYON_HOME)

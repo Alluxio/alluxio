@@ -51,9 +51,9 @@ public final class LoadMetadataOptions {
     }
 
     /**
-     * Builds a new instance of {@code LoadMetadataOptions}.
+     * Builds a new instance of {@link LoadMetadataOptions}.
      *
-     * @return a {@code LoadMetadataOptions} instance
+     * @return a {@link LoadMetadataOptions} instance
      */
     @Override
     public LoadMetadataOptions build() {
@@ -62,7 +62,7 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * @return the default {@code LoadMetadataOptions}
+   * @return the default {@link LoadMetadataOptions}
    */
   public static LoadMetadataOptions defaults() {
     return new Builder().build();

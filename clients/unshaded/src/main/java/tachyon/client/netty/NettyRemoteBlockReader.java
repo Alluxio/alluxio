@@ -48,7 +48,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   private RPCBlockReadResponse mReadResponse = null;
 
   /**
-   * Creates a new {@code NettyRemoteBlockReader}.
+   * Creates a new {@link NettyRemoteBlockReader}.
    *
    * TODO(gene): Creating a new remote block reader may be expensive, so consider a connection pool.
    */

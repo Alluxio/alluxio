@@ -40,11 +40,11 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.CommonUtils;
 
 /**
@@ -55,6 +55,8 @@ public final class InodeTreeTest {
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
+  private static final PermissionStatus TEST_PERMISSION_STATUS =
+      new PermissionStatus("user1", "", (short)0755);
   private static CreatePathOptions sFileOptions;
   private static CreatePathOptions sDirectoryOptions;
   private static CreatePathOptions sNestedFileOptions;
@@ -77,30 +79,31 @@ public final class InodeTreeTest {
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
     blockMaster.start(true);
-    mTree.initializeRoot();
+    mTree.initializeRoot(TEST_PERMISSION_STATUS);
   }
 
   @BeforeClass
   public static void beforeClass() {
     sFileOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .build();
+            .setPermissionStatus(TEST_PERMISSION_STATUS).build();
     sDirectoryOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setDirectory(true).build();
+            .setDirectory(true).setPermissionStatus(TEST_PERMISSION_STATUS).build();
     sNestedFileOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).build();
+            .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true).build();
     sNestedDirectoryOptions =
         new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setDirectory(true).setRecursive(true).build();
+            .setPermissionStatus(TEST_PERMISSION_STATUS).setDirectory(true).setRecursive(true)
+            .build();
   }
 
   @Test
   public void initializeRootTwiceTest() throws Exception {
     Inode root = mTree.getInodeByPath(new TachyonURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot();
+    mTree.initializeRoot(TEST_PERMISSION_STATUS);
     Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -112,6 +115,9 @@ public final class InodeTreeTest {
     Inode test = mTree.getInodeByPath(TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
     Assert.assertTrue(test.isDirectory());
+    Assert.assertEquals("user1", test.getUserName());
+    Assert.assertTrue(test.getGroupName().isEmpty());
+    Assert.assertEquals((short)0755, test.getPermission());
 
     // create nested directory
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
@@ -119,6 +125,9 @@ public final class InodeTreeTest {
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
     Assert.assertTrue(test.isDirectory());
+    Assert.assertEquals("user1", test.getUserName());
+    Assert.assertTrue(test.getGroupName().isEmpty());
+    Assert.assertEquals((short)0755, test.getPermission());
   }
 
   @Test
@@ -160,6 +169,9 @@ public final class InodeTreeTest {
     Assert.assertEquals("file", nestedFile.getName());
     Assert.assertEquals(2, nestedFile.getParentId());
     Assert.assertTrue(nestedFile.isFile());
+    Assert.assertEquals("user1", nestedFile.getUserName());
+    Assert.assertTrue(nestedFile.getGroupName().isEmpty());
+    Assert.assertEquals((short)0644, nestedFile.getPermission());
   }
 
   @Test
@@ -351,7 +363,8 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1).build();
+    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1)
+        .setPermissionStatus(TEST_PERMISSION_STATUS).build();
     mTree.deleteInode(testFile);
   }
 
@@ -409,25 +422,25 @@ public final class InodeTreeTest {
     Inode file1 = test1.getChild("file1");
 
     // reset the tree
-    mTree.addInodeFromJournal((InodeEntry) root.toJournalEntry());
+    mTree.addInodeFromJournal(root.toJournalEntry());
 
     // re-init the root since the tree was reset above
     root = mTree.getRoot();
 
     Assert.assertEquals(0, mTree.getInodeChildrenRecursive(root).size());
-    mTree.addInodeFromJournal((InodeEntry) nested.toJournalEntry());
+    mTree.addInodeFromJournal(nested.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested"));
 
-    mTree.addInodeFromJournal((InodeEntry) test.toJournalEntry());
+    mTree.addInodeFromJournal(test.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test"));
 
-    mTree.addInodeFromJournal((InodeEntry) test1.toJournalEntry());
+    mTree.addInodeFromJournal(test1.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1"));
 
-    mTree.addInodeFromJournal((InodeEntry) file.toJournalEntry());
+    mTree.addInodeFromJournal(file.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file"));
 
-    mTree.addInodeFromJournal((InodeEntry) file1.toJournalEntry());
+    mTree.addInodeFromJournal(file1.toJournalEntry());
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file", "file1"));
   }
 

@@ -51,9 +51,9 @@ public final class FreeOptions {
     }
 
     /**
-     * Builds a new instance of {@code FreeOptions}.
+     * Builds a new instance of {@link FreeOptions}.
      *
-     * @return a {@code FreeOptions} instance
+     * @return a {@link FreeOptions} instance
      */
     @Override
     public FreeOptions build() {
@@ -62,7 +62,7 @@ public final class FreeOptions {
   }
 
   /**
-   * @return the default {@code FreeOptions}
+   * @return the default {@link FreeOptions}
    */
   public static FreeOptions defaults() {
     return new Builder().build();

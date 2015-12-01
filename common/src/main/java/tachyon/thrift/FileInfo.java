@@ -54,6 +54,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)15);
   private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)16);
   private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)17);
+  private static final org.apache.thrift.protocol.TField USER_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("userName", org.apache.thrift.protocol.TType.STRING, (short)18);
+  private static final org.apache.thrift.protocol.TField GROUP_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("groupName", org.apache.thrift.protocol.TType.STRING, (short)19);
+  private static final org.apache.thrift.protocol.TField PERMISSION_FIELD_DESC = new org.apache.thrift.protocol.TField("permission", org.apache.thrift.protocol.TType.I32, (short)20);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -77,6 +80,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   public int inMemoryPercentage; // required
   public long lastModificationTimeMs; // required
   public long ttl; // required
+  public String userName; // required
+  public String groupName; // required
+  public int permission; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -95,7 +101,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     BLOCK_IDS((short)13, "blockIds"),
     IN_MEMORY_PERCENTAGE((short)15, "inMemoryPercentage"),
     LAST_MODIFICATION_TIME_MS((short)16, "lastModificationTimeMs"),
-    TTL((short)17, "ttl");
+    TTL((short)17, "ttl"),
+    USER_NAME((short)18, "userName"),
+    GROUP_NAME((short)19, "groupName"),
+    PERMISSION((short)20, "permission");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -142,6 +151,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return LAST_MODIFICATION_TIME_MS;
         case 17: // TTL
           return TTL;
+        case 18: // USER_NAME
+          return USER_NAME;
+        case 19: // GROUP_NAME
+          return GROUP_NAME;
+        case 20: // PERMISSION
+          return PERMISSION;
         default:
           return null;
       }
@@ -194,6 +209,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __INMEMORYPERCENTAGE_ISSET_ID = 9;
   private static final int __LASTMODIFICATIONTIMEMS_ISSET_ID = 10;
   private static final int __TTL_ISSET_ID = 11;
+  private static final int __PERMISSION_ISSET_ID = 12;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -231,6 +247,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.USER_NAME, new org.apache.thrift.meta_data.FieldMetaData("userName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.GROUP_NAME, new org.apache.thrift.meta_data.FieldMetaData("groupName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.PERMISSION, new org.apache.thrift.meta_data.FieldMetaData("permission", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -254,7 +276,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     List<Long> blockIds,
     int inMemoryPercentage,
     long lastModificationTimeMs,
-    long ttl)
+    long ttl,
+    String userName,
+    String groupName,
+    int permission)
   {
     this();
     this.fileId = fileId;
@@ -285,6 +310,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setLastModificationTimeMsIsSet(true);
     this.ttl = ttl;
     setTtlIsSet(true);
+    this.userName = userName;
+    this.groupName = groupName;
+    this.permission = permission;
+    setPermissionIsSet(true);
   }
 
   /**
@@ -317,6 +346,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.inMemoryPercentage = other.inMemoryPercentage;
     this.lastModificationTimeMs = other.lastModificationTimeMs;
     this.ttl = other.ttl;
+    if (other.isSetUserName()) {
+      this.userName = other.userName;
+    }
+    if (other.isSetGroupName()) {
+      this.groupName = other.groupName;
+    }
+    this.permission = other.permission;
   }
 
   public FileInfo deepCopy() {
@@ -353,6 +389,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.lastModificationTimeMs = 0;
     setTtlIsSet(false);
     this.ttl = 0;
+    this.userName = null;
+    this.groupName = null;
+    setPermissionIsSet(false);
+    this.permission = 0;
   }
 
   public long getFileId() {
@@ -742,6 +782,77 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
   }
 
+  public String getUserName() {
+    return this.userName;
+  }
+
+  public FileInfo setUserName(String userName) {
+    this.userName = userName;
+    return this;
+  }
+
+  public void unsetUserName() {
+    this.userName = null;
+  }
+
+  /** Returns true if field userName is set (has been assigned a value) and false otherwise */
+  public boolean isSetUserName() {
+    return this.userName != null;
+  }
+
+  public void setUserNameIsSet(boolean value) {
+    if (!value) {
+      this.userName = null;
+    }
+  }
+
+  public String getGroupName() {
+    return this.groupName;
+  }
+
+  public FileInfo setGroupName(String groupName) {
+    this.groupName = groupName;
+    return this;
+  }
+
+  public void unsetGroupName() {
+    this.groupName = null;
+  }
+
+  /** Returns true if field groupName is set (has been assigned a value) and false otherwise */
+  public boolean isSetGroupName() {
+    return this.groupName != null;
+  }
+
+  public void setGroupNameIsSet(boolean value) {
+    if (!value) {
+      this.groupName = null;
+    }
+  }
+
+  public int getPermission() {
+    return this.permission;
+  }
+
+  public FileInfo setPermission(int permission) {
+    this.permission = permission;
+    setPermissionIsSet(true);
+    return this;
+  }
+
+  public void unsetPermission() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __PERMISSION_ISSET_ID);
+  }
+
+  /** Returns true if field permission is set (has been assigned a value) and false otherwise */
+  public boolean isSetPermission() {
+    return EncodingUtils.testBit(__isset_bitfield, __PERMISSION_ISSET_ID);
+  }
+
+  public void setPermissionIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PERMISSION_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FILE_ID:
@@ -872,6 +983,30 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case USER_NAME:
+      if (value == null) {
+        unsetUserName();
+      } else {
+        setUserName((String)value);
+      }
+      break;
+
+    case GROUP_NAME:
+      if (value == null) {
+        unsetGroupName();
+      } else {
+        setGroupName((String)value);
+      }
+      break;
+
+    case PERMISSION:
+      if (value == null) {
+        unsetPermission();
+      } else {
+        setPermission((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -925,6 +1060,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case TTL:
       return Long.valueOf(getTtl());
 
+    case USER_NAME:
+      return getUserName();
+
+    case GROUP_NAME:
+      return getGroupName();
+
+    case PERMISSION:
+      return Integer.valueOf(getPermission());
+
     }
     throw new IllegalStateException();
   }
@@ -968,6 +1112,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetLastModificationTimeMs();
     case TTL:
       return isSetTtl();
+    case USER_NAME:
+      return isSetUserName();
+    case GROUP_NAME:
+      return isSetGroupName();
+    case PERMISSION:
+      return isSetPermission();
     }
     throw new IllegalStateException();
   }
@@ -1129,6 +1279,33 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_userName = true && this.isSetUserName();
+    boolean that_present_userName = true && that.isSetUserName();
+    if (this_present_userName || that_present_userName) {
+      if (!(this_present_userName && that_present_userName))
+        return false;
+      if (!this.userName.equals(that.userName))
+        return false;
+    }
+
+    boolean this_present_groupName = true && this.isSetGroupName();
+    boolean that_present_groupName = true && that.isSetGroupName();
+    if (this_present_groupName || that_present_groupName) {
+      if (!(this_present_groupName && that_present_groupName))
+        return false;
+      if (!this.groupName.equals(that.groupName))
+        return false;
+    }
+
+    boolean this_present_permission = true;
+    boolean that_present_permission = true;
+    if (this_present_permission || that_present_permission) {
+      if (!(this_present_permission && that_present_permission))
+        return false;
+      if (this.permission != that.permission)
+        return false;
+    }
+
     return true;
   }
 
@@ -1215,6 +1392,21 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_ttl);
     if (present_ttl)
       list.add(ttl);
+
+    boolean present_userName = true && (isSetUserName());
+    list.add(present_userName);
+    if (present_userName)
+      list.add(userName);
+
+    boolean present_groupName = true && (isSetGroupName());
+    list.add(present_groupName);
+    if (present_groupName)
+      list.add(groupName);
+
+    boolean present_permission = true;
+    list.add(present_permission);
+    if (present_permission)
+      list.add(permission);
 
     return list.hashCode();
   }
@@ -1387,6 +1579,36 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetUserName()).compareTo(other.isSetUserName());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetUserName()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.userName, other.userName);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetGroupName()).compareTo(other.isSetGroupName());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetGroupName()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.groupName, other.groupName);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetPermission()).compareTo(other.isSetPermission());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetPermission()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.permission, other.permission);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1485,6 +1707,26 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (!first) sb.append(", ");
     sb.append("ttl:");
     sb.append(this.ttl);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("userName:");
+    if (this.userName == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.userName);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("groupName:");
+    if (this.groupName == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.groupName);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("permission:");
+    sb.append(this.permission);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1669,6 +1911,30 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 18: // USER_NAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.userName = iprot.readString();
+              struct.setUserNameIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 19: // GROUP_NAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.groupName = iprot.readString();
+              struct.setGroupNameIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 20: // PERMISSION
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.permission = iprot.readI32();
+              struct.setPermissionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1747,6 +2013,19 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeFieldBegin(TTL_FIELD_DESC);
       oprot.writeI64(struct.ttl);
       oprot.writeFieldEnd();
+      if (struct.userName != null) {
+        oprot.writeFieldBegin(USER_NAME_FIELD_DESC);
+        oprot.writeString(struct.userName);
+        oprot.writeFieldEnd();
+      }
+      if (struct.groupName != null) {
+        oprot.writeFieldBegin(GROUP_NAME_FIELD_DESC);
+        oprot.writeString(struct.groupName);
+        oprot.writeFieldEnd();
+      }
+      oprot.writeFieldBegin(PERMISSION_FIELD_DESC);
+      oprot.writeI32(struct.permission);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1813,7 +2092,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetTtl()) {
         optionals.set(15);
       }
-      oprot.writeBitSet(optionals, 16);
+      if (struct.isSetUserName()) {
+        optionals.set(16);
+      }
+      if (struct.isSetGroupName()) {
+        optionals.set(17);
+      }
+      if (struct.isSetPermission()) {
+        optionals.set(18);
+      }
+      oprot.writeBitSet(optionals, 19);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -1868,12 +2156,21 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetTtl()) {
         oprot.writeI64(struct.ttl);
       }
+      if (struct.isSetUserName()) {
+        oprot.writeString(struct.userName);
+      }
+      if (struct.isSetGroupName()) {
+        oprot.writeString(struct.groupName);
+      }
+      if (struct.isSetPermission()) {
+        oprot.writeI32(struct.permission);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(16);
+      BitSet incoming = iprot.readBitSet(19);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -1946,6 +2243,18 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (incoming.get(15)) {
         struct.ttl = iprot.readI64();
         struct.setTtlIsSet(true);
+      }
+      if (incoming.get(16)) {
+        struct.userName = iprot.readString();
+        struct.setUserNameIsSet(true);
+      }
+      if (incoming.get(17)) {
+        struct.groupName = iprot.readString();
+        struct.setGroupNameIsSet(true);
+      }
+      if (incoming.get(18)) {
+        struct.permission = iprot.readI32();
+        struct.setPermissionIsSet(true);
       }
     }
   }

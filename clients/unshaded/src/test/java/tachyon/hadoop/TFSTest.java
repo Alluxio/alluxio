@@ -95,7 +95,7 @@ public class TFSTest {
     final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     ClientContext.reset(mTachyonConf);
     mockMasterClient();
@@ -119,7 +119,7 @@ public class TFSTest {
     final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, "false");
     ClientContext.reset(mTachyonConf);
     mockMasterClient();
@@ -143,7 +143,8 @@ public class TFSTest {
   private void mockMasterClient() {
     PowerMockito.mockStatic(FileSystemContext.class);
     FileSystemContext mockContext = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient mockMaster = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient mockMaster =
+        PowerMockito.mock(FileSystemMasterClient.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mockContext);
     Mockito.when(mockContext.acquireMasterClient()).thenReturn(mockMaster);
   }

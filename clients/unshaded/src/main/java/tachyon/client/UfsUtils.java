@@ -91,8 +91,10 @@ public final class UfsUtils {
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir"
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
    *        mTachyonFS.
-   * @param tachyonConf instance of TachyonConf
+   * @param tachyonConf instance of {@link TachyonConf}
    * @throws IOException when an event that prevents the operation from completing is encountered
+   * @deprecated As of version 0.8.
+   *             Use {@link #loadUfs(TachyonURI, TachyonURI, String, TachyonConf)} instead.
    */
   @Deprecated
   public static void loadUfs(TachyonFileSystem tfs, TachyonURI tachyonPath, TachyonURI

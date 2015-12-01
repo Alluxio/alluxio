@@ -17,11 +17,17 @@ package tachyon.master.rawtable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -30,6 +36,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TableColumnException;
 import tachyon.exception.TableDoesNotExistException;
 import tachyon.exception.TableMetadataException;
@@ -38,14 +45,15 @@ import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.rawtable.journal.RawTableEntry;
-import tachyon.master.rawtable.journal.UpdateMetadataEntry;
+import tachyon.master.journal.JournalProtoUtils;
 import tachyon.master.rawtable.meta.RawTables;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.RawTable.RawTableEntry;
+import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
-import tachyon.thrift.RawTableMasterService;
+import tachyon.thrift.RawTableMasterClientService;
 import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
@@ -60,7 +68,7 @@ public class RawTableMaster extends MasterBase {
   private final RawTables mRawTables = new RawTables();
 
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_NAME);
   }
 
   public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
@@ -73,31 +81,38 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new RawTableMasterService.Processor<RawTableMasterServiceHandler>(
-        new RawTableMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.RAW_TABLE_MASTER_CLIENT_SERVICE_NAME,
+        new RawTableMasterClientService.Processor<RawTableMasterClientServiceHandler>(
+            new RawTableMasterClientServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.RAW_TABLE_MASTER_NAME;
   }
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry instanceof RawTableEntry) {
-      RawTableEntry tableEntry = (RawTableEntry) entry;
-      mRawTables.add(tableEntry.getId(), tableEntry.getColumns(), tableEntry.getMetadata());
-    } else if (entry instanceof UpdateMetadataEntry) {
-      UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) entry;
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
+    if (innerEntry instanceof RawTableEntry) {
+      RawTableEntry tableEntry = (RawTableEntry) innerEntry;
+      mRawTables.add(tableEntry.getId(), tableEntry.getColumns(),
+          ByteBuffer.wrap(tableEntry.getMetadata().toByteArray()));
+    } else if (innerEntry instanceof UpdateMetadataEntry) {
+      UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) innerEntry;
       try {
-        mRawTables.updateMetadata(updateEntry.getId(), updateEntry.getMetadata());
+        mRawTables.updateMetadata(updateEntry.getId(),
+            ByteBuffer.wrap(updateEntry.getMetadata().toByteArray()));
       } catch (TableDoesNotExistException tdnee) {
         // should not reach here since before writing the journal, the same operation succeeded
         throw new IOException(tdnee);
       }
     } else {
-      throw new IOException(ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(entry.getType()));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
@@ -159,7 +174,12 @@ public class RawTableMaster extends MasterBase {
     }
 
     LOG.debug("writing journal entry for createRawTable {}", path);
-    writeJournalEntry(new RawTableEntry(id, columns, metadata));
+    RawTableEntry rawTable = RawTableEntry.newBuilder()
+        .setId(id)
+        .setColumns(columns)
+        .setMetadata(ByteString.copyFrom(metadata))
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setRawTable(rawTable).build());
     flushJournal();
 
     LOG.debug("created raw table with {} columns at {}", columns, path);
@@ -183,7 +203,11 @@ public class RawTableMaster extends MasterBase {
     }
     mRawTables.updateMetadata(tableId, metadata);
 
-    writeJournalEntry(new UpdateMetadataEntry(tableId, metadata));
+    UpdateMetadataEntry updateMetadata = UpdateMetadataEntry.newBuilder()
+        .setId(tableId)
+        .setMetadata(ByteString.copyFrom(metadata))
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setUpdateMetadata(updateMetadata).build());
     flushJournal();
   }
 
@@ -286,6 +310,7 @@ public class RawTableMaster extends MasterBase {
    * @throws TableMetadataException if the metadata is too large
    */
   private void validateMetadataSize(ByteBuffer metadata) throws TableMetadataException {
+    Preconditions.checkNotNull(metadata, PreconditionMessage.RAW_TABLE_METADATA_NULL);
     long metadataSize = metadata.limit() - metadata.position();
     if (metadataSize >= mMaxTableMetadataBytes) {
       throw new TableMetadataException(

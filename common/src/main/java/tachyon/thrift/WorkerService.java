@@ -40,14 +40,14 @@ public class WorkerService {
   public interface Iface extends tachyon.thrift.TachyonService.Iface {
 
     /**
-     * access a block given the block id.
+     * Accesses a block given the block id.
      * 
      * @param blockId the id of the block being accessed
      */
     public void accessBlock(long blockId) throws org.apache.thrift.TException;
 
     /**
-     * asynchronously checkpoint a file: return whether the checkpoint operation succeeded.
+     * Asynchronously checkpoints a file: returns whether the checkpoint operation succeeded.
      * 
      * @param fileId the id of the file being accessed
      */
@@ -75,7 +75,7 @@ public class WorkerService {
     public void cancelBlock(long sessionId, long blockId) throws tachyon.thrift.TachyonTException, tachyon.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
-     * Lock the file in Tachyon's space while the session is reading it, and the path of the block file
+     * Locks the file in Tachyon's space while the session is reading it, and the path of the block file
      * locked will be returned, if the block file is not found, FileDoesNotExistException will be
      * thrown.
      * 

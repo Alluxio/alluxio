@@ -30,8 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.client.WorkerBlockMasterClient;
-import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.metrics.MetricsSystem;
@@ -75,9 +74,9 @@ public final class BlockWorker extends WorkerBase {
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
   /** Client for all block master communication */
-  private final WorkerBlockMasterClient mBlockMasterClient;
+  private final BlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
-  private final WorkerFileSystemMasterClient mFileSystemMasterClient;
+  private final FileSystemMasterClient mFileSystemMasterClient;
   /** Net address of this worker */
   private final NetAddress mWorkerNetAddress;
   /** Configuration object */
@@ -115,8 +114,8 @@ public final class BlockWorker extends WorkerBase {
    * @return the worker RPC service bind host
    */
   public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
-        .toString();
+    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+        .getHostAddress();
   }
 
   /**
@@ -167,10 +166,10 @@ public final class BlockWorker extends WorkerBase {
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup MasterClientBase
-    mBlockMasterClient = new WorkerBlockMasterClient(
+    mBlockMasterClient = new BlockMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
-    mFileSystemMasterClient = new WorkerFileSystemMasterClient(
+    mFileSystemMasterClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     // Set up BlockDataManager
@@ -197,7 +196,7 @@ public final class BlockWorker extends WorkerBase {
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
     // reset worker RPC port
-    mTachyonConf.set(Constants.WORKER_PORT, Integer.toString(mPort));
+    mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),

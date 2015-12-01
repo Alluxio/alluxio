@@ -33,6 +33,9 @@
             <th>Size</th>
             <th>Block Size</th>
             <th>In-Memory</th>
+            <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
+              <th>Owner</th>
+            <% } %>
             <th>Persisted</th>
             <th>Pin</th>
             <th>Creation Time</th>
@@ -113,6 +116,9 @@
                       <%= fileInfo.getInMemoryPercentage() %>%
                     <% } %>
                   </th>
+                  <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
+                    <th><%= fileInfo.getUserName() %></th>
+                  <% } %>
                   <th><%= (fileInfo.getPersisted() ? "YES" : "NO") %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>

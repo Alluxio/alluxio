@@ -6,12 +6,12 @@ include "exception.thrift"
 service WorkerService extends common.TachyonService {
 
   /**
-   * access a block given the block id.
+   * Accesses a block given the block id.
    */
   void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
 
   /**
-   * asynchronously checkpoint a file: return whether the checkpoint operation succeeded.
+   * Asynchronously checkpoints a file: returns whether the checkpoint operation succeeded.
    */
   bool asyncCheckpoint( /** the id of the file being accessed */ 1: i64 fileId)
     throws (1: exception.TachyonTException e)
@@ -34,7 +34,7 @@ service WorkerService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Lock the file in Tachyon's space while the session is reading it, and the path of the block file
+   * Locks the file in Tachyon's space while the session is reading it, and the path of the block file
    * locked will be returned, if the block file is not found, FileDoesNotExistException will be
    * thrown.
    */
