@@ -377,7 +377,7 @@ public abstract class UnderFileSystem {
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
   /**
-   * Opens an {@code InputStream} at the indicated path.
+   * Opens an {@link InputStream} at the indicated path.
    *
    * @param path The file name
    * @return The {@code InputStream} object
