@@ -45,7 +45,6 @@ import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
-import tachyon.exception.TachyonPreconditions;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.job.Job;
@@ -277,7 +276,8 @@ public final class LineageMaster extends MasterBase {
   private boolean deleteLineageInternal(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
-    TachyonPreconditions.CheckLineageExist(lineage != null, lineageId);
+    LineageDoesNotExistException.check(lineage != null, ExceptionMessage.LINEAGE_DOES_NOT_EXIST,
+        lineageId);
 
     // there should not be child lineage if not cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
@@ -359,7 +359,8 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException if the file path is invalid
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
-      List<Long> persistedFiles) throws FileDoesNotExistException, InvalidPathException {
+      List<Long> persistedFiles)
+          throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
     if (!persistedFiles.isEmpty()) {
       // notify checkpoint manager the persisted files
       persistFiles(workerId, persistedFiles);
@@ -431,7 +432,7 @@ public final class LineageMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   private synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
     List<CheckpointFile> files = Lists.newArrayList();
     if (!mWorkerToCheckpointFile.containsKey(workerId)) {
       return files;
@@ -467,7 +468,8 @@ public final class LineageMaster extends MasterBase {
    *
    * @param fileIds the id of the files
    */
-  public synchronized void requestFilePersistence(List<Long> fileIds) {
+  public synchronized void requestFilePersistence(List<Long> fileIds)
+      throws LineageDoesNotExistException {
     if (!fileIds.isEmpty()) {
       LOG.info("Request file persistency: {}", fileIds);
     }
@@ -482,9 +484,14 @@ public final class LineageMaster extends MasterBase {
     flushJournal();
   }
 
-  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry) {
+  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry)
+      throws IOException {
     for (long fileId : entry.getFileIdsList()) {
-      mLineageStore.requestFilePersistence(fileId);
+      try {
+        mLineageStore.requestFilePersistence(fileId);
+      } catch (LineageDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
@@ -494,7 +501,8 @@ public final class LineageMaster extends MasterBase {
    * @param workerId the worker id
    * @param persistedFiles the persisted files
    */
-  private synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void persistFiles(long workerId, List<Long> persistedFiles)
+      throws LineageDoesNotExistException {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {
@@ -510,9 +518,14 @@ public final class LineageMaster extends MasterBase {
     flushJournal();
   }
 
-  private synchronized void persistFilesFromEntry(PersistFilesEntry entry) {
+  private synchronized void persistFilesFromEntry(PersistFilesEntry entry)
+      throws IOException {
     for (Long fileId : entry.getFileIdsList()) {
-      mLineageStore.commitFilePersistence(fileId);
+      try {
+        mLineageStore.commitFilePersistence(fileId);
+      } catch (LineageDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
