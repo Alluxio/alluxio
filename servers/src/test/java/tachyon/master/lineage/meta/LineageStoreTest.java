@@ -28,8 +28,8 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
-import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -89,16 +89,16 @@ public final class LineageStoreTest {
   public void deleteNonexistingLineageTest() throws LineageDoesNotExistException {
     long id = 1;
     mThrown.expect(LineageDoesNotExistException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_DOES_NOT_EXIST, id));
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(id));
 
     mLineageStore.deleteLineage(id);
   }
 
   @Test
-  public void requestNonexistingFileForPersistenceTest() {
+  public void requestNonexistingFileForPersistenceTest() throws LineageDoesNotExistException {
     long fileId = 1;
-    mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+    mThrown.expect(LineageDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
 
     mLineageStore.requestFilePersistence(fileId);
   }
@@ -128,7 +128,7 @@ public final class LineageStoreTest {
   public void reportLostNonexistingFileTest() throws Exception {
     long fileId = 1;
     mThrown.expect(LineageDoesNotExistException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(fileId));
 
     mLineageStore.reportLostFile(fileId);
   }
@@ -144,10 +144,10 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void commitNonexistingFilePersistenceTest() {
+  public void commitNonexistingFilePersistenceTest() throws LineageDoesNotExistException {
     long fileId = 1;
-    mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId));
+    mThrown.expect(LineageDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST.getMessage(fileId));
 
     mLineageStore.commitFilePersistence(fileId);
   }

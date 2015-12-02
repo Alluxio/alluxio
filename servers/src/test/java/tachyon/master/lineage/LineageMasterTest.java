@@ -41,7 +41,6 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
-import tachyon.exception.PreconditionMessage;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -121,8 +120,7 @@ public final class LineageMasterTest {
       mLineageMaster.deleteLineage(id, false);
       Assert.fail();
     } catch (LineageDoesNotExistException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.LINEAGE_DOES_NOT_EXIST, id),
-          e.getMessage());
+      Assert.assertEquals(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(id), e.getMessage());
     }
   }
 

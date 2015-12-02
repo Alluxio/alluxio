@@ -27,9 +27,8 @@ import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.LineageDoesNotExistException;
-import tachyon.exception.PreconditionMessage;
-import tachyon.exception.TachyonPreconditions;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
@@ -120,7 +119,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param lineageId the lineage id
    */
   public synchronized void deleteLineage(long lineageId) throws LineageDoesNotExistException {
-    TachyonPreconditions.CheckLineageExist(mIdIndex.containsKey(lineageId), lineageId);
+    LineageDoesNotExistException.check(mIdIndex.containsKey(lineageId),
+        ExceptionMessage.LINEAGE_DOES_NOT_EXIST, lineageId);
 
     deleteLineage(lineageId, Sets.<Long>newHashSet());
   }
@@ -151,9 +151,9 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param fileId the file id
    */
-  public synchronized void requestFilePersistence(long fileId) {
-    Preconditions.checkState(mOutputFileIndex.containsKey(fileId),
-        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
+  public synchronized void requestFilePersistence(long fileId) throws LineageDoesNotExistException {
+    LineageDoesNotExistException.check(mOutputFileIndex.containsKey(fileId),
+        ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST, fileId);
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISENCE_REQUESTED);
   }
@@ -176,7 +176,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized List<Lineage> getChildren(Lineage lineage)
       throws LineageDoesNotExistException {
-    TachyonPreconditions.CheckLineageExist(mIdIndex.containsKey(lineage.getId()), lineage.getId());
+    LineageDoesNotExistException.check(mIdIndex.containsKey(lineage.getId()),
+        ExceptionMessage.LINEAGE_DOES_NOT_EXIST, lineage.getId());
 
     return mLineageDAG.getChildren(lineage);
   }
@@ -187,9 +188,10 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param lineage the lineage
    * @return the lineage's parents
    */
-  public synchronized List<Lineage> getParents(Lineage lineage) {
-    Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
-        "lineage id " + lineage.getId() + " does not exist");
+  public synchronized List<Lineage> getParents(Lineage lineage)
+      throws LineageDoesNotExistException {
+    LineageDoesNotExistException.check(mIdIndex.containsKey(lineage.getId()),
+        ExceptionMessage.LINEAGE_DOES_NOT_EXIST, lineage.getId());
 
     return mLineageDAG.getParents(lineage);
   }
@@ -203,8 +205,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public synchronized Lineage reportLostFile(long fileId) throws LineageDoesNotExistException {
     Lineage lineage = mOutputFileIndex.get(fileId);
-    TachyonPreconditions.CheckLineageExist(lineage != null,
-        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
+    LineageDoesNotExistException.check(lineage != null, ExceptionMessage.LINEAGE_DOES_NOT_EXIST,
+        fileId);
     // TODO(yupeng) push the persisted info to FS master
     if (lineage.getOutputFileState(fileId) != LineageFileState.PERSISTED) {
       lineage.updateOutputFileState(fileId, LineageFileState.LOST);
@@ -224,9 +226,9 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param fileId the file id
    */
-  public synchronized void commitFilePersistence(Long fileId) {
-    Preconditions.checkState(mOutputFileIndex.containsKey(fileId),
-        PreconditionMessage.LINEAGE_NO_OUTPUT_FILE, fileId);
+  public synchronized void commitFilePersistence(Long fileId) throws LineageDoesNotExistException {
+    LineageDoesNotExistException.check(mOutputFileIndex.containsKey(fileId),
+        ExceptionMessage.LINEAGE_OUTPUT_FILE_NOT_EXIST, fileId);
 
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISTED);

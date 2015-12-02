@@ -36,4 +36,11 @@ public class LineageDoesNotExistException extends TachyonException {
   public LineageDoesNotExistException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
+
+  public static void check(boolean expression, ExceptionMessage message, Object... params)
+      throws LineageDoesNotExistException {
+    if (!expression) {
+      throw new LineageDoesNotExistException(message, params);
+    }
+  }
 }
