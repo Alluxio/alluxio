@@ -151,6 +151,33 @@ public final class TachyonFuseFs extends FuseStubFS {
   }
 
   @Override
+  public int flush(String path, FuseFileInfo fi) {
+    LOG.trace("flush({})", path);
+    final long fd = fi.fh.get();
+    OpenFileEntry oe = null;
+    synchronized (mOpenFilesLock) {
+      oe = mOpenFiles.get(fd);
+    }
+    if (oe == null) {
+      LOG.error("Cannot find fd for {} in table", path);
+      return -ErrorCodes.EBADFD();
+    }
+
+    if (!oe.out.isPresent()) {
+      LOG.error("{} was not open for writing", path);
+      return -ErrorCodes.EBADFD();
+    }
+    final FileOutStream outstream = oe.out.get();
+    try {
+      outstream.flush();
+    } catch (IOException e) {
+      return -ErrorCodes.EIO();
+    }
+
+    return 0;
+  }
+
+  @Override
   public int getattr(String path, FileStat stat) {
     int ret = 0;
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
@@ -335,7 +362,11 @@ public final class TachyonFuseFs extends FuseStubFS {
         }
       }
 
-      buf.put(0, dest, 0, nread);
+      if (nread == -1) { // EOF
+        nread = 0;
+      } else if (nread > 0) {
+        buf.put(0, dest, 0, nread);
+      }
     } catch (IOException e) {
       LOG.error("IOException while reading from {}.", path, e);
       return -ErrorCodes.EIO();
@@ -554,4 +585,5 @@ public final class TachyonFuseFs extends FuseStubFS {
       return new TachyonURI(mTachyonMaster + tpath.toString());
     }
   }
+
 }
