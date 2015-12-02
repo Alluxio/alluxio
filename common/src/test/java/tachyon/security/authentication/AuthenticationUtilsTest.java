@@ -15,6 +15,7 @@
 
 package tachyon.security.authentication;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import javax.security.sasl.AuthenticationException;
@@ -58,9 +59,9 @@ public class AuthenticationUtilsTest {
   public void before() throws Exception {
     mTachyonConf = new TachyonConf();
     // Use port 0 to assign each test case an available port (possibly different)
-    mServerTSocket = new TServerSocket(new InetSocketAddress("localhost", 0));
+    mServerTSocket = new TServerSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
-    mServerAddress = new InetSocketAddress("localhost", port);
+    mServerAddress = new InetSocketAddress(InetAddress.getLocalHost(), port);
     mClientTSocket = AuthenticationUtils.createTSocket(mServerAddress,
         mTachyonConf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
   }
