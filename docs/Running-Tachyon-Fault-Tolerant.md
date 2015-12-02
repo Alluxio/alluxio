@@ -65,7 +65,7 @@ appropriately on each host.
 
 In the following sections we refer to an "externally visible address". This is simply the address of
 an interface on the machine being configured that can be seen by other nodes in the Tachyon cluster.
-On EC2, you should the `ip-x-x-x-x` address. In particular, don't use `localhost` or `127.0.0.1`, as
+On EC2, you should use the `ip-x-x-x-x` address. In particular, don't use `localhost` or `127.0.0.1`, as
 other nodes will then be unable to reach your node.
 
 ### Configuring Fault Tolerant Tachyon
