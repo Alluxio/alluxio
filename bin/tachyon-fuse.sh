@@ -21,6 +21,7 @@ MOUNT_POINT=/mnt/tachyon
 
 TACHYON_MASTER_HOST=localhost
 TACHYON_MASTER_PORT=19998
+TACHYON_MASTER_ADDRESS=tachyon://${TACHYON_MASTER_HOST}:${TACHYON_MASTER_PORT}
 
 
 ###################################################
@@ -40,11 +41,11 @@ TACHYON_JAVA_OPTS+="
   -Dtachyon.logger.type=tachyon.client
   -Dtachyon.master.port=${TACHYON_MASTER_PORT}
   -Dtachyon.master.hostname=${TACHYON_MASTER_HOST}
-  -Dtachyon.master.address=tachyon://${TACHYON_MASTER_HOST}:${TACHYON_MASTER_PORT}
+  -Dtachyon.master.address=${TACHYON_MASTER_ADDRESS}
 "
 
 FUSE_MAX_WRITE=131072
 
 java ${JAVA_OPTS} ${TACHYON_JAVA_OPTS} com.ibm.ie.tachyon.fuse.TachyonFuse ${DEBUG_FLAG}\
-  -m ${MOUNT_POINT} -t ${TACHYON_MASTER} -o big_writes -o max_write=$FUSE_MAX_WRITE
+  -m ${MOUNT_POINT} -t ${TACHYON_MASTER_ADDRESS} -o big_writes -o max_write=$FUSE_MAX_WRITE
 
