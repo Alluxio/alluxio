@@ -27,7 +27,12 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
-public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
+/**
+ * Factory for creating HDFS under file systems. As an implementation detail, it caches created
+ * HdfsUnderFileSystems, using paths' schemes and authorities as the keys. This class is
+ * thread-safe.
+ */
+public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * Cache mapping {@link Path}s to existing {@link UnderFileSystem} instances. The Paths should be
    * normalized to root paths because only their schemes and authorities are needed to identify
@@ -42,13 +47,15 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
     // Normalize the path to just its root. This is all that's needed to identify which FileSystem
     // the Path belongs to.
     Path rootPath = getRoot(new Path(path));
-    if (!mHdfsUfsCache.containsKey(rootPath)) {
-      mHdfsUfsCache.put(rootPath, new HdfsUnderFileSystem(path, tachyonConf, conf));
+    synchronized (mHdfsUfsCache) {
+      if (!mHdfsUfsCache.containsKey(rootPath)) {
+        mHdfsUfsCache.put(rootPath, new HdfsUnderFileSystem(path, tachyonConf, conf));
+      }
+      return mHdfsUfsCache.get(rootPath);
     }
-    return mHdfsUfsCache.get(rootPath);
   }
 
-  private static final Path getRoot(Path path) {
+  private static Path getRoot(Path path) {
     Path currPath = path;
     while (currPath.getParent() != null) {
       currPath = currPath.getParent();
