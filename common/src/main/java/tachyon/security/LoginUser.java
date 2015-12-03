@@ -94,7 +94,8 @@ public final class LoginUser {
   }
 
   /**
-   * Checks whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS, CUSTOM.
+   * Checks whether Tachyon is running in secure mode, such as {@link AuthType#SIMPLE},
+   * {@link AuthType#KERBEROS}, {@link AuthType#CUSTOM}.
    *
    * @param authType the authentication type in configuration
    */
