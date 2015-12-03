@@ -66,7 +66,6 @@ public abstract class MasterBase implements Master {
   /**
    * @param journal the journal to use for tracking master operations
    * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
-   * @param executorService the name pattern for the executor service to use for asynchronous tasks
    */
   protected MasterBase(Journal journal, int numThreads) {
     mJournal = Preconditions.checkNotNull(journal);
