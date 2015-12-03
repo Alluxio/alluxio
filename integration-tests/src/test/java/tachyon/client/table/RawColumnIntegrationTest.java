@@ -29,7 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
 
 /**
- * Integration tests for tachyon.client.RawColumn.
+ * Integration tests for {@link RawColumn}.
  */
 // TODO(calvin): Move this into TachyonRawTablesIntegrationTest
 public class RawColumnIntegrationTest {
