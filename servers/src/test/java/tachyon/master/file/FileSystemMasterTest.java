@@ -17,6 +17,8 @@ package tachyon.master.file;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
@@ -27,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -373,6 +376,19 @@ public final class FileSystemMasterTest {
     long dirId = mFileSystemMaster.getFileId(NESTED_FILE_URI.getParent());
     Assert.assertTrue(mFileSystemMaster.free(dirId, true));
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  @Test
+  public void stopTest() throws Exception {
+    ExecutorService service =
+        (ExecutorService) Whitebox.getInternalState(mFileSystemMaster, "mExecutorService");
+    Future<?> ttlThread =
+        (Future<?>) Whitebox.getInternalState(mFileSystemMaster, "mTTLCheckerService");
+    Assert.assertFalse(ttlThread.isDone());
+    Assert.assertFalse(service.isShutdown());
+    mFileSystemMaster.stop();
+    Assert.assertTrue(ttlThread.isDone());
+    Assert.assertTrue(service.isShutdown());
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
