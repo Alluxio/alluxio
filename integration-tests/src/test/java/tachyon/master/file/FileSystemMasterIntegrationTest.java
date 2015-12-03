@@ -250,8 +250,9 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * The authenticate user is gotten from current thread local. If MasterInfo starts a concurrent
-   * thread to do operations, AuthorizedClientUser will be null. So AuthorizedClientUser.set()
-   * should be called in the Callable.call to set this user for testing.
+   * thread to do operations, {@link AuthorizedClientUser} will be null. So
+   * {@link AuthorizedClientUser#set(String)} should be called in the {@link Callable#call()} to
+   * set this user for testing.
    */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 

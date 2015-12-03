@@ -50,7 +50,7 @@ import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
 
 /**
- * Integration tests for tachyon.BlockServiceHandler
+ * Integration tests for {@link BlockServiceHandler}
  */
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;

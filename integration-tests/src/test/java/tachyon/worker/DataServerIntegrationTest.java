@@ -51,7 +51,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Integration tests for tachyon.worker.DataServer.
+ * Integration tests for {@link DataServer}.
  */
 @RunWith(Parameterized.class)
 public class DataServerIntegrationTest {
