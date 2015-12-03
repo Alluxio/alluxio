@@ -70,7 +70,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, "raw-table-master-%d");
+    super(journal, 2);
     TachyonConf conf = MasterContext.getConf();
     mMaxTableMetadataBytes = conf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = conf.getInt(Constants.MAX_COLUMNS);
