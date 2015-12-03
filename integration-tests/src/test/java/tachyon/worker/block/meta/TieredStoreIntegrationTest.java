@@ -72,7 +72,11 @@ public class TieredStoreIntegrationTest {
     mSetUnpinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
-  // Tests that deletes go through despite failing initially due to concurrent read
+  /**
+   * Tests that deletes go through despite failing initially due to concurrent read.
+   *
+   * @throws Exception
+   */
   @Test
   public void deleteWhileReadTest() throws Exception {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
@@ -113,7 +117,11 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(newFile).getInMemoryPercentage() == 100);
   }
 
-  // Tests that pinning a file prevents it from being evicted.
+  /**
+   * Tests that pinning a file prevents it from being evicted.
+   *
+   * @throws Exception
+   */
   @Test
   public void pinFileTest() throws Exception {
     // Create a file that fills the entire Tachyon store
@@ -135,7 +143,11 @@ public class TieredStoreIntegrationTest {
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
   }
 
-  // Tests that pinning a file and then unpinning
+  /**
+   * Tests that pinning a file and then unpinning.
+   *
+   * @throws Exception
+   */
   @Test
   public void unpinFileTest() throws Exception {
     // Create a file that fills the entire Tachyon store
