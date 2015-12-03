@@ -115,7 +115,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void close() throws IOException {
-    mFs.close();
+    // Don't close mFs; FileSystems are singletons so closing it here could break other users
   }
 
   @Override
