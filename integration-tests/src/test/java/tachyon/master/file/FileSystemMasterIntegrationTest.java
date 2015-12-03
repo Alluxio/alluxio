@@ -47,7 +47,7 @@ import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.meta.TTLBucket;
+import tachyon.master.file.meta.TTLBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
@@ -280,7 +280,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
-    TTLBucket.setTTlIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
+
+    TTLBucketPrivateAccess
+        .setTTLIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
   }
 
   @Test

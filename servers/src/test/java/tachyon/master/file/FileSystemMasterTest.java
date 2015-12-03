@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,15 +35,16 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.TTLBucket;
+import tachyon.master.file.meta.TTLBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
@@ -62,6 +64,7 @@ public final class FileSystemMasterTest {
   private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
   private static CreateOptions sNestedFileOptions;
+  private static long sOldTtlIntervalMs;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -78,7 +81,13 @@ public final class FileSystemMasterTest {
     sNestedFileOptions =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
-    TTLBucket.setTTlIntervalMs(TTLCHECKER_INTERVAL_MS);
+    sOldTtlIntervalMs = TTLBucket.getTTLIntervalMs();
+    TTLBucketPrivateAccess.setTTLIntervalMs(TTLCHECKER_INTERVAL_MS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    TTLBucketPrivateAccess.setTTLIntervalMs(sOldTtlIntervalMs);
   }
 
   @Before
