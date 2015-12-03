@@ -57,7 +57,7 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Unit tests on TFsShell.
+ * Unit tests on {@link TfsShell}.
  */
 public class TfsShellTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
@@ -1215,5 +1215,4 @@ public class TfsShellTest {
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/bar/foobar3")), 30);
     checkFilePersisted(mTfs.open(new TachyonURI("/testWildCards/foobar4")), 40);
   }
-
 }
