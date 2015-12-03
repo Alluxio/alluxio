@@ -1,5 +1,5 @@
 /*
- * Licensed to IBM Ireland - Research and Development under one or more contributor license
+ * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.ibm.ie.tachyon.fuse;
 
 import java.util.List;
@@ -42,7 +43,6 @@ final class TachyonFuseOptions {
   public String getMountPoint() {
     return mMountPoint;
   }
-
 
   /**
    * @return the address of the tachyon master as a TachyonURI string

@@ -1,5 +1,5 @@
 /*
- * Licensed to IBM Ireland - Research and Development under one or more contributor license
+ * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
@@ -12,7 +12,13 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.ibm.ie.tachyon.fuse;
+
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,21 +30,14 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Main entry point to Tachyon-FUSE
- * @author Andrea Reale <realean2@ie.ibm.com>
  */
 public final class TachyonFuse {
-  private final static Logger LOG = LoggerFactory.getLogger(TachyonFuse.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TachyonFuse.class);
   private static final String DEFAULT_MOUNT_POINT = "/mnt/tachyon";
   private static final String DEFAULT_MASTER_ADDR = "tachyon://localhost:19998";
   private static final String DEFAULT_ROOT = "/";
-
 
   public static void main(String[] args) {
     final TachyonFuseOptions opts = parseOptions(args);
@@ -54,7 +53,6 @@ public final class TachyonFuse {
           fuseOpts.toArray(new String[0]));
     } finally {
       fs.umount();
-
     }
   }
 
@@ -104,8 +102,6 @@ public final class TachyonFuse {
         .desc("FUSE mount options")
         .build();
 
-
-
     opts.addOption(mntPoint);
     opts.addOption(tachyonAddress);
     opts.addOption(tachyonRoot);
@@ -131,10 +127,10 @@ public final class TachyonFuse {
       List<String> fuseOpts;
       if (cli.hasOption("o")) {
         String[] fopts = cli.getOptionValues("o");
-        fuseOpts = new ArrayList<>(fopts.length);
+        fuseOpts = new ArrayList<String>(fopts.length);
         // keep the -o
-        for (int i=0; i<fopts.length; i++) {
-          fuseOpts.add("-o"+fopts[i]);
+        for (int i = 0; i < fopts.length; i++) {
+          fuseOpts.add("-o" + fopts[i]);
         }
       } else {
         fuseOpts = Collections.emptyList();
@@ -163,8 +159,6 @@ public final class TachyonFuse {
       return null;
     }
 
-
   }
-
-
 }
+
