@@ -35,7 +35,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for TFS rename.
+ * Integration tests for {@link TFS#rename(Path, Path)}.
  */
 // TODO(jiri): Test persisting rename operations to UFS.
 public class TFSRenameIntegrationTest {
