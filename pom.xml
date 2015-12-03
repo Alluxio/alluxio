@@ -152,6 +152,7 @@
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
+    <module>fuse</module>
   </modules>
 
   <dependencyManagement>

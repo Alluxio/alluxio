@@ -1,5 +1,5 @@
 /*
- * Licensed to IBM Ireland - Research and Development under one or more contributor license
+ * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
@@ -12,22 +12,21 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ibm.ie.tachyon.fuse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.ibm.ie.tachyon.fuse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Utility methods for Tachyon-FUSE
- *
- * @author Andrea Reale <realean2@ie.ibm.com>
  */
 public final class TachyonFuseUtils {
-  private final static Logger LOG = LoggerFactory.getLogger(TachyonFuseUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TachyonFuseUtils.class);
 
   /**
    * Retrieves the uid and primary gid of the user running Tachyon-FUSE
@@ -67,6 +66,7 @@ public final class TachyonFuseUtils {
         try {
           br.close();
         } catch (IOException e) {
+          LOG.warn("Exception while closing Process output reader", e);
         }
       }
 

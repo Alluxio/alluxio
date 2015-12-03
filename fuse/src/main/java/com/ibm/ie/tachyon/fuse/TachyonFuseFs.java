@@ -1,5 +1,5 @@
 /*
- * Licensed to IBM Ireland - Research and Development under one or more contributor license
+ * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.ibm.ie.tachyon.fuse;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +30,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.FileAlreadyExistsException;
@@ -49,24 +47,22 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+
 import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
-
 
 /**
  * Main FUSE implementation class.
  *
  * Implements the FUSE callbacks defined by jnr-fuse
- * @author Andrea Reale <realean2@ie.ibm.com>
  */
 public final class TachyonFuseFs extends FuseStubFS {
-  private final static int MAX_OPEN_FILES = Integer.MAX_VALUE;
+  private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   // Limits the number of translated (FUSE to TachyonURI)  paths that are kept
   // in memory
-  private final static int MAX_CACHED_PATHS = 500;
-  private final static Logger LOG = LoggerFactory.getLogger(TachyonFuseFs.class);
-  private final static long[] mUidAndGid = TachyonFuseUtils.getUidAndGid();
-
+  private static final int MAX_CACHED_PATHS = 500;
+  private static final Logger LOG = LoggerFactory.getLogger(TachyonFuseFs.class);
+  private static final long[] UID_AND_GID = TachyonFuseUtils.getUidAndGid();
 
   private final TachyonFileSystem mTFS;
   private final Path mMountPoint;
@@ -80,7 +76,6 @@ public final class TachyonFuseFs extends FuseStubFS {
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mOpenFileIds;
 
-
   public TachyonFuseFs(TachyonFuseOptions opts) {
     super();
     mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
@@ -88,7 +83,7 @@ public final class TachyonFuseFs extends FuseStubFS {
     mTachyonMaster = opts.getMasterAddress();
     mTachyonRootPath = Paths.get(opts.getTachyonRoot());
     mOpenFileIds = 0L;
-    mOpenFiles = new HashMap<>();
+    mOpenFiles = new HashMap<Long, OpenFileEntry>();
     mOpenFilesLock = new Object();
 
     mPathResolverCache = CacheBuilder.newBuilder()
@@ -116,8 +111,8 @@ public final class TachyonFuseFs extends FuseStubFS {
     try {
 
       final OpenFileEntry ofe = new OpenFileEntry();
-      ofe.in = Optional.empty();
-      ofe.out = Optional.of(mTFS.getOutStream(turi));
+      ofe.mIn = null;
+      ofe.mOut = mTFS.getOutStream(turi);
       LOG.debug("Tachyon OutStream created for {}", path);
 
       synchronized (mOpenFilesLock) {
@@ -162,14 +157,12 @@ public final class TachyonFuseFs extends FuseStubFS {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
-
-    if (!oe.out.isPresent()) {
+    if (oe.mOut == null) {
       LOG.error("{} was not open for writing", path);
       return -ErrorCodes.EBADFD();
     }
-    final FileOutStream outstream = oe.out.get();
     try {
-      outstream.flush();
+      oe.mOut.flush();
     } catch (IOException e) {
       return -ErrorCodes.EIO();
     }
@@ -200,8 +193,8 @@ public final class TachyonFuseFs extends FuseStubFS {
 
         System.getProperty("user.name");
 
-        stat.st_uid.set(mUidAndGid[0]);
-        stat.st_gid.set(mUidAndGid[1]);
+        stat.st_uid.set(UID_AND_GID[0]);
+        stat.st_gid.set(UID_AND_GID[1]);
 
         final int mode;
         if (fi.isFolder) {
@@ -245,7 +238,7 @@ public final class TachyonFuseFs extends FuseStubFS {
     LOG.warn("{}: mode is ignored in tachyon-fuse", path);
     try {
       mTFS.mkdir(turi);
-    } catch(FileAlreadyExistsException e) {
+    } catch (FileAlreadyExistsException e) {
       LOG.debug("Cannot make dir. {} already exists", path, e);
       ret = ErrorCodes.EEXIST();
     } catch (InvalidPathException e) {
@@ -263,7 +256,6 @@ public final class TachyonFuseFs extends FuseStubFS {
     }
 
     return -ret;
-
   }
 
   @Override
@@ -290,9 +282,9 @@ public final class TachyonFuseFs extends FuseStubFS {
         return -ErrorCodes.ENOENT();
       }
       final OpenFileEntry ofe = new OpenFileEntry();
-      ofe.tfid = tf.getFileId();
-      ofe.in = Optional.of(mTFS.getInStream(tf));
-      ofe.out = Optional.empty();
+      ofe.mTfid = tf.getFileId();
+      ofe.mIn = mTFS.getInStream(tf);
+      ofe.mOut = null;
 
       synchronized (mOpenFilesLock) {
         if (mOpenFiles.size() == MAX_OPEN_FILES) {
@@ -305,7 +297,6 @@ public final class TachyonFuseFs extends FuseStubFS {
         // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
         mOpenFileIds += 1;
       }
-
 
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
@@ -320,7 +311,6 @@ public final class TachyonFuseFs extends FuseStubFS {
       LOG.error("Unexpected exception on {}", path, e);
       ret = ErrorCodes.EFAULT();
     }
-
 
     return -ret;
   }
@@ -345,18 +335,17 @@ public final class TachyonFuseFs extends FuseStubFS {
       return -ErrorCodes.EBADFD();
     }
 
-    int rd = 0, nread = 0;
-    if (!oe.in.isPresent()) {
+    int rd = 0;
+    int nread = 0;
+    if (oe.mIn == null) {
       LOG.error("{} was not open for reading", path);
       return -ErrorCodes.EBADFD();
     }
-    final FileInStream instream = oe.in.get();
     try {
-      instream.seek(offset);
-
+      oe.mIn.seek(offset);
       final byte[] dest = new byte[sz];
       while (rd >= 0 && nread < size) {
-        rd = instream.read(dest, nread, sz - nread);
+        rd = oe.mIn.read(dest, nread, sz - nread);
         if (rd >= 0) {
           nread += rd;
         }
@@ -380,7 +369,8 @@ public final class TachyonFuseFs extends FuseStubFS {
   }
 
   @Override
-  public int readdir(String path, Pointer buff, FuseFillDir filter, @off_t long offset, FuseFileInfo fi) {
+  public int readdir(String path, Pointer buff, FuseFillDir filter,
+      @off_t long offset, FuseFileInfo fi) {
     int ret = 0;
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
     LOG.trace("readdir({}) [Tachyon: {}]", path, turi);
@@ -436,22 +426,23 @@ public final class TachyonFuseFs extends FuseStubFS {
       }
     }
 
-    oe.in.ifPresent((FileInStream is) -> {
+    if (oe.mIn != null) {
       try {
-        is.close();
+        oe.mIn.close();
       } catch (IOException e) {
         LOG.error("Failed closing {} [in]", path, e);
       }
-    });
+    }
 
-    oe.out.ifPresent((FileOutStream os) -> {
+    if (oe.mOut != null) {
       try {
         LOG.trace("Closing file writer for {}", path);
-        os.close();
+        oe.mOut.close();
       } catch (IOException e) {
         LOG.error("Failed closing {} [out]", path, e);
       }
-    });
+    }
+
     return 0;
   }
 
@@ -493,7 +484,6 @@ public final class TachyonFuseFs extends FuseStubFS {
     return rmInternal(path, false);
   }
 
-
   @Override
   public int unlink(String path) {
     LOG.trace("unlink({})", path);
@@ -519,17 +509,15 @@ public final class TachyonFuseFs extends FuseStubFS {
       return -ErrorCodes.EBADFD();
     }
 
-    if (!oe.out.isPresent()) {
+    if (oe.mOut == null) {
       LOG.error("{} was not open for writing", path);
       return -ErrorCodes.EBADFD();
     }
-    final FileOutStream outstream = oe.out.get();
     // LOG.debug("Tachyn-fuse does not support seek for writes. Ignoring offset {}", offset);
     try {
-
       final byte[] dest = new byte[sz];
       buf.get(0, dest, 0, sz);
-      outstream.write(dest);
+      oe.mOut.write(dest);
     } catch (IOException e) {
       LOG.error("IOException while writing to {}.", path, e);
       return -ErrorCodes.EIO();
@@ -570,7 +558,6 @@ public final class TachyonFuseFs extends FuseStubFS {
     }
 
     return -ret;
-
   }
 
   /**

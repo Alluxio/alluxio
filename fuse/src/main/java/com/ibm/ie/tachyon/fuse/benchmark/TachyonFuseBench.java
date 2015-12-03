@@ -1,5 +1,5 @@
 /*
- * Licensed to IBM Ireland - Research and Development under one or more contributor license
+ * Licensed to the University of California, Berkeley under one or more contributor license
  * agreements. See the NOTICE file distributed with this work for additional information regarding
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.ibm.ie.tachyon.fuse.benchmark;
 
 import java.io.BufferedInputStream;
@@ -33,10 +34,6 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
-/**
- *
- * @author Andrea Reale <realean2@ie.ibm.com>
- */
 public final class TachyonFuseBench {
 
   private final List<Integer> mWriteSizeMBytes;
@@ -48,9 +45,8 @@ public final class TachyonFuseBench {
   private final int mBlockSize;
   private final int mRepetitions;
 
-
   public TachyonFuseBench(String resultsFile, String tachyonFusePath, String tachyonURI,
-                          int blockSize, int repetitions,  String[] writeSizeBytes) {
+      int blockSize, int repetitions,  String[] writeSizeBytes) {
     Preconditions.checkArgument(blockSize > 0);
     Preconditions.checkArgument(repetitions > 0);
     mSrcFile = new File("/dev/zero");
@@ -61,20 +57,19 @@ public final class TachyonFuseBench {
     mTachyonURI = new TachyonURI(tachyonURI);
     mRepetitions = repetitions;
 
-    mWriteSizeMBytes = new ArrayList<>(writeSizeBytes.length);
+    mWriteSizeMBytes = new ArrayList<Integer>(writeSizeBytes.length);
     for (final String sz: writeSizeBytes) {
       mWriteSizeMBytes.add(Integer.parseInt(sz));
     }
-
   }
 
-
-  private long benchWrite(final OutputStream os, long toWriteBytes)  throws IOException{
+  private long benchWrite(final OutputStream os, long toWriteBytes) throws IOException {
     long start = System.currentTimeMillis();
     BufferedInputStream is = null;
     try {
       is = new BufferedInputStream(new FileInputStream(mSrcFile));
-      int nread = 0, nwritten = 0;
+      int nread = 0;
+      int nwritten = 0;
       byte[] buff = new byte[mBlockSize];
       while (nwritten < toWriteBytes) {
         nread = is.read(buff, 0, mBlockSize);
@@ -87,16 +82,18 @@ public final class TachyonFuseBench {
       System.err.println("Written " + nwritten + " bytes");
     } finally {
       if (is != null) {
-          is.close();
+        is.close();
       }
     }
 
     return System.currentTimeMillis() - start;
   }
-  private long benchRead(final InputStream is)  throws IOException{
+
+  private long benchRead(final InputStream is) throws IOException {
     long start = System.currentTimeMillis();
 
-    int nread = 0, totalread =0;
+    int nread = 0;
+    int totalread = 0;
     byte[] buff = new byte[mBlockSize];
     while (nread >= 0) {
       nread = is.read(buff, 0, mBlockSize);
@@ -109,9 +106,9 @@ public final class TachyonFuseBench {
     return System.currentTimeMillis() - start;
   }
 
-
   private long[] benchFuse(long toWriteBytes) throws Exception {
-    long writePath = 0, readPath = 0;
+    long writePath = 0;
+    long readPath = 0;
     FileOutputStream fos = null;
     FileInputStream fis = null;
     try {
@@ -138,11 +135,11 @@ public final class TachyonFuseBench {
     }
 
     return new long[] {writePath, readPath};
-
   }
 
   private long[] benchTachyon(long toWriteBytes) throws IOException, TachyonException {
-    long writePath = 0, readPath = 0;
+    long writePath = 0;
+    long readPath = 0;
     OutputStream os = null;
     InputStream is = null;
     try {
@@ -170,7 +167,6 @@ public final class TachyonFuseBench {
 
     return new long[] {writePath, readPath};
 
-
   }
 
   private void benchMarkAll() throws Exception {
@@ -179,7 +175,7 @@ public final class TachyonFuseBench {
     try {
       pw = new PrintWriter(new FileOutputStream(mResultsFile, true));
       if (printHeader) {
-          pw.println("# type,r/w,size_mb,bs,repetition,time");
+        pw.println("# type,r/w,size_mb,bs,repetition,time");
       }
 
       for (final long sz: mWriteSizeMBytes) {
@@ -210,9 +206,9 @@ public final class TachyonFuseBench {
 
   public static void main(String[] args) throws Exception {
     if (args.length < 6 || "-h".equals(args[0])) {
-      System.out.println(String.format("Usage: java %s <outCSV> <fusePath> <tachyonURI> " +
-          "<blockSizeBytes> <repetitions> <writeSizeMB1> [<writeSizeMB2> ... ]", TachyonFuseBench
-          .class.getName()));
+      System.out.println(String.format("Usage: java %s <outCSV> <fusePath> <tachyonURI> "
+          + "<blockSizeBytes> <repetitions> <writeSizeMB1> [<writeSizeMB2> ... ]",
+          TachyonFuseBench.class.getName()));
       System.exit(0);
     }
 
@@ -227,11 +223,7 @@ public final class TachyonFuseBench {
         repetitions, rest);
 
     b.benchMarkAll();
-
   }
 
-
-
-
-
 }
+
