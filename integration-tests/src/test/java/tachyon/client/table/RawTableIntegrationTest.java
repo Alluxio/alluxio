@@ -33,7 +33,7 @@ import tachyon.thrift.RawTableInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Integration tests for tachyon.client.RawTable.
+ * Integration tests for {@link RawTable}.
  */
 // TODO(calvin): Move this to TachyonRawTablesIntegrationTest
 public class RawTableIntegrationTest {
