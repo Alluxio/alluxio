@@ -91,7 +91,7 @@ public abstract class MasterBase implements Master {
     if (mExecutorService == null) {
       // mExecutorService starts as null and is reset to null when Master is stopped.
       mExecutorService = Executors.newFixedThreadPool(mNumThreads,
-          ThreadFactoryUtils.build(this.getClass().getSimpleName()+ "-%d", true));
+          ThreadFactoryUtils.build(this.getClass().getSimpleName() + "-%d", true));
     }
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
