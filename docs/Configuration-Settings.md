@@ -509,6 +509,16 @@ the port number.
   <td>30000</td>
   <td>The port Tachyon worker's web UI runs on.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon worker.</td>
+</tr>
 </table>
 
 
