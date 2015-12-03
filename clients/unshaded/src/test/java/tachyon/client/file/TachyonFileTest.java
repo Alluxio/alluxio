@@ -56,5 +56,4 @@ public final class TachyonFileTest {
   public void toStringTest() {
     Assert.assertEquals("TachyonFile(100)", new TachyonFile(100).toString());
   }
-
 }
