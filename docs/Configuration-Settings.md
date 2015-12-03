@@ -292,6 +292,16 @@ the port number.
   <td>10000</td>
   <td>Timeout (in milliseconds) between master and worker indicating a lost worker.</td>
 </tr>
+<tr>
+  <td>tachyon.master.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.master.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon master.</td>
+</tr>
 </table>
 
 ## Worker Configuration
