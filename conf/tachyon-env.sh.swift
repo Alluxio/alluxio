@@ -9,6 +9,8 @@
 # - TACHYON_UNDERFS_ADDRESS, to set the under filesystem address.
 # - TACHYON_WORKER_MEMORY_SIZE, to set how much memory to use (e.g. 1000mb, 2gb) per worker
 # - TACHYON_RAM_FOLDER, to set where worker stores in memory data
+# - TACHYON_UNDERFS_HDFS_IMPL, to set which HDFS implementation to use (e.g. com.mapr.fs.MapRFileSystem,
+#   org.apache.hadoop.hdfs.DistributedFileSystem)
 
 # The following gives an example:
 
@@ -46,8 +48,12 @@ fi
 
 export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
-export TACHYON_UNDERFS_ADDRESS=swift://testcont.swift2
+#export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underFSStorage
+export TACHYON_UNDERFS_ADDRESS=swift://tactest3
 export TACHYON_WORKER_MEMORY_SIZE=1GB
+export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
+export TACHYON_WORKER_MAX_WORKER_THREADS=2048
+export TACHYON_MASTER_MAX_WORKER_THREADS=2048
 
 export TACHYON_SSH_FOREGROUND="yes"
 export TACHYON_WORKER_SLEEP="0.02"
@@ -63,15 +69,31 @@ CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
+  -Dtachyon.debug=false
   -Dtachyon.worker.tieredstore.level.max=1
   -Dtachyon.worker.tieredstore.level0.alias=MEM
   -Dtachyon.worker.tieredstore.level0.dirs.path=$TACHYON_RAM_FOLDER
   -Dtachyon.worker.tieredstore.level0.dirs.quota=$TACHYON_WORKER_MEMORY_SIZE
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
+  -Dtachyon.underfs.hdfs.impl=$TACHYON_UNDERFS_HDFS_IMPL
+  -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
+  -Dtachyon.worker.max.worker.threads=$TACHYON_WORKER_MAX_WORKER_THREADS
+  -Dtachyon.workers.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/workers
   -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
+  -Dtachyon.worker.data.folder=/tachyonworker/
+  -Dtachyon.master.max.worker.threads=$TACHYON_MASTER_MAX_WORKER_THREADS
+  -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
+  -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dorg.apache.jasper.compiler.disablejsr199=true
   -Djava.net.preferIPv4Stack=true
+  -Dfs.swift.user=<swift-user>
+  -Dfs.swift.tenant=<swift-tenant>
+  -Dfs.swift.apikey=<swift-user-password>
+  -Dfs.swift.auth.url=<swift-auth-url>
+  -Dfs.swift.auth.port=<swift-auth-url-port>
+  -Dfs.swift.use.public.url=<swift-use-public: true, false>
+  -Dfs.swift.auth.method=<swift-auth-model: keystone, tempauth>
 "
 
 # Master specific parameters. Default to TACHYON_JAVA_OPTS.

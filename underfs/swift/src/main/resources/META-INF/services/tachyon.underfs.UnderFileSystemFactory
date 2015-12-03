@@ -1,1 +1,1 @@
-tachyon.underfs.swift.SwiftUnderFileSystemFactory
+tachyon.underfs.swift.direct.SwiftDirectUnderFileSystemFactory
