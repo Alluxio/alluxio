@@ -175,3 +175,24 @@ Note: Tachyon uses hostname to represent network address except in version 0.7.1
 used. Spark v1.5.x ships with Tachyon v0.7.1 by default, in this case, by default, Spark and Tachyon
 both use IP address to represent network address, so data locality should work out of the box.
 But since release 0.8.0, to be consistent with HDFS, Tachyon represents network address by hostname.
+There is a workaround when launching Spark to achieve data locality. Users can explicitly specify
+hostnames by using the following script offered in Spark. Start Spark Worker in each slave node with
+slave-hostname:
+
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```
+
+For example:
+
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```
+
+In this way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
+in Spark WebUI below.
+
+![hostname](./img/screenshot_datalocality_sparkwebui.png)
+
+![locality](./img/screenshot_datalocality_tasklocality.png)
+
