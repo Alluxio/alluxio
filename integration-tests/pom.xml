@@ -238,7 +238,7 @@
                 <tenantKey>myTenantKey</tenantKey>
                 <!-- Change "myContainerKey" to contain the testing container  -->
 		<!-- In a form container/folder -->
-                <containerKey>swift://<container/folder></containerKey>
+                <containerKey>swift://container/folder</containerKey>
               </systemPropertyVariables>
             </configuration>
           </plugin>
