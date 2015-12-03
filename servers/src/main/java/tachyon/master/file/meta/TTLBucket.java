@@ -58,10 +58,6 @@ public final class TTLBucket implements Comparable<TTLBucket> {
     return sTTLIntervalMs;
   }
 
-  public static void setTTlIntervalMs(long intervalMs) {
-    sTTLIntervalMs = intervalMs;
-  }
-
   /**
    * @return the set of all files in the bucket backed by the internal set, changes made to the
    *         returned set will be shown in the internal set, and vice versa

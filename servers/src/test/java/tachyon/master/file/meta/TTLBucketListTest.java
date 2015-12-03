@@ -18,6 +18,7 @@ package tachyon.master.file.meta;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -38,12 +39,19 @@ public class TTLBucketListTest {
       .setBlockContainerId(1).setTTL(BUCKET1_END - 1).build();
   private static final InodeFile BUCKET2_FILE = new InodeFile.Builder().setCreationTimeMs(0)
       .setBlockContainerId(2).setTTL(BUCKET2_START).build();
+  private static long sOldTtlIntervalMs;
 
   private TTLBucketList mBucketList;
 
   @BeforeClass
   public static void beforeClass() {
-    TTLBucket.setTTlIntervalMs(BUCKET_INTERVAL);
+    sOldTtlIntervalMs = TTLBucket.getTTLIntervalMs();
+    TTLBucketPrivateAccess.setTTLIntervalMs(BUCKET_INTERVAL);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    TTLBucketPrivateAccess.setTTLIntervalMs(sOldTtlIntervalMs);
   }
 
   @Before
