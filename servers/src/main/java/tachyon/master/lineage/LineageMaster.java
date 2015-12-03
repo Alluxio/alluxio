@@ -125,7 +125,7 @@ public final class LineageMaster extends MasterBase {
    * @param journal the journal
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, "lineage-master-%d");
+    super(journal, 2);
 
     mTachyonConf = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);

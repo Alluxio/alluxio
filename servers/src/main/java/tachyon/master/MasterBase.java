@@ -39,16 +39,21 @@ import tachyon.util.ThreadFactoryUtils;
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
  * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
- * or journal writing when the master is the leader.
+ * or journal writing when the master is the leader. This class is not thread safe.
  */
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
-  /** The executor used for running maintenance threads for the master. */
-  private final ExecutorService mExecutorService;
+  /** The number of threads to use when creating the ExecutorService. */
+  private final int mNumThreads;
 
+  /**
+   * The executor used for running maintenance threads for the master. It is created in
+   * {@link #start(boolean)} and destroyed in {@link #stop}.
+   */
+  private ExecutorService mExecutorService = null;
   /** A handler to the journal for this master. */
   private Journal mJournal;
   /** true if this master is in leader mode, and not standby mode. */
@@ -60,13 +65,12 @@ public abstract class MasterBase implements Master {
 
   /**
    * @param journal the journal to use for tracking master operations
+   * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
    * @param executorService the name pattern for the executor service to use for asynchronous tasks
    */
-  protected MasterBase(Journal journal, String executorServiceNamePattern) {
-    Preconditions.checkNotNull(executorServiceNamePattern);
+  protected MasterBase(Journal journal, int numThreads) {
     mJournal = Preconditions.checkNotNull(journal);
-    mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build(executorServiceNamePattern, true));
+    mNumThreads = numThreads;
   }
 
   @Override
@@ -84,6 +88,11 @@ public abstract class MasterBase implements Master {
   @Override
   public void start(boolean isLeader) throws IOException {
     mIsLeader = isLeader;
+    if (mExecutorService == null) {
+      // mExecutorService starts as null and is reset to null when Master is stopped.
+      mExecutorService = Executors.newFixedThreadPool(mNumThreads,
+          ThreadFactoryUtils.build(this.getClass().getSimpleName()+ "-%d", true));
+    }
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       Preconditions.checkState(mJournal instanceof ReadWriteJournal);
@@ -162,19 +171,23 @@ public abstract class MasterBase implements Master {
       }
     } else {
       if (mStandbyJournalTailer != null) {
-        // stop and wait for the journal tailer thread.
+        // Stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
       }
     }
-    mExecutorService.shutdownNow();
-    String awaitFailureMessage =
-        "waiting for {} executor service to shut down. Daemons may still be running";
-    try {
-      if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-        LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+    if (mExecutorService != null) {
+      // Shut down the executor service, interrupting any running threads.
+      mExecutorService.shutdownNow();
+      String awaitFailureMessage =
+          "waiting for {} executor service to shut down. Daemons may still be running";
+      try {
+        if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+        }
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
       }
-    } catch (InterruptedException e) {
-      LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+      mExecutorService = null;
     }
   }
 

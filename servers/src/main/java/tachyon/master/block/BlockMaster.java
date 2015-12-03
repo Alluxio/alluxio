@@ -149,7 +149,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   public BlockMaster(Journal journal) {
-    super(journal, "block-master-%d");
+    super(journal, 2);
   }
 
   @Override
