@@ -56,15 +56,30 @@ The following shows the details of the available metrics.
 * UnderFsCapacityFree: Free capacity of the under file system in bytes.
 * Workers: Number of the workers.
 * FilesTotal: Total number of files and directories in the file system.
-* FilesCheckpointed: Total number of the files checkpointed.
+* FilesPersisted: Total number of the files persisted.
 * FilesCreated: Total number of files and directories created.
+* FilesCompleted: Total number of files completed.
+* FilesReleased: Total number of files released.
 * FilesDeleted: Total number of files and directories deleted.
 * FilesPinned: Total number of the files pinned.
 * FilesRenamed: Total number of file and directories renamed.
+* DirectoriesCreated: Total number of directories created.
+* PathsMounted: Total number of paths mounted.
+* PathsUnmounted: Total number of paths unmounted.
+* FileInfosGot: Total number of the file infos retrieved.
+* FileBlockInfosGot: Total number of the file block infos retrieved.
 * CreateFileOps: Total number of the CreateFile operations.
+* CompleteFileOps: Total number of CompleteFile operations.
+* ReleaseFileOps: Total number of ReleaseFile operations
 * DeleteFileOps: Total number of the DeleteFile operations.
-* GetFileStatusOps: Total number of the getClientFileInfo operations.
+* GetFileInfoOps: Total number of the getClientFileInfo operations.
 * RenameFileOps: Total number of the RenameFile operations.
+* CreateDirectoryOps: Total number of the CreateDirectory operations.
+* MountPathOps: Total number of MountPath operations.
+* UnmountPathOps: Total number of UnmountPath operations.
+* GetFileInfoOps: Total number of GetFileInfo operations.
+* GetFileBlockInfoOps: Total number of GetFileBlockInfo operations
+* SetFileStateOps: Total number of the SetFileState operations.
 
 ### Worker
 
