@@ -23,16 +23,16 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.master.LocalTachyonCluster;
 
 /**
  * Integration tests for statistics in TFS.
@@ -41,7 +41,9 @@ public class TFSStatisticsTest {
 
   private static final int BLOCK_SIZE = 128;
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;
-  private static LocalTachyonCluster sLocalTachyonCluster;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(10000, 1000, BLOCK_SIZE);
   private static FileSystem.Statistics sStatistics;
   private static FileSystem sTFS;
 
@@ -50,22 +52,13 @@ public class TFSStatisticsTest {
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
-    // Start local Tachyon cluster
-    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, BLOCK_SIZE);
-    sLocalTachyonCluster.start();
-
-    TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
+    TachyonFileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
     TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", TachyonStorageType.STORE,
         UnderStorageType.SYNC_PERSIST, FILE_LEN);
 
-    URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
+    URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
     sTFS = FileSystem.get(uri, conf);
     sStatistics = FileSystem.getStatistics(uri.getScheme(), sTFS.getClass());
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
   }
 
   /**

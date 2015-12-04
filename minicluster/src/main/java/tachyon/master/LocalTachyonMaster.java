@@ -67,7 +67,7 @@ public final class LocalTachyonMaster {
     mTachyonMaster = TachyonMaster.Factory.createMaster();
 
     // Reset the master port
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
+    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override

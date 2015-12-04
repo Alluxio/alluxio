@@ -199,7 +199,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.master.journal.formatter.class</td>
-  <td>tachyon.master.journal.&#8203;JsonJournalFormatter</td>
+  <td>tachyon.master.journal.&#8203;ProtoBufJournalFormatter</td>
   <td>The class to serialize the journal in a specified format.</td>
 </tr>
 <tr>
@@ -316,6 +316,16 @@ the port number.
   <td>tachyon.master.tieredstore.global.level2.alias</td>
   <td>HDD</td>
   <td>The name of the third highest storage tier in the entire system</td>
+</tr>
+<tr>
+  <td>tachyon.master.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.master.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon master.</td>
 </tr>
 </table>
 
@@ -527,6 +537,16 @@ the port number.
   <td>tachyon.worker.web.port</td>
   <td>30000</td>
   <td>The port Tachyon worker's web UI runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.keytab.file</td>
+  <td></td>
+  <td>Kerberos keytab file for Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.principal</td>
+  <td></td>
+  <td>Kerberos principal for Tachyon worker.</td>
 </tr>
 </table>
 

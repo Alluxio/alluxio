@@ -324,10 +324,11 @@ public class JournalCrashTest {
 
   /**
    * Parse the input args with a command line format, using
-   * {@link org.apache.commons.cli.CommandLineParser}.
+   * {@link org.apache.commons.cli.CommandLineParser}. This method handles printing help information
+   * if parsing fails or --help is specified.
+   *
    * @param args the input args
-   * @return true if parse successfully and can run the next step, false if parse failed or need to
-   * print out the help information.
+   * @return true if parsing succeeded and --help wasn't specified, false otherwise
    */
   private static boolean parseInputArgs(String[] args) {
     Options options = new Options();

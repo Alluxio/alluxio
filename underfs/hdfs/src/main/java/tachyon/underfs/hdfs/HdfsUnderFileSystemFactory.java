@@ -15,19 +15,52 @@
 
 package tachyon.underfs.hdfs;
 
+import java.util.Map;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
-public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
+/**
+ * Factory for creating HDFS under file systems. As an implementation detail, it caches created
+ * HdfsUnderFileSystems, using paths' schemes and authorities as the keys. This class is
+ * thread-safe.
+ */
+public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
+  /**
+   * Cache mapping {@link Path}s to existing {@link UnderFileSystem} instances. The Paths should be
+   * normalized to root paths because only their schemes and authorities are needed to identify
+   * which {@link FileSystem} they belong to.
+   */
+  private Map<Path, HdfsUnderFileSystem> mHdfsUfsCache = Maps.newHashMap();
 
   @Override
   public UnderFileSystem create(String path, TachyonConf tachyonConf, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    return new HdfsUnderFileSystem(path, tachyonConf, conf);
+    // Normalize the path to just its root. This is all that's needed to identify which FileSystem
+    // the Path belongs to.
+    Path rootPath = getRoot(new Path(path));
+    synchronized (mHdfsUfsCache) {
+      if (!mHdfsUfsCache.containsKey(rootPath)) {
+        mHdfsUfsCache.put(rootPath, new HdfsUnderFileSystem(path, tachyonConf, conf));
+      }
+      return mHdfsUfsCache.get(rootPath);
+    }
+  }
+
+  private static Path getRoot(Path path) {
+    Path currPath = path;
+    while (currPath.getParent() != null) {
+      currPath = currPath.getParent();
+    }
+    return currPath;
   }
 
   @Override

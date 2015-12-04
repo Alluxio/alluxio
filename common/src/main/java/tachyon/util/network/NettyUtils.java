@@ -34,7 +34,7 @@ public final class NettyUtils {
   private NettyUtils() {}
 
   /**
-   * Creates a Netty EventLoopGroup based on ChannelType.
+   * Creates a Netty {@link EventLoopGroup} based on {@link ChannelType}.
    *
    * @param type Selector for which form of low-level IO we should use
    * @param numThreads target number of threads
@@ -59,7 +59,8 @@ public final class NettyUtils {
   }
 
   /**
-   * Returns the correct ServerSocketChannel class based on ChannelType.
+   * Returns the correct {@link io.netty.channel.socket.ServerSocketChannel} class based on
+   * {@link ChannelType}.
    *
    * @param type Selector for which form of low-level IO we should use
    * @return ServerSocketChannel matching the ChannelType
@@ -76,7 +77,7 @@ public final class NettyUtils {
   }
 
   /**
-   * Returns the correct SocketChannel class based on ChannelType.
+   * Returns the correct {@link SocketChannel} class based on {@link ChannelType}.
    *
    * @param type Selector for which form of low-level IO we should use
    * @return SocketChannel matching the ChannelType

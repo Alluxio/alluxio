@@ -30,7 +30,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
 import tachyon.worker.WorkerContext;
 
@@ -38,20 +37,6 @@ import tachyon.worker.WorkerContext;
  * A local Tachyon cluster with Multiple masters
  */
 public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster {
-
-  public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-
-    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-  }
 
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
@@ -200,7 +185,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      mMasterConf.set(Constants.MASTER_PORT, "0");
+      mMasterConf.set(Constants.MASTER_RPC_PORT, "0");
     }
 
     // Create the UFS directory after LocalTachyonMaster construction, because LocalTachyonMaster
@@ -221,7 +206,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    mMasterConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
   @Override

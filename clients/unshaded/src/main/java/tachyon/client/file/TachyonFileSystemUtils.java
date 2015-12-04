@@ -19,10 +19,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -166,8 +167,8 @@ public final class TachyonFileSystemUtils {
           .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream in = closer.register(tfs.getInStream(file, inStreamOptions));
       TachyonURI dstPath = new TachyonURI(fileInfo.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.getPath(), tachyonConf);
-      String parentPath = dstPath.getParent().getPath();
+      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), tachyonConf);
+      String parentPath = dstPath.getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         throw new IOException("Failed to create " + parentPath);
       }

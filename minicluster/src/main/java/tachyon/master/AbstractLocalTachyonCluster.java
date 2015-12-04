@@ -122,14 +122,16 @@ public abstract class AbstractLocalTachyonCluster {
     long startTime = System.currentTimeMillis();
     String actionMessage = "waiting for master to serve web";
     LOG.info(actionMessage + ELLIPSIS);
+    // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
-        getMaster().getWebLocalPort())) {
+        getMaster().getWebLocalPort()) || mMasterConf.getInt(Constants.MASTER_WEB_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for master to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
+    // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
-        getMaster().getRPCLocalPort())) {
+        getMaster().getRPCLocalPort()) || mMasterConf.getInt(Constants.MASTER_RPC_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -147,19 +149,25 @@ public abstract class AbstractLocalTachyonCluster {
     while (!workerRegistered()) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
-    actionMessage = "waiting for worker to register with master";
+    actionMessage = "waiting for worker to serve web";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())) {
+    // The port should be set properly after the server has started
+    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())
+        || mWorkerConf.getInt(Constants.WORKER_WEB_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve data";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())) {
+    // The port should be set properly after the server has started
+    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())
+        || mWorkerConf.getInt(Constants.WORKER_DATA_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
-    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())) {
+    // The port should be set properly after the server has started
+    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())
+        || mWorkerConf.getInt(Constants.WORKER_RPC_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -307,7 +315,7 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     testConf.set(Constants.MASTER_HOSTNAME, mHostname);
-    testConf.set(Constants.MASTER_PORT, Integer.toString(0));
+    testConf.set(Constants.MASTER_RPC_PORT, Integer.toString(0));
     testConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
     testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
     testConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
@@ -334,7 +342,7 @@ public abstract class AbstractLocalTachyonCluster {
     // TODO(binfan): eliminate this setting after updating integration tests
     testConf.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    testConf.set(Constants.WORKER_PORT, Integer.toString(0));
+    testConf.set(Constants.WORKER_RPC_PORT, Integer.toString(0));
     testConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
     testConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
     testConf.set(Constants.WORKER_DATA_FOLDER, "/datastore");

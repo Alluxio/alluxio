@@ -23,7 +23,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockWorker;
@@ -45,20 +44,6 @@ import tachyon.worker.lineage.LineageWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
-
-  public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-
-    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-  }
 
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
@@ -119,7 +104,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mMaster.start();
 
     // Update the test conf with actual RPC port.
-    testConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
+    testConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
 
     // We need to update client context with the most recent configuration so they know the correct
     // port to connect to master.

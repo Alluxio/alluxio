@@ -45,7 +45,7 @@ import tachyon.util.network.NetworkAddressUtils;
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
  *
- * Since WorkerService.Client is not thread safe, this class has to guarantee thread safety.
+ * Since {@link WorkerService.Client} is not thread safe, this class has to guarantee thread safety.
  */
 public final class WorkerClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -413,9 +413,8 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates
-   * {@link #sessionHeartbeat()} in order to cancel and cleanup the
-   * heartbeating thread in case of failures
+   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates {@link #sessionHeartbeat()}
+   * in order to cancel and cleanup the heartbeating thread in case of failures
    */
   public synchronized void periodicHeartbeat() {
     try {

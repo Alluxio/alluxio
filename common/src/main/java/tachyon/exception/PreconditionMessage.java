@@ -57,6 +57,8 @@ public class PreconditionMessage {
       "File being persisted must be complete";
   public static final String ERR_SET_STATE_UNPERSIST =
       "Cannot set the state of a file to not-persisted";
+  public static final String URI_HOST_NULL = "URI hostname must not be null";
+  public static final String URI_PORT_NULL = "URI port must not be null";
 
   private PreconditionMessage() {} // to prevent initialization
 }
