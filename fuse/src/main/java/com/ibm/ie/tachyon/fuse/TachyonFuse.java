@@ -30,11 +30,13 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.Constants;
+
 /**
  * Main entry point to Tachyon-FUSE
  */
 public final class TachyonFuse {
-  private static final Logger LOG = LoggerFactory.getLogger(TachyonFuse.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String DEFAULT_MOUNT_POINT = "/mnt/tachyon";
   private static final String DEFAULT_MASTER_ADDR = "tachyon://localhost:19998";
   private static final String DEFAULT_ROOT = "/";

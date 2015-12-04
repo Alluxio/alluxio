@@ -29,6 +29,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -57,11 +58,11 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
  * Implements the FUSE callbacks defined by jnr-fuse
  */
 public final class TachyonFuseFs extends FuseStubFS {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   // Limits the number of translated (FUSE to TachyonURI)  paths that are kept
   // in memory
   private static final int MAX_CACHED_PATHS = 500;
-  private static final Logger LOG = LoggerFactory.getLogger(TachyonFuseFs.class);
   private static final long[] UID_AND_GID = TachyonFuseUtils.getUidAndGid();
 
   private final TachyonFileSystem mTFS;
