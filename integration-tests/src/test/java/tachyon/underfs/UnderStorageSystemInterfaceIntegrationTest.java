@@ -49,7 +49,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests that an empty file can be created.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void createEmptyTest() throws IOException {
@@ -61,7 +61,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests that a file can be created and validates the data written to it.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void createOpenTest() throws IOException {
@@ -76,7 +76,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests a file can be deleted.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void deleteFileTest() throws IOException {
@@ -91,7 +91,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
    * Tests a non empty directory will not be deleted if recursive is not specified.
    * Tests a non empty directory will be deleted if recursive is specified.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void deleteDirTest() throws IOException {
@@ -125,7 +125,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
    * Tests exists correctly returns true if the file exists and false if it does not.
    * Tests exists correctly returns true if the dir exists and false if it does not.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testExists() throws IOException {
@@ -142,7 +142,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#getFileSize(String)} correctly returns the file size.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testGetFileSize() throws IOException {
@@ -157,7 +157,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#getModificationTimeMs(String)} returns a reasonably accurate time.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testGetModTime() throws IOException {
@@ -175,7 +175,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if {@link UnderFileSystem#isFile(String)} correctly returns true for files and false
    * otherwise.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testIsFile() throws IOException {
@@ -191,7 +191,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests if list correctly returns file names.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testList() throws IOException {
@@ -222,7 +222,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly makes parent directories if
    * createParent is specified.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testMkdirs() throws IOException {
@@ -243,7 +243,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testRenameFile() throws IOException {
@@ -258,7 +258,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testRenameFileToFolder() throws IOException {
@@ -276,7 +276,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testRenameFolder() throws IOException {
@@ -297,7 +297,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to another folder if
    * supported.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   @Test
   public void testRenameFolderToFolder() throws IOException {
