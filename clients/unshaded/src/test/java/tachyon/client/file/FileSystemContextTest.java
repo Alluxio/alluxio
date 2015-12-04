@@ -49,7 +49,9 @@ public final class FileSystemContextTest {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
 
-    final long timeoutMs = 500L;
+    // wait for the spawned thread to complete. If it is unable to acquire a master client before
+    // the defined timeout, fail.
+    final long timeoutMs = 5 * Constants.SECOND_MS;
     long start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
     if (System.currentTimeMillis() - start > timeoutMs) {
