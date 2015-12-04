@@ -90,6 +90,7 @@ public final class TachyonConf {
     if (props != null) {
       mProperties.putAll(props);
     }
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -101,6 +102,7 @@ public final class TachyonConf {
     if (props != null) {
       mProperties.putAll(props);
     }
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -172,6 +174,7 @@ public final class TachyonConf {
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+    checkUserFileBufferBytes();
   }
 
   @Override
@@ -403,5 +406,18 @@ public final class TachyonConf {
       }
     }
     return resolved;
+  }
+
+  /**
+   * Constants.USER_FILE_BUFFER_BYTES shuold not bigger than Integer.MAX_VALUE bytes.
+   * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
+   */
+  private void checkUserFileBufferBytes() {
+    if (!this.containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
+      return;
+    }
+    long usrFileBufferBytes =  getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    Preconditions.checkArgument(((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes),
+            "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 }
