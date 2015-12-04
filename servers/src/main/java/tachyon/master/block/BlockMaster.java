@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -70,7 +69,6 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -133,7 +131,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
-  /** The service that detects lost worker nodes, and tries to restart the failed workers. */
+  /**
+   * The service that detects lost worker nodes, and tries to restart the failed workers.
+   * We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
@@ -147,8 +149,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   public BlockMaster(Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
+    super(journal, 2);
   }
 
   @Override
@@ -213,14 +214,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
-    }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mLostWorkerDetectionService != null) {
-      mLostWorkerDetectionService.cancel(true);
     }
   }
 

@@ -18,6 +18,8 @@ package tachyon.master.lineage;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -180,6 +182,23 @@ public final class LineageMasterTest {
     Assert.assertEquals(1, command.checkpointFiles.size());
     Assert.assertEquals(fileId, command.checkpointFiles.get(0).fileId);
     Assert.assertEquals(blockId, (long) command.checkpointFiles.get(0).blockIds.get(0));
+  }
+
+  @Test
+  public void stopTest() throws Exception {
+    ExecutorService service =
+        (ExecutorService) Whitebox.getInternalState(mLineageMaster, "mExecutorService");
+    Future<?> checkpointThread =
+        (Future<?>) Whitebox.getInternalState(mLineageMaster, "mCheckpointExecutionService");
+    Future<?> recomputeThread =
+        (Future<?>) Whitebox.getInternalState(mLineageMaster, "mRecomputeExecutionService");
+    Assert.assertFalse(checkpointThread.isDone());
+    Assert.assertFalse(recomputeThread.isDone());
+    Assert.assertFalse(service.isShutdown());
+    mLineageMaster.stop();
+    Assert.assertTrue(checkpointThread.isDone());
+    Assert.assertTrue(recomputeThread.isDone());
+    Assert.assertTrue(service.isShutdown());
   }
 
   @SuppressWarnings("unchecked")

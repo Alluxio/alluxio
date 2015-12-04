@@ -47,7 +47,7 @@ import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.meta.TTLBucket;
+import tachyon.master.file.meta.TTLBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
@@ -250,8 +250,9 @@ public class FileSystemMasterIntegrationTest {
 
   /**
    * The authenticate user is gotten from current thread local. If MasterInfo starts a concurrent
-   * thread to do operations, AuthorizedClientUser will be null. So AuthorizedClientUser.set()
-   * should be called in the Callable.call to set this user for testing.
+   * thread to do operations, {@link AuthorizedClientUser} will be null. So
+   * {@link AuthorizedClientUser#set(String)} should be called in the {@link Callable#call()} to
+   * set this user for testing.
    */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
@@ -280,7 +281,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster =
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
-    TTLBucket.setTTlIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
+
+    TTLBucketPrivateAccess
+        .setTTLIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
   }
 
   @Test

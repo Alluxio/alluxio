@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -97,7 +96,6 @@ import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -116,7 +114,11 @@ public final class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
-  /** The service that tries to check inodefiles with ttl set */
+  /**
+   * The service that tries to check inodefiles with ttl set.
+   * We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mTTLCheckerService;
 
   private final TTLBucketList mTTLBuckets = new TTLBucketList();
@@ -130,8 +132,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
+    super(journal, 2);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -238,26 +239,22 @@ public final class FileSystemMaster extends MasterBase {
       // Only initialize root when isLeader because when initializing root, BlockMaster needs to
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-      TachyonConf conf = MasterContext.getConf();
       mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
-      String defaultUFS = conf.get(Constants.UNDERFS_ADDRESS);
+      String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
+    }
+    // Call super.start after mInodeTree is initialized because mInodeTree is needed to write
+    // a journal entry during super.start. Call super.start before calling
+    // getExecutorService() because the super.start initializes the executor service.
+    super.start(isLeader);
+    if (isLeader) {
       mTTLCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTTLCheckExecutor(),
-              conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
-    }
-    super.start(isLeader);
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mTTLCheckerService != null) {
-      mTTLCheckerService.cancel(true);
+              MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
   }
 

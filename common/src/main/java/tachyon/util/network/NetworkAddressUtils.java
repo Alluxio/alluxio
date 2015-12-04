@@ -476,7 +476,7 @@ public final class NetworkAddressUtils {
 
   /**
    * Get FQDN(Full Qualified Domain Name) from Java representations of network address, except
-   * String representation which should be handled by #resolveHostName(String hostname) which will
+   * String representation which should be handled by {@link #resolveHostName(String)} which will
    * handle the situation where hostname is null.
    *
    * @param addr the input network address representation, can not be null
@@ -527,7 +527,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parses InetSocketAddress from a String.
+   * Parses {@link InetSocketAddress} from a String.
    *
    * @param address socket address to parse
    * @return InetSocketAddress of the String
