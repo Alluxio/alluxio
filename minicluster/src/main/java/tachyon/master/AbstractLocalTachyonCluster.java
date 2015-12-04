@@ -69,6 +69,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected Thread mWorkerThread;
 
   /** The names of all the master services, for creating journal folders. */
+  // TODO(gpang): Consolidate this array of services with the one in Format.java
   protected String[] mMasterServiceNames = new String[] {
       Constants.BLOCK_MASTER_NAME,
       Constants.FILE_SYSTEM_MASTER_NAME,
