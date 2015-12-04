@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
@@ -73,7 +74,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /** Whether a container for Tachyon master is allocated */
   private volatile boolean mMasterContainerAllocated;
   /** Num of allocated worker containers */
-  private volatile int mNumAllocatedWorkerContainers;
+  private volatile AtomicInteger mNumAllocatedWorkerContainers;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
 
@@ -94,7 +95,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
     mMasterContainerAllocated = false;
-    mNumAllocatedWorkerContainers = 0;
+    mNumAllocatedWorkerContainers = new AtomicInteger(0);
     mApplicationDone = false;
   }
 
@@ -212,7 +213,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     }
 
     // Wait until all Tachyon worker containers have been allocated
-    while (mNumAllocatedWorkerContainers < mNumWorkers) {
+    while (mNumAllocatedWorkerContainers.get() < mNumWorkers) {
       Thread.sleep(1000);
     }
 
@@ -277,7 +278,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         FormatUtils.getSizeFromBytes((long) mRamdiskMemInMB * Constants.MB));
 
     for (Container container : containers) {
-      if (mNumAllocatedWorkerContainers >= mNumWorkers) {
+      if (mNumAllocatedWorkerContainers.get() >= mNumWorkers) {
         break;
       }
       try {
@@ -289,7 +290,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
             container.getId(), mNumAllocatedWorkerContainers, container.getNodeHttpAddress(),
             command);
         mNMClient.startContainer(container, ctx);
-        mNumAllocatedWorkerContainers ++;
+        mNumAllocatedWorkerContainers.incrementAndGet();
       } catch (Exception ex) {
         LOG.error("Error launching container " + container.getId() + " " + ex);
       }
