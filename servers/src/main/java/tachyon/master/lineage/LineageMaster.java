@@ -357,6 +357,7 @@ public final class LineageMaster extends MasterBase {
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
       List<Long> persistedFiles)
@@ -377,6 +378,7 @@ public final class LineageMaster extends MasterBase {
 
   /**
    * @return the list of all the {@link LineageInfo}s
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized List<LineageInfo> getLineageInfoList() throws LineageDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
@@ -430,6 +432,7 @@ public final class LineageMaster extends MasterBase {
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   private synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
       throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
@@ -467,6 +470,7 @@ public final class LineageMaster extends MasterBase {
    * Request a list of files as being persisted
    *
    * @param fileIds the id of the files
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized void requestFilePersistence(List<Long> fileIds)
       throws LineageDoesNotExistException {
@@ -500,6 +504,7 @@ public final class LineageMaster extends MasterBase {
    *
    * @param workerId the worker id
    * @param persistedFiles the persisted files
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   private synchronized void persistFiles(long workerId, List<Long> persistedFiles)
       throws LineageDoesNotExistException {

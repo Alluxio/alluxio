@@ -37,6 +37,17 @@ public class LineageDoesNotExistException extends TachyonException {
     this(message.getMessage(params), cause);
   }
 
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param expression a boolean expression
+   * @param message {@link ExceptionMessage} template should the check fail
+   * @param params the arguments to be substituted into the message
+   *     template. Arguments are converted to strings using
+   *     {@link ExceptionMessage#getMessage(Object...)}.
+   * @throws LineageDoesNotExistException if {@code expression} is false
+   */
   public static void check(boolean expression, ExceptionMessage message, Object... params)
       throws LineageDoesNotExistException {
     if (!expression) {
