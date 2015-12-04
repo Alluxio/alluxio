@@ -68,7 +68,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
   public SwiftDirectUnderFileSystem(String containerName,
       TachyonConf tachyonConf) throws Exception {
     super(tachyonConf);
-    LOG.debug("Constructor init: " + containerName);
+    LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
     config.setUsername(tachyonConf.get(Constants.SWIFT_USER_KEY));
     config.setTenantName(tachyonConf.get(Constants.SWIFT_TENANT_KEY));
@@ -86,14 +86,12 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
     mContainerName = containerName;
     mAccount = new AccountFactory(config).createAccount();
     mAccess = mAccount.authenticate();
-    LOG.debug("Check if container: " + containerName + " exists");
+    LOG.debug("Check if container: {} exists ", containerName);
     Container containerObj = mAccount.getContainer(containerName);
     if (!containerObj.exists()) {
       containerObj.create();
     }
-    mContainerPrefix =
-        Constants.HEADER_SWIFT
-        + mContainerName
+    mContainerPrefix = Constants.HEADER_SWIFT + mContainerName
         + PATH_SEPARATOR;
   }
 
@@ -177,12 +175,9 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * There is no concept of a block in Swift, however the maximum allowed size of
    * one object is currently 4 GB.
    *
-   * @param path
-   *          The file name
+   * @param path to the file name
    * @return 4 GB in bytes
    * @throws IOException
-   *           this implementation will not throw this exception, but subclasses
-   *           may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
@@ -211,14 +206,14 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    LOG.debug("Get object size: " + path);
+    LOG.debug("Get object size: {}", path);
     StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
     return so.getContentLength();
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
-    LOG.debug("Get last modification time: " + path);
+    LOG.debug("Get last modification time: {}", path);
     StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
     return so.getLastModifiedAsDate().getTime();
   }
@@ -230,43 +225,43 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    LOG.debug("is file: " + path);
+    LOG.debug("is file: {}", path);
     return exists(path);
   }
 
   @Override
   public String[] list(String path) throws IOException {
-    LOG.debug("listing: " + path);
+    LOG.debug("listing: {}", path);
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
-    LOG.debug("listing: " + path);
+    LOG.debug("listing: {}", path);
     return listInternal(path, false);
   }
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    LOG.debug("mkdirs (skipped): " + path + ", create parent: " + createParent);
+    LOG.debug("mkdirs (skipped): {}, create parent: {}", path, createParent);
     return true;
   }
 
   @Override
   public InputStream open(String path) throws IOException {
-    LOG.debug("open method: " + path);
+    LOG.debug("open method: {}", path);
     path = stripPrefixIfPresent(path);
     LOG.debug("Going to get container");
     Container container = mAccount.getContainer(mContainerName);
-    LOG.debug("Going to get object " + path + " for container: " + mContainerName);
+    LOG.debug("Going to get object {} for container {}", path, mContainerName);
     StoredObject so = container.getObject(path);
     LOG.debug("Got an object. Going to download");
     InputStream  is = so.downloadObjectAsInputStream();
-    LOG.debug("Got input stream for: " + path);
+    LOG.debug("Got input stream for: {}", path);
     return is;
   }
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    LOG.debug("rename: " + src + ",dest: " + dst);
+    LOG.debug("rename: {}, dest: {}", src, dst);
     if (!exists(src)) {
-      LOG.error("Unable to rename " + src + " to " + dst + " because source does not exist.");
+      LOG.error("Unable to rename {} to {}. Source does not exists", src, dst);
       return false;
     }
     copy(src, dst);
@@ -284,14 +279,12 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
   /**
    * Copies an object to another key.
    *
-   * @param src
-   *          the source key to copy.
-   * @param dst
-   *          the destination key to copy to.
+   * @param src the source key to copy
+   * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String src, String dst) {
-    LOG.debug("copy from " + src + "to " + dst);
+    LOG.debug("copy from {} to {}", src, dst);
     try {
       Container container = mAccount.getContainer(mContainerName);
       container.getObject(stripPrefixIfPresent(src)).copyObject(container,
@@ -307,10 +300,8 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * Lists the files in the given path, the paths will be their logical names
    * and not contain the folder suffix
    *
-   * @param path
-   *          the key to list
-   * @param recursive
-   *          if true will list children directories as well
+   * @param path the key to list
+   * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
    * @throws IOException
    */
@@ -320,7 +311,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       Directory directory = new Directory(path, '/');
-      LOG.debug("Path to list is: "  + path);
+      LOG.debug("Path to list is: {}", path);
       Container c = mAccount.getContainer(mContainerName);
       Collection<DirectoryOrObject> res = c.listDirectory(directory);
       Set<String> children = new HashSet<String>();
@@ -332,15 +323,15 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
         LOG.trace(dirobj.getName() + ", " + dirobj.getBareName());
         LOG.trace("Going to strip suffix is present");
         String child = stripFolderSuffixIfPresent(dirobj.getName());
-        LOG.trace("Object: " + dirobj.getName() + ", child: " + child);
+        LOG.trace("Object: {}, child: {}", dirobj.getName(), child);
         String noPrefix = stripPrefixIfPresent(child, path);
-        LOG.trace("Without prefix: " + noPrefix);
+        LOG.trace("Without prefix: {}", noPrefix);
         children.add(noPrefix);
       }
-      LOG.debug("Children's size is: " + children.size());
+      LOG.debug("Children's size is: {}", children.size());
       return children.toArray(new String[children.size()]);
     } catch (Exception se) {
-      LOG.error("Failed to list path " + path);
+      LOG.error("Failed to list path {}", path);
       return null;
     }
   }
@@ -350,8 +341,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * and does not guarantee the existence of the folder. This method will leave
    * keys without a suffix unaltered.
    *
-   * @param key
-   *          the key to strip the suffix from
+   * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix
    *         is not present
    */
@@ -387,13 +377,13 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path, String prefix) {
-    LOG.debug(path.toString() + ", prefix: " + prefix);
+    LOG.debug("{}, prefix: {}" , path.toString(), prefix);
     if (path.startsWith(prefix)) {
       String res =  path.substring(prefix.length());
-      LOG.debug("Resolved as: " + res);
+      LOG.debug("Resolved as: {}", res);
       return res;
     }
-    LOG.warn("Attempted to strip key " + prefix + " with invalid prefix: " + path);
+    LOG.warn("Attempted to strip key {} with invalid prefix {}", prefix, path);
     return path;
   }
 
