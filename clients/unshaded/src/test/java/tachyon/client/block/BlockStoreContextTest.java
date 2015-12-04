@@ -29,7 +29,9 @@ import tachyon.client.ClientContext;
  * Tests {@link BlockStoreContext}.
  */
 public final class BlockStoreContextTest {
-  @Test
+  // If the test takes longer than 10 seconds, most likely a deadlock occurred preventing the
+  // release of the master clients.
+  @Test(timeout = 10000)
   public void acquireAtMaxLimitTest() throws Exception {
     final List<BlockMasterClient> clients = Lists.newArrayList();
 
