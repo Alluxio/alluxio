@@ -56,7 +56,7 @@ public final class BlockStoreContextTest {
     final long timeoutMs = 5 * Constants.SECOND_MS;
     long start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
-    if (System.currentTimeMillis() - start > timeoutMs) {
+    if (System.currentTimeMillis() - start >= timeoutMs) {
       Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
     }
   }
