@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -39,7 +40,8 @@ public final class BlockStoreContextTest {
       clients.add(BlockStoreContext.INSTANCE.acquireMasterClient());
     }
 
-    (new Thread(new AcquireClient())).start();
+    Thread acquireThread = new Thread(new AcquireClient());
+    acquireThread.start();
 
     // wait for thread to run
     Thread.sleep(5L);
@@ -47,6 +49,15 @@ public final class BlockStoreContextTest {
     // release all the clients
     for (BlockMasterClient client : clients) {
       BlockStoreContext.INSTANCE.releaseMasterClient(client);
+    }
+
+    // wait for the spawned thread to complete. If it is unable to acquire a master client before
+    // the defined timeout, fail.
+    final long timeoutMs = 5 * Constants.SECOND_MS;
+    long start = System.currentTimeMillis();
+    acquireThread.join(timeoutMs);
+    if (System.currentTimeMillis() - start > timeoutMs) {
+      Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
     }
   }
 
