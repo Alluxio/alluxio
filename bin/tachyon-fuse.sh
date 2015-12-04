@@ -60,12 +60,17 @@ set_java_opt () {
 
 
 mount_fuse() {
+  if fuse_stat > /dev/null ; then
+    echo "tachyon-fuse is already running on the local host. Plase, stop it first" >&2
+    return 1
+  fi
   echo "Starting tachyon-fuse on local host."
   local mount_point=$1
   (nohup $JAVA -cp ${TACHYON_FUSE_JAR} ${JAVA_OPTS} ${TACHYON_FUSE_OPTS}\
     tachyon.fuse.TachyonFuse ${DEBUG_FLAG}\
     -m ${mount_point} -t tachyon://${TACHYON_MASTER_ADDRESS}:${TACHYON_MASTER_PORT}\
     -o big_writes -o max_write=$FUSE_MAX_WRITE > $TACHYON_LOGS_DIR/fuse.out 2>&1) &
+  return 0
 }
 
 umount_fuse () {
@@ -73,8 +78,10 @@ umount_fuse () {
   if [[ $? -eq 0 ]]; then
     echo "Stopping tachyon-fuse on local host (PID: ${fuse_pid})."
     kill ${fuse_pid}
+    return $?
   else 
     echo "tachyon-fuse is not running on local host." >&2
+    return 1
   fi
 }
 
@@ -120,9 +127,11 @@ case $1 in
       exit 1
     fi
     mount_fuse $2
+    exit $?
     ;;
   umount)
     umount_fuse
+    exit $?
     ;;
   stat)
     fuse_stat -v
