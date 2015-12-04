@@ -17,6 +17,7 @@ package tachyon.client.file;
 
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -28,7 +29,6 @@ import tachyon.client.ClientContext;
  * Tests {@link FileSystemContext}.
  */
 public final class FileSystemContextTest {
-
   @Test
   public void concurrencyTest() throws Exception {
     final List<FileSystemMasterClient> clients = Lists.newArrayList();
@@ -48,7 +48,13 @@ public final class FileSystemContextTest {
     for (FileSystemMasterClient client : clients) {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
-    acquireThread.join();
+
+    final long timeoutMs = 500L;
+    long start = System.currentTimeMillis();
+    acquireThread.join(timeoutMs);
+    if (System.currentTimeMillis() - start > timeoutMs) {
+      Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
+    }
   }
 
   class AcquireClient implements Runnable {
