@@ -58,7 +58,6 @@ public class SwiftDirectUnderFileSystemFactory implements UnderFileSystemFactory
 
   @Override
   public boolean supportsPath(String path, TachyonConf tachyonConf) {
-    LOG.debug(path + ",: " + path.startsWith(Constants.HEADER_SWIFT));
     return path != null && path.startsWith(Constants.HEADER_SWIFT);
   }
 

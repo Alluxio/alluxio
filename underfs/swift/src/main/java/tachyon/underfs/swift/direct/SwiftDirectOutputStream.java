@@ -57,14 +57,14 @@ public class SwiftDirectOutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    LOG.trace("write, off:" + off + ", len:" + len);
+    LOG.trace("write, off: {}, len: {}", off, len);
     mOutputStream.write(b, off, len);
     mOutputStream.flush();
   }
 
   @Override
   public void write(byte[] b) throws IOException {
-    LOG.trace("byte[] b");
+    LOG.trace("write byte array");
     mOutputStream.write(b);
     mOutputStream.flush();
   }

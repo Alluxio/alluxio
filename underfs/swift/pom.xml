@@ -44,19 +44,19 @@
     </dependency>
     <dependency>
       <groupId>org.javaswift</groupId>
-       <artifactId>joss</artifactId>
-       <version>0.9.8</version>
-     </dependency>
-   <dependency>
+      <artifactId>joss</artifactId>
+      <version>0.9.8</version>
+    </dependency>
+    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
       <version>1.9.7</version>
-   </dependency>
-   <dependency>
+    </dependency>
+    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
       <version>1.9.7</version>
-   </dependency>
+    </dependency>
     <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>

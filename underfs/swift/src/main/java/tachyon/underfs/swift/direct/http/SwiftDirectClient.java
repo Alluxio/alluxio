@@ -34,7 +34,7 @@ public  class SwiftDirectClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static SwiftDirectOutputStream PUT(Access access, String objectName) {
-    LOG.debug("PUT method, object : " + objectName);
+    LOG.debug("PUT method, object : {}", objectName);
     URL url;
     try {
       url = new URL(access.getPublicURL() + "/" + objectName);
