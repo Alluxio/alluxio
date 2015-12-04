@@ -149,7 +149,7 @@ public class NetworkAddressUtilsTest {
         workerAddress);
 
     // connect host and wildcard bind host with port
-    conf.set(Constants.WORKER_PORT, "20000");
+    conf.set(Constants.WORKER_RPC_PORT, "20000");
     workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
     Assert.assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
         workerAddress);

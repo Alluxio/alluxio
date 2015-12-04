@@ -20,8 +20,8 @@ import java.io.IOException;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Test class for mocking BufferedBlockInStream. The stream will read in increasing bytes from
- * `start` to `start + blockSize`.
+ * Test class for mocking {@link BufferedBlockInStream}. The stream will read in increasing bytes
+ * from `start` to `start + blockSize`.
  */
 public class TestBufferedBlockInStream extends BufferedBlockInStream {
   private final byte[] mData;

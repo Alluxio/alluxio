@@ -167,7 +167,7 @@ public final class TachyonConf {
 
     // Update tachyon.master_address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
+    String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
@@ -196,7 +196,7 @@ public final class TachyonConf {
   }
 
   /**
-   * @return the deep copy of the internal {@code Properties} of this TachyonConf instance
+   * @return the deep copy of the internal {@link Properties} of this {@link TachyonConf} instance
    */
   public Properties getInternalProperties() {
     return SerializationUtils.clone(mProperties);
@@ -206,7 +206,7 @@ public final class TachyonConf {
    * Merge the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param alternateConf The source {@code TachyonConf} to be merged
+   * @param alternateConf The source {@link TachyonConf} to be merged
    */
   public void merge(TachyonConf alternateConf) {
     if (alternateConf != null) {

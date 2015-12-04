@@ -18,13 +18,14 @@ package tachyon.hadoop;
 import tachyon.Constants;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFSFT
- * API may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.file.TachyonFileSystem}, which TFS is built on top of.
+ * A Tachyon client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
+ * interface. Any program working with Hadoop HDFS can work with Tachyon transparently. Note that
+ * the performance of using this TFSFT API may not be as efficient as the performance of using the
+ * Tachyon native API defined in {@link tachyon.client.file.TachyonFileSystem}, which TFS is built
+ * on top of.
  *
  * <p>
- * Unlike {@link tachyon.hadoop.TFS}, this class enables Zookeeper.
+ * Unlike {@link TFS}, this class enables Zookeeper.
  * </p>
  */
 public final class TFSFT extends AbstractTFS {

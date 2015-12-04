@@ -60,8 +60,9 @@ public abstract class ResourcePool<T> {
 
   /**
    * Acquires an object of type {@code T} from the pool. This operation is blocking if no resource
-   * is available. Each call of {@code acquire} should be paired with another call of
-   * {@link #release} after the use of this resource completes to return this resource to the pool.
+   * is available. Each call of {@link #acquire()} should be paired with another call of
+   * {@link #release(Object)}} after the use of this resource completes to return this resource to
+   * the pool.
    *
    * @return a resource taken from the pool
    */

@@ -53,7 +53,7 @@ public final class FormatUtils {
   }
 
   /**
-   * Parses a {@code ByteBuffer} into a {@code String}. In particular, the function prints the
+   * Parses a {@link ByteBuffer} into a {@link String}. In particular, the function prints the
    * content of the buffer in 4-byte increments as space separated integers.
    *
    * @param buf buffer to use

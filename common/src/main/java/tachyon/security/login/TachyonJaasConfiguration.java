@@ -54,11 +54,12 @@ public final class TachyonJaasConfiguration extends Configuration {
   // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
 
   /**
-   * In SIMPLE mode, JAAS first tries to retrieve the user name set by the application with
-   * {@link tachyon.security.login.AppLoginModule}. Upon failure, it uses the OS specific login
-   * module to fetch the OS user, and then uses the
+   * In {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
+   * application with {@link tachyon.security.login.AppLoginModule}. Upon failure, it uses the OS
+   * specific login module to fetch the OS user, and then uses the
    * {@link tachyon.security.login .TachyonLoginModule} to convert it to a Tachyon user represented
-   * by {@link tachyon.security.User}. In CUSTOM mode, we also use this configuration.
+   * by {@link tachyon.security.User}. In {@link AuthType#CUSTOM} mode, we also use this
+   * configuration.
    */
   private static final AppConfigurationEntry[] SIMPLE = new AppConfigurationEntry[] {APP_LOGIN,
       OS_SPECIFIC_LOGIN, TACHYON_LOGIN};

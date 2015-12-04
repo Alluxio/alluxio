@@ -63,6 +63,7 @@
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-servers</artifactId>
+      <type>test-jar</type>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -81,6 +82,12 @@
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-minicluster</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-shell</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
