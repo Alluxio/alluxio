@@ -63,7 +63,7 @@ mount_fuse() {
   echo "Starting tachyon-fuse on local host."
   local mount_point=$1
   (nohup $JAVA -cp ${TACHYON_FUSE_JAR} ${JAVA_OPTS} ${TACHYON_FUSE_OPTS}\
-    com.ibm.ie.tachyon.fuse.TachyonFuse ${DEBUG_FLAG}\
+    tachyon.fuse.TachyonFuse ${DEBUG_FLAG}\
     -m ${mount_point} -t tachyon://${TACHYON_MASTER_ADDRESS}:${TACHYON_MASTER_PORT}\
     -o big_writes -o max_write=$FUSE_MAX_WRITE > $TACHYON_LOGS_DIR/fuse.out 2>&1) &
 }

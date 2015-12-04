@@ -13,7 +13,7 @@
  * the License.
  */
 
-package com.ibm.ie.tachyon.fuse;
+package tachyon.fuse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
