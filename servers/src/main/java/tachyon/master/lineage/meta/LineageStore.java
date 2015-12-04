@@ -117,6 +117,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * Deletes a lineage.
    *
    * @param lineageId the lineage id
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized void deleteLineage(long lineageId) throws LineageDoesNotExistException {
     LineageDoesNotExistException.check(mIdIndex.containsKey(lineageId),
@@ -150,6 +151,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * Requests an output file as being persisted.
    *
    * @param fileId the file id
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized void requestFilePersistence(long fileId) throws LineageDoesNotExistException {
     LineageDoesNotExistException.check(mOutputFileIndex.containsKey(fileId),
@@ -173,6 +175,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param lineage the lineage
    * @return the lineage's children
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized List<Lineage> getChildren(Lineage lineage)
       throws LineageDoesNotExistException {
@@ -187,6 +190,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param lineage the lineage
    * @return the lineage's parents
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized List<Lineage> getParents(Lineage lineage)
       throws LineageDoesNotExistException {
@@ -225,6 +229,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * Commits a file as persisted
    *
    * @param fileId the file id
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized void commitFilePersistence(Long fileId) throws LineageDoesNotExistException {
     LineageDoesNotExistException.check(mOutputFileIndex.containsKey(fileId),

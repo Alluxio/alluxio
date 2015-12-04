@@ -44,6 +44,7 @@ public final class LineageStoreView {
 
   /**
    * @return the children lineages of a given lineage in the store
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public List<Lineage> getChildren(Lineage lineage) throws LineageDoesNotExistException {
     return mLineageStore.getChildren(lineage);
