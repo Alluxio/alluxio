@@ -38,8 +38,8 @@ public final class FileSystemContextTest {
         .getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i ++) {
       clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
     }
-
-    (new Thread(new AcquireClient())).start();
+    Thread acquireThread = new Thread(new AcquireClient());
+    acquireThread.start();
 
     // wait for thread to run
     Thread.sleep(5L);
@@ -48,6 +48,7 @@ public final class FileSystemContextTest {
     for (FileSystemMasterClient client : clients) {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
+    acquireThread.join();
   }
 
   class AcquireClient implements Runnable {
