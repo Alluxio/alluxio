@@ -189,7 +189,14 @@ For example:
 $ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
-In this way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
+You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For
+example:
+
+```bash
+SPARK_LOCAL_HOSTNAME=simple30
+```
+
+In either way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
 in Spark WebUI below.
 
 ![hostname](./img/screenshot_datalocality_sparkwebui.png)
