@@ -237,7 +237,7 @@
                 <!-- Change "myTenantKey" to contain the user's tenant or account  -->
                 <tenantKey>myTenantKey</tenantKey>
                 <!-- Change "myContainerKey" to contain the testing container  -->
-		<!-- In a form container/folder -->
+                <!-- In a form container/folder -->
                 <containerKey>swift://container/folder</containerKey>
               </systemPropertyVariables>
             </configuration>
