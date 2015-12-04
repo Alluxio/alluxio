@@ -244,7 +244,8 @@ public abstract class AbstractLocalTachyonCluster {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
           conf);
     }
-    UnderFileSystemUtils.touch(journalFolder + "/_format_" + System.currentTimeMillis(), conf);
+    UnderFileSystemUtils
+        .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()), conf);
 
     // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
     // the cluster's current address. This must happen after UFS is started with
