@@ -37,6 +37,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
@@ -75,10 +76,11 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests that deletes go through despite failing initially due to concurrent read.
    *
-   * @throws Exception
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   @Test
-  public void deleteWhileReadTest() throws Exception {
+  public void deleteWhileReadTest() throws IOException, TachyonException {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
@@ -120,10 +122,11 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests that pinning a file prevents it from being evicted.
    *
-   * @throws Exception
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   @Test
-  public void pinFileTest() throws Exception {
+  public void pinFileTest() throws IOException, TachyonException {
     // Create a file that fills the entire Tachyon store
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
@@ -146,10 +149,11 @@ public class TieredStoreIntegrationTest {
   /**
    * Tests that pinning a file and then unpinning.
    *
-   * @throws Exception
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
   @Test
-  public void unpinFileTest() throws Exception {
+  public void unpinFileTest() throws IOException, TachyonException {
     // Create a file that fills the entire Tachyon store
     TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
@@ -179,8 +183,14 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file2).getInMemoryPercentage() == 100);
   }
 
+  /**
+   * Tests the promotion of a file.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
   @Test
-  public void promoteBlock() throws Exception {
+  public void promoteBlock() throws IOException, TachyonException {
     TachyonFile file1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
             UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 6);
