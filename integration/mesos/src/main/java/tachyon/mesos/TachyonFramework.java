@@ -96,7 +96,6 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      // TODO(andrew): Should these be doubles or longs?
       long masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
       long masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
       long workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
