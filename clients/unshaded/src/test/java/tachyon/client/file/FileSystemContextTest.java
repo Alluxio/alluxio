@@ -30,10 +30,10 @@ import tachyon.client.ClientContext;
  */
 public final class FileSystemContextTest {
   @Test
-  public void concurrencyTest() throws Exception {
+  public void acquireAtMaxLimitTest() throws Exception {
     final List<FileSystemMasterClient> clients = Lists.newArrayList();
 
-    // acquire all the clients
+    // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
         .getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i ++) {
       clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
@@ -41,18 +41,24 @@ public final class FileSystemContextTest {
     Thread acquireThread = new Thread(new AcquireClient());
     acquireThread.start();
 
-    // wait for thread to run
-    Thread.sleep(5L);
+    // Wait for the spawned thread to complete. If it is able to acquire a master client before
+    // the defined timeout, fail
+    long timeoutMs = Constants.SECOND_MS / 2;
+    long start = System.currentTimeMillis();
+    acquireThread.join(timeoutMs);
+    if (System.currentTimeMillis() - start < timeoutMs) {
+      Assert.fail("Acquired a master client when the client pool was full.");
+    }
 
-    // release all the clients
+    // Release all the clients
     for (FileSystemMasterClient client : clients) {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
 
-    // wait for the spawned thread to complete. If it is unable to acquire a master client before
+    // Wait for the spawned thread to complete. If it is unable to acquire a master client before
     // the defined timeout, fail.
-    final long timeoutMs = 5 * Constants.SECOND_MS;
-    long start = System.currentTimeMillis();
+    timeoutMs = 5 * Constants.SECOND_MS;
+    start = System.currentTimeMillis();
     acquireThread.join(timeoutMs);
     if (System.currentTimeMillis() - start >= timeoutMs) {
       Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
