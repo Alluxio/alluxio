@@ -22,11 +22,13 @@ import java.io.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.Constants;
+
 /**
  * Utility methods for Tachyon-FUSE
  */
 public final class TachyonFuseUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(TachyonFuseUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Retrieves the uid and primary gid of the user running Tachyon-FUSE
