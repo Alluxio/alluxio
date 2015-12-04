@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.thrift.TProcessor;
@@ -83,7 +82,6 @@ import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -98,9 +96,15 @@ public final class LineageMaster extends MasterBase {
   private final FileSystemMaster mFileSystemMaster;
   private final LineageIdGenerator mLineageIdGenerator;
 
-  /** The service that checkpoints lineages. */
+  /**
+   * The service that checkpoints lineages. We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mCheckpointExecutionService;
-  /** The service that recomputes lineages. */
+  /**
+   * The service that recomputes lineages. We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mRecomputeExecutionService;
 
   /** Map from worker to the files to checkpoint on that worker. Used by checkpoint service. */
@@ -121,8 +125,7 @@ public final class LineageMaster extends MasterBase {
    * @param journal the journal
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("lineage-master-%d", true)));
+    super(journal, 2);
 
     mTachyonConf = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
@@ -185,17 +188,6 @@ public final class LineageMaster extends MasterBase {
                   new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
                       mFileSystemMaster), mTachyonConf
                       .getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
-    }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mCheckpointExecutionService != null) {
-      mCheckpointExecutionService.cancel(true);
-    }
-    if (mRecomputeExecutionService != null) {
-      mRecomputeExecutionService.cancel(true);
     }
   }
 

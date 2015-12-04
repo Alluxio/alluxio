@@ -43,8 +43,9 @@ import tachyon.master.LocalTachyonCluster;
 /**
  * Unit tests on tachyon.command.Utils.
  *
- * Note that the test case for validatePath() is already covered in getFilePath. Hence only
- * getFilePathTest is specified.
+ * Note that the test case for {@link TfsShellUtils#validatePath(String, TachyonConf)} is already
+ * covered in {@link TfsShellUtils#getFilePath(String, TachyonConf)}. Hence only getFilePathTest is
+ * specified.
  */
 public class TfsShellUtilsTest {
   private static final int SIZE_BYTES = Constants.MB * 10;

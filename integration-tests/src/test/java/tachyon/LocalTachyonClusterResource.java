@@ -119,21 +119,21 @@ public class LocalTachyonClusterResource implements TestRule {
   }
 
   /**
-   * @return the LocalTachyonCluster being managed
+   * @return the {@link LocalTachyonCluster} being managed
    */
   public LocalTachyonCluster get() {
     return mLocalTachyonCluster;
   }
 
   /**
-   * @return the TachyonConf object used by the cluster
+   * @return the {@link TachyonConf} object used by the cluster
    */
   public TachyonConf getTestConf() {
     return mTestConf;
   }
 
   /**
-   * Explicitly starts the LocalTachyonCluster.
+   * Explicitly starts the {@link LocalTachyonCluster}.
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */

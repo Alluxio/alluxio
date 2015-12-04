@@ -90,7 +90,8 @@ public final class PermissionStatus {
   }
 
   /**
-   * Gets the Directory default PermissionStatus. Currently the default dir permission is 0777.
+   * Gets the Directory default {@link PermissionStatus}. Currently the default dir permission is
+   * 0777.
    *
    * @return the default {@link PermissionStatus} for directories
    */

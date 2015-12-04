@@ -49,11 +49,12 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -350,8 +351,8 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
-    Preconditions.checkNotNull(uri.getHost(), "URI hostname must not be null");
-    Preconditions.checkNotNull(uri.getPort(), "URI post must not be null");
+    Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
+    Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
     super.initialize(uri, conf);
     LOG.info("initialize({}, {}). Connecting to Tachyon: {}", uri, conf, uri.toString());
     Utils.addS3Credentials(conf);

@@ -19,13 +19,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 
@@ -55,7 +54,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterClientService;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 public class RawTableMaster extends MasterBase {
@@ -72,8 +70,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("raw-table-master-%d", true)));
+    super(journal, 2);
     TachyonConf conf = MasterContext.getConf();
     mMaxTableMetadataBytes = conf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = conf.getInt(Constants.MAX_COLUMNS);
@@ -124,11 +121,6 @@ public class RawTableMaster extends MasterBase {
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
   }
 
   /**

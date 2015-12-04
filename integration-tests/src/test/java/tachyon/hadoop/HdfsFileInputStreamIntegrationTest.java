@@ -44,7 +44,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Integration tests for HdfsFileInputStream.
+ * Integration tests for {@link HdfsFileInputStream}.
  */
 public class HdfsFileInputStreamIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
