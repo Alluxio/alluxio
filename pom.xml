@@ -152,7 +152,6 @@
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
-    <module>fuse</module>
   </modules>
 
   <dependencyManagement>
@@ -633,6 +632,17 @@
         </plugins>
       </pluginManagement>
       </build>
+    </profile>
+
+    <!-- profile that activates tachyon fuse for java8 or newer -->
+    <profile>
+      <id>buildFuse</id>
+      <activation>
+        <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
+      </activation>
+      <modules>
+        <module>fuse</module>
+      </modules>
     </profile>
   </profiles>
 </project>

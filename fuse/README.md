@@ -6,18 +6,22 @@ This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on J
 ## Requirements
 * JDK 1.8+
 * SBT 0.13.9+
-* Tachyon 0.8.2
 * libfuse 2.9.3+
   (2.8.3 has been reported to also work - with some warnings)
 
-
 ## Usage
 
-1. `$ sbt assembly`
-2. Edit `bin/tachyon-fuse.sh` with your own configuration. (At least, you have to set the path to your `tachyon-client-0.8.2-jar-with-depenencies.jar`.)
-3. `$ bin/tachyon-fuse.sh`
+### Mounting
+After having configured and started the tachyon cluster:
+`$ bin/tachyon-fuse.sh mount <mount_point>`
 
-*Optional*:
+### Unmounting
+`$ bin/tachyon-fuse.sh umount`
+
+### Check if running
+`$ bin/tachyon-fuse.sh stat`
+
+### Optional
 Edit `bin/tachyon-fuse.sh` and add your specific tachyon client options in the
 `TACHYON_JAVA_OPTS` variable.
 
