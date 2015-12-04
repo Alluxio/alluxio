@@ -13,7 +13,7 @@
  * the License.
  */
 
-package com.ibm.ie.tachyon.fuse;
+package tachyon.fuse;
 
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
