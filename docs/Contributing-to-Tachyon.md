@@ -171,7 +171,7 @@ $ mvn compile findbugs:findbugs findbugs:gui
 You can generate an Eclipse configuration file by running:
 
 ```bash
-$ mvn clean install -DskipTests
+$ mvn clean -Pdeveloper install -DskipTests
 $ mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
 ```
 
