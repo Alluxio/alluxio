@@ -201,3 +201,29 @@ output:
 ```
 bin/tachyon cat /Output/part-00000
 ```
+
+## copyFromLocal
+The `copyFromLocal` command will copy the contents of a file in your local file system into Tachyon.
+If the node you run the command from has a Tachyon worker, the data will be available on that
+worker. Otherwise, the data will be placed in a random remote node running a Tachyon worker. If a
+directory is specified, the directory and all its contents will be uploaded recursively.
+
+For example, `copyFromLocal` can be used as a quick way to inject data into the system for
+processing:
+
+```
+bin/tachyon copyFromLocal /local/data/file.txt /Input/file1.txt
+```
+
+## copyToLocal
+The `copyToLocal` command will copy the contents of a file in Tachyon to a file in your local file
+system. If a directory is specified, the directory and all its contents will be downloaded
+recurisvely.
+
+For example, `copyToLocal` can be used as a quick way to download output data for additional
+investigation or debugging.
+
+```
+bin/tachyon copyToLocal /Output/part-00000 part-00000
+wc -l part-00000
+```
