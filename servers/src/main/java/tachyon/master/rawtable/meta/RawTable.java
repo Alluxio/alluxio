@@ -46,7 +46,7 @@ public class RawTable implements JournalEntryRepresentable {
   }
 
   /**
-   * Create a new RawTable with metadata set to a ByteBuffer.
+   * Create a new RawTable with metadata set to a {@link ByteBuffer}.
    *
    * @param id table id
    * @param columns number of columns
