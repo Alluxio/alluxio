@@ -66,8 +66,7 @@ public final class ConcurrencyTestUtils {
         });
       }
       // wait until all threads are ready
-      Assert.assertTrue(
-          "Timeout initializing threads! Perform long lasting initializations before passing runnables to assertConcurrent",
+      Assert.assertTrue("Timeout initializing threads!",
           allExecutorThreadsReady.await(runnables.size() * 10, TimeUnit.MILLISECONDS));
 
       // start all test runners
