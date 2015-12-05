@@ -251,3 +251,31 @@ which folders are taking up the most space.
 ```
 bin/tachyon du tachyon://<hostname>:<port>/*
 ```
+
+## fileinfo
+The `fileinfo` command dumps the FileInfo representation of a file to the console. It is primarily
+intended for poweruser debugging of their system. Generally viewing the file info in the UI will be
+much easier to understand.
+
+For example, `fileinfo` can be used to debug the block locations of a file. This is useful when
+trying to achieve locality for compute workloads.
+
+```
+bin/tachyon fileinfo /data/file1.txt
+```
+
+## free
+The `free` command sends a request to the master to evict all blocks of a file from the Tachyon
+workers. If the argument to `free` is a directory, it will recursively `free` all files. This
+request is not guaranteed to take effect immediately, as readers may be currently using the blocks
+of the file. `Free` will return immediately after the request is acknowledged by the master. Note
+that `free` does not delete any data from the under storage system, and only affects data stored in
+Tachyon space. In addition, metadata will not be affected by this operation, meaning the freed file
+will still show up if an `ls` command is run.
+
+For example, `free` can be used to manually manage Tachyon's data caching.
+
+```
+bin/tachyon free /Unused/Data
+```
+
