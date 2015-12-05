@@ -212,7 +212,7 @@ For example, `copyFromLocal` can be used as a quick way to inject data into the 
 processing:
 
 ```
-bin/tachyon copyFromLocal /local/data/file.txt /Input/file1.txt
+bin/tachyon copyFromLocal /local/data /Input
 ```
 
 ## copyToLocal
@@ -226,4 +226,28 @@ investigation or debugging.
 ```
 bin/tachyon copyToLocal /Output/part-00000 part-00000
 wc -l part-00000
+```
+
+## count
+The `count` command will output the number of files and folders matching a prefix as well as the
+total size of the files. `Count` works recursively and will account for any nested directories and
+files. `Count` is best utilized when the user has some predefined naming conventions for their
+files.
+
+For example, if data files are stored by their date, `count` can be used to determine the number of
+data files and their total size for any date, month, or year.
+
+```
+bin/tachyon count /2014/1
+```
+
+## du
+The `du` command will output the size of a file. If a directory is specified, it will output the
+aggregate size of all files in the directory and its children directories.
+
+For example, if the Tachyon space is unexpectedly over utilized, `du` can be used to detect
+which folders are taking up the most space.
+
+```
+bin/tachyon du tachyon://<hostname>:<port>/*
 ```
