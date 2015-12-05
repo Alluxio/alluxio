@@ -56,6 +56,9 @@ import tachyon.util.network.NetworkAddressUtils;
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Priority for Tachyon master and worker containers - priorities are intra-application. */
+  private static final Priority PRIORITY = Priority.newInstance(0);
+
   // Parameters sent from Client
   private final int mMasterCpu;
   private final int mWorkerCpu;
@@ -173,10 +176,18 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   public void requestContainers() throws Exception {
-    // Priority for Tachyon master and worker containers - priorities are intra-application
-    Priority priority = Records.newRecord(Priority.class);
-    priority.setPriority(0);
+    requestMasterContainer();
 
+    requestWorkerContainers();
+
+    LOG.info("Master and workers are launched");
+    mApplicationDoneLatch.await();
+  }
+
+  /**
+   * Requests a container for the master and waits for it to be allocated.
+   */
+  private void requestMasterContainer() throws Exception {
     // Resource requirements for master containers
     Resource masterResource = Records.newRecord(Resource.class);
     masterResource.setMemory(mMasterMemInMB);
@@ -190,15 +201,20 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       relaxLocality = false;
     }
     ContainerRequest masterContainerAsk =
-        new ContainerRequest(masterResource, nodes, null /* any racks */, priority, relaxLocality);
+        new ContainerRequest(masterResource, nodes, null /* any racks */, PRIORITY, relaxLocality);
     LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
         masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
     mMasterContainerAllocatedLatch.await();
+  }
 
-    // Resource requirements for master containers
+  /**
+   * Requests containers for the workers and waits for them all to be allocated.
+   */
+  private void requestWorkerContainers() throws Exception {
+    // Resource requirements for worker containers
     Resource workerResource = Records.newRecord(Resource.class);
     workerResource.setMemory(mWorkerMemInMB + mRamdiskMemInMB);
     workerResource.setVirtualCores(mWorkerCpu);
@@ -207,7 +223,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     for (int i = 0; i < mNumWorkers; i ++) {
       ContainerRequest containerAsk =
           new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
-              priority);
+              PRIORITY);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes",
           i, workerResource.getVirtualCores(), workerResource.getMemory());
       mRMClient.addContainerRequest(containerAsk);
@@ -215,9 +231,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Wait until all Tachyon worker containers have been allocated
     mAllWorkersAllocatedLatch.await();
-
-    LOG.info("Master and workers are launched");
-    mApplicationDoneLatch.await();
   }
 
   public void stop() {
