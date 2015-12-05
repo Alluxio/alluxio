@@ -69,11 +69,11 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
     List<Thread> threads = Lists.newArrayList();
     for (int i = 0; i < ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS)
-        * 2; i ++) {
+        * 10; i ++) {
       threads.add(new Thread(new FileRead(f)));
     }
 
-    ConcurrencyTestUtils.assertConcurrent(threads, 10);
+    ConcurrencyTestUtils.assertConcurrent(threads, 100);
   }
 
   class FileRead implements Runnable {
@@ -86,7 +86,9 @@ public final class FileInStreamConcurrencyIntegrationTest {
     @Override
     public void run() {
       try {
-        sTfs.getInStream(mFile).read();
+        FileInStream stream = sTfs.getInStream(mFile);
+        stream.read();
+        stream.close();
       } catch (IOException e) {
         throw new RuntimeException(e);
       } catch (FileDoesNotExistException e) {

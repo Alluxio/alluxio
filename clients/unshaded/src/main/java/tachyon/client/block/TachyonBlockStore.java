@@ -214,25 +214,26 @@ public final class TachyonBlockStore {
    */
   public void promote(long blockId) throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+    BlockInfo info;
     try {
-      BlockInfo info = blockMasterClient.getBlockInfo(blockId);
-      if (info.getLocations().isEmpty()) {
-        // Nothing to promote
-        return;
-      }
-      // Get the first worker address for now, as this will likely be the location being read from
-      // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
-      try {
-        workerClient.promoteBlock(blockId);
-      } finally {
-        mContext.releaseWorkerClient(workerClient);
-      }
+      info = blockMasterClient.getBlockInfo(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
+    }
+    if (info.getLocations().isEmpty()) {
+      // Nothing to promote
+      return;
+    }
+    // Get the first worker address for now, as this will likely be the location being read from
+    // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
+    NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+    WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+    try {
+      workerClient.promoteBlock(blockId);
+    } finally {
+      mContext.releaseWorkerClient(workerClient);
     }
   }
 }
