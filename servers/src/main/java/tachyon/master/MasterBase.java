@@ -46,7 +46,7 @@ public abstract class MasterBase implements Master {
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
-  /** The number of threads to use when creating the ExecutorService. */
+  /** The number of threads to use when creating the {@link ExecutorService}. */
   private final int mNumThreads;
 
   /**
