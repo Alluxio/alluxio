@@ -29,6 +29,7 @@ public enum ExceptionMessage {
   NOT_SUPPORTED("This method is not supported"),
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
   PATH_MUST_BE_FILE("Path {0} must be a file"),
+  PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
@@ -139,6 +140,12 @@ public enum ExceptionMessage {
   YARN_NOT_ENOUGH_HOSTS(
       "Not enough usable hosts in the cluster to launch {0} workers. Only {1} hosts available"),
 
+  // mounting
+  MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
+  MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
+  UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
+  MOUNT_PATH_SHADOWS_DEFAULT_UFS(
+      "Mount path {0} shadows an existing path in the default underlying filesystem"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
