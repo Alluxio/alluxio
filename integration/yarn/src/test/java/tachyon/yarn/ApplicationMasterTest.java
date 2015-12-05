@@ -271,7 +271,7 @@ public class ApplicationMasterTest {
     }
 
     public CountDownLatch getMasterAllocated() {
-      return Whitebox.getInternalState(mMaster, "mMasterContainerAllocated");
+      return Whitebox.getInternalState(mMaster, "mMasterContainerAllocatedLatch");
     }
 
     public CountDownLatch getAllWorkersAllocatedLatch() {
