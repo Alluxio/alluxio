@@ -5,7 +5,7 @@ group: Features
 priority: 0
 ---
 
-Tachyon's command line interface provides users with basic file system operations. You can invoke 
+Tachyon's command line interface provides users with basic file system operations. You can invoke
 the command line utility using:
 
 ```bash
@@ -59,7 +59,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>free</td>
     <td>free "path"</td>
-    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also 
+    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also
     in under storage, it will still be available there.</td>
   </tr>
   <tr>
@@ -170,8 +170,8 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>unmount</td>
     <td>unmount "path"</td>
-    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon 
-    objects under "path" are removed from Tachyon, but they still exist in the previously mounted 
+    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon
+    objects under "path" are removed from Tachyon, but they still exist in the previously mounted
     under storage.</td>
   </tr>
   <tr>
@@ -187,3 +187,17 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Remove the TTL (time to live) setting from a file.</td>
   </tr>
 </table>
+
+# Example Use Cases
+
+## cat
+The `cat` command will print the entire contents of a file in Tachyon to the console. This can be
+useful for verifying the file is what the user expects. If you wish to copy the file to your local
+file system, `copyToLocal` should be used.
+
+For example, when trying out a new computation job, `cat` can be used as a quick way to check the
+output:
+
+```
+bin/tachyon cat /Output/part-00000
+```
