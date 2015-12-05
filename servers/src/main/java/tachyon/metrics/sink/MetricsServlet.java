@@ -42,7 +42,7 @@ public class MetricsServlet implements Sink {
   private ObjectMapper mObjectMapper;
 
   /**
-   * Creates a MetricsServlet with a Properties and MetricRegistry.
+   * Creates a MetricsServlet with a {@link Properties} and {@link MetricRegistry}.
    *
    * @param properties the properties which may contain path property
    * @param registry the metric registry to register
