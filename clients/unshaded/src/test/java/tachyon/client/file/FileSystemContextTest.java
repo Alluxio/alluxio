@@ -17,6 +17,7 @@ package tachyon.client.file;
 
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -28,25 +29,47 @@ import tachyon.client.ClientContext;
  * Tests {@link FileSystemContext}.
  */
 public final class FileSystemContextTest {
-
-  @Test
-  public void concurrencyTest() throws Exception {
+  /**
+   * This test ensures acquiring all the available FileSystem master clients blocks further
+   * requests for clients. It also ensures clients are available for reuse after they are released
+   * by the previous owners. If the test takes longer than 10 seconds, a deadlock most likely
+   * occurred preventing the release of the master clients.
+   *
+   * @throws Exception if an unexpected error occurs during the test
+   */
+  @Test(timeout = 10000)
+  public void acquireAtMaxLimitTest() throws Exception {
     final List<FileSystemMasterClient> clients = Lists.newArrayList();
 
-    // acquire all the clients
+    // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
         .getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS); i ++) {
       clients.add(FileSystemContext.INSTANCE.acquireMasterClient());
     }
+    Thread acquireThread = new Thread(new AcquireClient());
+    acquireThread.start();
 
-    (new Thread(new AcquireClient())).start();
+    // Wait for the spawned thread to complete. If it is able to acquire a master client before
+    // the defined timeout, fail
+    long timeoutMs = Constants.SECOND_MS / 2;
+    long start = System.currentTimeMillis();
+    acquireThread.join(timeoutMs);
+    if (System.currentTimeMillis() - start < timeoutMs) {
+      Assert.fail("Acquired a master client when the client pool was full.");
+    }
 
-    // wait for thread to run
-    Thread.sleep(5L);
-
-    // release all the clients
+    // Release all the clients
     for (FileSystemMasterClient client : clients) {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
+    }
+
+    // Wait for the spawned thread to complete. If it is unable to acquire a master client before
+    // the defined timeout, fail.
+    timeoutMs = 5 * Constants.SECOND_MS;
+    start = System.currentTimeMillis();
+    acquireThread.join(timeoutMs);
+    if (System.currentTimeMillis() - start >= timeoutMs) {
+      Assert.fail("Failed to acquire a master client within " + timeoutMs + "ms. Deadlock?");
     }
   }
 
