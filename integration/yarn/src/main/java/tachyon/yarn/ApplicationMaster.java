@@ -71,14 +71,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private AMRMClientAsync<ContainerRequest> mRMClient;
   /** Client to talk to Node Manager */
   private NMClient mNMClient;
-  /** Whether a container for Tachyon master is allocated */
-  private volatile boolean mMasterContainerAllocated;
+  /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
+  private CountDownLatch mMasterContainerAllocated;
   /** Latch counting down the number of workers to allocate before all mNumWorkers are allocated */
   private CountDownLatch mAllWorkersAllocatedLatch;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
-
-  private volatile boolean mApplicationDone;
+  /** The count starts at 1, then becomes 0 when the application is done */
+  private CountDownLatch mApplicationDone;
 
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -94,9 +94,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
-    mMasterContainerAllocated = false;
+    mMasterContainerAllocated = new CountDownLatch(1);
     mAllWorkersAllocatedLatch = new CountDownLatch(mNumWorkers);
-    mApplicationDone = false;
+    mApplicationDone = new CountDownLatch(1);
   }
 
   /**
@@ -123,7 +123,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   @Override
   public void onContainersAllocated(List<Container> containers) {
-    if (!mMasterContainerAllocated) {
+    if (mMasterContainerAllocated.getCount() != 0) {
       launchTachyonMasterContainers(containers);
     } else {
       launchTachyonWorkerContainers(containers);
@@ -142,7 +142,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   @Override
   public void onShutdownRequest() {
-    mApplicationDone = true;
+    mApplicationDone.countDown();
   }
 
   @Override
@@ -193,9 +193,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
-    while (!mMasterContainerAllocated) {
-      Thread.sleep(1000);
-    }
+    mMasterContainerAllocated.await();
 
     // Resource requirements for master containers
     Resource workerResource = Records.newRecord(Resource.class);
@@ -216,11 +214,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mAllWorkersAllocatedLatch.await();
 
     LOG.info("Master and workers are launched");
-    // Wait for 5 more seconds to avoid application unregistered before some container fully
-    // launched.
-    while (!mApplicationDone) {
-      Thread.sleep(5000);
-    }
+    mApplicationDone.await();
   }
 
   public void stop() {
@@ -254,7 +248,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         String containerUri = container.getNodeHttpAddress(); // in the form of 1.2.3.4:8042
         mMasterContainerNetAddress = containerUri.split(":")[0];
         LOG.info("Master address: " + mMasterContainerNetAddress);
-        mMasterContainerAllocated = true;
+        mMasterContainerAllocated.countDown();
         return;
       } catch (Exception ex) {
         LOG.error("Error launching container " + container.getId() + " " + ex);
