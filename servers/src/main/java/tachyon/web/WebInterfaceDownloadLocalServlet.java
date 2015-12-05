@@ -48,8 +48,8 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   /**
    * Prepares for downloading a file
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */
@@ -83,8 +83,8 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
    * This function prepares for downloading a log file on the local filesystem.
    *
    * @param file The local log file to download
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws IOException
    */
   private void downloadLogFile(File file, HttpServletRequest request,
