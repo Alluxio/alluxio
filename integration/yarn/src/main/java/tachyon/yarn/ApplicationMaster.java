@@ -67,18 +67,19 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
+  /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
+  private final CountDownLatch mMasterContainerAllocatedLatch;
+  /** Latch counting down the number of workers to allocate before all mNumWorkers are allocated */
+  private final CountDownLatch mAllWorkersAllocatedLatch;
+  /** The count starts at 1, then becomes 0 when the application is done */
+  private final CountDownLatch mApplicationDoneLatch;
+
   /** Client to talk to Resource Manager */
   private AMRMClientAsync<ContainerRequest> mRMClient;
   /** Client to talk to Node Manager */
   private NMClient mNMClient;
-  /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
-  private CountDownLatch mMasterContainerAllocatedLatch;
-  /** Latch counting down the number of workers to allocate before all mNumWorkers are allocated */
-  private CountDownLatch mAllWorkersAllocatedLatch;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
-  /** The count starts at 1, then becomes 0 when the application is done */
-  private CountDownLatch mApplicationDoneLatch;
 
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
