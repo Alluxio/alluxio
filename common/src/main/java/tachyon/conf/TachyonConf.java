@@ -219,6 +219,8 @@ public final class TachyonConf {
 
   // TODO(binfan): this method should be hidden and only used during initialization and tests.
   public void set(String key, String value) {
+    Preconditions.checkArgument(key != null && value != null,
+        String.format("the key value pair (%s, %s) cannot have null", key, value));
     mProperties.put(key, value);
   }
 
