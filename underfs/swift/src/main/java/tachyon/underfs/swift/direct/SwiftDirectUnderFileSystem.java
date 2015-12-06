@@ -134,6 +134,15 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
     return create(path);
   }
 
+  /* (non-Javadoc)
+   * @see tachyon.underfs.UnderFileSystem#delete(java.lang.String, boolean)
+   *
+   * recursive parameter is not being used for delete.
+   * The reason is that each path is treated as a single object, which
+   * was created with 'create' method.
+   *
+   * Method return 'true' always.
+   */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: " + path + ",recursive: " + recursive);
@@ -146,7 +155,6 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
     if (so.exists()) {
       LOG.debug("Object exists: " + so.getBareName());
       so.delete();
-      return true;
     }
     return true;
   }
@@ -358,8 +366,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * my-path/file. This method will leave keys without a prefix unaltered, ie.
    * my-path/file returns my-path/file.
    *
-   * @param key
-   *          the key to strip
+   * @param key the key to strip
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
@@ -372,8 +379,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * my-path/file. This method will leave keys without a prefix unaltered, ie.
    * my-path/file returns my-path/file.
    *
-   * @param key
-   *          the key to strip
+   * @param key the key to strip
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path, String prefix) {

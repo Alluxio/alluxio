@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.underfs.swift.direct.SwiftDirectOutputStream;
 
-public  class SwiftDirectClient {
+public class SwiftDirectClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
