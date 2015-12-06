@@ -38,35 +38,33 @@ public class SwiftDirectOutputStream extends OutputStream {
   private OutputStream mOutputStream;
   private HttpURLConnection mHttpCon;
 
-  public SwiftDirectOutputStream(HttpURLConnection httpCon) {
+  public SwiftDirectOutputStream(HttpURLConnection httpCon) throws IOException {
     LOG.debug("Init method: start");
     try {
       mOutputStream  = httpCon.getOutputStream();
       mHttpCon = httpCon;
     } catch (Exception e) {
       LOG.debug(e.getMessage());
+      throw new IOException(e);
     }
   }
 
   @Override
   public void write(int b) throws IOException {
-    LOG.trace("write one byte");
+    LOG.trace("write a single byte");
     mOutputStream.write(b);
-    mOutputStream.flush();
   }
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     LOG.trace("write, off: {}, len: {}", off, len);
     mOutputStream.write(b, off, len);
-    mOutputStream.flush();
   }
 
   @Override
   public void write(byte[] b) throws IOException {
     LOG.trace("write byte array");
     mOutputStream.write(b);
-    mOutputStream.flush();
   }
 
   @Override
@@ -77,7 +75,6 @@ public class SwiftDirectOutputStream extends OutputStream {
     BufferedReader reader = null;
     InputStream is = null;
     try {
-      String line;
       LOG.debug("Going to get inputstream");
       if (mHttpCon.getResponseCode() >= 400) {
         is = mHttpCon.getErrorStream();
@@ -85,9 +82,6 @@ public class SwiftDirectOutputStream extends OutputStream {
         is = mHttpCon.getInputStream();
       }
       reader = new BufferedReader(new InputStreamReader(is));
-      while ((line = reader.readLine()) != null) {
-        LOG.debug(line);
-      }
       LOG.debug("Going got close input stream");
       is.close();
       reader.close();
