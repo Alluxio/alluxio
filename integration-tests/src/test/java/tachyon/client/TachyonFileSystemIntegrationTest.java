@@ -179,6 +179,8 @@ public class TachyonFileSystemIntegrationTest {
    * Creates another directory on the local filesystem, alongside the existing Ufs, to be used as a
    * second Ufs
    * @return the path of the alternate Ufs directory
+   * @throws InvalidPathException if the UNDERFS_ADDRESS is not properly formed
+   * @throws IOException if a UnderFS I/O error occurs
    */
   private String createAlternateUfs() throws InvalidPathException, IOException {
     String parentDir =
@@ -193,7 +195,7 @@ public class TachyonFileSystemIntegrationTest {
   /**
    * Deletes the alternate under file system directory
    * @param alternateUfsRoot the root of the alternate Ufs
-   * @throws IOException
+   * @throws IOException if an UnderFS I/O error occurs
    */
   private void destroyAlternateUfs(String alternateUfsRoot) throws IOException {
     UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalTachyonClusterResource.getTestConf());
