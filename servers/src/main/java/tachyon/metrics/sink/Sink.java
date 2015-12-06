@@ -22,15 +22,15 @@ public interface Sink {
   /**
    * Starts the reporter polling.
    */
-  public void start();
+  void start();
 
   /**
    * Stops the reporter.
    */
-  public void stop();
+  void stop();
 
   /**
    * Reports the current values of all metrics.
    */
-  public void report();
+  void report();
 }
