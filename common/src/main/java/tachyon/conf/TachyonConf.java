@@ -409,15 +409,15 @@ public final class TachyonConf {
   }
 
   /**
-   * Constants.USER_FILE_BUFFER_BYTES shuold not bigger than Integer.MAX_VALUE bytes.
+   * {@link Constants.USER_FILE_BUFFER_BYTES} should not bigger than Integer.MAX_VALUE bytes.
    * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
    */
   private void checkUserFileBufferBytes() {
-    if (!this.containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
+    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
       return;
     }
-    long usrFileBufferBytes =  getBytes(Constants.USER_FILE_BUFFER_BYTES);
-    Preconditions.checkArgument(((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes),
-            "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
+    long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
+        "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 }
