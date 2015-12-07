@@ -15,13 +15,13 @@
 
 package tachyon.client.concurrent;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -34,8 +34,6 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -43,6 +41,8 @@ import tachyon.util.io.PathUtils;
  */
 public final class FileInStreamConcurrencyIntegrationTest {
   private static final int BLOCK_SIZE = 30;
+  private static final int READ_THREADS_NUM =
+      ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
@@ -68,8 +68,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
         TachyonFSTestUtils.createByteFile(sTfs, uniqPath, BLOCK_SIZE * 2, sWriteTachyon);
 
     List<Thread> threads = Lists.newArrayList();
-    for (int i = 0; i < ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS)
-        * 10; i ++) {
+    for (int i = 0; i < READ_THREADS_NUM; i ++) {
       threads.add(new Thread(new FileRead(f)));
     }
 
@@ -89,12 +88,8 @@ public final class FileInStreamConcurrencyIntegrationTest {
         FileInStream stream = sTfs.getInStream(mFile);
         stream.read();
         stream.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      } catch (TachyonException e) {
-        throw new RuntimeException(e);
+      } catch (Exception e) {
+        Throwables.propagate(e);
       }
     }
   }
