@@ -20,6 +20,29 @@ Or, if no header is provided, the default hostname and port (set in the env file
 
     /<path>
 
+## Wildcard Input
+
+Most of the commands which require path components allow wildcard arguments for ease of use. For
+example:
+
+```
+bin/tachyon tfs rm /data/2014*
+```
+
+The example command would delete anything in the `data` directory with a prefix of `2014`.
+
+Note that some shells will attempt to glob the input paths, causing strange errors like
+
+```
+rm takes 1 arguments,  not 21
+```
+
+As a work around, you can disable globbing through `set -f` or by escaping wildcards, for example:
+
+```
+bin/tachyon tfs cat /\\*
+```
+
 # List of Operations
 
 <table class="table table-striped">
