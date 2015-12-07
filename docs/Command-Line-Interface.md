@@ -225,7 +225,7 @@ For example, when trying out a new computation job, `cat` can be used as a quick
 output:
 
 ```
-bin/tachyon cat /Output/part-00000
+bin/tachyon cat /output/part-00000
 ```
 
 ## copyFromLocal
@@ -238,7 +238,7 @@ For example, `copyFromLocal` can be used as a quick way to inject data into the 
 processing:
 
 ```
-bin/tachyon copyFromLocal /local/data /Input
+bin/tachyon copyFromLocal /local/data /input
 ```
 
 ## copyToLocal
@@ -250,7 +250,7 @@ For example, `copyToLocal` can be used as a quick way to download output data fo
 investigation or debugging.
 
 ```
-bin/tachyon copyToLocal /Output/part-00000 part-00000
+bin/tachyon copyToLocal /output/part-00000 part-00000
 wc -l part-00000
 ```
 
@@ -275,7 +275,7 @@ For example, if the Tachyon space is unexpectedly over utilized, `du` can be use
 which folders are taking up the most space.
 
 ```
-bin/tachyon du tachyon://<hostname>:<port>/*
+bin/tachyon du /\\*
 ```
 
 ## fileinfo
@@ -302,6 +302,6 @@ will still show up if an `ls` command is run.
 For example, `free` can be used to manually manage Tachyon's data caching.
 
 ```
-bin/tachyon free /Unused/Data
+bin/tachyon free /unused/data
 ```
 
