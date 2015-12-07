@@ -37,11 +37,14 @@ Note that some shells will attempt to glob the input paths, causing strange erro
 rm takes 1 arguments,  not 21
 ```
 
-As a work around, you can disable globbing through `set -f` or by escaping wildcards, for example:
+As a work around, you can disable globbing (depending on your shell, for example `set -f`) or by
+escaping wildcards, for example:
 
 ```
 bin/tachyon tfs cat /\\*
 ```
+Note the double escape, this is because the shell script will eventually call a java program which
+should have the final escaped parameters (cat /\*).
 
 # List of Operations
 
