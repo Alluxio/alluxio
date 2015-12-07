@@ -28,7 +28,7 @@ public class TempBlockMeta extends BlockMetaBase {
    * @param sessionId the session ID
    * @param blockId the block ID
    * @param initialBlockSize initial size of this block in bytes
-   * @param dir StorageDir of this temp block belonging to
+   * @param dir {@link StorageDir} of this temp block belonging to
    */
   public TempBlockMeta(long sessionId, long blockId, long initialBlockSize, StorageDir dir) {
     super(blockId, dir);
