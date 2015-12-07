@@ -117,6 +117,11 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread);
   }
 
+  /**
+   * Start the Leader selection
+   *
+   * @throws IOException
+   */
   public void start() throws IOException {
     mLeaderSelector.start();
   }
