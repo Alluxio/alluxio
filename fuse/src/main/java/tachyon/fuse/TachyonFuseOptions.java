@@ -19,19 +19,16 @@ import java.util.List;
 
 /**
  * Convenience class to pass around Tachyon-FUSE options
- * @author Andrea Reale <realean2@ie.ibm.com>
  */
 final class TachyonFuseOptions {
   private final String mMountPoint;
-  private final String mMasterAddress;
   private final String mTachyonRoot;
   private final boolean mDebug;
   private final List<String> mFuseOpts;
 
-  public TachyonFuseOptions(String mountPoint, String masterAddress, String tachyonRoot,
-                            boolean debug, List<String> fuseOpts) {
+  TachyonFuseOptions(String mountPoint, String tachyonRoot,
+      boolean debug, List<String> fuseOpts) {
     mMountPoint = mountPoint;
-    mMasterAddress = masterAddress;
     mTachyonRoot = tachyonRoot;
     mDebug = debug;
     mFuseOpts = fuseOpts;
@@ -42,14 +39,6 @@ final class TachyonFuseOptions {
    */
   public String getMountPoint() {
     return mMountPoint;
-  }
-
-  /**
-   * @return the address of the tachyon master as a TachyonURI string
-   * (e.g., tachyon://localhost:19998)
-   */
-  public String getMasterAddress() {
-    return mMasterAddress;
   }
 
   /**
