@@ -19,6 +19,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.common.base.Preconditions;
+
 /**
  * This class can be used for controlling heartbeat execution of threads.
  *
@@ -65,9 +67,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
   protected void schedule() {
     mLock.lock();
     try {
-      if (mScheduled) {
-        throw new IllegalStateException("Called schedule twice without waiting for any ticks");
-      }
+      Preconditions.checkState(!mScheduled, "Called schedule twice without waiting for any ticks");
       mScheduled = true;
       mCondition.signal();
     } finally {
