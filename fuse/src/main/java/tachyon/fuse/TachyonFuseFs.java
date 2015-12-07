@@ -175,14 +175,14 @@ final class TachyonFuseFs extends FuseStubFS {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
-    if (oe.getOut() == null) {
-      LOG.error("{} was not open for writing", path);
-      return -ErrorCodes.EBADFD();
-    }
-    try {
-      oe.getOut().flush();
-    } catch (IOException e) {
-      return -ErrorCodes.EIO();
+    if (oe.getOut() != null) {
+      try {
+        oe.getOut().flush();
+      } catch (IOException e) {
+        return -ErrorCodes.EIO();
+      }
+    } else {
+      LOG.debug("Not flushing: {} was not open for writing", path);
     }
 
     return 0;
