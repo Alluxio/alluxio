@@ -28,18 +28,19 @@ import tachyon.worker.block.BlockMetadataManagerView;
  */
 public final class StorageTierView {
 
-  /** the StorageTier this view is derived from */
+  /** the {@link StorageTier} this view is derived from */
   private final StorageTier mTier;
-  /** a list of StorageDirView under this StorageTierView */
+  /** a list of {@link StorageDirView} under this StorageTierView */
   private List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
-  /** the BlockMetadataView this StorageTierView is under */
+  /** the {@link BlockMetadataManagerView} this {@link StorageTierView} is under */
   private final BlockMetadataManagerView mManagerView;
 
   /**
-   * Creates a StorageTierView using the actual StorageTier and the above BlockMetadataView
+   * Creates a {@link StorageTierView} using the actual {@link StorageTier} and the above
+   * {@link BlockMetadataManagerView}
    *
    * @param tier which the tierView is constructed from
-   * @param view the BlockMetadataManagerView this tierView is associated with
+   * @param view the {@link BlockMetadataManagerView} this tierView is associated with
    */
   public StorageTierView(StorageTier tier, BlockMetadataManagerView view) {
     mTier = Preconditions.checkNotNull(tier);
