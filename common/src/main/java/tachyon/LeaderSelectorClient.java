@@ -118,9 +118,9 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Start the Leader selection
+   * Start the Leader selection.
    *
-   * @throws IOException
+   * @throws IOException anything wrong happens during leader selection
    */
   public void start() throws IOException {
     mLeaderSelector.start();
