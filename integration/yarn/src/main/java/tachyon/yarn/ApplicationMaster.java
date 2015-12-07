@@ -171,7 +171,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Register with ResourceManager
     String hostname = NetworkAddressUtils.getLocalHostName(new TachyonConf());
-    mRMClient.registerApplicationMaster(hostname /* hostname */, 0 /* port */, "" /* tracking url */);
+    mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }
 
@@ -242,7 +242,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       LOG.error("Failed to unregister application " + ioe);
     }
     mRMClient.stop();
-    mNMClient.stop();
+    //TODO(andrew): Think about whether we should stop mNMClient here
   }
 
   private void launchTachyonMasterContainers(List<Container> containers) {

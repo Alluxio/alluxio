@@ -186,7 +186,6 @@ public class ApplicationMasterTest {
     mMaster.stop();
     Mockito.verify(mRMClient).unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
     Mockito.verify(mRMClient).start();
-    Mockito.verify(mNMClient).stop();
   }
 
   /**
