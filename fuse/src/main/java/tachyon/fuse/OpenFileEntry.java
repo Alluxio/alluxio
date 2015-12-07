@@ -18,9 +18,38 @@ package tachyon.fuse;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 
+/**
+ * Convenience class to encapsulate input/output streams
+ * of open tachyon files.
+ */
 final class OpenFileEntry {
-  // the tachyon file id
-  public long mTfid;
-  public FileInStream mIn;
-  public FileOutStream mOut;
+  private final FileInStream mIn;
+  private final FileOutStream mOut;
+
+  public OpenFileEntry(FileInStream in, FileOutStream out) {
+    mIn = in;
+    mOut = out;
+  }
+
+  /**
+   * Get the opened input stream for this open file entry.
+   *
+   * The value returned can be <code>null</code> if the file is not
+   * open for reading
+   * @return an opened input stream for the open tachyon file, or null
+   */
+  public FileInStream getIn() {
+    return mIn;
+  }
+
+  /**
+   * Get the opened output stream for this open file entry.
+   *
+   * The value returned can be <code>null</code> if the file is
+   * not open for writing.
+   * @return an opened input stream for the open tachyon file, or null
+   */
+  public FileOutStream getOut() {
+    return mOut;
+  }
 }

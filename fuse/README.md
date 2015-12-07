@@ -15,6 +15,9 @@ This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on J
 After having configured and started the tachyon cluster:
 `$ bin/tachyon-fuse.sh mount <mount_point>`
 
+**Note**: the user running the script must own the mount point and
+have rw permissions on it.
+
 ### Unmounting
 `$ bin/tachyon-fuse.sh umount`
 
@@ -24,7 +27,6 @@ After having configured and started the tachyon cluster:
 ### Optional
 Edit `bin/tachyon-fuse.sh` and add your specific tachyon client options in the
 `TACHYON_JAVA_OPTS` variable.
-
 
 ## Status
 Most basic operations are supported. However, due to Tachyon implicit characteristics, note that:

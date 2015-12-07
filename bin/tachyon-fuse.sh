@@ -5,10 +5,9 @@ if [[ -n "$BASH_VERSION" ]]; then
 elif [[ -n "$ZSH_VERSION" ]]; then
     BIN_DIR="$( cd "$( dirname "${(%):-%x}" )" && pwd )"
 else
-    echo "Please, launch your scripts from zsh or bash only" >&2
+    echo "Please, launch your scripts from zsh or bash only." >&2
     exit 1
 fi
-
 
 get_env () {
   DEFAULT_LIBEXEC_DIR="$BIN_DIR"/../libexec
@@ -16,9 +15,7 @@ get_env () {
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
   TACHYON_MASTER_PORT=${TACHYON_MASTER_PORT:-19998}
-  #DEBUG_FLAG="-d"
-  DEBUG_FLAG=""
-  TACHYON_FUSE_JAR=${BIN_DIR}/../fuse/target/tachyon-fuse-0.9.0-SNAPSHOT-jar-with-dependencies.jar
+  TACHYON_FUSE_JAR=${BIN_DIR}/../fuse/target/tachyon-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
 
@@ -58,19 +55,24 @@ set_java_opt () {
   "
 }
 
-
 mount_fuse() {
   if fuse_stat > /dev/null ; then
-    echo "tachyon-fuse is already running on the local host. Plase, stop it first" >&2
+    echo "tachyon-fuse is already running on the local host. Please, stop it first." >&2
     return 1
   fi
   echo "Starting tachyon-fuse on local host."
   local mount_point=$1
   (nohup $JAVA -cp ${TACHYON_FUSE_JAR} ${JAVA_OPTS} ${TACHYON_FUSE_OPTS}\
-    tachyon.fuse.TachyonFuse ${DEBUG_FLAG}\
-    -m ${mount_point} -t tachyon://${TACHYON_MASTER_ADDRESS}:${TACHYON_MASTER_PORT}\
-    -o big_writes -o max_write=$FUSE_MAX_WRITE > $TACHYON_LOGS_DIR/fuse.out 2>&1) &
-  return 0
+    tachyon.fuse.TachyonFuse \
+    -m ${mount_point} \
+    -o big_writes > $TACHYON_LOGS_DIR/fuse.out 2>&1) &
+  if kill -0 $! ; then
+    return 0
+  else
+    echo "tachyon-fuse not started.\
+     Please, look at ${TACHYON_LOGS_DIR}/fuse.out} for details" >&2
+    return 1
+  fi
 }
 
 umount_fuse () {
@@ -105,7 +107,6 @@ fuse_stat() {
     fi
   fi
 }
-
 
 USAGE_MSG="Usage:\n\t$0 [mount|umount|stat]"
 

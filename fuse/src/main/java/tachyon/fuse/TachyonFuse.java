@@ -16,10 +16,9 @@
 package tachyon.fuse;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -31,22 +30,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 /**
  * Main entry point to Tachyon-FUSE
  */
 public final class TachyonFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String DEFAULT_MOUNT_POINT = "/mnt/tachyon";
-  private static final String DEFAULT_MASTER_ADDR = "tachyon://localhost:19998";
-  private static final String DEFAULT_ROOT = "/";
+  private static TachyonConf sTachyonConf;
 
   public static void main(String[] args) {
     final TachyonFuseOptions opts = parseOptions(args);
     if (opts == null) {
       System.exit(1);
     }
-    final TachyonFuseFs fs = new TachyonFuseFs(opts);
+
+    sTachyonConf = ClientContext.getConf();
+    final TachyonFuseFs fs = new TachyonFuseFs(sTachyonConf, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
     fuseOpts.add("-odirect_io");
 
@@ -72,13 +73,6 @@ public final class TachyonFuse {
         .desc("Path where tachyon-fuse should be mounted.")
         .build();
 
-    final Option tachyonAddress = Option.builder("t")
-        .hasArg()
-        .required(false)
-        .longOpt("tachyon-master")
-        .desc("URI of the Tachyon Master (e.g. tachyon://localhost:19998/")
-        .build();
-
     final Option tachyonRoot = Option.builder("r")
         .hasArg()
         .required(false)
@@ -91,12 +85,6 @@ public final class TachyonFuse {
         .desc("Print this help")
         .build();
 
-    final Option debug = Option.builder("d")
-        .required(false)
-        .longOpt("debug")
-        .desc("Enable FUSE debug output")
-        .build();
-
     final Option fuseOption = Option.builder("o")
         .valueSeparator(',')
         .required(false)
@@ -105,10 +93,8 @@ public final class TachyonFuse {
         .build();
 
     opts.addOption(mntPoint);
-    opts.addOption(tachyonAddress);
     opts.addOption(tachyonRoot);
     opts.addOption(help);
-    opts.addOption(debug);
     opts.addOption(fuseOption);
 
     final CommandLineParser parser = new DefaultParser();
@@ -121,46 +107,46 @@ public final class TachyonFuse {
         return null;
       }
 
-      String m = cli.getOptionValue("m");
-      String t = cli.getOptionValue("t");
-      String r = cli.getOptionValue("r");
-      boolean d = cli.hasOption("d");
+      String mntPointValue = cli.getOptionValue("m");
+      String tachyonRootValue = cli.getOptionValue("r");
 
-      List<String> fuseOpts;
+      List<String> fuseOpts = Lists.newArrayList();
+      boolean noUserMaxWrite = true;
       if (cli.hasOption("o")) {
         String[] fopts = cli.getOptionValues("o");
-        fuseOpts = new ArrayList<String>(fopts.length);
         // keep the -o
         for (int i = 0; i < fopts.length; i++) {
           fuseOpts.add("-o" + fopts[i]);
+          if (noUserMaxWrite && fopts[i].startsWith("max_write")) {
+            noUserMaxWrite = false;
+          }
         }
-      } else {
-        fuseOpts = Collections.emptyList();
+      }
+      // check if the user has specified his own max_write, otherwise get it
+      // from conf
+      if (noUserMaxWrite) {
+        final long maxWrite = sTachyonConf.getLong(Constants.FUSE_MAXWRITE_BYTES);
+        fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 
-      if (m == null) {
-        LOG.info("Mounting on default {}", TachyonFuse.DEFAULT_MOUNT_POINT);
-        m = TachyonFuse.DEFAULT_MOUNT_POINT;
+      if (mntPointValue == null) {
+        mntPointValue = sTachyonConf.get(Constants.FUSE_DEFAULT_MOUNTPOINT);
+        LOG.info("Mounting on default {}", mntPointValue);
       }
 
-      if (t == null) {
-        LOG.info("Using default master address {}", TachyonFuse.DEFAULT_MASTER_ADDR);
-        t = TachyonFuse.DEFAULT_MASTER_ADDR;
+      if (tachyonRootValue == null) {
+        tachyonRootValue = sTachyonConf.get(Constants.FUSE_FS_ROOT);
+        LOG.info("Using default tachyon root {}", tachyonRootValue);
       }
 
-      if (r == null) {
-        LOG.info("Using default tachyon root {}", TachyonFuse.DEFAULT_ROOT);
-        r = TachyonFuse.DEFAULT_ROOT;
-      }
+      final boolean fuseDebug = sTachyonConf.getBoolean(Constants.FUSE_DEBUG_ENABLE);
 
-      return new TachyonFuseOptions(m, t, r, d, fuseOpts);
+      return new TachyonFuseOptions(mntPointValue, tachyonRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {
       System.err.println("Error while parsing CLI: " + e.getMessage());
       final HelpFormatter fmt = new HelpFormatter();
       fmt.printHelp(TachyonFuse.class.getName(), opts);
       return null;
     }
-
   }
 }
-
