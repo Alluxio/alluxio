@@ -232,6 +232,8 @@ public final class TachyonBlockStore {
     WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
     try {
       workerClient.promoteBlock(blockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseWorkerClient(workerClient);
     }
