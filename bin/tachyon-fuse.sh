@@ -66,11 +66,12 @@ mount_fuse() {
     tachyon.fuse.TachyonFuse \
     -m ${mount_point} \
     -o big_writes > $TACHYON_LOGS_DIR/fuse.out 2>&1) &
-  if kill -0 $! ; then
+  # sleep: workaround to let the bg java process exit on errors, if any
+  sleep 2s
+  if kill -0 $! > /dev/null 2>&1 ; then
     return 0
   else
-    echo "tachyon-fuse not started.\
-     Please, look at ${TACHYON_LOGS_DIR}/fuse.out} for details" >&2
+    echo "tachyon-fuse not started. See ${TACHYON_LOGS_DIR}/fuse.out for details" >&2
     return 1
   fi
 }

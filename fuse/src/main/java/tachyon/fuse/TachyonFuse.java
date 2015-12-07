@@ -41,12 +41,12 @@ public final class TachyonFuse {
   private static TachyonConf sTachyonConf;
 
   public static void main(String[] args) {
+    sTachyonConf = ClientContext.getConf();
     final TachyonFuseOptions opts = parseOptions(args);
     if (opts == null) {
       System.exit(1);
     }
 
-    sTachyonConf = ClientContext.getConf();
     final TachyonFuseFs fs = new TachyonFuseFs(sTachyonConf, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
     fuseOpts.add("-odirect_io");
