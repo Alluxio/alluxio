@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
@@ -97,9 +98,9 @@ public final class Client {
   private int mAmPriority;
   /** Queue for ApplicationMaster. */
   private String mAmQueue;
-  /** Amount of memory resource to request for to run the ApplicationMaster. */
+  /** Amount of memory to request for running the ApplicationMaster. */
   private int mAmMemoryInMB;
-  /** Number of virtual core resource to request for to run the ApplicationMaster. */
+  /** Number of virtual cores to request for running the ApplicationMaster. */
   private int mAmVCores;
   /** ApplicationMaster jar file on HDFS. */
   private String mAppMasterJarHdfs;
@@ -239,6 +240,8 @@ public final class Client {
     // Check if the cluster has enough resource to launch the ApplicationMaster
     checkClusterResource(appResponse);
 
+    checkNodesAvailable();
+
     // Set up the container launch context for the application master
     mAmContainer = Records.newRecord(ContainerLaunchContext.class);
     setupContainerLaunchContext();
@@ -266,6 +269,15 @@ public final class Client {
     Preconditions.checkArgument(mAmVCores <= maxVCores,
         "ApplicationMaster virtual cores specified above max threshold of cluster, specified="
             + mAmVCores + ", max=" + maxVCores);
+  }
+
+  // Checks that there are enough nodes in the cluster to run the desired number of workers
+  private void checkNodesAvailable() throws YarnException, IOException {
+    Set<String> hosts = YarnUtils.getNodeHosts(mYarnClient);
+    Preconditions.checkArgument(mNumWorkers <= hosts.size(),
+        "Number of workers specified above number of usable hosts in the cluster, "
+            + String.format("specified=%s, but there are only %d usable hosts: %s", mNumWorkers,
+                hosts.size(), hosts));
   }
 
   private void setupContainerLaunchContext() throws IOException {

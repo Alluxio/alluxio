@@ -95,7 +95,6 @@ public class ApplicationMasterTest {
       ContainerLaunchContext.newInstance(null, EXPECTED_WORKER_ENVIRONMENT,
           Lists.newArrayList(EXPECTED_WORKER_COMMAND), null, null, null);
 
-
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
   private NMClient mNMClient;
