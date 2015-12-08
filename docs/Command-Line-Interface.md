@@ -44,7 +44,7 @@ escaping wildcards, for example:
 bin/tachyon tfs cat /\\*
 ```
 Note the double escape, this is because the shell script will eventually call a java program which
-should have the final escaped parameters (cat /\*).
+should have the final escaped parameters (cat /\\*).
 
 # List of Operations
 
@@ -225,7 +225,7 @@ For example, when trying out a new computation job, `cat` can be used as a quick
 output:
 
 ```
-bin/tachyon cat /output/part-00000
+bin/tachyon tfs cat /output/part-00000
 ```
 
 ## copyFromLocal
@@ -238,7 +238,7 @@ For example, `copyFromLocal` can be used as a quick way to inject data into the 
 processing:
 
 ```
-bin/tachyon copyFromLocal /local/data /input
+bin/tachyon tfs copyFromLocal /local/data /input
 ```
 
 ## copyToLocal
@@ -250,7 +250,7 @@ For example, `copyToLocal` can be used as a quick way to download output data fo
 investigation or debugging.
 
 ```
-bin/tachyon copyToLocal /output/part-00000 part-00000
+bin/tachyon tfs copyToLocal /output/part-00000 part-00000
 wc -l part-00000
 ```
 
@@ -264,7 +264,7 @@ For example, if data files are stored by their date, `count` can be used to dete
 data files and their total size for any date, month, or year.
 
 ```
-bin/tachyon count /2014/1
+bin/tachyon tfs count /2014/1
 ```
 
 ## du
@@ -275,7 +275,7 @@ For example, if the Tachyon space is unexpectedly over utilized, `du` can be use
 which folders are taking up the most space.
 
 ```
-bin/tachyon du /\\*
+bin/tachyon tfs du /\\*
 ```
 
 ## fileinfo
@@ -287,7 +287,7 @@ For example, `fileinfo` can be used to debug the block locations of a file. This
 trying to achieve locality for compute workloads.
 
 ```
-bin/tachyon fileinfo /data/file1.txt
+bin/tachyon tfs fileinfo /data/file1.txt
 ```
 
 ## free
@@ -302,6 +302,58 @@ will still show up if an `ls` command is run.
 For example, `free` can be used to manually manage Tachyon's data caching.
 
 ```
-bin/tachyon free /unused/data
+bin/tachyon tfs free /unused/data
 ```
 
+## getCapacityBytes
+The `getCapacityBytes` command returns the maximum number of bytes Tachyon is configured to store.
+
+For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
+
+```
+bin/tachyon tfs getCapacityBytes
+```
+
+## getUsedBytes
+The `getUsedBytes` command returns the number of used bytes in Tachyon.
+
+For example, `getUsedBytes` can be used to monitor the health of your cluster.
+
+```
+bin/tachyon tfs getUsedBytes
+```
+
+## load
+The `load` command moves data from the under storage system into Tachyon storage. If there is a
+Tachyon worker on the machine this command is run from, the data will be loaded to that worker.
+Otherwise, a random worker will be selected to serve the data. Load will no-op if the file is
+already in Tachyon memory level storage. If `load` is run on a directory, files in the directory
+will be recursively loaded.
+
+For example, `load` can be used to prefetch data for analytics jobs.
+
+```
+bin/tachyon tfs load /data/today
+```
+
+## loadMetadata
+The `loadMetadata` command queries the under storage system for any file or directory matching the
+given path and then creates a mirror of the file in Tachyon backed by that file. Only the metadata,
+such as the file name and size are loaded this way and no data transfer occurs.
+
+For example, `loadMetadata` can be used when other systems output to the under storage directly
+(bypassing Tachyon), and the application running on Tachyon needs to use the output of those
+systems.
+
+```
+bin/tachyon tfs loadMetadata /hdfs/data/2015/logs-1.txt
+```
+
+## location
+The `location` command returns the addresses of all the Tachyon workers which contain blocks
+belonging to the given file.
+
+For example, `location` can be used to debug data locality when running jobs using a compute
+framework.
+
+```
