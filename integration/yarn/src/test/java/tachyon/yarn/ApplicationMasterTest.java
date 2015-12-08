@@ -18,7 +18,11 @@ package tachyon.yarn;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
@@ -26,11 +30,14 @@ import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
+import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.NMClient;
+import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.util.Records;
 import org.junit.Assert;
@@ -46,26 +53,26 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit tests for {@link ApplicationMaster}.
  */
-//TODO(andrew): Add tests for failure cases
+// TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({NMClient.class, AMRMClientAsync.class, ApplicationMaster.class})
+@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnClient.class})
 public class ApplicationMasterTest {
-
   private static final String MASTER_ADDRESS = "localhost";
   private static final String TACHYON_HOME = "/tmp/tachyonhome";
   private static final TachyonConf mConf = new TachyonConf();
-  private static final int NUM_WORKERS = 2;
+  private static final int NUM_WORKERS = 5;
   private static final int MASTER_MEM_MB =
       (int) mConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
   private static final int MASTER_CPU = mConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -74,10 +81,26 @@ public class ApplicationMasterTest {
   private static final int RAMDISK_MEM_MB =
       (int) mConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU = mConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+
+  private static final String EXPECTED_WORKER_COMMAND = new CommandBuilder(
+      PathUtils.concatPath(TACHYON_HOME, "integration", "bin", "tachyon-worker-yarn.sh"))
+          .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
+          .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
+  private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
+      ImmutableMap.<String, String>builder()
+          .put("TACHYON_MASTER_ADDRESS", "masterAddress")
+          .put("TACHYON_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
+          .build();
+  private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =
+      ContainerLaunchContext.newInstance(null, EXPECTED_WORKER_ENVIRONMENT,
+          Lists.newArrayList(EXPECTED_WORKER_COMMAND), null, null, null);
+
+
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
   private NMClient mNMClient;
   private AMRMClientAsync<ContainerRequest> mRMClient;
+  private YarnClient mYarnClient;
 
   @Before
   public void before() throws Exception {
@@ -97,6 +120,11 @@ public class ApplicationMasterTest {
     mRMClient = amrm;
     Mockito.when(AMRMClientAsync.createAMRMClientAsync(100, mMaster)).thenReturn(mRMClient);
 
+    // Mock Yarn client
+    PowerMockito.mockStatic(YarnClient.class);
+    mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
+    Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
+
     mMaster.start();
   }
 
@@ -112,52 +140,112 @@ public class ApplicationMasterTest {
   /**
    * Tests that the correct type and number of containers are requested.
    */
-  @Test
-  public void testRequestContainers() throws Exception {
-    // Mock the Resource Manager to immediately "allocate" containers after they are requested
+  @Test(timeout = 10000)
+  public void testRequestContainersOnce() throws Exception {
+    // Mock the Yarn client to give a NodeReport with NUM_WORKERS nodes
+    List<NodeReport> nodeReports = Lists.newArrayList();
+    final List<String> nodeHosts = Lists.newArrayList();
+    for (int i = 0; i < NUM_WORKERS; i ++) {
+      String host = "host" + i;
+      NodeReport report = Mockito.mock(NodeReport.class);
+      Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
+      nodeReports.add(report);
+      nodeHosts.add(host);
+    }
+    Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
+        .thenReturn(nodeReports);
+
+    // Mock the Resource Manager to "allocate" containers when they are requested and update
+    // ApplicationMaster internal state
     Mockito.doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        if (mPrivateAccess.getMasterAllocated().getCount() == 0) {
-          // If the master has already been allocated, this request must be for a worker container
-          CountDownLatch workersAllocated = mPrivateAccess.getAllWorkersAllocatedLatch();
-          workersAllocated.countDown();
-          if (workersAllocated.getCount() == 0) {
-            // Once all workers are allocated, we shut down the master so that requestContainers()
-            // doesn't run forever
+        mPrivateAccess.getMasterAllocated().countDown();
+        return null;
+      }
+    }).when(mRMClient).addContainerRequest(Mockito.argThat(getMasterContainerMatcher()));
+    Mockito.doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) throws Throwable {
+        Set<NodeId> workerNodes = mPrivateAccess.getWorkerHosts();
+        synchronized (workerNodes) {
+          workerNodes.add(NodeId.newInstance("host-" + UUID.randomUUID(), 0));
+          mPrivateAccess.getOutstandingWorkerContainerRequests().decrementAndGet();
+          workerNodes.notify();
+          if (workerNodes.size() == NUM_WORKERS) {
+            // Once all workers are allocated, we shut down the master so that
+            // requestContainers() doesn't run forever
             mMaster.onShutdownRequest();
           }
-        } else {
-          mPrivateAccess.getMasterAllocated().countDown();
         }
         return null;
       }
-    }).when(mRMClient).addContainerRequest(Mockito.any(ContainerRequest.class));
+    }).when(mRMClient).addContainerRequest(Mockito.argThat(getWorkerContainerMatcher(nodeHosts)));
 
+    // This will hang if incorrect worker container requests are made
     mMaster.requestContainers();
 
     // Verify that the right types and numbers of containers were requested
-    ArgumentMatcher<ContainerRequest> expectedMasterContainerMatcher =
-        new ArgumentMatcher<ContainerRequest>() {
-          public boolean matches(Object arg) {
-            ContainerRequest expectedMasterContainerRequest =
-                new ContainerRequest(Resource.newInstance(MASTER_MEM_MB, MASTER_CPU),
-                    new String[] {MASTER_ADDRESS}, null, Priority.newInstance(0), true);
-            return EqualsBuilder.reflectionEquals(arg, expectedMasterContainerRequest);
-          }
-        };
-    ArgumentMatcher<ContainerRequest> expectedWorkerContainerMatcher =
-        new ArgumentMatcher<ContainerRequest>() {
-          public boolean matches(Object arg) {
-            ContainerRequest expectedWorkerContainerRequest = new ContainerRequest(
-                Resource.newInstance(WORKER_MEM_MB + RAMDISK_MEM_MB, WORKER_CPU), null, null,
-                Priority.newInstance(0));
-            return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
-          }
-        };
-    Mockito.verify(mRMClient).addContainerRequest(Mockito.argThat(expectedMasterContainerMatcher));
+    Mockito.verify(mRMClient).addContainerRequest(Mockito.argThat(getMasterContainerMatcher()));
     Mockito.verify(mRMClient, Mockito.times(NUM_WORKERS))
-        .addContainerRequest(Mockito.argThat(expectedWorkerContainerMatcher));
+        .addContainerRequest(Mockito.argThat(getWorkerContainerMatcher(nodeHosts)));
+  }
+
+  /**
+   * Tests that the application master will reject and re-request worker containers whose hosts are
+   * already used by other workers. This tests ApplicationMaster as a whole, only mocking its clients.
+   */
+  @Test(timeout = 10000)
+  public void testNegotiateUniqueWorkerHosts() throws Exception {
+    final Random random = new Random();
+    final List<Container> mockContainers = Lists.newArrayList();
+    List<NodeReport> nodeReports = Lists.newArrayList();
+    List<String> hosts = Lists.newArrayList();
+    for (int i = 0; i < NUM_WORKERS; i ++) {
+      String host = "host" + i;
+      hosts.add(host);
+      Container mockContainer = Mockito.mock(Container.class);
+      Mockito.when(mockContainer.getNodeHttpAddress()).thenReturn(host + ":8042");
+      Mockito.when(mockContainer.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
+      mockContainers.add(mockContainer);
+      NodeReport report = Mockito.mock(NodeReport.class);
+      Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
+      nodeReports.add(report);
+    }
+
+    Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
+        .thenReturn(nodeReports);
+
+    Mockito.doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            // Allow the requests to interleave randomly
+            CommonUtils.sleepMs(random.nextInt(200));
+            // Allocate a randomly chosen container
+            mMaster.onContainersAllocated(
+                Lists.newArrayList(mockContainers.get(random.nextInt(mockContainers.size()))));
+          }
+        }).start();
+        return null;
+      }
+    }).when(mRMClient).addContainerRequest(Mockito.<ContainerRequest>any());
+
+    // Wait for all workers to be allocated, then shut down mMaster
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (mPrivateAccess.getWorkerHostsSize() < NUM_WORKERS) {
+          CommonUtils.sleepMs(30);
+        }
+        mMaster.onShutdownRequest();
+      }
+    }).start();
+
+    mMaster.requestContainers();
+    Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
   }
 
   /**
@@ -186,6 +274,7 @@ public class ApplicationMasterTest {
     mMaster.stop();
     Mockito.verify(mRMClient).unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
     Mockito.verify(mRMClient).stop();
+    Mockito.verify(mYarnClient).stop();
   }
 
   /**
@@ -217,6 +306,10 @@ public class ApplicationMasterTest {
   public void launchTachyonWorkerContainersTest() throws Exception {
     Container mockContainer1 = Mockito.mock(Container.class);
     Container mockContainer2 = Mockito.mock(Container.class);
+    // The containers must be from different hosts because we don't support multiple clients on the
+    // same host.
+    Mockito.when(mockContainer1.getNodeId()).thenReturn(NodeId.newInstance("host1", 0));
+    Mockito.when(mockContainer2.getNodeId()).thenReturn(NodeId.newInstance("host2", 0));
     // Say that the master is allocated so that container offers are assumed to be worker offers
     mPrivateAccess.getMasterAllocated().countDown();
     mPrivateAccess.setMasterContainerAddress("masterAddress");
@@ -225,21 +318,9 @@ public class ApplicationMasterTest {
 
     mMaster.onContainersAllocated(containers);
 
-    String expectedCommand = new CommandBuilder(
-        PathUtils.concatPath(TACHYON_HOME, "integration", "bin", "tachyon-worker-yarn.sh"))
-            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
-    Map<String, String> expectedEnvironment = Maps.newHashMap();
-    expectedEnvironment.put("TACHYON_MASTER_ADDRESS", "masterAddress");
-    expectedEnvironment.put("TACHYON_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB");
-    ContainerLaunchContext expectedContext = Records.newRecord(ContainerLaunchContext.class);
-    expectedContext.setCommands(Lists.newArrayList(expectedCommand));
-    expectedContext.setEnvironment(expectedEnvironment);
-
-    Mockito.verify(mNMClient).startContainer(mockContainer1, expectedContext);
-    Mockito.verify(mNMClient).startContainer(mockContainer2, expectedContext);
-    Assert.assertEquals(containers.size(),
-        NUM_WORKERS - mPrivateAccess.getAllWorkersAllocatedLatch().getCount());
+    Mockito.verify(mNMClient).startContainer(mockContainer1, EXPECTED_WORKER_CONTEXT);
+    Mockito.verify(mNMClient).startContainer(mockContainer2, EXPECTED_WORKER_CONTEXT);
+    Assert.assertEquals(containers.size(), mPrivateAccess.getWorkerHosts().size());
   }
 
   /**
@@ -248,8 +329,8 @@ public class ApplicationMasterTest {
   @Test
   public void mainTest() throws Exception {
     ApplicationMaster mockMaster = Mockito.mock(ApplicationMaster.class);
-    PowerMockito.whenNew(ApplicationMaster.class)
-        .withArguments(3, "home", "address").thenReturn(mockMaster);
+    PowerMockito.whenNew(ApplicationMaster.class).withArguments(3, "home", "address")
+        .thenReturn(mockMaster);
 
     ApplicationMaster.main(new String[] {"3", "home", "address"});
 
@@ -258,11 +339,51 @@ public class ApplicationMasterTest {
     Mockito.verify(mockMaster).stop();
   }
 
+  /**
+   * Returns an argument matcher which matches the expected worker container request for the
+   * specified hosts.
+   *
+   * @param hosts the hosts in the container request
+   * @return the argument matcher
+   */
+  private ArgumentMatcher<ContainerRequest> getWorkerContainerMatcher(final List<String> hosts) {
+    return new ArgumentMatcher<ContainerRequest>() {
+      public boolean matches(Object arg) {
+        ContainerRequest expectedWorkerContainerRequest = new ContainerRequest(
+            Resource.newInstance(WORKER_MEM_MB + RAMDISK_MEM_MB, WORKER_CPU),
+            hosts.toArray(new String[] {}), null, Priority.newInstance(1), false);
+        return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
+      }
+    };
+  }
+
+  /**
+   * Returns an argument matcher which matches the expected master container request.
+   *
+   * @param hosts the hosts in the container request
+   * @return the argument matcher
+   */
+  private ArgumentMatcher<ContainerRequest> getMasterContainerMatcher() {
+    return new ArgumentMatcher<ContainerRequest>() {
+      public boolean matches(Object arg) {
+        boolean require_locality = MASTER_ADDRESS.equals("localhost");
+        ContainerRequest expectedWorkerContainerRequest =
+            new ContainerRequest(Resource.newInstance(MASTER_MEM_MB, MASTER_CPU),
+                new String[] {MASTER_ADDRESS}, null, Priority.newInstance(0), require_locality);
+        return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
+      }
+    };
+  }
+
   private static class ApplicationMasterPrivateAccess {
     private final ApplicationMaster mMaster;
 
     private ApplicationMasterPrivateAccess(ApplicationMaster master) {
       mMaster = master;
+    }
+
+    public AtomicInteger getOutstandingWorkerContainerRequests() {
+      return Whitebox.getInternalState(mMaster, "mOutstandingWorkerContainerRequests");
     }
 
     public void setMasterContainerAddress(String address) {
@@ -273,8 +394,15 @@ public class ApplicationMasterTest {
       return Whitebox.getInternalState(mMaster, "mMasterContainerAllocatedLatch");
     }
 
-    public CountDownLatch getAllWorkersAllocatedLatch() {
-      return Whitebox.getInternalState(mMaster, "mAllWorkersAllocatedLatch");
+    public Set<NodeId> getWorkerHosts() {
+      return Whitebox.getInternalState(mMaster, "mWorkerHosts");
+    }
+
+    public int getWorkerHostsSize() {
+      Set<NodeId> workerHosts = Whitebox.getInternalState(mMaster, "mWorkerHosts");
+      synchronized (workerHosts) {
+        return workerHosts.size();
+      }
     }
 
     public String getMasterContainerNetAddress() {
