@@ -408,3 +408,41 @@ For example, `mount` can be used to make data in another storage system availabl
 bin/tachyon tfs mount s3n://data-bucket/ /s3/data
 ```
 
+## mv
+The `mv` command moves a file or directory to another path in Tachyon. The destination path must not
+exist or be a directory. If it is a directory, the file or directory will be placed as a child of
+the directory. `mv` is purely a metadata operation and does not affect the data blocks of the file.
+`mv` cannot be done between mount points of different under storage systems.
+
+For example, `mv` can be used to move older data into a non working directory.
+
+```
+bin/tachyon tfs mv /data/2014 /data/archives/2014
+```
+
+## persist
+The `persist` command persists data in Tachyon storage into the under storage system. This is a data
+operation and will take time depending on how large the file is. After persist is complete, the file
+in Tachyon will be backed by the file in the under storage, make it still valid if the Tachyon
+blocks are evicted or otherwise lost.
+
+For example, `persist` can be used after filtering a series of temporary files for the ones
+containing useful data.
+
+```
+bin/tachyon tfs persist /tmp/experimental-logs-2.txt
+```
+
+## pin
+The `pin` command marks a file or folder as pinned in Tachyon. This is a metadata operation and will
+not cause any data to be loaded into Tachyon. If a file is pinned, any blocks belonging to the file
+will never be evicted from a Tachyon worker. If there are too many pinned files, Tachyon workers may
+run low on storage space preventing other files from being cached.
+
+For example, `pin` can be used to manually ensure performance if the administrator understands the
+workloads well.
+
+```
+bin/tachyon tfs pin /data/today
+```
+
