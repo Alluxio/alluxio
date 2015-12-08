@@ -42,7 +42,7 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   * Get the opened input stream for this open file entry.
+   * Gets the opened input stream for this open file entry.
    *
    * The value returned can be <code>null</code> if the file is not
    * open for reading
@@ -53,7 +53,7 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   * Get the opened output stream for this open file entry.
+   * Gets the opened output stream for this open file entry.
    *
    * The value returned can be <code>null</code> if the file is
    * not open for writing.
