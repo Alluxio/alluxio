@@ -33,7 +33,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -67,7 +66,6 @@ final class TachyonFuseFs extends FuseStubFS {
 
   private final TachyonConf mTachyonConf;
   private final TachyonFileSystem mTFS;
-  private final Path mMountPoint;
   // base path within Tachyon namespace that is used for FUSE operations
   // For example, if tachyon-fuse is mounted in /mnt/tachyon and mTachyonRootPath
   // is /users/foo, then an operation on /mnt/tachyon/bar will be translated on
@@ -81,11 +79,10 @@ final class TachyonFuseFs extends FuseStubFS {
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mNextOpenFileId;
 
-  TachyonFuseFs(TachyonConf conf, TachyonFuseOptions opts) {
+  TachyonFuseFs(TachyonConf conf, TachyonFileSystem tfs, TachyonFuseOptions opts) {
     super();
     mTachyonConf = conf;
-    mTFS = TachyonFileSystemFactory.get();
-    mMountPoint = Paths.get(opts.getMountPoint());
+    mTFS = tfs;
     mTachyonMaster = mTachyonConf.get(Constants.MASTER_ADDRESS);
     mTachyonRootPath = Paths.get(opts.getTachyonRoot());
     mNextOpenFileId = 0L;
@@ -96,8 +93,6 @@ final class TachyonFuseFs extends FuseStubFS {
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
 
-    Preconditions.checkArgument(mMountPoint.isAbsolute(),
-        "mount point should be an absolute path");
     Preconditions.checkArgument(mTachyonRootPath.isAbsolute(),
         "tachyon root path should be absolute");
   }
@@ -111,10 +106,10 @@ final class TachyonFuseFs extends FuseStubFS {
    */
   @Override
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
+    // mode is ignored in tachyon-fuse
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Tachyon: {}]", path, Integer.toHexString(flags), turi);
-    // LOG.warn("{}: mode is ignored in tachyon-fuse", path);
     final int openFlag = flags & 3;
     if (openFlag != O_WRONLY.intValue()) {
       OpenFlags flag = OpenFlags.valueOf(openFlag);
@@ -647,13 +642,22 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
+   * Exposed for testing
+   */
+  LoadingCache<String, TachyonURI> getPathResolverCache() {
+    return mPathResolverCache;
+  }
+
+  /**
    * Resolves a FUSE path into a TachyonURI and possibly keeps it int cache
    */
   private class PathCacheLoader extends CacheLoader<String, TachyonURI> {
     @Override
     public TachyonURI load(String fusePath) {
-      final Path p = Paths.get(fusePath);
-      final Path tpath = mTachyonRootPath.resolve(p);
+      // fusePath is guaranteed to always be an absolute path (i.e., starts
+      // with a fwd slash) - relative to the FUSE mount point
+      final String relPath = fusePath.substring(1);
+      final Path tpath = mTachyonRootPath.resolve(relPath);
 
       return new TachyonURI(mTachyonMaster + tpath.toString());
     }
