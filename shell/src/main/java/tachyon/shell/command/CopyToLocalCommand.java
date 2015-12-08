@@ -109,7 +109,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
   /**
    * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
    *
-   * @param srcPath The source TachyonURI (could be a file or a directory)
+   * @param srcPath The source {@link TachyonURI} (could be a file or a directory)
    * @param dstFile The destination file in the local filesystem
    * @throws IOException
    */
@@ -163,7 +163,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
    * Copies a file specified by argv from the filesystem to the local filesystem. This is the
    * utility function.
    *
-   * @param srcPath The source TachyonURI (has to be a file)
+   * @param srcPath The source {@link TachyonURI} (has to be a file)
    * @param dstFile The destination file in the local filesystem
    * @throws IOException
    */
