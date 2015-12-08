@@ -85,7 +85,7 @@ public final class StorageDir {
    * @param dirIndex the index of this dir in its tier
    * @param capacityBytes the initial capacity of this dir, can not be modified later
    * @param dirPath filesystem path of this dir for actual storage
-   * @return the new created StorageDir
+   * @return the new created {@link StorageDir}
    * @throws BlockAlreadyExistsException when meta data of existing committed blocks already exists
    * @throws IOException if the storage directory cannot be created with the appropriate permissions
    * @throws WorkerOutOfSpaceException when meta data can not be added due to limited left space
@@ -98,10 +98,11 @@ public final class StorageDir {
   }
 
   /**
-   * Initializes meta data for existing blocks in this StorageDir.
+   * Initializes meta data for existing blocks in this {@link StorageDir}.
    *
-   * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
-   * should be in format like {dir}/{blockId}. other paths will be deleted.
+   * Only paths satisfying the contract defined in
+   * {@link BlockMetaBase#commitPath(StorageDir, long)} are legal, should be in format like
+   * {dir}/{blockId}. other paths will be deleted.
    *
    * @throws BlockAlreadyExistsException when meta data of existing committed blocks already exists
    * @throws IOException if the storage directory cannot be created with the appropriate permissions
@@ -144,18 +145,19 @@ public final class StorageDir {
   }
 
   /**
-   * Gets the total capacity of this StorageDir in bytes, which is a constant once this StorageDir
-   * has been initialized.
+   * Gets the total capacity of this {@link StorageDir} in bytes, which is a constant once this
+   * {@link StorageDir} has been initialized.
    *
-   * @return the total capacity of this StorageDir in bytes
+   * @return the total capacity of this {@link StorageDir} in bytes
    */
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
   /**
-   * Gets the total available capacity of this StorageDir in bytes. This value equals the total
-   * capacity of this StorageDir, minus the used bytes by committed blocks and temp blocks.
+   * Gets the total available capacity of this {@link StorageDir} in bytes. This value equals the
+   * total capacity of this {@link StorageDir}, minus the used bytes by committed blocks and temp
+   * blocks.
    *
    * @return available capacity in bytes
    */
@@ -177,16 +179,16 @@ public final class StorageDir {
   }
 
   /**
-   * Returns the StorageTier containing this StorageDir.
+   * Returns the {@link StorageTier} containing this {@link StorageDir}.
    *
-   * @return StorageTier
+   * @return {@link StorageTier}
    */
   public StorageTier getParentTier() {
     return mTier;
   }
 
   /**
-   * Returns the zero-based index of this dir in its parent StorageTier.
+   * Returns the zero-based index of this dir in its parent {@link StorageTier}.
    *
    * @return index
    */
@@ -233,10 +235,10 @@ public final class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID.
+   * Gets the {@link BlockMeta} from this storage dir by its block ID.
    *
    * @param blockId the block ID
-   * @return BlockMeta of the given block or null
+   * @return {@link BlockMeta} of the given block or null
    * @throws BlockDoesNotExistException if no block is found
    */
   public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
@@ -248,10 +250,10 @@ public final class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID.
+   * Gets the {@link BlockMeta} from this storage dir by its block ID.
    *
    * @param blockId the block ID
-   * @return TempBlockMeta of the given block or null
+   * @return {@link TempBlockMeta} of the given block or null
    * @throws BlockDoesNotExistException if no temp block is found
    */
   public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
@@ -417,11 +419,11 @@ public final class StorageDir {
   }
 
   /**
-   * Gets the temporary blocks associated with a session in this StorageDir, an empty list is
-   * returned if the session has no temporary blocks in this StorageDir.
+   * Gets the temporary blocks associated with a session in this {@link StorageDir}, an empty list
+   * is returned if the session has no temporary blocks in this {@link StorageDir}.
    *
    * @param sessionId the ID of the session
-   * @return A list of temporary blocks the session is associated with in this StorageDir
+   * @return A list of temporary blocks the session is associated with in this {@link StorageDir}
    */
   public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
     Set<Long> sessionTempBlockIds = mSessionIdToTempBlockIdsMap.get(sessionId);

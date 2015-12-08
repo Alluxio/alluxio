@@ -96,7 +96,7 @@ public final class JournalTool {
   }
 
   /**
-   * @return true if stdin has data before TIMEOUT_MS elapses
+   * @return true if stdin has data before {@link #TIMEOUT_MS} elapses
    */
   private static boolean stdinHasData() throws IOException {
     long start = System.currentTimeMillis();

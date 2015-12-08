@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
@@ -67,18 +67,19 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
+  /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
+  private final CountDownLatch mMasterContainerAllocatedLatch;
+  /** Latch counting down the number of workers to allocate before all mNumWorkers are allocated */
+  private final CountDownLatch mAllWorkersAllocatedLatch;
+  /** The count starts at 1, then becomes 0 when the application is done */
+  private final CountDownLatch mApplicationDoneLatch;
+
   /** Client to talk to Resource Manager */
   private AMRMClientAsync<ContainerRequest> mRMClient;
   /** Client to talk to Node Manager */
   private NMClient mNMClient;
-  /** Whether a container for Tachyon master is allocated */
-  private volatile boolean mMasterContainerAllocated;
-  /** Num of allocated worker containers */
-  private volatile AtomicInteger mNumAllocatedWorkerContainers;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
-
-  private volatile boolean mApplicationDone;
 
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -94,9 +95,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
-    mMasterContainerAllocated = false;
-    mNumAllocatedWorkerContainers = new AtomicInteger(0);
-    mApplicationDone = false;
+    mMasterContainerAllocatedLatch = new CountDownLatch(1);
+    mAllWorkersAllocatedLatch = new CountDownLatch(mNumWorkers);
+    mApplicationDoneLatch = new CountDownLatch(1);
   }
 
   /**
@@ -123,7 +124,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   @Override
   public void onContainersAllocated(List<Container> containers) {
-    if (!mMasterContainerAllocated) {
+    if (mMasterContainerAllocatedLatch.getCount() != 0) {
       launchTachyonMasterContainers(containers);
     } else {
       launchTachyonWorkerContainers(containers);
@@ -142,7 +143,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   @Override
   public void onShutdownRequest() {
-    mApplicationDone = true;
+    mApplicationDoneLatch.countDown();
   }
 
   @Override
@@ -193,9 +194,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
-    while (!mMasterContainerAllocated) {
-      Thread.sleep(1000);
-    }
+    mMasterContainerAllocatedLatch.await();
 
     // Resource requirements for master containers
     Resource workerResource = Records.newRecord(Resource.class);
@@ -213,16 +212,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     }
 
     // Wait until all Tachyon worker containers have been allocated
-    while (mNumAllocatedWorkerContainers.get() < mNumWorkers) {
-      Thread.sleep(1000);
-    }
+    mAllWorkersAllocatedLatch.await();
 
     LOG.info("Master and workers are launched");
-    // Wait for 5 more seconds to avoid application unregistered before some container fully
-    // launched.
-    while (!mApplicationDone) {
-      Thread.sleep(5000);
-    }
+    mApplicationDoneLatch.await();
   }
 
   public void stop() {
@@ -256,7 +249,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         String containerUri = container.getNodeHttpAddress(); // in the form of 1.2.3.4:8042
         mMasterContainerNetAddress = containerUri.split(":")[0];
         LOG.info("Master address: " + mMasterContainerNetAddress);
-        mMasterContainerAllocated = true;
+        mMasterContainerAllocatedLatch.countDown();
         return;
       } catch (Exception ex) {
         LOG.error("Error launching container " + container.getId() + " " + ex);
@@ -278,7 +271,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         FormatUtils.getSizeFromBytes((long) mRamdiskMemInMB * Constants.MB));
 
     for (Container container : containers) {
-      if (mNumAllocatedWorkerContainers.get() >= mNumWorkers) {
+      if (mAllWorkersAllocatedLatch.getCount() == 0) {
         break;
       }
       try {
@@ -287,10 +280,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         ctx.setCommands(commands);
         ctx.setEnvironment(environmentMap);
         LOG.info("Launching container {} for Tachyon worker {} on {} with worker command: {}",
-            container.getId(), mNumAllocatedWorkerContainers, container.getNodeHttpAddress(),
-            command);
+            container.getId(), mNumWorkers - mAllWorkersAllocatedLatch.getCount(),
+            container.getNodeHttpAddress(), command);
         mNMClient.startContainer(container, ctx);
-        mNumAllocatedWorkerContainers.incrementAndGet();
+        mAllWorkersAllocatedLatch.countDown();
       } catch (Exception ex) {
         LOG.error("Error launching container " + container.getId() + " " + ex);
       }
