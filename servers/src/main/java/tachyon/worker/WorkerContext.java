@@ -18,7 +18,7 @@ package tachyon.worker;
 import tachyon.conf.TachyonConf;
 
 /**
- * A WorkerContext object stores {@link TachyonConf}.
+ * A {@link WorkerContext} object stores {@link TachyonConf}.
  */
 public final class WorkerContext {
   private WorkerContext() {} // to prevent initialization
