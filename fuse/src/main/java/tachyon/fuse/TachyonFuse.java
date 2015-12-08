@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -47,7 +49,8 @@ public final class TachyonFuse {
       System.exit(1);
     }
 
-    final TachyonFuseFs fs = new TachyonFuseFs(sTachyonConf, opts);
+    final TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+    final TachyonFuseFs fs = new TachyonFuseFs(sTachyonConf, tfs, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
     // Force direct_io in FUSE: writes and reads bypass the kernel page
     // cache and go directly to tachyon. This avoids extra memory copies
