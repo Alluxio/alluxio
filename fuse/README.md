@@ -4,10 +4,18 @@ Mount a Tachyon DFS using FUSE (**experimental**).
 This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 
 ## Requirements
-* JDK 1.8+
-* SBT 0.13.9+
-* libfuse 2.9.3+
+* Linux kernel 2.6.9 or newer
+* JDK 1.8 or newer
+* libfuse 2.9.3 or newer
   (2.8.3 has been reported to also work - with some warnings)
+
+## Building
+tachyon-fuse is automatically built with tachyon when the `fuse` maven profile is active.
+This profile is automatically activated when maven detects a JDK 8 or newer.
+
+For compatibility, binary tachyon distributions may ship without tachyon-fuse support. Please,
+rebuild your favourite tachyon version yourself if you want to use tachyon-fuse (see [Building
+Tachyon](http://tachyon-project.org/documentation/master/Building-Tachyon-Master-Branch.html)).
 
 ## Usage
 
@@ -43,5 +51,5 @@ Most of the problems
 come from the fact that there are several memory copies going on for each call on `read` or
 `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This could be
 probably improved by a large extent by leveraging the FUSE cache write-backs feature introduced in
-kernel 3.15.
+kernel 3.15 (not supported yet by libfuse 2.x userspace libs).
 

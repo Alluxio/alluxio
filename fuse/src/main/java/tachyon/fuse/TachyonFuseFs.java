@@ -68,6 +68,10 @@ final class TachyonFuseFs extends FuseStubFS {
   private final TachyonConf mTachyonConf;
   private final TachyonFileSystem mTFS;
   private final Path mMountPoint;
+  // base path within Tachyon namespace that is used for FUSE operations
+  // For example, if tachyon-fuse is mounted in /mnt/tachyon and mTachyonRootPath
+  // is /users/foo, then an operation on /mnt/tachyon/bar will be translated on
+  // an action on the URI tachyon://<master>:<port>/users/foo/bar
   private final Path mTachyonRootPath;
   private final String mTachyonMaster;
   // Keeps a cache of the most recently translated paths from String to TachyonURI
@@ -99,7 +103,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Create and open a new file.
+   * Creates and opens a new file.
    * @param path The FS path of the file to open
    * @param mode mode flags
    * @param fi FileInfo data struct kept by FUSE
@@ -156,9 +160,9 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Flush chached data on Tachyon.
+   * Flushes cached data on Tachyon.
    *
-   * Called on explicty sync() operation or at close().
+   * Called on explicit sync() operation or at close().
    * @param path The path on the FS of the file to close
    * @param fi FileInfo data struct kept by FUSE
    * @return 0 on success, a negative value on error
@@ -184,12 +188,11 @@ final class TachyonFuseFs extends FuseStubFS {
     } else {
       LOG.debug("Not flushing: {} was not open for writing", path);
     }
-
     return 0;
   }
 
   /**
-   * Retrieve file attributes.
+   * Retrieves file attributes.
    * @param path The path on the FS of the file
    * @param stat FUSE data structure to fill with file attrs
    * @return 0 on success, negative value on error
@@ -260,7 +263,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Create a new dir.
+   * Creates a new dir.
    * @param path the path on the FS of the new dir
    * @param mode Dir creation flags (IGNORED)
    * @return 0 on success, a negative value on error
@@ -292,7 +295,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Open an existing file for reading.
+   * Opens an existing file for reading.
    *
    * Note that the open mode <emph>must</emph> be
    * O_RDONLY, otherwise the open will fail. This is due to
@@ -356,7 +359,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Read data from an open file.
+   * Reads data from an open file.
    * @param path the FS path of the file to read
    * @param buf FUSE buffer to fill with data read
    * @param size how many bytes to read
@@ -415,11 +418,10 @@ final class TachyonFuseFs extends FuseStubFS {
     }
 
     return nread;
-
   }
 
   /**
-   * Read the contents of a directory.
+   * Reads the contents of a directory.
    * @param path The FS path of the directory
    * @param buff The FUSE buffer to fill
    * @param filter FUSE filter
@@ -472,7 +474,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Release the resources associated to an open file.
+   * Releases the resources associated to an open file.
    *
    * Guaranteed to be called once for each open() or create().
    * @param path the FS path of the file to release
@@ -492,28 +494,17 @@ final class TachyonFuseFs extends FuseStubFS {
       }
     }
 
-    if (oe.getIn() != null) {
-      try {
-        oe.getIn().close();
-      } catch (IOException e) {
-        LOG.error("Failed closing {} [in]", path, e);
-      }
-    }
-
-    if (oe.getOut() != null) {
-      try {
-        LOG.trace("Closing file writer for {}", path);
-        oe.getOut().close();
-      } catch (IOException e) {
-        LOG.error("Failed closing {} [out]", path, e);
-      }
+    try {
+      oe.close();
+    } catch (IOException e) {
+      LOG.error("Failed closing {} [in]", path, e);
     }
 
     return 0;
   }
 
   /**
-   * Rename a path
+   * Renames a path
    * @param oldPath the source path in the FS
    * @param newPath the destination path in the FS
    * @return 0 on success, a negative value on error
@@ -550,7 +541,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Delete an empty directory.
+   * Deletes an empty directory.
    * @param path The FS path of the directory
    * @return 0 on success, a negative value on error
    */
@@ -561,7 +552,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Delete a file from the FS.
+   * Deletes a file from the FS.
    * @param path the FS path of the file
    * @return 0 on success, a negative value on error
    */
@@ -572,7 +563,7 @@ final class TachyonFuseFs extends FuseStubFS {
   }
 
   /**
-   * Write a buffer to an open Tachyon file.
+   * Writes a buffer to an open Tachyon file.
    * @param buf The buffer with source data
    * @param size How much data to write from the buffer
    * @param offset The offset where to write in the file (IGNORED)

@@ -73,9 +73,7 @@ public final class TachyonFuseUtils {
           LOG.warn("Exception while closing Process output reader", e);
         }
       }
-
     }
-
     return -1;
   }
 }

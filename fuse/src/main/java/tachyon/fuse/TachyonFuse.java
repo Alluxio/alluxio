@@ -49,6 +49,9 @@ public final class TachyonFuse {
 
     final TachyonFuseFs fs = new TachyonFuseFs(sTachyonConf, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
+    // Force direct_io in FUSE: writes and reads bypass the kernel page
+    // cache and go directly to tachyon. This avoids extra memory copies
+    // in the write path.
     fuseOpts.add("-odirect_io");
 
     try {
@@ -70,14 +73,15 @@ public final class TachyonFuse {
         .hasArg()
         .required(false)
         .longOpt("mount-point")
-        .desc("Path where tachyon-fuse should be mounted.")
+        .desc("Desired local mount point for tachyon-fuse.")
         .build();
 
     final Option tachyonRoot = Option.builder("r")
         .hasArg()
         .required(false)
         .longOpt("tachyon-root")
-        .desc("Path within tachyon that will be the root of the mount (e.g., /users/foo)")
+        .desc("Path within tachyon that will be used as the root of the FUSE mount "
+            + "(e.g., /users/foo; defaults to /)")
         .build();
 
     final Option help = Option.builder("h")
@@ -115,9 +119,9 @@ public final class TachyonFuse {
       if (cli.hasOption("o")) {
         String[] fopts = cli.getOptionValues("o");
         // keep the -o
-        for (int i = 0; i < fopts.length; i++) {
-          fuseOpts.add("-o" + fopts[i]);
-          if (noUserMaxWrite && fopts[i].startsWith("max_write")) {
+        for (final String fopt: fopts) {
+          fuseOpts.add("-o" + fopt);
+          if (noUserMaxWrite && fopt.startsWith("max_write")) {
             noUserMaxWrite = false;
           }
         }
