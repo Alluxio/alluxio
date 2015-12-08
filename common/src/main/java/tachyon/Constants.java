@@ -329,7 +329,7 @@ public final class Constants {
   /**
    * Have the fuse process log every FS request
    */
-  public static final String FUSE_DEBUG_ENABLE = "tachyon.fuse.debug.enable";
+  public static final String FUSE_DEBUG_ENABLE = "tachyon.fuse.debug.enabled";
   /**
    * Maxium number of Tachyon Paths to cache for fuse conversion
    */
