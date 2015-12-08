@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.underfs.swift.direct;
+package tachyon.underfs.swift;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,15 +30,16 @@ import tachyon.Constants;
 /**
  * Swift output stream implements OutputStream.
  * This class is used to write data into Swift
+ * Class is not thread-safe
  */
-public class SwiftDirectOutputStream extends OutputStream {
+public class SwiftOutputStream extends OutputStream {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private OutputStream mOutputStream;
   private HttpURLConnection mHttpCon;
 
-  public SwiftDirectOutputStream(HttpURLConnection httpCon) throws IOException {
+  public SwiftOutputStream(HttpURLConnection httpCon) throws IOException {
     LOG.debug("Init method: start");
     try {
       mOutputStream  = httpCon.getOutputStream();
@@ -51,7 +52,6 @@ public class SwiftDirectOutputStream extends OutputStream {
 
   @Override
   public void write(int b) throws IOException {
-    LOG.trace("write a single byte");
     mOutputStream.write(b);
   }
 
@@ -63,7 +63,6 @@ public class SwiftDirectOutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b) throws IOException {
-    LOG.trace("write byte array");
     mOutputStream.write(b);
   }
 
@@ -76,6 +75,8 @@ public class SwiftDirectOutputStream extends OutputStream {
     InputStream is = null;
     try {
       LOG.debug("Going to get inputstream");
+      // Status 400 and up should be read from error stream
+      // Expecting here 201 Create or 202 Accepted
       if (mHttpCon.getResponseCode() >= 400) {
         is = mHttpCon.getErrorStream();
       } else {

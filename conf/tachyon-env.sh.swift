@@ -59,7 +59,7 @@ if [[ $(uname -s) == Darwin ]]; then
   export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
 else
   # Assuming Linux
-  if [[ -z "$JAVA_HOME" ]]; then
+  if [[ -z "${JAVA_HOME}" ]]; theni
     if [ -d /usr/lib/jvm/java-7-oracle ]; then
       export JAVA_HOME=/usr/lib/jvm/java-7-oracle
     else
@@ -78,7 +78,7 @@ fi
 
 export JAVA="${JAVA_HOME}/bin/java"
 export TACHYON_MASTER_ADDRESS=${TACHYON_MASTER_ADDRESS:-localhost}
-export TACHYON_UNDERFS_ADDRESS=swift://tachyontestcont
+export TACHYON_UNDERFS_ADDRESS=${TACHYON_UNDERFS_ADDRESS:-swift://tachyontestcont}
 export TACHYON_WORKER_MEMORY_SIZE=${TACHYON_WORKER_MEMORY_SIZE:-1GB}
 
 export TACHYON_SSH_FOREGROUND=${TACHYON_SSH_FOREGROUND:-"yes"}

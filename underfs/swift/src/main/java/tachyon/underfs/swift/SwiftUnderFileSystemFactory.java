@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.underfs.swift.direct;
+package tachyon.underfs.swift;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ import tachyon.underfs.UnderFileSystemFactory;
  * This class is a factory for SwiftUnderFileSystem clients. It will ensure Swift credentials are
  * present before returning a client. The validity of the credentials are checked by the client.
  */
-public class SwiftDirectUnderFileSystemFactory implements UnderFileSystemFactory {
+public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
@@ -44,7 +44,7 @@ public class SwiftDirectUnderFileSystemFactory implements UnderFileSystemFactory
     if (addAndCheckSwiftCredentials(tachyonConf)) {
       TachyonURI uri = new TachyonURI(path);
       try {
-        return new SwiftDirectUnderFileSystem(uri.getHost(), tachyonConf);
+        return new SwiftUnderFileSystem(uri.getHost(), tachyonConf);
       } catch (Exception se) {
         LOG.error("Failed to create SwiftUnderFileSystem.", se);
         throw Throwables.propagate(se);

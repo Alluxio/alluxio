@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.underfs.swift.direct.http;
+package tachyon.underfs.swift.http;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -27,13 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.underfs.swift.direct.SwiftDirectOutputStream;
+import tachyon.underfs.swift.SwiftOutputStream;
 
 public class SwiftDirectClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int HTTP_READ_TIMEOUT = 100 * 1000;
+  private static final int HTTP_CHUNK_STREAMING = 8 * 1024 * 1024;
 
-  public static SwiftDirectOutputStream PUT(Access access, String objectName) {
+  public static SwiftOutputStream PUT(Access access, String objectName) {
     LOG.debug("PUT method, object : {}", objectName);
     URL url;
     try {
@@ -50,13 +52,13 @@ public class SwiftDirectClient {
         httpCon.addRequestProperty("Content-Type", "binary/octet-stream");
         httpCon.setDoInput(true);
         httpCon.setRequestProperty("Connection", "close");
-        httpCon.setReadTimeout(100 * 1000);
+        httpCon.setReadTimeout(HTTP_READ_TIMEOUT);
         httpCon.setRequestProperty("Transfer-Encoding","chunked");
         httpCon.setDoOutput(true);
-        httpCon.setChunkedStreamingMode(8 * 1024 * 1024);
+        httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
         httpCon.connect();
         LOG.trace("About to create SwiftDirectOutputStream");
-        SwiftDirectOutputStream outStream = new SwiftDirectOutputStream(
+        SwiftOutputStream outStream = new SwiftOutputStream(
             httpCon);
         LOG.trace("SwiftDirectOutputStream created");
         return outStream;

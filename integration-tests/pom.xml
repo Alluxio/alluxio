@@ -224,18 +224,18 @@
               <!--argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/dump</argLine-->
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.swift.SwiftUnderStorageCluster</ufs>
-                <!-- Change "myAuthUrlKey" to point authentication URL -->
+                <!-- Change "myAuthUrl" to point authentication URL -->
                 <authUrlKey>myAuthUrl</authUrlKey>
-                <!-- Change "myAuthMethodKey" to define authentication type -->
-                <authMethodKey>keystone</authMethodKey>
+                <!-- Change "myAuthMethod" to define authentication type -->
+                <authMethodKey>myAuthMethod</authMethodKey>
                 <!-- Change "myUserKey" to contain the user  -->
                 <userKey>myUserKey</userKey>
                 <!-- Change "myApiKey" to contain the user's key or password  -->
                 <apiKey>myApiKey</apiKey>
                 <!-- Change "myTenantKey" to contain the user's tenant or account  -->
                 <tenantKey>myTenantKey</tenantKey>
-                <!-- Change "myContainerKey" to contain the testing container  -->
-                <!-- In a form container/folder -->
+                <!-- Change "container/folder" to contain the testing container  -->
+                <!-- Keep the structure in form container/folder -->
                 <containerKey>swift://container/folder</containerKey>
               </systemPropertyVariables>
             </configuration>

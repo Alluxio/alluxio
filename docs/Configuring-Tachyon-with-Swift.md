@@ -41,9 +41,12 @@ The following configuration should be provided in the `conf/tachyon-env.sh`
   	-Dfs.swift.apikey=<swift-user-password>
   	-Dfs.swift.auth.url=<swift-auth-url>
   	-Dfs.swift.auth.port=<swift-auth-url-port>
-  	-Dfs.swift.use.public.url=<swift-use-public> Values: true, false
-  	-Dfs.swift.auth.method=<swift-auth-model> Values: keystone,
-  											  tempauth,swiftauth
+  	-Dfs.swift.use.public.url=<swift-use-public>
+  	-Dfs.swift.auth.method=<swift-auth-model>
+  	
+Possible values of `<swift-use-public>` are `true`, `false`.
+Possible values of `<swift-auth-model>` are `keystone`,
+`tempauth`, `swiftauth`
 
 On the successfull authentication, Keystone will return two access URLs: public and private. If Tachyon is used inside company network and Swift located on the same network it's adviced to set value of `<swift-auth-model>`  to `false`.
 
