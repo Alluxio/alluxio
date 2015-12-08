@@ -48,7 +48,7 @@ import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit tests for InodeTree.
+ * Unit tests for {@link InodeTree}.
  */
 public final class InodeTreeTest {
   private static final String TEST_PATH = "test";
