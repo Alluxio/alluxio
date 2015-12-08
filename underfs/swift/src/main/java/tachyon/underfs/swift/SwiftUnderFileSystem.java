@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.underfs.swift.direct;
+package tachyon.underfs.swift;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,13 +42,13 @@ import org.codehaus.jackson.map.SerializationConfig;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.underfs.swift.direct.http.SwiftDirectClient;
+import tachyon.underfs.swift.http.SwiftDirectClient;
 
 /**
  * Under file system implementation for OpenStack Swift based on
  * the JOSS library.
  */
-public class SwiftDirectUnderFileSystem extends UnderFileSystem {
+public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory */
@@ -65,7 +65,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
   /** JOSS access object */
   private final Access mAccess;
 
-  public SwiftDirectUnderFileSystem(String containerName,
+  public SwiftUnderFileSystem(String containerName,
       TachyonConf tachyonConf) throws Exception {
     super(tachyonConf);
     LOG.debug("Constructor init: {}", containerName);
@@ -91,8 +91,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
     if (!containerObj.exists()) {
       containerObj.create();
     }
-    mContainerPrefix = Constants.HEADER_SWIFT + mContainerName
-        + PATH_SEPARATOR;
+    mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
 
   @Override
@@ -114,7 +113,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path) throws IOException {
     LOG.debug("Create method: " + path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
-    SwiftDirectOutputStream out = SwiftDirectClient.PUT(mAccess, newPath);
+    SwiftOutputStream out = SwiftDirectClient.PUT(mAccess, newPath);
     return out;
   }
 
@@ -134,7 +133,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
     return create(path);
   }
 
-  /* (non-Javadoc)
+  /* @inheritDoc
    * @see tachyon.underfs.UnderFileSystem#delete(java.lang.String, boolean)
    *
    * recursive parameter is not being used for delete.
@@ -161,7 +160,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    LOG.debug("Exists: " + path);
+    LOG.debug("Exists: {}", path);
     String newPath = stripPrefixIfPresent(path);
     return getObjectDetails(newPath) ;
   }
@@ -170,12 +169,12 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
    * file or folder, null is returned
    * @param key the key to get the object details of
-   * @return StorageObject of the key, or null if the key does not exist as a file or folder
+   * @return boolean indicating if the object exists
    */
   private boolean getObjectDetails(String path) {
-    LOG.debug("Get object details: " + path);
+    LOG.debug("Get object details: {}", path);
     boolean res =  mAccount.getContainer(mContainerName).getObject(path).exists();
-    LOG.debug("Result: " + res);
+    LOG.debug("Result: {}", res);
     return res;
   }
 
@@ -185,7 +184,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    *
    * @param path to the file name
    * @return 4 GB in bytes
-   * @throws IOException
+   * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
@@ -311,7 +310,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
-   * @throws IOException
+   * @throws IOException if path is not accessible, e.g.network issues
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
@@ -345,7 +344,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strip the folder suffix if it exists. This is a string manipulation utility
+   * Strips the folder suffix if it exists. This is a string manipulation utility
    * and does not guarantee the existence of the folder. This method will leave
    * keys without a suffix unaltered.
    *
@@ -383,7 +382,7 @@ public class SwiftDirectUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path, String prefix) {
-    LOG.debug("{}, prefix: {}" , path.toString(), prefix);
+    LOG.debug("{}, prefix: {}" , path, prefix);
     if (path.startsWith(prefix)) {
       String res =  path.substring(prefix.length());
       LOG.debug("Resolved as: {}", res);

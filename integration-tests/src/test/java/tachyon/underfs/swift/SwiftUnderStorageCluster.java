@@ -24,7 +24,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 
 /**
- * This class will use SoftLayer or OpenStacl Swift as the backing store.
+ * This class will use SoftLayer or OpenStack Swift as the backing store.
  * The integration properties should be
  * specified in the module's pom file. Each instance of the cluster will run with a separate base
  * directory (user prefix + uuid). Each test will attempt to clean up their test directories, but
