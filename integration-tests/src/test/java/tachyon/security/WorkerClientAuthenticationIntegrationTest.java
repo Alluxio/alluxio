@@ -111,7 +111,7 @@ public class WorkerClientAuthenticationIntegrationTest {
             true, new ClientMetrics());
     try {
       Assert.assertFalse(workerClient.isConnected());
-      workerClient.mustConnect();
+      workerClient.connect();
     } finally {
       workerClient.close();
     }
@@ -129,7 +129,7 @@ public class WorkerClientAuthenticationIntegrationTest {
             true, new ClientMetrics());
 
     Assert.assertFalse(workerClient.isConnected());
-    workerClient.mustConnect();
+    workerClient.connect();
     Assert.assertTrue(workerClient.isConnected());
 
     workerClient.close();

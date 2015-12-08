@@ -61,7 +61,7 @@ The common configuration contains constants shared by different components.
   <td>Maximum number of columns allowed in RawTable, must be set on the client and server side.</td>
 </tr>
 <tr>
-  <td>tachyon.max.table.metadata.byte</td>
+  <td>tachyon.max.table.metadata.bytes</td>
   <td>5MB</td>
   <td>Maximum allowable size (in bytes) of RawTable metadata, must be set on the server side.</td>
 </tr>
@@ -513,7 +513,7 @@ the port number.
   <td>The portion of space reserved in the top storage layer (a value between 0 and 1).</td>
 </tr>
 <tr>
-  <td>tachyon.worker.tieredstore.reserver.enable</td>
+  <td>tachyon.worker.tieredstore.reserver.enabled</td>
   <td>false</td>
   <td>Whether to enable tiered store reserver service or not.</td>
 </tr>

@@ -85,6 +85,9 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     }
   }
 
+  /**
+   * @return the leader name
+   */
   public String getName() {
     return mName;
   }
@@ -109,7 +112,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Set the current master thread.
+   * Sets the current master thread.
    *
    * @param currentMasterThread the thread to use as the master thread
    */
@@ -117,6 +120,11 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread);
   }
 
+  /**
+   * Starts the leader selection.
+   *
+   * @throws IOException if an error occurs during leader selection
+   */
   public void start() throws IOException {
     mLeaderSelector.start();
   }

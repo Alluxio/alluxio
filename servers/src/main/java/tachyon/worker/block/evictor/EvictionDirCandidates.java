@@ -26,15 +26,18 @@ import tachyon.worker.block.meta.StorageDirView;
 /**
  * A collection of candidate blocks for eviction organized by directory.
  *
- * This class lets you add blocks with the StorageDirs they reside in, the blockIds and the sizes in
- * bytes, then it tells you which StorageDir added so far has the maximum sum of available bytes and
- * total bytes of added blocks. Assume meta data of StorageDir will not be changed during adding
- * blocks.
+ * This class lets you add blocks with the {@link tachyon.worker.block.meta.StorageDir}s they reside
+ * in, the blockIds and the sizes in bytes, then it tells you which StorageDir added so far has the
+ * maximum sum of available bytes and total bytes of added blocks. Assume meta data of StorageDir
+ * will not be changed during adding blocks.
  *
  * Example usage can be found in {@link LRUEvictor#freeSpaceWithView}.
  */
 class EvictionDirCandidates {
-  /** Map from StorageDirView to pair of list of candidate blockIds and their total size in bytes */
+  /**
+   * Map from {@link StorageDirView} to pair of list of candidate blockIds and their total size in
+   * bytes
+   */
   private Map<StorageDirView, Pair<List<Long>, Long>> mDirCandidates =
       new HashMap<StorageDirView, Pair<List<Long>, Long>>();
   /** Maximum sum of available bytes in a StorageDir and all its added blocks */
@@ -78,7 +81,7 @@ class EvictionDirCandidates {
   }
 
   /**
-   * @return list of blockIds in the directory that has the maximum {@link #candidateSize},
+   * @return list of blockIds in the directory that has the maximum {@link #candidateSize()},
    *         otherwise an empty list if no directory has been added
    */
   public List<Long> candidateBlocks() {
@@ -90,8 +93,8 @@ class EvictionDirCandidates {
   }
 
   /**
-   * @return the StorageDir that has the maximum {@link #candidateSize}, otherwise null if no
-   *         directory has been added
+   * @return the {@link tachyon.worker.block.meta.StorageDir} that has the maximum
+   *         {@link #candidateSize()}, otherwise null if no directory has been added
    */
   public StorageDirView candidateDir() {
     return mDirWithMaxBytes;
