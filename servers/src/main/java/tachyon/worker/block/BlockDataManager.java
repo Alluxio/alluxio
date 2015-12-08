@@ -37,15 +37,15 @@ import tachyon.worker.block.meta.TempBlockMeta;
 import tachyon.worker.file.FileSystemMasterClient;
 
 /**
- * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
- * thread-safe.
+ * Class is responsible for managing the Tachyon {@link BlockStore} and Under FileSystem. This class
+ * is thread-safe.
  */
 public final class BlockDataManager {
   /** Block store delta reporter for master heartbeat */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private BlockStore mBlockStore;
-  /** WorkerSource for collecting worker metrics */
+  /** {@link WorkerSource} for collecting worker metrics */
   private WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters */
   private BlockMetricsReporter mMetricsReporter;
@@ -123,7 +123,7 @@ public final class BlockDataManager {
   /**
    * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
-   * {@link BlockMasterClient#commitBlock} succeeds.
+   * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
@@ -163,8 +163,8 @@ public final class BlockDataManager {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to create
-   * @param tierAlias The alias of the tier to place the new block in, BlockStoreLocation.ANY_TIER
-   *        for any tier
+   * @param tierAlias The alias of the tier to place the new block in,
+   *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IllegalArgumentException if location does not belong to tiered storage

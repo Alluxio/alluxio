@@ -73,7 +73,7 @@ public final class BlockMasterSync implements Runnable {
   /**
    * Constructor for BlockMasterSync
    *
-   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
@@ -240,6 +240,5 @@ public final class BlockMasterSync implements Runnable {
         LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId);
       }
     }
-
   }
 }
