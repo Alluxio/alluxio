@@ -287,7 +287,7 @@ For example, `fileinfo` can be used to debug the block locations of a file. This
 trying to achieve locality for compute workloads.
 
 ```
-bin/tachyon tfs fileinfo /data/file1.txt
+bin/tachyon tfs fileinfo /data/2015/logs-1.txt
 ```
 
 ## free
@@ -356,4 +356,24 @@ belonging to the given file.
 For example, `location` can be used to debug data locality when running jobs using a compute
 framework.
 
+```
+bin/tachyon tfs location /data/2015/logs-1.txt
+```
+
+## ls
+The `ls` command lists all the immediate children in a directory and displays the file size, last modification time, and in memory status of the files. Using `ls` on a file will only display the information for that specific file.
+
+For example, `ls` can be used to browse the file system.
+
+```
+bin/tachyon tfs ls /users/alice/
+```
+
+## lsr
+The `lsr` command is similar to `ls`, but it will also recursively list child directories, displaying the entire subtree starting from the input path. As with `ls`, using `lsr` on a file will only display information for that specific file.
+
+For example, `lsr` can be used to browse the file system.
+
+```
+bin/tachyon tfs lsr /users/
 ```
