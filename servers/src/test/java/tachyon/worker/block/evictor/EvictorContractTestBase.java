@@ -45,7 +45,7 @@ import tachyon.worker.block.meta.StorageTier;
  * returning null eviction plan when the requests can not be achieved.
  *
  * Behavior for a specific type of evictor will be tested in other classes, e.x. tests to ensure
- * that blocks evicted by LRUEvictor are in the right order should be in LRUEvictorTest.
+ * that blocks evicted by {@link LRUEvictor} are in the right order should be in LRUEvictorTest.
  */
 @RunWith(Parameterized.class)
 public class EvictorContractTestBase extends EvictorTestBase {
