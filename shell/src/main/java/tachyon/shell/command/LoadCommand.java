@@ -54,7 +54,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
   /**
    * Load a file or directory in Tachyon space, makes it resident in memory.
    *
-   * @param filePath The TachyonURI path to load into Tachyon memory
+   * @param filePath The {@link TachyonURI} path to load into Tachyon memory
    * @throws IOException
    */
   private void load(TachyonURI filePath) throws IOException {
