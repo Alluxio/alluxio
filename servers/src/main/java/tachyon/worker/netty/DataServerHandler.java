@@ -221,7 +221,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * configurable transfer type.
    *
    * @param req The initiating {@link RPCBlockReadRequest}
-   * @param reader The BlockHandler for the block to read
+   * @param reader The {@link BlockReader} for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
    * @return a {@link DataBuffer} representing the data
    * @throws IOException
