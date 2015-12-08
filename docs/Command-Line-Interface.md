@@ -264,7 +264,7 @@ For example, if data files are stored by their date, `count` can be used to dete
 data files and their total size for any date, month, or year.
 
 ```
-bin/tachyon tfs count /2014/1
+bin/tachyon tfs count /data/2014
 ```
 
 ## du
@@ -377,3 +377,29 @@ For example, `lsr` can be used to browse the file system.
 ```
 bin/tachyon tfs lsr /users/
 ```
+
+## mkdir
+The `mkdir` command creates a new directory in Tachyon space. It is recursive and will create any
+nonexistent parent directories. Note that the created directory will not be created in the under
+storage system until a file in the directory is persisted to the underlying storage. Using `mkdir`
+on an invalid or already existing path will fail.
+
+For example, `mkdir` can be used by an admin to set up the basic folder structures.
+
+```
+bin/tachyon tfs mkdir /users
+bin/tachyon tfs mkdir /users/Alice
+bin/tachyon tfs mkdir /users/Bob
+```
+
+## mount
+The `mount` command links an under storage path to a Tachyon path, and files and folders created
+in Tachyon space under the path will be backed by a corresponding file or folder in the under
+storage path. For more details, see [Unified Namespace](Unified-and-Transparent-Namespace.html).
+
+For example, `mount` can be used to make data in another storage system available in Tachyon.
+
+```
+bin/tachyon tfs mount s3n://data-bucket/ /s3/data
+```
+
