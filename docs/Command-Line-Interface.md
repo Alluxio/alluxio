@@ -135,9 +135,9 @@ should have the final escaped parameters (cat /\\*).
     <td>mount</td>
     <td>mount "path" "uri"</td>
     <td>Mount the underlying file system path "uri" into the Tachyon namespace as "path". The "path"
-    is assumed not to exist and is created by the operation. No data or metadata is loaded from under
-    storage into Tachyon. After a path is mounted, operations on objects under the mounted path are
-    mirror to the mounted under storage.</td>
+    is assumed not to exist and is created by the operation. No data or metadata is loaded from
+    under storage into Tachyon. After a path is mounted, operations on objects under the mounted
+    path are mirror to the mounted under storage.</td>
   </tr>
   <tr>
     <td>mv</td>
@@ -148,7 +148,8 @@ should have the final escaped parameters (cat /\\*).
   <tr>
     <td>persist</td>
     <td>persist "path"</td>
-    <td>Persist a file or directory currently stored only in Tachyon to the underlying file system.</td>
+    <td>Persist a file or directory currently stored only in Tachyon to the underlying file system.
+    </td>
   </tr>
   <tr>
     <td>pin</td>
@@ -361,7 +362,9 @@ bin/tachyon tfs location /data/2015/logs-1.txt
 ```
 
 ## ls
-The `ls` command lists all the immediate children in a directory and displays the file size, last modification time, and in memory status of the files. Using `ls` on a file will only display the information for that specific file.
+The `ls` command lists all the immediate children in a directory and displays the file size, last
+modification time, and in memory status of the files. Using `ls` on a file will only display the
+information for that specific file.
 
 For example, `ls` can be used to browse the file system.
 
@@ -370,7 +373,9 @@ bin/tachyon tfs ls /users/alice/
 ```
 
 ## lsr
-The `lsr` command is similar to `ls`, but it will also recursively list child directories, displaying the entire subtree starting from the input path. As with `ls`, using `lsr` on a file will only display information for that specific file.
+The `lsr` command is similar to `ls`, but it will also recursively list child directories,
+displaying the entire subtree starting from the input path. As with `ls`, using `lsr` on a file will
+only display information for that specific file.
 
 For example, `lsr` can be used to browse the file system.
 
