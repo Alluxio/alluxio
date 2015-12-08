@@ -25,7 +25,7 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
 /**
  * Sanity check on specific behavior of {@link PartialLRUEvictor} such as evicting/moving least
  * recently used blocks in {@link tachyon.worker.block.meta.StorageDir} with max free space and
- * cascading PartialLRU eviction.
+ * cascading {@link PartialLRUEvictor} eviction.
  */
 public class PartialLRUEvictorTestBase extends EvictorTestBase {
   @Before
