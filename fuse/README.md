@@ -10,7 +10,7 @@ This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on J
   (2.8.3 has been reported to also work - with some warnings)
 
 ## Building
-tachyon-fuse is automatically built with tachyon when the `fuse` maven profile is active.
+tachyon-fuse is automatically built with tachyon when the `buildFuse` maven profile is active.
 This profile is automatically activated when maven detects a JDK 8 or newer.
 
 For compatibility, binary tachyon distributions may ship without tachyon-fuse support. Please,

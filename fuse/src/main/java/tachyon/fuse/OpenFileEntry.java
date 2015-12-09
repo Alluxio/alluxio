@@ -67,6 +67,7 @@ final class OpenFileEntry implements Closeable {
    *  Closes the underlying open streams
    * @throws IOException
    */
+  @Override
   public void close() throws IOException {
     if (mIn != null) {
       mIn.close();
