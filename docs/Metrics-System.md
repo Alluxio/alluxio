@@ -68,6 +68,8 @@ The following shows the details of the available metrics.
 * PathsUnmounted: Total number of paths unmounted.
 * FileInfosGot: Total number of the file infos retrieved.
 * FileBlockInfosGot: Total number of the file block infos retrieved.
+* NewBlockRequestOps: Total number of NewBlockRequest operations.
+* NewBlockRequested: Total number of new blocks requested.
 * CreateFileOps: Total number of the CreateFile operations.
 * CompleteFileOps: Total number of CompleteFile operations.
 * ReleaseFileOps: Total number of ReleaseFile operations
