@@ -47,6 +47,7 @@ import tachyon.underfs.swift.http.SwiftDirectClient;
 /**
  * Under file system implementation for OpenStack Swift based on
  * the JOSS library.
+ * Swift {@link UnderFileSystem} implementation
  */
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
