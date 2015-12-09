@@ -49,21 +49,21 @@ public class MasterSource implements Source {
   private final Counter mFilesReleased =
       mMetricRegistry.counter(MetricRegistry.name("FilesReleased"));
 
-  private final Counter mFilesCreated =
-      mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
-  private final Counter mCreateFileOps =
-      mMetricRegistry.counter(MetricRegistry.name("CreateFileOps"));
+  private final Counter mPathsCreated =
+      mMetricRegistry.counter(MetricRegistry.name("PathsCreated"));
+  private final Counter mCreatePathOps =
+      mMetricRegistry.counter(MetricRegistry.name("CreatePathOps"));
   private final Counter mDirectoriesCreated =
       mMetricRegistry.counter(MetricRegistry.name("DirectoriesCreated"));
   private final Counter mCreateDirectoryOps =
       mMetricRegistry.counter(MetricRegistry.name("CreateDirectoryOps"));
-  private final Counter mFilesDeleted =
-      mMetricRegistry.counter(MetricRegistry.name("FilesDeleted"));
-  private final Counter mDeleteFileOps =
-      mMetricRegistry.counter(MetricRegistry.name("DeleteFileOps"));
-  private final Counter mFilesRenamed =
+  private final Counter mPathsDeleted =
+      mMetricRegistry.counter(MetricRegistry.name("PathsDeleted"));
+  private final Counter mDeletePathOps =
+      mMetricRegistry.counter(MetricRegistry.name("DeletePathOps"));
+  private final Counter mPathsRenamed =
       mMetricRegistry.counter(MetricRegistry.name("FilesRenamed"));
-  private final Counter mRenameOps = mMetricRegistry.counter(MetricRegistry.name("RenameFileOps"));
+  private final Counter mRenameOps = mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
   private final Counter mFilesPersisted =
       mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
   private final Counter mPathsMounted =
@@ -212,16 +212,16 @@ public class MasterSource implements Source {
     mFilesReleased.inc(freeInodes);
   }
 
-  public void incCreateFileOps() {
-    mCreateFileOps.inc();
+  public void incCreatePathOps() {
+    mCreatePathOps.inc();
   }
 
-  public void incDeleteFileOps() {
-    mDeleteFileOps.inc();
+  public void incDeletePathOps() {
+    mDeletePathOps.inc();
   }
 
-  public void incFilesCreated(long n) {
-    mFilesCreated.inc(n);
+  public void incPathsCreated(long n) {
+    mPathsCreated.inc(n);
   }
 
   public void incDirectoriesCreated() {
@@ -232,12 +232,12 @@ public class MasterSource implements Source {
     mCreateDirectoryOps.inc();
   }
 
-  public void incFilesDeleted(long n) {
-    mFilesDeleted.inc(n);
+  public void incPathsDeleted(long n) {
+    mPathsDeleted.inc(n);
   }
 
-  public void incFilesRenamed() {
-    mFilesRenamed.inc();
+  public void incPathsRenamed() {
+    mPathsRenamed.inc();
   }
 
   public void incFilesPersisted() {
