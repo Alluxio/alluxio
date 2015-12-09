@@ -32,7 +32,7 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * Unit tests for tachyon.worker.block.BlockStoreMeta
+ * Unit tests for {@link tachyon.worker.block.BlockStoreMeta}
  */
 public class BlockStoreMetaTest {
   private static final long TEST_SESSION_ID = 33L;

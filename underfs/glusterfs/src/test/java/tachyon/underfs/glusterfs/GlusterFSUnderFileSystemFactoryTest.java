@@ -30,7 +30,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Unit tests for {@code GlusterFSUnderFileSystem}
+ * Unit tests for {@link GlusterFSUnderFileSystem}
  */
 public class GlusterFSUnderFileSystemFactoryTest {
   private UnderFileSystem mGfs = null;
