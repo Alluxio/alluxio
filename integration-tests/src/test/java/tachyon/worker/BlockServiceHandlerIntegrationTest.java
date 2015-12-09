@@ -26,14 +26,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.block.BlockMasterClient;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -44,9 +47,9 @@ import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.block.BlockMasterSync;
 import tachyon.worker.block.BlockServiceHandler;
 
 /**
@@ -216,7 +219,8 @@ public class BlockServiceHandlerIntegrationTest {
 
     // File 3 should be in memory and one of file 1 or 2 should be in memory
     Assert.assertEquals(100, fileInfo3.inMemoryPercentage);
-    Assert.assertTrue(fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
+    Assert.assertTrue("Exactly one of file1 and file2 should be 100% in memory",
+        fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
   }
 
   // Tests that space will be allocated when possible
@@ -280,9 +284,19 @@ public class BlockServiceHandlerIntegrationTest {
     out.close();
   }
 
-  // Sleeps for a duration so that the worker heartbeat to master can be processed
+  // Waits for a worker heartbeat to master to be resolved
   private void waitForHeartbeat() {
-    CommonUtils
-        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 3);
+    BlockMasterSync blockMasterSync =
+        Whitebox.getInternalState(mLocalTachyonClusterResource.get().getWorker(), "mBlockMasterSync");
+    Object afterHeartbeatHook = Whitebox.getInternalState(blockMasterSync, "mAfterHeartbeatHook");
+    synchronized (afterHeartbeatHook) {
+      try {
+        // Wait twice to ensure that a full heartbeat has completed
+        afterHeartbeatHook.wait();
+        afterHeartbeatHook.wait();
+      } catch (InterruptedException e) {
+        Throwables.propagate(e);
+      }
+    }
   }
 }
