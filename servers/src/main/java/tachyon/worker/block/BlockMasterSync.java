@@ -63,6 +63,8 @@ public final class BlockMasterSync implements Runnable {
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
   private final BlockMasterClient mMasterClient;
+  /** Testing hook which receives a notification whenever a heartbeat completes */
+  private final Object mAfterHeartbeatHook = new Object();
 
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
@@ -147,6 +149,11 @@ public final class BlockMasterSync implements Runnable {
         cmdFromMaster = mMasterClient
             .heartbeat(WorkerIdRegistry.getWorkerId(), storeMeta.getUsedBytesOnTiers(),
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+        if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+          synchronized (mAfterHeartbeatHook) {
+            mAfterHeartbeatHook.notifyAll();
+          }
+        }
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
       } catch (Exception e) {
