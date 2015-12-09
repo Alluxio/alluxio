@@ -44,8 +44,10 @@ public class MasterSource implements Source {
   private final Counter mFilesCompleted =
       mMetricRegistry.counter(MetricRegistry.name("FilesCompleted"));
 
-  private final Counter mReleaseFileOps = mMetricRegistry.counter(MetricRegistry.name("ReleaseFileOps"));
-  private final Counter mFilesReleased = mMetricRegistry.counter(MetricRegistry.name("FilesReleased"));
+  private final Counter mReleaseFileOps =
+      mMetricRegistry.counter(MetricRegistry.name("ReleaseFileOps"));
+  private final Counter mFilesReleased =
+      mMetricRegistry.counter(MetricRegistry.name("FilesReleased"));
 
   private final Counter mFilesCreated =
       mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
@@ -77,9 +79,13 @@ public class MasterSource implements Source {
   private final Counter mFileInfosGot =
       mMetricRegistry.counter(MetricRegistry.name("FileInfosGot"));
   private final Counter mGetFileBlockInfoOps =
-          mMetricRegistry.counter(MetricRegistry.name("GetFileBlockInfoOps"));
+      mMetricRegistry.counter(MetricRegistry.name("GetFileBlockInfoOps"));
   private final Counter mFileBlockInfosGot =
-          mMetricRegistry.counter(MetricRegistry.name("FileBlockInfosGot"));
+      mMetricRegistry.counter(MetricRegistry.name("FileBlockInfosGot"));
+  private final Counter mNewBlockRequestOps =
+      mMetricRegistry.counter(MetricRegistry.name("NewBlockRequestOps"));
+  private final Counter mNewBlockRequested =
+      mMetricRegistry.counter(MetricRegistry.name("NewBlockRequested"));
 
   private final Counter mSetFileStatusOps =
       mMetricRegistry.counter(MetricRegistry.name("SetFileStatusOps"));
@@ -276,5 +282,13 @@ public class MasterSource implements Source {
 
   public void incSetStatesOps() {
     mSetFileStatusOps.inc();
+  }
+
+  public void incNewBlockRequestOps() {
+    mNewBlockRequestOps.inc();
+  }
+
+  public void incNewBlockRequested() {
+    mNewBlockRequested.inc();
   }
 }

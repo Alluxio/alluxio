@@ -538,6 +538,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
+    MasterContext.getMasterSource().incNewBlockRequestOps();
     Inode inode;
     synchronized (mInodeTree) {
       inode = mInodeTree.getInodeById(fileId);
@@ -545,8 +546,9 @@ public final class FileSystemMaster extends MasterBase {
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
     }
-
-    return ((InodeFile) inode).getNewBlockId();
+    long newBlock = ((InodeFile) inode).getNewBlockId();
+    MasterContext.getMasterSource().incNewBlockRequested();
+    return newBlock;
   }
 
   /**
