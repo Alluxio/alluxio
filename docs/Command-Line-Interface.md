@@ -276,8 +276,8 @@ bin/tachyon tfs du /\\*
 
 ## fileinfo
 The `fileinfo` command dumps the FileInfo representation of a file to the console. It is primarily
-intended for poweruser debugging of their system. Generally viewing the file info in the UI will be
-much easier to understand.
+intended to assist powerusers in debugging their system. Generally viewing the file info in the UI
+will be much easier to understand.
 
 For example, `fileinfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
@@ -539,5 +539,5 @@ For example, `unsetTTL` can be used if a regularly managed file requires manual 
 some special case.
 
 ```
-bin/tachyon tfs unsetTTL /data/yesterday/not-analyzed-data
+bin/tachyon tfs unsetTTL /data/yesterday/data-not-yet-analyzed
 ```
