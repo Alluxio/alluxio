@@ -28,7 +28,7 @@ import tachyon.Constants;
  */
 public final class FormatUtils {
   /**
-   * Parses a list of <code>Objects</code> into a <code>String</code>.
+   * Parses a list of {@code Objects} into a {@code String}.
    *
    * @param objs a list of Objects to convert to a String
    * @return comma-separated concatenation of the string representation returned by Object#toString
@@ -53,8 +53,8 @@ public final class FormatUtils {
   }
 
   /**
-   * Parses a <code>ByteBuffer</code> into a <code>String</code>. In particular, the function prints
-   * the content of the buffer in 4-byte increments as space separated integers.
+   * Parses a {@link ByteBuffer} into a {@link String}. In particular, the function prints the
+   * content of the buffer in 4-byte increments as space separated integers.
    *
    * @param buf buffer to use
    */

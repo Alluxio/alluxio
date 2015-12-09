@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -67,7 +68,7 @@ public final class NetworkAddressUtils {
      * Master RPC service (Thrift)
      */
     MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
-        Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT),
+        Constants.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
      * Master web service (Jetty)
@@ -80,7 +81,7 @@ public final class NetworkAddressUtils {
      * Worker RPC service (Thrift)
      */
     WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
-        Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT),
+        Constants.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
      * Worker data service (Netty)
@@ -400,14 +401,31 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * @param host the host to try to connect to
+   * @param port the port to try to connect on
+   * @return whether a socket connection can be made to the given host on the given port
+   */
+  public static boolean isServing(String host, int port) {
+    if (port < 0) {
+      return false;
+    }
+    try {
+      Socket socket = new Socket(host, port);
+      socket.close();
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  /**
    * Tests if the address is externally resolvable. Address must not be wildcard, link local,
    * loopback address, non-IPv4, or other unreachable addresses.
    *
    * @param address The testing address
    * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
-   * @return a <code>boolean</code> indicating if the given address is externally resolvable
-   *         address.
+   * @return a {@code boolean} indicating if the given address is externally resolvable address
    * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
@@ -458,7 +476,7 @@ public final class NetworkAddressUtils {
 
   /**
    * Get FQDN(Full Qualified Domain Name) from Java representations of network address, except
-   * String representation which should be handled by #resolveHostName(String hostname) which will
+   * String representation which should be handled by {@link #resolveHostName(String)} which will
    * handle the situation where hostname is null.
    *
    * @param addr the input network address representation, can not be null
@@ -509,7 +527,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parses InetSocketAddress from a String.
+   * Parses {@link InetSocketAddress} from a String.
    *
    * @param address socket address to parse
    * @return InetSocketAddress of the String
@@ -524,5 +542,39 @@ public final class NetworkAddressUtils {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+  }
+
+  /**
+   * Extracts rpcPort InetSocketAddress from Tachyon representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @return InetSocketAddress
+   * @throws RuntimeException if the host is not known
+   */
+  public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
+    try {
+      String host = getFqdnHost(netAddress);
+      int port = netAddress.rpcPort;
+      return new InetSocketAddress(host, port);
+    } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Extracts dataPort InetSocketAddress from Tachyon representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @return InetSocketAddress
+   * @throws RuntimeException if the host is not known
+   */
+  public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
+    try {
+      String host = getFqdnHost(netAddress);
+      int port = netAddress.dataPort;
+      return new InetSocketAddress(host, port);
+    } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
   }
 }

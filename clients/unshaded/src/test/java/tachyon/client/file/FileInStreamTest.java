@@ -179,7 +179,8 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that FileInStream.remaining() is correctly updated during reads, skips, and seeks.
+   * Tests that {@link FileInStream#remaining()} is correctly updated during reads, skips, and
+   * seeks.
    */
   @Test
   public void testRemaining() throws IOException {
@@ -214,7 +215,7 @@ public class FileInStreamTest {
     Assert.assertTrue(mCacheStreams.get(0).isCanceled());
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
-        mCacheStreams.get(1).getDataWritten());
+        mCacheStreams.get(1).getWrittenData());
 
     // Seek to current position (does nothing)
     mTestStream.seek(seekAmount + readAmount);
@@ -241,7 +242,7 @@ public class FileInStreamTest {
     Assert.assertTrue(mCacheStreams.get(0).isCanceled());
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
-        mCacheStreams.get(1).getDataWritten());
+        mCacheStreams.get(1).getWrittenData());
 
     Assert.assertEquals(0, mTestStream.skip(0));
     // Skip the next half block, bringing us to block 3
@@ -394,7 +395,7 @@ public class FileInStreamTest {
   private void verifyCacheStreams(long dataRead) {
     for (int streamIndex = 0; streamIndex < NUM_STREAMS; streamIndex ++) {
       TestBufferedBlockOutStream stream = mCacheStreams.get(streamIndex);
-      byte[] data = stream.getDataWritten();
+      byte[] data = stream.getWrittenData();
       if (streamIndex * BLOCK_LENGTH > dataRead) {
         Assert.assertEquals(0, data.length);
       } else {

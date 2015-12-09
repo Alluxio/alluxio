@@ -23,16 +23,23 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
-import tachyon.exception.SuspectedFileSizeException;
+import tachyon.exception.FileAlreadyCompletedException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.master.block.BlockId;
-import tachyon.master.file.journal.InodeFileEntry;
-import tachyon.master.journal.JournalEntry;
+import tachyon.proto.journal.File.InodeFileEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.authorization.FileSystemPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
+  /** This default umask is used to calculate file permission from directory permission. */
+  private static final FileSystemPermission UMASK =
+      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
@@ -93,6 +100,11 @@ public final class InodeFile extends Inode {
     protected InodeFile.Builder getThis() {
       return this;
     }
+
+    @Override
+    public InodeFile.Builder setPermissionStatus(PermissionStatus ps) {
+      return super.setPermissionStatus(ps.applyUMask(UMASK));
+    }
   }
 
   private long mBlockContainerId;
@@ -141,6 +153,9 @@ public final class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = mTTL;
+    ret.userName = getUserName();
+    ret.groupName = getGroupName();
+    ret.permission = getPermission();
     return ret;
   }
 
@@ -155,7 +170,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @oaram blockSizeBytes the block size to use
+   * @param blockSizeBytes the block size to use
    */
   public void setBlockSize(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
@@ -226,7 +241,7 @@ public final class InodeFile extends Inode {
   }
 
   public synchronized void setBlockIds(List<Long> blockIds) {
-    mBlocks = Preconditions.checkNotNull(blockIds);
+    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
   }
 
   /**
@@ -240,30 +255,35 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Sets the complete flag true, and sets the length.
-   *
-   * @param length the length of the complete file
+   * @param completed the complete flag value to use
    */
-  public synchronized void setCompleted(long length) {
-    mCompleted = true;
+  public synchronized void setCompleted(boolean completed) {
+    mCompleted = completed;
+  }
+
+  /**
+   * @param length the length to use
+   */
+  public synchronized void setLength(long length) {
     mLength = length;
   }
 
   /**
-   * Sets the length of the file. Cannot set the length if the file is complete or the length is
+   * Completes the file. Cannot set the length if the file is already completed or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws SuspectedFileSizeException
+   * @throws InvalidFileSizeException if invalid file size is encountered
    */
-  public synchronized void setLength(long length)
-      throws SuspectedFileSizeException {
+  public synchronized void complete(long length)
+      throws InvalidFileSizeException, FileAlreadyCompletedException {
     if (mCompleted) {
-      throw new SuspectedFileSizeException("InodeFile has been completed.");
+      throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
     if (length < 0) {
-      throw new SuspectedFileSizeException("InodeFile new length " + length + " is negative.");
+      throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
     }
+    mCompleted = true;
     mLength = length;
     mBlocks.clear();
     while (length > 0) {
@@ -271,7 +291,6 @@ public final class InodeFile extends Inode {
       getNewBlockId();
       length -= blockSize;
     }
-    setCompleted(mLength);
   }
 
   @Override
@@ -287,11 +306,61 @@ public final class InodeFile extends Inode {
     return sb.toString();
   }
 
+  /**
+   * Converts the entry to an {@link InodeFile}.
+   *
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
+        entry.getGroupName(), (short) entry.getPermission());
+    InodeFile inode =
+        new InodeFile.Builder()
+            .setName(entry.getName())
+            .setBlockContainerId(BlockId.getContainerId(entry.getId()))
+            .setBlockSizeBytes(entry.getBlockSizeBytes())
+            .setCacheable(entry.getCacheable())
+            .setCreationTimeMs(entry.getCreationTimeMs())
+            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+            .setParentId(entry.getParentId())
+            .setPersisted(entry.getPersisted())
+            .setPinned(entry.getPinned())
+            .setTTL(entry.getTtl())
+            .setPermissionStatus(permissionStatus)
+            .build();
+
+    inode.setBlockIds(entry.getBlocksList());
+    inode.setCompleted(entry.getCompleted());
+    inode.setLength(entry.getLength());
+    inode.setPersisted(entry.getPersisted());
+    inode.setPinned(entry.getPinned());
+    inode.setCacheable(entry.getCacheable());
+    inode.setLastModificationTimeMs(entry.getLastModificationTimeMs());
+
+    return inode;
+  }
+
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
-        isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
-        isCacheable(), mBlocks, mTTL);
+    InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+        .setCreationTimeMs(getCreationTimeMs())
+        .setId(getId())
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersisted(isPersisted())
+        .setPinned(isPinned())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .setLength(getLength())
+        .setCompleted(isCompleted())
+        .setCacheable(isCacheable())
+        .addAllBlocks(mBlocks)
+        .setTtl(mTTL)
+        .setUserName(getUserName())
+        .setGroupName(getGroupName())
+        .setPermission(getPermission())
+        .build();
+    return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
   /**

@@ -17,7 +17,6 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
@@ -37,7 +37,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
@@ -50,38 +50,37 @@ public class TieredStoreIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private LocalTachyonCluster mLocalTachyonCluster;
   private TachyonConf mWorkerConf;
   private TachyonFileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private SetStateOptions mSetPinned;
   private SetStateOptions mSetUnpinned;
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    mLocalTachyonCluster.start(testConf);
-    mTFS = mLocalTachyonCluster.getClient();
-    mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    mTFS = mLocalTachyonClusterResource.get().getClient();
+    mWorkerConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mSetPinned = new SetStateOptions.Builder().setPinned(true).build();
     mSetUnpinned = new SetStateOptions.Builder().setPinned(false).build();
   }
 
-  // Tests that deletes go through despite failing initially due to concurrent read
+  /**
+   * Tests that deletes go through despite failing initially due to concurrent read.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
   @Test
-  public void deleteWhileReadTest() throws Exception {
+  public void deleteWhileReadTest() throws IOException, TachyonException {
     TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
@@ -120,9 +119,14 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(newFile).getInMemoryPercentage() == 100);
   }
 
-  // Tests that pinning a file prevents it from being evicted.
+  /**
+   * Tests that pinning a file prevents it from being evicted.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
   @Test
-  public void pinFileTest() throws Exception {
+  public void pinFileTest() throws IOException, TachyonException {
     // Create a file that fills the entire Tachyon store
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
@@ -142,9 +146,14 @@ public class TieredStoreIntegrationTest {
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
   }
 
-  // Tests that pinning a file and then unpinning
+  /**
+   * Tests that pinning a file and then unpinning.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
   @Test
-  public void unpinFileTest() throws Exception {
+  public void unpinFileTest() throws IOException, TachyonException {
     // Create a file that fills the entire Tachyon store
     TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
@@ -174,8 +183,14 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file2).getInMemoryPercentage() == 100);
   }
 
+  /**
+   * Tests the promotion of a file.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
   @Test
-  public void promoteBlock() throws Exception {
+  public void promoteBlock() throws IOException, TachyonException {
     TachyonFile file1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
             UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 6);

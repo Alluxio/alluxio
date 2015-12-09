@@ -17,16 +17,15 @@ package tachyon.client;
 
 import java.io.IOException;
 
-import org.apache.thrift.TException;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -39,7 +38,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
@@ -49,36 +47,22 @@ import tachyon.util.io.PathUtils;
 public class TachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+          Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static TachyonFileSystem sTfs = null;
   private static OutStreamOptions sWriteBoth;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Before
-  public final void before() throws IOException, TException {
-  }
-
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    TachyonConf testConf = sLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
-        USER_QUOTA_UNIT_BYTES));
-    sLocalTachyonCluster.start(testConf);
-    sTfs = sLocalTachyonCluster.getClient();
+    sTfs = sLocalTachyonClusterResource.get().getClient();
 
-    sWriteBoth =
-        new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    TachyonConf conf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(conf);
   }
 
   @Test

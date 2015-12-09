@@ -103,7 +103,7 @@ interface TachyonFileSystemCore {
    *
    * @param file the handler for the file
    * @param options method options
-   * @return a list of FileInfos representing the files which are children of the given file
+   * @return a list of {@link FileInfo}s representing the files which are children of the given file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
@@ -159,8 +159,8 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param options method options
-   * @return a TachyonFile which acts as a file handler for the path or null if there is no file at
-             the given path
+   * @return a {@link TachyonFile} which acts as a file handler for the path or null if there is no
+   *         file at the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */

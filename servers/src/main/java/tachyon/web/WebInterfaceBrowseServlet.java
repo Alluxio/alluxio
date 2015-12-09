@@ -131,6 +131,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("debug", Constants.DEBUG);
+    request.setAttribute("viewLog", false);
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
@@ -159,7 +160,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         long offset;
         try {
           if (offsetParam != null) {
-            relativeOffset = Long.valueOf(offsetParam);
+            relativeOffset = Long.parseLong(offsetParam);
           }
         } catch (NumberFormatException nfe) {
           relativeOffset = 0;

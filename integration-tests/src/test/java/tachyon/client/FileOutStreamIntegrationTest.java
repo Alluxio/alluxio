@@ -20,14 +20,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -37,16 +37,14 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * Integration tests for <code>tachyon.client.FileOutStream</code>.
+ * Integration tests for {@link tachyon.client.file.FileOutStream}.
  * TODO(binfan): Run tests with local writes enabled and disabled.
  */
 public final class FileOutStreamIntegrationTest {
@@ -57,7 +55,13 @@ public final class FileOutStreamIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = Constants.GB;
   private static final int QUOTA_UNIT_BYTES = 128;
   private static final int BLOCK_SIZE_BYTES = 128;
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES,
+          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
+          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+
   private OutStreamOptions mWriteBoth;
   private OutStreamOptions mWriteTachyon;
   private OutStreamOptions mWriteUnderStore;
@@ -65,45 +69,14 @@ public final class FileOutStreamIntegrationTest {
   private TachyonConf mTestConf;
   private TachyonFileSystem mTfs = null;
 
-  @After
-  public final void after() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mTestConf = sLocalTachyonCluster.newTestConf();
-    mTestConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
-    // Only the Netty data server supports remote writes.
-    mTestConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
-    mWriteBoth =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .build();
-    mWriteTachyon =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .build();
-    mWriteUnderStore =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .build();
-    mWriteLocal =
-        new OutStreamOptions.Builder(mTestConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSizeBytes(BLOCK_SIZE_BYTES)
-            .setHostname(NetworkAddressUtils.getLocalHostName(mTestConf)).build();
-    sLocalTachyonCluster.start(mTestConf);
-    mTfs = sLocalTachyonCluster.getClient();
-  }
-
-  @BeforeClass
-  public static void beforeClass() throws IOException {
-    sLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+    mTestConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(mTestConf);
+    mWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(mTestConf);
+    mWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(mTestConf);
+    mWriteLocal = StreamOptionUtils.getOutStreamOptionsWriteLocal(mTestConf);
+    mTfs = mLocalTachyonClusterResource.get().getClient();
   }
 
   /**
@@ -151,7 +124,7 @@ public final class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void write(int b)</code>.
+   * Test {@link FileOutStream#write(int)}.
    */
   @Test
   public void writeTest1() throws IOException, TachyonException {
@@ -174,7 +147,7 @@ public final class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void write(byte[] b)</code>.
+   * Test {@link FileOutStream#write(byte[])}.
    */
   @Test
   public void writeTest2() throws IOException, TachyonException {
@@ -195,7 +168,7 @@ public final class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void write(byte[] b, int off, int len)</code>.
+   * Test {@link FileOutStream#write(byte[], int, int)}.
    */
   @Test
   public void writeTest3() throws IOException, TachyonException {

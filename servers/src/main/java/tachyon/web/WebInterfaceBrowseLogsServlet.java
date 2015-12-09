@@ -113,6 +113,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("downloadLogFile", 1);
     request.setAttribute("baseUrl", "./browseLogs");
     request.setAttribute("currentPath", "");
+    request.setAttribute("viewLog", true);
 
     String logsPath =
         mTachyonConf.get(Constants.LOGS_DIR);
@@ -177,7 +178,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         long offset;
         try {
           if (offsetParam != null) {
-            relativeOffset = Long.valueOf(offsetParam);
+            relativeOffset = Long.parseLong(offsetParam);
           }
         } catch (NumberFormatException nfe) {
           relativeOffset = 0;

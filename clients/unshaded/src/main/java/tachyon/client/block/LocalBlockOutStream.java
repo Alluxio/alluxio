@@ -28,6 +28,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -67,6 +68,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
       // Change the permission of the temporary file in order that the worker can move it.
+      FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
@@ -80,7 +82,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       return;
     }
     mCloser.close();
-    mWorkerClient.cancelBlock(mBlockId);
+    try {
+      mWorkerClient.cancelBlock(mBlockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
@@ -93,7 +99,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     flush();
     mCloser.close();
     if (mWrittenBytes > 0) {
-      mWorkerClient.cacheBlock(mBlockId);
+      try {
+        mWorkerClient.cacheBlock(mBlockId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
       ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
     }
     mContext.releaseWorkerClient(mWorkerClient);

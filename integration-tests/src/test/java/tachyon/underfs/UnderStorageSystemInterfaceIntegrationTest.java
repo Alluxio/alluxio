@@ -19,39 +19,38 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.PathUtils;
 
 public class UnderStorageSystemInterfaceIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(10000, 1000, 128);
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
-    mLocalTachyonCluster.start();
-    TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
+    TachyonConf masterConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
   }
 
-  // Tests that an empty file can be created
+  /**
+   * Tests that an empty file can be created.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void createEmptyTest() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
@@ -59,7 +58,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.exists(testFile));
   }
 
-  // Tests that a file can be created and validates the data written to it
+  /**
+   * Tests that a file can be created and validates the data written to it.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void createOpenTest() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
@@ -70,7 +73,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(Arrays.equals(buf, TEST_BYTES));
   }
 
-  // Tests a file can be deleted
+  /**
+   * Tests a file can be deleted.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void deleteFileTest() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
@@ -79,9 +86,13 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertFalse(mUfs.exists(testFile));
   }
 
-  // Tests an empty directory can be deleted
-  // Tests a non empty directory will not be deleted if recursive is not specified
-  // Tests a non empty directory will be deleted if recursive is specified
+  /**
+   * Tests an empty directory can be deleted.
+   * Tests a non empty directory will not be deleted if recursive is not specified.
+   * Tests a non empty directory will be deleted if recursive is specified.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void deleteDirTest() throws IOException {
     String testDirEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirEmpty");
@@ -110,8 +121,12 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertFalse(mUfs.exists(testDirNonEmptyChildDirFile));
   }
 
-  // Tests exists correctly returns true if the file exists and false if it does not
-  // Tests exists correctly returns true if the dir exists and false if it does not
+  /**
+   * Tests exists correctly returns true if the file exists and false if it does not.
+   * Tests exists correctly returns true if the dir exists and false if it does not.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testExists() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
@@ -124,7 +139,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.exists(testDir));
   }
 
-  // Tests getFileSize correctly returns the file size
+  /**
+   * Tests {@link UnderFileSystem#getFileSize(String)} correctly returns the file size.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testGetFileSize() throws IOException {
     String testFileEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileEmpty");
@@ -135,7 +154,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertEquals(mUfs.getFileSize(testFileNonEmpty), TEST_BYTES.length);
   }
 
-  // Tests getModificationTimeMs returns a reasonably accurate time
+  /**
+   * Tests {@link UnderFileSystem#getModificationTimeMs(String)} returns a reasonably accurate time.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testGetModTime() throws IOException {
     long slack = 1000; // Some file systems may report nearest second.
@@ -148,7 +171,12 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(modTime <= end + slack);
   }
 
-  // Tests if isFile correctly returns true for files and false otherwise
+  /**
+   * Tests if {@link UnderFileSystem#isFile(String)} correctly returns true for files and false
+   * otherwise.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testIsFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
@@ -160,7 +188,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertFalse(mUfs.isFile(testDir));
   }
 
-  // Tests if list correctly returns file names
+  /**
+   * Tests if list correctly returns file names.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testList() throws IOException {
     String testDirNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
@@ -185,8 +217,13 @@ public class UnderStorageSystemInterfaceIntegrationTest {
         || mUfs.list(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
   }
 
-  // Tests mkdir correctly creates a directory
-  // Tests mkdir correctly makes parent directories if createParent is specified
+  /**
+   * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly creates a directory.
+   * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly makes parent directories if
+   * createParent is specified.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testMkdirs() throws IOException {
     String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
@@ -203,7 +240,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.exists(testDirDeep));
   }
 
-  // Tests rename works file to new location
+  /**
+   * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testRenameFile() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
@@ -214,7 +255,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.exists(testFileDst));
   }
 
-  // Tests rename works file to a folder if supported
+  /**
+   * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testRenameFileToFolder() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
@@ -228,7 +273,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     }
   }
 
-  // Tests rename works folder to new location
+  /**
+   * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testRenameFolder() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
@@ -244,7 +293,12 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Assert.assertTrue(mUfs.exists(testDirDstChild));
   }
 
-  // Tests rename works folder to another folder if supported
+  /**
+   * Tests {@link UnderFileSystem#rename(String, String)} works folder to another folder if
+   * supported.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   @Test
   public void testRenameFolderToFolder() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");

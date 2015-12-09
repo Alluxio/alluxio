@@ -22,8 +22,9 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.collections.IndexedSet;
-import tachyon.master.file.journal.InodeDirectoryEntry;
-import tachyon.master.journal.JournalEntry;
+import tachyon.proto.journal.File.InodeDirectoryEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -106,6 +107,9 @@ public final class InodeDirectory extends Inode {
     ret.blockIds = null;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = Constants.NO_TTL;
+    ret.userName = getUserName();
+    ret.groupName = getGroupName();
+    ret.permission = getPermission();
     return ret;
   }
 
@@ -177,9 +181,42 @@ public final class InodeDirectory extends Inode {
     return sb.toString();
   }
 
+  /**
+   * Converts the entry to an {@link InodeDirectory}.
+   *
+   * @return the {@link InodeDirectory} representation
+   */
+  public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
+    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
+        entry.getGroupName(), (short) entry.getPermission());
+    InodeDirectory inode =
+        new InodeDirectory.Builder()
+            .setName(entry.getName())
+            .setId(entry.getId())
+            .setParentId(entry.getParentId())
+            .setCreationTimeMs(entry.getCreationTimeMs())
+            .setPersisted(entry.getPersisted())
+            .setPinned(entry.getPinned())
+            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+            .setPermissionStatus(permissionStatus)
+            .build();
+    return inode;
+  }
+
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPersisted(), isPinned(), getLastModificationTimeMs());
+    InodeDirectoryEntry inodeDirectory = InodeDirectoryEntry.newBuilder()
+        .setCreationTimeMs(getCreationTimeMs())
+        .setId(getId())
+        .setName(getName())
+        .setParentId(getParentId())
+        .setPersisted(isPersisted())
+        .setPinned(isPinned())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setUserName(getUserName())
+        .setGroupName(getGroupName())
+        .setPermission(getPermission())
+        .build();
+    return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
 }

@@ -37,7 +37,7 @@ $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 
 Install [python>=2.7](https://www.python.org/), not python3.
 
-Under `deploy/vagrant` directory in your home directory, run:
+Under `deploy/vagrant` directory in your Tachyon home directory, run:
 
 ```bash
 $ sudo bash bin/install.sh
@@ -64,8 +64,9 @@ $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 Next generate your EC2
-[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
-the permissions of your private key file that only you can read it:
+[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the region 
+you want to deploy to (**us-east-1** by default). Make sure to set the permissions of your private 
+key file so that only you can read it:
 
 ```bash
 $ chmod 400 <your key pair>.pem
@@ -243,3 +244,33 @@ $ ./destroy
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.
+
+# Trouble Shooting
+
+1 If you compile Tachyon with YARN integration using maven and see compilation errors like the
+following messages:
+
+ ```
+ [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.2:compile (default-compile) on project tachyon-integration-yarn: Compilation failure: Compilation failure:
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[273,49] cannot find symbol
+ [ERROR] symbol:   method $$()
+ [ERROR] location: variable JAVA_HOME of type org.apache.hadoop.yarn.api.ApplicationConstants.Environment
+ [ERROR] /Work/tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[307,31] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[310,29] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[312,47] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] /tachyon/upstream/integration/yarn/src/main/java/tachyon/yarn/Client.java:[314,47] cannot find symbol
+ [ERROR] symbol:   variable CLASS_PATH_SEPARATOR
+ [ERROR] location: interface org.apache.hadoop.yarn.api.ApplicationConstants
+ [ERROR] -> [Help 1]
+ ```
+
+Please make sure you are using the proper hadoop version
+```bash
+$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn
+```

@@ -60,15 +60,34 @@ public final class Constants {
   public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
-
-  public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
-  public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
-  public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
-  public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
-  public static final String LINEAGE_MASTER_SERVICE_NAME = "LineageMaster";
+  // Service versions should be incremented every time a backwards incompatible change occurs.
+  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long BLOCK_WORKER_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
+  public static final long RAW_TABLE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long UNKNOWN_SERVICE_VERSION = -1;
+
+  public static final String BLOCK_MASTER_NAME = "BlockMaster";
+  public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
+  public static final String LINEAGE_MASTER_NAME = "LineageMaster";
+  public static final String RAW_TABLE_MASTER_NAME = "RawTableMaster";
+
+  public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
+  public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
+  public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
+  public static final String FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME = "FileSystemMasterWorker";
+  public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
+  public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
+  public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
+  public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
+  public static final String WORKER_CLIENT_SERVICE_NAME = "Worker";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -114,6 +133,8 @@ public final class Constants {
   public static final String ZOOKEEPER_ADDRESS = "tachyon.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "tachyon.zookeeper.election.path";
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
+  public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
+      "tachyon.zookeeper.leader.inquiry.retry";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
@@ -149,13 +170,9 @@ public final class Constants {
   public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       "tachyon.master.journal.log.size.bytes.max";
 
-  public static final String JOURNAL_JSON_ENTRY_PARAMETER_KEY = "mParameters";
-  public static final String JOURNAL_JSON_ENTRY_TYPE_KEY = "mType";
-  public static final String JOURNAL_JSON_ENTRY_SEQUENCE_NUMBER_KEY = "mSequenceNumber";
-
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
   public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
-  public static final String MASTER_PORT = "tachyon.master.port";
+  public static final String MASTER_RPC_PORT = "tachyon.master.port";
   public static final String MASTER_ADDRESS = "tachyon.master.address";
   public static final String MASTER_WEB_HOSTNAME = "tachyon.master.web.hostname";
   public static final String MASTER_WEB_BIND_HOST = "tachyon.master.web.bind.host";
@@ -186,7 +203,7 @@ public final class Constants {
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
   public static final String WORKER_BIND_HOST = "tachyon.worker.bind.host";
-  public static final String WORKER_PORT = "tachyon.worker.port";
+  public static final String WORKER_RPC_PORT = "tachyon.worker.port";
   public static final String WORKER_DATA_HOSTNAME = "tachyon.worker.data.hostname";
   public static final String WORKER_DATA_BIND_HOST = "tachyon.worker.data.bind.host";
   public static final String WORKER_DATA_PORT = "tachyon.worker.data.port";
@@ -283,10 +300,7 @@ public final class Constants {
   public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
       "tachyon.user.block.remote.read.buffer.size.bytes";
   public static final String USER_FILE_WRITE_TYPE_DEFAULT = "tachyon.user.file.writetype.default";
-  public static final String USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT =
-      "tachyon.user.file.tachyonstoragetype.default";
-  public static final String USER_FILE_UNDER_STORAGE_TYPE_DEFAULT =
-      "tachyon.user.file.understoragetype.default";
+  public static final String USER_FILE_READ_TYPE_DEFAULT = "tachyon.user.file.readtype.default";
   public static final String USER_BLOCK_REMOTE_READER =
       "tachyon.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
@@ -297,7 +311,11 @@ public final class Constants {
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "tachyon.user.file.master.client.threads";
+  public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
+      "tachyon.user.lineage.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
+  public static final String USER_RAW_TABLE_MASTER_CLIENT_THREADS =
+      "tachyon.user.raw.table.master.client.threads";
 
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "tachyon.user.file.waitcompleted.poll.ms";
@@ -337,6 +355,14 @@ public final class Constants {
   public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
+  public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
+      "tachyon.security.authentication.socket.timeout.ms";
+  // Authorization
+  public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
+      "tachyon.security.authorization.permission.umask";
+  public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
+  public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
+  public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
 
   private Constants() {} // prevent instantiation
 }

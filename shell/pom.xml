@@ -25,6 +25,11 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.9.10</version>
+    </dependency>
+    <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client-unshaded</artifactId>
       <version>${project.version}</version>
@@ -33,31 +38,6 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <!-- Test Dependencies -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-servers</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-minicluster</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-underfs-local</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

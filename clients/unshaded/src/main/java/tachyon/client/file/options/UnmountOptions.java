@@ -34,9 +34,9 @@ public final class UnmountOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@code UnmountOptions}.
+     * Builds a new instance of {@link UnmountOptions}.
      *
-     * @return a {@code UnmountOptions} instance
+     * @return a {@link UnmountOptions} instance
      */
     @Override
     public UnmountOptions build() {
@@ -45,7 +45,7 @@ public final class UnmountOptions {
   }
 
   /**
-   * @return the default {@code UnmountOptions}
+   * @return the default {@link UnmountOptions}
    */
   public static UnmountOptions defaults() {
     return new Builder().build();

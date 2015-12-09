@@ -21,26 +21,28 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.master.LocalTachyonCluster;
 
 /**
- * Integration tests for TFS getFileBlockLocations.
+ * Integration tests for {@link TFS#getFileBlockLocations(FileStatus, long, long)}.
  */
 public class TFSBlockLocationIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
   private static final int FILE_LEN = BLOCK_SIZE * 3;
-  private static LocalTachyonCluster sLocalTachyonCluster;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
   private static FileSystem sTFS;
 
   @BeforeClass
@@ -48,25 +50,16 @@ public class TFSBlockLocationIntegrationTest {
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
-    // Start local Tachyon cluster
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, BLOCK_SIZE);
-    sLocalTachyonCluster.start();
-
-    TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
+    TachyonFileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
     TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", TachyonStorageType.STORE,
         UnderStorageType.SYNC_PERSIST, FILE_LEN);
 
-    URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
+    URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
     sTFS = FileSystem.get(uri, conf);
   }
 
-  @AfterClass
-  public static void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   /**
-   * Test <code>BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)</code>.
+   * Test {@code BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)}.
    * Test the different situations of different start and len.
    */
   @Test

@@ -30,9 +30,9 @@ import com.google.common.collect.Sets;
 
 /**
  * A set of objects that are indexed and thus can be queried by specific fields of the object.
- * Different IndexedSet instances may specify different fields to index. The field type must be
- * comparable. The field value must not be changed after an object is added to the set, otherwise,
- * behavior for all operations is not specified.
+ * Different {@link IndexedSet} instances may specify different fields to index. The field type
+ * must be comparable. The field value must not be changed after an object is added to the set,
+ * otherwise, behavior for all operations is not specified.
  *
  * <p>
  * This class is thread safe.
@@ -62,9 +62,8 @@ import com.google.common.collect.Sets;
  * </pre>
  *
  * We want to be able to retrieve the set of puppies via a puppy's id or name, one way is to have
- * two maps like <code>Map&ltString, Puppy&gt nameToPuppy</code> and
- * <code>Map&ltLong, Puppy&gt idToPuppy</code>, another way is to use a single instance of
- * {@link IndexedSet}!
+ * two maps like {@code Map<String, Puppy> nameToPuppy} and {@code Map<Long, Puppy> idToPuppy},
+ * another way is to use a single instance of {@link IndexedSet}!
  *
  * First, define the fields to be indexed:
  * <pre>
@@ -110,12 +109,12 @@ public class IndexedSet<T> implements Iterable<T> {
   private final Object mLock = new Object();
 
   /**
-   * An interface representing an index for this IndexedSet, each index for this set must implement
-   * the interface to define how to get the value of the field chosen as the index. Users must use
-   * the same instance of the implementation of this interface as the parameter in all methods of
-   * IndexedSet to represent the same index.
+   * An interface representing an index for this {@link IndexedSet}, each index for this set must
+   * implement the interface to define how to get the value of the field chosen as the index. Users
+   * must use the same instance of the implementation of this interface as the parameter in all
+   * methods of {@link IndexedSet} to represent the same index.
    *
-   * @param <T> type of objects in this IndexedSet
+   * @param <T> type of objects in this {@link IndexedSet}
    */
   public interface FieldIndex<T> {
     /**
@@ -128,7 +127,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Constructs a new IndexedSet instance with at least one field as the index.
+   * Constructs a new {@link IndexedSet} instance with at least one field as the index.
    *
    * @param field at least one field is needed to index the set of objects
    * @param otherFields other fields to index the set
@@ -200,12 +199,13 @@ public class IndexedSet<T> implements Iterable<T> {
 
   /**
    * Returns an iterator over the elements in this set. The elements are returned in no particular
-   * order. It is to implement {@link Iterable} so that users can foreach the IndexedSet directly.
+   * order. It is to implement {@link Iterable} so that users can foreach the {@link IndexedSet}
+   * directly.
    *
    * Note that the behaviour of the iterator is unspecified if the underlying collection is
    * modified while a thread is going through the iterator.
    *
-   * @return an iterator over the elements in this IndexedSet
+   * @return an iterator over the elements in this {@link IndexedSet}
    */
   @Override
   public Iterator<T> iterator() {
@@ -314,8 +314,8 @@ public class IndexedSet<T> implements Iterable<T> {
 
   /**
    * Helper method that removes an object from the two level-indices structure.
-   * Precondition: {@code object} was in {@code mObjects} and was just successfully
-   * removed from it before calling this method.
+   * Precondition: {@code object} was in {@link #mObjects} and was just successfully removed from
+   * it before calling this method.
    *
    * Refactored for being called from both {@link #remove(Object)} and {@link tachyon.collections
    * .IndexedSet.IndexedSetIterator#remove()}

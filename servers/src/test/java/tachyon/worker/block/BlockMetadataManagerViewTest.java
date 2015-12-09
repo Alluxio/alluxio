@@ -200,8 +200,8 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Test that <code>BlockMetadataManagerView.getTierView(tierAlias)</code> returns the same
-   * TierView as <code>new StorageTierView(mMetadataManager.getTier(tierAlias), this)</code>.
+   * Test that {@code BlockMetadataManagerView.getTierView(tierAlias)} returns the same
+   * TierView as {@code new StorageTierView(mMetadataManager.getTier(tierAlias), this)}.
    */
   @Test
   public void sameTierViewTest() {
@@ -222,8 +222,8 @@ public final class BlockMetadataManagerViewTest {
   }
 
   /**
-   * Test that <code>BlockMetadataManagerView.getTierViewsBelow(tierAlias)</code> returns the same
-   * TierViews as constructing by <code>BlockMetadataManager.getTiersBelow(tierAlias)</code>.
+   * Test that {@link BlockMetadataManagerView#getTierViewsBelow(String)} returns the same
+   * TierViews as constructing by {@link BlockMetadataManager#getTiersBelow(String)}.
    */
   @Test
   public void sameTierViewsBelowTest() {

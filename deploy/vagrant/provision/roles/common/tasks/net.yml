@@ -8,4 +8,8 @@
 - name: configure hosts
   script: host.sh
 
+- name: set hostname
+  hostname: name={{ inventory_hostname }}
+  sudo: yes
+
 # vim :set filetype=ansible.yaml:

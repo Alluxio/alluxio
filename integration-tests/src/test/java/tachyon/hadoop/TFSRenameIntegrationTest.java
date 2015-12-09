@@ -23,25 +23,27 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for TFS rename.
+ * Integration tests for {@link TFS#rename(Path, Path)}.
  */
 // TODO(jiri): Test persisting rename operations to UFS.
 public class TFSRenameIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
-  private static LocalTachyonCluster sLocalTachyonCluster;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(100000000, 100000, BLOCK_SIZE);
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static FileSystem sTFS;
@@ -64,21 +66,12 @@ public class TFSRenameIntegrationTest {
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
-    // Start local Tachyon cluster
-    sLocalTachyonCluster = new LocalTachyonCluster(100000000, 100000, BLOCK_SIZE);
-    sLocalTachyonCluster.start();
-    URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
+    URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
 
     sTFS = FileSystem.get(uri, conf);
-    sUfsRoot =
-        PathUtils.concatPath(sLocalTachyonCluster.getMasterTachyonConf().get(
-            Constants.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.get(sUfsRoot, sLocalTachyonCluster.getMasterTachyonConf());
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
+    sUfsRoot = PathUtils.concatPath(
+        sLocalTachyonClusterResource.get().getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
+    sUfs = UnderFileSystem.get(sUfsRoot, sLocalTachyonClusterResource.get().getMasterTachyonConf());
   }
 
   @Test

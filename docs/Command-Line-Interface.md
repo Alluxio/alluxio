@@ -5,7 +5,7 @@ group: Features
 priority: 0
 ---
 
-Tachyon's command line interface provides users with basic file system operations. You can invoke 
+Tachyon's command line interface provides users with basic file system operations. You can invoke
 the command line utility using:
 
 ```bash
@@ -22,7 +22,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
 
 # List of Operations
 
-<table class="table">
+<table class="table table-striped">
   <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
   <tr>
     <td>cat</td>
@@ -59,7 +59,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>free</td>
     <td>free "path"</td>
-    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also 
+    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also
     in under storage, it will still be available there.</td>
   </tr>
   <tr>
@@ -120,6 +120,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
     will fail if "destination" already exists.</td>
   </tr>
   <tr>
+    <td>persist</td>
+    <td>persist "path"</td>
+    <td>Persist a file or directory currently stored only in Tachyon to the underlying file system.</td>
+  </tr>
+  <tr>
     <td>pin</td>
     <td>pin "path"</td>
     <td>Pin the given file to avoid evicting it from memory. If the given path is a directory, it
@@ -129,11 +134,6 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>report</td>
     <td>report "path"</td>
     <td>Report to the master that a file is lost.</td>
-  </tr>
-  <tr>
-    <td>request</td>
-    <td>request "path" "dependency ID"</td>
-    <td>Request the file for a given dependency ID.</td>
   </tr>
   <tr>
     <td>rm</td>
@@ -165,8 +165,8 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>unmount</td>
     <td>unmount "path"</td>
-    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon 
-    objects under "path" are removed from Tachyon, but they still exist in the previously mounted 
+    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon
+    objects under "path" are removed from Tachyon, but they still exist in the previously mounted
     under storage.</td>
   </tr>
   <tr>

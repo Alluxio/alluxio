@@ -34,9 +34,9 @@ public final class OpenOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@code OpenOptions}.
+     * Builds a new instance of {@link OpenOptions}.
      *
-     * @return a {@code OpenOptions} instance
+     * @return a {@link OpenOptions} instance
      */
     @Override
     public OpenOptions build() {
@@ -45,7 +45,7 @@ public final class OpenOptions {
   }
 
   /**
-   * @return the default {@code OpenOptions}
+   * @return the default {@link OpenOptions}
    */
   public static OpenOptions defaults() {
     return new Builder().build();

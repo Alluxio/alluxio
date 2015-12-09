@@ -105,7 +105,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in <code>HdfsFileInputStream</code>.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @return N/A
    * @throws IOException always
@@ -127,8 +127,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Sets mHdfsInputStream to a stream from the under storage system with the stream starting at
-   * mCurrentPosition.
+   * Sets {@link #mHdfsInputStream} to a stream from the under storage system with the stream
+   * starting at {@link #mCurrentPosition}.
    *
    * @throws IOException if opening the file fails
    */
@@ -142,8 +142,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Sets mHdfsInputStream to a stream from the under storage system with the stream starting at
-   * position. The mCurrentPosition is not modified to be position.
+   * Sets {@link #mHdfsInputStream} to a stream from the under storage system with the stream
+   * starting at position. The {@link #mCurrentPosition} is not modified to be position.
    *
    * @throws IOException if opening the file fails
    */
@@ -291,7 +291,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in <code>HdfsFileInputStream</code>.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @throws IOException always
    */
@@ -301,7 +301,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in <code>HdfsFileInputStream</code>.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @throws IOException always
    */
@@ -336,7 +336,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * This method is not supported in <code>HdfsFileInputStream</code>.
+   * This method is not supported in {@link HdfsFileInputStream}.
    *
    * @return N/A
    * @throws IOException always

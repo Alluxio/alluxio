@@ -124,7 +124,7 @@ fi
 rm -f files/hosts
 for host in $(cat files/workers); do
   info "looking up IP of $host..."
-  IP=$(vagrant ssh $host -c "ip addr show | grep -w inet| tail -1" | grep -w inet | awk '{print $2}' | cut -d'/' -f1)
+  IP=$(vagrant ssh $host -c "ip addr show | grep -w inet | tail -1" | grep -w inet | awk '{print $2}' | cut -d'/' -f1)
   info "IP for $host is $IP"
   echo "$IP ${host}" >> files/hosts
 done

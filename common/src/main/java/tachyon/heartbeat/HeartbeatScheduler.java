@@ -37,7 +37,8 @@ import com.google.common.base.Preconditions;
  * execution of a thread and the heartbeat scheduler logic to schedule the thread can lead to a
  * deadlock.
  *
- * For an example of how to use the HeartbeatScheduler, see unit test of {@link HeartbeatThread}.
+ * For an example of how to use the {@link HeartbeatScheduler}, see unit test of
+ * {@link HeartbeatThread}.
  */
 public final class HeartbeatScheduler {
   private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();

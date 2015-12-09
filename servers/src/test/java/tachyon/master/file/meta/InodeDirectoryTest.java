@@ -23,10 +23,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
- * Unit tests for tachyon.InodeDirectory.
+ * Unit tests for {@link tachyon.master.file.meta.InodeDirectory}.
  */
 public final class InodeDirectoryTest extends AbstractInodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -60,11 +61,14 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void equalsTest() {
     InodeDirectory inode1 =
-        new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0).build();
+        new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
     InodeDirectory inode2 =
-        new InodeDirectory.Builder().setName("test2").setId(1).setParentId(0).build();
+        new InodeDirectory.Builder().setName("test2").setId(1).setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
     InodeDirectory inode3 =
-        new InodeDirectory.Builder().setName("test3").setId(3).setParentId(0).build();
+        new InodeDirectory.Builder().setName("test3").setId(3).setParentId(0)
+        .setPermissionStatus(PermissionStatus.getDirDefault()).build();
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertTrue(inode1.equals(inode1));
     Assert.assertFalse(inode1.equals(inode3));
@@ -182,6 +186,14 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     }
     LOG.info(String.format("getChild(String name) called sequentially %d times, cost %d ms", nFiles,
         System.currentTimeMillis() - start));
+  }
+
+  @Test
+  public void permissionStatusTest() {
+    InodeDirectory inode2 = createInodeDirectory();
+    Assert.assertEquals(AbstractInodeTest.TEST_USER_NAME, inode2.getUserName());
+    Assert.assertEquals(AbstractInodeTest.TEST_GROUP_NAME, inode2.getGroupName());
+    Assert.assertEquals((short)0755, inode2.getPermission());
   }
 
   @Test

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +31,7 @@ import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.block.RemoteBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -44,14 +44,13 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.RemoteBlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.RemoteBlockInStream}.
  */
 @RunWith(Parameterized.class)
 public class RemoteBlockInStreamIntegrationTest {
@@ -59,7 +58,8 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource;
   private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
   private String mNettyTransferType;
@@ -89,45 +89,29 @@ public class RemoteBlockInStreamIntegrationTest {
     mDataServerClass = dataServer;
     mNettyTransferType = transferType;
     mRemoteReaderClass = reader;
+
+    mLocalTachyonClusterResource = new LocalTachyonClusterResource(Constants.GB, Constants.KB,
+        Constants.GB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
+        Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass,
+        Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
   }
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    testConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    testConf.set(Constants.USER_BLOCK_REMOTE_READER, mRemoteReaderClass);
-    testConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
-    mLocalTachyonCluster.start(testConf);
-
-    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mTfs = mLocalTachyonCluster.getClient();
-    mWriteTachyon =
-        new OutStreamOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    mWriteUnderStore =
-        new OutStreamOptions.Builder(mTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    mReadCache =
-        new InStreamOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .build();
-    mReadNoCache =
-        new InStreamOptions.Builder(mTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+    mTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mTfs = mLocalTachyonClusterResource.get().getClient();
+    mWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(mTachyonConf);
+    mWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(mTachyonConf);
+    mReadCache = StreamOptionUtils.getInStreamOptionsReadCache(mTachyonConf);
+    mReadNoCache = StreamOptionUtils.getInStreamOptionsReadNoCache(mTachyonConf);
   }
 
   /**
-   * Test <code>void read()</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read()}. Read from underfs.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -188,7 +172,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -225,7 +209,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -262,7 +246,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read()</code>. Read from remote data server.
+   * Test {@link RemoteBlockInStream#read()}. Read from remote data server.
    */
   @Test
   public void readTest4() throws IOException, TachyonException {
@@ -294,7 +278,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>. Read from remote data server.
+   * Test {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
    */
   @Test
   public void readTest5() throws IOException, TachyonException {
@@ -322,7 +306,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>. Read from remote data server.
+   * Test {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
    */
   @Test
   public void readTest6() throws IOException, TachyonException {
@@ -350,7 +334,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>. Read from underfs.
+   * Test {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
   public void readTest7() throws IOException, TachyonException {
@@ -370,8 +354,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
-   * position.
+   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * negative position.
    *
    * @throws IOException
    * @throws TachyonException
@@ -395,8 +379,8 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
-   * that is past block size.
+   * Test {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
+   * position that is past block size.
    *
    * @throws IOException
    * @throws TachyonException
@@ -420,7 +404,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test {@link RemoteBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws TachyonException
@@ -446,7 +430,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {

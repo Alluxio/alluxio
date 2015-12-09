@@ -24,7 +24,7 @@ import org.junit.Test;
 import tachyon.Constants;
 
 /**
- * Unit tests for MasterBlockInfo.
+ * Unit tests for {@link MasterBlockInfo}.
  */
 public final class MasterBlockInfoTest {
   private MasterBlockInfo mInfo;

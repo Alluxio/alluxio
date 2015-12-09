@@ -24,8 +24,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.ReadType;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -36,7 +36,7 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 
 /**
- * Basic example of using the TachyonFS and TachyonFile for writing to and reading from files.
+ * Basic example of using the {@link TachyonFileSystem} for writing to and reading from files.
  * <p>
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
@@ -51,19 +51,16 @@ import tachyon.exception.TachyonException;
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final TachyonStorageType mTachyonWriteType;
-  private final UnderStorageType mUfsWriteType;
-  private final TachyonStorageType mReadType;
+  private final ReadType mReadType;
+  private final WriteType mWriteType;
   private final boolean mDeleteIfExists;
   private final int mLength;
 
-  public BasicNonByteBufferOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType tachyonWriteType, UnderStorageType ufsWriteType,
-      TachyonStorageType readType, boolean deleteIfExists, int length) {
+  public BasicNonByteBufferOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType
+      readType, WriteType writeType, boolean deleteIfExists, int length) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
-    mTachyonWriteType = tachyonWriteType;
-    mUfsWriteType = ufsWriteType;
+    mWriteType = writeType;
     mReadType = readType;
     mDeleteIfExists = deleteIfExists;
     mLength = length;
@@ -73,7 +70,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   public Boolean call() throws Exception {
     TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
+    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
     TachyonFileSystem tachyonClient = TachyonFileSystem.TachyonFileSystemFactory.get();
     write(tachyonClient);
@@ -81,8 +78,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private void write(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
-    OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(mTachyonWriteType).setUnderStorageType(mUfsWriteType).build();
+    OutStreamOptions clientOptions =
+        new OutStreamOptions.Builder(ClientContext.getConf()).setWriteType(mWriteType).build();
     FileOutStream fileOutStream =
         getOrCreate(tachyonClient, mFilePath, mDeleteIfExists, clientOptions);
     DataOutputStream os = new DataOutputStream(fileOutStream);
@@ -119,7 +116,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private boolean read(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(mReadType).build();
+          .setReadType(mReadType).build();
+
     TachyonFile file = tachyonClient.open(mFilePath);
     DataInputStream input = new DataInputStream(tachyonClient.getInStream(file, clientOptions));
     try {
@@ -136,23 +134,20 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   public static void main(final String[] args) throws IOException {
-    if (args.length < 2 || args.length > 7) {
+    if (args.length < 2 || args.length > 6) {
       usage();
     }
 
-    Utils.runExample(new BasicNonByteBufferOperations(new TachyonURI(args[0]),
-        new TachyonURI(args[1]), Utils.option(args, 2, TachyonStorageType.STORE),
-        Utils.option(args, 3, UnderStorageType.NO_PERSIST),
-        Utils.option(args, 4, TachyonStorageType.NO_STORE), Utils.option(args, 5, true),
-        Utils.option(args, 6, 20)));
+    Utils.runExample(new BasicNonByteBufferOperations(new TachyonURI(args[0]), new TachyonURI(
+        args[1]), Utils.option(args, 2, ReadType.CACHE), Utils.option(args, 3,
+        WriteType.CACHE_THROUGH), Utils.option(args, 4, true), Utils.option(args, 5, 20)));
   }
 
   private static void usage() {
     System.out.println("java -cp " + Version.TACHYON_JAR + " "
         + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
-        + "<tachyon storage type for writes (STORE | NO_STORE)> "
-        + "<under storage type for writes (SYNC_PERSIST | NO_PERSIST)> "
-        + "<tachyon storage type for reads (STORE | NO_STORE)> <delete file> <number of files>");
+        + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
+        + " | THROUGH)> <delete file> <number of files>");
     System.exit(-1);
   }
 }

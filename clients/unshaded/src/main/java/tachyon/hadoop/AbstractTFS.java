@@ -39,9 +39,9 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
@@ -49,9 +49,11 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -60,7 +62,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
- * to {@link tachyon.client.TachyonFS} for most operations.
+ * to {@link TachyonFileSystem} for most operations.
  *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
@@ -119,7 +121,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param replication under filesystem replication factor
    * @param blockSize block size in bytes
    * @param progress queryable progress
-   * @return an FSDataOutputStream created at the indicated path of a file
+   * @return an {@link FSDataOutputStream} created at the indicated path of a file
    * @throws IOException if overwrite is not specified and the path already exists or if the path is
    *         a folder
    */
@@ -163,8 +165,10 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
-   * create(), except fails if parent directory doesn't already exist.
+   * Opens an {@link FSDataOutputStream} at the indicated Path with
+   * write-progress reporting. Same as
+   * {@link #create(Path, boolean, int, short, long, Progressable)}, except fails if parent
+   * directory doesn't already exist.
    *
    * TODO(hy): We need to refactor this method after having a new internal API support (TACHYON-46).
    *
@@ -177,7 +181,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param progress queryable progress
    * @throws IOException if 1) overwrite is not specified and the path already exists, 2) if the
    *         path is a folder, or 3) the parent directory does not exist
-   * @see #setPermission(Path, FsPermission)
+   * @see {@link #setPermission(Path, FsPermission)}
    * @deprecated API only for 0.20-append
    */
   @Override
@@ -190,6 +194,14 @@ abstract class AbstractTFS extends FileSystem {
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
+  /**
+   * Attempts to delete the file or directory with the specified path.
+   *
+   * @param path path to delete
+   * @return true if one or more files/directories were deleted; false otherwise
+   * @throws IOException if the path failed to be deleted due to some constraint
+   * @deprecated Use {@link #delete(Path, boolean)} instead.
+   */
   @Override
   @Deprecated
   public boolean delete(Path path) throws IOException {
@@ -212,8 +224,7 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    DeleteOptions options =
-        new DeleteOptions.Builder().setRecursive(recursive).build();
+    DeleteOptions options = new DeleteOptions.Builder().setRecursive(recursive).build();
     try {
       TachyonFile file = mTFS.open(path);
       mTFS.delete(file, options);
@@ -312,14 +323,13 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Gets the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
-   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot put
-   * {@literal @Override}.
+   * Gets the URI schema that maps to the {@link FileSystem}. This was introduced in Hadoop 2.x as
+   * a means to make loading new {@link FileSystem}s simpler. This doesn't exist in Hadoop 1.x, so
+   * cannot put {@literal @Override}.
    *
    * @return schema hadoop should map to
    *
-   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
-   *      org.apache.hadoop.conf.Configuration)
+   * @see FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
    */
   public abstract String getScheme();
 
@@ -341,8 +351,8 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
-    Preconditions.checkNotNull(uri.getHost(), "URI hostname must not be null");
-    Preconditions.checkNotNull(uri.getPort(), "URI post must not be null");
+    Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
+    Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
     super.initialize(uri, conf);
     LOG.info("initialize({}, {}). Connecting to Tachyon: {}", uri, conf, uri.toString());
     Utils.addS3Credentials(conf);
@@ -358,7 +368,7 @@ abstract class AbstractTFS extends FileSystem {
       mTachyonConf.merge(siteConf);
     }
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
+    mTachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 
@@ -369,8 +379,8 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Determines if zookeeper should be used for the FileSystem. This method should only be used for
-   * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
+   * Determines if zookeeper should be used for the {@link FileSystem}. This method should only be
+   * used for {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used
    */
@@ -420,13 +430,9 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
+    MkdirOptions options =
+        new MkdirOptions.Builder(mTachyonConf).setRecursive(true).setAllowExists(true).build();
     try {
-      TachyonFile fileId = mTFS.openIfExists(path);
-      if (fileId != null && mTFS.getInfo(fileId).isIsFolder()) {
-        // The directory already exists, nothing to do here
-        return true;
-      }
       return mTFS.mkdir(path, options);
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -438,7 +444,7 @@ abstract class AbstractTFS extends FileSystem {
    *
    * @param cPath the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
-   * @return an FSDataInputStream at the indicated path of a file
+   * @return an {@link FSDataInputStream} at the indicated path of a file
    * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
   @Override
@@ -530,6 +536,8 @@ abstract class AbstractTFS extends FileSystem {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
       return master.getUfsAddress();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(master);
     }

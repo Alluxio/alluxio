@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -38,13 +39,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * HDFS UnderFilesystem implementation
+ * HDFS {@link UnderFileSystem} implementation
  */
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -116,7 +115,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void close() throws IOException {
-    mFs.close();
+    // Don't close mFs; FileSystems are singletons so closing it here could break other users
   }
 
   @Override
@@ -294,10 +293,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
-        TachyonURI filePathURI = new TachyonURI(status.getPath().toUri().toString());
-        String filePath =  NetworkAddressUtils.replaceHostName(filePathURI).toString();
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = filePath.substring(path.length()); // mUfsPrefix
+        rtn[i ++] =  status.getPath().getName();
       }
       return rtn;
     } else {
@@ -345,11 +342,26 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        if (mFs.exists(new Path(path))) {
+        Path hdfsPath = new Path(path);
+        if (mFs.exists(hdfsPath)) {
           LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
-        return mFs.mkdirs(new Path(path), PERMISSION);
+        // Create directories one by one with explicit permissions to ensure no umask is applied,
+        // using mkdirs will apply the permission only to the last directory
+        Stack<Path> dirsToMake = new Stack<Path>();
+        dirsToMake.push(hdfsPath);
+        Path parent = hdfsPath.getParent();
+        while (!mFs.exists(parent)) {
+          dirsToMake.push(parent);
+          parent = parent.getParent();
+        }
+        while (!dirsToMake.empty()) {
+          if (!FileSystem.mkdirs(mFs, dirsToMake.pop(), PERMISSION)) {
+            return false;
+          }
+        }
+        return true;
       } catch (IOException e) {
         cnt ++;
         LOG.error("{} try to make directory for {} : {}", cnt, path, e.getMessage(), e);

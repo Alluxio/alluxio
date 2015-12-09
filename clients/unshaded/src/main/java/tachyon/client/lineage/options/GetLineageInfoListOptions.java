@@ -30,7 +30,7 @@ public final class GetLineageInfoListOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * @return builds a new instance of {@code GetLineageInfoListOptions}
+     * @return builds a new instance of {@link GetLineageInfoListOptions}
      */
     public GetLineageInfoListOptions build() {
       return new GetLineageInfoListOptions(this);

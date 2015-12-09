@@ -24,8 +24,8 @@ import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
- * Sanity check on specific behavior of LRUEvictor such as evicting/moving least recently used
- * blocks and cascading LRU eviction.
+ * Sanity check on specific behavior of {@link LRUEvictor} such as evicting/moving least recently
+ * used blocks and cascading LRU eviction.
  */
 public class LRUEvictorTestBase extends EvictorTestBase {
   @Before

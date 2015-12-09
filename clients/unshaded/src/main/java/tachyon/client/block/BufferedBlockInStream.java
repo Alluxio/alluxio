@@ -29,9 +29,9 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance extending this class can be
- * obtained by calling {@link TachyonBlockStore#getInStream}. The buffer size of the stream can be
- * set through configuration. Multiple BufferedBlockInStreams can be opened for a block. This class
- * is not thread safe and should only be used by one thread.
+ * obtained by calling {@link TachyonBlockStore#getInStream(long)}. The buffer size of the stream
+ * can be set through configuration. Multiple {@link BufferedBlockInStream}s can be opened for a
+ * block. This class is not thread safe and should only be used by one thread.
  *
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
  * Tachyon Stream interfaces.
@@ -51,14 +51,15 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected ByteBuffer mBuffer;
   /** Flag indicating if the stream is closed, can only go from false to true. */
   protected boolean mClosed;
+  /** Flag indicating if the stream is read */
+  protected boolean mBlockIsRead;
 
   /**
-   * Basic constructor for a BufferedBlockInStream. This sets the necessary variables and creates
-   * the initial buffer which is empty and invalid.
+   * Basic constructor for a {@link BufferedBlockInStream}. This sets the necessary variables and
+   * creates the initial buffer which is empty and invalid.
    *
    * @param blockId block id for this stream
    * @param blockSize size of the block in bytes
-   * @param location worker address to read the block from
    */
   // TODO(calvin): Get the block lock here when the remote instream locks at a stream level
   public BufferedBlockInStream(long blockId, long blockSize) {
@@ -67,6 +68,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBuffer = allocateBuffer();
     mBufferIsValid = false; // No data in buffer
     mClosed = false;
+    mBlockIsRead = false;
   }
 
   @Override
@@ -88,6 +90,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       updateBuffer();
     }
     mPos ++;
+    mBlockIsRead = true;
     return BufferUtils.byteToInt(mBuffer.get());
   }
 
@@ -112,6 +115,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     if (mBufferIsValid && mBuffer.remaining() > toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
+      mBlockIsRead = true;
       return toRead;
     }
 
@@ -119,6 +123,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       mBufferIsValid = false;
       int bytesRead = directRead(b, off, toRead);
       mPos += bytesRead;
+      mBlockIsRead = true;
       incrementBytesReadMetric(bytesRead);
       return bytesRead;
     }
@@ -127,6 +132,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     updateBuffer();
     mBuffer.get(b, off, toRead);
     mPos += toRead;
+    mBlockIsRead = true;
     return toRead;
   }
 
@@ -217,7 +223,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   /**
    * Updates the buffer so it is ready to be read from. After calling this method, the buffer will
    * be positioned at 0 and mBufferIsValid will be true. Inheriting classes should implement
-   * bufferedRead(int) for their read specific logic.
+   * {@link #bufferedRead(int)} for their read specific logic.
    *
    * @throws IOException if an error occurs reading the data
    */

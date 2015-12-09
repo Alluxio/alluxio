@@ -29,7 +29,7 @@ public class GetMasterWorkerAddressTest {
   public void getMasterAddressTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
-    conf.set(Constants.MASTER_PORT, "10000");
+    conf.set(Constants.MASTER_RPC_PORT, "10000");
     String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
@@ -39,7 +39,7 @@ public class GetMasterWorkerAddressTest {
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
     conf = new TachyonConf();
-    conf.set(Constants.MASTER_PORT, "20000");
+    conf.set(Constants.MASTER_RPC_PORT, "20000");
     // port only
     masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
@@ -59,7 +59,7 @@ public class GetMasterWorkerAddressTest {
   @Test
   public void getWorkerAddressTest() {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_PORT, "10001");
+    conf.set(Constants.WORKER_RPC_PORT, "10001");
 
     String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
     int defaultPort = Constants.DEFAULT_WORKER_PORT;

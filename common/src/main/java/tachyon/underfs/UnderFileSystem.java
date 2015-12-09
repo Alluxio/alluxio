@@ -370,14 +370,14 @@ public abstract class UnderFileSystem {
    * @param path the folder to create
    * @param createParent If true, the method creates any necessary but nonexistent parent
    *        directories. Otherwise, the method does not create nonexistent parent directories.
-   * @return <code>true</code> if and only if the directory was created; <code>false</code>
+   * @return {@code true} if and only if the directory was created; {@code false}
    *         otherwise
    * @throws IOException
    */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
   /**
-   * Opens an {@code InputStream} at the indicated path.
+   * Opens an {@link InputStream} at the indicated path.
    *
    * @param path The file name
    * @return The {@code InputStream} object

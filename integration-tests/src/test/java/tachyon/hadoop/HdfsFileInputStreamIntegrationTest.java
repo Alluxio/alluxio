@@ -22,15 +22,16 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Seekable;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
@@ -39,12 +40,11 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Integration tests for HdfsFileInputStream.
+ * Integration tests for {@link HdfsFileInputStream}.
  */
 public class HdfsFileInputStreamIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -52,7 +52,9 @@ public class HdfsFileInputStreamIntegrationTest {
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES, Constants.GB);
   private static TachyonFileSystem sTachyonFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
@@ -60,17 +62,9 @@ public class HdfsFileInputStreamIntegrationTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
-        Constants.GB);
-    sLocalTachyonCluster.start();
-    sTachyonFileSystem = sLocalTachyonCluster.getClient();
+    sTachyonFileSystem = sLocalTachyonClusterResource.get().getClient();
     TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile1", TachyonStorageType.STORE,
         UnderStorageType.SYNC_PERSIST, FILE_LEN);
     TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile2", TachyonStorageType.NO_STORE,
@@ -97,7 +91,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test <code>int read()</code>.
+   * Test {@link HdfsFileInputStream#read()}.
    */
   @Test
   public void readTest1() throws IOException {
@@ -117,7 +111,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test <code>int read(byte[] b, int off, int len)</code>.
+   * Test {@link HdfsFileInputStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest2() throws IOException {
@@ -139,7 +133,7 @@ public class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test <code>int read(long position, byte[] buffer, int offset, int length)</code>.
+   * Test {@link HdfsFileInputStream#read(long, byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException {

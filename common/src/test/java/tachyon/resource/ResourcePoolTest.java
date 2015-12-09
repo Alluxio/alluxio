@@ -15,8 +15,7 @@
 
 package tachyon.resource;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -25,7 +24,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 /**
- * Unit test for <code>ResourcePool</code> class.
+ * Unit test for {@code ResourcePool} class.
  */
 public class ResourcePoolTest {
   @Rule
@@ -38,7 +37,7 @@ public class ResourcePoolTest {
       super(maxCapacity);
     }
 
-    public TestResourcePool(int maxCapacity, BlockingQueue<Integer> resources) {
+    public TestResourcePool(int maxCapacity, ConcurrentLinkedQueue<Integer> resources) {
       super(maxCapacity, resources);
     }
 
@@ -68,10 +67,10 @@ public class ResourcePoolTest {
     mThrown.expect(RuntimeException.class);
     final int POOL_SIZE = 2;
     @SuppressWarnings("unchecked")
-    LinkedBlockingQueue<Integer> queue = Mockito.mock(LinkedBlockingQueue.class);
+    ConcurrentLinkedQueue<Integer> queue = Mockito.mock(ConcurrentLinkedQueue.class);
     TestResourcePool testPool = new TestResourcePool(POOL_SIZE, queue);
     Mockito.when(queue.isEmpty()).thenReturn(true);
-    Mockito.when(queue.take()).thenThrow(new InterruptedException());
+    Mockito.when(queue.poll()).thenThrow(new InterruptedException());
     for (int i = 0; i < POOL_SIZE + 1; i ++) {
       testPool.acquire();
     }

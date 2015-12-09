@@ -30,14 +30,15 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonBlockStore#getOutStream}. Only one BlockOutStream should be opened for a
- * block. This class is not thread safe and should only be used by one thread.
+ * calling {@link TachyonBlockStore#getOutStream(long, long, String)}. Only one
+ * {@link BufferedBlockOutStream} should be opened for a block. This class is not thread safe and
+ * should only be used by one thread.
  *
  * <p>
- * The type of BlockOutStream returned will depend on the user configuration and cluster setup. A
- * {@link LocalBlockOutStream} is returned if the client is co-located with a Tachyon worker and the
- * user has enabled this optimization. Otherwise, a {@link RemoteBlockOutStream} will be returned
- * which will write the data through a Tachyon worker.
+ * The type of {@link BufferedBlockOutStream} returned will depend on the user configuration and
+ * cluster setup. A {@link LocalBlockOutStream} is returned if the client is co-located with a
+ * Tachyon worker and the user has enabled this optimization. Otherwise, a
+ * {@link RemoteBlockOutStream} will be returned which will write the data through a Tachyon worker.
  */
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
   /** The block id of the block being written */

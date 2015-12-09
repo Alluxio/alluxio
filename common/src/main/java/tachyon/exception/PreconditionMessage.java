@@ -40,6 +40,7 @@ public class PreconditionMessage {
   public static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
   public static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
   public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer";
+  public static final String RAW_TABLE_METADATA_NULL = "Raw table metadata cannot be null";
   public static final String INODE_TREE_UNINITIALIZED_IS_ROOT_ID =
       "Cannot call isRootId() before initializeRoot()";
   public static final String LINEAGE_DOES_NOT_EXIST = "Lineage id %s does not exist";
@@ -47,9 +48,17 @@ public class PreconditionMessage {
       "The output file %s is not associated with any lineage";
   public static final String MUST_SET_PINNED = "The pinned flag must be set";
   public static final String MUST_SET_TTL = "The TTL value must be set";
+  public static final String MUST_SET_PERSISTED = "The persisted value must be set";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
   public static final String TTL_ONLY_FOR_FILE = "TTL can only be set for files";
+  public static final String PERSIST_ONLY_FOR_FILE = "Only files can be persisted";
+  public static final String FILE_TO_PERSIST_MUST_BE_COMPLETE =
+      "File being persisted must be complete";
+  public static final String ERR_SET_STATE_UNPERSIST =
+      "Cannot set the state of a file to not-persisted";
+  public static final String URI_HOST_NULL = "URI hostname must not be null";
+  public static final String URI_PORT_NULL = "URI port must not be null";
 
   private PreconditionMessage() {} // to prevent initialization
 }

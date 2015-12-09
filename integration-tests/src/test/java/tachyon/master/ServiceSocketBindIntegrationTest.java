@@ -22,14 +22,16 @@ import java.net.URL;
 import java.nio.channels.SocketChannel;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.BlockMasterClient;
+import tachyon.LocalTachyonClusterResource;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
@@ -38,6 +40,9 @@ import tachyon.worker.WorkerClient;
  * Simple integration tests for the bind configuration options.
  */
 public class ServiceSocketBindIntegrationTest {
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(100, 100, Constants.GB, false);
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonConf mWorkerTachyonConf = null;
   private TachyonConf mMasterTachyonConf = null;
@@ -48,23 +53,17 @@ public class ServiceSocketBindIntegrationTest {
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-  }
-
   private void startCluster(String bindHost) throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
     for (ServiceType service : ServiceType.values()) {
-      testConf.set(service.getBindHostKey(), bindHost);
+      mLocalTachyonClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
     }
-    mLocalTachyonCluster.start(testConf);
+    mLocalTachyonClusterResource.start();
+    mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
 
-  private void connectServices() throws IOException {
+  private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
@@ -73,7 +72,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker RPC service
     mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-    mWorkerClient.mustConnect();
+    mWorkerClient.connect();
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
@@ -102,7 +101,6 @@ public class ServiceSocketBindIntegrationTest {
     mWorkerClient.close();
     mMasterWebService.disconnect();
     mBlockMasterClient.close();
-    mLocalTachyonCluster.stop();
   }
 
   @Test
@@ -209,7 +207,7 @@ public class ServiceSocketBindIntegrationTest {
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
-    } catch (IOException ie) {
+    } catch (ConnectionFailedException e) {
       // This is expected, since Master RPC service is NOT listening on loopback.
     }
 

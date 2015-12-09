@@ -41,14 +41,17 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class. Allocates a block from
-   * the given block store location. The location can be a specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   * Should only be accessed by
+   * {@link #allocateBlockWithView(long, long, BlockStoreLocation, BlockMetadataManagerView)} inside
+   * class. Allocates a block from the given block store location. The location can be a specific
+   * location, or {@link BlockStoreLocation#anyTier()} or
+   * {@link BlockStoreLocation#anyDirInTier(String)}.
    *
    * @param sessionId the ID of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a StorageDirView in which to create the temp block meta if success, null otherwise
+   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
+   *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,

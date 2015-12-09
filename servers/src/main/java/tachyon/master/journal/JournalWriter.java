@@ -29,6 +29,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -229,6 +230,9 @@ public final class JournalWriter {
     /**
      * Writes an entry to the checkpoint file.
      *
+     * The entry should not have its sequence number set. This method will add the proper sequence
+     * number to the passed in entry.
+     *
      * @param entry an entry to write to the journal checkpoint file
      * @throws IOException
      */
@@ -238,7 +242,7 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
+          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber ++).build(), mOutputStream);
     }
 
     /**
@@ -302,13 +306,21 @@ public final class JournalWriter {
       mDataOutputStream = new DataOutputStream(outputStream);
     }
 
+    /**
+     * The given entry should not have its sequence number set. This method will add the proper
+     * sequence number to the passed in entry.
+     *
+     * @param entry an entry to write to the journal checkpoint file
+     * @throws IOException
+     */
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mDataOutputStream);
+          entry.toBuilder().setSequenceNumber(mNextEntrySequenceNumber ++).build(),
+          mDataOutputStream);
     }
 
     @Override
