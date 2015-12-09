@@ -518,3 +518,26 @@ data from that system.
 ```
 bin/tachyon tfs unmount /s3/data
 ```
+
+## unpin
+The `unpin` command unmarks a file or directory in Tachyon as pinned. This is a metadata operation
+and will not evict or delete any data blocks. Once a file is unpinned, its data blocks can be
+evicted from the various Tachyon workers containing the block.
+
+For example, `unpin` can be used when the administrator knows there is a change in the data access
+pattern.
+
+```
+bin/tachyon tfs unpin /data/yesterday/join-table
+```
+
+## unsetTTL
+The `unsetTTL` command will remove the TTL of a file in Tachyon. This is a metadata operation and
+will not evict or store blocks in Tachyon. The TTL of a file can later be reset with `setTTL`.
+
+For example, `unsetTTL` can be used if a regularly managed file requires manual management due to
+some special case.
+
+```
+bin/tachyon tfs unsetTTL /data/yesterday/not-analyzed-data
+```
