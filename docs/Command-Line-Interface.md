@@ -457,3 +457,36 @@ For example, `report` can be used to force recomputation of a file.
 bin/tachyon tfs report /tmp/lineage-file
 ```
 
+## rm
+The `rm` command removes a file from Tachyon space and the under storage system. The file will be
+unavailable immediately after this command returns, but the actual data may be deleted a while
+later.
+
+For example, `rm` can be used to remove temporary files which are no longer needed.
+
+```
+bin/tachyon tfs rm /tmp/unused-file
+```
+
+## rmr
+The `rmr` command is similar to `rm`, but can also take a directory as an argument. `Rmr` will
+delete all contents of the directory and then the directory itself.
+
+For example, `rmr` can be used to clean up entire subtrees in the Tachyon.
+
+```
+bin/tachyon tfs rmr /tmp/tests
+```
+
+## setTTL
+The `setTTL` command sets the time-to-live of a file, in milliseconds. The file will automatically
+be deleted once the current time is greater than the TTL + creation time of the file. This delete
+will affect both Tachyon and the under storage system.
+
+For example, `setTTL` can be used to clean up files the administrator knows are unnecessary after a
+period of time.
+
+```
+bin/tachyon tfs setTTL /data/good-for-one-day 86400000
+```
+
