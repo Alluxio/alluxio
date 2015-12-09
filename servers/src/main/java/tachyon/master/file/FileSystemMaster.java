@@ -463,7 +463,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
-    MasterContext.getMasterSource().incCreateFileOps();
+    MasterContext.getMasterSource().incCreatePathOps();
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
@@ -493,7 +493,7 @@ public final class FileSystemMaster extends MasterBase {
 
     mTTLBuckets.insert(inode);
 
-    MasterContext.getMasterSource().incFilesCreated(created.size());
+    MasterContext.getMasterSource().incPathsCreated(created.size());
     return createResult;
   }
 
@@ -585,7 +585,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean deleteFile(long fileId, boolean recursive)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException {
-    MasterContext.getMasterSource().incDeleteFileOps();
+    MasterContext.getMasterSource().incDeletePathOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
@@ -601,7 +601,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private void deleteFileFromEntry(DeleteFileEntry entry) {
-    MasterContext.getMasterSource().incDeleteFileOps();
+    MasterContext.getMasterSource().incDeletePathOps();
     try {
       deleteFileInternal(entry.getId(), entry.getRecursive(), true, entry.getOpTimeMs());
     } catch (Exception e) {
@@ -694,7 +694,7 @@ public final class FileSystemMaster extends MasterBase {
 
       mInodeTree.deleteInode(delInode, opTimeMs);
     }
-    MasterContext.getMasterSource().incFilesDeleted(delInodes.size());
+    MasterContext.getMasterSource().incPathsDeleted(delInodes.size());
     return true;
   }
 
@@ -1100,7 +1100,7 @@ public final class FileSystemMaster extends MasterBase {
     srcInode.setName(dstPath.getName());
     ((InodeDirectory) dstParentInode).addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
-    MasterContext.getMasterSource().incFilesRenamed();
+    MasterContext.getMasterSource().incPathsRenamed();
     propagatePersisted(srcInode, replayed);
 
     return true;
