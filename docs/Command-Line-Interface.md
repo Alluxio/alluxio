@@ -490,3 +490,36 @@ period of time.
 bin/tachyon tfs setTTL /data/good-for-one-day 86400000
 ```
 
+## tail
+The `tail` command outputs the last 1 kb of data in a file to the console.
+
+For example, `tail` can be used to verify the output of a job is in the expected format or contains
+expected values.
+
+```
+bin/tachyon tfs tail /output/part-00000
+```
+
+## touch
+The `touch` command creates a 0-byte file. Files created with `touch` cannot be overwritten and are
+mostly useful as flags.
+
+For example, `touch` can be used to create a file signifying the compeletion of analysis on a
+directory.
+
+```
+bin/tachyon tfs touch /data/yesterday/_DONE_
+```
+
+## unmount
+The `unmount` command disassociates a Tachyon path with an under storage directory. Tachyon metadata
+for the mount point will be removed along with any data blocks, but the under storage system will
+retain all metadata and data. See [Unified Namespace](Unified-and-Transparent-Namespace.html) for
+more dtails.
+
+For example, `unmount` can be used to remove an under storage system when the users no longer need
+data from that system.
+
+```
+bin/tachyon tfs unmount /s3/data
+```
