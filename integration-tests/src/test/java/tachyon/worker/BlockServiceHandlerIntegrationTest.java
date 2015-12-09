@@ -286,8 +286,8 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Waits for a worker heartbeat to master to be resolved
   private void waitForHeartbeat() {
-    BlockMasterSync blockMasterSync =
-        Whitebox.getInternalState(mLocalTachyonClusterResource.get().getWorker(), "mBlockMasterSync");
+    BlockMasterSync blockMasterSync = Whitebox
+        .getInternalState(mLocalTachyonClusterResource.get().getWorker(), "mBlockMasterSync");
     Object afterHeartbeatHook = Whitebox.getInternalState(blockMasterSync, "mAfterHeartbeatHook");
     synchronized (afterHeartbeatHook) {
       try {
