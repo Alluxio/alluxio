@@ -446,3 +446,14 @@ workloads well.
 bin/tachyon tfs pin /data/today
 ```
 
+## report
+The `report` command marks a file as lost to the Tachyon master. This command should only be used
+with files created using the [Lineage API](Lineage-API.html). Marking a file as lost will cause the
+master to schedule a recomputation job to regenerate the file.
+
+For example, `report` can be used to force recomputation of a file.
+
+```
+bin/tachyon tfs report /tmp/lineage-file
+```
+
