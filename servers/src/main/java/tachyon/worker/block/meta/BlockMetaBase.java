@@ -26,9 +26,9 @@ import tachyon.worker.block.BlockStoreLocation;
 public abstract class BlockMetaBase {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
-   * subdir of its StorageDir, the subdir is the same as the creator's sessionId, and the block file
-   * is the same as its blockId. e.g. sessionId 2 creates a temp Block 100 in StorageDir
-   * "/mnt/mem/0", this temp block has path:
+   * subdir of its {@link StorageDir}, the subdir is the same as the creator's sessionId, and the
+   * block file is the same as its blockId. e.g. sessionId 2 creates a temp Block 100 in
+   * {@link StorageDir} "/mnt/mem/0", this temp block has path:
    * <p>
    * /mnt/mem/0/2/100
    *
@@ -42,8 +42,8 @@ public abstract class BlockMetaBase {
   }
 
   /**
-   * Committed block is stored in BlockStore under its StorageDir as a block file named after its
-   * blockId. e.g. Block 100 of StorageDir "/mnt/mem/0" has path:
+   * Committed block is stored in BlockStore under its {@link StorageDir} as a block file named
+   * after its blockId. e.g. Block 100 of StorageDir "/mnt/mem/0" has path:
    * <p>
    * /mnt/mem/0/100
    *

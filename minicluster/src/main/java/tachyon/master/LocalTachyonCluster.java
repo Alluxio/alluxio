@@ -24,7 +24,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystemCluster;
-import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.worker.WorkerContext;
@@ -47,20 +46,6 @@ import tachyon.worker.lineage.LineageWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
-
-  public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-
-    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-  }
 
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;

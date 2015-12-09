@@ -26,7 +26,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 
 /**
- * Swift UnderFilesystem implementation
+ * Swift {@link UnderFileSystem} implementation
  */
 public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
