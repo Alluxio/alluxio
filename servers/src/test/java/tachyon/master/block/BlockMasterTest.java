@@ -52,7 +52,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 
 /**
- * Unit tests for tachyon.master.block.BlockMaster.
+ * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
 
@@ -302,7 +302,7 @@ public class BlockMasterTest {
         Maps.<String, List<Long>>newHashMap());
   }
 
-  /** Private access to BlockMaster internals. */
+  /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
     private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;

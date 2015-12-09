@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
+import tachyon.exception.TachyonException;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -42,7 +43,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient();
     try {
-      mWorkerClient.mustConnect();
+      mWorkerClient.connect();
       mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
           mWorkerClient.getSessionId());
     } catch (IOException e) {
@@ -64,7 +65,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient(hostname);
     try {
-      mWorkerClient.mustConnect();
+      mWorkerClient.connect();
       mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
           mWorkerClient.getSessionId());
     } catch (IOException e) {
@@ -79,7 +80,11 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       return;
     }
     mRemoteWriter.close();
-    mWorkerClient.cancelBlock(mBlockId);
+    try {
+      mWorkerClient.cancelBlock(mBlockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
@@ -92,10 +97,18 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     flush();
     mRemoteWriter.close();
     if (mFlushedBytes > 0) {
-      mWorkerClient.cacheBlock(mBlockId);
+      try {
+        mWorkerClient.cacheBlock(mBlockId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
       ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
-      mWorkerClient.cancelBlock(mBlockId);
+      try {
+        mWorkerClient.cancelBlock(mBlockId);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;

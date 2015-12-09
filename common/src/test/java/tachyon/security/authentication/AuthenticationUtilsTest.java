@@ -58,9 +58,10 @@ public class AuthenticationUtilsTest {
   public void before() throws Exception {
     mTachyonConf = new TachyonConf();
     // Use port 0 to assign each test case an available port (possibly different)
-    mServerTSocket = new TServerSocket(new InetSocketAddress("localhost", 0));
+    String localhost = NetworkAddressUtils.getLocalHostName(new TachyonConf());
+    mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
-    mServerAddress = new InetSocketAddress("localhost", port);
+    mServerAddress = new InetSocketAddress(localhost, port);
     mClientTSocket = AuthenticationUtils.createTSocket(mServerAddress,
         mTachyonConf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
   }

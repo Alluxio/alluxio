@@ -72,7 +72,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker RPC service
     mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-    mWorkerClient.mustConnect();
+    mWorkerClient.connect();
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
