@@ -40,7 +40,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
   /**
    * Displays information for all directories and files directly under the path specified in args.
    *
-   * @param path The TachyonURI path as the input of the command
+   * @param path The {@link TachyonURI} path as the input of the command
    * @param recursive Whether list the path recursively
    * @throws IOException
    */

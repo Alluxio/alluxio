@@ -125,7 +125,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /**
    * Keeps track of workers which are no longer in communication with the master. Access must be
-   * synchronized on mWorkers.
+   * synchronized on {@link #mWorkers}.
    */
   // This warning cannot be avoided when passing generics into varargs
   @SuppressWarnings("unchecked")
@@ -621,7 +621,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
-   * mBlocks should already be locked before calling this method.
+   * {@link #mBlocks} should already be locked before calling this method.
    *
    * @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
@@ -655,7 +655,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
-   * mWorkers should already be locked before calling this method.
+   * {@link #mWorkers} should already be locked before calling this method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
    * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
@@ -720,6 +720,5 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         }
       }
     }
-
   }
 }

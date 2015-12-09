@@ -29,7 +29,7 @@ import tachyon.underfs.UnderFileSystemFactory;
 
 /**
  * Factory for creating HDFS under file systems. As an implementation detail, it caches created
- * HdfsUnderFileSystems, using paths' schemes and authorities as the keys. This class is
+ * {@link HdfsUnderFileSystem}s, using paths' schemes and authorities as the keys. This class is
  * thread-safe.
  */
 public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {

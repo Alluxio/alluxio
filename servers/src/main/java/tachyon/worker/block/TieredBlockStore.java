@@ -546,7 +546,7 @@ public final class TieredBlockStore implements BlockStore {
    * @param initialBlockSize initial block size in bytes
    * @param newBlock true if this temp block is created for a new block
    * @return a temp block created if successful, or null if allocation failed (instead of throwing
-   *         WorkerOutOfSpaceException because allocation failure could be an expected case)
+   *         {@link WorkerOutOfSpaceException} because allocation failure could be an expected case)
    * @throws BlockAlreadyExistsException if there is already a block with the same block id
    */
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId,
@@ -594,8 +594,9 @@ public final class TieredBlockStore implements BlockStore {
    *
    * @param blockId block Id
    * @param additionalBytes additional bytes to request for this block
-   * @return a pair of boolean and BlockStoreLocation. The boolean indicates if the operation
-   *         succeeds and the BlockStoreLocation denotes where to free more space if it fails.
+   * @return a pair of boolean and {@link BlockStoreLocation}. The boolean indicates if the
+   *         operation succeeds and the {@link BlockStoreLocation} denotes where to free more space
+   *         if it fails.
    * @throws BlockDoesNotExistException if this block is not found
    */
   private Pair<Boolean, BlockStoreLocation> requestSpaceInternal(long blockId, long additionalBytes)
@@ -714,7 +715,7 @@ public final class TieredBlockStore implements BlockStore {
    * Get the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
-   * @return BlockMetadataManagerView, an updated view with most recent information
+   * @return {@link BlockMetadataManagerView}, an updated view with most recent information
    */
   private BlockMetadataManagerView getUpdatedView() {
     // TODO(calvin): Update the view object instead of creating new one every time.
@@ -726,7 +727,7 @@ public final class TieredBlockStore implements BlockStore {
 
   /**
    * Moves a block to new location only if allocator finds available space in newLocation. This
-   * method will not trigger any eviction. Returns MoveBlockResult.
+   * method will not trigger any eviction. Returns {@link MoveBlockResult}.
    *
    * @param sessionId session Id
    * @param blockId block Id

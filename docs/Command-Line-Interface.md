@@ -163,11 +163,6 @@ should have the final escaped parameters (cat /\\*).
     <td>Report to the master that a file is lost.</td>
   </tr>
   <tr>
-    <td>request</td>
-    <td>request "path" "dependency ID"</td>
-    <td>Request the file for a given dependency ID.</td>
-  </tr>
-  <tr>
     <td>rm</td>
     <td>rm "path"</td>
     <td>Remove a file. This command will fail if the given path is a directory rather than a

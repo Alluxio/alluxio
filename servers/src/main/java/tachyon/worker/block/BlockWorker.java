@@ -52,11 +52,11 @@ import tachyon.worker.WorkerSource;
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
  *
- * Servers: BlockServiceHandler (RPC Server), BlockDataServer (Data Server)
+ * Servers: {@link BlockServiceHandler} (RPC Server), BlockDataServer (Data Server)
  *
- * Periodic Threads: BlockMasterSync (Worker to Master continuous communication)
+ * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
- * Logic: BlockDataManager (Logic for all block related storage operations)
+ * Logic: {@link BlockDataManager} (Logic for all block related storage operations)
  */
 public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
