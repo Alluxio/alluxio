@@ -64,16 +64,16 @@ public class ApplicationMasterTest {
 
   private static final String MASTER_ADDRESS = "localhost";
   private static final String TACHYON_HOME = "/tmp/tachyonhome";
-  private static final TachyonConf mConf = new TachyonConf();
+  private static final TachyonConf CONF = new TachyonConf();
   private static final int NUM_WORKERS = 2;
   private static final int MASTER_MEM_MB =
-      (int) mConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-  private static final int MASTER_CPU = mConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      (int) CONF.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+  private static final int MASTER_CPU = CONF.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
   private static final int WORKER_MEM_MB =
-      (int) mConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+      (int) CONF.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
   private static final int RAMDISK_MEM_MB =
-      (int) mConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
-  private static final int WORKER_CPU = mConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      (int) CONF.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+  private static final int WORKER_CPU = CONF.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
   private NMClient mNMClient;
@@ -231,7 +231,8 @@ public class ApplicationMasterTest {
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
     Map<String, String> expectedEnvironment = Maps.newHashMap();
     expectedEnvironment.put("TACHYON_MASTER_ADDRESS", "masterAddress");
-    expectedEnvironment.put("TACHYON_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB");
+    expectedEnvironment.put("TACHYON_WORKER_MEMORY_SIZE",
+        Integer.toString(RAMDISK_MEM_MB) + ".00MB");
     ContainerLaunchContext expectedContext = Records.newRecord(ContainerLaunchContext.class);
     expectedContext.setCommands(Lists.newArrayList(expectedCommand));
     expectedContext.setEnvironment(expectedEnvironment);
