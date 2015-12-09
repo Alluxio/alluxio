@@ -276,10 +276,8 @@ public final class LineageMaster extends MasterBase {
   private boolean deleteLineageInternal(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
-    if (lineage == null) {
-      throw new LineageDoesNotExistException(
-          ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(lineageId));
-    }
+    LineageDoesNotExistException.check(lineage != null, ExceptionMessage.LINEAGE_DOES_NOT_EXIST,
+        lineageId);
 
     // there should not be child lineage if not cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
@@ -359,9 +357,11 @@ public final class LineageMaster extends MasterBase {
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
-      List<Long> persistedFiles) throws FileDoesNotExistException, InvalidPathException {
+      List<Long> persistedFiles)
+          throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
     if (!persistedFiles.isEmpty()) {
       // notify checkpoint manager the persisted files
       persistFiles(workerId, persistedFiles);
@@ -378,8 +378,9 @@ public final class LineageMaster extends MasterBase {
 
   /**
    * @return the list of all the {@link LineageInfo}s
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  public synchronized List<LineageInfo> getLineageInfoList() {
+  public synchronized List<LineageInfo> getLineageInfoList() throws LineageDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
@@ -431,9 +432,10 @@ public final class LineageMaster extends MasterBase {
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   private synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
     List<CheckpointFile> files = Lists.newArrayList();
     if (!mWorkerToCheckpointFile.containsKey(workerId)) {
       return files;
@@ -468,8 +470,10 @@ public final class LineageMaster extends MasterBase {
    * Request a list of files as being persisted
    *
    * @param fileIds the id of the files
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  public synchronized void requestFilePersistence(List<Long> fileIds) {
+  public synchronized void requestFilePersistence(List<Long> fileIds)
+      throws LineageDoesNotExistException {
     if (!fileIds.isEmpty()) {
       LOG.info("Request file persistency: {}", fileIds);
     }
@@ -484,9 +488,14 @@ public final class LineageMaster extends MasterBase {
     flushJournal();
   }
 
-  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry) {
+  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry)
+      throws IOException {
     for (long fileId : entry.getFileIdsList()) {
-      mLineageStore.requestFilePersistence(fileId);
+      try {
+        mLineageStore.requestFilePersistence(fileId);
+      } catch (LineageDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
@@ -495,8 +504,10 @@ public final class LineageMaster extends MasterBase {
    *
    * @param workerId the worker id
    * @param persistedFiles the persisted files
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  private synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void persistFiles(long workerId, List<Long> persistedFiles)
+      throws LineageDoesNotExistException {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {
@@ -512,9 +523,14 @@ public final class LineageMaster extends MasterBase {
     flushJournal();
   }
 
-  private synchronized void persistFilesFromEntry(PersistFilesEntry entry) {
+  private synchronized void persistFilesFromEntry(PersistFilesEntry entry)
+      throws IOException {
     for (Long fileId : entry.getFileIdsList()) {
-      mLineageStore.commitFilePersistence(fileId);
+      try {
+        mLineageStore.commitFilePersistence(fileId);
+      } catch (LineageDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 

@@ -23,8 +23,8 @@ import com.google.common.collect.ImmutableBiMap;
 import tachyon.conf.TachyonConf;
 
 /**
- * Creates a two-way mapping between StorageTier aliases and ordinal numbers from the given
- * TachyonConf. This class is thread safe.
+ * Creates a two-way mapping between {@link tachyon.worker.block.meta.StorageTier} aliases and
+ * ordinal numbers from the given {@link TachyonConf}. This class is thread safe.
  */
 public abstract class StorageTierAssoc {
   /*

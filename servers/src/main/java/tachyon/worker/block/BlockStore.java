@@ -44,9 +44,9 @@ interface BlockStore {
   long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
-   * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock}).
+   * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock(long, long)}.
    *
-   * @param lockId the ID of the lock returned by {@link #lockBlock}
+   * @param lockId the ID of the lock returned by {@link #lockBlock(long, long)}
    * @throws BlockDoesNotExistException if lockId can not be found
    */
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
@@ -86,8 +86,8 @@ interface BlockStore {
       IOException;
 
   /**
-   * Gets the metadata of a block given its blockId or throws BlockDoesNotExistException. This
-   * method does not require a lock ID so the block is possible to be moved or removed after it
+   * Gets the metadata of a block given its blockId or throws {@link BlockDoesNotExistException}.
+   * This method does not require a lock ID so the block is possible to be moved or removed after it
    * returns.
    *
    * @param blockId the block ID
@@ -99,7 +99,8 @@ interface BlockStore {
   /**
    * Gets the meta data of a specific block from local storage.
    * <p>
-   * This method requires the lock ID returned by a previously acquired {@link #lockBlock}.
+   * This method requires the lock ID returned by a previously acquired
+   * {@link #lockBlock(long, long)}.
    *
    * @param sessionId the ID of the session to get this file
    * @param blockId the ID of the block
@@ -177,11 +178,12 @@ interface BlockStore {
   /**
    * Creates a reader of an existing block to read data from this block.
    * <p>
-   * This operation requires the lock ID returned by a previously acquired {@link #lockBlock}.
+   * This operation requires the lock ID returned by a previously acquired
+   * {@link #lockBlock(long, long)}.
    *
    * @param sessionId the ID of the session to get the reader
    * @param blockId the ID of an existing block
-   * @param lockId the ID of the lock returned by {@link #lockBlock}
+   * @param lockId the ID of the lock returned by {@link #lockBlock(long, long)}
    * @return a {@link BlockReader} instance on this block
    * @throws BlockDoesNotExistException if lockId is not found
    * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the

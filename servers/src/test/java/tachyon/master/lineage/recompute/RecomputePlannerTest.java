@@ -26,6 +26,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -79,7 +80,7 @@ public final class RecomputePlannerTest {
   }
 
   @Test
-  public void oneCheckointedLineageTest() {
+  public void oneCheckointedLineageTest() throws LineageDoesNotExistException {
     mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
         Lists.newArrayList(new LineageFile(1L)), mJob);
     mLineageStore.completeFile(1L);

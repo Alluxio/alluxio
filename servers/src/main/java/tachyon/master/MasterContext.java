@@ -18,25 +18,25 @@ package tachyon.master;
 import tachyon.conf.TachyonConf;
 
 /**
- * A MasterContext object stores TachyonConf.
+ * A MasterContext object stores {@link TachyonConf}.
  */
 public final class MasterContext {
   private MasterContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one TachyonConf object shared within the same
-   * master process.
+   * The static configuration object. There is only one {@link TachyonConf} object shared within
+   * the same master process.
    */
   private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
-   * The MasterSource for collecting master metrics.
+   * The {@link MasterSource} for collecting master metrics.
    */
   private static MasterSource sMasterSource = new MasterSource();
 
   /**
-   * Returns the one and only static {@link tachyon.conf.TachyonConf} object which is shared among
-   * all classes within the master process.
+   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
+   * within the master process.
    *
    * @return the tachyonConf for the master process
    */
@@ -45,8 +45,8 @@ public final class MasterContext {
   }
 
   /**
-   * Returns the one and only static {@link tachyon.master.MasterSource} object which is shared
-   * among all classes within the master process.
+   * Returns the one and only static {@link MasterSource} object which is shared among all classes
+   * within the master process.
    *
    * @return the MasterSource for the master process
    */

@@ -61,7 +61,8 @@ public final class RoundRobinAllocator implements Allocator {
    * @param sessionId the ID of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a StorageDirView in which to create the temp block meta if success, null otherwise
+   * @return a {@link StorageDirView} in which to create the temp block meta if success, null
+   *         otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,

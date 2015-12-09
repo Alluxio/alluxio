@@ -26,7 +26,7 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.util.io.BufferUtils;
 
 /**
- * All RawTables managed by RawTableMaster.
+ * All RawTables managed by {@link tachyon.master.rawtable.RawTableMaster}.
  */
 public class RawTables implements JournalCheckpointStreamable {
   private final IndexedSet.FieldIndex<RawTable> mIdIndex = new IndexedSet.FieldIndex<RawTable>() {

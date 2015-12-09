@@ -20,7 +20,7 @@ import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
- * {@code Inode} is an abstract class, with information shared by all types of Inodes.
+ * {@link Inode} is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
   public abstract static class Builder<T extends Builder<T>> {
@@ -161,7 +161,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Generates a FileInfo of the file or folder.
+   * Generates a {@link FileInfo} of the file or folder.
    *
    * @param path The path of the file
    * @return generated FileInfo

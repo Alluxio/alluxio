@@ -57,7 +57,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
   /**
    * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem
    *
-   * @param filePath the TachyonURI path to persist to the UnderFileSystem
+   * @param filePath the {@link TachyonURI} path to persist to the UnderFileSystem
    * @throws IOException when a Tachyon or I/O error occurs
    */
   private void persist(TachyonURI filePath) throws IOException {
