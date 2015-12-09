@@ -222,10 +222,4 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     }
     mCuratorServer.stop();
   }
-
-  @Override
-  public void stopUFS() throws Exception {
-    // masters share underfs, so only need to call on the first master
-    mMasters.get(0).cleanupUnderfs();
-  }
 }
