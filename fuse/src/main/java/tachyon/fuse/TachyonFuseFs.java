@@ -108,6 +108,8 @@ final class TachyonFuseFs extends FuseStubFS {
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
     // mode is ignored in tachyon-fuse
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
+    // (see {@code man 2 open} for the structure of the flags bitfield)
+    // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
     LOG.trace("create({}, {}) [Tachyon: {}]", path, Integer.toHexString(flags), turi);
     final int openFlag = flags & 3;
@@ -125,7 +127,7 @@ final class TachyonFuseFs extends FuseStubFS {
       LOG.debug("Tachyon OutStream created for {}", path);
 
       synchronized (mOpenFiles) {
-        if (mOpenFiles.size() == MAX_OPEN_FILES) {
+        if (mOpenFiles.size() >= MAX_OPEN_FILES) {
           LOG.error("Cannot open {}: too many open files", turi);
           return -ErrorCodes.EMFILE();
         }
@@ -200,34 +202,33 @@ final class TachyonFuseFs extends FuseStubFS {
       final TachyonFile tf = mTFS.openIfExists(turi);
       if (tf == null) {
         return -ErrorCodes.ENOENT();
-      } else {
-        final FileInfo fi = mTFS.getInfo(tf);
-        stat.st_size.set(fi.getLength());
-
-        final long ctime = fi.getLastModificationTimeMs();
-        final long ctime_sec = fi.getLastModificationTimeMs() / 1000;
-        //keeps only the "residual" nanoseconds not caputred in
-        // citme_sec
-        final long ctime_nsec = (fi.getLastModificationTimeMs() % 1000) * 1000;
-        stat.st_ctim.tv_sec.set(ctime_sec);
-        stat.st_ctim.tv_nsec.set(ctime_nsec);
-        stat.st_mtim.tv_sec.set(ctime_sec);
-        stat.st_mtim.tv_nsec.set(ctime_nsec);
-
-        // Since Tachyon does not support ownership yet,
-        // set fake ownership on the user and group that
-        // is running tachyon-fuse
-        stat.st_uid.set(UID_AND_GID[0]);
-        stat.st_gid.set(UID_AND_GID[1]);
-
-        final int mode;
-        if (fi.isFolder) {
-          mode = FileStat.S_IFDIR;
-        } else {
-          mode = FileStat.S_IFREG;
-        }
-        stat.st_mode.set(mode);
       }
+      final FileInfo fi = mTFS.getInfo(tf);
+      stat.st_size.set(fi.getLength());
+
+      final long ctime = fi.getLastModificationTimeMs();
+      final long ctime_sec = fi.getLastModificationTimeMs() / 1000;
+      //keeps only the "residual" nanoseconds not caputred in
+      // citme_sec
+      final long ctime_nsec = (fi.getLastModificationTimeMs() % 1000) * 1000;
+      stat.st_ctim.tv_sec.set(ctime_sec);
+      stat.st_ctim.tv_nsec.set(ctime_nsec);
+      stat.st_mtim.tv_sec.set(ctime_sec);
+      stat.st_mtim.tv_nsec.set(ctime_nsec);
+
+      // Since Tachyon does not support ownership yet,
+      // set fake ownership on the user and group that
+      // is running tachyon-fuse
+      stat.st_uid.set(UID_AND_GID[0]);
+      stat.st_gid.set(UID_AND_GID[1]);
+
+      final int mode;
+      if (fi.isFolder) {
+        mode = FileStat.S_IFDIR;
+      } else {
+        mode = FileStat.S_IFREG;
+      }
+      stat.st_mode.set(mode);
 
     } catch (InvalidPathException e) {
       LOG.debug("Invalid path {}", path, e);
@@ -303,6 +304,8 @@ final class TachyonFuseFs extends FuseStubFS {
   @Override
   public int open(String path, FuseFileInfo fi) {
     final TachyonURI turi = mPathResolverCache.getUnchecked(path);
+    // (see {@code man 2 open} for the structure of the flags bitfield)
+    // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
     LOG.trace("open({}, 0x{}) [Tachyon: {}]", path, Integer.toHexString(flags), turi);
 
@@ -357,7 +360,10 @@ final class TachyonFuseFs extends FuseStubFS {
    * Reads data from an open file.
    * @param path the FS path of the file to read
    * @param buf FUSE buffer to fill with data read
-   * @param size how many bytes to read
+   * @param size how many bytes to read. The maximum value that is accepted
+   *             on this method is {@link Integer#MAX_VALUE} (note that current
+   *             FUSE implementation will call this metod whit a size of
+   *             at most 128K).
    * @param offset offset of the read operation
    * @param fi FileInfo data structure kept by FUSE
    * @return the number of bytes read or 0 on EOF. A negative
@@ -365,7 +371,7 @@ final class TachyonFuseFs extends FuseStubFS {
    */
   @Override
   public int read(String path, Pointer buf, @size_t long size, @off_t long offset,
-                  FuseFileInfo fi) {
+      FuseFileInfo fi) {
 
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
@@ -474,7 +480,8 @@ final class TachyonFuseFs extends FuseStubFS {
    * Guaranteed to be called once for each open() or create().
    * @param path the FS path of the file to release
    * @param fi FileInfo data structure kept by FUSE
-   * @return 0 on success, a negative value on error
+   * @return 0. The return value is ignored by FUSE (any error should be reported
+   *         on flush instead)
    */
   @Override
   public int release(String path, FuseFileInfo fi) {
@@ -560,7 +567,9 @@ final class TachyonFuseFs extends FuseStubFS {
   /**
    * Writes a buffer to an open Tachyon file.
    * @param buf The buffer with source data
-   * @param size How much data to write from the buffer
+   * @param size How much data to write from the buffer. The maximum accepted size
+   *             for writes is {@link Integer#MAX_VALUE}. Note that current FUSE
+   *             implementation will anyway call write with at most 128K writes
    * @param offset The offset where to write in the file (IGNORED)
    * @param fi FileInfo data structure kept by FUSE
    * @return number of bytes written on success, a negative value on error

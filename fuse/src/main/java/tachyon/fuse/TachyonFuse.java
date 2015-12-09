@@ -42,6 +42,13 @@ public final class TachyonFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static TachyonConf sTachyonConf;
 
+  /**
+   * Running this class will mount the file system according to
+   * the options passed to this function {@link #parseOptions(String[])}.
+   * The user-space fuse application will stay on the foreground and keep
+   * the file system mounted. The user can unmount the file system by
+   * gracefully killing (SIGINT) the process.
+   */
   public static void main(String[] args) {
     sTachyonConf = ClientContext.getConf();
     final TachyonFuseOptions opts = parseOptions(args);
