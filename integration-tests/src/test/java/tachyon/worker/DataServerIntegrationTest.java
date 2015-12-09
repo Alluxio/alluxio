@@ -26,14 +26,16 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.BlockMasterClient;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
@@ -42,7 +44,6 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
@@ -50,7 +51,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Integration tests for tachyon.worker.DataServer.
+ * Integration tests for {@link DataServer}.
  */
 @RunWith(Parameterized.class)
 public class DataServerIntegrationTest {
@@ -76,7 +77,8 @@ public class DataServerIntegrationTest {
   private final String mNettyTransferType;
   private final String mBlockReader;
 
-  private LocalTachyonCluster mLocalTachyonCluster = null;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource;
   private TachyonFileSystem mTFS = null;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
@@ -85,12 +87,28 @@ public class DataServerIntegrationTest {
     mDataServerClass = className;
     mNettyTransferType = nettyTransferType;
     mBlockReader = blockReader;
+
+    mLocalTachyonClusterResource = new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES,
+        USER_QUOTA_UNIT_BYTES, Constants.GB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
+        Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
+        mBlockReader);
+  }
+
+  @Before
+  public final void before() throws Exception {
+    mWorkerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    mTFS = mLocalTachyonClusterResource.get().getClient();
+
+    mBlockMasterClient = new BlockMasterClient(
+        new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
+            mLocalTachyonClusterResource.get().getMasterPort()),
+        mWorkerTachyonConf);
   }
 
   @After
   public final void after() throws Exception {
     mBlockMasterClient.close();
-    mLocalTachyonCluster.stop();
   }
 
   /**
@@ -119,26 +137,6 @@ public class DataServerIntegrationTest {
   private void assertValid(final DataServerMessage msg, final int expectedSize, final long blockId,
       final long offset, final long length) {
     assertValid(msg, BufferUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
-  }
-
-  @Before
-  public final void before() throws Exception {
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    testConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    testConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-    testConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
-    mLocalTachyonCluster.start(testConf);
-
-    mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
-    mTFS = mLocalTachyonCluster.getClient();
-
-    mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mWorkerTachyonConf);
   }
 
   @Test

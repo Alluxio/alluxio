@@ -18,15 +18,25 @@ package tachyon.master.file.meta.options;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
+import tachyon.security.authorization.PermissionStatus;
 
 public class CreatePathOptions {
   public static class Builder {
+    private boolean mAllowExists;
     private long mBlockSizeBytes;
     private boolean mDirectory;
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
     private long mTTL;
+    private PermissionStatus mPermissionStatus;
+
+    /**
+     * Creates a new builder for {@link CreatePathOptions}.
+     */
+    public Builder() {
+      this(MasterContext.getConf());
+    }
 
     /**
      * Creates a new builder for {@link CreatePathOptions}.
@@ -34,12 +44,24 @@ public class CreatePathOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
+      mAllowExists = false;
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mDirectory = false;
       mOperationTimeMs = System.currentTimeMillis();
       mRecursive = false;
       mPersisted = false;
       mTTL = Constants.NO_TTL;
+      mPermissionStatus = PermissionStatus.getDirDefault();
+    }
+
+    /**
+     * @param allowExists the allowExists flag value to use; it specifies whether an exception
+     *        should be thrown if the object being made already exists.
+     * @return the builder
+     */
+    public Builder setAllowExists(boolean allowExists) {
+      mAllowExists = allowExists;
+      return this;
     }
 
     /**
@@ -92,7 +114,7 @@ public class CreatePathOptions {
 
     /**
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
-     *            created file should be kept around before it is automatically deleted
+     *        created file should be kept around before it is automatically deleted
      * @return the builder
      */
     public Builder setTTL(long ttl) {
@@ -101,7 +123,16 @@ public class CreatePathOptions {
     }
 
     /**
-     * Builds a new instance of {@code CreateOptions}.
+     * @param permissionStatus the permission status to use
+     * @return the builder
+     */
+    public Builder setPermissionStatus(PermissionStatus permissionStatus) {
+      mPermissionStatus = permissionStatus;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link tachyon.master.file.options.CreateOptions}.
      *
      * @return a {@code CreateOptions} instance
      */
@@ -111,26 +142,38 @@ public class CreatePathOptions {
   }
 
   /**
-   * @return the default {@code CreateOptions}
+   * @return the default {@link tachyon.master.file.options.CreateOptions}
    */
   public static CreatePathOptions defaults() {
     return new Builder(MasterContext.getConf()).build();
   }
 
+  private final boolean mAllowExists;
   private final long mBlockSizeBytes;
   private final boolean mDirectory;
   private final long mOperationTimeMs;
   private final boolean mPersisted;
   private final boolean mRecursive;
   private final long mTTL;
+  private PermissionStatus mPermissionStatus;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
+    mAllowExists = builder.mAllowExists;
     mBlockSizeBytes = builder.mBlockSizeBytes;
     mDirectory = builder.mDirectory;
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
+    mPermissionStatus = builder.mPermissionStatus;
+  }
+
+  /**
+   * @return the allowExists flag; it specifies whether an exception should be thrown if the object
+   *         being made already exists
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
   }
 
   /**
@@ -163,7 +206,7 @@ public class CreatePathOptions {
 
   /**
    * @return the recursive flag value; it specifies whether parent directories should be created if
-   * they do not already exist
+   *         they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
@@ -171,9 +214,16 @@ public class CreatePathOptions {
 
   /**
    * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   * should be kept around before it is automatically deleted
+   *         should be kept around before it is automatically deleted
    */
   public long getTTL() {
     return mTTL;
+  }
+
+  /**
+   * @return the permission status
+   */
+  public PermissionStatus getPermissionStatus() {
+    return mPermissionStatus;
   }
 }

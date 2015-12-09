@@ -37,9 +37,9 @@ import tachyon.util.network.NetworkAddressUtils;
  */
 public final class AuthenticationUtils {
   /**
-   * For server side, this method returns a TTransportFactory based on the auth type. It is used as
-   * one argument to build a Thrift TServer. If the auth type is not supported or recognized, an
-   * UnsupportedOperationException is thrown.
+   * For server side, this method returns a {@link TTransportFactory} based on the auth type. It is
+   * used as one argument to build a Thrift {@link org.apache.thrift.server.TServer}. If the auth
+   * type is not supported or recognized, an {@link UnsupportedOperationException} is thrown.
    *
    * @param tachyonConf Tachyon Configuration
    * @return a corresponding TTransportFactory
@@ -64,11 +64,12 @@ public final class AuthenticationUtils {
   }
 
   /**
-   * Creates a transport per the connection options. Supported transport options are: NOSASL,
-   * SIMPLE, CUSTOM, KERBEROS. With NOSASL as input, an unmodified TTransport is returned; with
+   * Creates a transport per the connection options. Supported transport options are:
+   * {@link AuthType#NOSASL}, {@link AuthType#SIMPLE}, {link@ AuthType#CUSTOM},
+   * {@link AuthType#KERBEROS}. With NOSASL as input, an unmodified TTransport is returned; with
    * SIMPLE/CUSTOM as input, a PlainClientTransport is returned; KERBEROS is not supported
-   * currently. If the auth type is not supported or recognized, an UnsupportedOperationException is
-   * thrown.
+   * currently. If the auth type is not supported or recognized, an
+   * {@link UnsupportedOperationException} is thrown.
    *
    * @param tachyonConf Tachyon Configuration
    * @param serverAddress the server address which clients will connect to
@@ -78,7 +79,8 @@ public final class AuthenticationUtils {
   public static TTransport getClientTransport(TachyonConf tachyonConf,
       InetSocketAddress serverAddress) throws IOException {
     AuthType authType = tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress);
+    TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress,
+        tachyonConf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS));
     switch (authType) {
       case NOSASL:
         return new TFramedTransport(tTransport);
@@ -101,8 +103,8 @@ public final class AuthenticationUtils {
    * @param address The given address to connect
    * @return An unconnected socket
    */
-  public static TSocket createTSocket(InetSocketAddress address) {
-    return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort());
+  public static TSocket createTSocket(InetSocketAddress address, int timeoutMs) {
+    return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort(), timeoutMs);
   }
 
   private AuthenticationUtils() {} // prevent instantiation

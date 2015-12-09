@@ -1,14 +1,13 @@
 <FindBugsFilter>
 
   <Match>
-    <Package name="org.apache.thrift"/>
+    <Or>
+      <Package name="org.apache.thrift"/>
+      <Package name="tachyon.thrift"/>
+      <Package name="tachyon.proto.journal.*"/>
+    </Or>
   </Match>
 
-  <Match>
-    <Package name="tachyon.thrift"/>
-  </Match>
-
-  <!-- volatile increment is used correctly in this class -->
   <Match>
     <Class name="tachyon.yarn.ApplicationMaster"/>
     <Bug code="VO"/>
@@ -16,9 +15,6 @@
 
   <Match>
     <!--
-	Bx: Boxing/unboxing to parse a primitive
-	CI: Class is final but declares protected field
-	Co: compareTo()/compare() incorrectly handles float or double value
 	DC: Possible double check of field
 	DE: Method might ignore exception
 	DLS: Dead store to local variable
@@ -43,9 +39,8 @@
 	UC: Useless non-empty void method
 	UPM: Private method is never called
 	UrF: Unread public/protected field
-	Wa: Condition.await() not in loop
       -->
-    <Bug code="Bx,CI,Co,DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF,Wa"/>
+    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF"/>
   </Match>
 
 </FindBugsFilter>

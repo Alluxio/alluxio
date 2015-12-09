@@ -24,15 +24,16 @@ import java.util.concurrent.Executors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonFS;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -41,6 +42,7 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.table.TachyonRawTables;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -57,10 +59,14 @@ import tachyon.util.io.PathUtils;
  * followed by the checkpoint.
  */
 public class JournalIntegrationTest {
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.GB, 100, Constants.GB,
+          Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
-  /** Only for raw table API */
-  private TachyonFS mOldTfs = null;
+  private TachyonRawTables mTachyonRawTables = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
@@ -92,7 +98,7 @@ public class JournalIntegrationTest {
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalTachyonCluster.getMaster().getJournalFolder();
     Journal journal = new ReadWriteJournal(
-        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME));
+        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
     UnderFileSystem.get(journalFolder, mMasterTachyonConf).delete(journal.getCurrentLogFilePath(),
         true);
   }
@@ -144,25 +150,18 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * mLocalTachyonCluster is not closed in after(). Need to be closed by any test method.
-   *
    * @throws Exception
    */
   @After
   public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
   }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
-        Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start(testConf);
+    mLocalTachyonCluster = mLocalTachyonClusterResource.get();
     mTfs = mLocalTachyonCluster.getClient();
-    mOldTfs = mLocalTachyonCluster.getOldClient();
+    mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
@@ -596,7 +595,7 @@ public class JournalIntegrationTest {
    */
   @Test
   public void rawTableTest() throws Exception {
-    mOldTfs.createRawTable(new TachyonURI("/xyz"), 10);
+    mTachyonRawTables.create(new TachyonURI("/xyz"), 10);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     mLocalTachyonCluster.stopTFS();
     rawTableTestUtil(fInfo);

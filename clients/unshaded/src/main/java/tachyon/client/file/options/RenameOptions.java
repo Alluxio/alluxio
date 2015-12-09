@@ -34,9 +34,9 @@ public final class RenameOptions {
     public Builder(TachyonConf conf) {}
 
     /**
-     * Builds a new instance of {@code RenameOptions}.
+     * Builds a new instance of {@link RenameOptions}.
      *
-     * @return a {@code RenameOptions} instance
+     * @return a {@link RenameOptions} instance
      */
     @Override
     public RenameOptions build() {
@@ -45,7 +45,7 @@ public final class RenameOptions {
   }
 
   /**
-   * @return the default {@code RenameOptions}
+   * @return the default {@link RenameOptions}
    */
   public static RenameOptions defaults() {
     return new Builder().build();

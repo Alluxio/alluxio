@@ -39,8 +39,8 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public class TfsShellUtils {
   /**
-   * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
-   * leaving only the local file path.
+   * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
+   * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used
@@ -58,8 +58,8 @@ public class TfsShellUtils {
   }
 
   /**
-   * Validates the path, verifying that it contains the <code>Constants.HEADER </code> or
-   * <code>Constants.HEADER_FT</code> and a hostname:port specified.
+   * Validates the path, verifying that it contains the {@link Constants#HEADER} or
+   * {@link Constants#HEADER_FT} and a hostname:port specified.
    *
    * @param path the path to be verified
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used
@@ -78,7 +78,7 @@ public class TfsShellUtils {
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      int port =  tachyonConf.getInt(Constants.MASTER_RPC_PORT);
       if (tachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
@@ -87,13 +87,13 @@ public class TfsShellUtils {
   }
 
   /**
-   * Get all the TachyonURIs that match inputURI. If the path is a regular path, the returned list
-   * only contains the corresponding URI; Else if the path contains wildcards, the returned list
-   * contains all the matched URIs It supports any number of wildcards in inputURI
+   * Get all the {@link TachyonURI}s that match inputURI. If the path is a regular path, the
+   * returned list only contains the corresponding URI; Else if the path contains wildcards, the
+   * returned list contains all the matched URIs It supports any number of wildcards in inputURI
    *
    * @param tachyonClient the client used to fetch information of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
-   * @return a list of TachyonURIs that matches the inputURI
+   * @return a list of {@link TachyonURI}s that matches the inputURI
    * @throws IOException
    */
   public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
@@ -117,8 +117,9 @@ public class TfsShellUtils {
    * (e.g., for input "/a/b/*", it won't go inside directory "/a/c")
    * @param tachyonClient the client used to fetch metadata of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
-   * @param parentDir the TachyonURI of the directory in which we are searching matched files
-   * @return a list of TachyonURIs of the files that match the inputURI in parentDir
+   * @param parentDir the {@link TachyonURI} of the directory in which we are searching matched
+   *                  files
+   * @return a list of {@link TachyonURI}s of the files that match the inputURI in parentDir
    * @throws IOException
    */
   private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
@@ -174,7 +175,7 @@ public class TfsShellUtils {
 
   /**
    * The utility function used to implement getFiles
-   * It follows the same algorithm as getTachyonURIs
+   * It follows the same algorithm as {@link #getTachyonURIs}
    * @param inputPath the input file path (could contain wildcards)
    * @param parent the directory in which we are searching matched files
    * @return a list of files that matches the input path in the parent directory
@@ -226,7 +227,7 @@ public class TfsShellUtils {
 
   /**
    * Return whether or not fileURI matches the patternURI
-   * @param fileURI the TachyonURI of a particular file
+   * @param fileURI the {@link TachyonURI} of a particular file
    * @param patternURI the URI that can contain wildcards
    * @return true if matches; false if not
    */

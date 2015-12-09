@@ -37,12 +37,12 @@ import org.powermock.reflect.Whitebox;
 import com.google.common.collect.Maps;
 
 import tachyon.client.ClientContext;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockOutStream;
+import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
@@ -148,7 +148,7 @@ public class FileOutStreamTest {
   @Test
   public void singleByteWriteTest() throws Exception {
     mTestStream.write(5);
-    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getDataWritten());
+    Assert.assertArrayEquals(new byte[] {5}, mTachyonOutStreamMap.get(0L).getWrittenData());
   }
 
   /**
@@ -186,27 +186,27 @@ public class FileOutStreamTest {
   }
 
   /**
-   * Tests that close() will close but not cancel the underlying out streams. Also checks that
-   * close() persists and completes the file.
+   * Tests that {@link FileOutStream#close()} will close but not cancel the underlying out streams.
+   * Also checks that {@link FileOutStream#close()} persists and completes the file.
    */
   @Test
   public void closeTest() throws Exception {
+    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex ++) {
       Assert.assertFalse(mTachyonOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mWorkerClient, Mockito.times(1)).persistFile(Mockito.eq(FILE_ID),
-        Mockito.anyLong(), Mockito.anyString());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(1)).completeFile(FILE_ID);
-    Mockito.verify(mBlockStoreContext, Mockito.timeout(1)).acquireWorkerClient();
-    Mockito.verify(mBlockStoreContext, Mockito.timeout(1)).releaseWorkerClient(mWorkerClient);
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
+        Mockito.any(CompleteFileOptions.class));
   }
 
   /**
-   * Tests that cancel() will cancel and close the underlying out streams, and delete from the under
-   * file system. Also makes sure that cancel() doesn't persist or complete the file.
+   * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams,
+   * and delete from the under file system. Also makes sure that cancel() doesn't persist or
+   * complete the file.
    */
   @Test
   public void cancelTest() throws Exception {
@@ -217,16 +217,14 @@ public class FileOutStreamTest {
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    Mockito.verify(mWorkerClient, Mockito.times(0)).persistFile(Mockito.anyLong(),
-        Mockito.anyLong(), Mockito.anyString());
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID);
+    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID,
+        CompleteFileOptions.defaults());
 
-    Mockito.verify(mUnderFileSystem, Mockito.times(1)).delete(Mockito.anyString(),
-        Mockito.eq(false));
+    Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
   }
 
   /**
-   * Tests that flush() will flush the under store stream.
+   * Tests that {@link FileOutStream#flush()} will flush the under store stream.
    */
   @Test
   public void flushTest() throws IOException {
@@ -237,7 +235,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
-   * NO_PERSIST for their under storage type, the correct exception message will be thrown.
+   * {@link UnderStorageType#NO_PERSIST} for their under storage type, the correct exception
+   * message will be thrown.
    */
   @Test
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
@@ -256,8 +255,9 @@ public class FileOutStreamTest {
 
   /**
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
-   * SYNC_PERSIST for their under storage type, the error is recovered from by writing the data to
-   * the under storage out stream and setting the current block as not cacheable.
+   * {@link UnderStorageType#SYNC_PERSIST} for their under storage type, the error is recovered
+   * from by writing the data to the under storage out stream and setting the current block as not
+   * cacheable.
    */
   @Test
   public void cacheWriteExceptionSyncPersistTest() throws IOException {
@@ -328,13 +328,13 @@ public class FileOutStreamTest {
           mTachyonOutStreamMap.containsKey(streamIndex));
       Assert.assertArrayEquals(BufferUtils
           .getIncreasingByteArray((int) (streamIndex * BLOCK_LENGTH + start), (int) BLOCK_LENGTH),
-          mTachyonOutStreamMap.get(streamIndex).getDataWritten());
+          mTachyonOutStreamMap.get(streamIndex).getWrittenData());
     }
     long lastStreamBytes = len - filledStreams * BLOCK_LENGTH;
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) (filledStreams * BLOCK_LENGTH + start),
             (int) lastStreamBytes),
-        mTachyonOutStreamMap.get(filledStreams).getDataWritten());
+        mTachyonOutStreamMap.get(filledStreams).getWrittenData());
 
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),
         mUnderStorageOutputStream.toByteArray());

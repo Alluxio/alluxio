@@ -18,10 +18,12 @@ function printUsage {
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
   echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
+  echo -e "  readJournal   \t Read a Tachyon journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  thriftGen     \t Generate all thrift code."
+  echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Tachyon version and exit."
   echo -e "  validateConf  \t Validate Tachyon conf and exit."
   echo "Commands print help when invoked without parameters."
@@ -141,6 +143,14 @@ function journalCrashTest {
   return ${RET}
 }
 
+function readJournal {
+  local class="tachyon.master.journal.JournalTool"
+
+  ${JAVA} -cp ${CLASSPATH} -Dtachyon.home=${TACHYON_HOME} -Dtachyon.master.hostname=${MASTER_ADDRESS} -Dtachyon.logs.dir=${TACHYON_LOGS_DIR} -Dtachyon.logger.type=USER_LOGGER ${TACHYON_JAVA_OPTS} ${class} $@
+  RET=$?
+  return ${RET}
+}
+
 function killAll {
   if [[ $# -ne 1 ]]; then
     echo "Usage: tachyon killAll <WORD>"
@@ -240,18 +250,15 @@ elif [[ ${COMMAND} == "runTest" ]]; then
   runTest $@
   exit $?
 elif [[ ${COMMAND} == "runTests" ]]; then
-  declare -a tachyonStorageTypes=(STORE NO_STORE)
-  declare -a ufsStorageTypes=(SYNC_PERSIST NO_PERSIST)
+  declare -a writeTypes=(MUST_CACHE CACHE_THROUGH THROUGH)
+  declare -a readTypes=(CACHE_PROMOTE CACHE NO_CACHE)
 
   failed=0
-  for tachyonStorageType in ${tachyonStorageTypes[@]}; do
-    for ufsStorageType in ${ufsStorageTypes[@]}; do
-      if [[ ${tachyonStorageType} == "NO_STORE" ]] && [[ ${ufsStorageType} == "NO_PERSIST" ]]; then
-        continue
-      fi
+  for readType in ${readTypes[@]}; do
+    for writeType in ${writeTypes[@]}; do
       for example in Basic BasicNonByteBuffer BasicRawTable; do
-        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${tachyonStorageType} ${ufsStorageType}
-        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${tachyonStorageType} ${ufsStorageType}
+        echo ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
+        ${LAUNCHER} ${bin}/tachyon runTest ${example} ${readType} ${writeType}
         st=$?
 
         # If test process received a signal abort early
@@ -273,6 +280,9 @@ elif [[ ${COMMAND} == "runTests" ]]; then
 elif [[ ${COMMAND} == "journalCrashTest" ]]; then
   journalCrashTest $@
   exit $?
+elif [[ ${COMMAND} == "readJournal" ]]; then
+  readJournal $@
+  exit $?
 elif [[ ${COMMAND} == "killAll" ]]; then
   killAll $@
   exit 0
@@ -283,6 +293,12 @@ elif [[ ${COMMAND} == "thriftGen" ]]; then
   rm -rf ${bin}/../common/src/main/java/tachyon/thrift
   for src_file in $(ls ${bin}/../common/src/thrift); do
     thrift --gen java -out ${bin}/../common/src/main/java/. ${bin}/../common/src/thrift/${src_file}
+  done
+  exit 0
+elif [[ ${COMMAND} == "protoGen" ]]; then
+  rm -rf ${bin}/../servers/src/main/java/tachyon/proto
+  for src_file in $(find ${bin}/../servers/src/proto -type f); do
+    protoc --java_out=${bin}/../servers/src/main/java --proto_path=${bin}/../servers/src/proto ${src_file}
   done
   exit 0
 elif [[ ${COMMAND} == "clearCache" ]]; then

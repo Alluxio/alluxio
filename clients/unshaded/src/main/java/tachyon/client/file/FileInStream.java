@@ -61,7 +61,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private final long mBlockSize;
   /** Total length of the file in bytes */
   private final long mFileLength;
-  /** File System context containing the FileSystemMasterClient pool */
+  /** File System context containing the {@link FileSystemMasterClient} pool */
   private final FileSystemContext mContext;
   /** File information */
   private final FileInfo mFileInfo;
@@ -72,9 +72,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private boolean mShouldCacheCurrentBlock;
   /** Current position of the stream */
   private long mPos;
-  /** Current BlockInStream backing this stream */
+  /** Current {@link BlockInStream} backing this stream */
   private BlockInStream mCurrentBlockInStream;
-  /** Current BlockOutStream writing the data into Tachyon, this may be null */
+  /** Current {@link BufferedBlockOutStream} writing the data into Tachyon, this may be null */
   private BufferedBlockOutStream mCurrentCacheStream;
 
   /**
@@ -210,11 +210,11 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * Convenience method for updating mCurrentBlockInStream, mShouldCacheCurrentBlock, and
-   * mCurrentCacheStream. If the block boundary has been reached, the current BlockInStream is
-   * closed and a the next one is opened. mShouldCacheCurrent block is set to
-   * mTachyonStorageType.isCache(). mCurrentCacheStream is also closed and a new one is created for
-   * the next block.
+   * Convenience method for updating {@link #mCurrentBlockInStream},
+   * {@link #mShouldCacheCurrentBlock}, and {@link #mCurrentCacheStream}. If the block boundary has
+   * been reached, the current {@link BlockInStream} is closed and a the next one is opened.
+   * {@link #mShouldCacheCurrentBlock} is set to {@link #mTachyonStorageType}.isCache().
+   * {@link #mCurrentCacheStream} is also closed and a new one is created for the next block.
    *
    * @throws IOException if the next BlockInStream cannot be obtained
    */
@@ -237,8 +237,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * Convenience method for checking if mCurrentCacheStream is not null and closing it with the
-   * appropriate close or cancel command.
+   * Convenience method for checking if {@link #mCurrentCacheStream} is not null and closing it
+   * with the appropriate close or cancel command.
    *
    * @throws IOException if the close fails
    */
@@ -268,8 +268,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * Similar to checkAndAdvanceBlockInStream, but a specific position can be specified and the
-   * stream pointer will be at that offset after this method completes.
+   * Similar to {@link #checkAndAdvanceBlockInStream()}, but a specific position can be specified
+   * and the stream pointer will be at that offset after this method completes.
    *
    * @param newPos the new position to set the stream to
    * @throws IOException if the stream at the specified position cannot be opened
@@ -299,11 +299,12 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * Helper method to checkAndAdvanceBlockInStream and seekBlockInStream. The current BlockInStream
-   * will be closed and a new BlockInStream for the given blockId will be opened at position 0.
+   * Helper method to {@link #checkAndAdvanceBlockInStream()} and {@link #seekBlockInStream(long)}.
+   * The current {@link BlockInStream} will be closed and a new {@link BlockInStream} for the given
+   * blockId will be opened at position 0.
    *
-   * @param blockId blockId to set the mCurrentBlockInStream to read
-   * @throws IOException if the next BlockInStream cannot be obtained
+   * @param blockId blockId to set the {@link #mCurrentBlockInStream} to read
+   * @throws IOException if the next {@link BlockInStream} cannot be obtained
    */
   private void updateBlockInStream(long blockId) throws IOException {
     if (mCurrentBlockInStream != null) {

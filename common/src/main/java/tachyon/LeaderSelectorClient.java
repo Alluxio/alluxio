@@ -62,12 +62,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
 
     // Create a leader selector using the given path for management.
     // All participants in a given leader selection must use the same path.
-    // ExampleClient here is also a LeaderSelectorListener but this isn't required.
-    CuratorFramework client =
-        CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
-            Constants.SECOND_MS, 3));
-    client.start();
-    mLeaderSelector = new LeaderSelector(client, mElectionPath, this);
+    mLeaderSelector = new LeaderSelector(getNewCuratorClient(), mElectionPath, this);
     mLeaderSelector.setId(name);
 
     // for most cases you will want your instance to requeue when it relinquishes leadership
@@ -90,6 +85,9 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     }
   }
 
+  /**
+   * @return the leader name
+   */
   public String getName() {
     return mName;
   }
@@ -114,7 +112,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
-   * Set the current master thread.
+   * Sets the current master thread.
    *
    * @param currentMasterThread the thread to use as the master thread
    */
@@ -122,6 +120,11 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread);
   }
 
+  /**
+   * Starts the leader selection.
+   *
+   * @throws IOException if an error occurs during leader selection
+   */
   public void start() throws IOException {
     mLeaderSelector.start();
   }
@@ -136,7 +139,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
       }
     } else {
       try {
-        LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
+        LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
       }
@@ -147,10 +150,12 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
+      LOG.info("deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
     }
+    LOG.info("creating zk path: {}{}", mLeaderFolder, mName);
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
-    LOG.info(mName + " is now the leader.");
+    LOG.info("{} is now the leader.", mName);
     try {
       while (true) {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
@@ -161,10 +166,31 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     } finally {
       mIsLeader.set(false);
       mCurrentMasterThread = null;
-      LOG.warn(mName + " relinquishing leadership.");
-      LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
-      LOG.info("All participants: " + mLeaderSelector.getParticipants());
+      LOG.warn("{} relinquishing leadership.", mName);
+      LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
+      LOG.info("All participants: {}", mLeaderSelector.getParticipants());
       client.delete().forPath(mLeaderFolder + mName);
     }
+  }
+
+  /**
+   * Returns a new client for the zookeeper connection. The client is already started before
+   * returning.
+   *
+   * @return a new {@link CuratorFramework} client to use for leader selection
+   */
+  private CuratorFramework getNewCuratorClient() {
+    CuratorFramework client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    client.start();
+
+    // Sometimes, if the master crashes and restarts too quickly (faster than the zookeeper
+    // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
+    // state, explicitly close the "old" client recreate a new one.
+    client.close();
+    client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    client.start();
+    return client;
   }
 }

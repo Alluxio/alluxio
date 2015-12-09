@@ -32,10 +32,10 @@ public interface RemoteBlockWriter extends Closeable {
 
   class Factory {
     /**
-     * Creates a new <code>RemoteBlockWriter</code>.
+     * Creates a new {@link RemoteBlockWriter}.
      *
      * @param conf Tachyon configuration
-     * @return a new instance of <code>RemoteBlockWriter</code>
+     * @return a new instance of {@link RemoteBlockWriter}
      */
     public static RemoteBlockWriter createRemoteBlockWriter(TachyonConf conf) {
       try {

@@ -113,7 +113,6 @@ public class TieredBlockStoreTestUtils {
    *        into `baseDir/tierPath`.
    * @param tierCapacity Capacity of this tier
    * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property
-   * @return The created TachyonConf
    * @throws Exception When error happens during creating temporary folder
    */
   public static void setupTachyonConfWithSingleTier(String baseDir, int tierOrdinal,
@@ -197,7 +196,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Creates a BlockMetadataManager with {@link #setupTachyonConfDefault}.
+   * Creates a BlockMetadataManager with {@link #setupTachyonConfDefault(String)}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
@@ -210,7 +209,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Creates a BlockMetadataManagerView with {@link #setupTachyonConfDefault}.
+   * Creates a {@link BlockMetadataManagerView} with {@link #setupTachyonConfDefault(String)}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
@@ -238,12 +237,12 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Caches bytes into StorageDir.
+   * Caches bytes into {@link StorageDir}.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
-   * @param dir the StorageDir the block resides in
+   * @param dir the {@link StorageDir} the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
    * @throws Exception when fail to cache
@@ -264,7 +263,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Cache bytes into BlockStore at specific location
+   * Cache bytes into {@link BlockStore} at specific location
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
@@ -287,12 +286,12 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Caches bytes into StorageDir.
+   * Caches bytes into {@link StorageDir}.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
-   * @param tierLevel tier level of the StorageDir the block resides in
+   * @param tierLevel tier level of the {@link StorageDir} the block resides in
    * @param dirIndex index of directory in the tierLevel the block resides in
    * @param meta the metadata manager to update meta of the block
    * @param evictor the evictor to be informed of the new block
@@ -305,12 +304,12 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Makes a temp block of a given size in StorageDir.
+   * Makes a temp block of a given size in {@link StorageDir}.
    *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
-   * @param dir the StorageDir the block resides in
+   * @param dir the {@link StorageDir} the block resides in
    * @return the temp block meta
    * @throws Exception when fail to create this block
    */

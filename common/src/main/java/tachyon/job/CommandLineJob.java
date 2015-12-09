@@ -67,7 +67,7 @@ public class CommandLineJob extends Job {
   public boolean run() {
     try {
       String outputPath = getJobConf().getOutputFilePath();
-      LOG.info("Exec " + mCommand + " output to " + outputPath);
+      LOG.info("Exec {} output to {}", mCommand, outputPath);
       Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;
       Closer closer = Closer.create();
@@ -91,7 +91,7 @@ public class CommandLineJob extends Job {
       }
 
       p.waitFor();
-      LOG.info("Exec " + mCommand + " output to " + outputPath + " done.");
+      LOG.info("Exec {} output to {} done.", mCommand, outputPath);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return false;

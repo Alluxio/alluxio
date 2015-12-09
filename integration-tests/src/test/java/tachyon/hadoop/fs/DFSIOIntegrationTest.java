@@ -54,15 +54,16 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.conf.TachyonConf;
 import tachyon.hadoop.ConfUtils;
 import tachyon.hadoop.TFS;
-import tachyon.master.LocalTachyonCluster;
 
 /**
  * Distributed i/o benchmark.
@@ -109,7 +110,10 @@ public class DFSIOIntegrationTest implements Tool {
   // Constants for Tachyon
   private static final int BLOCK_SIZE = 8192;
   private Configuration mConfig;
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(500000, 100000, BLOCK_SIZE);
   private static URI sLocalTachyonClusterUri = null;
 
   static {
@@ -214,17 +218,13 @@ public class DFSIOIntegrationTest implements Tool {
     sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
 
-    // Start local Tachyon cluster
-    sLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
-    sLocalTachyonCluster.start();
-
-    sLocalTachyonClusterUri = URI.create(sLocalTachyonCluster.getMasterUri());
+    sLocalTachyonClusterUri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
     sBench.getConf().set("fs.defaultFS", sLocalTachyonClusterUri.toString());
     sBench.getConf().set("fs.default.name", sLocalTachyonClusterUri.toString());
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
 
     // Store TachyonConf in Hadoop Configuration
-    TachyonConf tachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    TachyonConf tachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
     ConfUtils.storeToHadoopConfiguration(tachyonConf, sBench.getConf());
 
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
@@ -236,16 +236,9 @@ public class DFSIOIntegrationTest implements Tool {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    if (sLocalTachyonCluster == null) {
-      return;
-    }
-
     // Clear DFSIOIntegrationTest
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     sBench.cleanup(fs);
-
-    // Stop local Tachyon cluster
-    sLocalTachyonCluster.stop();
   }
 
   public static void testWrite() throws Exception {

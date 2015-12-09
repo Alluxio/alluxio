@@ -36,7 +36,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * The fault tolerant version of TachyonMaster that uses zookeeper and standby masters.
+ * The fault tolerant version of {@link TachyonMaster} that uses zookeeper and standby masters.
  */
 final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

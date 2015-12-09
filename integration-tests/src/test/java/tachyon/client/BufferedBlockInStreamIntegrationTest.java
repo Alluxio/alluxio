@@ -19,62 +19,50 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.BlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.BlockInStream}.
  */
 public class BufferedBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster sLocalTachyonCluster;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.GB);
   private static TachyonFileSystem sTfs;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteBoth;
   private static OutStreamOptions sWriteTachyon;
   private static OutStreamOptions sWriteUnderStore;
 
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
-    sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
-    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    sWriteUnderStore =
-        new OutStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(sTachyonConf);
   }
 
   /**
-   * Test <code>void read()</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -104,7 +92,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -130,7 +118,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -157,7 +145,7 @@ public class BufferedBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link tachyon.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {

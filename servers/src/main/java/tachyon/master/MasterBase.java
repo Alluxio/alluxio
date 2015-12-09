@@ -17,6 +17,8 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,25 +27,33 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.util.ThreadFactoryUtils;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
  * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
- * or journal writing when the master is the leader.
+ * or journal writing when the master is the leader. This class is not thread safe.
  */
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** The executor used for running maintenance threads for the master. */
-  private final ExecutorService mExecutorService;
+  private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
+  /** The number of threads to use when creating the {@link ExecutorService}. */
+  private final int mNumThreads;
+
+  /**
+   * The executor used for running maintenance threads for the master. It is created in
+   * {@link #start(boolean)} and destroyed in {@link #stop}.
+   */
+  private ExecutorService mExecutorService = null;
   /** A handler to the journal for this master. */
   private Journal mJournal;
   /** true if this master is in leader mode, and not standby mode. */
@@ -53,9 +63,13 @@ public abstract class MasterBase implements Master {
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
 
-  protected MasterBase(Journal journal, ExecutorService executorService) {
+  /**
+   * @param journal the journal to use for tracking master operations
+   * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
+   */
+  protected MasterBase(Journal journal, int numThreads) {
     mJournal = Preconditions.checkNotNull(journal);
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mNumThreads = numThreads;
   }
 
   @Override
@@ -73,7 +87,12 @@ public abstract class MasterBase implements Master {
   @Override
   public void start(boolean isLeader) throws IOException {
     mIsLeader = isLeader;
-    LOG.info("{}: Starting {} master.", getServiceName(), mIsLeader ? "leader" : "standby");
+    if (mExecutorService == null) {
+      // mExecutorService starts as null and is reset to null when Master is stopped.
+      mExecutorService = Executors.newFixedThreadPool(mNumThreads,
+          ThreadFactoryUtils.build(this.getClass().getSimpleName() + "-%d", true));
+    }
+    LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       Preconditions.checkState(mJournal instanceof ReadWriteJournal);
       mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
@@ -108,7 +127,7 @@ public abstract class MasterBase implements Master {
         // This master was previously in standby mode, and processed some of the journal. Re-use the
         // same tailer (still valid) to continue processing any remaining journal entries.
         LOG.info("{}: finish processing remaining journal entries (standby -> master).",
-            getServiceName());
+            getName());
         catchupTailer = mStandbyJournalTailer.getLatestJournalTailer();
         catchupTailer.processNextJournalLogFiles();
       } else {
@@ -116,11 +135,11 @@ public abstract class MasterBase implements Master {
         // to process the entire journal.
         catchupTailer = new JournalTailer(this, mJournal);
         if (catchupTailer.checkpointExists()) {
-          LOG.info("{}: process entire journal before becoming leader master.", getServiceName());
+          LOG.info("{}: process entire journal before becoming leader master.", getName());
           catchupTailer.processJournalCheckpoint(true);
           catchupTailer.processNextJournalLogFiles();
         } else {
-          LOG.info("{}: journal checkpoint does not exist, nothing to process.", getServiceName());
+          LOG.info("{}: journal checkpoint does not exist, nothing to process.", getName());
         }
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
@@ -142,7 +161,7 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info("{}: Stopping {} master.", getServiceName(), mIsLeader ? "leader" : "standby");
+    LOG.info("{}: Stopping {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       // Stop this leader master.
       if (mJournalWriter != null) {
@@ -151,23 +170,29 @@ public abstract class MasterBase implements Master {
       }
     } else {
       if (mStandbyJournalTailer != null) {
-        // stop and wait for the journal tailer thread.
+        // Stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
       }
+    }
+    if (mExecutorService != null) {
+      // Shut down the executor service, interrupting any running threads.
+      mExecutorService.shutdownNow();
+      String awaitFailureMessage =
+          "waiting for {} executor service to shut down. Daemons may still be running";
+      try {
+        if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+          LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
+        }
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+      }
+      mExecutorService = null;
     }
   }
 
   @Override
   public void upgradeToReadWriteJournal(ReadWriteJournal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-  }
-
-  protected boolean isLeaderMode() {
-    return mIsLeader;
-  }
-
-  protected boolean isStandbyMode() {
-    return !mIsLeader;
   }
 
   /**
@@ -188,7 +213,7 @@ public abstract class MasterBase implements Master {
    * Flushes the journal.
    */
   protected void flushJournal() {
-    Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
+    Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
     } catch (IOException ioe) {

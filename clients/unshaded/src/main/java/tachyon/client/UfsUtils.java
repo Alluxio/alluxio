@@ -27,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -72,8 +74,8 @@ public final class UfsUtils {
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
-      String excludePaths, TachyonConf tachyonConf) throws IOException {
-    TachyonFS tfs = TachyonFS.get(tfsAddrRootPath, tachyonConf);
+      String excludePaths, TachyonConf tachyonConf) throws IOException, TachyonException {
+    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
@@ -89,12 +91,15 @@ public final class UfsUtils {
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir"
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
    *        mTachyonFS.
-   * @param tachyonConf instance of TachyonConf
+   * @param tachyonConf instance of {@link TachyonConf}
    * @throws IOException when an event that prevents the operation from completing is encountered
+   * @deprecated As of version 0.8.
+   *             Use {@link #loadUfs(TachyonURI, TachyonURI, String, TachyonConf)} instead.
    */
   @Deprecated
-  public static void loadUfs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
-      PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException {
+  public static void loadUfs(TachyonFileSystem tfs, TachyonURI tachyonPath, TachyonURI
+      ufsAddrRootPath, PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException,
+      TachyonException {
     LOG.info("Loading to {} {} {}", tachyonPath, ufsAddrRootPath, excludePathPrefix);
     try {
       // resolve and replace hostname embedded in the given ufsAddress/tachyonAddress
@@ -136,7 +141,7 @@ public final class UfsUtils {
     }
 
     if (!directoryName.equals(TachyonURI.EMPTY_URI)) {
-      if (!tfs.exist(directoryName)) {
+      if (tfs.openIfExists(directoryName) == null) {
         LOG.debug("Loading ufs. Make dir if needed for '{}'.", directoryName);
         tfs.mkdir(directoryName);
       }
@@ -159,17 +164,13 @@ public final class UfsUtils {
       if (ufs.isFile(ufsPath.toString())) { // TODO(hy): Fix path matching issue.
         TachyonURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
         LOG.debug("Loading ufs. tfs path = {}.", tfsPath);
-        if (tfs.exist(tfsPath)) {
+        if (tfs.openIfExists(tfsPath) != null) {
           LOG.debug("File {} already exists in Tachyon.", tfsPath);
           continue;
         }
-        long fileId = tfs.createFile(tfsPath, ufsPath);
-        if (fileId == -1) {
-          LOG.warn("Failed to create tachyon file: {}", tfsPath);
-        } else {
-          LOG.debug("Create tachyon file {} with file id {} and checkpoint location {}", tfsPath,
-              fileId, ufsPath);
-        }
+        long fileId = tfs.loadMetadata(tfsPath).getFileId();
+        LOG.debug("Create tachyon file {} with file id {} and checkpoint location {}", tfsPath,
+            fileId, ufsPath);
       } else { // ufsPath is a directory
         LOG.debug("Loading ufs. ufs path is a directory.");
         String[] files = ufs.list(ufsPath.toString()); // ufs.list() returns relative path
@@ -195,7 +196,7 @@ public final class UfsUtils {
         TachyonURI tfsPath = new TachyonURI(PathUtils.concatPath(
             tachyonPath, ufsPath.getPath().substring(ufsAddrRootPath.getPath().length())));
         LOG.debug("Loading ufs. ufs path is a directory. tfsPath = {}.", tfsPath);
-        if (!tfs.exist(tfsPath)) {
+        if (tfs.openIfExists(tfsPath) == null) {
           LOG.debug("Loading ufs. ufs path is a directory. make dir = {}.", tfsPath);
           tfs.mkdir(tfsPath);
           // TODO(hy): Add the following.

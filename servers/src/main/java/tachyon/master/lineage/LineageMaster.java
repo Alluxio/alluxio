@@ -16,10 +16,10 @@
 package tachyon.master.lineage;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.thrift.TProcessor;
@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -37,8 +38,10 @@ import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
@@ -48,18 +51,13 @@ import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
-import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
-import tachyon.master.lineage.journal.DeleteLineageEntry;
-import tachyon.master.lineage.journal.LineageEntry;
-import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
-import tachyon.master.lineage.journal.PersistFilesEntry;
-import tachyon.master.lineage.journal.PersistFilesRequestEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
@@ -68,15 +66,22 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
+import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.AsyncCompleteFileEntry;
+import tachyon.proto.journal.Lineage.DeleteLineageEntry;
+import tachyon.proto.journal.Lineage.LineageEntry;
+import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
+import tachyon.proto.journal.Lineage.PersistFilesEntry;
+import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
+import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -91,9 +96,15 @@ public final class LineageMaster extends MasterBase {
   private final FileSystemMaster mFileSystemMaster;
   private final LineageIdGenerator mLineageIdGenerator;
 
-  /** The service that checkpoints lineages. */
+  /**
+   * The service that checkpoints lineages. We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mCheckpointExecutionService;
-  /** The service that recomputes lineages. */
+  /**
+   * The service that recomputes lineages. We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mRecomputeExecutionService;
 
   /** Map from worker to the files to checkpoint on that worker. Used by checkpoint service. */
@@ -104,7 +115,7 @@ public final class LineageMaster extends MasterBase {
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_NAME);
   }
 
   /**
@@ -114,8 +125,7 @@ public final class LineageMaster extends MasterBase {
    * @param journal the journal
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("lineage-master-%d", true)));
+    super(journal, 2);
 
     mTachyonConf = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
@@ -125,32 +135,41 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new LineageMasterService.Processor<LineageMasterServiceHandler>(
-        new LineageMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
+        new LineageMasterClientService.Processor<LineageMasterClientServiceHandler>(
+            new LineageMasterClientServiceHandler(this)));
+    services.put(
+        Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME,
+        new LineageMasterWorkerService.Processor<LineageMasterWorkerServiceHandler>(
+            new LineageMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.LINEAGE_MASTER_NAME;
   }
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry instanceof LineageEntry) {
-      mLineageStore.addLineageFromJournal((LineageEntry) entry);
-    } else if (entry instanceof LineageIdGeneratorEntry) {
-      mLineageIdGenerator.fromJournalEntry((LineageIdGeneratorEntry) entry);
-    } else if (entry instanceof AsyncCompleteFileEntry) {
-      asyncCompleteFileFromEntry((AsyncCompleteFileEntry) entry);
-    } else if (entry instanceof PersistFilesEntry) {
-      persistFilesFromEntry((PersistFilesEntry) entry);
-    } else if (entry instanceof PersistFilesRequestEntry) {
-      requestFilePersistenceFromEntry((PersistFilesRequestEntry) entry);
-    } else if (entry instanceof DeleteLineageEntry) {
-      deleteLineageFromEntry((DeleteLineageEntry) entry);
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
+    if (innerEntry instanceof LineageEntry) {
+      mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
+    } else if (innerEntry instanceof LineageIdGeneratorEntry) {
+      mLineageIdGenerator.initFromJournalEntry((LineageIdGeneratorEntry) innerEntry);
+    } else if (innerEntry instanceof AsyncCompleteFileEntry) {
+      asyncCompleteFileFromEntry((AsyncCompleteFileEntry) innerEntry);
+    } else if (innerEntry instanceof PersistFilesEntry) {
+      persistFilesFromEntry((PersistFilesEntry) innerEntry);
+    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+      requestFilePersistenceFromEntry((PersistFilesRequestEntry) innerEntry);
+    } else if (innerEntry instanceof DeleteLineageEntry) {
+      deleteLineageFromEntry((DeleteLineageEntry) innerEntry);
     } else {
-      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
+      throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
   }
 
@@ -169,17 +188,6 @@ public final class LineageMaster extends MasterBase {
                   new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
                       mFileSystemMaster), mTachyonConf
                       .getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
-    }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mCheckpointExecutionService != null) {
-      mCheckpointExecutionService.cancel(true);
-    }
-    if (mRecomputeExecutionService != null) {
-      mRecomputeExecutionService.cancel(true);
     }
   }
 
@@ -256,7 +264,11 @@ public final class LineageMaster extends MasterBase {
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     deleteLineageInternal(lineageId, cascade);
-    writeJournalEntry(new DeleteLineageEntry(lineageId, cascade));
+    DeleteLineageEntry deleteLineage = DeleteLineageEntry.newBuilder()
+        .setLineageId(lineageId)
+        .setCascade(cascade)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setDeleteLineage(deleteLineage).build());
     flushJournal();
     return true;
   }
@@ -264,10 +276,8 @@ public final class LineageMaster extends MasterBase {
   private boolean deleteLineageInternal(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
-    if (lineage == null) {
-      throw new LineageDoesNotExistException(
-          ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(lineageId));
-    }
+    LineageDoesNotExistException.check(lineage != null, ExceptionMessage.LINEAGE_DOES_NOT_EXIST,
+        lineageId);
 
     // there should not be child lineage if not cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
@@ -282,7 +292,7 @@ public final class LineageMaster extends MasterBase {
 
   private void deleteLineageFromEntry(DeleteLineageEntry entry) {
     try {
-      deleteLineageInternal(entry.getLineageId(), entry.isCascade());
+      deleteLineageInternal(entry.getLineageId(), entry.getCascade());
     } catch (LineageDoesNotExistException e) {
       LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
     } catch (LineageDeletionException e) {
@@ -318,17 +328,21 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if the completion fails
    */
   public synchronized void asyncCompleteFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException {
+      throws FileDoesNotExistException, BlockInfoException, InvalidFileSizeException,
+      FileAlreadyCompletedException {
     LOG.info("Async complete file {}", fileId);
     // complete file in Tachyon.
     try {
-      mFileSystemMaster.completeFile(fileId);
+      mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
     } catch (InvalidPathException e) {
       // should not happen
       throw new RuntimeException(e);
     }
     mLineageStore.completeFile(fileId);
-    writeJournalEntry(new AsyncCompleteFileEntry(fileId));
+    AsyncCompleteFileEntry asyncCompleteFile = AsyncCompleteFileEntry.newBuilder()
+        .setFileId(fileId)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setAsyncCompleteFile(asyncCompleteFile).build());
     flushJournal();
   }
 
@@ -343,9 +357,11 @@ public final class LineageMaster extends MasterBase {
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
-      List<Long> persistedFiles) throws FileDoesNotExistException, InvalidPathException {
+      List<Long> persistedFiles)
+          throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
     if (!persistedFiles.isEmpty()) {
       // notify checkpoint manager the persisted files
       persistFiles(workerId, persistedFiles);
@@ -362,8 +378,9 @@ public final class LineageMaster extends MasterBase {
 
   /**
    * @return the list of all the {@link LineageInfo}s
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  public synchronized List<LineageInfo> getLineageInfoList() {
+  public synchronized List<LineageInfo> getLineageInfoList() throws LineageDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
@@ -415,9 +432,10 @@ public final class LineageMaster extends MasterBase {
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   private synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
     List<CheckpointFile> files = Lists.newArrayList();
     if (!mWorkerToCheckpointFile.containsKey(workerId)) {
       return files;
@@ -452,21 +470,32 @@ public final class LineageMaster extends MasterBase {
    * Request a list of files as being persisted
    *
    * @param fileIds the id of the files
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  public synchronized void requestFilePersistence(List<Long> fileIds) {
+  public synchronized void requestFilePersistence(List<Long> fileIds)
+      throws LineageDoesNotExistException {
     if (!fileIds.isEmpty()) {
       LOG.info("Request file persistency: {}", fileIds);
     }
     for (long fileId : fileIds) {
       mLineageStore.requestFilePersistence(fileId);
     }
-    writeJournalEntry(new PersistFilesRequestEntry(fileIds));
+    PersistFilesRequestEntry persistFilesRequest = PersistFilesRequestEntry.newBuilder()
+        .addAllFileIds(fileIds)
+        .build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
     flushJournal();
   }
 
-  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry) {
-    for (long fileId : entry.getFileIds()) {
-      mLineageStore.requestFilePersistence(fileId);
+  private synchronized void requestFilePersistenceFromEntry(PersistFilesRequestEntry entry)
+      throws IOException {
+    for (long fileId : entry.getFileIdsList()) {
+      try {
+        mLineageStore.requestFilePersistence(fileId);
+      } catch (LineageDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
@@ -475,8 +504,10 @@ public final class LineageMaster extends MasterBase {
    *
    * @param workerId the worker id
    * @param persistedFiles the persisted files
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  private synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void persistFiles(long workerId, List<Long> persistedFiles)
+      throws LineageDoesNotExistException {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {
@@ -485,13 +516,21 @@ public final class LineageMaster extends MasterBase {
     for (Long fileId : persistedFiles) {
       mLineageStore.commitFilePersistence(fileId);
     }
-    writeJournalEntry(new PersistFilesEntry(persistedFiles));
+    PersistFilesEntry persistFiles = PersistFilesEntry.newBuilder()
+        .addAllFileIds(persistedFiles)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setPersistFiles(persistFiles).build());
     flushJournal();
   }
 
-  private synchronized void persistFilesFromEntry(PersistFilesEntry entry) {
-    for (Long fileId : entry.getFileIds()) {
-      mLineageStore.commitFilePersistence(fileId);
+  private synchronized void persistFilesFromEntry(PersistFilesEntry entry)
+      throws IOException {
+    for (Long fileId : entry.getFileIdsList()) {
+      try {
+        mLineageStore.commitFilePersistence(fileId);
+      } catch (LineageDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 

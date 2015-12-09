@@ -16,24 +16,25 @@
 package tachyon.master;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.thrift.TProcessor;
 
 import tachyon.master.journal.JournalCheckpointStreamable;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.proto.journal.Journal.JournalEntry;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
-   * @return the {@link TProcessor} serving RPC service for this master
+   * @return a map from service names to {@link TProcessor}s that serve RPCs for this master
    */
-  TProcessor getProcessor();
+  Map<String, TProcessor> getServices();
 
   /**
-   * @return a {@link String} representing this master service name
+   * @return the master's name
    */
-  String getServiceName();
+  String getName();
 
   /**
    * Processes the journal checkpoint file and applies the entries to the master.

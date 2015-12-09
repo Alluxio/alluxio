@@ -18,21 +18,27 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import tachyon.client.BlockMasterClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
- * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
- * class are completely opaque to user input. This class is thread safe.
+ * An instance of this class can be obtained via {@link TachyonBlockStore#get()}. The methods in
+ * this class are completely opaque to user input. This class is thread safe.
  */
 public final class TachyonBlockStore {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonBlockStore sClient = null;
 
@@ -59,7 +65,7 @@ public final class TachyonBlockStore {
    * Gets the block info of a block, if it exists.
    *
    * @param blockId the blockId to obtain information about
-   * @return a FileBlockInfo containing the metadata of the block
+   * @return a {@link BlockInfo} containing the metadata of the block
    * @throws IOException if the block does not exist
    */
   public BlockInfo getInfo(long blockId) throws IOException {
@@ -77,37 +83,48 @@ public final class TachyonBlockStore {
    * Gets a stream to read the data of a block. The stream is backed by Tachyon storage.
    *
    * @param blockId the block to read from
-   * @return a BlockInStream which can be used to read the data in a streaming fashion
+   * @return a {@link BlockInStream} which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
   public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
+    BlockInfo blockInfo;
     try {
-      BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
-      // TODO(calvin): Get location via a policy.
-      if (blockInfo.locations.isEmpty()) {
-        // TODO(calvin): Maybe this shouldn't be an exception.
-        throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
-      }
-      // TODO(calvin): Investigate making this a Factory method
-      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
-      InetSocketAddress workerAddr =
-          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
-      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
-          workerAddr.getHostName())) {
-        if (mContext.hasLocalWorker()) {
-          return new LocalBlockInStream(blockId, blockInfo.getLength());
-        } else {
-          throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage("read"));
-        }
-      } else {
-        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
-      }
+      blockInfo = masterClient.getBlockInfo(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+
+    if (blockInfo.locations.isEmpty()) {
+      throw new IOException("Block " + blockId + " is not available in Tachyon");
+    }
+    // TODO(calvin): Get location via a policy.
+    // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
+    // But when there is no local worker or there are no local blocks, we prefer the first
+    // location in blockInfo.locations that is nearest to memory tier.
+    // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
+    // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
+    // for hasLocalWorker is fixed.
+    String localHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    for (BlockLocation location : blockInfo.locations) {
+      NetAddress workerNetAddress = location.getWorkerAddress();
+      if (workerNetAddress.getHost().equals(localHostName)) {
+        // There is a local worker and the block is local.
+        try {
+          return new LocalBlockInStream(blockId, blockInfo.getLength());
+        } catch (IOException e) {
+          LOG.warn("Failed to open local stream for block " + blockId + ". " + e.getMessage());
+          // Getting a local stream failed, do not try again
+          break;
+        }
+      }
+    }
+    // No local worker/block, get the first location since it's nearest to memory tier.
+    NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+    return new RemoteBlockInStream(blockId, blockInfo.getLength(),
+        new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
   }
 
   /**
@@ -117,7 +134,8 @@ public final class TachyonBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and
    *                  this stream is just storing the block in Tachyon again)
    * @param location the worker to write the block to, fails if the worker cannot serve the request
-   * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
+   * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
+   *         streaming fashion
    * @throws IOException if the block cannot be written
    */
   public BufferedBlockOutStream getOutStream(long blockId, long blockSize, String location)
@@ -163,6 +181,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getCapacityBytes();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }
@@ -177,6 +197,8 @@ public final class TachyonBlockStore {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getUsedBytes();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }
@@ -192,25 +214,28 @@ public final class TachyonBlockStore {
    */
   public void promote(long blockId) throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+    BlockInfo info;
     try {
-      BlockInfo info = blockMasterClient.getBlockInfo(blockId);
-      if (info.getLocations().isEmpty()) {
-        // Nothing to promote
-        return;
-      }
-      // Get the first worker address for now, as this will likely be the location being read from
-      // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
-      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
-      try {
-        workerClient.promoteBlock(blockId);
-      } finally {
-        mContext.releaseWorkerClient(workerClient);
-      }
+      info = blockMasterClient.getBlockInfo(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
+    }
+    if (info.getLocations().isEmpty()) {
+      // Nothing to promote
+      return;
+    }
+    // Get the first worker address for now, as this will likely be the location being read from
+    // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
+    NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+    WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+    try {
+      workerClient.promoteBlock(blockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } finally {
+      mContext.releaseWorkerClient(workerClient);
     }
   }
 }

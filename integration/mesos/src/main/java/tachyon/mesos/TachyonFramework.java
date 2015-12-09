@@ -35,7 +35,7 @@ import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * <code>TachyonFramework</code> is an implementation of a Mesos framework that is responsible for
+ * {@link TachyonFramework} is an implementation of a Mesos framework that is responsible for
  * starting Tachyon processes. The current implementation starts a single Tachyon master and n
  * Tachyon workers (one per Mesos slave).
  *
@@ -96,7 +96,6 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      // TODO(andrew): Should these be doubles or longs?
       long masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
       long masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
       long workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);

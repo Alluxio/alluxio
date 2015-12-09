@@ -31,14 +31,14 @@ import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
   /**
-   * Creates a simple file with <code>len</code> bytes.
+   * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a TachyonFileSystem handler
+   * @param tfs a {@link TachyonFileSystem} handler
    * @param fileName the name of the file to be created
    * @param len file size in bytes
    * @param options options to create the file with
-   * @return the TachyonFile representation of the created file
-   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   * @return the {@link TachyonFile} representation of the created file
+   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName, int len,
       OutStreamOptions options) throws IOException {
@@ -46,15 +46,15 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Creates a simple file with <code>len</code> bytes.
+   * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a TachyonFileSystem handler
+   * @param tfs a {@link TachyonFileSystem} handler
    * @param fileName the name of the file to be created
-   * @param tachyonStorageType TachyonStorageType used to create the file
-   * @param underStorageType UnderStorageType used to create the file
+   * @param tachyonStorageType {@link TachyonStorageType} used to create the file
+   * @param underStorageType {@link UnderStorageType} used to create the file
    * @param len file size
-   * @return the TachyonFile of the created file
-   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   * @return the {@link TachyonFile} of the created file
+   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
@@ -63,15 +63,15 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Creates a simple file with <code>len</code> bytes.
+   * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a TachyonFileSystem handler
+   * @param tfs a {@link TachyonFileSystem} handler
    * @param fileURI URI of the file
-   * @param tachyonStorageType TachyonStorageType used to create the file
-   * @param underStorageType UnderStorageType used to create the file
+   * @param tachyonStorageType {@link TachyonStorageType} used to create the file
+   * @param underStorageType {@link UnderStorageType} used to create the file
    * @param len file size
-   * @return the TachyonFile of the created file
-   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   * @return the {@link TachyonFile} of the created file
+   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
@@ -82,14 +82,14 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Creates a simple file with <code>len</code> bytes.
+   * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a TachyonFileSystem handler
+   * @param tfs a {@link TachyonFileSystem} handler
    * @param fileURI URI of the file
    * @param options client options to create the file with
    * @param len file size
-   * @return the TachyonFile of the created file
-   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   * @return the {@link TachyonFile} of the created file
+   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
       OutStreamOptions options, int len) throws IOException {
@@ -109,16 +109,16 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Creates a simple file with <code>len</code> bytes.
+   * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a TachyonFileSystem handler
+   * @param tfs a {@link TachyonFileSystem} handler
    * @param fileName the name of the file to be created
-   * @param tachyonStorageType TachyonStorageType used to create the file
-   * @param underStorageType UnderStorageType used to create the file
+   * @param tachyonStorageType {@link TachyonStorageType} used to create the file
+   * @param underStorageType {@link UnderStorageType} used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file
-   * @return the TachyonFile of the created file
-   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   * @return the {@link TachyonFile} of the created file
+   * @throws IOException if {@code path} is invalid (e.g., illegal URI)
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len,
@@ -130,12 +130,12 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Returns a list of files at a given <code>path</code>.
+   * Returns a list of files at a given {@code path}.
    *
-   * @param tfs a TachyonFileSystem handler
+   * @param tfs a {@link TachyonFileSystem} handler
    * @param path a path in tachyon file system
    * @return a list of strings representing the file names under the given path
-   * @throws IOException if <code>path</code> does not exist or is invalid
+   * @throws IOException if {@code path} does not exist or is invalid
    */
   public static List<String> listFiles(TachyonFileSystem tfs, String path) throws IOException {
     try {
@@ -160,11 +160,11 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Converts an OutStreamOptions object to an InStreamOptions object with a matching Tachyon
-   * storage type.
+   * Converts an {@link OutStreamOptions} object to an {@link InStreamOptions} object with a
+   * matching Tachyon storage type.
    *
-   * @param op an OutStreamOptions object
-   * @return an InStreamOptions object with a matching Tachyon storage type
+   * @param op an {@link OutStreamOptions} object
+   * @return an {@link InStreamOptions} object with a matching Tachyon storage type
    */
   public static InStreamOptions toInStreamOptions(OutStreamOptions op) {
     return new InStreamOptions.Builder(ClientContext.getConf())

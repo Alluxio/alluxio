@@ -36,7 +36,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 
 /**
- * Unit tests for MasterWorkerInfo.
+ * Unit tests for {@link MasterWorkerInfo}.
  */
 public final class MasterWorkerInfoTest {
   private static final List<String> STORAGE_TIER_ALIASES = Lists.newArrayList("MEM", "SSD");

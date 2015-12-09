@@ -16,7 +16,7 @@ data to those systems.
 If the versions of Spark and Tachyon form one of the the following pairs, they will work together
 out-of-the-box.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>Spark Version</th><th>Tachyon Version</th></tr>
 <tr>
   <td> 1.0.x and Below </td>
@@ -162,3 +162,44 @@ Check the `spark.externalBlockStore.baseDir` using Tachyon's web UI (the default
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. You should
 see a number of files there; they are the persisted RDD blocks. Currently, the files will be cleaned
 up when the Spark application finishes.
+
+## Data Locality
+
+If Spark task locality is `ANY` while it should be `NODE_LOCAL`, it is probably because Tachyon and
+Spark use different network address representations, maybe one of them uses hostname while
+another uses IP address. Please refer to [this jira ticket](
+https://issues.apache.org/jira/browse/SPARK-10149) for more details, where you can find solutions
+from the Spark community.
+
+Note: Tachyon uses hostname to represent network address except in version 0.7.1 where IP address is
+used. Spark v1.5.x ships with Tachyon v0.7.1 by default, in this case, by default, Spark and Tachyon
+both use IP address to represent network address, so data locality should work out of the box.
+But since release 0.8.0, to be consistent with HDFS, Tachyon represents network address by hostname.
+There is a workaround when launching Spark to achieve data locality. Users can explicitly specify
+hostnames by using the following script offered in Spark. Start Spark Worker in each slave node with
+slave-hostname:
+
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```
+
+For example:
+
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```
+
+You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For
+example:
+
+```bash
+SPARK_LOCAL_HOSTNAME=simple30
+```
+
+In either way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
+in Spark WebUI below.
+
+![hostname](./img/screenshot_datalocality_sparkwebui.png)
+
+![locality](./img/screenshot_datalocality_tasklocality.png)
+

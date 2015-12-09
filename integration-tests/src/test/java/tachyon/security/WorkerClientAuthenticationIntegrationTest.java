@@ -28,9 +28,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
-import tachyon.security.authentication.AuthType;
+import tachyon.LocalTachyonClusterResource;
+import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
@@ -40,7 +39,9 @@ import tachyon.worker.WorkerClient;
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public class WorkerClientAuthenticationIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster;
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(1000, 1000, Constants.GB);
   private ExecutorService mExecutorService;
 
   @Rule
@@ -48,89 +49,56 @@ public class WorkerClientAuthenticationIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mExecutorService = Executors.newFixedThreadPool(2);
     clearLoginUser();
   }
 
   @After
   public void after() throws Exception {
-    // stop cluster
-    mLocalTachyonCluster.stop();
-
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
+  @LocalTachyonClusterResource.Config(
+      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
-    // no authentication type configure
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-
-    // start cluster
-    mLocalTachyonCluster.start(testConf);
-
     authenticationOperationTest();
-
-    // stop cluster
-    mLocalTachyonCluster.stop();
   }
 
   @Test
+  @LocalTachyonClusterResource.Config(
+      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
-    // simple authentication type configure
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-
-    // start cluster
-    mLocalTachyonCluster.start(testConf);
-
     authenticationOperationTest();
-
-    // stop cluster
-    mLocalTachyonCluster.stop();
   }
 
   @Test
+  @LocalTachyonClusterResource.Config(
+      tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME},
+      startCluster = false)
   public void customAuthenticationOpenCloseTest() throws Exception {
-    // custom authentication type configure
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    // custom authenticationProvider configure
-    testConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-        MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
-
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
      * Tachyon Worker.
      */
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
-
-    // start cluster
-    mLocalTachyonCluster.start(testConf);
-
+    mLocalTachyonClusterResource.start();
     authenticationOperationTest();
-
-    // stop cluster
-    mLocalTachyonCluster.stop();
   }
 
   @Test
+  @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
+      "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+      NameMatchAuthenticationProvider.FULL_CLASS_NAME}, startCluster = false)
   public void customAuthenticationDenyConnectTest() throws Exception {
-    // custom authentication type configure
-    TachyonConf testConf = mLocalTachyonCluster.newTestConf();
-    testConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    // custom authenticationProvider configure
-    testConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-        MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
-
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
      * Tachyon Master during starting cluster.
      */
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
-    // start cluster
-    mLocalTachyonCluster.start(testConf);
+    mLocalTachyonClusterResource.start();
 
     // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
     clearLoginUser();
@@ -138,12 +106,12 @@ public class WorkerClientAuthenticationIntegrationTest {
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
 
     WorkerClient workerClient =
-        new WorkerClient(mLocalTachyonCluster.getWorkerAddress(), mExecutorService,
-            mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */, true,
-            new ClientMetrics());
+        new WorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
+            mLocalTachyonClusterResource.get().getWorkerTachyonConf(), 1 /* fake session id */,
+            true, new ClientMetrics());
     try {
       Assert.assertFalse(workerClient.isConnected());
-      workerClient.mustConnect();
+      workerClient.connect();
     } finally {
       workerClient.close();
     }
@@ -156,12 +124,12 @@ public class WorkerClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest() throws Exception {
     WorkerClient workerClient =
-        new WorkerClient(mLocalTachyonCluster.getWorkerAddress(), mExecutorService,
-            mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */, true,
-            new ClientMetrics());
+        new WorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
+            mLocalTachyonClusterResource.get().getWorkerTachyonConf(), 1 /* fake session id */,
+            true, new ClientMetrics());
 
     Assert.assertFalse(workerClient.isConnected());
-    workerClient.mustConnect();
+    workerClient.connect();
     Assert.assertTrue(workerClient.isConnected());
 
     workerClient.close();

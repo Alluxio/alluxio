@@ -15,7 +15,6 @@
 
 package tachyon.worker;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -23,21 +22,24 @@ import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
+import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerService;
 import tachyon.util.network.NetworkAddressUtils;
@@ -45,31 +47,22 @@ import tachyon.util.network.NetworkAddressUtils;
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
  *
- * Since WorkerService.Client is not thread safe, this class has to guarantee thread safety.
+ * Since {@link WorkerService.Client} is not thread safe, this class has to guarantee thread safety.
  */
-public final class WorkerClient implements Closeable {
+public final class WorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
-  private final NetAddress mWorkerNetAddress;
   private final boolean mIsLocal;
 
   private WorkerService.Client mClient;
-  private TProtocol mProtocol;
   private long mSessionId;
-  private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
-  // TODO(hy): This boolean indicates whether or not the client is connected to the worker. However,
-  // since error exceptions are returned through thrift, all api errors look like fatal errors like
-  // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
-  // independent from thrift exceptions.
-  private boolean mConnected = false;
   private final ExecutorService mExecutorService;
   private final HeartbeatExecutor mHeartbeatExecutor;
   private Future<?> mHeartbeat;
 
-  private final TachyonConf mTachyonConf;
   private final ClientMetrics mClientMetrics;
 
   /**
@@ -78,13 +71,13 @@ public final class WorkerClient implements Closeable {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
-   * @param clientMetrics metrics of the lcient
+   * @param clientMetrics metrics of the client
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "worker");
+    mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mTachyonConf = Preconditions.checkNotNull(conf);
     mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
@@ -95,39 +88,18 @@ public final class WorkerClient implements Closeable {
    * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
-   * @throws IOException
+   * @throws ConnectionFailedException if network connection failed
+   * @throws IOException if an I/O error occurs
    */
-  public synchronized void accessBlock(long blockId) throws IOException {
-    mustConnect();
-
-    try {
-      mClient.accessBlock(blockId);
-    } catch (TException e) {
-      LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  /**
-   * Notifies the worker that a file has been persisted in a temporary UFS location.
-   *
-   * @param fileId the file id
-   * @param nonce nonce a nonce used for temporary file creation
-   * @param path the UFS path where the file should be eventually stored
-   * @throws IOException
-   */
-  public synchronized void persistFile(long fileId, long nonce, String path) throws IOException {
-    mustConnect();
-
-    try {
-      mClient.persistFile(fileId, nonce, path);
-    } catch (TachyonTException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void accessBlock(final long blockId) throws ConnectionFailedException,
+      IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.accessBlock(blockId);
+        return null;
+      }
+    });
   }
 
   /**
@@ -135,101 +107,101 @@ public final class WorkerClient implements Closeable {
    *
    * @param fileId The id of the file
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean asyncCheckpoint(long fileId) throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.asyncCheckpoint(fileId);
-    } catch (TachyonTException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.asyncCheckpoint(fileId);
+      }
+    });
   }
 
   /**
    * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void cacheBlock(long blockId) throws IOException {
-    mustConnect();
-
-    try {
-      mClient.cacheBlock(mSessionId, blockId);
-    } catch (TachyonTException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void cacheBlock(final long blockId) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.cacheBlock(mSessionId, blockId);
+        return null;
+      }
+    });
   }
 
   /**
    * Notifies worker that the block has been cancelled
    *
    * @param blockId The Id of the block to be cancelled
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void cancelBlock(long blockId) throws IOException {
-    mustConnect();
+  public synchronized void cancelBlock(final long blockId) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.cancelBlock(mSessionId, blockId);
+        return null;
+      }
+    });
+  }
 
-    try {
-      mClient.cancelBlock(mSessionId, blockId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+  @Override
+  protected void beforeDisconnect() {
+    // Heartbeat to send the client metrics.
+    if (mHeartbeatExecutor != null) {
+      mHeartbeatExecutor.heartbeat();
     }
   }
 
-  /**
-   * Closes the connection to worker. Shutdown the heartbeat thread.
-   */
   @Override
-  public synchronized void close() {
-    if (mConnected) {
-      try {
-        // Heartbeat to send the client metrics.
-        if (mHeartbeatExecutor != null) {
-          mHeartbeatExecutor.heartbeat();
-        }
-        mProtocol.getTransport().close();
-      } finally {
-        if (mHeartbeat != null) {
-          mHeartbeat.cancel(true);
-        }
-      }
-      mConnected = false;
+  protected void afterDisconnect() {
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
     }
+  }
+
+  @Override
+  protected TachyonService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
+  protected String getServiceName() {
+    return Constants.WORKER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.BLOCK_WORKER_SERVICE_VERSION;
   }
 
   /**
    * Opens the connection to the worker. And start the heartbeat thread.
    *
-   * @return true if succeed, false otherwise
    * @throws IOException
    */
-  private synchronized boolean connect() throws IOException {
+  private synchronized void connectOperation() throws IOException {
     if (!mConnected) {
-      String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
-      int port = mWorkerNetAddress.rpcPort;
-      mWorkerAddress = new InetSocketAddress(host, port);
-      mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
-      LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
+      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
-          mTachyonConf, new InetSocketAddress(host, port)));
+          mTachyonConf, mAddress));
       mClient = new WorkerService.Client(mProtocol);
 
       try {
         mProtocol.getTransport().open();
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
-        return false;
+        return;
       }
       mConnected = true;
 
@@ -242,8 +214,6 @@ public final class WorkerClient implements Closeable {
                 mHeartbeatExecutor, interval));
       }
     }
-
-    return mConnected;
   }
 
   /**
@@ -261,7 +231,7 @@ public final class WorkerClient implements Closeable {
    * @return the address of the worker
    */
   public synchronized InetSocketAddress getAddress() {
-    return mWorkerAddress;
+    return mAddress;
   }
 
   /**
@@ -273,13 +243,6 @@ public final class WorkerClient implements Closeable {
 
   public synchronized long getSessionId() {
     return mSessionId;
-  }
-
-  /**
-   * @return true if it's connected to the worker, false otherwise
-   */
-  public synchronized boolean isConnected() {
-    return mConnected;
   }
 
   /**
@@ -297,21 +260,21 @@ public final class WorkerClient implements Closeable {
    * @return the path of the block file locked
    * @throws IOException
    */
-  public synchronized String lockBlock(long blockId) throws IOException {
-    mustConnect();
-
+  public synchronized String lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
-      return mClient.lockBlock(blockId, mSessionId);
-    } catch (TachyonTException e) {
-      if (e.getType().equals(TachyonExceptionType.FILE_DOES_NOT_EXIST.name())) {
+      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+        @Override
+        public String call() throws TachyonTException, TException {
+          return mClient.lockBlock(blockId, mSessionId);
+        }
+      });
+    } catch (TachyonException e) {
+      if (e.getType() == TachyonExceptionType.FILE_DOES_NOT_EXIST) {
         return null;
       } else {
         throw new IOException(e);
       }
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
     }
   }
 
@@ -320,10 +283,13 @@ public final class WorkerClient implements Closeable {
    *
    * @throws IOException
    */
-  public synchronized void mustConnect() throws IOException {
+  // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
+  @Override
+  public synchronized void connect() throws IOException {
     int tries = 0;
     while (tries ++ <= CONNECTION_RETRY_TIMES) {
-      if (connect()) {
+      connectOperation();
+      if (isConnected()) {
         return;
       }
     }
@@ -335,17 +301,17 @@ public final class WorkerClient implements Closeable {
    *
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean promoteBlock(long blockId) throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.promoteBlock(blockId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized boolean promoteBlock(final long blockId) throws IOException,
+      TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.promoteBlock(blockId);
+      }
+    });
   }
 
   /**
@@ -356,21 +322,21 @@ public final class WorkerClient implements Closeable {
    * @return the temporary path of the block
    * @throws IOException
    */
-  public synchronized String requestBlockLocation(long blockId, long initialBytes)
+  public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
-    mustConnect();
-
     try {
-      return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
-    } catch (TachyonTException e) {
-      if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
+      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+        @Override
+        public String call() throws TachyonTException, TException {
+          return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
+        }
+      });
+    } catch (TachyonException e) {
+      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
         throw new IOException("Failed to request " + initialBytes, e);
       } else {
         throw new IOException(e);
       }
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
     }
   }
 
@@ -382,20 +348,21 @@ public final class WorkerClient implements Closeable {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long blockId, long requestBytes) throws IOException {
-    mustConnect();
-
+  public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
+          IOException {
     try {
-      return mClient.requestSpace(mSessionId, blockId, requestBytes);
-    } catch (TachyonTException e) {
-      if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
+      return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+        @Override
+        public Boolean call() throws TachyonTException, TException {
+          return mClient.requestSpace(mSessionId, blockId, requestBytes);
+        }
+      });
+    } catch (TachyonException e) {
+      if (e.getType() == TachyonExceptionType.WORKER_OUT_OF_SPACE) {
         return false;
       } else {
         throw new IOException(e);
       }
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
     }
   }
 
@@ -404,44 +371,44 @@ public final class WorkerClient implements Closeable {
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws ConnectionFailedException if network connection failed
+   * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean unlockBlock(long blockId) throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.unlockBlock(blockId, mSessionId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized boolean unlockBlock(final long blockId) throws ConnectionFailedException,
+      IOException {
+    return retryRPC(new RpcCallable<Boolean>() {
+      @Override
+      public Boolean call() throws TException {
+        return mClient.unlockBlock(blockId, mSessionId);
+      }
+    });
   }
 
   /**
    * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
    * locks and temporary files and updates the worker's metrics.
    *
-   * @throws IOException if an error occurs during the heartbeat
+   * @throws ConnectionFailedException if network connection failed
+   * @throws IOException if an I/O error occurs
    */
-  public synchronized void sessionHeartbeat() throws IOException {
-    mustConnect();
-    try {
-      mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+  public synchronized void sessionHeartbeat() throws ConnectionFailedException, IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
+        return null;
+      }
+    });
   }
 
   /**
-   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates
-   * {@link #sessionHeartbeat()} in order to cancel and cleanup the
-   * heartbeating thread in case of failures
+   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates {@link #sessionHeartbeat()}
+   * in order to cancel and cleanup the heartbeating thread in case of failures
    */
   public synchronized void periodicHeartbeat() {
     try {
       sessionHeartbeat();
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.error("Periodic heartbeat failed, cleaning up.", e);
       if (mHeartbeat != null) {
         mHeartbeat.cancel(true);

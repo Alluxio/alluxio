@@ -92,7 +92,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Creates a <code>MetricsSystem</code> using the default metrics config.
+   * Creates a {@code MetricsSystem} using the default metrics config.
    *
    * @param instance the instance name
    * @param tachyonConf the {@link TachyonConf} instance for configuration properties
@@ -108,10 +108,10 @@ public class MetricsSystem {
   }
 
   /**
-   * Creates a <code>MetricsSystem</code> using the given <code>MetricsConfig</code>.
+   * Creates a {@code MetricsSystem} using the given {@code MetricsConfig}.
    *
    * @param instance the instance name
-   * @param metricsConfig the <code>MetricsConfig</code> object
+   * @param metricsConfig the {@code MetricsConfig} object
    * @param tachyonConf the {@link TachyonConf} instance for configuration properties
    */
   public MetricsSystem(String instance, MetricsConfig metricsConfig, TachyonConf tachyonConf) {

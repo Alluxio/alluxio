@@ -15,57 +15,55 @@
 
 package tachyon.client.table;
 
-import java.io.IOException;
-
-import org.apache.thrift.TException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.FileInfo;
 
 /**
- * Integration tests for tachyon.client.RawColumn.
+ * Integration tests for {@link RawColumn}.
  */
+// TODO(calvin): Move this into TachyonRawTablesIntegrationTest
 public class RawColumnIntegrationTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+
+  @Rule
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(10000, 1000, Constants.GB);
+  private TachyonFileSystem mTachyonFileSystem = null;
+  private TachyonRawTables mTachyonRawTables = null;
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getOldClient();
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
+    mTachyonFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
   }
 
   @Test
-  public void basicTest() throws IOException, TException {
-    TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
+  public void basicTest() throws Exception {
+    TachyonConf conf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     int maxCols = conf.getInt(Constants.MAX_COLUMNS);
 
-    long fileId = mTfs.createRawTable(new TachyonURI("/table"), maxCols / 10);
-    RawTable table = mTfs.getRawTable(fileId);
+    RawTable table = mTachyonRawTables.create(new TachyonURI("/table"), maxCols / 10);
 
     for (int col = 0; col < maxCols / 10; col ++) {
-      RawColumn column = table.getRawColumn(col);
+      RawColumn column = table.getColumn(col);
       for (int pid = 0; pid < 5; pid ++) {
-        Assert.assertTrue(column.createPartition(pid));
-        TachyonFile file = column.getPartition(pid);
+        // Create an empty partition
+        mTachyonRawTables.createPartition(column, pid).close();
+        TachyonFile file = mTachyonRawTables.openPartition(column, pid);
+        FileInfo partitionInfo = mTachyonFileSystem.getInfo(file);
         Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.MASTER_COLUMN_FILE_PREFIX
-            + col + TachyonURI.SEPARATOR + pid, file.getPath());
+            + col + TachyonURI.SEPARATOR + pid, partitionInfo.getPath());
       }
-      Assert.assertEquals(5, column.partitions());
+      Assert.assertEquals(5, mTachyonRawTables.getPartitionCount(column));
     }
   }
 }

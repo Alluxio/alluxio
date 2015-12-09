@@ -19,12 +19,14 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.MkdirTOptions;
 
 @PublicApi
 public final class MkdirOptions {
   public static class Builder implements OptionsBuilder<MkdirOptions> {
+    private boolean mAllowExists;
     private boolean mRecursive;
     private UnderStorageType mUnderStorageType;
 
@@ -42,8 +44,20 @@ public final class MkdirOptions {
      */
     public Builder(TachyonConf conf) {
       mRecursive = false;
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
+      mAllowExists = false;
+      WriteType defaultWriteType =
+          conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      mUnderStorageType = defaultWriteType.getUnderStorageType();
+    }
+
+    /**
+     * @param allowExists the allowExists flag value to use; it specifies whether an exception
+     *        should be thrown if the directory being made already exists.
+     * @return the builder
+     */
+    public Builder setAllowExists(boolean allowExists) {
+      mAllowExists = allowExists;
+      return this;
     }
 
     /**
@@ -57,6 +71,8 @@ public final class MkdirOptions {
     }
 
     /**
+     * This is an advanced API, use {@link Builder#setWriteType(WriteType)} when possible.
+     *
      * @param underStorageType the under storage type to use
      * @return the builder
      */
@@ -66,9 +82,18 @@ public final class MkdirOptions {
     }
 
     /**
-     * Builds a new instance of {@code MkdirOptions}.
+     * @param writeType the write type to use
+     * @return the builder
+     */
+    public Builder setWriteType(WriteType writeType) {
+      mUnderStorageType = writeType.getUnderStorageType();
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link MkdirOptions}.
      *
-     * @return a {@code MkdirOptions} instance
+     * @return a {@link MkdirOptions} instance
      */
     @Override
     public MkdirOptions build() {
@@ -77,18 +102,28 @@ public final class MkdirOptions {
   }
 
   /**
-   * @return the default {@code MkdirOptions}
+   * @return the default {@link MkdirOptions}
    */
   public static MkdirOptions defaults() {
     return new Builder().build();
   }
 
+  private final boolean mAllowExists;
   private final boolean mRecursive;
   private final UnderStorageType mUnderStorageType;
 
   private MkdirOptions(MkdirOptions.Builder builder) {
+    mAllowExists = builder.mAllowExists;
     mRecursive = builder.mRecursive;
     mUnderStorageType = builder.mUnderStorageType;
+  }
+
+  /**
+   * @return the allowExists flag value; it specifies whether an exception should be thrown if the
+   *         directory being made already exists
+   */
+  public boolean isAllowExists() {
+    return mAllowExists;
   }
 
   /**
@@ -112,6 +147,7 @@ public final class MkdirOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("MkdirOptions(");
+    sb.append(super.toString()).append(", AllowExists: ").append(mAllowExists);
     sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(")");
@@ -123,8 +159,9 @@ public final class MkdirOptions {
    */
   public MkdirTOptions toThrift() {
     MkdirTOptions options = new MkdirTOptions();
-    options.setPersisted(mUnderStorageType.isSyncPersist());
+    options.setAllowExists(mAllowExists);
     options.setRecursive(mRecursive);
+    options.setPersisted(mUnderStorageType.isSyncPersist());
     return options;
   }
 }

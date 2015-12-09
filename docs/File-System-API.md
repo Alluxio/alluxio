@@ -70,7 +70,7 @@ interaction with the Tachyon's native storage and under storage through the `Tac
 Below is a table of commonly used `TachyonStorageType` and `UnderStorageType` combinations as well
 as the deprecated `WriteType, ReadType` equivalents.
 
-<table class="table">
+<table class="table table-striped">
 <tr><th>TachyonStorageType</th><th>UnderStorageType</th><th>Previously</th>
 <th>Read Behavior</th><th>Write Behavior</th>
 </tr>
@@ -96,7 +96,7 @@ as the deprecated `WriteType, ReadType` equivalents.
   <td>STORE</td>
   <td>NO_PERSIST</td>
   <td>MUST_CACHE, CACHE</td>
-  <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
+  <td>If the data was not in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker. Data is not written to the under storage
   system.</td>
@@ -105,7 +105,7 @@ as the deprecated `WriteType, ReadType` equivalents.
   <td>STORE</td>
   <td>SYNC_PERSIST</td>
   <td>CACHE_THROUGH, CACHE</td>
-  <td>If the data was in the Tachyon storage of the local worker, a replica will be added to the
+  <td>If the data was not in the Tachyon storage of the local worker, a replica will be added to the
   local Tachyon worker for each completely read data block.</td>
   <td>Data is written synchronously to a Tachyon worker and the under storage system.</td>
 </tr>

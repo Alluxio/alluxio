@@ -20,8 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import tachyon.thrift.TachyonTException;
 
 /**
- * General TachyonException used throughout the system. It must be able serialize itself to the RPC
- * framework and convert back without losing any necessary information.
+ * General {@link TachyonException} used throughout the system. It must be able serialize itself to
+ * the RPC framework and convert back without losing any necessary information.
  */
 public abstract class TachyonException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;

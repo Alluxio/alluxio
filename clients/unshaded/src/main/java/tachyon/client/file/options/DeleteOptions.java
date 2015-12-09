@@ -51,9 +51,9 @@ public final class DeleteOptions {
     }
 
     /**
-     * Builds a new instance of {@code DeleteOptions}.
+     * Builds a new instance of {@link DeleteOptions}.
      *
-     * @return a {@code DeleteOptions} instance
+     * @return a {@link DeleteOptions} instance
      */
     @Override
     public DeleteOptions build() {
@@ -62,7 +62,7 @@ public final class DeleteOptions {
   }
 
   /**
-   * @return the default {@code DeleteOptions}
+   * @return the default {@link DeleteOptions}
    */
   public static DeleteOptions defaults() {
     return new Builder().build();

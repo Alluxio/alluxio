@@ -20,16 +20,16 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.LineageInfo;
-import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.LineageMasterClientService;
+import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 
 /**
@@ -39,9 +39,7 @@ import tachyon.thrift.TachyonTException;
  * to provide retries.
  */
 public final class LineageMasterClient extends MasterClientBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private LineageMasterService.Client mClient = null;
+  private LineageMasterClientService.Client mClient = null;
 
   /**
    * Creates a new lineage master client.
@@ -54,13 +52,23 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+  protected TachyonService.Client getClient() {
+    return mClient;
   }
 
   @Override
-  protected void afterConnect() {
-    mClient = new LineageMasterService.Client(mProtocol);
+  protected String getServiceName() {
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
+  }
+
+  @Override
+  protected void afterConnect() throws IOException {
+    mClient = new LineageMasterClientService.Client(mProtocol);
   }
 
   public synchronized long createLineage(final List<String> inputFiles,
@@ -106,7 +114,8 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
+  public synchronized List<LineageInfo> getLineageInfoList()
+      throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
@@ -115,27 +124,13 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
-  /**
-   * Reports a lost file.
-   *
-   * @param path the file path
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void reportLostFile(String path) throws IOException, TachyonException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized void reportLostFile(final String path) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
         mClient.reportLostFile(path);
-        return;
-      } catch (TachyonTException e) {
-        throw TachyonException.from(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+        return null;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }

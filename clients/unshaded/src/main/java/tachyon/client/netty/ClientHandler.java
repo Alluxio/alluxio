@@ -55,14 +55,14 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   private final Set<ResponseListener> mListeners;
 
   /**
-   * Creates a new <code>ClientHandler</code>.
+   * Creates a new {@link ClientHandler}.
    */
   public ClientHandler() {
     mListeners = new HashSet<ResponseListener>(4);
   }
 
   /**
-   * Adds a <code>ResponseListener</code> listener to the client handler.
+   * Adds a {@link ResponseListener} listener to the client handler.
    *
    * @param listener the listener to add
    */
@@ -71,7 +71,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
   }
 
   /**
-   * Removes a <code>ResponseListener</code> listener from the client handler.
+   * Removes a {@link ResponseListener} listener from the client handler.
    *
    * @param listener the listener to remove
    */

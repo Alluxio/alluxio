@@ -24,12 +24,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
 import tachyon.Constants;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.hadoop.TFS;
 import tachyon.master.LocalTachyonCluster;
 
 /**
- * This class provides an implementation of AbstractFSContract using tachyon.hadoop.TFS. This
- * will be used to run Hadoop Contract tests which verify the AbstractTFS interface.
+ * This class provides an implementation of {@link AbstractFSContract} using
+ * {@link tachyon.hadoop.TFS}. This will be used to run Hadoop Contract tests which verify the
+ * {@link tachyon.hadoop.AbstractTFS} interface.
  * More information can be found here:
  * http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/filesystem/testing.html
  */
@@ -62,7 +64,11 @@ public class TachyonFSContract extends AbstractFSContract {
 
     // Start local Tachyon cluster
     LocalTachyonCluster localcluster = new LocalTachyonCluster(100000000, 100000, 1024);
-    localcluster.start();
+    try {
+      localcluster.start();
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
+    }
     URI uri = URI.create(localcluster.getMasterUri());
 
     mFS = FileSystem.get(uri, conf);

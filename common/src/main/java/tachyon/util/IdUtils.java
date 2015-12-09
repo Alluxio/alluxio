@@ -15,6 +15,8 @@
 
 package tachyon.util;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,5 +42,9 @@ public final class IdUtils {
       LOG.warn("Created file id -1, which is invalid");
     }
     return id;
+  }
+
+  public static String createRpcId() {
+    return UUID.randomUUID().toString();
   }
 }

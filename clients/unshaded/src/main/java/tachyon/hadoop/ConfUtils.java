@@ -28,7 +28,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
- * Utility class for {@link tachyon.conf.TachyonConf}
+ * Utility class for {@link TachyonConf}
  */
 public class ConfUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -36,11 +36,11 @@ public class ConfUtils {
   private ConfUtils() {} // Prevent instantiation.
 
   /**
-   * Stores the source {@link tachyon.conf.TachyonConf} object to the target
-   * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
+   * Stores the source {@link TachyonConf} object to the target
+   * Hadoop {@link Configuration} object.
    *
-   * @param source the {@link tachyon.conf.TachyonConf} to be stored
-   * @param target the {@link org.apache.hadoop.conf.Configuration} target
+   * @param source the {@link TachyonConf} to be stored
+   * @param target the {@link Configuration} target
    */
   public static void storeToHadoopConfiguration(TachyonConf source, Configuration target) {
     // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
@@ -56,9 +56,9 @@ public class ConfUtils {
   }
 
   /**
-   * Loads {@link TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration} source.
+   * Loads {@link TachyonConf} from Hadoop {@link Configuration} source.
    *
-   * @param source the {@link org.apache.hadoop.conf.Configuration} to load from
+   * @param source the {@link Configuration} to load from
    * @return instance of {@link TachyonConf} to be loaded
    */
   public static TachyonConf loadFromHadoopConfiguration(Configuration source) {

@@ -15,8 +15,6 @@
 
 package tachyon.client.block;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +25,11 @@ import tachyon.thrift.NetAddress;
 import tachyon.worker.WorkerClient;
 
 /**
- * Class for managing local block worker clients. After obtaining a client with {@link
- * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
- * using the client.
+ * Class for managing local block worker clients. After obtaining a client with
+ * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
+ * thread is done using the client.
  */
-public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
+final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
@@ -59,8 +57,8 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
     try {
       // Heartbeat to send the client metrics.
       workerClient.sessionHeartbeat();
-    } catch (IOException ioe) {
-      LOG.warn("Failed sending client metrics before releasing the worker client", ioe);
+    } catch (Exception e) {
+      LOG.warn("Failed sending client metrics before releasing the worker client", e);
     }
     workerClient.createNewSession(ClientContext.getRandomNonNegativeLong());
     super.release(workerClient);

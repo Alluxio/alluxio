@@ -49,24 +49,24 @@ import tachyon.util.network.NetworkAddressUtils;
  * decreasing priority:
  * <ol>
  * <li>Java system properties;</li>
- * <li>Environment variables via <code>tachyon-env.sh</code> or from OS settings;</li>
- * <li>Site specific properties via <code>tachyon-site.properties</code> file;</li>
- * <li>Default properties via <code>tachyon-default.properties</code> file.</li>
+ * <li>Environment variables via {@code tachyon-env.sh} or from OS settings;</li>
+ * <li>Site specific properties via {@code tachyon-site.properties} file;</li>
+ * <li>Default properties via {@code tachyon-default.properties} file.</li>
  * </ol>
  *
  * <p>
- * The default properties are defined in a property file <code>tachyon-default.properties</code>
+ * The default properties are defined in a property file {@code tachyon-default.properties}
  * distributed with Tachyon jar. Tachyon users can override values of these default properties by
- * creating <code>tachyon-site.properties</code> and putting it under java <code>CLASSPATH</code>
- * when running Tachyon (e.g., ${TACHYON_HOME}/conf/)
+ * creating {@code tachyon-site.properties} and putting it under java {@code CLASSPATH} when
+ * running Tachyon (e.g., ${TACHYON_HOME}/conf/)
  *
  * <p>
- * Developers can create an instance of this class by <code>new TachyonConf()</code>, which will
- * load values from any Java system properties set as well.
+ * Developers can create an instance of this class by {@code new TachyonConf()}, which will load
+ * values from any Java system properties set as well.
  *
  * <p>
- * The class only supports creation using <code>new TachyonConf(properties)</code> to override
- * default values.
+ * The class only supports creation using {@code new TachyonConf(properties)} to override default
+ * values.
  */
 public final class TachyonConf {
   /** File to set default properties */
@@ -90,6 +90,7 @@ public final class TachyonConf {
     if (props != null) {
       mProperties.putAll(props);
     }
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -101,6 +102,7 @@ public final class TachyonConf {
     if (props != null) {
       mProperties.putAll(props);
     }
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -167,38 +169,12 @@ public final class TachyonConf {
 
     // Update tachyon.master_address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
+    String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
-
-    // tachyon.user.file.writetype.default has been deprecated. So by default it is not defined.
-    // In case it is defined, it overwrites tachyon.user.file.tachyonstoragetype.default and
-    // tachyon.user.file.understoragetype.default. Essentially, we want to make sure that
-    // tachyon.user.file.writetype.default is consistent with the other two parameters.
-    if (mProperties.containsKey(Constants.USER_FILE_WRITE_TYPE_DEFAULT)) {
-      String writeType = mProperties.getProperty(Constants.USER_FILE_WRITE_TYPE_DEFAULT);
-      if (writeType.equals("MUST_CACHE")) {
-        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
-        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
-      } else if (writeType.equals("TRY_CACHE")) {
-        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
-        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "NO_PERSIST");
-      } else if (writeType.equals("CACHE_THROUGH")) {
-        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
-        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
-      } else if (writeType.equals("THROUGH")) {
-        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "NO_STORE");
-        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "SYNC_PERSIST");
-      } else if (writeType.equals("ASYNC_THROUGH")) {
-        mProperties.setProperty(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, "STORE");
-        mProperties.setProperty(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, "ASYNC_PERSIST");
-      } else {
-        throw new IllegalArgumentException(ExceptionMessage.UNKNOWN_PROPERTY
-                .getMessage(Constants.USER_FILE_WRITE_TYPE_DEFAULT, writeType));
-      }
-    }
+    checkUserFileBufferBytes();
   }
 
   @Override
@@ -223,7 +199,7 @@ public final class TachyonConf {
   }
 
   /**
-   * @return the deep copy of the internal <code>Properties</code> of this TachyonConf instance
+   * @return the deep copy of the internal {@link Properties} of this {@link TachyonConf} instance
    */
   public Properties getInternalProperties() {
     return SerializationUtils.clone(mProperties);
@@ -233,7 +209,7 @@ public final class TachyonConf {
    * Merge the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param alternateConf The source <code>TachyonConf</code> to be merged
+   * @param alternateConf The source {@link TachyonConf} to be merged
    */
   public void merge(TachyonConf alternateConf) {
     if (alternateConf != null) {
@@ -246,6 +222,8 @@ public final class TachyonConf {
 
   // TODO(binfan): this method should be hidden and only used during initialization and tests.
   public void set(String key, String value) {
+    Preconditions.checkArgument(key != null && value != null,
+        String.format("the key value pair (%s, %s) cannot have null", key, value));
     mProperties.put(key, value);
   }
 
@@ -281,7 +259,7 @@ public final class TachyonConf {
       try {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as long.");
+        LOG.warn("Configuration cannot evaluate key {} as long.", key);
       }
     }
     // if key is not found among the default properties
@@ -307,7 +285,7 @@ public final class TachyonConf {
       try {
         return Float.parseFloat(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as float.");
+        LOG.warn("Configuration cannot evaluate key {} as float.", key);
       }
     }
     // if key is not found among the default properties
@@ -430,5 +408,18 @@ public final class TachyonConf {
       }
     }
     return resolved;
+  }
+
+  /**
+   * {@link Constants.USER_FILE_BUFFER_BYTES} should not bigger than Integer.MAX_VALUE bytes.
+   * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
+   */
+  private void checkUserFileBufferBytes() {
+    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
+      return;
+    }
+    long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
+        "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 }

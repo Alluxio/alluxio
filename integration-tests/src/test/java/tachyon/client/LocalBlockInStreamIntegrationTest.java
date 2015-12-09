@@ -19,15 +19,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.thrift.TException;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -36,19 +36,20 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.LocalBlockInStream</code>.
+ * Integration tests for {@link tachyon.client.block.LocalBlockInStream}.
  */
 public class LocalBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.GB);
   private static TachyonFileSystem sTfs = null;
   private static OutStreamOptions sWriteBoth;
   private static OutStreamOptions sWriteTachyon;
@@ -59,33 +60,18 @@ public class LocalBlockInStreamIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
-    sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
-    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    sReadCache =
-        new InStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .build();
-    sReadNoCache =
-        new InStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
+    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sReadCache = StreamOptionUtils.getInStreamOptionsReadCache(sTachyonConf);
+    sReadNoCache = StreamOptionUtils.getInStreamOptionsReadNoCache(sTachyonConf);
   }
 
   /**
-   * Test <code>void read()</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -130,7 +116,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -159,7 +145,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -188,11 +174,11 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
-   * position.
+   * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}. Validate the expected
+   * exception for seeking a negative position.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
@@ -217,11 +203,11 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
-   * that is past buffer limit.
+   * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}. Validate the expected
+   * exception for seeking a position that is past buffer limit.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest2() throws IOException, TachyonException {
@@ -246,10 +232,10 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#seek(long)}.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekTest() throws IOException, TachyonException {
@@ -274,7 +260,7 @@ public class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link tachyon.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {

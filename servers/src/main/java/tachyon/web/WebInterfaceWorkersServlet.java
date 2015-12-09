@@ -26,6 +26,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Objects;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
@@ -111,6 +113,22 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
       } else {
         return this.getHost().compareTo(o.getHost());
       }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this) {
+        return true;
+      }
+      if (!(o instanceof NodeInfo)) {
+        return false;
+      }
+      return this.getHost().equals(((NodeInfo) o).getHost());
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(this.getHost());
     }
   }
 

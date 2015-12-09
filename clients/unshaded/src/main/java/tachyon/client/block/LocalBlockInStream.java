@@ -24,6 +24,7 @@ import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
@@ -79,7 +80,13 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       return;
     }
     try {
+      if (mBlockIsRead) {
+        mWorkerClient.accessBlock(mBlockId);
+        ClientContext.getClientMetrics().incBlocksReadLocal(1);
+      }
       mWorkerClient.unlockBlock(mBlockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseWorkerClient(mWorkerClient);
       mCloser.close();
@@ -88,8 +95,6 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
       }
     }
 
-    // TODO(calvin): Perhaps verify something was read from this stream
-    ClientContext.getClientMetrics().incBlocksReadLocal(1);
     mClosed = true;
   }
 

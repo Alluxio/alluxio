@@ -26,9 +26,9 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.Command;
@@ -39,7 +39,7 @@ import tachyon.worker.WorkerIdRegistry;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
- * heartbeat. This class manages its own {@link tachyon.client.WorkerBlockMasterClient}.
+ * heartbeat. This class manages its own {@link BlockMasterClient}.
  *
  * When running, this task first requests a block report from the
  * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
@@ -62,7 +62,7 @@ public final class BlockMasterSync implements Runnable {
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
-  private final WorkerBlockMasterClient mMasterClient;
+  private final BlockMasterClient mMasterClient;
 
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
@@ -73,12 +73,12 @@ public final class BlockMasterSync implements Runnable {
   /**
    * Constructor for BlockMasterSync
    *
-   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
   BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
-      WorkerBlockMasterClient masterClient) {
+      BlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     TachyonConf conf = WorkerContext.getConf();
@@ -94,8 +94,9 @@ public final class BlockMasterSync implements Runnable {
    * begins. The workerId will be set after this method is successful.
    *
    * @throws IOException when workerId cannot be found
+   * @throws ConnectionFailedException if network connection failed
    */
-  private void registerWithMaster() throws IOException {
+  private void registerWithMaster() throws IOException, ConnectionFailedException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
@@ -123,6 +124,8 @@ public final class BlockMasterSync implements Runnable {
     } catch (IOException ioe) {
       // If failed to register when the thread starts, no retry will happen.
       throw new RuntimeException("Failed to register with master.", ioe);
+    } catch (ConnectionFailedException e) {
+      throw new RuntimeException("Failed to register with master.", e);
     }
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval
@@ -237,6 +240,5 @@ public final class BlockMasterSync implements Runnable {
         LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId);
       }
     }
-
   }
 }

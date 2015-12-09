@@ -317,11 +317,6 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.4</version>
           <configuration>
-            <archive>
-              <manifest>
-                <addClasspath>true</addClasspath>
-              </manifest>
-            </archive>
             <excludes>
               <exclude>**/log4j.properties</exclude>
             </excludes>
@@ -435,7 +430,7 @@
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**,**/tachyon/proto/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -471,9 +466,11 @@
           <excludes>
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/tachyon/thrift/*</exclude>
+            <exclude>**/src/main/java/tachyon/proto/**</exclude>
             <exclude>**/src/main/java/tachyon/perf/thrift/*</exclude>
             <exclude>**/src/main/webapp/**/*</exclude>
             <exclude>**/src/thrift/*</exclude>
+            <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
             <exclude>**/package-info.java</exclude>

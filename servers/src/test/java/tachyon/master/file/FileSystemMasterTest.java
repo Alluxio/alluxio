@@ -17,8 +17,11 @@ package tachyon.master.file;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -34,15 +38,17 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
-import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.TTLBucket;
+import tachyon.master.file.meta.TTLBucketPrivateAccess;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -51,7 +57,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.IdUtils;
 
 /**
- * Unit tests for tachyon.master.filesystem.FileSystemMaster.
+ * Unit tests for {@link tachyon.master.file.FileSystemMaster}.
  */
 public final class FileSystemMasterTest {
   private static final long TTLCHECKER_INTERVAL_MS = 0;
@@ -61,6 +67,7 @@ public final class FileSystemMasterTest {
   private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
   private static CreateOptions sNestedFileOptions;
+  private static long sOldTtlIntervalMs;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -77,7 +84,13 @@ public final class FileSystemMasterTest {
     sNestedFileOptions =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
-    TTLBucket.setTTlIntervalMs(TTLCHECKER_INTERVAL_MS);
+    sOldTtlIntervalMs = TTLBucket.getTTLIntervalMs();
+    TTLBucketPrivateAccess.setTTLIntervalMs(TTLCHECKER_INTERVAL_MS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    TTLBucketPrivateAccess.setTTLIntervalMs(sOldTtlIntervalMs);
   }
 
   @Before
@@ -294,7 +307,7 @@ public final class FileSystemMasterTest {
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "SSD", blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId);
+    mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
 
     createFileWithSingleBlock(ROOT_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(ROOT_FILE_URI), mFileSystemMaster.getInMemoryFiles());
@@ -365,11 +378,26 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
+  @Test
+  public void stopTest() throws Exception {
+    ExecutorService service =
+        (ExecutorService) Whitebox.getInternalState(mFileSystemMaster, "mExecutorService");
+    Future<?> ttlThread =
+        (Future<?>) Whitebox.getInternalState(mFileSystemMaster, "mTTLCheckerService");
+    Assert.assertFalse(ttlThread.isDone());
+    Assert.assertFalse(service.isShutdown());
+    mFileSystemMaster.stop();
+    Assert.assertTrue(ttlThread.isDone());
+    Assert.assertTrue(service.isShutdown());
+  }
+
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
     long fileId = mFileSystemMaster.create(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId);
+    CompleteFileOptions options =
+        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
+    mFileSystemMaster.completeFile(fileId, options);
     return blockId;
   }
 }

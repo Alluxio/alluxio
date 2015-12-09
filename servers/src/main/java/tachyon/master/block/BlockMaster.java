@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -35,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.MasterStorageTierAssoc;
@@ -49,25 +49,26 @@ import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
-import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
-import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterBlockLocation;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
+import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
+import tachyon.proto.journal.Block.BlockInfoEntry;
+import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
-import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.BlockMasterClientService;
+import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -124,13 +125,17 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /**
    * Keeps track of workers which are no longer in communication with the master. Access must be
-   * synchronized on mWorkers.
+   * synchronized on {@link #mWorkers}.
    */
   // This warning cannot be avoided when passing generics into varargs
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
-  /** The service that detects lost worker nodes, and tries to restart the failed workers. */
+  /**
+   * The service that detects lost worker nodes, and tries to restart the failed workers.
+   * We store it here so that it can be accessed from tests.
+   */
+  @SuppressWarnings("unused")
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
@@ -140,23 +145,30 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @return the journal directory for this master
    */
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
   }
 
   public BlockMaster(Journal journal) {
-    super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
+    super(journal, 2);
   }
 
   @Override
-  public TProcessor getProcessor() {
-    return new BlockMasterService.Processor<BlockMasterServiceHandler>(
-        new BlockMasterServiceHandler(this));
+  public Map<String, TProcessor> getServices() {
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(
+        Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+        new BlockMasterClientService.Processor<BlockMasterClientServiceHandler>(
+        new BlockMasterClientServiceHandler(this)));
+    services.put(
+        Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+        new BlockMasterWorkerService.Processor<BlockMasterWorkerServiceHandler>(
+            new BlockMasterWorkerServiceHandler(this)));
+    return services;
   }
 
   @Override
-  public String getServiceName() {
-    return Constants.BLOCK_MASTER_SERVICE_NAME;
+  public String getName() {
+    return Constants.BLOCK_MASTER_NAME;
   }
 
   @Override
@@ -168,12 +180,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
-    if (entry instanceof BlockContainerIdGeneratorEntry) {
+    if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
-          .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
-    } else if (entry instanceof BlockInfoEntry) {
-      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) entry;
+          .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
+    } else if (innerEntry instanceof BlockInfoEntry) {
+      BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
       mBlocks.put(blockInfoEntry.getBlockId(),
           new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
     } else {
@@ -185,27 +198,22 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
-      outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
+      BlockInfoEntry blockInfoEntry = BlockInfoEntry.newBuilder()
+          .setBlockId(blockInfo.getBlockId())
+          .setLength(blockInfo.getLength())
+          .build();
+      outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }
 
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
-    mGlobalStorageTierAssoc =
-        new MasterStorageTierAssoc(MasterContext.getConf());
+    mGlobalStorageTierAssoc = new MasterStorageTierAssoc(MasterContext.getConf());
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
-    }
-  }
-
-  @Override
-  public void stop() throws IOException {
-    super.stop();
-    if (mLostWorkerDetectionService != null) {
-      mLostWorkerDetectionService.cancel(true);
     }
   }
 
@@ -345,8 +353,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
-          writeJournalEntry(
-              new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+          BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
+              .setBlockId(masterBlockInfo.getBlockId())
+              .setLength(masterBlockInfo.getLength())
+              .build();
+          writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           flushJournal();
         }
         masterBlockInfo.addWorker(workerId, tierAlias);
@@ -370,8 +381,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         // The block has not been committed previously, so add the metadata to commit the block.
         masterBlockInfo = new MasterBlockInfo(blockId, length);
         mBlocks.put(blockId, masterBlockInfo);
-        writeJournalEntry(
-            new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+
+        BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
+            .setBlockId(masterBlockInfo.getBlockId())
+            .setLength(masterBlockInfo.getLength())
+            .build();
+        writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
         flushJournal();
       }
     }
@@ -470,11 +485,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       }
 
       if (mLostWorkers.contains(mAddressIndex, workerAddress)) { // this is one of the lost workers
-        final MasterWorkerInfo lostWorkerInfo = mLostWorkers.getFirstByField(mAddressIndex,
-            workerAddress);
+        final MasterWorkerInfo lostWorkerInfo =
+            mLostWorkers.getFirstByField(mAddressIndex, workerAddress);
         final long lostWorkerId = lostWorkerInfo.getId();
         LOG.warn("A lost worker {} has requested its old id {}.", workerAddress, lostWorkerId);
 
+        // Update the timestamp of the worker before it is considered an active worker.
+        lostWorkerInfo.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorkerInfo);
         mLostWorkers.remove(lostWorkerInfo);
         return lostWorkerId;
@@ -592,6 +609,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   /**
    * Called by the heartbeat thread whenever a worker is lost.
+   *
    * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
    */
   // Synchronized on mBlocks by the caller
@@ -603,7 +621,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
-   * mBlocks should already be locked before calling this method.
+   * {@link #mBlocks} should already be locked before calling this method.
    *
    * @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
@@ -637,7 +655,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
-   * mWorkers should already be locked before calling this method.
+   * {@link #mWorkers} should already be locked before calling this method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
    * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
@@ -702,6 +720,5 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         }
       }
     }
-
   }
 }

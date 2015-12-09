@@ -16,7 +16,8 @@
 package tachyon.client;
 
 /**
- * Specifies the type of data interaction with Tachyon.
+ * Specifies the type of data interaction with Tachyon. This option is for developers and
+ * advanced users. See {@link tachyon.client.WriteType} and {@link tachyon.client.ReadType}.
  * <ul>
  * <li>For a write operation, this determines whether the data will be written into Tachyon storage.
  * Metadata will always be updated in Tachyon space.</li>
@@ -31,7 +32,9 @@ public enum TachyonStorageType {
   /** Do not put data to Tachyon. */
   NO_STORE(2),
 
-  /** Same as STORE for writes. Will move the data to highest tier before access for reads. */
+  /**
+   * Same as {@link #STORE} for writes. Will move the data to highest tier before access for reads.
+   */
   PROMOTE(3);
 
   private final int mValue;

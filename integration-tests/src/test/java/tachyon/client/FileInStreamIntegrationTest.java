@@ -19,27 +19,26 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.thrift.TException;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for <code>tachyon.client.FileInStream</code>.
+ * Integration tests for {@link tachyon.client.file.FileInStream}.
  */
 public class FileInStreamIntegrationTest {
   private static final int BLOCK_SIZE = 30;
@@ -47,7 +46,9 @@ public class FileInStreamIntegrationTest {
   private static final int MAX_LEN = BLOCK_SIZE * 10 + 1;
   private static final int DELTA = BLOCK_SIZE / 2;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  @ClassRule
+  public static LocalTachyonClusterResource sLocalTachyonClusterResource =
+      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
   private static TachyonFileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteBoth;
@@ -57,31 +58,17 @@ public class FileInStreamIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @AfterClass
-  public static final void afterClass() throws Exception {
-    sLocalTachyonCluster.stop();
-  }
-
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, BLOCK_SIZE);
-    sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
-    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    sWriteUnderStore =
-        new OutStreamOptions.Builder(sTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    sTfs = sLocalTachyonClusterResource.get().getClient();
+    sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
+    sWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(sTachyonConf);
   }
 
   /**
-   * Test <code>void read()</code> across block boundary.
+   * Test {@link FileInStream#read()} across block boundary.
    */
   @Test
   public void readTest1() throws IOException, TachyonException {
@@ -124,7 +111,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b)</code>.
+   * Test {@link FileInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, TachyonException {
@@ -150,7 +137,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code>.
+   * Test {@link FileInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, TachyonException {
@@ -176,7 +163,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void read(byte[] b, int off, int len)</code> for end of file.
+   * Test {@link FileInStream#read(byte[], int, int)} for end of file.
    */
   @Test
   public void readEndOfFileTest() throws IOException, TachyonException {
@@ -203,11 +190,11 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
+   * Test {@link FileInStream#seek(long)}. Validate the expected exception for seeking a negative
    * position.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekExceptionTest1() throws IOException, TachyonException {
@@ -229,7 +216,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
+   * Test {@link FileInStream#seek(long)}. Validate the expected exception for seeking a position
    * that is past EOF.
    *
    * @throws IOException
@@ -254,10 +241,10 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test {@link FileInStream#seek(long)}.
    *
    * @throws IOException
-   * @throws TException
+   * @throws TachyonException
    */
   @Test
   public void seekTest() throws IOException, TachyonException {
@@ -280,7 +267,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code> when at the end of a file at the block boundary.
+   * Test {@link FileInStream#seek(long)} when at the end of a file at the block boundary.
    *
    * @throws IOException
    */
@@ -304,7 +291,7 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
+   * Test {@link FileInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, TachyonException {

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.conf.TachyonConf;
 
 /**
- * Validate the TachyonConf object.
+ * Validate the {@link TachyonConf} object.
  *
  */
 public class ValidateConf {
@@ -96,4 +96,5 @@ public class ValidateConf {
     System.exit(0);
   }
 
+  private ValidateConf() {} // prevent instantiation.
 }
