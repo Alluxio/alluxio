@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerExitStatus;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
@@ -160,8 +161,13 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public void onContainersCompleted(List<ContainerStatus> statuses) {
     for (ContainerStatus status : statuses) {
       // Releasing worker containers because we already have workers on their host will generate a
-      // callback to this method, so we use warn instead of error.
-      LOG.info("Completed container " + status.getContainerId() + " state: " + status.getState());
+      // callback to this method, so we use info instead of error.
+      if (status.getExitStatus() == ContainerExitStatus.ABORTED) {
+        LOG.info("Aborted container {}", status.getContainerId());
+      } else {
+        LOG.error("Container {} completed with exit status {}", status.getContainerId(),
+            status.getExitStatus());
+      }
     }
   }
 
@@ -287,6 +293,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     }
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
+      // TODO(andrew): Consider partitioning the available hosts among the worker requests
       ContainerRequest containerAsk = new ContainerRequest(workerResource, unusedWorkerHosts,
           null /* any racks */, WORKER_PRIORITY, false /* demand only unused workers */);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on hosts {}", i,
@@ -371,11 +378,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     for (Container container : containers) {
       synchronized (mWorkerHosts) {
-        Preconditions.checkState(mWorkerHosts.size() < mNumWorkers,
-            "Should not receive container offers when all workers have been allocated");
-        if (mWorkerHosts.contains(container.getNodeId().getHost())) {
+        if (mWorkerHosts.size() >= mNumWorkers
+            || mWorkerHosts.contains(container.getNodeId().getHost())) {
+          // 1. Yarn will sometimes offer more containers than were requested, so we ignore offers
+          // when mWorkerHosts.size() >= mNumWorkers
+          // 2. Avoid re-using nodes - we don't support multiple workers on the same node
           LOG.info("Releasing assigned container on {}", container.getNodeId().getHost());
-          // Avoid re-using nodes - we don't support multiple workers on the same node
           mRMClient.releaseAssignedContainer(container.getId());
         } else {
           try {
