@@ -131,7 +131,7 @@ public class ApplicationMasterTest {
    * Tests that start() properly registers the application master.
    */
   @Test
-  public void testStart() throws Exception {
+  public void startTest() throws Exception {
     String hostname = NetworkAddressUtils.getLocalHostName(new TachyonConf());
     Mockito.verify(mRMClient).registerApplicationMaster(hostname, 0, "");
   }
@@ -140,7 +140,7 @@ public class ApplicationMasterTest {
    * Tests that the correct type and number of containers are requested.
    */
   @Test(timeout = 10000)
-  public void testRequestContainersOnce() throws Exception {
+  public void requestContainersOnceTest() throws Exception {
     // Mock the Yarn client to give a NodeReport with NUM_WORKERS nodes
     List<NodeReport> nodeReports = Lists.newArrayList();
     final List<String> nodeHosts = Lists.newArrayList();
@@ -196,7 +196,7 @@ public class ApplicationMasterTest {
    * its clients.
    */
   @Test(timeout = 10000)
-  public void testNegotiateUniqueWorkerHosts() throws Exception {
+  public void negotiateUniqueWorkerHostsTest() throws Exception {
     final Random random = new Random();
     final List<Container> mockContainers = Lists.newArrayList();
     List<NodeReport> nodeReports = Lists.newArrayList();

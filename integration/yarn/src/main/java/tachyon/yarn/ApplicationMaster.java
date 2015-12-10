@@ -212,7 +212,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public void requestContainers() throws Exception {
     requestMasterContainer();
 
-    // Request Tachyon worker containers until they have all been allocated. This is is done in
+    // Request Tachyon worker containers until they have all been allocated. This is done in
     // rounds of
     // (1) asking for just enough worker containers to reach the desired mNumWorkers
     // (2) waiting for all container requests to resolve. Some containers may be rejected because
