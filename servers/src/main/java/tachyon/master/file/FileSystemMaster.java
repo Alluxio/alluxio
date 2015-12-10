@@ -58,6 +58,7 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.FilePersistenceState;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -180,7 +181,7 @@ public final class FileSystemMaster extends MasterBase {
       PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
       try {
         Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersisted(true);
+        inode.setPersistenceState(FilePersistenceState.PERSISTED);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -1131,7 +1132,7 @@ public final class FileSystemMaster extends MasterBase {
         // Stop if a persisted directory is encountered.
         break;
       }
-      handle.setPersisted(true);
+      handle.setPersistenceState(FilePersistenceState.PERSISTED);
       if (!replayed) {
         PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
             .setId(inode.getId())
@@ -1466,7 +1467,7 @@ public final class FileSystemMaster extends MasterBase {
       Preconditions.checkArgument(options.getPersisted(),
           PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
-        file.setPersisted(true);
+        file.setPersistenceState(FilePersistenceState.PERSISTED);
         propagatePersisted(file, false);
         file.setLastModificationTimeMs(opTimeMs);
         MasterContext.getMasterSource().incFilesCheckpointed();
