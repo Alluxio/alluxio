@@ -43,7 +43,7 @@ public final class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Retrieves the user name by querying the property of Constants.SECURITY_LOGIN_USERNAME.
+   * Retrieves the user name by querying the property of {@link Constants#SECURITY_LOGIN_USERNAME}.
    *
    * @return true if user name provided by application is set and not empty
    * @throws javax.security.auth.login.LoginException

@@ -129,6 +129,8 @@ public class TachyonMaster {
       }
       return new TachyonMaster();
     }
+
+    private Factory() {} // prevent instantiation.
   }
 
   protected TachyonMaster() {
@@ -151,7 +153,7 @@ public class TachyonMaster {
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master port
-      conf.set(Constants.MASTER_PORT, Integer.toString(mPort));
+      conf.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
 
       // Check the journal directory

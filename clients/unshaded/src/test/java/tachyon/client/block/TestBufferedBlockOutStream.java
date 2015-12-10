@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Test class for mocking BufferedBlockOutStream and exposing internal state.
+ * Test class for mocking {@link BufferedBlockOutStream} and exposing internal state.
  */
 public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
   // Shouldn't need more than this for unit tests
@@ -40,7 +40,8 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
   }
 
   /**
-   * @return all data which has even been written through the stream via write()
+   * @return all data which has even been written through the stream via
+   *         {@link BufferedBlockOutStream#write(byte[])}
    */
   public byte[] getWrittenData() {
     flush();

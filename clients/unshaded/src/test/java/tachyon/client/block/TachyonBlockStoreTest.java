@@ -79,12 +79,12 @@ public final class TachyonBlockStoreTest {
   /**
    * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
    *
-   * 1. The singleton {@link BlockStoreContext} is replaced with mBlockStoreContext<br>
-   * 2. mBlockStoreContext will return mMasterClient and mWorkerClient when asked for master/worker
-   * clients<br>
-   * 3. mTestFile is created inside mTestFolder<br>
-   * 4. mWorkerClient is made to understand that locking BLOCK_ID should return the path to
-   * mTestFile.
+   * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
+   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and {@link #mWorkerClient}
+   *    when asked for master/worker clients<br>
+   * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
+   * 4. {@link #mWorkerClient} is made to understand that locking {@link #BLOCK_ID} should return
+   *    the path to {@link #mTestFile}.
    */
   @Before
   public void before() throws Exception {
@@ -106,7 +106,8 @@ public final class TachyonBlockStoreTest {
   }
 
   /**
-   * Tests getInStream when a local block exists, making sure that the local block is preferred.
+   * Tests {@link TachyonBlockStore#getInStream(long)} when a local block exists, making sure that
+   * the local block is preferred.
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
@@ -117,16 +118,16 @@ public final class TachyonBlockStoreTest {
     BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals((Long) BLOCK_ID, (Long) Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals((Long) BLOCK_LENGTH,
-        (Long) Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH,
+        Whitebox.getInternalState(stream, "mBlockSize"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();
     Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
 
   /**
-   * Tests getInStream when no local block exists, making sure that the first {@link BlockLocation}
-   * in the {@link BlockInfo} list is chosen.
+   * Tests {@link TachyonBlockStore#getInStream(long)} when no local block exists, making sure that
+   * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {
@@ -137,9 +138,9 @@ public final class TachyonBlockStoreTest {
     BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals((Long) BLOCK_ID, (Long) Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals((Long) BLOCK_LENGTH,
-        (Long) Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH,
+        Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();

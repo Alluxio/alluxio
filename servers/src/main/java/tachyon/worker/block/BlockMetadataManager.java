@@ -43,18 +43,19 @@ import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * Manages the metadata of all blocks in managed space. This information is used by the
- * TieredBlockStore, Allocator and Evictor.
+ * {@link TieredBlockStore}, {@link tachyon.worker.block.allocator.Allocator} and
+ * {@link tachyon.worker.block.evictor.Evictor}.
  * <p>
- * This class is NOT thread-safe. All operations on block metadata such as StorageTier, StorageDir
- * should go through this class.
+ * This class is NOT thread-safe. All operations on block metadata such as {@link StorageTier},
+ * {@link StorageDir} should go through this class.
  */
 // TODO(bin): consider how to better expose information to Evictor and Allocator.
 public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** A list of managed StorageTier, in order from lowest tier ordinal to greatest */
+  /** A list of managed {@link StorageTier}, in order from lowest tier ordinal to greatest */
   private List<StorageTier> mTiers;
-  /** A map from tier alias to StorageTier */
+  /** A map from tier alias to {@link StorageTier} */
   private Map<String, StorageTier> mAliasToTiers;
 
   private BlockMetadataManager() {}
@@ -207,12 +208,12 @@ public class BlockMetadataManager {
 
   /**
    * Returns the path of a block given its location, or null if the location is not a specific
-   * StorageDir.
+   * {@link StorageDir}.
    *
    * @param blockId the ID of the block
-   * @param location location of a particular StorageDir to store this block
+   * @param location location of a particular {@link StorageDir} to store this block
    * @return the path of this block in this location
-   * @throws IllegalArgumentException if location is not a specific StorageDir
+   * @throws IllegalArgumentException if location is not a specific {@link StorageDir}
    */
   public String getBlockPath(long blockId, BlockStoreLocation location) {
     return BlockMetaBase.commitPath(getDir(location), blockId);
@@ -228,10 +229,10 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the StorageDir given its location in the store.
+   * Gets the {@link StorageDir} given its location in the store.
    *
    * @param location Location of the dir
-   * @return the StorageDir object
+   * @return the {@link StorageDir} object
    * @throws IllegalArgumentException if location is not a specific dir or the location is invalid
    */
   public StorageDir getDir(BlockStoreLocation location) {
@@ -262,10 +263,10 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the StorageTier given its tierAlias.
+   * Gets the {@link StorageTier} given its tierAlias.
    *
    * @param tierAlias the alias of this tier
-   * @return the StorageTier object associated with the alias
+   * @return the {@link StorageTier} object associated with the alias
    * @throws IllegalArgumentException if tierAlias is not found
    */
   public StorageTier getTier(String tierAlias) {
@@ -278,19 +279,19 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the list of StorageTier managed.
+   * Gets the list of {@link StorageTier} managed.
    *
-   * @return the list of StorageTiers
+   * @return the list of {@link StorageTier}s
    */
   public List<StorageTier> getTiers() {
     return mTiers;
   }
 
   /**
-   * Gets the list of StorageTier below the tier with the given tierAlias.
+   * Gets the list of {@link StorageTier} below the tier with the given tierAlias.
    *
    * @param tierAlias the alias of a tier
-   * @return the list of StorageTier
+   * @return the list of {@link StorageTier}
    * @throws IllegalArgumentException if tierAlias is not found
    */
   public List<StorageTier> getTiersBelow(String tierAlias) {

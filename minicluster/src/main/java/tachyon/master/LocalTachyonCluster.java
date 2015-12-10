@@ -23,10 +23,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
-import tachyon.underfs.UnderFileSystemCluster;
-import tachyon.util.CommonUtils;
 import tachyon.util.LineageUtils;
-import tachyon.util.UnderFileSystemUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.lineage.LineageWorker;
@@ -47,20 +44,6 @@ import tachyon.worker.lineage.LineageWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
-
-  public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-
-    cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
-    cluster.start();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-    cluster.stop();
-    CommonUtils.sleepMs(Constants.SECOND_MS);
-  }
 
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
@@ -113,28 +96,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   }
 
   @Override
-  protected void setupTest(TachyonConf testConf) throws IOException {
-    String tachyonHome = testConf.get(Constants.TACHYON_HOME);
-    // Delete the tachyon home dir for this test from ufs to avoid permission problems
-    UnderFileSystemUtils.deleteDir(tachyonHome, testConf);
-
-    // Create ufs dir
-    UnderFileSystemUtils.mkdirIfNotExists(testConf.get(Constants.UNDERFS_ADDRESS),
-        testConf);
-
-    // Create storage dirs for worker
-    int numLevel = testConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
-    for (int level = 0; level < numLevel; level ++) {
-      String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = testConf.get(tierLevelDirPath).split(",");
-      for (String dirPath : dirPaths) {
-        UnderFileSystemUtils.mkdirIfNotExists(dirPath, testConf);
-      }
-    }
-  }
-
-  @Override
   protected void startMaster(TachyonConf testConf) throws IOException {
     mMasterConf = new TachyonConf(testConf.getInternalProperties());
     MasterContext.reset(mMasterConf);
@@ -143,20 +104,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mMaster.start();
 
     // Update the test conf with actual RPC port.
-    testConf.set(Constants.MASTER_PORT, String.valueOf(getMasterPort()));
-
-    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
-    // the cluster's current address. This must happen here because the cluster isn't initialized
-    // until mMaster is started.
-    UnderFileSystemCluster ufs = UnderFileSystemCluster.get();
-    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
-    // instead of comparing classnames.
-    if (ufs.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
-      String ufsAddress = ufs.getUnderFilesystemAddress() + mTachyonHome;
-      testConf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
-      MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, ufsAddress);
-      mMasterConf = MasterContext.getConf();
-    }
+    testConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
 
     // We need to update client context with the most recent configuration so they know the correct
     // port to connect to master.
@@ -183,7 +131,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
   @Override
   public void stopTFS() throws Exception {
-    LOG.info("stop Tachyon filesytstem");
+    LOG.info("stop Tachyon filesystem");
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
@@ -191,12 +139,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
       mLineageWorker.stop();
     }
     mMaster.stop();
-  }
-
-  @Override
-  public void stopUFS() throws Exception {
-    LOG.info("stop under storage system");
-    mMaster.cleanupUnderfs();
   }
 
   /**

@@ -18,7 +18,6 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Random;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -27,9 +26,7 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.UnderFileSystemUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
@@ -42,13 +39,9 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public final class LocalTachyonMaster {
   // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
-
-  private static Random sRandomGenerator = new Random();
-
   private final String mTachyonHome;
   private final String mHostname;
 
-  private final UnderFileSystemCluster mUfsCluster;
   private final String mJournalFolder;
 
   private final TachyonMaster mTachyonMaster;
@@ -69,37 +62,12 @@ public final class LocalTachyonMaster {
     TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
-    // To start the UFS for hdfs integration tests. It starts miniDFSCluster (see also
-    // {@link tachyon.LocalMiniDFScluster} and sets up the folder like "hdfs://xxx:xxx/tachyon*".
-    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, tachyonConf);
-
-    // To setup the journalFolder under either local file system or distributed ufs like
-    // miniDFSCluster
-    synchronized (sRandomGenerator) {
-      mJournalFolder =
-          mUfsCluster.getUnderFilesystemAddress() + "/journal" + sRandomGenerator.nextLong();
-    }
-
-    UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
-    String[] masterServiceNames = new String[] {
-        Constants.BLOCK_MASTER_NAME,
-        Constants.FILE_SYSTEM_MASTER_NAME,
-        Constants.RAW_TABLE_MASTER_NAME,
-        Constants.LINEAGE_MASTER_NAME,
-    };
-    for (String masterServiceName : masterServiceNames) {
-      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
-          tachyonConf);
-    }
-    UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
-        tachyonConf);
-
-    tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
+    mJournalFolder = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
 
     mTachyonMaster = TachyonMaster.Factory.createMaster();
 
     // Reset the master port
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
+    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -159,9 +127,6 @@ public final class LocalTachyonMaster {
   /**
    * Stops the master and cleans up client connections.
    *
-   * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you
-   * must call {@link #cleanupUnderfs()}.
-   *
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
@@ -178,22 +143,15 @@ public final class LocalTachyonMaster {
     mClientPool.close();
   }
 
-  public void cleanupUnderfs() throws IOException {
-    if (mUfsCluster != null) {
-      mUfsCluster.cleanup();
-    }
-    System.clearProperty("tachyon.underfs.address");
-  }
-
   /**
-   * Get the externally resolvable address of the master (used by unit test only).
+   * @return the externally resolvable address of the master (used by unit test only)
    */
   public InetSocketAddress getAddress() {
     return mTachyonMaster.getMasterAddress();
   }
 
   /**
-   * Gets the actual internal master.
+   * @return the internal {@link TachyonMaster}
    */
   public TachyonMaster getInternalMaster() {
     return mTachyonMaster;

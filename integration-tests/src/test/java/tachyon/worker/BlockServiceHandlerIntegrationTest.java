@@ -50,7 +50,7 @@ import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
 
 /**
- * Integration tests for tachyon.BlockServiceHandler
+ * Integration tests for {@link BlockServiceHandler}
  */
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
@@ -58,7 +58,7 @@ public class BlockServiceHandlerIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonCluster =
+  public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockServiceHandler mWorkerServiceHandler = null;
@@ -74,14 +74,16 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mTfs = mLocalTachyonCluster.get().getClient();
-    mMasterTachyonConf = mLocalTachyonCluster.get().getMasterTachyonConf();
-    mWorkerTachyonConf = mLocalTachyonCluster.get().getWorkerTachyonConf();
-    mWorkerServiceHandler = mLocalTachyonCluster.get().getWorker().getWorkerServiceHandler();
+    mTfs = mLocalTachyonClusterResource.get().getClient();
+    mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
+    mWorkerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
+    mWorkerServiceHandler =
+        mLocalTachyonClusterResource.get().getWorker().getWorkerServiceHandler();
 
-    mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.get().getMasterHostname(),
-            mLocalTachyonCluster.get().getMasterPort()), mWorkerTachyonConf);
+    mBlockMasterClient = new BlockMasterClient(
+        new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
+            mLocalTachyonClusterResource.get().getMasterPort()),
+        mWorkerTachyonConf);
   }
 
   // Tests that caching a block successfully persists the block if the block exists
