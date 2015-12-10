@@ -218,7 +218,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     int round = 0;
     while (mWorkerHosts.size() < mNumWorkers && round < MAX_WORKER_CONTAINER_REQUEST_ROUNDS) {
       requestWorkerContainers();
-      LOG.info("Waiting for worker containers to be allocated");
+      LOG.info("Waiting for {} worker containers to be allocated",
+          mOutstandingWorkerContainerRequestsLatch.getCount());
       // TODO(andrew): Handle the case where something goes wrong and some worker containers never
       // get allocated. See TACHYON-1410
       mOutstandingWorkerContainerRequestsLatch.await();
@@ -276,16 +277,16 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     workerResource.setMemory(mWorkerMemInMB + mRamdiskMemInMB);
     workerResource.setVirtualCores(mWorkerCpu);
     int currentNumWorkers = mWorkerHosts.size();
-    int neededWorkers = mWorkerHosts.size() - currentNumWorkers;
+    int neededWorkers = mNumWorkers - currentNumWorkers;
 
     mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(neededWorkers);
+    String[] unusedWorkerHosts = getUnusedWorkerHosts();
+    if (unusedWorkerHosts.length < neededWorkers) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers,
+          unusedWorkerHosts.length));
+    }
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
-      String[] unusedWorkerHosts = getUnusedWorkerHosts();
-      if (unusedWorkerHosts.length < neededWorkers) {
-        throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers,
-            unusedWorkerHosts.length));
-      }
       ContainerRequest containerAsk = new ContainerRequest(workerResource, unusedWorkerHosts,
           null /* any racks */, WORKER_PRIORITY, false /* demand only unused workers */);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on hosts {}", i,
