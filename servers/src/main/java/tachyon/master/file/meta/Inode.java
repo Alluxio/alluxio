@@ -30,7 +30,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private long mLastModificationTimeMs;
     private String mName;
     private long mParentId;
-    private boolean mPersisted;
+    private FilePersistenceState mPersistenceState;
     private PermissionStatus mPermissionStatus;
     private boolean mPinned;
 
@@ -41,7 +41,7 @@ public abstract class Inode implements JournalEntryRepresentable {
       mLastModificationTimeMs = mCreationTimeMs;
       mName = null;
       mParentId = InodeTree.NO_PARENT;
-      mPersisted = false;
+      mPersistenceState = FilePersistenceState.NOT_PERSISTED;
       mPinned = false;
       mPermissionStatus = null;
     }
@@ -71,8 +71,8 @@ public abstract class Inode implements JournalEntryRepresentable {
       return getThis();
     }
 
-    public T setPersisted(boolean persisted) {
-      mPersisted = persisted;
+    public T setPersistenceState(FilePersistenceState filePersistenceState) {
+      mPersistenceState = filePersistenceState;
       return getThis();
     }
 
@@ -128,7 +128,7 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   private boolean mPinned;
 
-  private boolean mPersisted;
+  private FilePersistenceState mPersistenceState;
 
   protected Inode(Builder<?> builder) {
     mCreationTimeMs = builder.mCreationTimeMs;
@@ -138,7 +138,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     mId = builder.mId;
     mLastModificationTimeMs = builder.mLastModificationTimeMs;
     mName = builder.mName;
-    mPersisted = builder.mPersisted;
+    mPersistenceState = builder.mPersistenceState;
     mParentId = builder.mParentId;
     mPinned = builder.mPinned;
     if (builder.mPermissionStatus != null) {
@@ -197,6 +197,13 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
+   * @return the file persistence state of the inode
+   */
+  public synchronized FilePersistenceState getPersistenceState() {
+    return mPersistenceState;
+  }
+
+  /**
    * @return the id of the parent folder
    */
   public synchronized long getParentId() {
@@ -240,7 +247,7 @@ public abstract class Inode implements JournalEntryRepresentable {
    * @return true if the file has persisted, false otherwise
    */
   public synchronized boolean isPersisted() {
-    return mPersisted;
+    return mPersistenceState == FilePersistenceState.PERSISTED;
   }
 
   /**
@@ -278,12 +285,10 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the persisted flag for the file.
-   *
-   * @param persisted if true, the file is persisted
+   * Sets the file persistent state of the file.
    */
-  public synchronized void setPersisted(boolean persisted) {
-    mPersisted = persisted;
+  public synchronized void setPersistenceState(FilePersistenceState filePersistenceState) {
+    mPersistenceState = filePersistenceState;
   }
 
   /**
