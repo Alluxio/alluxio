@@ -48,6 +48,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -269,11 +270,17 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     workerResource.setMemory(mWorkerMemInMB + mRamdiskMemInMB);
     workerResource.setVirtualCores(mWorkerCpu);
     int currentNumWorkers = mWorkerHosts.size();
+    int neededWorkers = mWorkerHosts.size() - currentNumWorkers;
 
-    mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(mNumWorkers - currentNumWorkers);
+    mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(neededWorkers);
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk = new ContainerRequest(workerResource, getUnusedWorkerHosts(),
+      String[] unusedWorkerHosts = getUnusedWorkerHosts();
+      if (unusedWorkerHosts.length < neededWorkers) {
+        throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers,
+            unusedWorkerHosts.length));
+      }
+      ContainerRequest containerAsk = new ContainerRequest(workerResource, unusedWorkerHosts,
           null /* any racks */, WORKER_PRIORITY, false /* demand only unused workers */);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes", i,
           workerResource.getVirtualCores(), workerResource.getMemory());
