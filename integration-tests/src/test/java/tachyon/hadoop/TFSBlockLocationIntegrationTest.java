@@ -34,7 +34,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 
 /**
- * Integration tests for TFS getFileBlockLocations.
+ * Integration tests for {@link TFS#getFileBlockLocations(FileStatus, long, long)}.
  */
 public class TFSBlockLocationIntegrationTest {
 

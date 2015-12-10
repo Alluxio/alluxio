@@ -2,12 +2,15 @@ package tachyon.conf;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.util.network.NetworkAddressUtils;
@@ -16,6 +19,8 @@ import tachyon.util.network.NetworkAddressUtils;
  * Unit test for TachyonConf class
  */
 public class TachyonConfTest {
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
   private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
 
   private static TachyonConf sDefaultTachyonConf;
@@ -27,7 +32,7 @@ public class TachyonConfTest {
   @AfterClass
   public static void afterClass() {
     System.clearProperty(Constants.MASTER_HOSTNAME);
-    System.clearProperty(Constants.MASTER_PORT);
+    System.clearProperty(Constants.MASTER_RPC_PORT);
     System.clearProperty(Constants.ZOOKEEPER_ENABLED);
   }
 
@@ -45,7 +50,7 @@ public class TachyonConfTest {
 
     // initialize the system properties
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
-    System.setProperty(Constants.MASTER_PORT, "20001");
+    System.setProperty(Constants.MASTER_RPC_PORT, "20001");
     System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
 
     // initialize
@@ -131,7 +136,7 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT);
+    int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_RPC_PORT);
     Assert.assertEquals(19998, intValue);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_WEB_BIND_HOST);
@@ -164,7 +169,7 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
-    int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
+    int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_RPC_PORT);
     Assert.assertEquals(29998, intValue);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_DATA_BIND_HOST);
@@ -259,5 +264,35 @@ public class TachyonConfTest {
     String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals("tachyon-ft://master:20001", masterAddress);
+  }
+
+  @Test
+  public void variableUserFileBufferBytesOverFlowCheckTest() {
+    Properties mProperties = new Properties();
+    mProperties.put(Constants.USER_FILE_BUFFER_BYTES ,
+            String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    mThrown.expect(IllegalArgumentException.class);
+    new TachyonConf(mProperties);
+  }
+
+  @Test
+  public void variableUserFileBufferBytesOverFlowCheckTest1() {
+    Map<String, String> properties = new LinkedHashMap<String, String>();
+    properties.put(Constants.USER_FILE_BUFFER_BYTES ,
+            String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    mThrown.expect(IllegalArgumentException.class);
+    new TachyonConf(properties);
+  }
+
+  @Test
+  public void variableUserFileBufferBytesNormalCheckTest() {
+    Properties mProperties = new Properties();
+    mProperties.put(Constants.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
+    mCustomPropsTachyonConf = new TachyonConf(mProperties);
+    Assert.assertEquals(Integer.MAX_VALUE,
+            (int)mCustomPropsTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    mCustomPropsTachyonConf.set(Constants.USER_FILE_BUFFER_BYTES,"1GB");
+    Assert.assertEquals(1073741824,
+            (int)mCustomPropsTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
 }

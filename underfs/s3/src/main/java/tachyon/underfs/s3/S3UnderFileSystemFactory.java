@@ -31,7 +31,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
 /**
- * This class is a factory for S3UnderFileSystem clients. It will ensure AWS credentials are
+ * This class is a factory for {@link S3UnderFileSystem} clients. It will ensure AWS credentials are
  * present before returning a client. The validity of the credentials are checked by the client.
  */
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {

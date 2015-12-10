@@ -47,11 +47,11 @@ public final class Utils {
   }
 
   /**
-   * Given a {@code Path} path, it returns the path component of its URI, which has the form
+   * Given a {@link Path} path, it returns the path component of its URI, which has the form
    * scheme://authority/path.
    *
-   * @param path an HDFS {@code Path}
-   * @return the path component of the {@code Path} URI
+   * @param path an HDFS {@link Path}
+   * @return the path component of the {@link Path} URI
    */
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
@@ -81,9 +81,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a Hadoop {@code FileSplit}.
+   * Returns a string representation of a Hadoop {@link FileSplit}.
    *
-   * @param fs Hadoop {@code FileSplit}
+   * @param fs Hadoop {@link FileSplit}
    * @return its string representation
    */
   public static String toStringHadoopFileSplit(FileSplit fs) {
@@ -107,9 +107,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a Hadoop {@code FileStatus}.
+   * Returns a string representation of a Hadoop {@link FileStatus}.
    *
-   * @param fs Hadoop {@code FileStatus}
+   * @param fs Hadoop {@link FileStatus}
    * @return its string representation
    */
   public static String toStringHadoopFileStatus(FileStatus fs) {
@@ -128,9 +128,9 @@ public final class Utils {
   }
 
   /**
-   * Returns a string representation of a {@code InputSplit}.
+   * Returns a string representation of a {@link InputSplit}.
    *
-   * @param is Hadoop {@code InputSplit}
+   * @param is Hadoop {@link InputSplit}
    * @return its string representation
    */
   public static String toStringHadoopInputSplit(InputSplit is) {
@@ -151,8 +151,8 @@ public final class Utils {
    * Adds S3 keys to the given Hadoop Configuration object if the user has specified them using
    * System properties, and they're not already set.
    *
-   * This function is duplicated from tachyon.underfs.hdfs.HdfsUnderFileSystemUtils, to prevent the
-   * module tachyon-client from depending on the module tachyon-underfs.
+   * This function is duplicated from {@code tachyon.underfs.hdfs.HdfsUnderFileSystemUtils}, to
+   * prevent the module tachyon-client from depending on the module tachyon-underfs.
    *
    * TODO(hy): Remove duplication in the future.
    *

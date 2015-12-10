@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -50,7 +52,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 
 /**
- * Unit tests for tachyon.master.block.BlockMaster.
+ * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
 
@@ -280,6 +282,19 @@ public class BlockMasterTest {
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
   }
 
+  @Test
+  public void stopTest() throws Exception {
+    ExecutorService service =
+        (ExecutorService) Whitebox.getInternalState(mMaster, "mExecutorService");
+    Future<?> lostWorkerThread =
+        (Future<?>) Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
+    Assert.assertFalse(lostWorkerThread.isDone());
+    Assert.assertFalse(service.isShutdown());
+    mMaster.stop();
+    Assert.assertTrue(lostWorkerThread.isDone());
+    Assert.assertTrue(service.isShutdown());
+  }
+
   private void addWorker(BlockMaster master, long workerId, List<String> storageTierAliases,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers)
           throws TachyonException {
@@ -287,7 +302,7 @@ public class BlockMasterTest {
         Maps.<String, List<Long>>newHashMap());
   }
 
-  /** Private access to BlockMaster internals. */
+  /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
     private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;

@@ -21,6 +21,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.security.LoginUser;
+import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
 
@@ -89,7 +90,8 @@ public final class PermissionStatus {
   }
 
   /**
-   * Gets the Directory default PermissionStatus. Currently the default dir permission is 0777.
+   * Gets the Directory default {@link PermissionStatus}. Currently the default dir permission is
+   * 0777.
    *
    * @return the default {@link PermissionStatus} for directories
    */
@@ -117,7 +119,11 @@ public final class PermissionStatus {
     }
     if (remote) {
       // get the username through the authentication mechanism
-      return new PermissionStatus(PlainSaslServer.AuthorizedClientUser.get().getName(),
+      User user = PlainSaslServer.AuthorizedClientUser.get();
+      if (user == null) {
+        throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+      }
+      return new PermissionStatus(user.getName(),
           "", // TODO(dong) group permission binding into Inode
           FileSystemPermission.getDefault().applyUMask(conf));
     }

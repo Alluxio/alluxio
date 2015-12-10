@@ -536,7 +536,7 @@ public class Performance {
     CommonUtils.warmUpLoop();
 
     tachyonConf.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHost());
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(sMasterAddress.getPort()));
+    tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
     ClientContext.reset(tachyonConf);
 
     if (testCase == 1) {

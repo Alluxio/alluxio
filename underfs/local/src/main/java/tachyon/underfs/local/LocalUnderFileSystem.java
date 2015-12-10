@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -34,7 +35,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Local node UnderFilesystem implementation.
+ * Local node {@link UnderFileSystem} implementation.
  * <p>
  * This is primarily intended for local unit test and single machine mode. In principal it can also
  * be used on a system where a shared file system (e.g. NFS) is mounted at the same path on every
@@ -180,10 +181,32 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
-    boolean created = createParent ? file.mkdirs() : file.mkdir();
-    setPermission(path, "777");
-    FileUtils.setLocalDirStickyBit(path);
-    return created;
+    if (!createParent) {
+      if (file.mkdir()) {
+        setPermission(file.getPath(), "777");
+        FileUtils.setLocalDirStickyBit(file.getPath());
+        return true;
+      }
+      return false;
+    }
+    // create parent directories one by one and set their permissions to 777
+    Stack<File> dirsToMake = new Stack<File>();
+    dirsToMake.push(file);
+    File parent = file.getParentFile();
+    while (!parent.exists()) {
+      dirsToMake.push(parent);
+      parent = parent.getParentFile();
+    }
+    while (!dirsToMake.empty()) {
+      File dirToMake = dirsToMake.pop();
+      if (dirToMake.mkdir()) {
+        setPermission(dirToMake.getAbsolutePath(), "777");
+        FileUtils.setLocalDirStickyBit(file.getPath());
+      } else {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

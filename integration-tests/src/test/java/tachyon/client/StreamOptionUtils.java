@@ -30,7 +30,7 @@ public class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteBoth OutStreamOptions
+   * Gets WriteBoth {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the OutStreamOptions
@@ -41,7 +41,7 @@ public class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteTachyon OutStreamOptions
+   * Gets WriteTachyon {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the OutStreamOptions
@@ -52,7 +52,7 @@ public class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteUnderStore OutStreamOptions
+   * Gets WriteUnderStore {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the OutStreamOptions
@@ -63,7 +63,7 @@ public class StreamOptionUtils {
   }
 
   /**
-   * Gets WriteLocal OutStreamOptions
+   * Gets WriteLocal {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the OutStreamOptions
@@ -75,7 +75,7 @@ public class StreamOptionUtils {
   }
 
   /**
-   * Gets ReadCache InStreamOptions
+   * Gets ReadCache {@link InStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the InStreamOptions
@@ -86,7 +86,7 @@ public class StreamOptionUtils {
   }
 
   /**
-   * Gets ReadNoCache InStreamOptions
+   * Gets ReadNoCache {@link InStreamOptions}
    *
    * @param conf the Tachyon config
    * @return the InStreamOptions
@@ -95,5 +95,4 @@ public class StreamOptionUtils {
     return new InStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
         .build();
   }
-
 }

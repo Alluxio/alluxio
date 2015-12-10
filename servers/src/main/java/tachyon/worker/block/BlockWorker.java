@@ -52,11 +52,11 @@ import tachyon.worker.WorkerSource;
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
  *
- * Servers: BlockServiceHandler (RPC Server), BlockDataServer (Data Server)
+ * Servers: {@link BlockServiceHandler} (RPC Server), BlockDataServer (Data Server)
  *
- * Periodic Threads: BlockMasterSync (Worker to Master continuous communication)
+ * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
- * Logic: BlockDataManager (Logic for all block related storage operations)
+ * Logic: {@link BlockDataManager} (Logic for all block related storage operations)
  */
 public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -196,7 +196,7 @@ public final class BlockWorker extends WorkerBase {
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
     // reset worker RPC port
-    mTachyonConf.set(Constants.WORKER_PORT, Integer.toString(mPort));
+    mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),

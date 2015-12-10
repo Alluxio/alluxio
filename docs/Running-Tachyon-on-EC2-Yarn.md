@@ -37,7 +37,7 @@ $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 
 Install [python>=2.7](https://www.python.org/), not python3.
 
-Under `deploy/vagrant` directory in your home directory, run:
+Under `deploy/vagrant` directory in your Tachyon home directory, run:
 
 ```bash
 $ sudo bash bin/install.sh
@@ -64,8 +64,9 @@ $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
 ```
 
 Next generate your EC2
-[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
-the permissions of your private key file that only you can read it:
+[Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in the region 
+you want to deploy to (**us-east-1** by default). Make sure to set the permissions of your private 
+key file so that only you can read it:
 
 ```bash
 $ chmod 400 <your key pair>.pem
