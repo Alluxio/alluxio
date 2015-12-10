@@ -70,16 +70,16 @@ import tachyon.util.network.NetworkAddressUtils;
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String TACHYON_HOME = "/tmp/tachyonhome";
-  private static final TachyonConf mConf = new TachyonConf();
+  private static final TachyonConf CONF = new TachyonConf();
   private static final int NUM_WORKERS = 5;
   private static final int MASTER_MEM_MB =
-      (int) mConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-  private static final int MASTER_CPU = mConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      (int) CONF.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+  private static final int MASTER_CPU = CONF.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
   private static final int WORKER_MEM_MB =
-      (int) mConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+      (int) CONF.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
   private static final int RAMDISK_MEM_MB =
-      (int) mConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
-  private static final int WORKER_CPU = mConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      (int) CONF.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+  private static final int WORKER_CPU = CONF.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
 
   private static final String EXPECTED_WORKER_COMMAND = new CommandBuilder(
       PathUtils.concatPath(TACHYON_HOME, "integration", "bin", "tachyon-worker-yarn.sh"))
