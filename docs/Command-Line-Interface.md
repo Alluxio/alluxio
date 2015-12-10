@@ -38,7 +38,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>copyToLocal</td>
     <td>copyToLocal "remote path" "local path"</td>
-    <td>Copy the specified file from the path specified by "remote source" to a local
+    <td>Copy the specified file from the path specified by "remote path" to a local
     destination.</td>
   </tr>
   <tr>
