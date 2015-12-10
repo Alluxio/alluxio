@@ -59,7 +59,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * This function displays 5KB of a file from a specific offset if it is in ASCII format.
    *
    * @param file the local file to display
-   * @param request the HttpServletRequest object
+   * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
    * @throws IOException
    */
@@ -99,8 +99,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * will be displayed in an error field. Debugging can be enabled to display additional data. Will
    * eventually redirect the request to a jsp.
    *
-   * @param request the HttpServletRequest object
-   * @param response the HttpServletResponse object
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */

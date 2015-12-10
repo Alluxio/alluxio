@@ -42,8 +42,8 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
    * Populate the header with information about master. So we can return to
    * the master from any page.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */
