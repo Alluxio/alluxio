@@ -55,17 +55,28 @@ For a tutorial, see the GitHub guides on
     ticket to the proposed code changes. for example:
 
 ~~~~~
-[TACHYON-100] Awesome New Feature
+[TACHYON-100] Implement an awesome new feature
 ~~~~~
 
 -   In the description field of the pull request, please include a link to the JIRA ticket.
 
--   For pull requests that only address typos or formating issues, it is not
-    required to create and reference a JIRA ticket. Instead, you
+
+Note that, for some trivial changes it is not required to create corresponding JIRA tickets before
+submitting the pull requests. For instance:
+
+-   For pull requests that only address typos or formatting issues in source code, you
     can prefix the titles of your pull requests with "[SMALLFIX]", for example:
 
 ~~~~~
-[SMALLFIX] Fix a typo in Foo
+[SMALLFIX] Fix formatting in Foo.java
+~~~~~
+
+-   For pull requests that fix documentation of Tachyon project website (e.g., the markdown files
+    in `docs` directory. This web page is generated from `docs/Contributing-to-Tachyon.md`), you
+    can prefix the titles of your pull requests with "[DOCFIX]", for example:
+
+~~~~~
+[DOCFIX] Improve documentation of using Tachyon with S3
 ~~~~~
 
 #### Testing
