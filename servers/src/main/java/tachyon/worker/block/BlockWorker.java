@@ -283,6 +283,7 @@ public final class BlockWorker extends WorkerBase {
       mSpaceReserver.stop();
     }
     mFileSystemMasterClient.close();
+    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
     getExecutorService().shutdownNow();
     mWorkerMetricsSystem.stop();
     try {
