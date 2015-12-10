@@ -138,7 +138,7 @@ ApplicationMaster for Tachyon.
 ```bash
 $ cd /tachyon
 $ ./bin/tachyon-stop.sh
-$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn -DskipTests
+$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn -DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip
 ```
 
 To customize Tachyon master and worker with specific properties (e.g., tiered storage setup on each
