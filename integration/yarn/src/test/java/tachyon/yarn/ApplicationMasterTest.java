@@ -54,6 +54,7 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -71,7 +72,7 @@ public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String TACHYON_HOME = "/tmp/tachyonhome";
   private static final TachyonConf CONF = new TachyonConf();
-  private static final int NUM_WORKERS = 5;
+  private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
       (int) CONF.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
   private static final int MASTER_CPU = CONF.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -199,10 +200,12 @@ public class ApplicationMasterTest {
     final Random random = new Random();
     final List<Container> mockContainers = Lists.newArrayList();
     List<NodeReport> nodeReports = Lists.newArrayList();
-    List<String> hosts = Lists.newArrayList();
+    List<String> hosts = Lists.newArrayList(MASTER_ADDRESS);
     for (int i = 0; i < NUM_WORKERS; i ++) {
       String host = "host" + i;
       hosts.add(host);
+    }
+    for (String host : hosts) {
       Container mockContainer = Mockito.mock(Container.class);
       Mockito.when(mockContainer.getNodeHttpAddress()).thenReturn(host + ":8042");
       Mockito.when(mockContainer.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
@@ -217,15 +220,23 @@ public class ApplicationMasterTest {
 
     Mockito.doAnswer(new Answer<Void>() {
       @Override
-      public Void answer(InvocationOnMock invocation) {
+      public Void answer(final InvocationOnMock invocation) {
         new Thread(new Runnable() {
           @Override
           public void run() {
             // Allow the requests to interleave randomly
-            CommonUtils.sleepMs(random.nextInt(200));
-            // Allocate a randomly chosen container
-            mMaster.onContainersAllocated(
-                Lists.newArrayList(mockContainers.get(random.nextInt(mockContainers.size()))));
+            CommonUtils.sleepMs(50 + random.nextInt(200));
+            // Allocate a randomly chosen container from among the requested hosts
+            ContainerRequest request = invocation.getArgumentAt(0, ContainerRequest.class);
+            Set<String> requestedHosts = Sets.newHashSet(request.getNodes());
+            List<Container> requestedContainers = Lists.newArrayList();
+            for (Container container : mockContainers) {
+              if (requestedHosts.contains(container.getNodeId().getHost())) {
+                requestedContainers.add(container);
+              }
+            }
+            mMaster.onContainersAllocated(Lists
+                .newArrayList(requestedContainers.get(random.nextInt(requestedContainers.size()))));
           }
         }).start();
         return null;
