@@ -19,16 +19,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.TException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
-
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -43,13 +43,14 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidPathException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.block.BlockMasterSync;
 import tachyon.worker.block.BlockServiceHandler;
 
 /**
@@ -70,9 +71,16 @@ public class BlockServiceHandlerIntegrationTest {
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
 
-  @After
-  public final void after() throws Exception {
-    mBlockMasterClient.close();
+  @BeforeClass
+  public static void beforeClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
   @Before
@@ -87,6 +95,11 @@ public class BlockServiceHandlerIntegrationTest {
         new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
             mLocalTachyonClusterResource.get().getMasterPort()),
         mWorkerTachyonConf);
+  }
+
+  @After
+  public final void after() throws Exception {
+    mBlockMasterClient.close();
   }
 
   // Tests that caching a block successfully persists the block if the block exists
@@ -284,19 +297,13 @@ public class BlockServiceHandlerIntegrationTest {
     out.close();
   }
 
-  // Waits for a worker heartbeat to master to be resolved
-  private void waitForHeartbeat() {
-    BlockMasterSync blockMasterSync = Whitebox
-        .getInternalState(mLocalTachyonClusterResource.get().getWorker(), "mBlockMasterSync");
-    Object afterHeartbeatHook = Whitebox.getInternalState(blockMasterSync, "mAfterHeartbeatHook");
-    synchronized (afterHeartbeatHook) {
-      try {
-        // Wait twice to ensure that a full heartbeat has completed
-        afterHeartbeatHook.wait();
-        afterHeartbeatHook.wait();
-      } catch (InterruptedException e) {
-        Throwables.propagate(e);
-      }
-    }
+  // Waits for a worker heartbeat to master to be processed
+  private void waitForHeartbeat() throws InterruptedException {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // Wait for the next heartbeat to be ready to guarantee that the previous heartbeat has finished
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
   }
 }
