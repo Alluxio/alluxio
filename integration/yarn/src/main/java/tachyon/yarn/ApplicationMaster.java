@@ -219,6 +219,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     while (mWorkerHosts.size() < mNumWorkers && round < MAX_WORKER_CONTAINER_REQUEST_ROUNDS) {
       requestWorkerContainers();
       LOG.info("Waiting for worker containers to be allocated");
+      // TODO(andrew): Handle the case where something goes wrong and some worker containers never
+      // get allocated. See TACHYON-1410
       mOutstandingWorkerContainerRequestsLatch.await();
       round ++;
     }
@@ -234,7 +236,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   /**
-   * Requests a container for the master and waits for it to be allocated.
+   * Requests a container for the master and blocks until it is allocated in
+   * {@link #launchTachyonMasterContainers(List)}.
    */
   private void requestMasterContainer() throws Exception {
     LOG.info("Requesting master container");
@@ -257,6 +260,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mRMClient.addContainerRequest(masterContainerAsk);
 
     LOG.info("Waiting for master container to be allocated");
+    // Wait for the latch to be decremented in launchTachyonMasterContainers
+    // TODO(andrew): Handle the case where something goes wrong and a master container never
+    // gets allocated. See TACHYON-1410
     mMasterContainerAllocatedLatch.await();
   }
 
@@ -282,14 +288,15 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       }
       ContainerRequest containerAsk = new ContainerRequest(workerResource, unusedWorkerHosts,
           null /* any racks */, WORKER_PRIORITY, false /* demand only unused workers */);
-      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes", i,
-          workerResource.getVirtualCores(), workerResource.getMemory());
+      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on hosts {}", i,
+          workerResource.getVirtualCores(), workerResource.getMemory(), unusedWorkerHosts);
       mRMClient.addContainerRequest(containerAsk);
     }
   }
 
   /**
-   * @return the hostnames in the cluster which are not being used by a Tachyon worker
+   * @return the hostnames in the cluster which are not being used by a Tachyon worker, returning an
+   *         empty array if there are none
    */
   private String[] getUnusedWorkerHosts() throws Exception {
     List<String> unusedHosts = Lists.newArrayList();
