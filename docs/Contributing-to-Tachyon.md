@@ -10,28 +10,22 @@ group: Dev Resources
 
 Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
 
-### Startup Tasks for New Contributors
+### Tachyon Getting Started Tasks
 
-There is a few things that new contributors can do to familiarize themselves with Tachyon:
+There are a few things that new contributors can do to familiarize themselves with Tachyon:
 
 1.  [Run Tachyon Locally](Running-Tachyon-Locally.html)
 
 2.  [Run Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
-    (Optional)
 
-3.  Read
-    [Configuration-Settings](Configuration-Settings.html)
-    (Optional) and
-    [Command-Line Interface](Command-Line-Interface.html)
-    (Optional)
+3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
 
 4.  Read a
     [Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
 
 5.  [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
-6.  Fork the repository, add unit tests or javadoc for one or two files in the
-following list, and then submit a pull request. You are also welcome to address
+6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
 Here is a list of
 [tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
@@ -67,8 +61,8 @@ For a tutorial, see the GitHub guides on
 -   In the description field of the pull request, please include a link to the JIRA ticket.
 
 -   For pull requests that only address typos or formating issues, it is not
-    required to create the JIRA ticket and reference this JIRA. Instead, you
-    can make the title of your pull requests prefixed by "[SMALLFIX]", for example:
+    required to create and reference a JIRA ticket. Instead, you
+    can prefix the titles of your pull requests with "[SMALLFIX]", for example:
 
 ~~~~~
 [SMALLFIX] Fix a typo in Foo
@@ -81,15 +75,14 @@ HDFS 1.0.4 as the under filesystem in the HDFS module). ``mvn -Dhadoop.version=2
 use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 
 -   To run tests against specific under filesystems, execute the maven command from the desired
-submodule directory, for example for HDFS, tachyon/underfs/hdfs.
+submodule directory. For example, to run tests for HDFS you would run ``mvn test`` from ``tachyon/underfs/hdfs``.
 
--   In GlusterFS environment, GlusterFS unit tests can be run from tachyon/underfs/glusterfs with:
+-   For a GlusterFS environment, GlusterFS unit tests can be run from ``tachyon/underfs/glusterfs`` with:
 `mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol
 -Dtachyon.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
 where `/vol` is a valid GlusterFS mount point)
 
--   Run a single unit test: `mvn -Dtest=TestCircle#mytest test` e.g.
-`mvn -Dtest=TachyonFSTest#createFileTest test`
+-   Run a single unit test: `mvn -Dtest=TachyonFSTest#createFileTest -DfailIfNoTests=false test`
 
 -   To quickly test the working of some APIs in an interactive manner, you may
 leverage the Scala shell, as discussed in this
@@ -163,7 +156,7 @@ Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
 ```bash
-$ mvn compile findbugs:findbugs findbugs:gui
+$ mvn compile findbugs:findbugs
 ```
 
 ### IDE
