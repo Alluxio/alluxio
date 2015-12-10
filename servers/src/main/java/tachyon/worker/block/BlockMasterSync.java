@@ -135,7 +135,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (Exception e) {
-      // An error occurred, retry after 1 second or error if heartbeat timeout is reached
+      // An error occurred, log and ignore it or error if heartbeat timeout is reached
       if (cmdFromMaster == null) {
         LOG.error("Failed to receive master heartbeat command.", e);
       } else {
