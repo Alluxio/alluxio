@@ -30,9 +30,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
@@ -48,6 +49,7 @@ import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
@@ -246,7 +248,9 @@ public final class BlockWorker extends WorkerBase {
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
 
-    getExecutorService().submit(mBlockMasterSync);
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
+            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService().submit(mPinListSync);
@@ -272,7 +276,6 @@ public final class BlockWorker extends WorkerBase {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mBlockMasterSync.stop();
     mPinListSync.stop();
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
@@ -280,7 +283,7 @@ public final class BlockWorker extends WorkerBase {
       mSpaceReserver.stop();
     }
     mFileSystemMasterClient.close();
-    getExecutorService().shutdown();
+    getExecutorService().shutdownNow();
     mWorkerMetricsSystem.stop();
     try {
       mWebServer.shutdownWebServer();
