@@ -140,8 +140,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       applicationMaster.start();
       applicationMaster.requestContainers();
       applicationMaster.stop();
-    } catch (Exception ex) {
-      LOG.error("Error running Application Master " + ex);
+    } catch (Exception e) {
+      LOG.error("Error running Application Master " + e);
       System.exit(1);
     }
   }
@@ -297,10 +297,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public void stop() {
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
-    } catch (YarnException yex) {
-      LOG.error("Failed to unregister application " + yex);
-    } catch (IOException ioe) {
-      LOG.error("Failed to unregister application " + ioe);
+    } catch (YarnException e) {
+      LOG.error("Failed to unregister application " + e);
+    } catch (IOException e) {
+      LOG.error("Failed to unregister application " + e);
     }
     mRMClient.stop();
     // TODO(andrew): Think about whether we should stop mNMClient here
@@ -337,8 +337,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       LOG.info("Master address: " + mMasterContainerNetAddress);
       mMasterContainerAllocatedLatch.countDown();
       return;
-    } catch (Exception ex) {
-      LOG.error("Error launching container " + container.getId() + " " + ex);
+    } catch (Exception e) {
+      LOG.error("Error launching container " + container.getId() + " " + e);
     }
   }
 
@@ -371,8 +371,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
                 container.getId(), mWorkerHosts.size(), container.getNodeHttpAddress(), command);
             mNMClient.startContainer(container, ctx);
             mWorkerHosts.add(container.getNodeId().getHost());
-          } catch (Exception ex) {
-            LOG.error("Error launching container " + container.getId() + " " + ex);
+          } catch (Exception e) {
+            LOG.error("Error launching container " + container.getId() + " " + e);
           }
         }
         mOutstandingWorkerContainerRequestsLatch.countDown();
