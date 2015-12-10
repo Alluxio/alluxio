@@ -32,12 +32,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
+import tachyon.client.worker.WorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
 
 /**
  * Tests for {@link TachyonBlockStore}.

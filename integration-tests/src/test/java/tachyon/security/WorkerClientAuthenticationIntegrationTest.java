@@ -29,9 +29,9 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.client.worker.WorkerClient;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.WorkerClient;
 
 /**
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
