@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client.worker;
 
 import com.google.common.base.Preconditions;
 
