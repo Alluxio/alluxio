@@ -17,12 +17,12 @@ package tachyon.yarn;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
@@ -81,7 +81,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final String mTachyonHome;
   private final String mMasterAddress;
 
-  /** Set of hostnames for launched workers */
+  /** Set of hostnames for launched workers. The implementation must be thread safe */
   private final Set<String> mWorkerHosts;
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
@@ -98,8 +98,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private YarnClient mYarnClient;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
-  /** The number of worker container requests we are waiting to hear back from */
-  private AtomicInteger mOutstandingWorkerContainerRequests;
+  /**
+   * The number of worker container requests we are waiting to hear back from. Initialized during
+   * {@link #requestWorkerContainers()} and decremented during
+   * {@link #launchTachyonWorkerContainers(List).
+   */
+  private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -115,10 +119,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
-    mWorkerHosts = Sets.newHashSet();
+    mWorkerHosts = Collections.synchronizedSet(Sets.<String>newHashSet());
     mMasterContainerAllocatedLatch = new CountDownLatch(1);
     mApplicationDoneLatch = new CountDownLatch(1);
-    mOutstandingWorkerContainerRequests = new AtomicInteger(0);
   }
 
   /**
@@ -202,23 +205,27 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public void requestContainers() throws Exception {
     requestMasterContainer();
 
-    // Wait until all Tachyon worker containers have been allocated
+    // Request Tachyon worker containers until they have all been allocated. This is is done in
+    // rounds of
+    // (1) asking for just enough worker containers to reach the desired mNumWorkers
+    // (2) waiting for all container requests to resolve. Some containers may be rejected because
+    // they are located on hosts which already contain workers.
+    //
+    // When worker container requests are made during (1), mOutstandingWorkerContainerRequestsLatch
+    // is initialized to the number of requests made. (2) is then achieved by counting down whenever
+    // a container is allocated, and waiting here for the number of outstanding requests to hit 0.
     int round = 0;
-    synchronized (mWorkerHosts) {
-      while (mWorkerHosts.size() < mNumWorkers && round < MAX_WORKER_CONTAINER_REQUEST_ROUNDS) {
-        requestWorkerContainers();
-        round ++;
-        while (mOutstandingWorkerContainerRequests.get() > 0) {
-          LOG.info("Waiting for worker containers to be allocated");
-          mWorkerHosts.wait();
-        }
-      }
-      if (mWorkerHosts.size() < mNumWorkers) {
-        LOG.error(
-            "Could not request {} workers from yarn resource manager after {} tries. "
-                + "Proceeding with {} workers",
-            mNumWorkers, MAX_WORKER_CONTAINER_REQUEST_ROUNDS, mWorkerHosts.size());
-      }
+    while (mWorkerHosts.size() < mNumWorkers && round < MAX_WORKER_CONTAINER_REQUEST_ROUNDS) {
+      requestWorkerContainers();
+      LOG.info("Waiting for worker containers to be allocated");
+      mOutstandingWorkerContainerRequestsLatch.await();
+      round ++;
+    }
+    if (mWorkerHosts.size() < mNumWorkers) {
+      LOG.error(
+          "Could not request {} workers from yarn resource manager after {} tries. "
+              + "Proceeding with {} workers",
+              mNumWorkers, MAX_WORKER_CONTAINER_REQUEST_ROUNDS, mWorkerHosts.size());
     }
 
     LOG.info("Master and workers are launched");
@@ -261,18 +268,15 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     Resource workerResource = Records.newRecord(Resource.class);
     workerResource.setMemory(mWorkerMemInMB + mRamdiskMemInMB);
     workerResource.setVirtualCores(mWorkerCpu);
-    int currentNumWorkers;
-    synchronized (mWorkerHosts) {
-      currentNumWorkers = mWorkerHosts.size();
-    }
+    int currentNumWorkers = mWorkerHosts.size();
 
+    mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(mNumWorkers - currentNumWorkers);
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
       ContainerRequest containerAsk = new ContainerRequest(workerResource, getUnusedWorkerHosts(),
           null /* any racks */, WORKER_PRIORITY, false /* demand only unused workers */);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes", i,
           workerResource.getVirtualCores(), workerResource.getMemory());
-      mOutstandingWorkerContainerRequests.incrementAndGet();
       mRMClient.addContainerRequest(containerAsk);
     }
   }
@@ -282,11 +286,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private String[] getUnusedWorkerHosts() throws Exception {
     List<String> unusedHosts = Lists.newArrayList();
-    synchronized (mWorkerHosts) {
-      for (String host : YarnUtils.getNodeHosts(mYarnClient)) {
-        if (!mWorkerHosts.contains(host)) {
-          unusedHosts.add(host);
-        }
+    for (String host : YarnUtils.getNodeHosts(mYarnClient)) {
+      if (!mWorkerHosts.contains(host)) {
+        unusedHosts.add(host);
       }
     }
     return unusedHosts.toArray(new String[] {});
@@ -354,8 +356,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     for (Container container : containers) {
       synchronized (mWorkerHosts) {
-        if (mWorkerHosts.size() >= mNumWorkers
-            || mWorkerHosts.contains(container.getNodeId().getHost())) {
+        Preconditions.checkState(mWorkerHosts.size() < mNumWorkers,
+            "Should not receive container offers when all workers have been allocated");
+        if (mWorkerHosts.contains(container.getNodeId().getHost())) {
           LOG.info("Releasing assigned container on {}", container.getNodeId().getHost());
           // Avoid re-using nodes - we don't support multiple workers on the same node
           mRMClient.releaseAssignedContainer(container.getId());
@@ -372,8 +375,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
             LOG.error("Error launching container " + container.getId() + " " + ex);
           }
         }
-        mOutstandingWorkerContainerRequests.decrementAndGet();
-        mWorkerHosts.notify();
+        mOutstandingWorkerContainerRequestsLatch.countDown();
       }
     }
   }

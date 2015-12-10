@@ -22,7 +22,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
@@ -169,7 +168,7 @@ public class ApplicationMasterTest {
         Set<NodeId> workerNodes = mPrivateAccess.getWorkerHosts();
         synchronized (workerNodes) {
           workerNodes.add(NodeId.newInstance("host-" + UUID.randomUUID(), 0));
-          mPrivateAccess.getOutstandingWorkerContainerRequests().decrementAndGet();
+          mPrivateAccess.getOutstandingWorkerContainerReqeustsLatch().countDown();
           workerNodes.notify();
           if (workerNodes.size() == NUM_WORKERS) {
             // Once all workers are allocated, we shut down the master so that
@@ -192,7 +191,8 @@ public class ApplicationMasterTest {
 
   /**
    * Tests that the application master will reject and re-request worker containers whose hosts are
-   * already used by other workers. This tests ApplicationMaster as a whole, only mocking its clients.
+   * already used by other workers. This tests {@link ApplicationMaster} as a whole, only mocking
+   * its clients.
    */
   @Test(timeout = 10000)
   public void testNegotiateUniqueWorkerHosts() throws Exception {
@@ -312,6 +312,7 @@ public class ApplicationMasterTest {
     // Say that the master is allocated so that container offers are assumed to be worker offers
     mPrivateAccess.getMasterAllocated().countDown();
     mPrivateAccess.setMasterContainerAddress("masterAddress");
+    mPrivateAccess.setOutstandingWorkerContainerRequestsLatch(new CountDownLatch(2));
 
     List<Container> containers = Lists.newArrayList(mockContainer1, mockContainer2);
 
@@ -381,8 +382,12 @@ public class ApplicationMasterTest {
       mMaster = master;
     }
 
-    public AtomicInteger getOutstandingWorkerContainerRequests() {
-      return Whitebox.getInternalState(mMaster, "mOutstandingWorkerContainerRequests");
+    public CountDownLatch getOutstandingWorkerContainerReqeustsLatch() {
+      return Whitebox.getInternalState(mMaster, "mOutstandingWorkerContainerRequestsLatch");
+    }
+
+    public void setOutstandingWorkerContainerRequestsLatch(CountDownLatch value) {
+      Whitebox.setInternalState(mMaster, "mOutstandingWorkerContainerRequestsLatch", value);
     }
 
     public void setMasterContainerAddress(String address) {
