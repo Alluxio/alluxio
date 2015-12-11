@@ -18,19 +18,9 @@ message LineageEntry {
   optional int64 id = 1;
   repeated int64 input_files = 2;
   repeated int64 output_file_ids = 3;
-  repeated LineageFileState output_file_states = 4;
   optional string job_command = 5;
   optional string job_output_path = 6;
   optional int64 creation_time_ms = 7;
-}
-
-// next available id: 6
-enum LineageFileState {
-  CREATED = 1;
-  COMPLETED = 2;
-  PERSISTED = 3;
-  PERSISENCE_REQUESTED = 4;
-  LOST = 5;
 }
 
 // next available id: 2
