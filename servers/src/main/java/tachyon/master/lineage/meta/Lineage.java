@@ -21,7 +21,6 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import tachyon.client.file.TachyonFile;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -37,8 +36,8 @@ import tachyon.thrift.LineageInfo;
  */
 public final class Lineage implements JournalEntryRepresentable {
   private final long mId;
-  private final List<TachyonFile> mInputFiles;
-  private final List<LineageFile> mOutputFiles;
+  private final List<Long> mInputFiles;
+  private final List<Long> mOutputFiles;
   private final Job mJob;
   private final long mCreationTimeMs;
 
@@ -46,11 +45,11 @@ public final class Lineage implements JournalEntryRepresentable {
    * Creates a new lineage.
    *
    * @param id the lineage id
-   * @param inputFiles the input files
-   * @param outputFiles the output files
+   * @param inputFiles the input file ids
+   * @param outputFiles the output file ids
    * @param job the job
    */
-  public Lineage(long id, List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
+  public Lineage(long id, List<Long> inputFiles, List<Long> outputFiles, Job job) {
     this(id, inputFiles, outputFiles, job, System.currentTimeMillis());
   }
 
@@ -63,7 +62,7 @@ public final class Lineage implements JournalEntryRepresentable {
    * @param job the job
    * @param creationTimeMs the creation time
    */
-  public Lineage(long id, List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job,
+  public Lineage(long id, List<Long> inputFiles, List<Long> outputFiles, Job job,
       long creationTimeMs) {
     mInputFiles = Preconditions.checkNotNull(inputFiles);
     mOutputFiles = Preconditions.checkNotNull(outputFiles);
@@ -78,11 +77,7 @@ public final class Lineage implements JournalEntryRepresentable {
   public synchronized LineageInfo generateLineageInfo() {
     LineageInfo info = new LineageInfo();
     info.id = mId;
-    List<Long> inputFiles = Lists.newArrayList();
-    for (TachyonFile file : mInputFiles) {
-      inputFiles.add(file.getFileId());
-    }
-    info.inputFiles = inputFiles;
+    info.inputFiles = Lists.newArrayList(mInputFiles);
 
     List<LineageFileInfo> outputFiles = Lists.newArrayList();
     for (LineageFile lineageFile : mOutputFiles) {
@@ -97,16 +92,16 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the input files
+   * @return the input files id
    */
-  public synchronized List<TachyonFile> getInputFiles() {
+  public synchronized List<Long> getInputFiles() {
     return Collections.unmodifiableList(mInputFiles);
   }
 
   /**
-   * @return the output files
+   * @return the output files id
    */
-  public synchronized List<LineageFile> getOutputFiles() {
+  public synchronized List<Long> getOutputFiles() {
     return Collections.unmodifiableList(mOutputFiles);
   }
 
@@ -132,113 +127,14 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * Updates the state of the lineage's output file.
-   *
-   * @param fileId the id of the output file
-   * @param newState the new state
-   */
-  public synchronized void updateOutputFileState(long fileId, LineageFileState newState) {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getFileId() == fileId) {
-        outputFile.setState(newState);
-        return;
-      }
-    }
-  }
-
-  /**
-   * @return true if the lineage needs recompute, false otherwise
-   */
-  public synchronized boolean needRecompute() {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getState() == LineageFileState.LOST) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * @return true if all the output files are completed, false otherwise
-   */
-  public synchronized boolean isCompleted() {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getState() != LineageFileState.COMPLETED) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * @return true if all the output files are persisted, false otherwise
-   */
-  public synchronized boolean isPersisted() {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getState() != LineageFileState.PERSISTED) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * @return true if at least one of the output files is being persisted, false otherwise
-   */
-  public synchronized boolean isInCheckpointing() {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getState() == LineageFileState.PERSISENCE_REQUESTED) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * @return all the output files that are lost on the workers
-   */
-  public synchronized List<Long> getLostFiles() {
-    List<Long> result = Lists.newArrayList();
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getState() == LineageFileState.LOST) {
-        result.add(outputFile.getFileId());
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Gets the state of the lineage's output file.
-   *
-   * @param fileId the id of the output file
-   * @return the output file state
-   */
-  public synchronized LineageFileState getOutputFileState(long fileId) {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getFileId() == fileId) {
-        return outputFile.getState();
-      }
-    }
-    throw new RuntimeException("Output file " + fileId + " not found");
-  }
-
-  /**
    * Converts the entry to a {@link Lineage}.
    *
    * @return the {@link Lineage} representation
    */
   public static Lineage fromJournalEntry(LineageEntry entry) {
-    List<TachyonFile> inputFiles = Lists.newArrayList();
-    for (long file : entry.getInputFilesList()) {
-      inputFiles.add(new TachyonFile(file));
-    }
+    List<Long> inputFiles = Lists.newArrayList(entry.getInputFilesList());
 
-    List<LineageFile> outputFiles = Lists.newArrayList();
-    for (int i = 0; i < entry.getOutputFileIdsCount(); i ++) {
-      outputFiles.add(new LineageFile(entry.getOutputFileIds(i),
-          LineageFileState.fromJournalEntry(entry.getOutputFileStates(i))));
-    }
-
+    List<Long> outputFiles = Lists.newArrayList();
     Job job = new CommandLineJob(entry.getJobCommand(), new JobConf(entry.getJobOutputPath()));
 
     return new Lineage(entry.getId(), inputFiles, outputFiles, job, entry.getCreationTimeMs());
@@ -246,16 +142,8 @@ public final class Lineage implements JournalEntryRepresentable {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    List<Long> inputFileIds = Lists.newArrayList();
-    for (TachyonFile inputFile : mInputFiles) {
-      inputFileIds.add(inputFile.getFileId());
-    }
-    List<Long> outputFileIds = Lists.newArrayList();
-    List<tachyon.proto.journal.Lineage.LineageFileState> outputFileStates = Lists.newArrayList();
-    for (LineageFile file : mOutputFiles) {
-      outputFileIds.add(file.getFileId());
-      outputFileStates.add(file.getState().toJournalEntry());
-    }
+    List<Long> inputFileIds = Lists.newArrayList(mInputFiles);
+    List<Long> outputFileIds = Lists.newArrayList(mOutputFiles);
     Preconditions.checkState(mJob instanceof CommandLineJob);
     CommandLineJob commandLineJob = (CommandLineJob) mJob;
     String jobCommand = commandLineJob.getCommand();
@@ -265,7 +153,6 @@ public final class Lineage implements JournalEntryRepresentable {
         .setId(mId)
         .addAllInputFiles(inputFileIds)
         .addAllOutputFileIds(outputFileIds)
-        .addAllOutputFileStates(outputFileStates)
         .setJobCommand(jobCommand)
         .setJobOutputPath(jobOutputPath)
         .setCreationTimeMs(mCreationTimeMs)
