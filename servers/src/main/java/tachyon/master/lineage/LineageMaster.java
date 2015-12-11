@@ -34,7 +34,6 @@ import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
@@ -59,7 +58,6 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
@@ -219,7 +217,7 @@ public final class LineageMaster extends MasterBase {
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
       IOException {
-    List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
+    List<Long> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
       fileId = mFileSystemMaster.getFileId(inputFile);
@@ -227,10 +225,10 @@ public final class LineageMaster extends MasterBase {
         throw new InvalidPathException(
             ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage(inputFile));
       }
-      inputTachyonFiles.add(new TachyonFile(fileId));
+      inputTachyonFiles.add(fileId);
     }
     // create output files
-    List<LineageFile> outputTachyonFiles = Lists.newArrayList();
+    List<Long> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
       // TODO(yupeng): delete the placeholder files if the creation fails.
@@ -239,7 +237,7 @@ public final class LineageMaster extends MasterBase {
           new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true)
               .setBlockSizeBytes(Constants.KB).build();
       fileId = mFileSystemMaster.create(outputFile, options);
-      outputTachyonFiles.add(new LineageFile(fileId));
+      outputTachyonFiles.add(fileId);
     }
 
     LOG.info("Create lineage of input:{}, output:{}, job:{}", inputTachyonFiles,
