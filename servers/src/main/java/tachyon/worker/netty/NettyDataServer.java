@@ -37,7 +37,7 @@ import tachyon.worker.DataServer;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * Runs a netty data server that responses to block requests.
+ * Runs a netty data server that responds to block requests.
  */
 public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
@@ -118,7 +118,7 @@ public final class NettyDataServer implements DataServer {
   }
 
   /**
-   * Gets the port listening on.
+   * Gets the port the server is listening on.
    */
   @Override
   public int getPort() {
