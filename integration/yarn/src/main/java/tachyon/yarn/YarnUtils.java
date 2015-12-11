@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
  */
 public final class YarnUtils {
   private static final NodeState[] USABLE_NODE_STATES;
+
   static {
     List<NodeState> usableStates = Lists.newArrayList();
     for (NodeState nodeState : NodeState.values()) {

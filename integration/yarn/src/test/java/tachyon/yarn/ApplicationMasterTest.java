@@ -377,10 +377,10 @@ public class ApplicationMasterTest {
   private ArgumentMatcher<ContainerRequest> getMasterContainerMatcher() {
     return new ArgumentMatcher<ContainerRequest>() {
       public boolean matches(Object arg) {
-        boolean require_locality = MASTER_ADDRESS.equals("localhost");
+        boolean requireLocality = MASTER_ADDRESS.equals("localhost");
         ContainerRequest expectedWorkerContainerRequest =
             new ContainerRequest(Resource.newInstance(MASTER_MEM_MB, MASTER_CPU),
-                new String[] {MASTER_ADDRESS}, null, Priority.newInstance(0), require_locality);
+                new String[] {MASTER_ADDRESS}, null, Priority.newInstance(0), requireLocality);
         return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
       }
     };
