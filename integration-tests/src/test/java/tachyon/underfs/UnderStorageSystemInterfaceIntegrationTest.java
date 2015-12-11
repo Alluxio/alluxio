@@ -218,6 +218,47 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if list recursive correctly returns all file names in all subdirectories
+   *
+   * @throws IOException if a non-Tachyon exception occurs
+   */
+  @Test
+  public void testListRecursive() throws IOException {
+    String root = mUnderfsAddress;
+    // Empty lsr should be empty
+    Assert.assertEquals(0, mUfs.listRecursive(root).length);
+
+    // Create a tree of subdirectories and files
+    String sub1 = PathUtils.concatPath(root, "sub1");
+    String sub2 = PathUtils.concatPath(root, "sub2");
+    String sub11 = PathUtils.concatPath(sub1, "sub11");
+    String file11 = PathUtils.concatPath(sub11, "file11");
+    String file2 = PathUtils.concatPath(sub2, "file2");
+    String file = PathUtils.concatPath(root, "file");
+    mUfs.mkdirs(sub1, false);
+    mUfs.mkdirs(sub2, false);
+    mUfs.mkdirs(sub11, false);
+    createEmptyFile(file11);
+    createEmptyFile(file2);
+    createEmptyFile(file);
+
+    // lsr from root should return paths relative to the root
+    String[] expectedResRoot =
+        {"sub1", "sub2", "sub1/sub11", "sub1/sub11/file11", "sub2/file2", "file"};
+    String[] actualResRoot = mUfs.listRecursive(root);
+    Arrays.sort(expectedResRoot);
+    Arrays.sort(actualResRoot);
+    Assert.assertArrayEquals(expectedResRoot, actualResRoot);
+
+    // lsr from sub1 should return paths relative to sub1
+    String[] expectedResSub1 = {"sub11", "sub11/file11"};
+    String[] actualResSub1 = mUfs.listRecursive(sub1);
+    Arrays.sort(expectedResSub1);
+    Arrays.sort(actualResSub1);
+    Assert.assertArrayEquals(expectedResSub1, actualResSub1);
+  }
+
+  /**
    * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly creates a directory.
    * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly makes parent directories if
    * createParent is specified.
