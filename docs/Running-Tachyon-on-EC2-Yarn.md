@@ -141,6 +141,9 @@ $ ./bin/tachyon-stop.sh
 $ mvn clean install -Dhadoop.version=2.4.1 -Pyarn -DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip
 ```
 
+Note that adding `-DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip` is not strictly necessary,
+but it makes the build run significantly faster.
+
 To customize Tachyon master and worker with specific properties (e.g., tiered storage setup on each
 worker), one can refer to [Configuration settings](Configuration-Settings.html) for more
 information. To ensure your configuration can be read by both the ApplicationMaster and Tachyon
