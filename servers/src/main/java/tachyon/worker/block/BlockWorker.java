@@ -183,23 +183,23 @@ public final class BlockWorker extends WorkerBase {
     workerSource.registerGauges(mBlockDataManager);
     mWorkerMetricsSystem.registerSource(workerSource);
 
-    // Set up DataServer
+    // Setup DataServer
     mDataServer =
         DataServer.Factory.createDataServer(
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
             mBlockDataManager, mTachyonConf);
-    // reset data server port
+    // Reset data server port
     mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-    // reset worker RPC port
+    // Reset worker RPC port
     mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
 
-    // Set up web server
+    // Setup web server
     mWebServer =
         new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
             ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
@@ -211,10 +211,10 @@ public final class BlockWorker extends WorkerBase {
     mWebServer.startWebServer();
     int webPort = mWebServer.getLocalPort();
 
+    // Get the worker id
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
             mPort, mDataServer.getPort(), webPort);
-    // Get the worker id
     WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
