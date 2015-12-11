@@ -26,6 +26,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Objects;
 
 import tachyon.Constants;
@@ -38,12 +41,15 @@ import tachyon.util.FormatUtils;
  * Servlet that provides data for displaying detail info of all workers.
  */
 public final class WebInterfaceWorkersServlet extends HttpServlet {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
   public static class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
+    private final int mWebPort;
     private final String mLastContactSec;
     private final String mWorkerState;
     private final long mCapacityBytes;
@@ -54,6 +60,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
     private NodeInfo(WorkerInfo workerInfo) {
       mHost = workerInfo.getAddress().getHost();
+      mWebPort = workerInfo.getAddress().getWebPort();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
       mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
@@ -82,6 +89,10 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
     public String getHost() {
       return mHost;
+    }
+
+    public int getWebPort() {
+      return mWebPort;
     }
 
     public String getState() {
