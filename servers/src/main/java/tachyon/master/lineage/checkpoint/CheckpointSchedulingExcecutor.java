@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.MasterContext;
 import tachyon.master.lineage.LineageMaster;
@@ -49,6 +50,10 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
     if (!plan.isEmpty()) {
       LOG.info("Checkpoint scheduler created the plan: {}", plan);
     }
-    mLineageMaster.queueForCheckpoint(plan);
+    try {
+      mLineageMaster.scheduleForCheckpoint(plan);
+    } catch (FileDoesNotExistException e) {
+      LOG.error("Checkpoint scheduling failed: {}", e);
+    }
   }
 }

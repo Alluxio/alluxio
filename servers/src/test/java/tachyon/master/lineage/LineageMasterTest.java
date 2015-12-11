@@ -217,7 +217,7 @@ public final class LineageMasterTest {
         .thenReturn(Lists.newArrayList(fileBlockInfo));
 
     CheckpointPlan plan = new CheckpointPlan(Lists.newArrayList(lineageId));
-    mLineageMaster.queueForCheckpoint(plan);
+    mLineageMaster.scheduleForCheckpoint(plan);
     Map<Long, Set<LineageFile>> workerToCheckpointFile = (Map<Long, Set<LineageFile>>) Whitebox
         .getInternalState(mLineageMaster, "mWorkerToCheckpointFile");
     Assert.assertTrue(workerToCheckpointFile.containsKey(workerId));
