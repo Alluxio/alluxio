@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
@@ -50,6 +51,7 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
@@ -87,13 +89,18 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.PersistFilesEntry;
+import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
+import tachyon.thrift.CheckpointFile;
+import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
+import tachyon.thrift.LineageCommand;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
@@ -112,6 +119,8 @@ public final class FileSystemMaster extends MasterBase {
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
+  /** Map from worker to the files to persist on that worker. Used by async persistence service. */
+  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFile;
 
   private final PrefixList mWhitelist;
 
@@ -143,6 +152,8 @@ public final class FileSystemMaster extends MasterBase {
     // TODO(gene): Handle default config value for whitelist.
     TachyonConf conf = MasterContext.getConf();
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
+
+    mWorkerToAsyncPersistFile = Maps.newHashMap();
   }
 
   @Override
@@ -1437,6 +1448,181 @@ public final class FileSystemMaster extends MasterBase {
       }
       writeJournalEntry(JournalEntry.newBuilder().setSetState(setState).build());
       flushJournal();
+    }
+  }
+
+  /**
+   * Schedules a file for async persistence.
+   *
+   * @param the id of the file for persistence
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public synchronized void scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
+    // find the worker
+    long workerId = getWorkerStoringFile(fileId);
+
+    // update the state
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(fileId);
+      inode.setPersistenceState(FilePersistenceState.SCHEDULED);
+    }
+
+    if (!mWorkerToAsyncPersistFile.containsKey(workerId)) {
+      mWorkerToAsyncPersistFile.put(workerId, Sets.<Long>newHashSet());
+    }
+    mWorkerToAsyncPersistFile.get(workerId).add(fileId);
+  }
+
+  /**
+   * Gets the worker where the given file is stored.
+   * @param fileId the file id
+   * @return the storing worker
+   * @throws FileDoesNotExistException when the file does not exist on any worker
+   */
+  private long getWorkerStoringFile(long fileId) throws FileDoesNotExistException {
+    List<Long> workers = Lists.newArrayList();
+    try {
+      for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+        for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
+          workers.add(blockLocation.workerId);
+        }
+      }
+    } catch (FileDoesNotExistException e) {
+      // should not happen
+      throw new RuntimeException(e);
+    } catch (InvalidPathException e) {
+      // should not happen
+      throw new RuntimeException(e);
+    }
+
+    if (workers.size() == 0) {
+      throw new FileDoesNotExistException("The file " + fileId + " does not exist on any worker");
+    } else if(workers.size() > 1) {
+        LOG.info("the file is stored at more than one worker: " + workers);
+    }
+    return workers.get(0);
+  }
+
+  /**
+   * Polls the files to send to the given worker for checkpoint
+   *
+   * @param workerId the worker id
+   * @return the list of files
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
+   */
+  private synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
+      throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
+    List<CheckpointFile> files = Lists.newArrayList();
+    if (!mWorkerToAsyncPersistFile.containsKey(workerId)) {
+      return files;
+    }
+
+    List<Long> toRequestFilePersistence = Lists.newArrayList();
+    for (long fileId : mWorkerToAsyncPersistFile.get(workerId)) {
+      InodeFile inode = (InodeFile)mInodeTree.getInodeById(fileId);
+      if (inode.isCompleted()) {
+        toRequestFilePersistence.add(fileId);
+        List<Long> blockIds = Lists.newArrayList();
+        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+          blockIds.add(fileBlockInfo.blockInfo.blockId);
+        }
+
+        CheckpointFile toCheckpoint = new CheckpointFile(fileId, blockIds);
+        files.add(toCheckpoint);
+        // update the inode file persisence state
+        inode.setPersistenceState(FilePersistenceState.PERSISTING);
+      }
+    }
+
+    requestFilePersistence(toRequestFilePersistence);
+    // write to journal
+    PersistFilesRequestEntry persistFilesRequest = PersistFilesRequestEntry.newBuilder()
+        .addAllFileIds(toRequestFilePersistence)
+        .build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
+    flushJournal();
+    return files;
+  }
+
+  /**
+   * Request a list of files as being persisted.
+   *
+   * @param fileIds the id of the files
+   * @throws LineageDoesNotExistException if the lineage does not exist
+   * @throws FileDoesNotExistException when a file does not exist
+   */
+  private void requestFilePersistence(List<Long> fileIds)
+      throws LineageDoesNotExistException, FileDoesNotExistException {
+    if (!fileIds.isEmpty()) {
+      LOG.info("Request file persistency: {}", fileIds);
+    }
+    for (long fileId : fileIds) {
+      InodeFile inode = (InodeFile)mInodeTree.getInodeById(fileId);
+      inode.setPersistenceState(FilePersistenceState.PERSISTING);
+    }
+  }
+
+  /**
+   * Instructs a worker to persist the files for checkpoint.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @return the command for checkpointing the blocks of a file
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path is invalid
+   * @throws LineageDoesNotExistException if the lineage does not exist
+   */
+  public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
+      List<Long> persistedFiles)
+          throws FileDoesNotExistException, InvalidPathException, LineageDoesNotExistException {
+    if (!persistedFiles.isEmpty()) {
+      // notify checkpoint manager the persisted files
+      persistFiles(workerId, persistedFiles);
+    }
+
+    // get the files for the given worker to checkpoint
+    List<CheckpointFile> filesToCheckpoint = null;
+    filesToCheckpoint = pollToCheckpoint(workerId);
+    if (!filesToCheckpoint.isEmpty()) {
+      LOG.info("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
+    }
+    return new LineageCommand(CommandType.Persist, filesToCheckpoint);
+  }
+
+  /**
+   * Commits the given list of files as persisted in under file system on a worker.
+   *
+   * @param workerId the worker id
+   * @param persistedFiles the persisted files
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  private void persistFiles(long workerId, List<Long> persistedFiles)
+      throws FileDoesNotExistException {
+    Preconditions.checkNotNull(persistedFiles);
+
+    if (!persistedFiles.isEmpty()) {
+      LOG.info("Files persisted on worker {}:{}", workerId, persistedFiles);
+    }
+    for (Long fileId : persistedFiles) {
+      InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+      inode.setPersistenceState(FilePersistenceState.PERSISTED);
+    }
+    PersistFilesEntry persistFiles =
+        PersistFilesEntry.newBuilder().addAllFileIds(persistedFiles).build();
+    writeJournalEntry(JournalEntry.newBuilder().setPersistFiles(persistFiles).build());
+    flushJournal();
+  }
+
+  private synchronized void persistFilesFromEntry(PersistFilesEntry entry) throws IOException {
+    for (Long fileId : entry.getFileIdsList()) {
+      try {
+        InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+        inode.setPersistenceState(FilePersistenceState.PERSISTED);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 
