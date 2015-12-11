@@ -18,6 +18,8 @@ package tachyon.master.lineage.meta;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -27,8 +29,6 @@ import tachyon.job.JobConf;
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
-import tachyon.thrift.LineageFileInfo;
-import tachyon.thrift.LineageInfo;
 
 /**
  * A lineage tracks the dependencies imposed by a job, including the input files the job depends on,
@@ -69,26 +69,6 @@ public final class Lineage implements JournalEntryRepresentable {
     mJob = Preconditions.checkNotNull(job);
     mId = id;
     mCreationTimeMs = creationTimeMs;
-  }
-
-  /**
-   * @return the {@link LineageInfo} for RPC
-   */
-  public synchronized LineageInfo generateLineageInfo() {
-    LineageInfo info = new LineageInfo();
-    info.id = mId;
-    info.inputFiles = Lists.newArrayList(mInputFiles);
-
-    List<LineageFileInfo> outputFiles = Lists.newArrayList();
-    for (LineageFile lineageFile : mOutputFiles) {
-      outputFiles.add(lineageFile.generateLineageFileInfo());
-    }
-    info.outputFiles = outputFiles;
-
-    // TODO(yupeng) allow other types of jobs
-    info.job = ((CommandLineJob) mJob).generateCommandLineJobInfo();
-    info.creationTimeMs = mCreationTimeMs;
-    return info;
   }
 
   /**
@@ -149,19 +129,14 @@ public final class Lineage implements JournalEntryRepresentable {
     String jobCommand = commandLineJob.getCommand();
     String jobOutputPath = commandLineJob.getJobConf().getOutputFilePath();
 
-    LineageEntry lineage = LineageEntry.newBuilder()
-        .setId(mId)
-        .addAllInputFiles(inputFileIds)
-        .addAllOutputFileIds(outputFileIds)
-        .setJobCommand(jobCommand)
-        .setJobOutputPath(jobOutputPath)
-        .setCreationTimeMs(mCreationTimeMs)
-        .build();
+    LineageEntry lineage = LineageEntry.newBuilder().setId(mId).addAllInputFiles(inputFileIds)
+        .addAllOutputFileIds(outputFileIds).setJobCommand(jobCommand)
+        .setJobOutputPath(jobOutputPath).setCreationTimeMs(mCreationTimeMs).build();
     return JournalEntry.newBuilder().setLineage(lineage).build();
   }
 
   @Override
   public String toString() {
-    return generateLineageInfo().toString();
+    return ToStringBuilder.reflectionToString(this);
   }
 }
