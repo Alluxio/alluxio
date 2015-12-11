@@ -85,8 +85,8 @@ public class BlockMasterTest {
     Assert.assertEquals(0L, mMaster.getUsedBytes());
     Assert.assertEquals(ImmutableMap.of(), mMaster.getTotalBytesOnTiers());
     Assert.assertEquals(ImmutableMap.of(), mMaster.getUsedBytesOnTiers());
-    long worker1 = mMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
-    long worker2 = mMaster.getWorkerId(new NetAddress("localhost", 83, 84, 85));
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
     addWorker(mMaster, worker1, Arrays.asList("MEM", "SSD", "HDD"),
         ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
         ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L));
