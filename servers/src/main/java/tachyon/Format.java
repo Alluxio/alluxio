@@ -74,14 +74,17 @@ public class Format {
           Constants.RAW_TABLE_MASTER_NAME,
       };
       for (String masterServiceName : masterServiceNames) {
-        if (!formatFolder(masterServiceName + "JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
+        if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
             masterServiceName), tachyonConf)) {
           System.exit(-1);
         }
       }
 
+      // A journal folder is thought to be formatted only when a file with the specific name is
+      // present under the folder.
       UnderFileSystemUtils.touch(
-          masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(), tachyonConf);
+          PathUtils.concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX
+              + System.currentTimeMillis()), tachyonConf);
     } else if ("WORKER".equals(args[0].toUpperCase())) {
       String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER);
       int storageLevels = tachyonConf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
