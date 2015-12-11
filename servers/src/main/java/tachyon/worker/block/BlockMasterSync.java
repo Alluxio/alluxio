@@ -232,12 +232,12 @@ public final class BlockMasterSync implements Runnable {
       try {
         mBlockDataManager.removeBlock(mSessionId, mBlockId);
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
-      } catch (IOException ioe) {
-        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId);
+      } catch (IOException e) {
+        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId, e);
       } catch (InvalidWorkerStateException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId);
+        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
       } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId);
+        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId, e);
       }
     }
   }
