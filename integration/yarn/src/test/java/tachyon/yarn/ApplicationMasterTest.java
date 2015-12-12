@@ -54,6 +54,7 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -166,7 +167,7 @@ public class ApplicationMasterTest {
     Mockito.doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        Set<NodeId> workerNodes = mPrivateAccess.getWorkerHosts();
+        Multiset<NodeId> workerNodes = mPrivateAccess.getWorkerHosts();
         synchronized (workerNodes) {
           workerNodes.add(NodeId.newInstance("host-" + UUID.randomUUID(), 0));
           mPrivateAccess.getOutstandingWorkerContainerReqeustsLatch().countDown();
@@ -409,12 +410,12 @@ public class ApplicationMasterTest {
       return Whitebox.getInternalState(mMaster, "mMasterContainerAllocatedLatch");
     }
 
-    public Set<NodeId> getWorkerHosts() {
+    public Multiset<NodeId> getWorkerHosts() {
       return Whitebox.getInternalState(mMaster, "mWorkerHosts");
     }
 
     public int getWorkerHostsSize() {
-      Set<NodeId> workerHosts = Whitebox.getInternalState(mMaster, "mWorkerHosts");
+      Multiset<NodeId> workerHosts = getWorkerHosts();
       synchronized (workerHosts) {
         return workerHosts.size();
       }
