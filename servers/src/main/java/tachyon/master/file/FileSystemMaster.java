@@ -1340,7 +1340,7 @@ public final class FileSystemMaster extends MasterBase {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     synchronized (mInodeTree) {
       if (mountInternal(tachyonPath, ufsPath)) {
-        boolean loadMetadataSuceeded = true;
+        boolean loadMetadataSuceeded = false;
         try {
           // This will create the directory at tachyonPath
           loadMetadataDirectory(tachyonPath, false);
