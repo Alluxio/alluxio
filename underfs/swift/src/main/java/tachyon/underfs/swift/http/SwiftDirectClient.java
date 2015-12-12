@@ -40,13 +40,9 @@ public class SwiftDirectClient {
     URL url;
     try {
       url = new URL(access.getPublicURL() + "/" + objectName);
-      LOG.trace("Going to open URL connection");
       URLConnection connection = url.openConnection();
-      LOG.trace("Connection open called");
       if (connection instanceof HttpURLConnection) {
-        LOG.trace("Instance of HTTP URL Connection");
         HttpURLConnection httpCon = (HttpURLConnection) connection;
-        LOG.trace("Created http url connection");
         httpCon.setRequestMethod("PUT");
         httpCon.addRequestProperty("X-Auth-Token", access.getToken());
         httpCon.addRequestProperty("Content-Type", "binary/octet-stream");
@@ -57,14 +53,11 @@ public class SwiftDirectClient {
         httpCon.setDoOutput(true);
         httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
         httpCon.connect();
-        LOG.trace("About to create SwiftDirectOutputStream");
         SwiftOutputStream outStream = new SwiftOutputStream(
             httpCon);
-        LOG.trace("SwiftDirectOutputStream created");
         return outStream;
       }
       LOG.debug("Not an instance of HTTP URL Connection");
-      LOG.debug(connection.getClass().getName());
     } catch (MalformedURLException e) {
       LOG.error(e.getMessage());
     } catch (IOException e) {

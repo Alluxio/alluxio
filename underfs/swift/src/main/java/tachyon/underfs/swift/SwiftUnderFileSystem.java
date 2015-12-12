@@ -88,7 +88,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     mContainerName = containerName;
     mAccount = new AccountFactory(config).createAccount();
     mAccess = mAccount.authenticate();
-    LOG.debug("Check if container: {} exists ", containerName);
     Container containerObj = mAccount.getContainer(containerName);
     if (!containerObj.exists()) {
       containerObj.create();
@@ -148,10 +147,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: " + path + ",recursive: " + recursive);
     String strippedPath = stripPrefixIfPresent(path);
-    LOG.debug("Going to retrieve container: " + mContainerName);
     Container c = mAccount.getContainer(mContainerName);
     if (recursive) {
-      LOG.debug("Recursive delete");
       if (!strippedPath.endsWith("/")) {
         strippedPath = strippedPath + "/";
         PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
@@ -165,11 +162,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         }
       }
     } else {
-      LOG.debug("Going to retrieve an object: " + strippedPath);
       StoredObject so = c.getObject(strippedPath);
-      LOG.debug("Checking if object exists in Swift. If so, delete it");
       if (so.exists()) {
-        LOG.debug("Object exists: " + so.getBareName());
         so.delete();
       }
     }
@@ -192,7 +186,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private boolean getObjectDetails(String path) {
     LOG.debug("Get object details: {}", path);
     boolean res =  mAccount.getContainer(mContainerName).getObject(path).exists();
-    LOG.debug("Result: {}", res);
     return res;
   }
 
@@ -258,7 +251,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public String[] list(String path) throws IOException {
     LOG.debug("listing: {}", path);
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
-    LOG.debug("listing: {}", path);
     return listInternal(path, false);
   }
 
@@ -272,13 +264,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public InputStream open(String path) throws IOException {
     LOG.debug("open method: {}", path);
     path = stripPrefixIfPresent(path);
-    LOG.debug("Going to get container");
     Container container = mAccount.getContainer(mContainerName);
-    LOG.debug("Going to get object {} for container {}", path, mContainerName);
     StoredObject so = container.getObject(path);
-    LOG.debug("Got an object. Going to download");
     InputStream  is = so.downloadObjectAsInputStream();
-    LOG.debug("Got input stream for: {}", path);
     return is;
   }
 
@@ -336,24 +324,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       Directory directory = new Directory(path, '/');
-      LOG.debug("Path to list is: {}", path);
       Container c = mAccount.getContainer(mContainerName);
       Collection<DirectoryOrObject> res = c.listDirectory(directory);
       Set<String> children = new HashSet<String>();
       Iterator<DirectoryOrObject> iter = res.iterator();
-      LOG.debug("Going to list with directory structure");
       while (iter.hasNext()) {
-        LOG.trace("Inside loop of results");
         DirectoryOrObject dirobj = (DirectoryOrObject) iter.next();
-        LOG.trace(dirobj.getName() + ", " + dirobj.getBareName());
-        LOG.trace("Going to strip suffix is present");
         String child = stripFolderSuffixIfPresent(dirobj.getName());
-        LOG.trace("Object: {}, child: {}", dirobj.getName(), child);
         String noPrefix = stripPrefixIfPresent(child, path);
-        LOG.trace("Without prefix: {}", noPrefix);
         children.add(noPrefix);
       }
-      LOG.debug("Children's size is: {}", children.size());
       return children.toArray(new String[children.size()]);
     } catch (Exception se) {
       LOG.error("Failed to list path {}", path);
@@ -400,10 +380,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path, String prefix) {
-    LOG.debug("{}, prefix: {}" , path, prefix);
     if (path.startsWith(prefix)) {
       String res =  path.substring(prefix.length());
-      LOG.debug("Resolved as: {}", res);
       return res;
     }
     LOG.warn("Attempted to strip key {} with invalid prefix {}", prefix, path);
