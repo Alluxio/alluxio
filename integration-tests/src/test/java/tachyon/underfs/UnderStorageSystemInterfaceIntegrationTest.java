@@ -235,6 +235,9 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     String file11 = PathUtils.concatPath(sub11, "file11");
     String file2 = PathUtils.concatPath(sub2, "file2");
     String file = PathUtils.concatPath(root, "file");
+    // lsr of nonexistent path should be null
+    Assert.assertNull(mUfs.listRecursive(sub1));
+
     mUfs.mkdirs(sub1, false);
     mUfs.mkdirs(sub2, false);
     mUfs.mkdirs(sub11, false);
@@ -256,6 +259,9 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
     Assert.assertArrayEquals(expectedResSub1, actualResSub1);
+
+    // lsr of file should be null
+    Assert.assertNull(mUfs.listRecursive(file));
   }
 
   /**
