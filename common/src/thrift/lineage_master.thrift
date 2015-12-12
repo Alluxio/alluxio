@@ -8,20 +8,10 @@ struct CommandLineJobInfo {
   2: JobConfInfo conf
 }
 
-struct CheckpointFile {
-  1: i64 fileId
-  2: list<i64> blockIds
-}
-
 struct DependencyInfo{} // deprecated
 
 struct JobConfInfo {
   1: string outputFile
-}
-
-struct LineageCommand {
-  1: common.CommandType commandType
-  2: list<CheckpointFile> checkpointFiles
 }
 
 struct LineageFileInfo {
@@ -84,19 +74,5 @@ service LineageMasterClientService extends common.TachyonService {
    * Reports file as lost.
    */
   void reportLostFile( /** the path of the file */ 1: string path)
-    throws (1: exception.TachyonTException e)
-}
-
-/**
- * This interface contains lineage master service endpoints for Tachyon workers.
- */
-service LineageMasterWorkerService extends common.TachyonService {
-
-  /**
-   * Periodic lineage worker heartbeat. Returns the command for checkpointing
-   * the blocks of a file.
-   */
-  LineageCommand heartbeat( /** the id of the worker */ 1: i64 workerId,
-      /** the list of persisted files */ 2: list<i64> persistedFiles)
     throws (1: exception.TachyonTException e)
 }
