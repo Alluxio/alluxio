@@ -15,14 +15,20 @@
 
 package tachyon.master.file;
 
+import java.util.List;
 import java.util.Set;
+
+import org.apache.thrift.TException;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterWorkerService;
+import tachyon.thrift.PersistCommand;
 import tachyon.thrift.TachyonTException;
 
 /**
@@ -54,5 +60,17 @@ public final class FileSystemMasterWorkerServiceHandler implements
   @Override
   public Set<Long> getPinIdList() {
     return mFileSystemMaster.getPinIdList();
+  }
+
+  @Override
+  public PersistCommand heartbeat(long workerId, List<Long> persistedFiles)
+      throws TachyonTException, TException {
+    try {
+      return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
+    } catch (FileDoesNotExistException e) {
+      throw e.toTachyonTException();
+    } catch (InvalidPathException e) {
+      throw e.toTachyonTException();
+    }
   }
 }
