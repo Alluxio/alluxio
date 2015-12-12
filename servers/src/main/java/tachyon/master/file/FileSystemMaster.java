@@ -60,6 +60,7 @@ import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.FilePersistenceState;
+import tachyon.master.file.meta.FileStoreView;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -351,7 +352,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the list of {@link FileInfo}s
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
@@ -367,6 +368,13 @@ public final class FileSystemMaster extends MasterBase {
       }
       return ret;
     }
+  }
+
+  /**
+   * @return a read-only view of the inode tree.
+   */
+  public FileStoreView getFileStoreView() {
+    return new FileStoreView(mInodeTree);
   }
 
   /**
