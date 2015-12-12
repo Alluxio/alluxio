@@ -17,6 +17,7 @@ package tachyon.worker.file;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.thrift.TException;
@@ -30,6 +31,7 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterWorkerService;
+import tachyon.thrift.PersistCommand;
 import tachyon.thrift.TachyonService;
 
 /**
@@ -98,6 +100,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public Set<Long> call() throws TException {
         return mClient.getPinIdList();
+      }
+    });
+  }
+
+  /**
+   * Instructs a worker to persist the files.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @param persistedFiles the persisted files
+   * @return the command for persisting the blocks of a file
+   * @throws IOException if file persistence fails
+   * @throws ConnectionFailedException if network connection failed
+   */
+  public synchronized PersistCommand heartbeat(final long workerId,
+      final List<Long> persistedFiles) throws ConnectionFailedException, IOException {
+    return retryRPC(new RpcCallable<PersistCommand>() {
+      @Override
+      public PersistCommand call() throws TException {
+        return mClient.heartbeat(workerId, persistedFiles);
       }
     });
   }

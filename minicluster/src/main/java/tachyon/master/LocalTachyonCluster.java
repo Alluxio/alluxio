@@ -26,7 +26,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.LineageUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.lineage.LineageWorker;
+import tachyon.worker.file.FileWorker;
 
 /**
  * Local Tachyon cluster for integration tests.
@@ -83,7 +83,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mWorker;
   }
 
-  public LineageWorker getLineageWorker() {
+  public FileWorker getLineageWorker() {
     return mLineageWorker;
   }
 
