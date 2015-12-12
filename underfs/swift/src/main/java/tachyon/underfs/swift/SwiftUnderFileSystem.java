@@ -32,6 +32,7 @@ import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
 import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
+import org.javaswift.joss.model.PaginationMap;
 import org.javaswift.joss.model.StoredObject;
 
 import org.slf4j.Logger;
@@ -149,12 +150,28 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     String strippedPath = stripPrefixIfPresent(path);
     LOG.debug("Going to retrieve container: " + mContainerName);
     Container c = mAccount.getContainer(mContainerName);
-    LOG.debug("Going to retrieve an object: " + strippedPath);
-    StoredObject so = c.getObject(strippedPath);
-    LOG.debug("Checking if object exists in Swift. If so, delete it");
-    if (so.exists()) {
-      LOG.debug("Object exists: " + so.getBareName());
-      so.delete();
+    if (recursive) {
+      LOG.debug("Recursive delete");
+      if (!strippedPath.endsWith("/")) {
+        strippedPath = strippedPath + "/";
+        PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
+        for (Integer page = 0; page < paginationMap.getNumberOfPages(); page++) {
+          for (StoredObject obj : c.list(paginationMap, page)) {
+            StoredObject so = c.getObject(obj.getName());
+            if (so.exists()) {
+              so.delete();
+            }
+          }
+        }
+      }
+    } else {
+      LOG.debug("Going to retrieve an object: " + strippedPath);
+      StoredObject so = c.getObject(strippedPath);
+      LOG.debug("Checking if object exists in Swift. If so, delete it");
+      if (so.exists()) {
+        LOG.debug("Object exists: " + so.getBareName());
+        so.delete();
+      }
     }
     return true;
   }
