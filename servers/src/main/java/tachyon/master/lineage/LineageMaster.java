@@ -34,10 +34,8 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidFileSizeException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
@@ -47,7 +45,6 @@ import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
@@ -62,7 +59,6 @@ import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.Lineage.AsyncCompleteFileEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -70,7 +66,6 @@ import tachyon.proto.journal.Lineage.PersistFilesEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
-import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
 
@@ -144,8 +139,6 @@ public final class LineageMaster extends MasterBase {
       mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
     } else if (innerEntry instanceof LineageIdGeneratorEntry) {
       mLineageIdGenerator.initFromJournalEntry((LineageIdGeneratorEntry) innerEntry);
-    } else if (innerEntry instanceof AsyncCompleteFileEntry) {
-      asyncCompleteFileFromEntry((AsyncCompleteFileEntry) innerEntry);
     } else if (innerEntry instanceof PersistFilesEntry) {
       persistFilesFromEntry((PersistFilesEntry) innerEntry);
     } else if (innerEntry instanceof PersistFilesRequestEntry) {
@@ -297,36 +290,6 @@ public final class LineageMaster extends MasterBase {
     }
     return -1;
   }
-
-  /**
-   * Completes an output file in Tachyon.
-   *
-   * @param fileId id of the file
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the completion fails
-   */
-  public synchronized void asyncCompleteFile(long fileId) throws FileDoesNotExistException,
-      BlockInfoException, InvalidFileSizeException, FileAlreadyCompletedException {
-    LOG.info("Async complete file {}", fileId);
-    // complete file in Tachyon.
-    try {
-      mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
-    } catch (InvalidPathException e) {
-      // should not happen
-      throw new RuntimeException(e);
-    }
-    mLineageStore.completeFile(fileId);
-    AsyncCompleteFileEntry asyncCompleteFile =
-        AsyncCompleteFileEntry.newBuilder().setFileId(fileId).build();
-    writeJournalEntry(JournalEntry.newBuilder().setAsyncCompleteFile(asyncCompleteFile).build());
-    flushJournal();
-  }
-
-  private void asyncCompleteFileFromEntry(AsyncCompleteFileEntry entry) {
-    mLineageStore.completeFile(entry.getFileId());
-  }
-
-
 
   /**
    * @return the list of all the {@link LineageInfo}s
