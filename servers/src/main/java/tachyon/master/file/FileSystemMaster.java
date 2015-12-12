@@ -1336,26 +1336,28 @@ public final class FileSystemMaster extends MasterBase {
     return inodes.get(inodes.size() - 1).getId();
   }
 
-  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
+  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
-    if (mountInternal(tachyonPath, ufsPath)) {
-      boolean loadMetadataSuceeded = true;
-      try {
-        // This will create the directory at tachyonPath
-        loadMetadataDirectory(tachyonPath, false);
-        loadMetadataSuceeded = true;
-      } finally {
-        if (!loadMetadataSuceeded) {
-          // We should be throwing an exception in this scenario
-          unmountInternal(tachyonPath);
+    synchronized (mInodeTree) {
+      if (mountInternal(tachyonPath, ufsPath)) {
+        boolean loadMetadataSuceeded = true;
+        try {
+          // This will create the directory at tachyonPath
+          loadMetadataDirectory(tachyonPath, false);
+          loadMetadataSuceeded = true;
+        } finally {
+          if (!loadMetadataSuceeded) {
+            // We should be throwing an exception in this scenario
+            unmountInternal(tachyonPath);
+          }
         }
+        AddMountPointEntry addMountPoint =
+            AddMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString())
+                .setUfsPath(ufsPath.toString()).build();
+        writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
+        flushJournal();
+        return true;
       }
-      AddMountPointEntry addMountPoint =
-          AddMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString())
-              .setUfsPath(ufsPath.toString()).build();
-      writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
-      flushJournal();
-      return true;
     }
     return false;
   }
