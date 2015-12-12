@@ -121,9 +121,6 @@ public final class LineageMaster extends MasterBase {
     services.put(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
         new LineageMasterClientService.Processor<LineageMasterClientServiceHandler>(
             new LineageMasterClientServiceHandler(this)));
-    services.put(Constants.LINEAGE_MASTER_WORKER_SERVICE_NAME,
-        new LineageMasterWorkerService.Processor<LineageMasterWorkerServiceHandler>(
-            new LineageMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -154,9 +151,10 @@ public final class LineageMaster extends MasterBase {
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      mCheckpointExecutionService = getExecutorService().submit(new HeartbeatThread(
-          HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING, new CheckpointSchedulingExcecutor(this),
-          mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+      mCheckpointExecutionService = getExecutorService()
+          .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
+              new CheckpointSchedulingExcecutor(this, mFileSystemMaster),
+              mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
               new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
