@@ -133,7 +133,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
     Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
-      LOG.info("Starting Application Master with args " + Arrays.toString(args));
+      LOG.info("Starting Application Master with args {}", Arrays.toString(args));
       final int numWorkers = Integer.parseInt(args[0]);
       final String tachyonHome = args[1];
       final String masterAddress = args[2];
@@ -143,7 +143,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       applicationMaster.requestContainers();
       applicationMaster.stop();
     } catch (Exception e) {
-      LOG.error("Error running Application Master " + e);
+      LOG.error("Error running Application Master ", e);
       System.exit(1);
     }
   }
@@ -320,9 +320,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
     } catch (YarnException e) {
-      LOG.error("Failed to unregister application " + e);
+      LOG.error("Failed to unregister application ", e);
     } catch (IOException e) {
-      LOG.error("Failed to unregister application " + e);
+      LOG.error("Failed to unregister application ", e);
     }
     mRMClient.stop();
     // TODO(andrew): Think about whether we should stop mNMClient here
@@ -356,11 +356,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       mNMClient.startContainer(container, ctx);
       String containerUri = container.getNodeHttpAddress(); // in the form of 1.2.3.4:8042
       mMasterContainerNetAddress = containerUri.split(":")[0];
-      LOG.info("Master address: " + mMasterContainerNetAddress);
+      LOG.info("Master address: {}", mMasterContainerNetAddress);
       mMasterContainerAllocatedLatch.countDown();
       return;
     } catch (Exception e) {
-      LOG.error("Error launching container " + container.getId() + " " + e);
+      LOG.error("Error launching container {}", container.getId(), e);
     }
   }
 
@@ -395,7 +395,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
             mNMClient.startContainer(container, ctx);
             mWorkerHosts.add(container.getNodeId().getHost());
           } catch (Exception e) {
-            LOG.error("Error launching container " + container.getId() + " " + e);
+            LOG.error("Error launching container {}",container.getId(), e);
           }
         }
         mOutstandingWorkerContainerRequestsLatch.countDown();
