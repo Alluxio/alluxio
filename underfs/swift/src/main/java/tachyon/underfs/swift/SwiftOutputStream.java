@@ -45,7 +45,7 @@ public class SwiftOutputStream extends OutputStream {
       mOutputStream  = httpCon.getOutputStream();
       mHttpCon = httpCon;
     } catch (Exception e) {
-      LOG.debug(e.getMessage());
+      LOG.error(e.getMessage());
       throw new IOException(e);
     }
   }
@@ -70,11 +70,9 @@ public class SwiftOutputStream extends OutputStream {
   public void close() throws IOException {
     LOG.debug("Going to close output stream");
     mOutputStream.close();
-    LOG.debug("Output stream closed");
     BufferedReader reader = null;
     InputStream is = null;
     try {
-      LOG.debug("Going to get inputstream");
       // Status 400 and up should be read from error stream
       // Expecting here 201 Create or 202 Accepted
       if (mHttpCon.getResponseCode() >= 400) {
@@ -83,11 +81,10 @@ public class SwiftOutputStream extends OutputStream {
         is = mHttpCon.getInputStream();
       }
       reader = new BufferedReader(new InputStreamReader(is));
-      LOG.debug("Going got close input stream");
       is.close();
       reader.close();
     } catch (Exception e) {
-      LOG.debug(e.getMessage());
+      LOG.error(e.getMessage());
       if (reader != null) {
         reader.close();
       }
@@ -95,7 +92,6 @@ public class SwiftOutputStream extends OutputStream {
         is.close();
       }
     }
-    LOG.debug("Input stream closed");
     mHttpCon.disconnect();
   }
 
