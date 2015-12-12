@@ -36,10 +36,20 @@ struct CreateTOptions {
   4: optional i64 ttl
 }
 
+struct PersistCommand {
+  1: common.CommandType commandType
+  2: list<PersistFile> persistFiles
+}
+
 struct MkdirTOptions {
   1: optional bool persisted
   2: optional bool recursive
   3: optional bool allowExists
+}
+
+struct PersistFile {
+  1: i64 fileId
+  2: list<i64> blockIds
 }
 
 struct SetStateTOptions {
@@ -186,4 +196,12 @@ service FileSystemMasterWorkerService extends common.TachyonService {
    * Returns the set of pinned files.
    */
   set<i64> getPinIdList()
+  
+  /**
+   * Periodic lineage worker heartbeat. Returns the command for checkpointing
+   * the blocks of a file.
+   */
+  common.Command heartbeat( /** the id of the worker */ 1: i64 workerId,
+      /** the list of persisted files */ 2: list<i64> persistedFiles)
+    throws (1: exception.TachyonTException e)
 }
