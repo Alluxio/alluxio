@@ -82,15 +82,6 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public void asyncCompleteFile(long fileId) throws TachyonTException {
-    try {
-      mLineageMaster.asyncCompleteFile(fileId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
   public long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws TachyonTException {
     try {

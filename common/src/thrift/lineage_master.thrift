@@ -33,13 +33,7 @@ struct LineageInfo {
 /**
  * This interface contains lineage master service endpoints for Tachyon clients.
  */
-service LineageMasterClientService extends common.TachyonService {
-
-  /**
-   * Marks a file as completed and initiates asynchronous persistence (if applicable).
-   */
-  void asyncCompleteFile( /** the id of the file */ 1: i64 fileId)
-    throws (1: exception.TachyonTException e)
+service LineageMasterClientService extends common.TachyonService {  
 
   /**
    * Creates a lineage and returns the lineage id.
