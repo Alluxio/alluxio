@@ -198,10 +198,10 @@ service FileSystemMasterWorkerService extends common.TachyonService {
   set<i64> getPinIdList()
   
   /**
-   * Periodic lineage worker heartbeat. Returns the command for checkpointing
+   * Periodic lineage worker heartbeat. Returns the command for persisting
    * the blocks of a file.
    */
-  common.Command heartbeat( /** the id of the worker */ 1: i64 workerId,
+  PersistCommand heartbeat( /** the id of the worker */ 1: i64 workerId,
       /** the list of persisted files */ 2: list<i64> persistedFiles)
     throws (1: exception.TachyonTException e)
 }
