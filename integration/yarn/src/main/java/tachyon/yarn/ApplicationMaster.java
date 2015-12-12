@@ -103,7 +103,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /**
    * The number of worker container requests we are waiting to hear back from. Initialized during
    * {@link #requestWorkerContainers()} and decremented during
-   * {@link #launchTachyonWorkerContainers(List).
+   * {@link #launchTachyonWorkerContainers(List)}.
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
