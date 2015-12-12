@@ -46,8 +46,8 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
    * @throws IOException if the target resource throws this exception
    */

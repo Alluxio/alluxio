@@ -101,7 +101,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     }
 
     /**
-     * Compare NodeInfo by lexicographical order of their associated host
+     * Compare {@link NodeInfo} by lexicographical order of their associated host
      * @param o the comparison term
      * @return a positive value if {@code this.getHost} is lexcographically "bigger" than
      *         {@code o.getHost}, 0 if the hosts are equal, a negative value otherwise.
@@ -145,8 +145,8 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */
@@ -158,9 +158,9 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   }
 
   /**
-   * Order the nodes by hostName and generate NodeInfo list for UI display
+   * Order the nodes by hostName and generate {@link NodeInfo} list for UI display
    *
-   * @param workerInfos The list of WorkerInfo objects
+   * @param workerInfos The list of {@link WorkerInfo} objects
    * @return The list of NodeInfo objects
    */
   private NodeInfo[] generateOrderedNodeInfos(Collection<WorkerInfo> workerInfos) {
@@ -177,7 +177,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    *
-   * @param request The HttpServletRequest object
+   * @param request The {@link HttpServletRequest} object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
