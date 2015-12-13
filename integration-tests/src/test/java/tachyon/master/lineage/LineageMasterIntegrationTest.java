@@ -56,11 +56,10 @@ public final class LineageMasterIntegrationTest {
   private static final int BUFFER_BYTES = 100;
 
   @Rule
-  public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
-          Constants.USER_LINEAGE_ENABLED, "true");
+  public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
+      WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES, Constants.USER_FILE_BUFFER_BYTES,
+      String.valueOf(BUFFER_BYTES), Constants.WORKER_DATA_SERVER,
+      IntegrationTestConstants.NETTY_DATA_SERVER, Constants.USER_LINEAGE_ENABLED, "true");
 
   private static final String OUT_FILE = "/test";
   private TachyonConf mTestConf;
@@ -107,8 +106,8 @@ public final class LineageMasterIntegrationTest {
 
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING, 5,
         TimeUnit.SECONDS));
-    Assert.assertTrue(
-        HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5, TimeUnit.SECONDS));
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
+        TimeUnit.SECONDS));
 
     try {
       lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
@@ -135,8 +134,8 @@ public final class LineageMasterIntegrationTest {
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING, 5,
           TimeUnit.SECONDS));
-      Assert.assertTrue(
-          HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5, TimeUnit.SECONDS));
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
+          TimeUnit.SECONDS));
 
       fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(FilePersistenceState.PERSISTING.toString(),
@@ -147,8 +146,8 @@ public final class LineageMasterIntegrationTest {
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
-      Assert.assertTrue(
-          HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 500, TimeUnit.SECONDS));
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
+          500, TimeUnit.SECONDS));
 
       fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(FilePersistenceState.PERSISTED.toString(),
