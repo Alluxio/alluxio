@@ -16,8 +16,8 @@ struct JobConfInfo {
 
 struct LineageInfo {
   1: i64 id
-  2: list<i64> inputFiles
-  3: list<i64> outputFiles
+  2: list<string> inputFiles
+  3: list<string> outputFiles
   4: CommandLineJobInfo job
   5: i64 creationTimeMs
   6: list<i64> parents
