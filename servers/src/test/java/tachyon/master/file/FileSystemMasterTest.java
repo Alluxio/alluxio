@@ -52,8 +52,10 @@ import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.thrift.CommandType;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.PersistCommand;
 import tachyon.util.IdUtils;
 
 /**
@@ -389,6 +391,21 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.stop();
     Assert.assertTrue(ttlThread.isDone());
     Assert.assertTrue(service.isShutdown());
+  }
+
+  @Test
+  public void workerHeartbeatTest() throws Exception {
+    long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
+
+    long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
+    mFileSystemMaster.scheduleAsyncPersistence(fileId);
+
+    PersistCommand command =
+        mFileSystemMaster.workerHeartbeat(mWorkerId, Lists.newArrayList(fileId));
+    Assert.assertEquals(CommandType.Persist, command.commandType);
+    Assert.assertEquals(1, command.persistFiles.size());
+    Assert.assertEquals(fileId, command.persistFiles.get(0).fileId);
+    Assert.assertEquals(blockId, (long) command.persistFiles.get(0).blockIds.get(0));
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
