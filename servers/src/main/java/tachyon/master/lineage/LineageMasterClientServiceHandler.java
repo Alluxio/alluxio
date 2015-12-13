@@ -94,11 +94,9 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public void reportLostFile(String path) throws TachyonTException, ThriftIOException {
     try {
-      mLineageMaster.reportListFile(path);
+      mLineageMaster.reportLostFile(path);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 
