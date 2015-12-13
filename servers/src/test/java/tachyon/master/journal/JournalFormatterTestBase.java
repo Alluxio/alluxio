@@ -56,10 +56,8 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.Lineage.AsyncCompleteFileEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
-import tachyon.proto.journal.Lineage.LineageFileState;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
 import tachyon.proto.journal.Lineage.PersistFilesEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
@@ -221,11 +219,6 @@ public abstract class JournalFormatterTestBase {
             .build())
         .add(
             JournalEntry.newBuilder()
-            .setAsyncCompleteFile(AsyncCompleteFileEntry.newBuilder()
-                .setFileId(TEST_FILE_ID))
-            .build())
-        .add(
-            JournalEntry.newBuilder()
             .setDeleteLineage(DeleteLineageEntry.newBuilder()
                 .setLineageId(TEST_LINEAGE_ID)
                 .setCascade(false))
@@ -235,7 +228,6 @@ public abstract class JournalFormatterTestBase {
                 .setId(TEST_LINEAGE_ID)
                 .addAllInputFiles(Arrays.asList(TEST_FILE_ID))
                 .addAllOutputFileIds(Arrays.asList(TEST_FILE_ID))
-                .addAllOutputFileStates(Arrays.asList(LineageFileState.CREATED))
                 .setJobCommand(TEST_JOB_COMMAND)
                 .setJobOutputPath(TEST_JOB_OUTPUT_PATH)
                 .setCreationTimeMs(TEST_OP_TIME_MS))
