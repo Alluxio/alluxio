@@ -135,6 +135,7 @@ public final class InodeFile extends Inode {
     mCompleted = false;
     mLength = 0;
     mTTL = builder.mTTL;
+    mLost = false;
   }
 
   @Override
