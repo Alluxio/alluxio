@@ -29,6 +29,7 @@ import tachyon.job.JobConf;
 import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
+import tachyon.thrift.LineageInfo;
 
 /**
  * A lineage tracks the dependencies imposed by a job, including the input files the job depends on,
@@ -104,6 +105,22 @@ public final class Lineage implements JournalEntryRepresentable {
    */
   public long getCreationTime() {
     return mCreationTimeMs;
+  }
+
+  /**
+   * @return the {@link LineageInfo} for RPC
+   */
+  public synchronized LineageInfo generateLineageInfo() {
+    LineageInfo info = new LineageInfo();
+    info.id = mId;
+    info.inputFiles = Lists.newArrayList(mInputFiles);
+    List<Long> outputFiles = Lists.newArrayList(mOutputFiles);
+    info.outputFiles = outputFiles;
+
+    // TODO(yupeng) allow other types of jobs
+    info.job = ((CommandLineJob) mJob).generateCommandLineJobInfo();
+    info.creationTimeMs = mCreationTimeMs;
+    return info;
   }
 
   /**

@@ -52,7 +52,6 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
@@ -64,6 +63,7 @@ import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
 import tachyon.proto.journal.Lineage.PersistFilesEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
 import tachyon.util.IdUtils;
@@ -277,12 +277,13 @@ public final class LineageMaster extends MasterBase {
    * @param ttl the TTL
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
+   * @throws FileDoesNotExistException when the file does not exist
    */
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, LineageDoesNotExistException {
+      throws InvalidPathException, FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
-    LineageFileState state = mLineageStore.getLineageFileState(fileId);
-    if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    if (!fileInfo.isCompleted || fileInfo.isLost) {
       LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
       return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
     }
