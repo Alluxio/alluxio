@@ -41,6 +41,7 @@ import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
+import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
@@ -287,12 +288,14 @@ public final class LineageMaster extends MasterBase {
   /**
    * @return the list of all the {@link LineageInfo}s
    * @throws LineageDoesNotExistException if the lineage does not exist
+   * @throws FileDoesNotExistException if any associated file does not exist
    */
-  public synchronized List<LineageInfo> getLineageInfoList() throws LineageDoesNotExistException {
+  public synchronized List<LineageInfo> getLineageInfoList()
+      throws LineageDoesNotExistException, FileDoesNotExistException {
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
-      LineageInfo info = lineage.generateLineageInfo();
+      LineageInfo info = new LineageInfo();
       List<Long> parents = Lists.newArrayList();
       for (Lineage parent : mLineageStore.getParents(lineage)) {
         parents.add(parent.getId());
@@ -303,6 +306,20 @@ public final class LineageMaster extends MasterBase {
         children.add(child.getId());
       }
       info.children = children;
+      info.id = lineage.getId();
+      List<String> inputFiles = Lists.newArrayList();
+      for (long inputFileId : lineage.getInputFiles()) {
+        inputFiles.add(mFileSystemMaster.getPath(inputFileId).toString());
+      }
+      info.inputFiles = inputFiles;
+      List<String> outputFiles = Lists.newArrayList();
+      for (long outputFileId : lineage.getOutputFiles()) {
+        outputFiles.add(mFileSystemMaster.getPath(outputFileId).toString());
+      }
+      info.outputFiles = outputFiles;
+      info.creationTimeMs = lineage.getCreationTime();
+      info.job = ((CommandLineJob) lineage.getJob()).generateCommandLineJobInfo();
+
       lineages.add(info);
     }
     return lineages;
