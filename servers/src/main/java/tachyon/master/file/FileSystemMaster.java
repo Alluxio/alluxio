@@ -1550,7 +1550,8 @@ public final class FileSystemMaster extends MasterBase {
     }
 
     List<Long> toRequestFilePersistence = Lists.newArrayList();
-    for (long fileId : mWorkerToAsyncPersistFile.get(workerId)) {
+    Set<Long> scheduledFiles = mWorkerToAsyncPersistFile.get(workerId);
+    for (long fileId : Sets.newHashSet(scheduledFiles)) {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
       if (inode.isCompleted()) {
         toRequestFilePersistence.add(fileId);
@@ -1563,6 +1564,7 @@ public final class FileSystemMaster extends MasterBase {
         files.add(toCheckpoint);
         // update the inode file persisence state
         inode.setPersistenceState(FilePersistenceState.PERSISTING);
+        scheduledFiles.remove(fileId);
       }
     }
 
