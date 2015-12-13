@@ -1282,6 +1282,8 @@ public final class FileSystemMaster extends MasterBase {
         return;
       }
 
+      ((InodeFile) inode).setLost(true);
+
       List<Long> blockIds = Lists.newArrayList();
       try {
         for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
