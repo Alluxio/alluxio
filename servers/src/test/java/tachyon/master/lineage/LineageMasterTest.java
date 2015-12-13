@@ -72,6 +72,7 @@ public final class LineageMasterTest {
         Lists.newArrayList(new TachyonURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
         Lists.newArrayList(new TachyonURI("/test2")), mJob);
+    Mockito.when(mFileSystemMaster.getPath(Mockito.anyLong())).thenReturn(new TachyonURI("test"));
     List<LineageInfo> info = mLineageMaster.getLineageInfoList();
     Assert.assertEquals(2, info.size());
   }
