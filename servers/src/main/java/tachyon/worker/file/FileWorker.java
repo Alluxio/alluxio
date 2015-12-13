@@ -64,7 +64,7 @@ public final class FileWorker extends WorkerBase {
     mFilePersistenceService =
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
-            mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
+            mTachyonConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
   public void stop() {
