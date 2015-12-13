@@ -57,20 +57,22 @@ public final class CheckpointLatestSchedulerTest {
   public void scheduleTest() throws Exception {
     long fileId1 = 1L;
     long fileId2 = 2L;
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(fileId1), mJob);
-    long l2 = mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
+    long l1 =
+        mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(fileId1), mJob);
+    long l2 =
+        mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
 
     Mockito.when(mFileSystemMaster.getFilePersistenceState(fileId1))
         .thenReturn(FilePersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getFilePersistenceState(fileId2))
         .thenReturn(FilePersistenceState.NOT_PERSISTED);
     FileInfo fileInfo1 = new FileInfo();
-    fileInfo1.isCompleted=true;
-    fileInfo1.isLost=false;
+    fileInfo1.isCompleted = true;
+    fileInfo1.isLost = false;
     Mockito.when(mFileSystemMaster.getFileInfo(fileId1)).thenReturn(fileInfo1);
     FileInfo fileInfo2 = new FileInfo();
-    fileInfo2.isCompleted=false;
-    fileInfo1.isLost=false;
+    fileInfo2.isCompleted = false;
+    fileInfo1.isLost = false;
     Mockito.when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
 
     CheckpointPlan plan = mScheduler.schedule(new LineageStoreView(mLineageStore),
@@ -78,7 +80,7 @@ public final class CheckpointLatestSchedulerTest {
     Assert.assertEquals((Long) l1, plan.getLineagesToCheckpoint().get(0));
 
     // complete file 2 and it's ready for checkpoint
-    fileInfo2.isCompleted=true;
+    fileInfo2.isCompleted = true;
     plan = mScheduler.schedule(new LineageStoreView(mLineageStore),
         new FileStoreView(mFileSystemMaster));
     Assert.assertEquals((Long) l2, plan.getLineagesToCheckpoint().get(0));

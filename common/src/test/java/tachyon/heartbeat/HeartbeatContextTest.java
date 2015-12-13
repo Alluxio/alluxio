@@ -48,7 +48,8 @@ public class HeartbeatContextTest {
         HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.WORKER_CLIENT, HeartbeatContext.SLEEPING_TIMER_CLASS);
-    checkInstanceOf(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
+    checkInstanceOf(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
+        HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
   @Test
