@@ -54,7 +54,7 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
 
   public long id; // required
   public List<Long> inputFiles; // required
-  public List<LineageFileInfo> outputFiles; // required
+  public List<Long> outputFiles; // required
   public CommandLineJobInfo job; // required
   public long creationTimeMs; // required
   public List<Long> parents; // required
@@ -150,7 +150,7 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     tmpMap.put(_Fields.OUTPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("outputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LineageFileInfo.class))));
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     tmpMap.put(_Fields.JOB, new org.apache.thrift.meta_data.FieldMetaData("job", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CommandLineJobInfo.class)));
     tmpMap.put(_Fields.CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("creationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -171,7 +171,7 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
   public LineageInfo(
     long id,
     List<Long> inputFiles,
-    List<LineageFileInfo> outputFiles,
+    List<Long> outputFiles,
     CommandLineJobInfo job,
     long creationTimeMs,
     List<Long> parents,
@@ -200,10 +200,7 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       this.inputFiles = __this__inputFiles;
     }
     if (other.isSetOutputFiles()) {
-      List<LineageFileInfo> __this__outputFiles = new ArrayList<LineageFileInfo>(other.outputFiles.size());
-      for (LineageFileInfo other_element : other.outputFiles) {
-        __this__outputFiles.add(new LineageFileInfo(other_element));
-      }
+      List<Long> __this__outputFiles = new ArrayList<Long>(other.outputFiles);
       this.outputFiles = __this__outputFiles;
     }
     if (other.isSetJob()) {
@@ -303,22 +300,22 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
     return (this.outputFiles == null) ? 0 : this.outputFiles.size();
   }
 
-  public java.util.Iterator<LineageFileInfo> getOutputFilesIterator() {
+  public java.util.Iterator<Long> getOutputFilesIterator() {
     return (this.outputFiles == null) ? null : this.outputFiles.iterator();
   }
 
-  public void addToOutputFiles(LineageFileInfo elem) {
+  public void addToOutputFiles(long elem) {
     if (this.outputFiles == null) {
-      this.outputFiles = new ArrayList<LineageFileInfo>();
+      this.outputFiles = new ArrayList<Long>();
     }
     this.outputFiles.add(elem);
   }
 
-  public List<LineageFileInfo> getOutputFiles() {
+  public List<Long> getOutputFiles() {
     return this.outputFiles;
   }
 
-  public LineageInfo setOutputFiles(List<LineageFileInfo> outputFiles) {
+  public LineageInfo setOutputFiles(List<Long> outputFiles) {
     this.outputFiles = outputFiles;
     return this;
   }
@@ -485,7 +482,7 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       if (value == null) {
         unsetOutputFiles();
       } else {
-        setOutputFiles((List<LineageFileInfo>)value);
+        setOutputFiles((List<Long>)value);
       }
       break;
 
@@ -920,12 +917,11 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list3 = iprot.readListBegin();
-                struct.outputFiles = new ArrayList<LineageFileInfo>(_list3.size);
-                LineageFileInfo _elem4;
+                struct.outputFiles = new ArrayList<Long>(_list3.size);
+                long _elem4;
                 for (int _i5 = 0; _i5 < _list3.size; ++_i5)
                 {
-                  _elem4 = new LineageFileInfo();
-                  _elem4.read(iprot);
+                  _elem4 = iprot.readI64();
                   struct.outputFiles.add(_elem4);
                 }
                 iprot.readListEnd();
@@ -1021,10 +1017,10 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       if (struct.outputFiles != null) {
         oprot.writeFieldBegin(OUTPUT_FILES_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.outputFiles.size()));
-          for (LineageFileInfo _iter13 : struct.outputFiles)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.outputFiles.size()));
+          for (long _iter13 : struct.outputFiles)
           {
-            _iter13.write(oprot);
+            oprot.writeI64(_iter13);
           }
           oprot.writeListEnd();
         }
@@ -1117,9 +1113,9 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       if (struct.isSetOutputFiles()) {
         {
           oprot.writeI32(struct.outputFiles.size());
-          for (LineageFileInfo _iter17 : struct.outputFiles)
+          for (long _iter17 : struct.outputFiles)
           {
-            _iter17.write(oprot);
+            oprot.writeI64(_iter17);
           }
         }
       }
@@ -1172,13 +1168,12 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       }
       if (incoming.get(2)) {
         {
-          org.apache.thrift.protocol.TList _list23 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.outputFiles = new ArrayList<LineageFileInfo>(_list23.size);
-          LineageFileInfo _elem24;
+          org.apache.thrift.protocol.TList _list23 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.outputFiles = new ArrayList<Long>(_list23.size);
+          long _elem24;
           for (int _i25 = 0; _i25 < _list23.size; ++_i25)
           {
-            _elem24 = new LineageFileInfo();
-            _elem24.read(iprot);
+            _elem24 = iprot.readI64();
             struct.outputFiles.add(_elem24);
           }
         }
