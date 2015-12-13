@@ -18,20 +18,22 @@ package tachyon.master.file.meta;
 import com.google.common.base.Preconditions;
 
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.master.file.FileSystemMaster;
+import tachyon.thrift.FileInfo;
 
 /**
- * This class exposes a readonly view of {@link InodeTree}. This class is thread-safe.
+ * This class exposes a readonly view of {@link FileSystemMaster}. This class is thread-safe.
  */
 public final class FileStoreView {
-  private final InodeTree mInodeTree;
+  private final FileSystemMaster mFileSystemMaster;
 
   /**
-   * Constructs a view of the file store.
+   * Constructs a view of the {@link FileSystemMaster}.
    *
-   * @param mInodeTree the inode tree
+   * @param fileSystemMaster the file system master
    */
-  public FileStoreView(InodeTree inodeTree) {
-    mInodeTree = Preconditions.checkNotNull(inodeTree);
+  public FileStoreView(FileSystemMaster fileSystemMaster) {
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
   }
 
   /**
@@ -41,11 +43,19 @@ public final class FileStoreView {
    * @return the persistence state
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public FilePersistenceState getFilePersistenceState(long fileId)
+  public synchronized FilePersistenceState getFilePersistenceState(long fileId)
       throws FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      return inode.getPersistenceState();
-    }
+    return mFileSystemMaster.getFilePersistenceState(fileId);
+  }
+
+  /**
+   * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
+   *
+   * @param fileId the file id to get the {@link FileInfo} for
+   * @return the {@link FileInfo} for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  public synchronized FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+    return mFileSystemMaster.getFileInfo(fileId);
   }
 }

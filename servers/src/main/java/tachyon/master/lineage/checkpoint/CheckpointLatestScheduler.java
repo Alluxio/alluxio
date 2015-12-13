@@ -15,9 +15,16 @@
 
 package tachyon.master.lineage.checkpoint;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.master.file.meta.FileStoreView;
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageStateUtils;
 import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
@@ -25,21 +32,29 @@ import tachyon.master.lineage.meta.LineageStoreView;
  * class serves as an example to implement a scheduler.
  */
 public final class CheckpointLatestScheduler implements CheckpointScheduler {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * CheckpointLatestScheduler does not use the lineage store view.
    *
    * @param storeView view of a lineage store
    */
-  public CheckpointLatestScheduler(LineageStoreView storeView) {}
+  public CheckpointLatestScheduler(LineageStoreView storeView, FileStoreView fileStoreView) {}
 
   @Override
-  public CheckpointPlan schedule(LineageStoreView store) {
+  public CheckpointPlan schedule(LineageStoreView store, FileStoreView fileStoreView) {
     Lineage toCheckpoint = null;
     long latestCreated = 0;
     for (Lineage lineage : store.getAllLineagesInTopologicalOrder()) {
-      if (!lineage.isCompleted() || lineage.isPersisted() || lineage.needRecompute()
-          || lineage.isInCheckpointing()) {
+      try {
+        if (!LineageStateUtils.isCompleted(lineage, fileStoreView)
+            || LineageStateUtils.isPersisted(lineage, fileStoreView)
+            || LineageStateUtils.needRecompute(lineage, fileStoreView)
+            || LineageStateUtils.isInCheckpointing(lineage, fileStoreView)) {
+          continue;
+        }
+      } catch (FileDoesNotExistException e) {
+        LOG.error("The lineage file does not exist {}", e);
         continue;
       }
       if (lineage.getCreationTime() > latestCreated) {
