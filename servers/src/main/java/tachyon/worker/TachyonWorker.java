@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.util.LineageUtils;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileWorker;
+import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
@@ -39,13 +39,13 @@ public final class TachyonWorker {
   public static void main(String[] args) {
     checkArgs(args);
     BlockWorker worker = null;
-    FileWorker fileWorker = null;
+    FileSystemWorker fileWorker = null;
 
     try {
       worker = new BlockWorker();
        // Setup the file worker
-      LOG.info("Started file worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      fileWorker = new FileWorker(worker.getBlockDataManager());
+      LOG.info("Started file system worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+      fileWorker = new FileSystemWorker(worker.getBlockDataManager());
 
     } catch (Exception e) {
       LOG.error("Failed to initialize the block worker, exiting.", e);
@@ -53,7 +53,7 @@ public final class TachyonWorker {
     }
 
     try {
-      // Start the file worker
+      // Start the file system worker
       fileWorker.start();
       worker.process();
 

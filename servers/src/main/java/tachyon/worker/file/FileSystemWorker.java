@@ -34,9 +34,9 @@ import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * This class is responsible for managing all top level components of the file worker.
+ * This class is responsible for managing all top level components of the file system worker.
  */
-public final class FileWorker extends WorkerBase {
+public final class FileSystemWorker extends WorkerBase {
   /** Logic for managing file persistence */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
@@ -47,9 +47,9 @@ public final class FileWorker extends WorkerBase {
   /** The service that persists files */
   private Future<?> mFilePersistenceService;
 
-  public FileWorker(BlockDataManager blockDataManager) throws IOException {
+  public FileSystemWorker(BlockDataManager blockDataManager) throws IOException {
     super(Executors.newFixedThreadPool(3,
-        ThreadFactoryUtils.build("file-worker-heartbeat-%d", true)));
+        ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     Preconditions.checkState(WorkerIdRegistry.getWorkerId() != 0, "Failed to register worker");
 
     mTachyonConf = WorkerContext.getConf();

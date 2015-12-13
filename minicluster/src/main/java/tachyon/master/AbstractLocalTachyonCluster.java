@@ -39,7 +39,7 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileWorker;
+import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster.
@@ -60,7 +60,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected TachyonConf mWorkerConf;
 
   protected BlockWorker mWorker;
-  protected FileWorker mLineageWorker;
+  protected FileSystemWorker mLineageWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mTachyonHome;
@@ -395,7 +395,7 @@ public abstract class AbstractLocalTachyonCluster {
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       // Setup the lineage worker
       LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      mLineageWorker = new FileWorker(mWorker.getBlockDataManager());
+      mLineageWorker = new FileSystemWorker(mWorker.getBlockDataManager());
     }
 
     Runnable runWorker = new Runnable() {
