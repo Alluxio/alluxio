@@ -100,7 +100,7 @@ public final class LineageStateUtils {
     List<Long> result = Lists.newArrayList();
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
-      if (!fileInfo.isCompleted) {
+      if (fileInfo.isLost) {
         result.add(outputFile);
       }
     }
