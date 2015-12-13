@@ -118,6 +118,9 @@ public final class InodeFile extends Inode {
 
   private boolean mCompleted;
 
+  /** if any block of the file is lost */
+  private boolean mLost;
+
   // length of inode file in bytes.
   private long mLength;
 
@@ -156,6 +159,8 @@ public final class InodeFile extends Inode {
     ret.userName = getUserName();
     ret.groupName = getGroupName();
     ret.permission = getPermission();
+    ret.persistenceState = getPersistenceState().toString();
+    ret.isLost = isLost();
     return ret;
   }
 
@@ -266,6 +271,20 @@ public final class InodeFile extends Inode {
    */
   public synchronized void setLength(long length) {
     mLength = length;
+  }
+
+  /**
+   * Sets whether any block of the file is lost.
+   */
+  public synchronized void setLost(boolean isLost) {
+    mLost = isLost;
+  }
+
+  /**
+   * @return true if any block of the file is lost, false otherwise
+   */
+  public synchronized boolean isLost() {
+    return mLost;
   }
 
   /**
