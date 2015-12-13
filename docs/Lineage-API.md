@@ -135,13 +135,6 @@ These are the configuration parameters related to Tachyon's lineage feature.
   </td>
 </tr>
 <tr>
-  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
-  <td>1000</td>
-  <td>
-  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
-  </td>
-</tr>
-<tr>
   <td>tachyon.user.lineage.enabled</td>
   <td>false</td>
   <td>

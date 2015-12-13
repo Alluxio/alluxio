@@ -409,16 +409,16 @@ the port number.
   LFU; and larger value makes LRFU closer to LRU.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.filesystem.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The heartbeat interval (in milliseconds) between the worker and file system master.
+  </td>
+</tr>
+<tr>
   <td>tachyon.worker.hostname</td>
   <td>localhost</td>
   <td>The hostname of Tachyon worker.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
-  <td>1000</td>
-  <td>
-  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
-  </td>
 </tr>
 <tr>
   <td>tachyon.worker.memory.size</td>
