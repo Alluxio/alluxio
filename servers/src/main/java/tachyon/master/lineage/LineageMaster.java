@@ -325,8 +325,13 @@ public final class LineageMaster extends MasterBase {
     }
   }
 
-  public synchronized void reportListFile(String path)
-      throws FileDoesNotExistException, IOException {
+  /**
+   * Reports a file as lost.
+   *
+   * @param path the path to the file.
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  public synchronized void reportLostFile(String path) throws FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }
