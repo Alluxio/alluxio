@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.lineage;
+package tachyon.worker.file;
 
 import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -47,7 +47,7 @@ import tachyon.worker.file.FileDataManager;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockDataManager.class, BufferUtils.class})
-public final class LineageDataManagerTest {
+public final class FileDataManagerTest {
 
   @Test
   @SuppressWarnings("unchecked")
