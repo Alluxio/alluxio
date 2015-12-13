@@ -49,8 +49,16 @@ public final class LineageStateUtils {
 
   /**
    * @return true if the lineage needs recompute, false otherwise
+   * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static boolean needRecompute(Lineage lineage, FileStoreView fileStoreView) {
+  public static boolean needRecompute(Lineage lineage, FileStoreView fileStoreView)
+      throws FileDoesNotExistException {
+    for (long outputFile : lineage.getOutputFiles()) {
+      FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
+      if (fileInfo.isLost) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -85,11 +93,16 @@ public final class LineageStateUtils {
 
   /**
    * @return all the output files of the given lineage that are lost on the workers
+   * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static List<Long> getLostFiles(Lineage lineage, FileStoreView fileStoreView) {
+  public static List<Long> getLostFiles(Lineage lineage, FileStoreView fileStoreView)
+      throws FileDoesNotExistException {
     List<Long> result = Lists.newArrayList();
     for (long outputFile : lineage.getOutputFiles()) {
-      return null;
+      FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
+      if (!fileInfo.isCompleted) {
+        result.add(outputFile);
+      }
     }
     return result;
   }

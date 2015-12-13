@@ -86,13 +86,17 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     public void run() {
       for (Lineage lineage : mPlan.getLineageToRecompute()) {
         // empty all the lost files
-        for (Long fileId : LineageStateUtils.getLostFiles(lineage,
-            mFileSystemMaster.getFileStoreView())) {
-          try {
-            mFileSystemMaster.resetFile(fileId);
-          } catch (FileDoesNotExistException e) {
-            LOG.error("the lost file {} is invalid", fileId, e);
+        try {
+          for (Long fileId : LineageStateUtils.getLostFiles(lineage,
+              mFileSystemMaster.getFileStoreView())) {
+            try {
+              mFileSystemMaster.resetFile(fileId);
+            } catch (FileDoesNotExistException e) {
+              LOG.error("the lost file {} is invalid", fileId, e);
+            }
           }
+        } catch (FileDoesNotExistException e) {
+          LOG.error("the output file of lineage {} does not exist", lineage.getId(), e);
         }
 
         boolean success = lineage.getJob().run();
