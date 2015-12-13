@@ -33,9 +33,7 @@ public class MountTableTest {
   @Test
   public void pathTest() throws TachyonException {
     // Test add()
-    Assert.assertTrue(mMountTable.add(new TachyonURI("/"), new TachyonURI("/")));
     Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo")));
-    Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/foo2"), new TachyonURI("/foo/x")));
     Assert.assertFalse(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo2")));
     Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/bar"), new TachyonURI("/bar")));
     Assert.assertFalse(mMountTable.add(new TachyonURI("/mnt/bar/baz"), new TachyonURI("/baz")));
@@ -49,7 +47,6 @@ public class MountTableTest {
         .assertEquals(new TachyonURI("/bar/y"), mMountTable.resolve(new TachyonURI("/mnt/bar/y")));
     Assert.assertEquals(new TachyonURI("/bar/baz"),
         mMountTable.resolve(new TachyonURI("/mnt/bar/baz")));
-    Assert.assertEquals(new TachyonURI("/mnt"), mMountTable.resolve(new TachyonURI("/mnt")));
     Assert.assertEquals(new TachyonURI("/foobar"), mMountTable.resolve(new TachyonURI("/foobar")));
     Assert.assertEquals(new TachyonURI("/"), mMountTable.resolve(new TachyonURI("/")));
 
@@ -59,16 +56,14 @@ public class MountTableTest {
     Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new TachyonURI("/mnt/bar")));
     Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new TachyonURI("/mnt/bar/y")));
     Assert.assertEquals("/mnt/bar", mMountTable.getMountPoint(new TachyonURI("/mnt/bar/baz")));
-    Assert.assertEquals("/", mMountTable.getMountPoint(new TachyonURI("/mnt")));
-    Assert.assertEquals("/", mMountTable.getMountPoint(new TachyonURI("/tmp")));
-    Assert.assertEquals("/", mMountTable.getMountPoint(new TachyonURI("/")));
+    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("/mnt")));
+    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("/")));
 
     // Test isMountPoint()
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("/")));
+    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/")));
     Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("/mnt/foo")));
     Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt/foo/bar")));
     Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt")));
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("/mnt/foo2")));
     Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt/foo3")));
     Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("/mnt/bar")));
     Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("/mnt/bar/baz")));
@@ -76,7 +71,6 @@ public class MountTableTest {
     // Test delete()
     Assert.assertTrue(mMountTable.delete(new TachyonURI("/mnt/bar")));
     Assert.assertTrue(mMountTable.delete(new TachyonURI("/mnt/foo")));
-    Assert.assertTrue(mMountTable.delete(new TachyonURI("/mnt/foo2")));
     Assert.assertFalse(mMountTable.delete(new TachyonURI("/mnt/foo")));
     Assert.assertFalse(mMountTable.delete(new TachyonURI("/")));
   }
@@ -84,12 +78,8 @@ public class MountTableTest {
   @Test
   public void uriTest() throws TachyonException {
     // Test add()
-    Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/"),
-        new TachyonURI("hdfs://localhost:5678/")));
     Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"),
         new TachyonURI("hdfs://localhost:5678/foo")));
-    Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo2"),
-        new TachyonURI("hdfs://localhost:5678/foo/x")));
     Assert.assertFalse(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/foo"),
         new TachyonURI("hdfs://localhost:5678/foo2")));
     Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/mnt/bar"),
@@ -100,57 +90,42 @@ public class MountTableTest {
     // Test resolve()
     Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/foo"),
         mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/mnt/foo")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/foo/x"),
-        mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/mnt/foo/x")));
     Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/bar"),
         mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/mnt/bar")));
     Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/bar/y"),
         mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/mnt/bar/y")));
     Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/bar/baz"),
         mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/mnt/bar/baz")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/mnt"),
-        mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/mnt")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/foobar"),
-        mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/foobar")));
-    Assert.assertEquals(new TachyonURI("hdfs://localhost:5678/"),
-        mMountTable.resolve(new TachyonURI("tachyon://localhost:1234/")));
 
     // Test getMountPoint()
     Assert.assertEquals("/mnt/foo",
         mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo")));
-    Assert.assertEquals("/mnt/foo",
-        mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo/x")));
     Assert.assertEquals("/mnt/bar",
         mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/bar")));
     Assert.assertEquals("/mnt/bar",
         mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/bar/y")));
     Assert.assertEquals("/mnt/bar",
         mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/bar/baz")));
-    Assert.assertEquals("/",
-        mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt")));
-    Assert.assertEquals("/",
-        mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/tmp")));
-    Assert
-        .assertEquals("/", mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/")));
+    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/mnt")));
+    Assert.assertNull(mMountTable.getMountPoint(new TachyonURI("tachyon://localhost:1234/")));
 
     // Test isMountPoint()
-    Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/")));
+    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/")));
     Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI(
-        "tachyon://localhost:1234/mnt/foo/bar")));
+    Assert.assertFalse(
+        mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo/bar")));
     Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt")));
     Assert
-        .assertTrue(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo2")));
-    Assert.assertFalse(mMountTable
-        .isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo3")));
+        .assertFalse(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo2")));
+    Assert
+        .assertFalse(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/foo3")));
     Assert.assertTrue(mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/bar")));
-    Assert.assertFalse(mMountTable.isMountPoint(new TachyonURI(
-        "tachyon://localhost:1234/mnt/bar/baz")));
+    Assert.assertFalse(
+        mMountTable.isMountPoint(new TachyonURI("tachyon://localhost:1234/mnt/bar/baz")));
 
     // Test delete()
     Assert.assertTrue(mMountTable.delete(new TachyonURI("tachyon://localhost:1234/mnt/bar")));
     Assert.assertTrue(mMountTable.delete(new TachyonURI("tachyon://localhost:1234/mnt/foo")));
-    Assert.assertTrue(mMountTable.delete(new TachyonURI("tachyon://localhost:1234/mnt/foo2")));
     Assert.assertFalse(mMountTable.delete(new TachyonURI("tachyon://localhost:1234/mnt/foo")));
     Assert.assertFalse(mMountTable.delete(new TachyonURI("tachyon://localhost:1234/")));
   }

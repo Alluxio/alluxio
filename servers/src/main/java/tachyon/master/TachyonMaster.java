@@ -149,6 +149,12 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
+      if (!conf.getBoolean(Constants.IN_TEST_MODE)) {
+        Preconditions.checkState(conf.getInt(Constants.MASTER_RPC_PORT) > 0,
+            "Master rpc port is only allowed to be zero in test mode.");
+        Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
+            "Master web port is only allowed to be zero in test mode.");
+      }
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
