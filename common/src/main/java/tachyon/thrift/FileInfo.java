@@ -57,6 +57,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField USER_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("userName", org.apache.thrift.protocol.TType.STRING, (short)18);
   private static final org.apache.thrift.protocol.TField GROUP_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("groupName", org.apache.thrift.protocol.TType.STRING, (short)19);
   private static final org.apache.thrift.protocol.TField PERMISSION_FIELD_DESC = new org.apache.thrift.protocol.TField("permission", org.apache.thrift.protocol.TType.I32, (short)20);
+  private static final org.apache.thrift.protocol.TField PERSISTENCE_STATE_FIELD_DESC = new org.apache.thrift.protocol.TField("persistenceState", org.apache.thrift.protocol.TType.STRING, (short)21);
+  private static final org.apache.thrift.protocol.TField IS_LOST_FIELD_DESC = new org.apache.thrift.protocol.TField("isLost", org.apache.thrift.protocol.TType.BOOL, (short)22);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -83,6 +85,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   public String userName; // required
   public String groupName; // required
   public int permission; // required
+  public String persistenceState; // required
+  public boolean isLost; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -104,7 +108,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     TTL((short)17, "ttl"),
     USER_NAME((short)18, "userName"),
     GROUP_NAME((short)19, "groupName"),
-    PERMISSION((short)20, "permission");
+    PERMISSION((short)20, "permission"),
+    PERSISTENCE_STATE((short)21, "persistenceState"),
+    IS_LOST((short)22, "isLost");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -157,6 +163,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return GROUP_NAME;
         case 20: // PERMISSION
           return PERMISSION;
+        case 21: // PERSISTENCE_STATE
+          return PERSISTENCE_STATE;
+        case 22: // IS_LOST
+          return IS_LOST;
         default:
           return null;
       }
@@ -210,6 +220,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __LASTMODIFICATIONTIMEMS_ISSET_ID = 10;
   private static final int __TTL_ISSET_ID = 11;
   private static final int __PERMISSION_ISSET_ID = 12;
+  private static final int __ISLOST_ISSET_ID = 13;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -253,6 +264,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PERMISSION, new org.apache.thrift.meta_data.FieldMetaData("permission", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.PERSISTENCE_STATE, new org.apache.thrift.meta_data.FieldMetaData("persistenceState", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.IS_LOST, new org.apache.thrift.meta_data.FieldMetaData("isLost", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -279,7 +294,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     long ttl,
     String userName,
     String groupName,
-    int permission)
+    int permission,
+    String persistenceState,
+    boolean isLost)
   {
     this();
     this.fileId = fileId;
@@ -314,6 +331,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.groupName = groupName;
     this.permission = permission;
     setPermissionIsSet(true);
+    this.persistenceState = persistenceState;
+    this.isLost = isLost;
+    setIsLostIsSet(true);
   }
 
   /**
@@ -353,6 +373,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       this.groupName = other.groupName;
     }
     this.permission = other.permission;
+    if (other.isSetPersistenceState()) {
+      this.persistenceState = other.persistenceState;
+    }
+    this.isLost = other.isLost;
   }
 
   public FileInfo deepCopy() {
@@ -393,6 +417,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.groupName = null;
     setPermissionIsSet(false);
     this.permission = 0;
+    this.persistenceState = null;
+    setIsLostIsSet(false);
+    this.isLost = false;
   }
 
   public long getFileId() {
@@ -853,6 +880,53 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PERMISSION_ISSET_ID, value);
   }
 
+  public String getPersistenceState() {
+    return this.persistenceState;
+  }
+
+  public FileInfo setPersistenceState(String persistenceState) {
+    this.persistenceState = persistenceState;
+    return this;
+  }
+
+  public void unsetPersistenceState() {
+    this.persistenceState = null;
+  }
+
+  /** Returns true if field persistenceState is set (has been assigned a value) and false otherwise */
+  public boolean isSetPersistenceState() {
+    return this.persistenceState != null;
+  }
+
+  public void setPersistenceStateIsSet(boolean value) {
+    if (!value) {
+      this.persistenceState = null;
+    }
+  }
+
+  public boolean isIsLost() {
+    return this.isLost;
+  }
+
+  public FileInfo setIsLost(boolean isLost) {
+    this.isLost = isLost;
+    setIsLostIsSet(true);
+    return this;
+  }
+
+  public void unsetIsLost() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISLOST_ISSET_ID);
+  }
+
+  /** Returns true if field isLost is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsLost() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISLOST_ISSET_ID);
+  }
+
+  public void setIsLostIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISLOST_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FILE_ID:
@@ -1007,6 +1081,22 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case PERSISTENCE_STATE:
+      if (value == null) {
+        unsetPersistenceState();
+      } else {
+        setPersistenceState((String)value);
+      }
+      break;
+
+    case IS_LOST:
+      if (value == null) {
+        unsetIsLost();
+      } else {
+        setIsLost((Boolean)value);
+      }
+      break;
+
     }
   }
 
@@ -1069,6 +1159,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case PERMISSION:
       return Integer.valueOf(getPermission());
 
+    case PERSISTENCE_STATE:
+      return getPersistenceState();
+
+    case IS_LOST:
+      return Boolean.valueOf(isIsLost());
+
     }
     throw new IllegalStateException();
   }
@@ -1118,6 +1214,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetGroupName();
     case PERMISSION:
       return isSetPermission();
+    case PERSISTENCE_STATE:
+      return isSetPersistenceState();
+    case IS_LOST:
+      return isSetIsLost();
     }
     throw new IllegalStateException();
   }
@@ -1306,6 +1406,24 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_persistenceState = true && this.isSetPersistenceState();
+    boolean that_present_persistenceState = true && that.isSetPersistenceState();
+    if (this_present_persistenceState || that_present_persistenceState) {
+      if (!(this_present_persistenceState && that_present_persistenceState))
+        return false;
+      if (!this.persistenceState.equals(that.persistenceState))
+        return false;
+    }
+
+    boolean this_present_isLost = true;
+    boolean that_present_isLost = true;
+    if (this_present_isLost || that_present_isLost) {
+      if (!(this_present_isLost && that_present_isLost))
+        return false;
+      if (this.isLost != that.isLost)
+        return false;
+    }
+
     return true;
   }
 
@@ -1407,6 +1525,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_permission);
     if (present_permission)
       list.add(permission);
+
+    boolean present_persistenceState = true && (isSetPersistenceState());
+    list.add(present_persistenceState);
+    if (present_persistenceState)
+      list.add(persistenceState);
+
+    boolean present_isLost = true;
+    list.add(present_isLost);
+    if (present_isLost)
+      list.add(isLost);
 
     return list.hashCode();
   }
@@ -1609,6 +1737,26 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetPersistenceState()).compareTo(other.isSetPersistenceState());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetPersistenceState()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.persistenceState, other.persistenceState);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetIsLost()).compareTo(other.isSetIsLost());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetIsLost()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isLost, other.isLost);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1727,6 +1875,18 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (!first) sb.append(", ");
     sb.append("permission:");
     sb.append(this.permission);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("persistenceState:");
+    if (this.persistenceState == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.persistenceState);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("isLost:");
+    sb.append(this.isLost);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1935,6 +2095,22 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 21: // PERSISTENCE_STATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.persistenceState = iprot.readString();
+              struct.setPersistenceStateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 22: // IS_LOST
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.isLost = iprot.readBool();
+              struct.setIsLostIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -2026,6 +2202,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeFieldBegin(PERMISSION_FIELD_DESC);
       oprot.writeI32(struct.permission);
       oprot.writeFieldEnd();
+      if (struct.persistenceState != null) {
+        oprot.writeFieldBegin(PERSISTENCE_STATE_FIELD_DESC);
+        oprot.writeString(struct.persistenceState);
+        oprot.writeFieldEnd();
+      }
+      oprot.writeFieldBegin(IS_LOST_FIELD_DESC);
+      oprot.writeBool(struct.isLost);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -2101,7 +2285,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetPermission()) {
         optionals.set(18);
       }
-      oprot.writeBitSet(optionals, 19);
+      if (struct.isSetPersistenceState()) {
+        optionals.set(19);
+      }
+      if (struct.isSetIsLost()) {
+        optionals.set(20);
+      }
+      oprot.writeBitSet(optionals, 21);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -2165,12 +2355,18 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetPermission()) {
         oprot.writeI32(struct.permission);
       }
+      if (struct.isSetPersistenceState()) {
+        oprot.writeString(struct.persistenceState);
+      }
+      if (struct.isSetIsLost()) {
+        oprot.writeBool(struct.isLost);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(19);
+      BitSet incoming = iprot.readBitSet(21);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -2255,6 +2451,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (incoming.get(18)) {
         struct.permission = iprot.readI32();
         struct.setPermissionIsSet(true);
+      }
+      if (incoming.get(19)) {
+        struct.persistenceState = iprot.readString();
+        struct.setPersistenceStateIsSet(true);
+      }
+      if (incoming.get(20)) {
+        struct.isLost = iprot.readBool();
+        struct.setIsLostIsSet(true);
       }
     }
   }

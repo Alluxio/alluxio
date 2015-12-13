@@ -110,6 +110,7 @@ public final class InodeDirectory extends Inode {
     ret.userName = getUserName();
     ret.groupName = getGroupName();
     ret.permission = getPermission();
+    ret.persistenceState = getPersistenceState().toString();
     return ret;
   }
 

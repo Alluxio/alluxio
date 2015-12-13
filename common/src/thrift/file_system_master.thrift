@@ -23,6 +23,8 @@ struct FileInfo {
   18: string userName
   19: string groupName
   20: i32 permission
+  21: string persistenceState
+  22: bool isLost
 }
 
 struct CompleteFileTOptions {
