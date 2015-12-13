@@ -90,7 +90,8 @@ public final class LineageMasterIntegrationTest {
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
-      long fileId = infos.get(0).outputFiles.get(0);
+      String uri = infos.get(0).outputFiles.get(0);
+      long fileId = getFileSystemMasterClient().getFileId(uri);
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(FilePersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
@@ -122,7 +123,8 @@ public final class LineageMasterIntegrationTest {
       outputStream.close();
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
-      long fileId = infos.get(0).outputFiles.get(0);
+      String uri = infos.get(0).outputFiles.get(0);
+      long fileId = getFileSystemMasterClient().getFileId(uri);
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
       Assert.assertEquals(FilePersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
