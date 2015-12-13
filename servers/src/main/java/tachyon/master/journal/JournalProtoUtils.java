@@ -34,8 +34,6 @@ public final class JournalProtoUtils {
     switch (entry.getEntryCase()) {
       case ADD_MOUNT_POINT:
         return entry.getAddMountPoint();
-      case ASYNC_COMPLETE_FILE:
-        return entry.getAsyncCompleteFile();
       case BLOCK_CONTAINER_ID_GENERATOR:
         return entry.getBlockContainerIdGenerator();
       case BLOCK_INFO:

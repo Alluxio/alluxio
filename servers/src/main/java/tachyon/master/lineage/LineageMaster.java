@@ -61,8 +61,6 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.Lineage.PersistFilesEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterClientService;
@@ -136,10 +134,6 @@ public final class LineageMaster extends MasterBase {
       mLineageStore.addLineageFromJournal((LineageEntry) innerEntry);
     } else if (innerEntry instanceof LineageIdGeneratorEntry) {
       mLineageIdGenerator.initFromJournalEntry((LineageIdGeneratorEntry) innerEntry);
-    } else if (innerEntry instanceof PersistFilesEntry) {
-      persistFilesFromEntry((PersistFilesEntry) innerEntry);
-    } else if (innerEntry instanceof PersistFilesRequestEntry) {
-      requestFilePersistenceFromEntry((PersistFilesRequestEntry) innerEntry);
     } else if (innerEntry instanceof DeleteLineageEntry) {
       deleteLineageFromEntry((DeleteLineageEntry) innerEntry);
     } else {

@@ -234,6 +234,14 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
+    } else if (innerEntry instanceof PersistFilesEntry) {
+      persistFilesFromEntry((PersistFilesEntry) innerEntry);
+    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+      try {
+        requestFilePersistenceEntry((PersistFilesRequestEntry) innerEntry);
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
     }
@@ -1582,6 +1590,11 @@ public final class FileSystemMaster extends MasterBase {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
       inode.setPersistenceState(FilePersistenceState.PERSISTING);
     }
+  }
+
+  private void requestFilePersistenceEntry(PersistFilesRequestEntry entry)
+      throws FileDoesNotExistException {
+    requestFilePersistence(entry.getFileIdsList());
   }
 
   /**
