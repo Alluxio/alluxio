@@ -328,7 +328,7 @@ public final class LineageMaster extends MasterBase {
   /**
    * Reports a file as lost.
    *
-   * @param path the path to the file.
+   * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public synchronized void reportLostFile(String path) throws FileDoesNotExistException {

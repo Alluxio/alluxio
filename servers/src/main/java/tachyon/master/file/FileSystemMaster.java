@@ -394,7 +394,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return a read-only view of the inode tree.
+   * @return a read-only view of the inode tree
    */
   public FileStoreView getFileStoreView() {
     return new FileStoreView(this);
