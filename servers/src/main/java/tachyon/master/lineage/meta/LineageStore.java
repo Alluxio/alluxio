@@ -160,6 +160,21 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   /**
+   * Gets the lineage that has the given output file.
+   *
+   * @param fileId the file id
+   * @return the lineage containing the output file
+   * @throws LineageDoesNotExistException
+   */
+  public synchronized Lineage getLineageOfOutputFile(long fileId)
+      throws LineageDoesNotExistException {
+    Lineage lineage = mOutputFileIndex.get(fileId);
+    LineageDoesNotExistException.check(lineage != null, ExceptionMessage.LINEAGE_DOES_NOT_EXIST,
+        fileId);
+    return lineage;
+  }
+
+  /**
    * Gets all the parents of a given lineage
    *
    * @param lineage the lineage

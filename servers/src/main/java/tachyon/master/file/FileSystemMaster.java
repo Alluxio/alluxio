@@ -327,6 +327,21 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * Returns the persistence state of a given file.
+   *
+   * @param fileId the file id
+   * @return the persistence state
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  public FilePersistenceState getFilePersistenceState(long fileId)
+      throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(fileId);
+      return inode.getPersistenceState();
+    }
+  }
+
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
@@ -374,7 +389,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return a read-only view of the inode tree.
    */
   public FileStoreView getFileStoreView() {
-    return new FileStoreView(mInodeTree);
+    return new FileStoreView(this);
   }
 
   /**

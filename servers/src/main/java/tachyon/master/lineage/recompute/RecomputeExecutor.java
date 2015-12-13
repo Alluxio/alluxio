@@ -30,6 +30,7 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageStateUtils;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
@@ -85,7 +86,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     public void run() {
       for (Lineage lineage : mPlan.getLineageToRecompute()) {
         // empty all the lost files
-        for (Long fileId : lineage.getLostFiles()) {
+        for (Long fileId : LineageStateUtils.getLostFiles(lineage,
+            mFileSystemMaster.getFileStoreView())) {
           try {
             mFileSystemMaster.resetFile(fileId);
           } catch (FileDoesNotExistException e) {
