@@ -55,6 +55,8 @@ import tachyon.thrift.WorkerInfo;
  * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
+  private static final NetAddress NET_ADDRESS_1 = new NetAddress("localhost", 80, 81, 82);
+  private static final NetAddress NET_ADDRESS_2 = new NetAddress("localhost", 83, 84, 85);
 
   private BlockMaster mMaster;
   private PrivateAccess mPrivateAccess;
@@ -83,8 +85,8 @@ public class BlockMasterTest {
     Assert.assertEquals(0L, mMaster.getUsedBytes());
     Assert.assertEquals(ImmutableMap.of(), mMaster.getTotalBytesOnTiers());
     Assert.assertEquals(ImmutableMap.of(), mMaster.getUsedBytesOnTiers());
-    long worker1 = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    long worker2 = mMaster.getWorkerId(new NetAddress("localhost", 82, 83));
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
     addWorker(mMaster, worker1, Arrays.asList("MEM", "SSD", "HDD"),
         ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
         ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L));
@@ -106,8 +108,8 @@ public class BlockMasterTest {
 
   @Test
   public void getLostWorkersInfoTest() throws Exception {
-    MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, new NetAddress("localhost", 80, 81));
-    MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, new NetAddress("localhost", 82, 83));
+    MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, NET_ADDRESS_1);
+    MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, NET_ADDRESS_2);
     mPrivateAccess.addLostWorker(workerInfo1);
     Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
         mMaster.getLostWorkersInfo());
@@ -121,7 +123,7 @@ public class BlockMasterTest {
 
   @Test
   public void registerLostWorkerTest() throws Exception {
-    final NetAddress na = new NetAddress("localhost", 80, 81);
+    final NetAddress na = NET_ADDRESS_1;
     final long expectedId = 1;
     final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
 
@@ -143,8 +145,8 @@ public class BlockMasterTest {
 
   @Test
   public void removeBlocksTest() throws Exception {
-    long worker1 = mMaster.getWorkerId(new NetAddress("test1", 1, 2));
-    long worker2 = mMaster.getWorkerId(new NetAddress("test2", 1, 2));
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    long worker2 = mMaster.getWorkerId(NET_ADDRESS_1);
     List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
     HashMap<String, List<Long>> noBlocksInTiers = Maps.newHashMap();
     mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
@@ -162,7 +164,7 @@ public class BlockMasterTest {
 
   @Test
   public void workerHeartbeatTest() throws Exception {
-    long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
 
     MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     final Map<String, Long> USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 125L);
@@ -209,7 +211,7 @@ public class BlockMasterTest {
 
   @Test
   public void heartbeatStatusTest() throws Exception {
-    long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
 
     MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     final Map<String, Long> INITIAL_USED_BYTES_ON_TIERS =
@@ -242,7 +244,7 @@ public class BlockMasterTest {
     HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
 
     // Get a new worker id.
-    long workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
     MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
     Assert.assertNotNull(workerInfo);
 
@@ -269,7 +271,7 @@ public class BlockMasterTest {
     Assert.assertNull(mPrivateAccess.getWorkerById(workerId));
 
     // Get the worker id again, simulating the lost worker re-registering.
-    workerId = mMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    workerId = mMaster.getWorkerId(NET_ADDRESS_1);
     Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
 
     // Run the lost worker detector.
