@@ -5,7 +5,7 @@ group: Features
 priority: 0
 ---
 
-Tachyon's command line interface provides users with basic file system operations. You can invoke 
+Tachyon's command line interface provides users with basic file system operations. You can invoke
 the command line utility using:
 
 ```bash
@@ -38,7 +38,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>copyToLocal</td>
     <td>copyToLocal "remote path" "local path"</td>
-    <td>Copy the specified file from the path specified by "remote source" to a local
+    <td>Copy the specified file from the path specified by "remote path" to a local
     destination.</td>
   </tr>
   <tr>
@@ -59,7 +59,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>free</td>
     <td>free "path"</td>
-    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also 
+    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also
     in under storage, it will still be available there.</td>
   </tr>
   <tr>
@@ -136,11 +136,6 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Report to the master that a file is lost.</td>
   </tr>
   <tr>
-    <td>request</td>
-    <td>request "path" "dependency ID"</td>
-    <td>Request the file for a given dependency ID.</td>
-  </tr>
-  <tr>
     <td>rm</td>
     <td>rm "path"</td>
     <td>Remove a file. This command will fail if the given path is a directory rather than a
@@ -170,8 +165,8 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>unmount</td>
     <td>unmount "path"</td>
-    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon 
-    objects under "path" are removed from Tachyon, but they still exist in the previously mounted 
+    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon
+    objects under "path" are removed from Tachyon, but they still exist in the previously mounted
     under storage.</td>
   </tr>
   <tr>

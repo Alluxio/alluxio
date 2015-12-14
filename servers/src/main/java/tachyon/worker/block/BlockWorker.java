@@ -185,33 +185,39 @@ public final class BlockWorker extends WorkerBase {
     workerSource.registerGauges(mBlockDataManager);
     mWorkerMetricsSystem.registerSource(workerSource);
 
-    // Set up DataServer
+    // Setup DataServer
     mDataServer =
         DataServer.Factory.createDataServer(
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
             mBlockDataManager, mTachyonConf);
-    // reset data server port
+    // Reset data server port
     mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-    // reset worker RPC port
+    // Reset worker RPC port
     mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
-    mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-            mPort, mDataServer.getPort());
-    // Get the worker id
-    WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
-    // Set up web server
+    // Setup web server
     mWebServer =
         new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
             ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
             NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
             mStartTimeMs, mTachyonConf);
+    mWorkerMetricsSystem.start();
+    // Add the metrics servlet to the web server, this must be done after the metrics system starts
+    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
+    mWebServer.startWebServer();
+    int webPort = mWebServer.getLocalPort();
+
+    // Get the worker id
+    mWorkerNetAddress =
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+            mPort, mDataServer.getPort(), webPort);
+    WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
         mBlockMasterClient);
@@ -230,7 +236,7 @@ public final class BlockWorker extends WorkerBase {
 
   /**
    * Gets this worker's {@link tachyon.thrift.NetAddress}, which is the worker's hostname, rpc
-   * server port, and data server port
+   * server port, data server port, and web server port.
    *
    * @return the worker's net address
    */
@@ -243,11 +249,6 @@ public final class BlockWorker extends WorkerBase {
    * down.
    */
   public void process() {
-    mWorkerMetricsSystem.start();
-
-    // Add the metrics servlet to the web server, this must be done after the metrics system starts
-    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
-
     getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
@@ -263,7 +264,6 @@ public final class BlockWorker extends WorkerBase {
       getExecutorService().submit(mSpaceReserver);
     }
 
-    mWebServer.startWebServer();
     mThriftServer.serve();
   }
 
