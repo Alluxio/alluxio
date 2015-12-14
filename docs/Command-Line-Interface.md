@@ -31,7 +31,8 @@ $ ./bin/tachyon tfs rm /data/2014*
 
 The example command would delete anything in the `data` directory with a prefix of `2014`.
 
-Note that some shells will attempt to glob the input paths, causing strange errors like
+Note that some shells will attempt to glob the input paths, causing strange errors (Note: the number
+21 could be different and comes from the number of matching files in your local filesystem):
 
 ```
 rm takes 1 arguments,  not 21
