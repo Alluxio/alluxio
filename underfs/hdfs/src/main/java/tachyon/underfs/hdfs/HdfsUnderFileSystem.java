@@ -288,8 +288,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    FileStatus[] files = mFs.listStatus(new Path(path));
-    if (files != null) {
+    FileStatus[] files;
+    try {
+      files = mFs.listStatus(new Path(path));
+    } catch (FileNotFoundException e) {
+      return null;
+    }
+    if (files != null && !isFile(path)) {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
