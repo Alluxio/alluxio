@@ -30,6 +30,13 @@ public class DirectedAcyclicGraphNode<T> {
   private final List<DirectedAcyclicGraphNode<T>> mParents;
   private final List<DirectedAcyclicGraphNode<T>> mChildren;
 
+  /**
+   * A Directed Acyclic Graph (DAG) node.
+   *
+   * @param payload the payload of the node
+   * @param parents the parents of the node
+   * @param children the childrens of the node
+   */
   public DirectedAcyclicGraphNode(T payload, List<DirectedAcyclicGraphNode<T>> parents,
       List<DirectedAcyclicGraphNode<T>> children) {
     mPayload = Preconditions.checkNotNull(payload);
@@ -37,31 +44,66 @@ public class DirectedAcyclicGraphNode<T> {
     mChildren = Preconditions.checkNotNull(children);
   }
 
+  /**
+   * A Directed Acyclic Graph (DAG) node.
+   *
+   * @param payload the payload of the node
+   */
   public DirectedAcyclicGraphNode(T payload) {
     this(payload, Lists.<DirectedAcyclicGraphNode<T>>newArrayList(),
         Lists.<DirectedAcyclicGraphNode<T>>newArrayList());
   }
 
+  /**
+   * Gets the payload of the node.
+   *
+   * @return the payload of the node
+   */
   public T getPayload() {
     return mPayload;
   }
 
+  /**
+   * Gets the parent nodes of the node.
+   *
+   * @return the parents of the node
+   */
   public List<DirectedAcyclicGraphNode<T>> getParents() {
     return mParents;
   }
 
+  /**
+   * Gets the children nodes of the node.
+   *
+   * @return the childrens of the node
+   */
   public List<DirectedAcyclicGraphNode<T>> getChildren() {
     return mChildren;
   }
 
+  /**
+   * Adds a parent node to the node.
+   *
+   * @param parent the node to be added as a parent
+   */
   public void addParent(DirectedAcyclicGraphNode<T> parent) {
     mParents.add(parent);
   }
 
+  /**
+   * Adds a child node to the node.
+   *
+   * @param child the node to be added as a child
+   */
   public void addChild(DirectedAcyclicGraphNode<T> child) {
     mChildren.add(child);
   }
 
+  /**
+   * Removes a child node from the node.
+   *
+   * @param child the child node to be removed
+   */
   public void removeChild(DirectedAcyclicGraphNode<T> child) {
     Preconditions.checkState(mChildren.contains(child));
     mChildren.remove(child);
