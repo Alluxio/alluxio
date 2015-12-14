@@ -22,8 +22,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Tests for the private helper methods in {@link tachyon.underfs.s3.S3UnderFileSystem} that do
- * not require an S3 backend
+ * Tests for the private helper methods in {@link S3UnderFileSystem} that do not require an S3
+ * backend
  */
 public class S3UnderFileSystemTest {
   private S3UnderFileSystem mMockS3UnderFileSystem;
@@ -145,5 +145,4 @@ public class S3UnderFileSystemTest {
           "stripPrefixIfPresent", inputs[i]));
     }
   }
-
 }
