@@ -39,9 +39,8 @@
 	UC: Useless non-empty void method
 	UPM: Private method is never called
 	UrF: Unread public/protected field
-	Wa: Condition.await() not in loop
       -->
-    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF,Wa"/>
+    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF"/>
   </Match>
 
 </FindBugsFilter>

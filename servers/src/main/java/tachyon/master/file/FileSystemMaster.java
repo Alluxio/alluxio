@@ -804,7 +804,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.ufsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+          fileBlockInfo.ufsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort, -1));
         }
       }
     }
@@ -900,7 +900,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return an {@link tachyon.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
-   *         {@link InodeTree#createPath} for more details
+   *         {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException
    */
@@ -1261,7 +1261,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the file id of the loaded path
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileAlreadyExistsException if the object to be loaded already exists
-   * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
+   * @throws FileDoesNotExistException if there is no UFS path
    * @throws InvalidPathException if invalid path is encountered
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
@@ -1297,22 +1297,7 @@ public final class FileSystemMaster extends MasterBase {
         completeFile(fileId, completeOptions);
         return fileId;
       } else {
-        MkdirOptions options = new MkdirOptions.Builder(MasterContext.getConf())
-            .setRecursive(recursive).setPersisted(true).build();
-        InodeTree.CreatePathResult result = mkdir(path, options);
-        List<Inode> inodes = null;
-        if (result.getCreated().size() > 0) {
-          inodes = result.getCreated();
-        } else if (result.getPersisted().size() > 0) {
-          inodes = result.getPersisted();
-        } else if (result.getModified().size() > 0) {
-          inodes = result.getModified();
-        }
-        if (inodes == null) {
-          throw new FileAlreadyExistsException(
-              ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-        }
-        return inodes.get(inodes.size() - 1).getId();
+        return loadMetadataDirectory(path, recursive);
       }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
@@ -1320,38 +1305,90 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * Loads metadata for the directory identified by the given path from UFS into Tachyon. This does
+   * not actually require looking at the UFS path.
+   *
+   * @param path the path for which metadata should be loaded
+   * @param recursive whether parent directories should be created if they do not already exist
+   * @return the file id of the loaded directory
+   * @throws FileAlreadyExistsException if the object to be loaded already exists
+   * @throws InvalidPathException if invalid path is encountered
+   * @throws IOException if an I/O error occurs
+   */
+  private long loadMetadataDirectory(TachyonURI path, boolean recursive)
+      throws IOException, FileAlreadyExistsException, InvalidPathException {
+    MkdirOptions options =
+        new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
+            .setPersisted(true).build();
+    InodeTree.CreatePathResult result = mkdir(path, options);
+    List<Inode> inodes = null;
+    if (result.getCreated().size() > 0) {
+      inodes = result.getCreated();
+    } else if (result.getPersisted().size() > 0) {
+      inodes = result.getPersisted();
+    } else if (result.getModified().size() > 0) {
+      inodes = result.getModified();
+    }
+    if (inodes == null) {
+      throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+    }
+    return inodes.get(inodes.size() - 1).getId();
+  }
+
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
-      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
-      IOException {
+      throws FileAlreadyExistsException, InvalidPathException, IOException {
     synchronized (mInodeTree) {
-      MkdirOptions options =
-          new MkdirOptions.Builder(MasterContext.getConf()).setPersisted(true).build();
-      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, options);
       if (mountInternal(tachyonPath, ufsPath)) {
-        AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder()
-            .setTachyonPath(tachyonPath.toString())
-            .setUfsPath(ufsPath.toString())
-            .build();
+        boolean loadMetadataSuceeded = false;
+        try {
+          // This will create the directory at tachyonPath
+          loadMetadataDirectory(tachyonPath, false);
+          loadMetadataSuceeded = true;
+        } finally {
+          if (!loadMetadataSuceeded) {
+            // We should be throwing an exception in this scenario
+            unmountInternal(tachyonPath);
+          }
+        }
+        AddMountPointEntry addMountPoint =
+            AddMountPointEntry.newBuilder().setTachyonPath(tachyonPath.toString())
+                .setUfsPath(ufsPath.toString()).build();
         writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
         flushJournal();
         return true;
       }
-      // Cleanup created directories in case the mount operation failed.
-      long opTimeMs = System.currentTimeMillis();
-      deleteFileRecursiveInternal(createResult.getCreated().get(0).getId(), false, opTimeMs);
     }
     return false;
   }
 
-  void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException {
+  void mountFromEntry(AddMountPointEntry entry) throws InvalidPathException, IOException {
     TachyonURI tachyonURI = new TachyonURI(entry.getTachyonPath());
     TachyonURI ufsURI = new TachyonURI(entry.getUfsPath());
-    if (!mountInternal(tachyonURI, ufsURI)) {
-      LOG.error("Failed to mount {} at {}", ufsURI, tachyonURI);
-    }
+    mountInternal(tachyonURI, ufsURI);
   }
 
-  boolean mountInternal(TachyonURI tachyonPath, TachyonURI ufsPath) throws InvalidPathException {
+  boolean mountInternal(TachyonURI tachyonPath, TachyonURI ufsPath) throws InvalidPathException,
+      IOException {
+    // Check that the ufsPath exists and is a directory
+    UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
+    if (!ufs.exists(ufsPath.getPath())) {
+      LOG.warn(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+      return false;
+    }
+    if (ufs.isFile(ufsPath.getPath())) {
+      LOG.warn(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
+      return false;
+    }
+    // Check that the tachyonPath we're creating doesn't shadow a path in the default UFS
+    String defaultUfsPath = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath, MasterContext.getConf());
+    if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, tachyonPath.getPath()))) {
+      LOG.warn(ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(tachyonPath));
+      return false;
+    }
+    // This should check that we are not mounting a prefix of an existing mount, and that no
+    // existing mount is a prefix of this mount.
     return mMountTable.add(tachyonPath, ufsPath);
   }
 

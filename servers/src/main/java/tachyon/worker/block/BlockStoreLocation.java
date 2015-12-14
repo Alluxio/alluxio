@@ -68,7 +68,7 @@ public final class BlockStoreLocation {
   /**
    * Gets the directory index of the location.
    *
-   * @return the directory index of the location, ANY_DIR for any directory
+   * @return the directory index of the location, {@link #ANY_DIR} for any directory
    */
   public int dir() {
     return mDirIndex;

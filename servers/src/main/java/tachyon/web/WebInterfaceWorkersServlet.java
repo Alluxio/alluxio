@@ -44,6 +44,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    */
   public static class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
+    private final int mWebPort;
     private final String mLastContactSec;
     private final String mWorkerState;
     private final long mCapacityBytes;
@@ -54,6 +55,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
     private NodeInfo(WorkerInfo workerInfo) {
       mHost = workerInfo.getAddress().getHost();
+      mWebPort = workerInfo.getAddress().getWebPort();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
       mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
@@ -84,6 +86,10 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
       return mHost;
     }
 
+    public int getWebPort() {
+      return mWebPort;
+    }
+
     public String getState() {
       return mWorkerState;
     }
@@ -101,7 +107,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     }
 
     /**
-     * Compare NodeInfo by lexicographical order of their associated host
+     * Compare {@link NodeInfo} by lexicographical order of their associated host
      * @param o the comparison term
      * @return a positive value if {@code this.getHost} is lexcographically "bigger" than
      *         {@code o.getHost}, 0 if the hosts are equal, a negative value otherwise.
@@ -145,8 +151,8 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */
@@ -158,9 +164,9 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   }
 
   /**
-   * Order the nodes by hostName and generate NodeInfo list for UI display
+   * Order the nodes by hostName and generate {@link NodeInfo} list for UI display
    *
-   * @param workerInfos The list of WorkerInfo objects
+   * @param workerInfos The list of {@link WorkerInfo} objects
    * @return The list of NodeInfo objects
    */
   private NodeInfo[] generateOrderedNodeInfos(Collection<WorkerInfo> workerInfos) {
@@ -177,7 +183,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    *
-   * @param request The HttpServletRequest object
+   * @param request The {@link HttpServletRequest} object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {

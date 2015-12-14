@@ -116,7 +116,6 @@ public class TfsShell implements Closeable {
     System.out.println("       [mv <src> <dst>]");
     System.out.println("       [pin <path>]");
     System.out.println("       [report <path>]");
-    System.out.println("       [request <tachyonaddress> <dependencyId>]");
     System.out.println("       [rm <path>]");
     System.out.println("       [rmr <path>]");
     System.out.println("       [setTTL <path> <time to live(in milliseconds)>]");

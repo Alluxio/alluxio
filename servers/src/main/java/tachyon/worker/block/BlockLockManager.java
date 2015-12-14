@@ -57,7 +57,7 @@ public final class BlockLockManager {
   private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<Long, Set<Long>>();
   /** A map from a lock ID to the lock record of it */
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
-  /** To guard access on mLockIdToRecordMap and mSessionIdToLockIdsMap */
+  /** To guard access on {@link #mLockIdToRecordMap} and {@link #mSessionIdToLockIdsMap} */
   private final Object mSharedMapsLock = new Object();
 
   public BlockLockManager() {
@@ -82,7 +82,7 @@ public final class BlockLockManager {
    *
    * @param sessionId the ID of session
    * @param blockId the ID of block
-   * @param blockLockType READ or WRITE
+   * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
    * @return lock ID
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
@@ -110,7 +110,7 @@ public final class BlockLockManager {
   }
 
   /**
-   * Releases a lock by its lockId or throws BlockDoesNotExistException.
+   * Releases a lock by its lockId or throws {@link BlockDoesNotExistException}.
    *
    * @param lockId the ID of the lock
    * @throws BlockDoesNotExistException if no lock is associated with this lock id
