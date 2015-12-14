@@ -39,8 +39,11 @@ public class SwiftOutputStream extends OutputStream {
   private OutputStream mOutputStream;
   private HttpURLConnection mHttpCon;
 
+  /**
+   * @param httpCon connection to Swift
+   * @throws IOException on failure to get OutputStream
+   */
   public SwiftOutputStream(HttpURLConnection httpCon) throws IOException {
-    LOG.debug("Init method: start");
     try {
       mOutputStream  = httpCon.getOutputStream();
       mHttpCon = httpCon;
@@ -57,7 +60,6 @@ public class SwiftOutputStream extends OutputStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    LOG.trace("write, off: {}, len: {}", off, len);
     mOutputStream.write(b, off, len);
   }
 
@@ -68,7 +70,6 @@ public class SwiftOutputStream extends OutputStream {
 
   @Override
   public void close() throws IOException {
-    LOG.debug("Going to close output stream");
     mOutputStream.close();
     BufferedReader reader = null;
     InputStream is = null;
@@ -97,7 +98,6 @@ public class SwiftOutputStream extends OutputStream {
 
   @Override
   public void flush() throws IOException {
-    LOG.debug("flush");
     mOutputStream.flush();
   }
 }
