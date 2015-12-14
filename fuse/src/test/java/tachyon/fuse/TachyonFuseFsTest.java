@@ -22,7 +22,6 @@ import com.google.common.cache.LoadingCache;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -44,6 +43,7 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_RDWR;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -157,10 +157,6 @@ public class TachyonFuseFsTest {
     assertEquals("Should return an access error", -ErrorCodes.EACCES(), ret);
   }
 
-  // TODO(andreareale): Mockito cannot mock the final FileInStream class, while
-  //     if I use PowerMock (and PowerMockRunner) the FuseStubFS constructor
-  //     starts to complain. Commenting out, but this should be fixed
-  @Ignore
   @Test
   public void testRead() throws Exception {
     // mocks set-up
@@ -173,7 +169,7 @@ public class TachyonFuseFsTest {
     when(mTFS.getInfo(fake)).thenReturn(fi);
 
     FileInStream fakeInStream = mock(FileInStream.class);
-    when(fakeInStream.read(any(byte[].class),0,4)).then(new Answer<Integer>() {
+    when(fakeInStream.read(any(byte[].class),anyInt(),anyInt())).then(new Answer<Integer>() {
       @Override
       public Integer answer(InvocationOnMock invocationOnMock) throws Throwable {
         byte[] myDest = (byte[])invocationOnMock.getArguments()[0];

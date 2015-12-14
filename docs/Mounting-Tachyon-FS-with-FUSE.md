@@ -11,7 +11,7 @@ priority: 4
 
 Tachyon-FUSE is a new experimental feature that allows to mount a distributed Tachyon File System
 within the local file system hierarchy of a Linux node. Using this feature, standard tools
-(such as, for example, `ls`, `cat` or `echo`) and legacy POSIX applications will have basic access
+(for example, `ls`, `cat` or `echo`) and legacy POSIX applications will have basic access
 to the distributed Tachyon data store.
 
 Given the intrinsic characteristics of Tachyon, like its write-once/read-many-times file data model,
@@ -121,7 +121,7 @@ A write system call will only succeed when `fd` refers to a Tachyon file that ha
 
 # Performance considerations
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected
-to be considerably worst than what you would see by using the `tachyon-client` directly. In other
+to be considerably worse than what you would see by using the `tachyon-client` directly. In other
  words, if you are concerned about performance rather then functionality, then Tachyon-FUSE is
  not what you are looking for.
 
