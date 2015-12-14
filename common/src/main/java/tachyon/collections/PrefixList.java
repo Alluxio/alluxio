@@ -72,7 +72,7 @@ public final class PrefixList {
   }
 
   /**
-   * Checks if a path is in the list.
+   * Checks whether a prefix of {@code path} is in the prefix list.
    *
    * @param path the path to check
    * @return true if the path is in the list, false otherwise
@@ -92,7 +92,7 @@ public final class PrefixList {
   }
 
   /**
-   * Checks if a path is not in the list.
+   * Checks whether a prefix of {@code path} is not in the prefix list.
    *
    * @param path the path to check
    * @return true if the path is not in the list, false otherwise
