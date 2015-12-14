@@ -96,7 +96,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Checks if a node is in the DAG.
+   * Checks if a node with the given payload is in the DAG.
    *
    * @param payload the payload of the node to check
    * @return true if there a node in the DAG contains the given value as payload, false otherwise
@@ -106,7 +106,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Gets the children nodes in the DAG for a given node.
+   * Gets the payloads for the children of the given node.
    *
    * @param payload the payload of the parent node
    * @return the children's payloads, an empty list if the given payload doesn't exist in the DAG
@@ -124,7 +124,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Gets the parent nodes in the DAG for a given node.
+   * Gets the payloads for the given nodes parents.
    *
    * @param payload the payload of the children node
    * @return the parents' payloads, an empty list if the given payload doesn't exist in the DAG
@@ -142,7 +142,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Checks if a given payload is the root of the DAG.
+   * Checks if a given payload is in a root of the DAG.
    *
    * @param payload the payload to check for root
    * @return true if the payload is in the root of the DAG, false otherwise
@@ -155,7 +155,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Gets all the root nodes of the DAG.
+   * Gets the payloads of all the root nodes of the DAG
    *
    * @return all the root payloads
    */
@@ -195,7 +195,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * Gets all nodes of the DAG in the topological order.
+   * Gets all payloads of the DAG in the topological order.
    *
    * @return the payloads of all the nodes in toplogical order
    */

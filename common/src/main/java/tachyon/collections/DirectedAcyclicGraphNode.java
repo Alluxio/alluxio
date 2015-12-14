@@ -35,7 +35,7 @@ public class DirectedAcyclicGraphNode<T> {
    *
    * @param payload the payload of the node
    * @param parents the parents of the node
-   * @param children the childrens of the node
+   * @param children the children of the node
    */
   public DirectedAcyclicGraphNode(T payload, List<DirectedAcyclicGraphNode<T>> parents,
       List<DirectedAcyclicGraphNode<T>> children) {
