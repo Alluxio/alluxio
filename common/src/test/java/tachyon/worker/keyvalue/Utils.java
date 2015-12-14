@@ -1,5 +1,7 @@
 package tachyon.worker.keyvalue;
 
+import tachyon.client.file.AbstractOutStream;
+
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -9,16 +11,27 @@ public class Utils {
   /**
    * A mock class to capture output of {@link PayloadWriter}
    */
-  public static class MockOutputStream extends ByteArrayOutputStream {
-    public MockOutputStream(int size) {
-      super(size);
+  public static class MockOutStream extends AbstractOutStream {
+    ByteArrayOutputStream mOut;
+
+    public MockOutStream() {
+      mOut = new ByteArrayOutputStream(1000);
+    }
+
+    public void write(int b) {
+      mOut.write(b);
+      mCount ++;
     }
 
     /**
      * @return the number of bytes written to this output stream
      */
     public int getCount() {
-      return count;
+      return mCount;
+    }
+
+    public byte[] toByteArray() {
+      return mOut.toByteArray();
     }
   }
 }

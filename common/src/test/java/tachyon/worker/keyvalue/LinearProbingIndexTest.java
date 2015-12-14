@@ -1,6 +1,7 @@
 package tachyon.worker.keyvalue;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -9,14 +10,24 @@ import org.junit.Test;
 public class LinearProbingIndexTest {
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
+  private static final byte[] VALUE1 = "value1".getBytes();
+  private static final byte[] VALUE2 = "value2_bar".getBytes();
+  private Utils.MockOutStream mOutStream;
+  private PayloadWriter mPayloadWriter;
+
+  @Before
+  public void before() {
+    mOutStream = new Utils.MockOutStream();
+    mPayloadWriter = new PayloadWriter(mOutStream);
+  }
 
   @Test
   public void putBasicTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertEquals(0, index.keyCount());
-    Assert.assertTrue(index.put(KEY1, 0));
+    Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
     Assert.assertEquals(1, index.keyCount());
-    Assert.assertTrue(index.put(KEY2, 1));
+    Assert.assertTrue(index.put(KEY2, VALUE2, mPayloadWriter));
     Assert.assertEquals(2, index.keyCount());
   }
 
@@ -26,9 +37,9 @@ public class LinearProbingIndexTest {
     // TODO(binfan): change constant 50 to be LinearProbingIndex.MAX_PROBES
     for (int i = 0; i < 50; i ++) {
       Assert.assertEquals(i, index.keyCount());
-      Assert.assertTrue(index.put(KEY1, 0));
+      Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
     }
-    Assert.assertFalse(index.put(KEY1, 0));
+    Assert.assertFalse(index.put(KEY1, VALUE1, mPayloadWriter));
   }
 
   @Test
@@ -45,19 +56,15 @@ public class LinearProbingIndexTest {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
 
     // Insert this batch of key-value pairs
-    Utils.MockOutputStream mockOutput = new Utils.MockOutputStream(10000);
-    PayloadWriter payloadWriter = new PayloadWriter(mockOutput);
+
     for (int i = 0; i < test_keys; i ++) {
-      int offset = mockOutput.getCount();
-      payloadWriter.addKeyAndValue(keys[i], values[i]);
-      payloadWriter.flush();
-      Assert.assertTrue(index.put(keys[i], offset));
+      Assert.assertTrue(index.put(keys[i], values[i], mPayloadWriter));
       Assert.assertEquals(i + 1, index.keyCount());
     }
-    payloadWriter.close();
+    mPayloadWriter.close();
 
     // Read all keys back, expect same value as inserted
-    PayloadReader payloadReader = new PayloadReader(mockOutput.toByteArray());
+    PayloadReader payloadReader = new PayloadReader(mOutStream.toByteArray());
     for (int i = 0; i < test_keys; i ++) {
       byte[] value = index.get(keys[i], payloadReader);
       Assert.assertArrayEquals(values[i], value);

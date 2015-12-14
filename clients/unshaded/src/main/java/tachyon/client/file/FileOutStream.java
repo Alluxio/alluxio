@@ -49,7 +49,7 @@ import tachyon.util.io.PathUtils;
  * data to the under storage system.
  */
 @PublicApi
-public class FileOutStream extends OutputStream implements Cancelable {
+public class FileOutStream extends AbstractOutStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
@@ -68,7 +68,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
   protected final long mFileId;
-  protected int mCount;
 
   /**
    * Creates a new file output stream.
@@ -246,10 +245,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
-  }
-
-  public int count() {
-    return mCount;
   }
 
   private void getNextBlock() throws IOException {
