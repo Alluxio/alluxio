@@ -90,6 +90,7 @@ public final class TachyonConf {
     if (props != null) {
       mProperties.putAll(props);
     }
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -101,6 +102,7 @@ public final class TachyonConf {
     if (props != null) {
       mProperties.putAll(props);
     }
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -172,6 +174,7 @@ public final class TachyonConf {
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+    checkUserFileBufferBytes();
   }
 
   @Override
@@ -219,6 +222,8 @@ public final class TachyonConf {
 
   // TODO(binfan): this method should be hidden and only used during initialization and tests.
   public void set(String key, String value) {
+    Preconditions.checkArgument(key != null && value != null,
+        String.format("the key value pair (%s, %s) cannot have null", key, value));
     mProperties.put(key, value);
   }
 
@@ -403,5 +408,18 @@ public final class TachyonConf {
       }
     }
     return resolved;
+  }
+
+  /**
+   * {@link Constants.USER_FILE_BUFFER_BYTES} should not bigger than Integer.MAX_VALUE bytes.
+   * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
+   */
+  private void checkUserFileBufferBytes() {
+    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
+      return;
+    }
+    long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
+        "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 }

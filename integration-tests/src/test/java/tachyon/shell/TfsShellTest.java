@@ -50,9 +50,9 @@ import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthType;
 import tachyon.shell.command.CommandUtils;
 import tachyon.thrift.FileInfo;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -176,11 +176,9 @@ public class TfsShellTest {
 
   @Test
   public void lsThenloadMetadataTest() throws IOException, TachyonException {
-    String ufsRoot =
-        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
-            Constants.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
-    ufs.mkdirs(PathUtils.concatPath(ufsRoot, "dir1"), false);
+    TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
+    String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "dir1"), conf);
     // First run ls to create the data
     mFsShell.run("ls", "/dir1");
     Assert.assertTrue(mTfs.getInfo(mTfs.open(new TachyonURI("/dir1"))).isIsPersisted());
@@ -205,11 +203,9 @@ public class TfsShellTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/testDir/testFileA", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
     Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
-    String ufsRoot =
-        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
-            Constants.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
-    ufs.mkdirs(PathUtils.concatPath(ufsRoot, "testDir"), false);
+    TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
+    String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(ufsRoot, "testDir"), conf);
     Assert.assertFalse(mTfs.getInfo(mTfs.open(new TachyonURI("/testDir"))).isIsPersisted());
     // Load metadata, which should mark the testDir as persisted
     mFsShell.run("loadMetadata", "/testDir");
@@ -1104,7 +1100,10 @@ public class TfsShellTest {
    * Checks whether the given file is actually persisted by freeing it, then
    * reading it and comparing it against the expected byte array.
    *
-   * @param file
+   * @param file The file to persist
+   * @param size The size of the file
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws IOException if a non-Tachyon exception occurs
    */
   private void checkFilePersisted(TachyonFile file, int size) throws TachyonException, IOException {
     Assert.assertTrue(mTfs.getInfo(file).isIsPersisted());
@@ -1155,6 +1154,7 @@ public class TfsShellTest {
     Assert.assertEquals(Constants.NO_TTL, mTfs.getInfo(file).getTtl());
   }
 
+  @Test
   public void persistTest() throws IOException, TachyonException {
     String testFilePath = "/testPersist/testFile";
     TachyonFile testFile = TachyonFSTestUtils.createByteFile(mTfs, testFilePath,

@@ -113,7 +113,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    *
-   * @param request The HttpServletRequest object
+   * @param request The {@link HttpServletRequest} object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {

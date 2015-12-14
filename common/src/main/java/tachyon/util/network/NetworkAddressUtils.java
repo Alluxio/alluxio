@@ -167,17 +167,13 @@ public final class NetworkAddressUtils {
     }
   }
 
-  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
-    Preconditions.checkNotNull(tachyonConf);
+  public static void assertValidPort(final int port) {
     Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
-
-    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
-      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
-    }
+    Preconditions.checkArgument(port >= 0, "Port must be non-negative");
   }
 
-  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
-    assertValidPort(address.getPort(), tachyonConf);
+  public static void assertValidPort(final InetSocketAddress address) {
+    assertValidPort(address.getPort());
   }
 
   /**
@@ -280,7 +276,7 @@ public final class NetworkAddressUtils {
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
     int port = getPort(service, conf);
-    assertValidPort(port, conf);
+    assertValidPort(port);
 
     String host;
     if (conf.containsKey(service.mBindHostKey) && !conf.get(service.mBindHostKey).isEmpty()) {
@@ -542,5 +538,39 @@ public final class NetworkAddressUtils {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+  }
+
+  /**
+   * Extracts rpcPort InetSocketAddress from Tachyon representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @return InetSocketAddress
+   * @throws RuntimeException if the host is not known
+   */
+  public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
+    try {
+      String host = getFqdnHost(netAddress);
+      int port = netAddress.rpcPort;
+      return new InetSocketAddress(host, port);
+    } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Extracts dataPort InetSocketAddress from Tachyon representation of network address.
+   *
+   * @param netAddress the input network address representation
+   * @return InetSocketAddress
+   * @throws RuntimeException if the host is not known
+   */
+  public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
+    try {
+      String host = getFqdnHost(netAddress);
+      int port = netAddress.dataPort;
+      return new InetSocketAddress(host, port);
+    } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
   }
 }

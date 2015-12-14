@@ -30,11 +30,11 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.worker.WorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.worker.WorkerClient;
 
 /**
  * Simple integration tests for the bind configuration options.
@@ -72,7 +72,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker RPC service
     mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-    mWorkerClient.mustConnect();
+    mWorkerClient.connect();
 
     // connect Worker data service
     mWorkerDataService = SocketChannel

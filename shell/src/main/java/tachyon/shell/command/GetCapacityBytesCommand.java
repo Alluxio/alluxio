@@ -22,7 +22,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Gets the capacity of the TachyonFileSystem.
+ * Gets the capacity of the {@link TachyonFileSystem}.
  */
 public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 

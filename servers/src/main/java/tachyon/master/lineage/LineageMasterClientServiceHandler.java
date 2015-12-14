@@ -112,7 +112,11 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public List<LineageInfo> getLineageInfoList() {
-    return mLineageMaster.getLineageInfoList();
+  public List<LineageInfo> getLineageInfoList() throws TachyonTException {
+    try {
+      return mLineageMaster.getLineageInfoList();
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 }

@@ -36,7 +36,7 @@ import tachyon.worker.block.meta.StorageDir;
  */
 public class EvictorTestUtils {
   /**
-   * Whether blocks in the EvictionPlan are in the same StorageDir.
+   * Whether blocks in the {@link EvictionPlan} are in the same {@link StorageDir}.
    *
    * @param plan the eviction plan
    * @param meta the meta data manager
@@ -75,8 +75,10 @@ public class EvictorTestUtils {
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null
    * @param metaManager the meta data manager
-   * @return true if and only if the plan is not null and both {@link #blocksInTheSameDir} and
-   *         {@link #requestSpaceSatisfied} are true, otherwise false
+   * @return true if and only if the plan is not null and both
+   *         {@link #blocksInTheSameDir(EvictionPlan, BlockMetadataManager)} and
+   *         {@link #requestSpaceSatisfied(long, EvictionPlan, BlockMetadataManager)} are true,
+   *         otherwise false
    * @throws tachyon.exception.BlockDoesNotExistException when fail to get meta data of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
@@ -176,8 +178,10 @@ public class EvictorTestUtils {
   }
 
   /**
-   * Only when plan is not null and at least one of {@link #validCascadingPlan},
-   * {@link #validNonCascadingPlan} is true, the assertion will be passed, used in unit test.
+   * Only when plan is not null and at least one of
+   * {@link #validCascadingPlan(long, EvictionPlan, BlockMetadataManager)},
+   * {@link #validNonCascadingPlan(long, EvictionPlan, BlockMetadataManager)} is true, the assertion
+   * will be passed, used in unit test.
    *
    * @param bytesToBeAvailable the requested bytes to be available
    * @param plan the eviction plan, should not be null

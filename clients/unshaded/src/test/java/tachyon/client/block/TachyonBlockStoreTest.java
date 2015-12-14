@@ -32,12 +32,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
+import tachyon.client.worker.WorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
 
 /**
  * Tests for {@link TachyonBlockStore}.
@@ -54,10 +54,11 @@ public final class TachyonBlockStoreTest {
   private static final String WORKER_HOSTNAME_REMOTE = "remote";
   private static final int WORKER_RPC_PORT = 7;
   private static final int WORKER_DATA_PORT = 9;
+  private static final int WORKER_WEB_PORT = 10;
   private static final NetAddress WORKER_NET_ADDRESS_LOCAL =
-      new NetAddress(WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT);
+      new NetAddress(WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
   private static final NetAddress WORKER_NET_ADDRESS_REMOTE =
-      new NetAddress(WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT);
+      new NetAddress(WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
   private static final String STORAGE_TIER = "mem";
   private static final BlockLocation BLOCK_LOCATION_LOCAL =
       new BlockLocation(WORKER_ID_LOCAL, WORKER_NET_ADDRESS_LOCAL, STORAGE_TIER);
@@ -118,9 +119,9 @@ public final class TachyonBlockStoreTest {
     BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals((Long) BLOCK_ID, (Long) Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals((Long) BLOCK_LENGTH,
-        (Long) Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH,
+        Whitebox.getInternalState(stream, "mBlockSize"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();
     Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
@@ -138,9 +139,9 @@ public final class TachyonBlockStoreTest {
     BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals((Long) BLOCK_ID, (Long) Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals((Long) BLOCK_LENGTH,
-        (Long) Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH,
+        Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();

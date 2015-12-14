@@ -25,10 +25,9 @@ import org.jets3t.service.model.S3Object;
 
 /**
  * This class is a wrapper around the input stream returned by
- * {@link org.jets3t.service.model.S3Object} getDataInputStream. The main purpose is to provide a
- * faster skip method, as the underlying implementation will read and discard bytes until the
- * number to skip has been reached. This input stream returns 0 when calling read with an
- * empty buffer.
+ * {@link S3Object#getDataInputStream()}. The main purpose is to provide a faster skip method, as
+ * the underlying implementation will read and discard bytes until the number to skip has been
+ * reached. This input stream returns 0 when calling read with an empty buffer.
  */
 public class S3InputStream extends InputStream {
 
