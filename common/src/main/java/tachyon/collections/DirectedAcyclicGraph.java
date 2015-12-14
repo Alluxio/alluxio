@@ -35,6 +35,9 @@ public class DirectedAcyclicGraph<T> {
   private final List<DirectedAcyclicGraphNode<T>> mRoots;
   private final Map<T, DirectedAcyclicGraphNode<T>> mIndex;
 
+  /**
+   * A Directed Acyclic Graph (DAG).
+   */
   public DirectedAcyclicGraph() {
     mRoots = Lists.newArrayList();
     mIndex = Maps.newHashMap();
@@ -93,6 +96,9 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
+   * Checks if a node is in the DAG.
+   *
+   * @param payload the payload of the node to check
    * @return true if there a node in the DAG contains the given value as payload, false otherwise
    */
   public boolean contains(T payload) {
@@ -100,6 +106,9 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
+   * Gets the children nodes in the DAG for a given node.
+   *
+   * @param payload the payload of the parent node
    * @return the children's payloads, an empty list if the given payload doesn't exist in the DAG
    */
   public List<T> getChildren(T payload) {
@@ -115,6 +124,9 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
+   * Gets the parent nodes in the DAG for a given node.
+   *
+   * @param payload the payload of the children node
    * @return the parents' payloads, an empty list if the given payload doesn't exist in the DAG
    */
   public List<T> getParents(T payload) {
@@ -130,6 +142,9 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
+   * Checks if a given payload is the root of the DAG.
+   *
+   * @param payload the payload to check for root
    * @return true if the payload is in the root of the DAG, false otherwise
    */
   public boolean isRoot(T payload) {
@@ -140,6 +155,8 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
+   * Gets all the root nodes of the DAG.
+   *
    * @return all the root payloads
    */
   public List<T> getRoots() {
@@ -178,6 +195,8 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
+   * Gets all nodes of the DAG in the topological order.
+   *
    * @return the payloads of all the nodes in toplogical order
    */
   public List<T> getAllInTopologicalOrder() {

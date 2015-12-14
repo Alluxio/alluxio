@@ -29,6 +29,11 @@ import com.google.common.collect.ImmutableList;
 public final class PrefixList {
   private final List<String> mInnerList;
 
+  /**
+   * Prefix list is used by PinList and WhiteList to do file filtering.
+   *
+   * @param prefixList the list of prefixes to create
+   */
   public PrefixList(List<String> prefixList) {
     if (prefixList == null) {
       mInnerList = new ArrayList<String>(0);
@@ -37,6 +42,12 @@ public final class PrefixList {
     }
   }
 
+  /**
+   * Prefix list is used by PinList and WhiteList to do file filtering.
+   *
+   * @param prefixes the prefixes with separators
+   * @param separator the separator to split the prefixes
+   */
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
     mInnerList = new ArrayList<String>(0);
@@ -51,10 +62,21 @@ public final class PrefixList {
     }
   }
 
+  /**
+   * Gets the list of prefixes.
+   *
+   * @return the list of prefixes
+   */
   public List<String> getList() {
     return ImmutableList.copyOf(mInnerList);
   }
 
+  /**
+   * Checks if a path is in the list.
+   *
+   * @param path the path to check
+   * @return true if the path is in the list, false otherwise
+   */
   public boolean inList(String path) {
     if (Strings.isNullOrEmpty(path)) {
       return false;
@@ -69,6 +91,12 @@ public final class PrefixList {
     return false;
   }
 
+  /**
+   * Checks if a path is not in the list.
+   *
+   * @param path the path to check
+   * @return true if the path is not in the list, false otherwise
+   */
   public boolean outList(String path) {
     return !inList(path);
   }
