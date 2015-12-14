@@ -56,7 +56,7 @@ public final class LinearProbingIndex implements Index {
    */
   public static LinearProbingIndex createEmptyIndex() {
     LinearProbingIndex index = new LinearProbingIndex();
-    Arrays.fill(index.toByteArray(), (byte) 0);
+    Arrays.fill(index.getBytes(), (byte) 0);
     return index;
   }
 
@@ -79,32 +79,34 @@ public final class LinearProbingIndex implements Index {
   }
 
   @Override
-  public boolean put(byte[] key, int offset) throws IOException {
-    int index = indexHash(key);
+  public boolean put(byte[] key, byte[] value, PayloadWriter writer) throws IOException {
+    int bucketIndex = indexHash(key);
     // Linear probing until next empty bucket is found
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      int pos = index * BUCKET_SIZE_BYTES;
+      int pos = bucketIndex * BUCKET_SIZE_BYTES;
       byte fingerprint = ByteIOUtils.readByte(mBuf, pos);
       if (fingerprint == 0) {
         // bucket is empty
+        // Pack key and value into a byte array payload
+        final int offset = writer.addKeyAndValue(key, value);
         ByteIOUtils.writeByte(mBuf, pos ++, fingerprintHash(key));
         ByteIOUtils.writeInt(mBuf, pos, offset);
         mKeyCount ++;
         return true;
       }
-      index = (index + 1) % mNumBuckets;
+      bucketIndex = (bucketIndex + 1) % mNumBuckets;
     }
     return false;
   }
 
   @Override
   public byte[] get(byte[] key, PayloadReader reader) {
-    int index = indexHash(key);
+    int bucketIndex = indexHash(key);
     byte fingerprint = fingerprintHash(key);
 
     // Linear probing until next empty bucket is found
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      int pos = index * BUCKET_SIZE_BYTES;
+      int pos = bucketIndex * BUCKET_SIZE_BYTES;
       if (fingerprint == ByteIOUtils.readByte(mBuf, pos)) {
         int offset = ByteIOUtils.readInt(mBuf, pos + 1);
         byte[] keyStored = reader.getKey(offset);
@@ -112,13 +114,13 @@ public final class LinearProbingIndex implements Index {
           return reader.getValue(offset);
         }
       }
-      index = (index + 1) % mNumBuckets;
+      bucketIndex = (bucketIndex + 1) % mNumBuckets;
     }
     return null;
   }
 
   @Override
-  public byte[] toByteArray() {
+  public byte[] getBytes() {
     return mBuf;
   }
 

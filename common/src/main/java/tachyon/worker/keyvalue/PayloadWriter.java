@@ -15,45 +15,49 @@
 
 package tachyon.worker.keyvalue;
 
+import com.google.common.base.Preconditions;
+import tachyon.client.file.AbstractOutStream;
 import tachyon.util.io.ByteIOUtils;
 
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * Writer to create key-value payload.
  */
 public final class PayloadWriter implements Closeable, Flushable {
-  private OutputStream mOutputStream;
+  private AbstractOutStream mOutStream;
 
-  public PayloadWriter(OutputStream out) {
-    mOutputStream = out;
+  public PayloadWriter(AbstractOutStream out) {
+    mOutStream = Preconditions.checkNotNull(out);
   }
 
   @Override
   public void flush() throws IOException {
-    mOutputStream.flush();
+    mOutStream.flush();
   }
 
   @Override
   public void close() throws IOException {
-    mOutputStream.close();
+    mOutStream.close();
   }
 
   /**
-   * Puts a key into payload.
+   * Puts a key into payload, return the offset
    *
    * @param key bytes of key
    * @param value offset of this key in payload
+   * @return the offset of this key-value pair in payload storage
    * @throws IOException if error occurs writing the key and value to output stream
    */
-  public void addKeyAndValue(byte[] key, byte[] value) throws IOException {
+  public int addKeyAndValue(byte[] key, byte[] value) throws IOException {
+    int offset = mOutStream.getCount();
     // Pack key and value into a byte array
-    ByteIOUtils.writeInt(mOutputStream, key.length);
-    ByteIOUtils.writeInt(mOutputStream, value.length);
-    mOutputStream.write(key);
-    mOutputStream.write(value);
+    ByteIOUtils.writeInt(mOutStream, key.length);
+    ByteIOUtils.writeInt(mOutStream, value.length);
+    mOutStream.write(key);
+    mOutStream.write(value);
+    return offset;
   }
 }

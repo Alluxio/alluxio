@@ -15,13 +15,14 @@
 
 package tachyon.client.keyvalue;
 
+import java.io.IOException;
+
 import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
-
-import java.io.IOException;
 
 /**
  * Interface of the writer to create a Tachyon key-value file.
@@ -51,10 +52,10 @@ public interface KeyValueFileWriter {
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
    */
-  void put(byte[] key, byte[] value);
+  void put(byte[] key, byte[] value) throws IOException;
 
   /**
-   * Completes and builds a KeyValue file.
+   * Completes the writer and dump the outa KeyValue file.
    */
-  void build();
+  void build() throws IOException;
 }

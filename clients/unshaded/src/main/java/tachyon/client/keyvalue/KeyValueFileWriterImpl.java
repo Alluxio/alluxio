@@ -23,19 +23,20 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.file.FileOutStream;
+import tachyon.client.file.AbstractOutStream;
+import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.LinearProbingIndex;
 import tachyon.worker.keyvalue.PayloadWriter;
 
 /**
- * Writer that creates a Tachyon KeyValue file
+ * Writer that creates a Tachyon key-value file.
  */
 public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handler to underline Tachyon file */
-  private final FileOutStream mFileOutStream;
+  private final AbstractOutStream mFileOutStream;
   /** number of key-value pairs added */
   private long mKeyCount = 0;
   /** key-value index */
@@ -44,38 +45,25 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
   private PayloadWriter mPayloadWriter;
 
   /**
-   * Constructor
-   *
    * @param fileOutStream output handler to the key-value file
    */
-  public KeyValueFileWriterImpl(FileOutStream fileOutStream) {
+  public KeyValueFileWriterImpl(AbstractOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
-    // Use linear probing impl of index
-    mIndex = LinearProbingIndex.createEmptyIndex();
     mPayloadWriter = new PayloadWriter(mFileOutStream);
+    // Use linear probing impl of index for now
+    mIndex = LinearProbingIndex.createEmptyIndex();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void put(byte[] key, byte[] value) {
+  public void put(byte[] key, byte[] value) throws IOException {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
-
-    try {
-      int offset = mFileOutStream.count();
-
-      // Pack key and value into a byte array payload
-      mPayloadWriter.addKeyAndValue(key, value);
-      mIndex.put(key, offset);
-
-    } catch (IOException e) {
-      LOG.error("failed to add key {}, value {}", key, value);
-    }
-
+    mIndex.put(key, value, mPayloadWriter);
     mKeyCount ++;
   }
 
@@ -83,20 +71,11 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
    * {@inheritDoc}
    */
   @Override
-  public void build() {
-    int indexOffset = mFileOutStream.count();
-    try {
-      mFileOutStream.write(mIndex.toByteArray());
-      mFileOutStream.write(indexOffset);
-    } catch (IOException e) {
-      LOG.error("Failed to dump index");
-    }
-
-    try {
-      mFileOutStream.close();
-    } catch (IOException e) {
-      LOG.error("Failed to close KeyValueFileWriter");
-    }
+  public void build() throws IOException {
+    int indexOffset = mFileOutStream.getCount();
+    mFileOutStream.write(mIndex.getBytes());
+    ByteIOUtils.writeInt(mFileOutStream, indexOffset);
+    mFileOutStream.close();
   }
 
   /**
@@ -111,6 +90,6 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
    */
   public long byteCount() {
     // last pointer to index
-    return mFileOutStream.count() + mIndex.size() + Integer.SIZE;
+    return mFileOutStream.getCount() + mIndex.byteCount() + Integer.SIZE / Byte.SIZE;
   }
 }

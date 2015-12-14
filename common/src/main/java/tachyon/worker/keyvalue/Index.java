@@ -23,35 +23,38 @@ import java.io.IOException;
 public interface Index {
 
   /**
-   * Puts a key into the index, associated with an offset into the key-value payload.
+   * Puts a key into the index and store key and value data into payload storage.
    *
    * @param key bytes of key
-   * @param offset offset of this key in payload
+   * @param value bytes of value
+   * @param writer writer to store key-value payload
    * @return true on success, false otherwise
+   * @throws IOException
    */
-  boolean put(byte[] key, int offset) throws IOException;
+  boolean put(byte[] key, byte[] value, PayloadWriter writer) throws IOException;
 
   /**
-   * Gets the bytes of value given the key
+   * Gets the bytes of value given the key and payload storage reader.
    *
    * @param key bytes of key
-   * @param payload the byte array of all key value payload
+   * @param reader the byte array of all key value payload
    * @return bytes of value, or null if not found
    */
   byte[] get(byte[] key, PayloadReader reader) throws IOException ;
 
   /**
-   * @return size of this index in bytes.
+   * @return byte array of this index
+   */
+  byte[] getBytes();
+
+  /**
+   * @return size of this index in bytes
    */
   int byteCount();
 
   /**
-   * @return size of this index in bytes.
+   * @return size of this index in bytes
    */
   int keyCount();
 
-  /**
-   * @return byte array of this index.
-   */
-  byte[] toByteArray();
 }
