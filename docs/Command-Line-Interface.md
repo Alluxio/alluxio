@@ -213,7 +213,7 @@ should have the final escaped parameters (cat /\\*).
 # Example Use Cases
 
 ## cat
-The `cat` command will print the entire contents of a file in Tachyon to the console. This can be
+The `cat` command prints the entire contents of a file in Tachyon to the console. This can be
 useful for verifying the file is what the user expects. If you wish to copy the file to your local
 file system, `copyToLocal` should be used.
 
@@ -225,7 +225,7 @@ $ ./bin/tachyon tfs cat /output/part-00000
 ```
 
 ## copyFromLocal
-The `copyFromLocal` command will copy the contents of a file in your local file system into Tachyon.
+The `copyFromLocal` command copies the contents of a file in your local file system into Tachyon.
 If the node you run the command from has a Tachyon worker, the data will be available on that
 worker. Otherwise, the data will be placed in a random remote node running a Tachyon worker. If a
 directory is specified, the directory and all its contents will be uploaded recursively.
@@ -238,7 +238,7 @@ $ ./bin/tachyon tfs copyFromLocal /local/data /input
 ```
 
 ## copyToLocal
-The `copyToLocal` command will copy the contents of a file in Tachyon to a file in your local file
+The `copyToLocal` command copies the contents of a file in Tachyon to a file in your local file
 system. If a directory is specified, the directory and all its contents will be downloaded
 recurisvely.
 
@@ -251,8 +251,8 @@ $ wc -l part-00000
 ```
 
 ## count
-The `count` command will output the number of files and folders matching a prefix as well as the
-total size of the files. `Count` works recursively and will account for any nested directories and
+The `count` command outputs the number of files and folders matching a prefix as well as the
+total size of the files. `Count` works recursively and accounts for any nested directories and
 files. `Count` is best utilized when the user has some predefined naming conventions for their
 files.
 
@@ -264,7 +264,7 @@ $ ./bin/tachyon tfs count /data/2014
 ```
 
 ## du
-The `du` command will output the size of a file. If a directory is specified, it will output the
+The `du` command outputs the size of a file. If a directory is specified, it will output the
 aggregate size of all files in the directory and its children directories.
 
 For example, if the Tachyon space is unexpectedly over utilized, `du` can be used to detect
@@ -368,9 +368,9 @@ $ ./bin/tachyon tfs ls /users/alice/
 ```
 
 ## lsr
-The `lsr` command is similar to `ls`, but it will also recursively list child directories,
-displaying the entire subtree starting from the input path. As with `ls`, using `lsr` on a file will
-only display information for that specific file.
+The `lsr` command is similar to `ls`, but it also recursively lists child directories, displaying
+the entire subtree starting from the input path. As with `ls`, using `lsr` on a file will only
+display information for that specific file.
 
 For example, `lsr` can be used to browse the file system.
 
