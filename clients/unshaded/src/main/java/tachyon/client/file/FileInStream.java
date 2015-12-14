@@ -51,7 +51,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
-public final class FileInStream extends InputStream implements BoundedStream, Seekable {
+public class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Logger for this class */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
