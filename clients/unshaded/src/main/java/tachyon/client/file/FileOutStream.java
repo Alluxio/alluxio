@@ -68,6 +68,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
   protected final long mFileId;
+  protected int mCount;
 
   /**
    * Creates a new file output stream.
@@ -98,6 +99,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mCanceled = false;
     mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mCount = 0;
   }
 
   @Override
@@ -191,6 +193,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
+        mCount ++;
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
@@ -225,9 +228,11 @@ public class FileOutStream extends OutputStream implements Cancelable {
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
+            mCount += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
+            mCount += (int) currentBlockLeftBytes;
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
           }
@@ -241,6 +246,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
+  }
+
+  public int count() {
+    return mCount;
   }
 
   private void getNextBlock() throws IOException {
