@@ -55,33 +55,32 @@ The following shows the details of the available metrics.
 * UnderFsCapacityUsed: Used capacity of the under file system in bytes.
 * UnderFsCapacityFree: Free capacity of the under file system in bytes.
 * Workers: Number of the workers.
-* FilesTotal: Total number of files and directories in the file system.
-* FilesPersisted: Total number of the files persisted.
-* PathsCreated: Total number of files and directories created.
-* FilesCompleted: Total number of files completed.
-* FilesReleased: Total number of files released.
-* PathsDeleted: Total number of files and directories deleted.
-* FilesPinned: Total number of the files pinned.
-* PathsRenamed: Total number of file and directories renamed.
-* DirectoriesCreated: Total number of directories created.
-* PathsMounted: Total number of paths mounted.
-* PathsUnmounted: Total number of paths unmounted.
-* FileInfosGot: Total number of the file infos retrieved.
+* PathsTotal: Total number of files and directories in the file system.
 * FileBlockInfosGot: Total number of the file block infos retrieved.
-* NewBlockRequested: Total number of new blocks requested.
+* FileInfosGot: Total number of the file infos retrieved.
+* FilesCompleted: Total number of files completed.
+* FilesFreed: Total number of files freed.
+* FilesPersisted: Total number of the files persisted.
+* FilesPinned: Total number of the files pinned.
+* DirectoriesCreated: Total number of directories created.
+* NewBlocksRequested: Total number of new blocks requested.
+* PathsCreated: Total number of files and directories created.
+* PathsDeleted: Total number of files and directories deleted.
+* PathsMounted: Total number of paths mounted.
+* PathsRenamed: Total number of files and directories renamed.
+* PathsUnmounted: Total number of paths unmounted.
+* CreateDirectoryOps: Total number of the CreateDirectory operations.
 * CreatePathOps: Total number of the CreatePath operations.
 * CompleteFileOps: Total number of CompleteFile operations.
-* ReleaseFileOps: Total number of ReleaseFile operations
 * DeletePathOps: Total number of the DeletePath operations.
-* GetFileInfoOps: Total number of the getClientFileInfo operations.
-* RenamePathOps: Total number of the RenamePath operations.
-* CreateDirectoryOps: Total number of the CreateDirectory operations.
-* MountPathOps: Total number of MountPath operations.
-* UnmountPathOps: Total number of UnmountPath operations.
+* FreeFileOps: Total number of FreeFile operations.
+* GetFileBlockInfoOps: Total number of GetFileBlockInfo operations.
 * GetFileInfoOps: Total number of GetFileInfo operations.
-* GetFileBlockInfoOps: Total number of GetFileBlockInfo operations
+* MountPathOps: Total number of MountPath operations.
 * NewBlockRequestOps: Total number of NewBlockRequest operations.
+* RenamePathOps: Total number of the RenamePath operations.
 * SetFileStateOps: Total number of the SetFileState operations.
+* UnmountPathOps: Total number of UnmountPath operations.
 
 ### Worker
 
