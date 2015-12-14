@@ -137,9 +137,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /* @inheritDoc
    * @see tachyon.underfs.UnderFileSystem#delete(java.lang.String, boolean)
    *
-   * recursive parameter is not being used for delete.
-   * The reason is that each path is treated as a single object, which
-   * was created with 'create' method.
+   * recursive will delete all objects with given prefix
+   * parent will not be deleted
    *
    * Method return 'true' always.
    */
@@ -172,15 +171,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    LOG.debug("Exists: {}", path);
     String newPath = stripPrefixIfPresent(path);
     return getObjectDetails(newPath) ;
   }
 
   /**
-   * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
-   * file or folder, null is returned
-   * @param key the key to get the object details of
+   * Check if the object exists
+   * @param path the key to get the object details of
    * @return boolean indicating if the object exists
    */
   private boolean getObjectDetails(String path) {
@@ -193,7 +190,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * There is no concept of a block in Swift, however the maximum allowed size of
    * one object is currently 4 GB.
    *
-   * @param path to the file name
+   * @param path to the object
    * @return 4 GB in bytes
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
@@ -224,14 +221,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    LOG.debug("Get object size: {}", path);
     StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
     return so.getContentLength();
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
-    LOG.debug("Get last modification time: {}", path);
     StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
     return so.getLastModifiedAsDate().getTime();
   }
@@ -243,26 +238,29 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    LOG.debug("is file: {}", path);
     return exists(path);
   }
 
   @Override
   public String[] list(String path) throws IOException {
-    LOG.debug("listing: {}", path);
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
   }
 
+  /* @inheritDoc
+   * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
+   *
+   * There is no notion of directories in Swift
+   * The content of containers are objects
+   * Object name may contain nested structure like a/b/c/d.data
+   */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    LOG.debug("mkdirs (skipped): {}, create parent: {}", path, createParent);
     return true;
   }
 
   @Override
   public InputStream open(String path) throws IOException {
-    LOG.debug("open method: {}", path);
     path = stripPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     StoredObject so = container.getObject(path);
@@ -272,7 +270,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    LOG.debug("rename: {}, dest: {}", src, dst);
     if (!exists(src)) {
       LOG.error("Unable to rename {} to {}. Source does not exists", src, dst);
       return false;
@@ -290,7 +287,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Copies an object to another key.
+   * Copies an object to another name.
    *
    * @param src the source key to copy
    * @param dst the destination key to copy to
@@ -363,7 +360,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * my-path/file. This method will leave keys without a prefix unaltered, ie.
    * my-path/file returns my-path/file.
    *
-   * @param key the key to strip
+   * @param path the key to strip
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
@@ -376,7 +373,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * my-path/file. This method will leave keys without a prefix unaltered, ie.
    * my-path/file returns my-path/file.
    *
-   * @param key the key to strip
+   * @param path the key to strip
+   * @param prefix prefix to remove
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path, String prefix) {
