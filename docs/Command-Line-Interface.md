@@ -25,8 +25,8 @@ Or, if no header is provided, the default hostname and port (set in the env file
 Most of the commands which require path components allow wildcard arguments for ease of use. For
 example:
 
-```
-bin/tachyon tfs rm /data/2014*
+```bash
+$ ./bin/tachyon tfs rm /data/2014*
 ```
 
 The example command would delete anything in the `data` directory with a prefix of `2014`.
@@ -40,8 +40,8 @@ rm takes 1 arguments,  not 21
 As a work around, you can disable globbing (depending on your shell, for example `set -f`) or by
 escaping wildcards, for example:
 
-```
-bin/tachyon tfs cat /\\*
+```bash
+$ ./bin/tachyon tfs cat /\\*
 ```
 Note the double escape, this is because the shell script will eventually call a java program which
 should have the final escaped parameters (cat /\\*).
@@ -220,8 +220,8 @@ file system, `copyToLocal` should be used.
 For example, when trying out a new computation job, `cat` can be used as a quick way to check the
 output:
 
-```
-bin/tachyon tfs cat /output/part-00000
+```bash
+$ ./bin/tachyon tfs cat /output/part-00000
 ```
 
 ## copyFromLocal
@@ -233,8 +233,8 @@ directory is specified, the directory and all its contents will be uploaded recu
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for
 processing:
 
-```
-bin/tachyon tfs copyFromLocal /local/data /input
+```bash
+$ ./bin/tachyon tfs copyFromLocal /local/data /input
 ```
 
 ## copyToLocal
@@ -245,9 +245,9 @@ recurisvely.
 For example, `copyToLocal` can be used as a quick way to download output data for additional
 investigation or debugging.
 
-```
-bin/tachyon tfs copyToLocal /output/part-00000 part-00000
-wc -l part-00000
+```bash
+$ ./bin/tachyon tfs copyToLocal /output/part-00000 part-00000
+$ wc -l part-00000
 ```
 
 ## count
@@ -259,8 +259,8 @@ files.
 For example, if data files are stored by their date, `count` can be used to determine the number of
 data files and their total size for any date, month, or year.
 
-```
-bin/tachyon tfs count /data/2014
+```bash
+$ ./bin/tachyon tfs count /data/2014
 ```
 
 ## du
@@ -270,8 +270,8 @@ aggregate size of all files in the directory and its children directories.
 For example, if the Tachyon space is unexpectedly over utilized, `du` can be used to detect
 which folders are taking up the most space.
 
-```
-bin/tachyon tfs du /\\*
+```bash
+$ ./bin/tachyon tfs du /\\*
 ```
 
 ## fileinfo
@@ -282,8 +282,8 @@ will be much easier to understand.
 For example, `fileinfo` can be used to debug the block locations of a file. This is useful when
 trying to achieve locality for compute workloads.
 
-```
-bin/tachyon tfs fileinfo /data/2015/logs-1.txt
+```bash
+$ ./bin/tachyon tfs fileinfo /data/2015/logs-1.txt
 ```
 
 ## free
@@ -297,8 +297,8 @@ will still show up if an `ls` command is run.
 
 For example, `free` can be used to manually manage Tachyon's data caching.
 
-```
-bin/tachyon tfs free /unused/data
+```bash
+$ ./bin/tachyon tfs free /unused/data
 ```
 
 ## getCapacityBytes
@@ -306,8 +306,8 @@ The `getCapacityBytes` command returns the maximum number of bytes Tachyon is co
 
 For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
 
-```
-bin/tachyon tfs getCapacityBytes
+```bash
+$ ./bin/tachyon tfs getCapacityBytes
 ```
 
 ## getUsedBytes
@@ -315,8 +315,8 @@ The `getUsedBytes` command returns the number of used bytes in Tachyon.
 
 For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
-```
-bin/tachyon tfs getUsedBytes
+```bash
+$ ./bin/tachyon tfs getUsedBytes
 ```
 
 ## load
@@ -328,8 +328,8 @@ will be recursively loaded.
 
 For example, `load` can be used to prefetch data for analytics jobs.
 
-```
-bin/tachyon tfs load /data/today
+```bash
+$ ./bin/tachyon tfs load /data/today
 ```
 
 ## loadMetadata
@@ -341,8 +341,8 @@ For example, `loadMetadata` can be used when other systems output to the under s
 (bypassing Tachyon), and the application running on Tachyon needs to use the output of those
 systems.
 
-```
-bin/tachyon tfs loadMetadata /hdfs/data/2015/logs-1.txt
+```bash
+$ ./bin/tachyon tfs loadMetadata /hdfs/data/2015/logs-1.txt
 ```
 
 ## location
@@ -352,8 +352,8 @@ belonging to the given file.
 For example, `location` can be used to debug data locality when running jobs using a compute
 framework.
 
-```
-bin/tachyon tfs location /data/2015/logs-1.txt
+```bash
+$ ./bin/tachyon tfs location /data/2015/logs-1.txt
 ```
 
 ## ls
@@ -363,8 +363,8 @@ information for that specific file.
 
 For example, `ls` can be used to browse the file system.
 
-```
-bin/tachyon tfs ls /users/alice/
+```bash
+$ ./bin/tachyon tfs ls /users/alice/
 ```
 
 ## lsr
@@ -374,8 +374,8 @@ only display information for that specific file.
 
 For example, `lsr` can be used to browse the file system.
 
-```
-bin/tachyon tfs lsr /users/
+```bash
+$ ./bin/tachyon tfs lsr /users/
 ```
 
 ## mkdir
@@ -386,10 +386,10 @@ on an invalid or already existing path will fail.
 
 For example, `mkdir` can be used by an admin to set up the basic folder structures.
 
-```
-bin/tachyon tfs mkdir /users
-bin/tachyon tfs mkdir /users/Alice
-bin/tachyon tfs mkdir /users/Bob
+```bash
+$ ./bin/tachyon tfs mkdir /users
+$ ./bin/tachyon tfs mkdir /users/Alice
+$ ./bin/tachyon tfs mkdir /users/Bob
 ```
 
 ## mount
@@ -399,8 +399,8 @@ storage path. For more details, see [Unified Namespace](Unified-and-Transparent-
 
 For example, `mount` can be used to make data in another storage system available in Tachyon.
 
-```
-bin/tachyon tfs mount s3n://data-bucket/ /s3/data
+```bash
+$ ./bin/tachyon tfs mount s3n://data-bucket/ /s3/data
 ```
 
 ## mv
@@ -411,8 +411,8 @@ the directory. `mv` is purely a metadata operation and does not affect the data 
 
 For example, `mv` can be used to move older data into a non working directory.
 
-```
-bin/tachyon tfs mv /data/2014 /data/archives/2014
+```bash
+$ ./bin/tachyon tfs mv /data/2014 /data/archives/2014
 ```
 
 ## persist
@@ -424,8 +424,8 @@ blocks are evicted or otherwise lost.
 For example, `persist` can be used after filtering a series of temporary files for the ones
 containing useful data.
 
-```
-bin/tachyon tfs persist /tmp/experimental-logs-2.txt
+```bash
+$ ./bin/tachyon tfs persist /tmp/experimental-logs-2.txt
 ```
 
 ## pin
@@ -437,8 +437,8 @@ run low on storage space preventing other files from being cached.
 For example, `pin` can be used to manually ensure performance if the administrator understands the
 workloads well.
 
-```
-bin/tachyon tfs pin /data/today
+```bash
+$ ./bin/tachyon tfs pin /data/today
 ```
 
 ## report
@@ -448,8 +448,8 @@ master to schedule a recomputation job to regenerate the file.
 
 For example, `report` can be used to force recomputation of a file.
 
-```
-bin/tachyon tfs report /tmp/lineage-file
+```bash
+$ ./bin/tachyon tfs report /tmp/lineage-file
 ```
 
 ## rm
@@ -459,8 +459,8 @@ later.
 
 For example, `rm` can be used to remove temporary files which are no longer needed.
 
-```
-bin/tachyon tfs rm /tmp/unused-file
+```bash
+$ ./bin/tachyon tfs rm /tmp/unused-file
 ```
 
 ## rmr
@@ -469,8 +469,8 @@ delete all contents of the directory and then the directory itself.
 
 For example, `rmr` can be used to clean up entire subtrees in the Tachyon.
 
-```
-bin/tachyon tfs rmr /tmp/tests
+```bash
+$ ./bin/tachyon tfs rmr /tmp/tests
 ```
 
 ## setTTL
@@ -481,8 +481,8 @@ will affect both Tachyon and the under storage system.
 For example, `setTTL` can be used to clean up files the administrator knows are unnecessary after a
 period of time.
 
-```
-bin/tachyon tfs setTTL /data/good-for-one-day 86400000
+```bash
+$ ./bin/tachyon tfs setTTL /data/good-for-one-day 86400000
 ```
 
 ## tail
@@ -491,8 +491,8 @@ The `tail` command outputs the last 1 kb of data in a file to the console.
 For example, `tail` can be used to verify the output of a job is in the expected format or contains
 expected values.
 
-```
-bin/tachyon tfs tail /output/part-00000
+```bash
+$ ./bin/tachyon tfs tail /output/part-00000
 ```
 
 ## touch
@@ -502,8 +502,8 @@ mostly useful as flags.
 For example, `touch` can be used to create a file signifying the compeletion of analysis on a
 directory.
 
-```
-bin/tachyon tfs touch /data/yesterday/_DONE_
+```bash
+$ ./bin/tachyon tfs touch /data/yesterday/_DONE_
 ```
 
 ## unmount
@@ -515,8 +515,8 @@ more dtails.
 For example, `unmount` can be used to remove an under storage system when the users no longer need
 data from that system.
 
-```
-bin/tachyon tfs unmount /s3/data
+```bash
+$ ./bin/tachyon tfs unmount /s3/data
 ```
 
 ## unpin
@@ -527,8 +527,8 @@ evicted from the various Tachyon workers containing the block.
 For example, `unpin` can be used when the administrator knows there is a change in the data access
 pattern.
 
-```
-bin/tachyon tfs unpin /data/yesterday/join-table
+```bash
+$ ./bin/tachyon tfs unpin /data/yesterday/join-table
 ```
 
 ## unsetTTL
@@ -538,6 +538,6 @@ will not evict or store blocks in Tachyon. The TTL of a file can later be reset 
 For example, `unsetTTL` can be used if a regularly managed file requires manual management due to
 some special case.
 
-```
-bin/tachyon tfs unsetTTL /data/yesterday/data-not-yet-analyzed
+```bash
+$ ./bin/tachyon tfs unsetTTL /data/yesterday/data-not-yet-analyzed
 ```
