@@ -65,7 +65,7 @@ public class LinearProbingIndexTest {
     mOutStreamPayloadWriter.close();
 
     // Read all keys back, expect same value as inserted
-    ByteArrayPayloadReader payloadReader = new ByteArrayPayloadReader(mOutStream.toByteArray());
+    RandomAccessPayloadReader payloadReader = new RandomAccessPayloadReader(mOutStream.toByteArray());
     for (int i = 0; i < test_keys; i ++) {
       byte[] value = index.get(keys[i], payloadReader);
       Assert.assertArrayEquals(values[i], value);
@@ -75,7 +75,7 @@ public class LinearProbingIndexTest {
   @Test
   public void getNonExistentKeyTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
-    ByteArrayPayloadReader payloadReaderNotUsed = new ByteArrayPayloadReader(new byte[] {});
+    RandomAccessPayloadReader payloadReaderNotUsed = new RandomAccessPayloadReader(new byte[] {});
     byte[] nonExistentKey = "NotInserted".getBytes();
     Assert.assertNull(index.get(nonExistentKey, payloadReaderNotUsed));
   }

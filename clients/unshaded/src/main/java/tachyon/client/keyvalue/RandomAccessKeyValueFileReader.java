@@ -15,6 +15,7 @@
 
 package tachyon.client.keyvalue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,36 +28,42 @@ import tachyon.Constants;
 import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.LinearProbingIndex;
-import tachyon.worker.keyvalue.ByteArrayPayloadReader;
+import tachyon.worker.keyvalue.PayloadReader;
+import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
 /**
- * Writer to create a KeyValue file.
+ * Reader to access a KeyValue file using random access APIs (e.g., byte[])
  */
-public final class KeyValueFileReaderImpl implements KeyValueFileReader {
+public final class RandomAccessKeyValueFileReader implements KeyValueFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public KeyValueFileReaderImpl(List<Long> blockIds) {
-    // For now, only 1 block is allowed.
-    Preconditions.checkArgument(blockIds.size() == 1);
+  private Index mIndex;
+  private PayloadReader mPayloadReader;
+  private byte[] mBuf;
+  private int mBufferLength;
+
+  public RandomAccessKeyValueFileReader(byte[] fileBytes) {
+    mBuf = Preconditions.checkNotNull(fileBytes);
+    mBufferLength = mBuf.length;
+    mIndex = createIndex();
+    mPayloadReader = createPayloadReader();
   }
 
-  public static Index createIndex(byte[] fileBytes) {
-    int length = fileBytes.length;
-    int indexOffset = ByteIOUtils.readInt(fileBytes, length - 4);
+  public Index createIndex() {
+    int indexOffset = ByteIOUtils.readInt(mBuf, mBufferLength - 4);
     // TODO(binfan): this array copy might be expensive and unnecessary
-    byte[] indexBytes = Arrays.copyOfRange(fileBytes, indexOffset, length - 4);
+    byte[] indexBytes = Arrays.copyOfRange(mBuf, indexOffset, mBufferLength - 4);
     return LinearProbingIndex.loadFromByteArray(indexBytes);
   }
 
-  public static ByteArrayPayloadReader createPayloadReader(byte[] fileBytes) {
-    return new ByteArrayPayloadReader(fileBytes);
+  public RandomAccessPayloadReader createPayloadReader() {
+    return new RandomAccessPayloadReader(mBuf);
   }
 
   @Override
-  public byte[] get(byte[] key) {
-    LOG.trace("get key");
-
-    return null;
+  public byte[] get(byte[] key) throws IOException {
+    LOG.trace("get: key");
+    return mIndex.get(key, mPayloadReader);
   }
 
 }

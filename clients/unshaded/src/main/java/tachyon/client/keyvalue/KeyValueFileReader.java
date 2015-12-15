@@ -45,7 +45,7 @@ public interface KeyValueFileReader {
       TachyonFileSystem tfs = TachyonFileSystemFactory.get();
       TachyonFile tFile = tfs.open(uri);
       List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
-      return new KeyValueFileReaderImpl(blockIds);
+      return null; // new RemoteKeyValueFileReader(blockIds);
     }
   }
 
@@ -55,5 +55,5 @@ public interface KeyValueFileReader {
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
    */
-  byte[] get(byte[] key);
+  byte[] get(byte[] key) throws IOException;
 }

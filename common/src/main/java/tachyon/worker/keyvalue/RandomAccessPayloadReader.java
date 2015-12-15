@@ -22,12 +22,12 @@ import com.google.common.base.Preconditions;
 import tachyon.util.io.ByteIOUtils;
 
 /**
- * An implementation of {@link PayloadReader} using array API to access underline storage.
+ * An implementation of {@link PayloadReader} with ability to random access the underline storage.
  */
-public final class ByteArrayPayloadReader implements PayloadReader {
+public final class RandomAccessPayloadReader implements PayloadReader {
   private byte[] mBuf;
 
-  public ByteArrayPayloadReader(byte[] buf) {
+  public RandomAccessPayloadReader(byte[] buf) {
     mBuf = Preconditions.checkNotNull(buf);
   }
 

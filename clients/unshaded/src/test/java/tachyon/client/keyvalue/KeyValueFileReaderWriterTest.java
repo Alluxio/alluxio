@@ -20,19 +20,20 @@ import org.junit.Test;
 
 import tachyon.client.file.ByteArrayOutStream;
 import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.ByteArrayPayloadReader;
+import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
 /**
- * unit tests of {@link KeyValueFileWriterImpl} and {@link KeyValueFileReaderImpl}
+ * unit tests of {@link OutStreamKeyValueFileWriter} and {@link RandomAccessKeyValueFileReader}
  */
-public class KeyValueFileReaderWriterImplTest {
+public class KeyValueFileReaderWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
-  private KeyValueFileWriterImpl mWriter = new KeyValueFileWriterImpl(mOutStream);
+  private KeyValueFileWriter mWriter = new OutStreamKeyValueFileWriter(mOutStream);
+  private KeyValueFileReader mReader;
 
   @Test
   public void putTest() throws Exception {
@@ -50,10 +51,11 @@ public class KeyValueFileReaderWriterImplTest {
     mWriter.put(KEY2, VALUE2);
     mWriter.build();
     byte[] fileData = mOutStream.toByteArray();
-    Index index = KeyValueFileReaderImpl.createIndex(fileData);
-    ByteArrayPayloadReader payloadReader = KeyValueFileReaderImpl.createPayloadReader(fileData);
-    Assert.assertArrayEquals(VALUE1, index.get(KEY1, payloadReader));
-    Assert.assertArrayEquals(VALUE2, index.get(KEY2, payloadReader));
+    mReader = new RandomAccessKeyValueFileReader(fileData);
+    Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
+    Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
+
+    Assert.assertNull(mReader.get("NoSuchKey".getBytes()));
   }
 
   @Test
