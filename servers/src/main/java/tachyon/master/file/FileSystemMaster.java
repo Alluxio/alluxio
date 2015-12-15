@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -1530,6 +1531,11 @@ public final class FileSystemMaster extends MasterBase {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
+    if(workerId == -1) {
+      // no worker found, do nothing
+      return;
+    }
+
     // update the state
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -1545,16 +1551,23 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Gets the worker where the given file is stored.
    *
-   * @param fileId the file id
+   * @param fileId the file id, -1 if no worker can be found
    * @return the storing worker
    * @throws FileDoesNotExistException when the file does not exist on any worker
    */
   private long getWorkerStoringFile(long fileId) throws FileDoesNotExistException {
-    List<Long> workers = Lists.newArrayList();
+    Map<Long, Integer> workers = Maps.newHashMap();
+    int totalBlockNum;
     try {
+      totalBlockNum = getFileBlockInfoList(fileId).size();
+
       for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
         for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
-          workers.add(blockLocation.workerId);
+          int blockNum = 1;
+          if (workers.containsKey(blockLocation.workerId)) {
+            blockNum = workers.get(blockLocation.workerId) + 1;
+          }
+          workers.put(blockLocation.workerId, blockNum);
         }
       }
     } catch (FileDoesNotExistException e) {
@@ -1570,7 +1583,16 @@ public final class FileSystemMaster extends MasterBase {
     } else if (workers.size() > 1) {
       LOG.info("the file is stored at more than one worker: " + workers);
     }
-    return workers.get(0);
+
+    // return the first worker that has all the blocks
+    for (Entry<Long, Integer> entry : workers.entrySet()) {
+      if (entry.getValue() == totalBlockNum) {
+        return entry.getKey();
+      }
+    }
+
+    LOG.error("Not all the blocks of file {} stored on the same worker", fileId);
+    return -1;
   }
 
   /**
