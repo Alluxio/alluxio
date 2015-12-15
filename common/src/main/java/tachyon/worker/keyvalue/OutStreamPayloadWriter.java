@@ -24,7 +24,7 @@ import java.io.Flushable;
 import java.io.IOException;
 
 /**
- * An implementation of {@link PayloadWriter} using streaming API to write to underline storage.
+ * An implementation of {@link PayloadWriter} using stream API to write to underline storage.
  */
 public final class OutStreamPayloadWriter implements Closeable, Flushable, PayloadWriter {
   private AbstractOutStream mOutStream;

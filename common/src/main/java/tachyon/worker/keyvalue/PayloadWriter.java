@@ -18,12 +18,13 @@ package tachyon.worker.keyvalue;
 import java.io.IOException;
 
 /**
- * Interface to write key and value to payload storage.
+ * Interface to add key and value to payload storage.
  */
 public interface PayloadWriter {
 
   /**
-   * Puts a key into payload, return the offset
+   * Inserts key and value into payload, returns an offset indicating where the key and value
+   * data is stored in payload storage.
    *
    * @param key bytes of key
    * @param value offset of this key in payload

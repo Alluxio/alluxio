@@ -27,7 +27,7 @@ import tachyon.Constants;
 import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.LinearProbingIndex;
-import tachyon.worker.keyvalue.PayloadReader;
+import tachyon.worker.keyvalue.ByteArrayPayloadReader;
 
 /**
  * Writer to create a KeyValue file.
@@ -48,8 +48,8 @@ public final class KeyValueFileReaderImpl implements KeyValueFileReader {
     return LinearProbingIndex.loadFromByteArray(indexBytes);
   }
 
-  public static PayloadReader createPayloadReader(byte[] fileBytes) {
-    return new PayloadReader(fileBytes);
+  public static ByteArrayPayloadReader createPayloadReader(byte[] fileBytes) {
+    return new ByteArrayPayloadReader(fileBytes);
   }
 
   @Override
