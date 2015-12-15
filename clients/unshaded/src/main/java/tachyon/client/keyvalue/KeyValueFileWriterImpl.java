@@ -31,6 +31,7 @@ import tachyon.worker.keyvalue.PayloadWriter;
 
 /**
  * Writer that creates a Tachyon key-value file.
+ * This class is not thread-safe.
  */
 public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -44,6 +45,8 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
   /** key-value payload */
   private PayloadWriter mPayloadWriter;
 
+  private boolean mClosed;
+
   /**
    * @param fileOutStream output handler to the key-value file
    */
@@ -54,24 +57,28 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
     mPayloadWriter = new PayloadWriter(mFileOutStream);
     // Use linear probing impl of index for now
     mIndex = LinearProbingIndex.createEmptyIndex();
+    mClosed = false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public void put(byte[] key, byte[] value) throws IOException {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
+    Preconditions.checkState(!mClosed);
     mIndex.put(key, value, mPayloadWriter);
     mKeyCount ++;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  @Override
+  public void close() throws IOException {
+    mFileOutStream.close();
+    mClosed = true;
+  }
+
   @Override
   public void build() throws IOException {
+    Preconditions.checkState(!mClosed);
+    mFileOutStream.flush();
     int indexOffset = mFileOutStream.getCount();
     mFileOutStream.write(mIndex.getBytes());
     ByteIOUtils.writeInt(mFileOutStream, indexOffset);
@@ -86,9 +93,10 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
   }
 
   /**
-   * @return number of bytes
+   * @return number of bytes estimated
    */
   public long byteCount() {
+    Preconditions.checkState(!mClosed);
     // last pointer to index
     return mFileOutStream.getCount() + mIndex.byteCount() + Integer.SIZE / Byte.SIZE;
   }
