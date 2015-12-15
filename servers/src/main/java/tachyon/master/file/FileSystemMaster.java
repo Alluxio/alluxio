@@ -25,6 +25,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -463,7 +464,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
-    MasterContext.getMasterSource().incCreatePathOps(1);
+    MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
@@ -493,7 +494,10 @@ public final class FileSystemMaster extends MasterBase {
 
     mTTLBuckets.insert(inode);
 
-    MasterContext.getMasterSource().incPathsCreated(created.size());
+    MasterContext.getMasterSource()
+        .incFilesCreated(Iterables.size(Iterables.filter(created, InodeFile.class)));
+    MasterContext.getMasterSource()
+        .incDirectoriesCreated(Iterables.size(Iterables.filter(created, InodeDirectory.class)));
     return createResult;
   }
 
