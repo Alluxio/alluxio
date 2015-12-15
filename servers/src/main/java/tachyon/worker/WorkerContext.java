@@ -16,7 +16,6 @@
 package tachyon.worker;
 
 import tachyon.conf.TachyonConf;
-import tachyon.util.LineageUtils;
 
 /**
  * A WorkerContext object stores TachyonConf.
@@ -54,20 +53,5 @@ public final class WorkerContext {
    */
   public static void reset(TachyonConf conf) {
     sTachyonConf = conf;
-  }
-
-  /**
-   * @return if lineage worker is enabled
-   */
-  public static boolean isLineageEnabled() {
-    return LineageUtils.isLineageEnabled(sTachyonConf);
-  }
-
-  /**
-   * @return if key-value worker is enabled
-   */
-  public static boolean isKeyValueEnabled() {
-    // TODO(binfan): change this according to configuration
-    return true;
   }
 }
