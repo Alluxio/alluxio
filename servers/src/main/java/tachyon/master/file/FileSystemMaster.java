@@ -238,7 +238,7 @@ public final class FileSystemMaster extends MasterBase {
       persistFilesFromEntry((PersistFilesEntry) innerEntry);
     } else if (innerEntry instanceof PersistFilesRequestEntry) {
       try {
-        requestFilePersistenceEntry((PersistFilesRequestEntry) innerEntry);
+        setPersistingStateFromEntry((PersistFilesRequestEntry) innerEntry);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -1523,7 +1523,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Schedules a file for async persistence.
    *
-   * @param the id of the file for persistence
+   * @param fileId the id of the file for persistence
    * @throws FileDoesNotExistException when the file does not exist
    */
   public synchronized void scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
@@ -1607,7 +1607,7 @@ public final class FileSystemMaster extends MasterBase {
       }
     }
 
-    requestFilePersistence(toRequestFilePersistence);
+    setPersistingState(toRequestFilePersistence);
     // write to journal
     PersistFilesRequestEntry persistFilesRequest =
         PersistFilesRequestEntry.newBuilder().addAllFileIds(toRequestFilePersistence).build();
@@ -1618,12 +1618,12 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Request a list of files as being persisted.
+   * Updates a list of files as being persisted.
    *
    * @param fileIds the id of the files
    * @throws FileDoesNotExistException when a file does not exist
    */
-  private void requestFilePersistence(List<Long> fileIds) throws FileDoesNotExistException {
+  private void setPersistingState(List<Long> fileIds) throws FileDoesNotExistException {
     if (!fileIds.isEmpty()) {
       LOG.info("Request file persistency: {}", fileIds);
     }
@@ -1633,9 +1633,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void requestFilePersistenceEntry(PersistFilesRequestEntry entry)
+  private void setPersistingStateFromEntry(PersistFilesRequestEntry entry)
       throws FileDoesNotExistException {
-    requestFilePersistence(entry.getFileIdsList());
+    setPersistingState(entry.getFileIdsList());
   }
 
   /**
