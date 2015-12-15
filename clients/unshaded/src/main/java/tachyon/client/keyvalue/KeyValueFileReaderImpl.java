@@ -36,9 +36,6 @@ public final class KeyValueFileReaderImpl implements KeyValueFileReader {
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public byte[] get(byte[] key) {
     LOG.trace("get key");
