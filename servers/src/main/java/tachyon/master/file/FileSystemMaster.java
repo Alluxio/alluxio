@@ -60,7 +60,6 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
@@ -68,6 +67,7 @@ import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
@@ -1694,9 +1694,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param workerId the worker id
    * @param persistedFiles the persisted files
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path is invalid
    */
   private void persistFiles(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, InvalidPathException {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {
@@ -1705,6 +1706,9 @@ public final class FileSystemMaster extends MasterBase {
     for (Long fileId : persistedFiles) {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
       inode.setPersistenceState(PersistenceState.PERSISTED);
+
+      // propagates the persisted status to all parents
+      propagatePersisted(inode, false);
     }
     PersistFilesEntry persistFiles =
         PersistFilesEntry.newBuilder().addAllFileIds(persistedFiles).build();
