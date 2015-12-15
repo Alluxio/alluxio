@@ -35,9 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.BlockDoesNotExistException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
@@ -217,14 +215,15 @@ public final class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      long lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
+      long lockId = tMessage.getLockId();
+      long sessionId = tMessage.getSessionId();
       BlockReader reader =
-          mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
+          mDataManager.readBlockRemote(sessionId, blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;
       try {
         data = reader.read(tMessage.getOffset(), tMessage.getLength());
-        mDataManager.accessBlock(Sessions.DATASERVER_SESSION_ID, blockId);
+        mDataManager.accessBlock(sessionId, blockId);
         dataLen = data.limit();
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
@@ -311,12 +310,6 @@ public final class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      // TODO(calvin): Reconsider how we handle this exception.
-      try {
-        mDataManager.unlockBlock(sendMessage.getLockId());
-      } catch (BlockDoesNotExistException ioe) {
-        LOG.error("Failed to unlock block: {}", sendMessage.getBlockId(), ioe);
-      }
     }
   }
 }

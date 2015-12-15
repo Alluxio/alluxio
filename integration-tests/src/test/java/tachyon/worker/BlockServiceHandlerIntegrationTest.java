@@ -151,7 +151,7 @@ public class BlockServiceHandlerIntegrationTest {
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
-    String localPath = mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
+    String localPath = mWorkerServiceHandler.lockBlock(blockId, SESSION_ID).blockPath;
 
     // The local path should exist
     Assert.assertNotNull(localPath);
