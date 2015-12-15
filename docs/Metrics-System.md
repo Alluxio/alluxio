@@ -64,13 +64,13 @@ The following shows the details of the available metrics.
 * FilesPinned: Total number of the files pinned.
 * DirectoriesCreated: Total number of directories created.
 * NewBlocksRequested: Total number of new blocks requested.
-* PathsCreated: Total number of files and directories created.
+* FilesCreated: Total number of files created.
 * PathsDeleted: Total number of files and directories deleted.
 * PathsMounted: Total number of paths mounted.
 * PathsRenamed: Total number of files and directories renamed.
 * PathsUnmounted: Total number of paths unmounted.
 * CreateDirectoryOps: Total number of the CreateDirectory operations.
-* CreatePathOps: Total number of the CreatePath operations.
+* CreateFileOps: Total number of the CreateFile operations.
 * CompleteFileOps: Total number of CompleteFile operations.
 * DeletePathOps: Total number of the DeletePath operations.
 * FreeFileOps: Total number of FreeFile operations.

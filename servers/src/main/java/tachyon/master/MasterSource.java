@@ -49,10 +49,10 @@ public class MasterSource implements Source {
   private final Counter mFilesFreed =
       mMetricRegistry.counter(MetricRegistry.name("FilesFreed"));
 
-  private final Counter mPathsCreated =
-      mMetricRegistry.counter(MetricRegistry.name("PathsCreated"));
-  private final Counter mCreatePathOps =
-      mMetricRegistry.counter(MetricRegistry.name("CreatePathOps"));
+  private final Counter mFilesCreated =
+      mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
+  private final Counter mCreateFileOps =
+      mMetricRegistry.counter(MetricRegistry.name("CreateFileOps"));
   private final Counter mDirectoriesCreated =
       mMetricRegistry.counter(MetricRegistry.name("DirectoriesCreated"));
   private final Counter mCreateDirectoryOps =
@@ -62,7 +62,7 @@ public class MasterSource implements Source {
   private final Counter mDeletePathOps =
       mMetricRegistry.counter(MetricRegistry.name("DeletePathOps"));
   private final Counter mPathsRenamed =
-      mMetricRegistry.counter(MetricRegistry.name("FilesRenamed"));
+      mMetricRegistry.counter(MetricRegistry.name("PathsRenamed"));
   private final Counter mRenameOps = mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
   private final Counter mFilesPersisted =
       mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
@@ -205,23 +205,22 @@ public class MasterSource implements Source {
 
   public void incFreeFileOps() {
     mFreeFileOps.inc();
-
   }
 
   public void incFilesReleased(long n) {
     mFilesFreed.inc(n);
   }
 
-  public void incCreatePathOps(long n) {
-    mCreatePathOps.inc(n);
+  public void incCreateFileOps(long n) {
+    mCreateFileOps.inc(n);
   }
 
   public void incDeletePathOps(long n) {
     mDeletePathOps.inc(n);
   }
 
-  public void incPathsCreated(long n) {
-    mPathsCreated.inc(n);
+  public void incFilesCreated(long n) {
+    mFilesCreated.inc(n);
   }
 
   public void incDirectoriesCreated(long n) {
