@@ -39,7 +39,8 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
    *
    * @param storeView view of a lineage store
    */
-  public CheckpointLatestScheduler(LineageStoreView storeView, FileSystemMasterView fileStoreView) {}
+  public CheckpointLatestScheduler(LineageStoreView storeView,
+      FileSystemMasterView fileStoreView) {}
 
   @Override
   public CheckpointPlan schedule(LineageStoreView store, FileSystemMasterView fileStoreView) {
