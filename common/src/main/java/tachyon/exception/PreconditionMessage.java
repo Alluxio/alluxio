@@ -20,7 +20,7 @@ package tachyon.exception;
  *
  * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
-public class PreconditionMessage {
+public final class PreconditionMessage {
 
   public static final String CANNOT_READ_FOLDER = "Cannot read from a folder";
   public static final String CLIENT_CONTEXT_NOT_INITIALIZED = "Client Context not initialized";

@@ -43,7 +43,7 @@ public final class ClientRWLock implements ReadWriteLock {
     return new SessionLock(MAX_AVAILABLE);
   }
 
-  private class SessionLock implements Lock {
+  private final class SessionLock implements Lock {
     private final int mPermits;
 
     private SessionLock(int permits) {

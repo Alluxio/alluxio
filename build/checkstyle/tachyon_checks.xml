@@ -66,6 +66,8 @@
   </module>
 
   <module name="TreeWalker">
+    <!-- Checks that a class which has only private constructors is declared as final. -->
+    <module name="FinalClass"/>
     <module name="OuterTypeFilename"/>
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL"/>

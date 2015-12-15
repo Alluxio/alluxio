@@ -40,7 +40,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Class to make referencing tiered storage information more intuitive.
    */
-  public static class StorageTierInfo {
+  public static final class StorageTierInfo {
     private final String mStorageTierAlias;
     private final long mCapacityBytes;
     private final long mUsedBytes;
