@@ -415,7 +415,7 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void persistenceFileWithBlocksOnMultipleWorkers () throws Exception {
+  public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
     long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
     long blockId1 = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
