@@ -283,6 +283,14 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+
+      <!-- Dependencies used by Plugins -->
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.1</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

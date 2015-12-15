@@ -61,6 +61,7 @@ public final class NIODataServer implements Runnable, DataServer {
   private Selector mSelector;
 
   // Instance of TachyonConf
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("URF_UNREAD_FIELD")
   private final TachyonConf mTachyonConf;
 
   private final Map<SocketChannel, DataServerMessage> mSendingData =
