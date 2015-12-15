@@ -16,8 +16,12 @@
 package tachyon.master.file.meta;
 
 /**
- * The persistence state of a file.
+ * The persistence state of a file in the under-storage system.
  */
-public enum FilePersistenceState {
-  NOT_PERSISTED, SCHEDULED, PERSISTING, PERSISTED
+public enum PersistenceState {
+  NOT_PERSISTED, // file not persisted in the under FS
+  SCHEDULED, // used for async persistence, the file is scheduled for persistence on the master,
+             // awaits to be persisted
+  PERSISTING, // used for async persistence, the file is being persisted on the worker
+  PERSISTED // the file is persisted in the under FS
 }

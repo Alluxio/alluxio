@@ -19,7 +19,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.file.meta.FileStoreView;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.util.CommonUtils;
 
@@ -34,11 +34,11 @@ public interface CheckpointScheduler {
      * @return the generated scheduler
      */
     public static CheckpointScheduler createScheduler(TachyonConf conf,
-        LineageStoreView lineageStoreView, FileStoreView fileStoreView) {
+        LineageStoreView lineageStoreView, FileSystemMasterView fileStoreView) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<CheckpointScheduler>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
-            new Class[] {LineageStoreView.class, FileStoreView.class},
+            new Class[] {LineageStoreView.class, FileSystemMasterView.class},
             new Object[] {lineageStoreView, fileStoreView});
       } catch (Exception e) {
         throw Throwables.propagate(e);
@@ -60,5 +60,5 @@ public interface CheckpointScheduler {
    * @return a scheduling plan (possibly empty) to checkpoint the lineages, or null if no plan is
    *         feasible
    */
-  CheckpointPlan schedule(LineageStoreView lineageStoreView, FileStoreView fileStoreView);
+  CheckpointPlan schedule(LineageStoreView lineageStoreView, FileSystemMasterView fileStoreView);
 }

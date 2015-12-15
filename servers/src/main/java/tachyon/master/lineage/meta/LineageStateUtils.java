@@ -20,8 +20,8 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.master.file.meta.FilePersistenceState;
-import tachyon.master.file.meta.FileStoreView;
+import tachyon.master.file.meta.PersistenceState;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -36,7 +36,7 @@ public final class LineageStateUtils {
    * @return true if all the output files of the given lineage are completed, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isCompleted(Lineage lineage, FileStoreView fileStoreView)
+  public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileStoreView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
@@ -51,7 +51,7 @@ public final class LineageStateUtils {
    * @return true if the lineage needs recompute, false otherwise
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static boolean needRecompute(Lineage lineage, FileStoreView fileStoreView)
+  public static boolean needRecompute(Lineage lineage, FileSystemMasterView fileStoreView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
       FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
@@ -66,10 +66,10 @@ public final class LineageStateUtils {
    * @return true if all the output files are persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isPersisted(Lineage lineage, FileStoreView fileStoreView)
+  public static boolean isPersisted(Lineage lineage, FileSystemMasterView fileStoreView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      if (fileStoreView.getFilePersistenceState(outputFile) != FilePersistenceState.PERSISTED) {
+      if (fileStoreView.getFilePersistenceState(outputFile) != PersistenceState.PERSISTED) {
         return false;
       }
     }
@@ -80,11 +80,11 @@ public final class LineageStateUtils {
    * @return true if at least one of the output files is being persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isInCheckpointing(Lineage lineage, FileStoreView fileStoreView)
+  public static boolean isInCheckpointing(Lineage lineage, FileSystemMasterView fileStoreView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      if (fileStoreView.getFilePersistenceState(outputFile) == FilePersistenceState.SCHEDULED
-          || fileStoreView.getFilePersistenceState(outputFile) == FilePersistenceState.PERSISTING) {
+      if (fileStoreView.getFilePersistenceState(outputFile) == PersistenceState.SCHEDULED
+          || fileStoreView.getFilePersistenceState(outputFile) == PersistenceState.PERSISTING) {
         return true;
       }
     }
@@ -95,7 +95,7 @@ public final class LineageStateUtils {
    * @return all the output files of the given lineage that are lost on the workers
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static List<Long> getLostFiles(Lineage lineage, FileStoreView fileStoreView)
+  public static List<Long> getLostFiles(Lineage lineage, FileSystemMasterView fileStoreView)
       throws FileDoesNotExistException {
     List<Long> result = Lists.newArrayList();
     for (long outputFile : lineage.getOutputFiles()) {
