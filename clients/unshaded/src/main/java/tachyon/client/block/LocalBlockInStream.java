@@ -23,11 +23,11 @@ import java.nio.channels.FileChannel;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
+import tachyon.client.worker.WorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read

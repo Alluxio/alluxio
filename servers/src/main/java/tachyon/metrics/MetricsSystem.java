@@ -121,7 +121,7 @@ public class MetricsSystem {
   }
 
   /***
-   * Gets the ServletContextHandler of the metrics servlet.
+   * Gets the {@link ServletContextHandler} of the metrics servlet.
    *
    * @return the ServletContextHandler if the metrics system is running and the metrics servlet
    *         exists, otherwise null
@@ -134,7 +134,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Registers a Source.
+   * Registers a {@link Source}.
    *
    * @param source the source to register
    */
@@ -193,7 +193,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Removes a Source.
+   * Removes a {@link Source}.
    *
    * @param source the source to remove
    */

@@ -36,7 +36,7 @@
               <tbody>
                 <% for (WebInterfaceWorkersServlet.NodeInfo nodeInfo : ((WebInterfaceWorkersServlet.NodeInfo[]) request.getAttribute("normalNodeInfos"))) { %>
                   <tr>
-                    <th><a href="http://<%= nodeInfo.getHost() %>:<%= request.getAttribute("workerWebPort") %>"><%= nodeInfo.getHost() %></a></th>
+                    <th><a href="http://<%= nodeInfo.getHost() %>:<%= nodeInfo.getWebPort() %>"><%= nodeInfo.getHost() %></a></th>
                     <% if ((Boolean) request.getAttribute("debug")) { %>
                       <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <% } %>
