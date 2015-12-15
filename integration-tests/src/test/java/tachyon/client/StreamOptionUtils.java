@@ -24,7 +24,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * A util class to obtain common In/OutStreamOptions for tests
  *
  */
-public class StreamOptionUtils {
+public final class StreamOptionUtils {
   private StreamOptionUtils() {
     // not intended for instantiation
   }

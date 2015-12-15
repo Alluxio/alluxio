@@ -118,7 +118,7 @@ public class TachyonMaster {
    * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
    * {@link TachyonConf}.
    */
-  public static class Factory {
+  public static final class Factory {
     /**
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
