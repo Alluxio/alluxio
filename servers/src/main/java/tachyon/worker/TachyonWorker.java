@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.util.LineageUtils;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.keyvalue.KeyValueWorker;
 import tachyon.worker.lineage.LineageWorker;
 
 /**
@@ -39,17 +38,15 @@ public final class TachyonWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
-    BlockWorker blockWorker = null;
-    KeyValueWorker keyValueWorker = null;
+    BlockWorker worker = null;
     LineageWorker lineageWorker = null;
 
     try {
-      blockWorker = new BlockWorker();
-      keyValueWorker = new KeyValueWorker(blockWorker.getBlockDataManager());
+      worker = new BlockWorker();
       if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
         // Setup the lineage worker
         LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-        lineageWorker = new LineageWorker(blockWorker.getBlockDataManager());
+        lineageWorker = new LineageWorker(worker.getBlockDataManager());
       }
 
     } catch (Exception e) {
@@ -59,23 +56,16 @@ public final class TachyonWorker {
 
     try {
       // Start the lineage worker
-      if (WorkerContext.isLineageEnabled()) {
+      if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
         lineageWorker.start();
       }
-      if (WorkerContext.isKeyValueEnabled()) {
-        keyValueWorker.start();
-      }
-      blockWorker.process();
+      worker.process();
 
     } catch (Exception e) {
       LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
       try {
-        // TODO(binfan): is the stop order correct?
-        blockWorker.stop();
-        if (WorkerContext.isKeyValueEnabled()) {
-          keyValueWorker.stop();
-        }
-        if (WorkerContext.isLineageEnabled()) {
+        worker.stop();
+        if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
           lineageWorker.stop();
         }
       } catch (Exception ex) {
