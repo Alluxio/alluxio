@@ -28,6 +28,7 @@ public final class IdUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final long INVALID_FILE_ID = -1;
+  public static final long INVALID_WORKER_ID = -1;
 
   /**
    * @return a file id based on the given container id

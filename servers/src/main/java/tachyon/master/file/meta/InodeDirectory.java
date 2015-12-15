@@ -196,7 +196,7 @@ public final class InodeDirectory extends Inode {
             .setId(entry.getId())
             .setParentId(entry.getParentId())
             .setCreationTimeMs(entry.getCreationTimeMs())
-            .setPersistenceState(FilePersistenceState.valueOf(entry.getPersistenceState()))
+            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)

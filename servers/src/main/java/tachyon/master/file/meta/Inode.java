@@ -30,7 +30,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private long mLastModificationTimeMs;
     private String mName;
     private long mParentId;
-    private FilePersistenceState mPersistenceState;
+    private PersistenceState mPersistenceState;
     private PermissionStatus mPermissionStatus;
     private boolean mPinned;
 
@@ -41,7 +41,7 @@ public abstract class Inode implements JournalEntryRepresentable {
       mLastModificationTimeMs = mCreationTimeMs;
       mName = null;
       mParentId = InodeTree.NO_PARENT;
-      mPersistenceState = FilePersistenceState.NOT_PERSISTED;
+      mPersistenceState = PersistenceState.NOT_PERSISTED;
       mPinned = false;
       mPermissionStatus = null;
     }
@@ -71,7 +71,7 @@ public abstract class Inode implements JournalEntryRepresentable {
       return getThis();
     }
 
-    public T setPersistenceState(FilePersistenceState filePersistenceState) {
+    public T setPersistenceState(PersistenceState filePersistenceState) {
       mPersistenceState = filePersistenceState;
       return getThis();
     }
@@ -128,7 +128,7 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   private boolean mPinned;
 
-  private FilePersistenceState mPersistenceState;
+  private PersistenceState mPersistenceState;
 
   protected Inode(Builder<?> builder) {
     mCreationTimeMs = builder.mCreationTimeMs;
@@ -197,9 +197,9 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the file persistence state of the inode
+   * @return the persistence state of the inode
    */
-  public synchronized FilePersistenceState getPersistenceState() {
+  public synchronized PersistenceState getPersistenceState() {
     return mPersistenceState;
   }
 
@@ -247,7 +247,7 @@ public abstract class Inode implements JournalEntryRepresentable {
    * @return true if the file has persisted, false otherwise
    */
   public synchronized boolean isPersisted() {
-    return mPersistenceState == FilePersistenceState.PERSISTED;
+    return mPersistenceState == PersistenceState.PERSISTED;
   }
 
   /**
@@ -285,9 +285,9 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the file persistent state of the file.
+   * Sets the persistent state of the file.
    */
-  public synchronized void setPersistenceState(FilePersistenceState filePersistenceState) {
+  public synchronized void setPersistenceState(PersistenceState filePersistenceState) {
     mPersistenceState = filePersistenceState;
   }
 

@@ -41,7 +41,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
-import tachyon.master.file.meta.FilePersistenceState;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 import tachyon.util.CommonUtils;
@@ -92,7 +92,7 @@ public final class LineageMasterIntegrationTest {
       String uri = infos.get(0).outputFiles.get(0);
       long fileId = getFileSystemMasterClient().getFileId(uri);
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(FilePersistenceState.NOT_PERSISTED.toString(),
+      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
       Assert.assertFalse(fileInfo.isCompleted);
     } finally {
@@ -125,7 +125,7 @@ public final class LineageMasterIntegrationTest {
       String uri = infos.get(0).outputFiles.get(0);
       long fileId = getFileSystemMasterClient().getFileId(uri);
       FileInfo fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(FilePersistenceState.NOT_PERSISTED.toString(),
+      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(),
           fileInfo.getPersistenceState());
       Assert.assertTrue(fileInfo.isCompleted);
 
@@ -138,7 +138,7 @@ public final class LineageMasterIntegrationTest {
           TimeUnit.SECONDS));
 
       fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(FilePersistenceState.PERSISTING.toString(),
+      Assert.assertEquals(PersistenceState.PERSISTING.toString(),
           fileInfo.getPersistenceState());
 
       // sleep and wait for worker to persist the file
@@ -150,7 +150,7 @@ public final class LineageMasterIntegrationTest {
           500, TimeUnit.SECONDS));
 
       fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(FilePersistenceState.PERSISTED.toString(),
+      Assert.assertEquals(PersistenceState.PERSISTED.toString(),
           fileInfo.getPersistenceState());
 
     } finally {
