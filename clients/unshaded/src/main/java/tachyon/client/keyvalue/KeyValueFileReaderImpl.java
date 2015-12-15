@@ -15,6 +15,7 @@
 
 package tachyon.client.keyvalue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -23,6 +24,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.util.io.ByteIOUtils;
+import tachyon.worker.keyvalue.Index;
+import tachyon.worker.keyvalue.LinearProbingIndex;
+import tachyon.worker.keyvalue.PayloadReader;
 
 /**
  * Writer to create a KeyValue file.
@@ -33,7 +38,18 @@ public final class KeyValueFileReaderImpl implements KeyValueFileReader {
   public KeyValueFileReaderImpl(List<Long> blockIds) {
     // For now, only 1 block is allowed.
     Preconditions.checkArgument(blockIds.size() == 1);
+  }
 
+  public static Index createIndex(byte[] fileBytes) {
+    int length = fileBytes.length;
+    int indexOffset = ByteIOUtils.readInt(fileBytes, length - 4);
+    // TODO(binfan): this array copy might be expensive and unnecessary
+    byte[] indexBytes = Arrays.copyOfRange(fileBytes, indexOffset, length - 4);
+    return LinearProbingIndex.loadFromByteArray(indexBytes);
+  }
+
+  public static PayloadReader createPayloadReader(byte[] fileBytes) {
+    return new PayloadReader(fileBytes);
   }
 
   @Override
@@ -42,4 +58,5 @@ public final class KeyValueFileReaderImpl implements KeyValueFileReader {
 
     return null;
   }
+
 }
