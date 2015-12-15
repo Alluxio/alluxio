@@ -107,6 +107,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     List<Long> fileIds = getSortedFileIds();
     request.setAttribute("nTotalFile", fileIds.size());
 
+    request.setAttribute("orderedTierAliases",
+        new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
+
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -122,8 +125,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         uiFileInfos.add(getUiFileInfo(tFS, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
-      request.setAttribute("orderedTierAliases",
-          new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("fatalError", "Error: Invalid FileId " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);

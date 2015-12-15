@@ -18,7 +18,10 @@ package tachyon.underfs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 import com.google.common.base.Preconditions;
 
@@ -26,6 +29,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.util.io.PathUtils;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -354,14 +358,62 @@ public abstract class UnderFileSystem {
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
    *
-   * @param path the path to list
+   * @param path the abstract pathname to list
    * @return An array of strings naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
-   *         {@code null} if this abstract pathname does not denote a directory, or if an I/O error
-   *         occurs.
+   *         {@code null} if this abstract pathname does not denote a directory.
    * @throws IOException
    */
   public abstract String[] list(String path) throws IOException;
+
+  /**
+   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * abstract pathname, and all of its subdirectories.
+   *
+   * <p>
+   * If this abstract pathname does not denote a directory, then this method returns {@code null}.
+   * Otherwise an array of strings is returned, one for each file or directory in the directory and
+   * its subdirectories. Names denoting the directory itself and the directory's parent directory
+   * are not included in the result. Each string is a path relative to the given directory.
+   *
+   * <p>
+   * There is no guarantee that the name strings in the resulting array will appear in any specific
+   * order; they are not, in particular, guaranteed to appear in alphabetical order.
+   *
+   * @param path the abstract pathname to list
+   * @return An array of strings naming the files and directories in the directory denoted by this
+   *         abstract pathname and its subdirectories. The array will be empty if the directory is
+   *         empty. Returns {@code null} if this abstract pathname does not denote a directory.
+   * @throws IOException if a non-Tachyon error occurs
+   */
+  public String[] listRecursive(String path) throws IOException {
+    // Clean the path by creating a URI and turning it back to a string
+    TachyonURI uri = new TachyonURI(path);
+    path = uri.toString();
+    List<String> returnPaths = new ArrayList<String>();
+    Queue<String> pathsToProcess = new ArrayDeque<String>();
+    // We call list initially, so we can return null if the path doesn't denote a directory
+    String[] subpaths = list(path);
+    if (subpaths == null) {
+      return null;
+    } else {
+      for (String subp : subpaths) {
+        pathsToProcess.add(PathUtils.concatPath(path, subp));
+      }
+    }
+    while (!pathsToProcess.isEmpty()) {
+      String p = pathsToProcess.remove();
+      returnPaths.add(p.substring(path.length() + 1));
+      // Add all of its subpaths
+      subpaths = list(p);
+      if (subpaths != null) {
+        for (String subp : subpaths) {
+          pathsToProcess.add(PathUtils.concatPath(p, subp));
+        }
+      }
+    }
+    return returnPaths.toArray(new String[returnPaths.size()]);
+  }
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

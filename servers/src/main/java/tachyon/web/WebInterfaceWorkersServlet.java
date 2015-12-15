@@ -44,6 +44,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    */
   public static class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
+    private final int mWebPort;
     private final String mLastContactSec;
     private final String mWorkerState;
     private final long mCapacityBytes;
@@ -54,6 +55,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
     private NodeInfo(WorkerInfo workerInfo) {
       mHost = workerInfo.getAddress().getHost();
+      mWebPort = workerInfo.getAddress().getWebPort();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
       mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
@@ -82,6 +84,10 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
     public String getHost() {
       return mHost;
+    }
+
+    public int getWebPort() {
+      return mWebPort;
     }
 
     public String getState() {
