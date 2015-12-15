@@ -40,11 +40,5 @@
       <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!-- Dependency for findbugs (SuppressFBWarnings) -->
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-    </dependency>
   </dependencies>
 </project>
