@@ -1532,7 +1532,7 @@ public final class FileSystemMaster extends MasterBase {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
-    if(workerId == IdUtils.INVALID_WORKER_ID) {
+    if (workerId == IdUtils.INVALID_WORKER_ID) {
       // no worker found, do nothing
       return workerId;
     }
@@ -1595,7 +1595,7 @@ public final class FileSystemMaster extends MasterBase {
     }
 
     LOG.error("Not all the blocks of file {} stored on the same worker", fileId);
-    return -1;
+    return IdUtils.INVALID_WORKER_ID;
   }
 
   /**
