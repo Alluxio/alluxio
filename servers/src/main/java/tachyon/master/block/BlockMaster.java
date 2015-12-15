@@ -136,6 +136,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * We store it here so that it can be accessed from tests.
    */
   @SuppressWarnings("unused")
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
   private final AtomicLong mNextWorkerId = new AtomicLong(1);

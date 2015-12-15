@@ -39,6 +39,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public final class LocalTachyonMaster {
   // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("URF_UNREAD_FIELD")
   private final String mTachyonHome;
   private final String mHostname;
 

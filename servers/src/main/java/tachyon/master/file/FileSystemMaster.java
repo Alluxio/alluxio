@@ -119,6 +119,7 @@ public final class FileSystemMaster extends MasterBase {
    * We store it here so that it can be accessed from tests.
    */
   @SuppressWarnings("unused")
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTTLCheckerService;
 
   private final TTLBucketList mTTLBuckets = new TTLBucketList();
