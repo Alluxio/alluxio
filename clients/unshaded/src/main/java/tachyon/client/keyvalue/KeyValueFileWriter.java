@@ -52,13 +52,20 @@ public interface KeyValueFileWriter extends Closeable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
+   * @throws IOException
    */
   void put(byte[] key, byte[] value) throws IOException;
 
   /**
-   * Completes the writer and dump the outa KeyValue file.
+   * Builds and outputs key-value file, closes this writer.
+   * @throws IOException
    */
   void build() throws IOException;
 
+  /**
+   * Closes the writer.
+   *
+   * @throws IOException
+   */
   void close() throws IOException;
 }

@@ -82,7 +82,7 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
     int indexOffset = mFileOutStream.getCount();
     mFileOutStream.write(mIndex.getBytes());
     ByteIOUtils.writeInt(mFileOutStream, indexOffset);
-    mFileOutStream.close();
+    close();
   }
 
   /**
