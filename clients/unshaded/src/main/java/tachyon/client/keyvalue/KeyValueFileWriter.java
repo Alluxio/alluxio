@@ -43,7 +43,7 @@ public interface KeyValueFileWriter extends Closeable {
       Preconditions.checkArgument(uri != null);
       TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
       FileOutStream fileOutStream = tfs.getOutStream(uri);
-      return new KeyValueFileWriterImpl(fileOutStream);
+      return new OutStreamKeyValueFileWriter(fileOutStream);
     }
   }
 
@@ -68,4 +68,14 @@ public interface KeyValueFileWriter extends Closeable {
    * @throws IOException
    */
   void close() throws IOException;
+
+  /**
+   * @return number of keys
+   */
+  long keyCount();
+
+  /**
+   * @return number of bytes estimated
+   */
+  long byteCount();
 }

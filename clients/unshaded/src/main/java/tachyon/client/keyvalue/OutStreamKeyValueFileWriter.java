@@ -31,10 +31,13 @@ import tachyon.worker.keyvalue.OutStreamPayloadWriter;
 import tachyon.worker.keyvalue.PayloadWriter;
 
 /**
- * Writer that creates a Tachyon key-value file.
+ * Writer that implements {@link KeyValueFileWriter} using Tachyon file stream interface to
+ * generate a key-value file.
+ *
+ * <p>
  * This class is not thread-safe.
  */
-public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
+public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handler to underline Tachyon file */
@@ -49,9 +52,9 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
   private boolean mClosed;
 
   /**
-   * @param fileOutStream output handler to the key-value file
+   * @param fileOutStream output stream to store the key-value file
    */
-  public KeyValueFileWriterImpl(AbstractOutStream fileOutStream) {
+  public OutStreamKeyValueFileWriter(AbstractOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
@@ -86,16 +89,12 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
     close();
   }
 
-  /**
-   * @return number of keys
-   */
+  @Override
   public long keyCount() {
     return mKeyCount;
   }
 
-  /**
-   * @return number of bytes estimated
-   */
+  @Override
   public long byteCount() {
     Preconditions.checkState(!mClosed);
     // last pointer to index
