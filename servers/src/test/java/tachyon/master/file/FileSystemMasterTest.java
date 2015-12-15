@@ -426,7 +426,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.completeFile(fileId, options);
 
     long workerId = mFileSystemMaster.scheduleAsyncPersistence(fileId);
-    Assert.assertEquals(-1, workerId);
+    Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
