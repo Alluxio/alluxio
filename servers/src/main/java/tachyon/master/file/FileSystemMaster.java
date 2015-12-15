@@ -1525,15 +1525,16 @@ public final class FileSystemMaster extends MasterBase {
    * Schedules a file for async persistence.
    *
    * @param fileId the id of the file for persistence
+   * @return the id of the worker that persistence is scheduled on
    * @throws FileDoesNotExistException when the file does not exist
    */
-  public synchronized void scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
+  public synchronized long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
     if(workerId == -1) {
       // no worker found, do nothing
-      return;
+      return workerId;
     }
 
     // update the state
@@ -1546,6 +1547,8 @@ public final class FileSystemMaster extends MasterBase {
       mWorkerToAsyncPersistFile.put(workerId, Sets.<Long>newHashSet());
     }
     mWorkerToAsyncPersistFile.get(workerId).add(fileId);
+
+    return workerId;
   }
 
   /**
