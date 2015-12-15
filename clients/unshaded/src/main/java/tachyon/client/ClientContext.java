@@ -111,14 +111,6 @@ public final class ClientContext {
     return sMasterAddress;
   }
 
-  /**
-   * @return a random non-negative long
-   */
-  public static synchronized long getRandomNonNegativeLong() {
-    checkContextInitialized();
-    return Math.abs(sRandom.nextLong());
-  }
-
   public static synchronized ExecutorService getExecutorService() {
     checkContextInitialized();
     return sExecutorService;
