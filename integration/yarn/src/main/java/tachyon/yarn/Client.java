@@ -281,9 +281,9 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    final String amCommand =
-        new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
-            .addArg(AM_MAIN_CLASS).addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
+    final String amCommand = new CommandBuilder(
+        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-application-master.sh"))
+            .addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
