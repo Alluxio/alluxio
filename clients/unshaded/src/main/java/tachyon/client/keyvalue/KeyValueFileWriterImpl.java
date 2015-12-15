@@ -27,6 +27,7 @@ import tachyon.client.file.AbstractOutStream;
 import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.LinearProbingIndex;
+import tachyon.worker.keyvalue.OutStreamPayloadWriter;
 import tachyon.worker.keyvalue.PayloadWriter;
 
 /**
@@ -54,7 +55,7 @@ public final class KeyValueFileWriterImpl implements KeyValueFileWriter {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
-    mPayloadWriter = new PayloadWriter(mFileOutStream);
+    mPayloadWriter = new OutStreamPayloadWriter(mFileOutStream);
     // Use linear probing impl of index for now
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
