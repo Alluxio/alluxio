@@ -38,14 +38,15 @@ public final class LinearProbingIndex implements Index {
   // TODO(binfan): pick better seeds
   private static final int INDEX_HASHER_SEED = 0x1311;
   private static final int FINGERPRINT_HASHER_SEED = 0x7a91;
+  /** Hash function to calculate bucket index */
+  private static final HashFunction INDEX_HASHER = Hashing.murmur3_32(INDEX_HASHER_SEED);
+  /** Hash function to calculate fingerprint */
+  private static final HashFunction FINGERPRINT_HASHER = Hashing
+      .murmur3_32(FINGERPRINT_HASHER_SEED);
   /** Max number of probes for linear probing */
   private static final int MAX_PROBES = 50;
   /** Size of each bucket in bytes */
   private static final int BUCKET_SIZE_BYTES = (Byte.SIZE + Integer.SIZE) / Byte.SIZE;
-  /** Hash function to calculate bucket index */
-  private final HashFunction mIndexHasher;
-  /** Hash function to calculate fingerprint */
-  private final HashFunction mFingerprintHasher;
 
   private byte[] mBuf;
   private int mNumBuckets;
@@ -55,17 +56,22 @@ public final class LinearProbingIndex implements Index {
    * @return an instance of linear probing index, with no key added
    */
   public static LinearProbingIndex createEmptyIndex() {
-    LinearProbingIndex index = new LinearProbingIndex();
-    Arrays.fill(index.getBytes(), (byte) 0);
-    return index;
+    int numBuckets = 1 << 15;
+    byte[] buffer = new byte[numBuckets * BUCKET_SIZE_BYTES];
+    Arrays.fill(buffer, (byte) 0);
+    return new LinearProbingIndex(buffer, numBuckets, 0);
   }
 
-  public LinearProbingIndex() {
-    mIndexHasher = Hashing.murmur3_32(INDEX_HASHER_SEED);
-    mFingerprintHasher = Hashing.murmur3_32(FINGERPRINT_HASHER_SEED);
-    mNumBuckets = 1 << 15;
-    mBuf = new byte[mNumBuckets * BUCKET_SIZE_BYTES];
-    mKeyCount = 0;
+  public static LinearProbingIndex loadFromByteArray(byte[] buffer) {
+    int numBuckets = buffer.length / BUCKET_SIZE_BYTES;
+    // TODO(binfan): fix the key count which is wrong now.
+    return new LinearProbingIndex(buffer, numBuckets, 0);
+  }
+
+  private LinearProbingIndex(byte[] buf, int numBuckets, int keyCount) {
+    mBuf = buf;
+    mNumBuckets = numBuckets;
+    mKeyCount = keyCount;
   }
 
   @Override
@@ -132,7 +138,7 @@ public final class LinearProbingIndex implements Index {
    */
   public int indexHash(byte[] key) {
     // TODO(binfan): change mod to bit-and
-    int v = mIndexHasher.hashBytes(key).asInt() % mNumBuckets;
+    int v = INDEX_HASHER.hashBytes(key).asInt() % mNumBuckets;
     return (v >= 0) ? v : -v;
   }
 
@@ -144,7 +150,7 @@ public final class LinearProbingIndex implements Index {
    * @return value of fingerprint in byte which is never zero
    */
   public byte fingerprintHash(byte[] key) {
-    int hash = mFingerprintHasher.hashBytes(key).asInt();
+    int hash = FINGERPRINT_HASHER.hashBytes(key).asInt();
     hash = (hash >> 24) & 0xff; // use high-order bits
     return (byte) ((hash == 0) ? 1 : hash);
   }

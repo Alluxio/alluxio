@@ -43,6 +43,9 @@ public final class ByteArrayOutStream extends AbstractOutStream {
     return mCount;
   }
 
+  /**
+   * @return a newly created byte array for the output stream
+   */
   public byte[] toByteArray() {
     return mOut.toByteArray();
   }
