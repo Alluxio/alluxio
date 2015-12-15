@@ -86,7 +86,7 @@ public final class NIODataServer implements Runnable, DataServer {
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ {}", address);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address), mTachyonConf);
+    NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address));
     mAddress = address;
     mDataManager = Preconditions.checkNotNull(dataManager);
     try {
