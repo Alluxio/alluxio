@@ -1532,7 +1532,7 @@ public final class FileSystemMaster extends MasterBase {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
-    if(workerId == -1) {
+    if(workerId == IdUtils.INVALID_WORKER_ID) {
       // no worker found, do nothing
       return workerId;
     }
