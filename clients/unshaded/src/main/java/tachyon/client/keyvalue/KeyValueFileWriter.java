@@ -15,6 +15,7 @@
 
 package tachyon.client.keyvalue;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import com.google.common.base.Preconditions;
@@ -27,7 +28,7 @@ import tachyon.exception.TachyonException;
 /**
  * Interface of the writer to create a Tachyon key-value file.
  */
-public interface KeyValueFileWriter {
+public interface KeyValueFileWriter extends Closeable {
 
   class Factory {
     /**
@@ -58,4 +59,6 @@ public interface KeyValueFileWriter {
    * Completes the writer and dump the outa KeyValue file.
    */
   void build() throws IOException;
+
+  void close() throws IOException;
 }
