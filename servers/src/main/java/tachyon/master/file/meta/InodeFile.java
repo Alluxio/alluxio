@@ -343,7 +343,7 @@ public final class InodeFile extends Inode {
             .setCreationTimeMs(entry.getCreationTimeMs())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setParentId(entry.getParentId())
-            .setPersistenceState(FilePersistenceState.valueOf(entry.getPersistenceState()))
+            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setTTL(entry.getTtl())
             .setPermissionStatus(permissionStatus)

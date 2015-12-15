@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.job.Job;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.meta.FileStoreView;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.thrift.FileInfo;
 
@@ -56,7 +56,7 @@ public final class TestRecomputeExecutor {
     // mock file system master
     FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
     Mockito.when(fileSystemMaster.getFileStoreView())
-        .thenReturn(new FileStoreView(fileSystemMaster));
+        .thenReturn(new FileSystemMasterView(fileSystemMaster));
     FileInfo fileInfo = new FileInfo();
     fileInfo.isLost = true;
     Mockito.when(fileSystemMaster.getFileInfo(fileId)).thenReturn(fileInfo);

@@ -22,9 +22,9 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.thrift.FileInfo;
 
 /**
- * This class exposes a readonly view of {@link FileSystemMaster}. This class is thread-safe.
+ * This class exposes a read-only view of {@link FileSystemMaster}. This class is thread-safe.
  */
-public final class FileStoreView {
+public final class FileSystemMasterView {
   private final FileSystemMaster mFileSystemMaster;
 
   /**
@@ -32,7 +32,7 @@ public final class FileStoreView {
    *
    * @param fileSystemMaster the file system master
    */
-  public FileStoreView(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterView(FileSystemMaster fileSystemMaster) {
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
   }
 
@@ -43,7 +43,7 @@ public final class FileStoreView {
    * @return the persistence state
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public synchronized FilePersistenceState getFilePersistenceState(long fileId)
+  public synchronized PersistenceState getFilePersistenceState(long fileId)
       throws FileDoesNotExistException {
     return mFileSystemMaster.getFilePersistenceState(fileId);
   }

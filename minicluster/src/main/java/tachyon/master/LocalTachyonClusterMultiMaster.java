@@ -215,7 +215,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
     mWorker.stop();
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
+      mFileSystemWorker.stop();
     }
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasters.get(k).stop();

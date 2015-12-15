@@ -38,15 +38,15 @@ struct CreateTOptions {
   4: optional i64 ttl
 }
 
-struct PersistCommand {
-  1: common.CommandType commandType
-  2: list<PersistFile> persistFiles
-}
-
 struct MkdirTOptions {
   1: optional bool persisted
   2: optional bool recursive
   3: optional bool allowExists
+}
+
+struct PersistCommand {
+  1: common.CommandType commandType
+  2: list<PersistFile> persistFiles
 }
 
 struct PersistFile {

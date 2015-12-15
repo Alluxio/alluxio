@@ -60,8 +60,8 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.meta.FilePersistenceState;
-import tachyon.master.file.meta.FileStoreView;
+import tachyon.master.file.meta.PersistenceState;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -193,7 +193,7 @@ public final class FileSystemMaster extends MasterBase {
       PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
       try {
         Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersistenceState(FilePersistenceState.PERSISTED);
+        inode.setPersistenceState(PersistenceState.PERSISTED);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -343,7 +343,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the persistence state
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public FilePersistenceState getFilePersistenceState(long fileId)
+  public PersistenceState getFilePersistenceState(long fileId)
       throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -397,8 +397,8 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * @return a read-only view of the inode tree
    */
-  public FileStoreView getFileStoreView() {
-    return new FileStoreView(this);
+  public FileSystemMasterView getFileStoreView() {
+    return new FileSystemMasterView(this);
   }
 
   /**
@@ -1174,7 +1174,7 @@ public final class FileSystemMaster extends MasterBase {
         // Stop if a persisted directory is encountered.
         break;
       }
-      handle.setPersistenceState(FilePersistenceState.PERSISTED);
+      handle.setPersistenceState(PersistenceState.PERSISTED);
       if (!replayed) {
         PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
             .setId(inode.getId())
@@ -1540,7 +1540,7 @@ public final class FileSystemMaster extends MasterBase {
     // update the state
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(FilePersistenceState.SCHEDULED);
+      inode.setPersistenceState(PersistenceState.SCHEDULED);
     }
 
     if (!mWorkerToAsyncPersistFile.containsKey(workerId)) {
@@ -1574,17 +1574,18 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
     } catch (FileDoesNotExistException e) {
-      // should not happen
-      throw new RuntimeException(e);
+      LOG.error("The file {} to persist does not exist", fileId);
+      return IdUtils.INVALID_WORKER_ID;
     } catch (InvalidPathException e) {
-      // should not happen
-      throw new RuntimeException(e);
+      LOG.error("The file {} to persist does not exist", fileId);
+      return IdUtils.INVALID_WORKER_ID;
     }
 
     if (workers.size() == 0) {
-      throw new FileDoesNotExistException("The file " + fileId + " does not exist on any worker");
+      LOG.error("The file " + fileId + " does not exist on any worker");
+      return IdUtils.INVALID_WORKER_ID;
     } else if (workers.size() > 1) {
-      LOG.info("the file is stored at more than one worker: " + workers);
+      LOG.info("The file is stored at more than one worker: " + workers);
     }
 
     // return the first worker that has all the blocks
@@ -1627,7 +1628,7 @@ public final class FileSystemMaster extends MasterBase {
         PersistFile toCheckpoint = new PersistFile(fileId, blockIds);
         files.add(toCheckpoint);
         // update the inode file persisence state
-        inode.setPersistenceState(FilePersistenceState.PERSISTING);
+        inode.setPersistenceState(PersistenceState.PERSISTING);
         scheduledFiles.remove(fileId);
       }
     }
@@ -1654,7 +1655,7 @@ public final class FileSystemMaster extends MasterBase {
     }
     for (long fileId : fileIds) {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(FilePersistenceState.PERSISTING);
+      inode.setPersistenceState(PersistenceState.PERSISTING);
     }
   }
 
@@ -1703,7 +1704,7 @@ public final class FileSystemMaster extends MasterBase {
     }
     for (Long fileId : persistedFiles) {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(FilePersistenceState.PERSISTED);
+      inode.setPersistenceState(PersistenceState.PERSISTED);
     }
     PersistFilesEntry persistFiles =
         PersistFilesEntry.newBuilder().addAllFileIds(persistedFiles).build();
@@ -1715,7 +1716,7 @@ public final class FileSystemMaster extends MasterBase {
     for (Long fileId : entry.getFileIdsList()) {
       try {
         InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-        inode.setPersistenceState(FilePersistenceState.PERSISTED);
+        inode.setPersistenceState(PersistenceState.PERSISTED);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e.getMessage());
       }
@@ -1749,7 +1750,7 @@ public final class FileSystemMaster extends MasterBase {
       Preconditions.checkArgument(options.getPersisted(),
           PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
-        file.setPersistenceState(FilePersistenceState.PERSISTED);
+        file.setPersistenceState(PersistenceState.PERSISTED);
         propagatePersisted(file, false);
         file.setLastModificationTimeMs(opTimeMs);
         MasterContext.getMasterSource().incFilesCheckpointed();

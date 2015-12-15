@@ -83,8 +83,8 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mWorker;
   }
 
-  public FileSystemWorker getLineageWorker() {
-    return mLineageWorker;
+  public FileSystemWorker getFileSystemWorker() {
+    return mFileSystemWorker;
   }
 
   public TachyonConf getWorkerTachyonConf() {
@@ -136,7 +136,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
+      mFileSystemWorker.stop();
     }
     mMaster.stop();
   }
@@ -150,7 +150,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     mMaster.clearClients();
     mWorker.stop();
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
+      mFileSystemWorker.stop();
     }
   }
 

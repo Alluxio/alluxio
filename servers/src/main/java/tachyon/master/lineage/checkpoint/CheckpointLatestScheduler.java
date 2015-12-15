@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.master.file.meta.FileStoreView;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStateUtils;
 import tachyon.master.lineage.meta.LineageStoreView;
@@ -39,10 +39,10 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
    *
    * @param storeView view of a lineage store
    */
-  public CheckpointLatestScheduler(LineageStoreView storeView, FileStoreView fileStoreView) {}
+  public CheckpointLatestScheduler(LineageStoreView storeView, FileSystemMasterView fileStoreView) {}
 
   @Override
-  public CheckpointPlan schedule(LineageStoreView store, FileStoreView fileStoreView) {
+  public CheckpointPlan schedule(LineageStoreView store, FileSystemMasterView fileStoreView) {
     Lineage toCheckpoint = null;
     long latestCreated = 0;
     for (Lineage lineage : store.getAllLineagesInTopologicalOrder()) {

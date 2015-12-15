@@ -29,8 +29,8 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.meta.FilePersistenceState;
-import tachyon.master.file.meta.FileStoreView;
+import tachyon.master.file.meta.PersistenceState;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
@@ -50,7 +50,7 @@ public final class CheckpointLatestSchedulerTest {
     mJob = new CommandLineJob("test", new JobConf("output"));
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mScheduler = new CheckpointLatestScheduler(new LineageStoreView(mLineageStore),
-        new FileStoreView(mFileSystemMaster));
+        new FileSystemMasterView(mFileSystemMaster));
   }
 
   @Test
@@ -63,9 +63,9 @@ public final class CheckpointLatestSchedulerTest {
         mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
 
     Mockito.when(mFileSystemMaster.getFilePersistenceState(fileId1))
-        .thenReturn(FilePersistenceState.NOT_PERSISTED);
+        .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getFilePersistenceState(fileId2))
-        .thenReturn(FilePersistenceState.NOT_PERSISTED);
+        .thenReturn(PersistenceState.NOT_PERSISTED);
     FileInfo fileInfo1 = new FileInfo();
     fileInfo1.isCompleted = true;
     fileInfo1.isLost = false;
@@ -76,13 +76,13 @@ public final class CheckpointLatestSchedulerTest {
     Mockito.when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
 
     CheckpointPlan plan = mScheduler.schedule(new LineageStoreView(mLineageStore),
-        new FileStoreView(mFileSystemMaster));
+        new FileSystemMasterView(mFileSystemMaster));
     Assert.assertEquals((Long) l1, plan.getLineagesToCheckpoint().get(0));
 
     // complete file 2 and it's ready for checkpoint
     fileInfo2.isCompleted = true;
     plan = mScheduler.schedule(new LineageStoreView(mLineageStore),
-        new FileStoreView(mFileSystemMaster));
+        new FileSystemMasterView(mFileSystemMaster));
     Assert.assertEquals((Long) l2, plan.getLineagesToCheckpoint().get(0));
   }
 }
