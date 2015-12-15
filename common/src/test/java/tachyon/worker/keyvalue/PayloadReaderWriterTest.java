@@ -5,7 +5,7 @@ import org.junit.Test;
 import tachyon.client.file.ByteArrayOutStream;
 
 /**
- * Unit test of {@link PayloadWriter}.
+ * Unit test of {@link OutStreamPayloadWriter}.
  */
 public class PayloadReaderWriterTest {
 
@@ -15,7 +15,7 @@ public class PayloadReaderWriterTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayOutStream mTestOutStream = new ByteArrayOutStream();
-  private PayloadWriter mTestWriter = new PayloadWriter(mTestOutStream);
+  private OutStreamPayloadWriter mTestWriter = new OutStreamPayloadWriter(mTestOutStream);
   private PayloadReader mTestReader;
 
   @Test

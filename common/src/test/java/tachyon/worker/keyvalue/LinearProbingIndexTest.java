@@ -14,21 +14,21 @@ public class LinearProbingIndexTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
   private ByteArrayOutStream mOutStream;
-  private PayloadWriter mPayloadWriter;
+  private OutStreamPayloadWriter mOutStreamPayloadWriter;
 
   @Before
   public void before() {
     mOutStream = new ByteArrayOutStream();
-    mPayloadWriter = new PayloadWriter(mOutStream);
+    mOutStreamPayloadWriter = new OutStreamPayloadWriter(mOutStream);
   }
 
   @Test
   public void putBasicTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertEquals(0, index.keyCount());
-    Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
+    Assert.assertTrue(index.put(KEY1, VALUE1, mOutStreamPayloadWriter));
     Assert.assertEquals(1, index.keyCount());
-    Assert.assertTrue(index.put(KEY2, VALUE2, mPayloadWriter));
+    Assert.assertTrue(index.put(KEY2, VALUE2, mOutStreamPayloadWriter));
     Assert.assertEquals(2, index.keyCount());
   }
 
@@ -38,9 +38,9 @@ public class LinearProbingIndexTest {
     // TODO(binfan): change constant 50 to be LinearProbingIndex.MAX_PROBES
     for (int i = 0; i < 50; i ++) {
       Assert.assertEquals(i, index.keyCount());
-      Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
+      Assert.assertTrue(index.put(KEY1, VALUE1, mOutStreamPayloadWriter));
     }
-    Assert.assertFalse(index.put(KEY1, VALUE1, mPayloadWriter));
+    Assert.assertFalse(index.put(KEY1, VALUE1, mOutStreamPayloadWriter));
   }
 
   @Test
@@ -59,10 +59,10 @@ public class LinearProbingIndexTest {
     // Insert this batch of key-value pairs
 
     for (int i = 0; i < test_keys; i ++) {
-      Assert.assertTrue(index.put(keys[i], values[i], mPayloadWriter));
+      Assert.assertTrue(index.put(keys[i], values[i], mOutStreamPayloadWriter));
       Assert.assertEquals(i + 1, index.keyCount());
     }
-    mPayloadWriter.close();
+    mOutStreamPayloadWriter.close();
 
     // Read all keys back, expect same value as inserted
     PayloadReader payloadReader = new PayloadReader(mOutStream.toByteArray());
