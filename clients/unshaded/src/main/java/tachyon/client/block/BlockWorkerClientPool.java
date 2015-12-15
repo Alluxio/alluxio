@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.worker.WorkerClient;
 import tachyon.resource.ResourcePool;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.WorkerClient;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with

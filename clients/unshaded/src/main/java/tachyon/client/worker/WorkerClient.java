@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client.worker;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -43,6 +43,7 @@ import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerService;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.ClientMetrics;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
