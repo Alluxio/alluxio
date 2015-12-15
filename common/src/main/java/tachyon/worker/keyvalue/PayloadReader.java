@@ -15,33 +15,24 @@
 
 package tachyon.worker.keyvalue;
 
-import com.google.common.base.Preconditions;
-import tachyon.util.io.ByteIOUtils;
-
-import java.io.Closeable;
-import java.util.Arrays;
-
 /**
- * Reader to access key value pairs in payload
+ * Interface to access key and value from payload storage.
  */
-public final class PayloadReader {
-  private byte[] mBuf;
+public interface PayloadReader {
 
-  public PayloadReader(byte[] buf) {
-    mBuf = Preconditions.checkNotNull(buf);
-  }
+  /**
+   * Gets the key given the position of payload storage.
+   *
+   * @param pos position in the payload storage in bytes
+   * @return bytes of the key
+   */
+  byte[] getKey(int pos);
 
-  public byte[] getKey(int pos) {
-    final int keyLength = ByteIOUtils.readInt(mBuf, pos);
-    final int keyFrom = pos + 8;
-    return Arrays.copyOfRange(mBuf, keyFrom, keyFrom + keyLength);
-  }
-
-  public byte[] getValue(int pos) {
-    final int keyLength = ByteIOUtils.readInt(mBuf, pos);
-    final int valueLength = ByteIOUtils.readInt(mBuf, pos + 4);
-    final int valueFrom = pos + 8 + keyLength;
-    return Arrays.copyOfRange(mBuf, valueFrom, valueFrom + valueLength);
-  }
-
+  /**
+   * Gets the value given the position of payload storage.
+   *
+   * @param pos position in the payload storage in bytes
+   * @return bytes of the key
+   */
+  byte[] getValue(int pos);
 }

@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import tachyon.client.file.ByteArrayOutStream;
 import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.PayloadReader;
+import tachyon.worker.keyvalue.ByteArrayPayloadReader;
 
 /**
  * unit tests of {@link KeyValueFileWriterImpl} and {@link KeyValueFileReaderImpl}
@@ -51,7 +51,7 @@ public class KeyValueFileReaderWriterImplTest {
     mWriter.build();
     byte[] fileData = mOutStream.toByteArray();
     Index index = KeyValueFileReaderImpl.createIndex(fileData);
-    PayloadReader payloadReader = KeyValueFileReaderImpl.createPayloadReader(fileData);
+    ByteArrayPayloadReader payloadReader = KeyValueFileReaderImpl.createPayloadReader(fileData);
     Assert.assertArrayEquals(VALUE1, index.get(KEY1, payloadReader));
     Assert.assertArrayEquals(VALUE2, index.get(KEY2, payloadReader));
   }

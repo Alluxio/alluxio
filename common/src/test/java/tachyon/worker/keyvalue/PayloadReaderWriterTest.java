@@ -16,7 +16,7 @@ public class PayloadReaderWriterTest {
 
   private ByteArrayOutStream mTestOutStream = new ByteArrayOutStream();
   private OutStreamPayloadWriter mTestWriter = new OutStreamPayloadWriter(mTestOutStream);
-  private PayloadReader mTestReader;
+  private ByteArrayPayloadReader mTestReader;
 
   @Test
   public void addZeroLengthKeyOrValueTest() throws Exception {
@@ -73,7 +73,7 @@ public class PayloadReaderWriterTest {
     mTestWriter.close();
 
     byte[] buf = mTestOutStream.toByteArray();
-    mTestReader = new PayloadReader(buf);
+    mTestReader = new ByteArrayPayloadReader(buf);
     Assert.assertArrayEquals(KEY1, mTestReader.getKey(0));
     Assert.assertArrayEquals(VALUE1, mTestReader.getValue(0));
   }
@@ -85,7 +85,7 @@ public class PayloadReaderWriterTest {
     mTestWriter.close();
 
     byte[] buf = mTestOutStream.toByteArray();
-    mTestReader = new PayloadReader(buf);
+    mTestReader = new ByteArrayPayloadReader(buf);
     Assert.assertArrayEquals(KEY1, mTestReader.getKey(offset));
     Assert.assertArrayEquals(VALUE1, mTestReader.getValue(offset));
   }
