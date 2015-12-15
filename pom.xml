@@ -285,9 +285,9 @@
       </dependency>
 
       <!--
-	      Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
-		  Note that this package does not need to be present at runtime.
-		-->
+          Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
+          Note that this package does not need to be present at runtime.
+        -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>annotations</artifactId>
