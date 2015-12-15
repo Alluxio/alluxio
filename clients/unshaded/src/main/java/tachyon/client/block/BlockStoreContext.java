@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.client.ClientContext;
+import tachyon.client.Utils;
 import tachyon.client.worker.WorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -189,7 +190,7 @@ public enum BlockStoreContext {
       // TODO(calvin): Better exception usage.
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
     }
-    long clientId = ClientContext.getRandomNonNegativeLong();
+    long clientId = Utils.getRandomNonNegativeLong();
     return new WorkerClient(workerAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
   }
