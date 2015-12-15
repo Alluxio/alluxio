@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;

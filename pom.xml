@@ -286,13 +286,14 @@
 
       <!--
           Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
-          Note that this package does not need to be present at runtime.
+          Note that this package can be unnecessary for runtime, so the
+          'provided' scope also works.
         -->
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
         <artifactId>annotations</artifactId>
         <version>3.0.1</version>
-        <scope>provided</scope>
+        <scope>compile</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
