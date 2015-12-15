@@ -178,8 +178,8 @@ public final class TachyonConf {
 
     // Make sure the user hasn't set worker ports when ONE_WORKER_PER_HOST is false
     if (!getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST)) {
-      String message = "%s cannot be specified when allowing multiple workers per host with " +
-          Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST + "=false";
+      String message = "%s cannot be specified when allowing multiple workers per host with "
+          + Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST + "=false";
       Preconditions.checkState(System.getProperty(Constants.WORKER_DATA_PORT) == null,
           String.format(message, Constants.WORKER_DATA_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_RPC_PORT) == null,
