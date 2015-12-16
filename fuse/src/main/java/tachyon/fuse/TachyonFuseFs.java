@@ -75,11 +75,12 @@ final class TachyonFuseFs extends FuseStubFS {
   // Keeps a cache of the most recently translated paths from String to TachyonURI
   private final LoadingCache<String, TachyonURI> mPathResolverCache;
 
-  // Table of open files with corresponding InputStreams and OutptuStreams
+  // Table of open files with corresponding InputStreams and OutputStreams
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mNextOpenFileId;
 
-  TachyonFuseFs(TachyonConf conf, TachyonFileSystem tfs, TachyonFuseOptions opts) {
+  TachyonFuseFs(TachyonConf conf, TachyonFileSystem tfs,
+      TachyonFuseOptions opts) {
     super();
     mTachyonConf = conf;
     mTFS = tfs;
@@ -121,16 +122,16 @@ final class TachyonFuseFs extends FuseStubFS {
     }
 
     try {
-
-      final OpenFileEntry ofe =
-          new OpenFileEntry(null, mTFS.getOutStream(turi));
-      LOG.debug("Tachyon OutStream created for {}", path);
-
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-          LOG.error("Cannot open {}: too many open files", turi);
+          LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})",
+              turi, MAX_OPEN_FILES);
           return -ErrorCodes.EMFILE();
         }
+
+        final OpenFileEntry ofe =
+            new OpenFileEntry(null, mTFS.getOutStream(turi));
+        LOG.debug("Tachyon OutStream created for {}", path);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
 
@@ -144,7 +145,7 @@ final class TachyonFuseFs extends FuseStubFS {
       return -ErrorCodes.EEXIST();
     } catch (IOException e) {
       LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EFAULT();
+      return -ErrorCodes.EIO();
     } catch (TachyonException e) {
       LOG.error("TachyonException on {}", path, e);
       return -ErrorCodes.EFAULT();
@@ -238,7 +239,7 @@ final class TachyonFuseFs extends FuseStubFS {
       return -ErrorCodes.ENOENT();
     } catch (IOException e) {
       LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EFAULT();
+      return -ErrorCodes.EIO();
     } catch (TachyonException e) {
       LOG.error("TachyonException on {}", path, e);
       return -ErrorCodes.EFAULT();
@@ -255,7 +256,7 @@ final class TachyonFuseFs extends FuseStubFS {
    */
   @Override
   public String getFSName() {
-    return "tachyon-fuse";
+    return mTachyonConf.get(Constants.FUSE_FS_NAME);
   }
 
   /**
@@ -324,14 +325,14 @@ final class TachyonFuseFs extends FuseStubFS {
         LOG.error("File {} is a directory", turi);
         return -ErrorCodes.EISDIR();
       }
-      final OpenFileEntry ofe =
-          new OpenFileEntry(mTFS.getInStream(tf), null);
 
       synchronized (mOpenFiles) {
         if (mOpenFiles.size() == MAX_OPEN_FILES) {
           LOG.error("Cannot open {}: too many open files", turi);
           return ErrorCodes.EMFILE();
         }
+        final OpenFileEntry ofe =
+            new OpenFileEntry(mTFS.getInStream(tf), null);
         mOpenFiles.put(mNextOpenFileId, ofe);
         fi.fh.set(mNextOpenFileId);
 
@@ -462,7 +463,7 @@ final class TachyonFuseFs extends FuseStubFS {
       return -ErrorCodes.ENOENT();
     } catch (IOException e) {
       LOG.error("IOException on {}", path, e);
-      return -ErrorCodes.EFAULT();
+      return -ErrorCodes.EIO();
     } catch (TachyonException e) {
       LOG.error("TachyonException on {}", path, e);
       return -ErrorCodes.EFAULT();
