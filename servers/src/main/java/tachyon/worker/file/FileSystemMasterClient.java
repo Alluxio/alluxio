@@ -105,7 +105,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Instructs a worker to persist the files.
+   * Heartbeats to the worker. It also carries command for the worker to persist the given files.
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the persisted files
