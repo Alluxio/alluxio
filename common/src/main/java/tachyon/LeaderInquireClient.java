@@ -41,7 +41,6 @@ public final class LeaderInquireClient {
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
       String leaderPath, TachyonConf tachyonConf) {
     String key = zookeeperAddress + leaderPath;
-    LOG.info("get zookeeper client. address: " + zookeeperAddress);
     if (!sCreatedClients.containsKey(key)) {
       sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, tachyonConf));
     }
@@ -57,7 +56,7 @@ public final class LeaderInquireClient {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
-    LOG.info("create new zookeeper client. address: " + mZookeeperAddress);
+    LOG.info("create new zookeeper client. address: {}", mZookeeperAddress);
     mClient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
@@ -97,7 +96,7 @@ public final class LeaderInquireClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
-      LOG.error("Error with zookeeper: " + mZookeeperAddress + " message: " + e.getMessage(), e);
+      LOG.error("Error with zookeeper: {} message: {}", mZookeeperAddress, e.getMessage());
     }
 
     return null;
