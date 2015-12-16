@@ -59,7 +59,6 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.Lineage.PersistFilesEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
@@ -236,11 +235,6 @@ public abstract class JournalFormatterTestBase {
             JournalEntry.newBuilder()
             .setLineageIdGenerator(LineageIdGeneratorEntry.newBuilder()
                 .setSequenceNumber(TEST_SEQUENCE_NUMBER))
-            .build())
-        .add(
-            JournalEntry.newBuilder()
-            .setPersistFiles(PersistFilesEntry.newBuilder()
-                .addAllFileIds(Arrays.asList(1L, 2L)))
             .build())
         .add(JournalEntry.newBuilder()
             .setPersistFilesRequest(PersistFilesRequestEntry.newBuilder()
