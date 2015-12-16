@@ -16,20 +16,26 @@
 package tachyon.client.keyvalue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.BlockInfo;
+import tachyon.thrift.NetAddress;
+import tachyon.worker.keyvalue.KeyValueWorkerClient;
 
 /**
  * A client to talk to remote key-value worker to access a key
  */
 public class ClientKeyValueFileReader implements KeyValueFileReader {
-
+  private KeyValueWorkerClient mClient;
   private long mBlockId;
 
   public ClientKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
@@ -38,10 +44,17 @@ public class ClientKeyValueFileReader implements KeyValueFileReader {
     TachyonFile tFile = tfs.open(uri);
     List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
     mBlockId = blockIds.get(0);
+    BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
+    NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+    mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
   }
 
   @Override
-  public byte[] get(byte[] key) throws IOException {
-    return null;
+  public byte[] get(byte[] key) throws IOException, TachyonException {
+    ByteBuffer value = mClient.get(mBlockId, ByteBuffer.wrap(key));
+    if (value == null) {
+      return null;
+    }
+    return value.array();
   }
 }
