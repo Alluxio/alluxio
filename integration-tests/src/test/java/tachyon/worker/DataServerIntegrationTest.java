@@ -129,24 +129,19 @@ public class DataServerIntegrationTest {
    * Asserts that the message back matches the block response protocols.
    */
   private void assertValid(final DataServerMessage msg, final ByteBuffer expectedData,
-      final long blockId, final long offset, final long length, final long lockId,
-      final long sessionId) {
+      final long blockId, final long offset, final long length) {
     Assert.assertEquals(expectedData, msg.getReadOnlyData());
     Assert.assertEquals(blockId, msg.getBlockId());
     Assert.assertEquals(offset, msg.getOffset());
     Assert.assertEquals(length, msg.getLength());
-    Assert.assertEquals(lockId, msg.getLockId());
-    Assert.assertEquals(sessionId, msg.getSessionId());
-
   }
 
   /**
    * Asserts that the message back matches the block response protocols.
    */
   private void assertValid(final DataServerMessage msg, final int expectedSize, final long blockId,
-      final long offset, final long length, final long lockId, final long sessionId) {
-    assertValid(msg, BufferUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length,
-        lockId, sessionId);
+      final long offset, final long length) {
+    assertValid(msg, BufferUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
   }
 
   @Test
@@ -169,8 +164,7 @@ public class DataServerIntegrationTest {
     BlockInfo block = getFirstBlockInfo(file);
     for (int i = 0; i < 10; i ++) {
       DataServerMessage recvMsg = request(block);
-      assertValid(recvMsg, length, block.getBlockId(), 0, length, recvMsg.getLockId(),
-          mWorkerClient.getSessionId());
+      assertValid(recvMsg, length, block.getBlockId(), 0, length);
     }
   }
 
@@ -193,16 +187,14 @@ public class DataServerIntegrationTest {
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block1 = getFirstBlockInfo(file1);
     DataServerMessage recvMsg1 = request(block1);
-    assertValid(recvMsg1, length, block1.getBlockId(), 0, length, recvMsg1.getLockId(),
-        mWorkerClient.getSessionId());
+    assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
     TachyonFile file2 =
         TachyonFSTestUtils.createByteFile(mTFS, "/readFile2", TachyonStorageType.STORE,
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block2 = getFirstBlockInfo(file2);
     DataServerMessage recvMsg2 = request(block2);
-    assertValid(recvMsg2, length, block2.getBlockId(), 0, length, recvMsg2.getLockId(),
-        mWorkerClient.getSessionId());
+    assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
     CommonUtils
         .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2
@@ -221,8 +213,7 @@ public class DataServerIntegrationTest {
     final int offset = 0;
     final int length = 6;
     DataServerMessage recvMsg = request(block, offset, length);
-    assertValid(recvMsg, length, block.getBlockId(), offset, length, recvMsg.getLockId(),
-        mWorkerClient.getSessionId());
+    assertValid(recvMsg, length, block.getBlockId(), offset, length);
   }
 
   @Test
@@ -235,7 +226,7 @@ public class DataServerIntegrationTest {
     final int length = 6;
     DataServerMessage recvMsg = request(block, offset, length);
     assertValid(recvMsg, BufferUtils.getIncreasingByteBuffer(offset, length), block.getBlockId(),
-        offset, length, recvMsg.getLockId(), mWorkerClient.getSessionId());
+        offset, length);
   }
 
   @Test
@@ -246,8 +237,7 @@ public class DataServerIntegrationTest {
             UnderStorageType.NO_PERSIST, length);
     BlockInfo block = getFirstBlockInfo(file);
     DataServerMessage recvMsg = request(block);
-    assertValid(recvMsg, length, block.getBlockId(), 0, length, recvMsg.getLockId(),
-        mWorkerClient.getSessionId());
+    assertValid(recvMsg, length, block.getBlockId(), 0, length);
   }
 
   private ByteBuffer readRemotely(RemoteBlockReader client, BlockInfo block, int length)
