@@ -88,7 +88,9 @@ public final class Constants {
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
   public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
-  public static final String WORKER_CLIENT_SERVICE_NAME = "Worker";
+  public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorker";
+  public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorker";
+
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
