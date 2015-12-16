@@ -82,8 +82,8 @@ public final class RPCBlockReadRequest extends RPCRequest {
 
   @Override
   public String toString() {
-    return "RPCBlockReadRequest(" + mBlockId + ", " + mOffset
-        + ", " + mLength + ", " + mLockId + ", " + mSessionId + ")";
+    return String.format("RPCBlockReadRequest(%s, %s, %s, %s, %s)",
+        mBlockId, mOffset, mLength, mLockId, mSessionId);
   }
 
   public long getBlockId() {

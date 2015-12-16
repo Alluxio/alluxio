@@ -33,7 +33,7 @@ import tachyon.exception.ExceptionMessage;
 public final class RemoteBlockInStream extends BufferedBlockInStream {
   /** The address of the worker to read the data from. */
   private final InetSocketAddress mLocation;
-  /** The returned lock id after acquiring the block lock */
+  /** The returned lock id after acquiring the block lock. */
   private final Long mLockId;
 
   /** Client to communicate with the remote worker. */
