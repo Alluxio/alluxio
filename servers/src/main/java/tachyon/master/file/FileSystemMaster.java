@@ -1607,29 +1607,33 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  private synchronized List<PersistFile> pollToCheckpoint(long workerId)
+  private List<PersistFile> pollToCheckpoint(long workerId)
       throws FileDoesNotExistException, InvalidPathException {
     List<PersistFile> files = Lists.newArrayList();
-    if (!mWorkerToAsyncPersistFile.containsKey(workerId)) {
-      return files;
+    synchronized (mWorkerToAsyncPersistFile) {
+      if (!mWorkerToAsyncPersistFile.containsKey(workerId)) {
+        return files;
+      }
     }
 
     List<Long> toRequestFilePersistence = Lists.newArrayList();
-    Set<Long> scheduledFiles = mWorkerToAsyncPersistFile.get(workerId);
-    for (long fileId : Sets.newHashSet(scheduledFiles)) {
-      InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      if (inode.isCompleted()) {
-        toRequestFilePersistence.add(fileId);
-        List<Long> blockIds = Lists.newArrayList();
-        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
-          blockIds.add(fileBlockInfo.blockInfo.blockId);
-        }
+    synchronized (mWorkerToAsyncPersistFile) {
+      Set<Long> scheduledFiles = mWorkerToAsyncPersistFile.get(workerId);
+      for (long fileId : Sets.newHashSet(scheduledFiles)) {
+        InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+        if (inode.isCompleted()) {
+          toRequestFilePersistence.add(fileId);
+          List<Long> blockIds = Lists.newArrayList();
+          for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+            blockIds.add(fileBlockInfo.blockInfo.blockId);
+          }
 
-        PersistFile toCheckpoint = new PersistFile(fileId, blockIds);
-        files.add(toCheckpoint);
-        // update the inode file persisence state
-        inode.setPersistenceState(PersistenceState.PERSISTING);
-        scheduledFiles.remove(fileId);
+          PersistFile toCheckpoint = new PersistFile(fileId, blockIds);
+          files.add(toCheckpoint);
+          // update the inode file persisence state
+          inode.setPersistenceState(PersistenceState.PERSISTING);
+          scheduledFiles.remove(fileId);
+        }
       }
     }
 
