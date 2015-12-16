@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.exception.TachyonException;
-import tachyon.worker.WorkerClient;
+import tachyon.worker.BlockWorkerClient;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
@@ -29,7 +29,7 @@ import tachyon.worker.WorkerClient;
  */
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;
-  private final WorkerClient mWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
 
   /**
    * Creates a new block output stream.
@@ -41,13 +41,13 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   public RemoteBlockOutStream(long blockId, long blockSize) throws IOException {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
-    mWorkerClient = mContext.acquireWorkerClient();
+    mBlockWorkerClient = mContext.acquireWorkerClient();
     try {
-      mWorkerClient.connect();
-      mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
-          mWorkerClient.getSessionId());
+      mBlockWorkerClient.connect();
+      mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
+          mBlockWorkerClient.getSessionId());
     } catch (IOException e) {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
   }
@@ -63,13 +63,13 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   public RemoteBlockOutStream(long blockId, long blockSize, String hostname) throws IOException {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
-    mWorkerClient = mContext.acquireWorkerClient(hostname);
+    mBlockWorkerClient = mContext.acquireWorkerClient(hostname);
     try {
-      mWorkerClient.connect();
-      mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
-          mWorkerClient.getSessionId());
+      mBlockWorkerClient.connect();
+      mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
+          mBlockWorkerClient.getSessionId());
     } catch (IOException e) {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
   }
@@ -81,11 +81,11 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     }
     mRemoteWriter.close();
     try {
-      mWorkerClient.cancelBlock(mBlockId);
+      mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-    mContext.releaseWorkerClient(mWorkerClient);
+    mContext.releaseWorkerClient(mBlockWorkerClient);
     mClosed = true;
   }
 
@@ -98,19 +98,19 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter.close();
     if (mFlushedBytes > 0) {
       try {
-        mWorkerClient.cacheBlock(mBlockId);
+        mBlockWorkerClient.cacheBlock(mBlockId);
       } catch (TachyonException e) {
         throw new IOException(e);
       }
       ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
       try {
-        mWorkerClient.cancelBlock(mBlockId);
+        mBlockWorkerClient.cancelBlock(mBlockId);
       } catch (TachyonException e) {
         throw new IOException(e);
       }
     }
-    mContext.releaseWorkerClient(mWorkerClient);
+    mContext.releaseWorkerClient(mBlockWorkerClient);
     mClosed = true;
   }
 
