@@ -51,9 +51,9 @@ interface FileSystem {
 
   void free(TachyonURI path, FreeOptions options);
 
-  FileInfo getStatus(TachyonURI path);
+  PathStatus getStatus(TachyonURI path);
 
-  FileInfo getStatus(TachyonURI path, GetInfoOptions options);
+  PathStatus getStatus(TachyonURI path, GetInfoOptions options);
 
   List<FileInfo> listStatus(TachyonURI path);
 
