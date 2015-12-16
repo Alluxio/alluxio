@@ -386,7 +386,7 @@ public class ApplicationMasterTest {
     };
   }
 
-  private static class ApplicationMasterPrivateAccess {
+  private static final class ApplicationMasterPrivateAccess {
     private final ApplicationMaster mMaster;
 
     private ApplicationMasterPrivateAccess(ApplicationMaster master) {
