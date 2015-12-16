@@ -76,11 +76,11 @@ The following shows the details of the available metrics.
 * FreeFileOps: Total number of FreeFile operations.
 * GetFileBlockInfoOps: Total number of GetFileBlockInfo operations.
 * GetFileInfoOps: Total number of GetFileInfo operations.
-* MountPathOps: Total number of MountPath operations.
+* MountOps: Total number of Mount operations.
 * NewBlockRequestOps: Total number of NewBlockRequest operations.
 * RenamePathOps: Total number of the RenamePath operations.
-* SetFileStateOps: Total number of the SetFileState operations.
-* UnmountPathOps: Total number of UnmountPath operations.
+* SetStateOps: Total number of the SetState operations.
+* UnmountOps: Total number of Unmount operations.
 
 ### Worker
 

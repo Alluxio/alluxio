@@ -68,12 +68,12 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
   private final Counter mPathsMounted =
       mMetricRegistry.counter(MetricRegistry.name("PathsMounted"));
-  private final Counter mMountPathsOps =
-      mMetricRegistry.counter(MetricRegistry.name("MountPathOps"));
+  private final Counter mMountOps =
+      mMetricRegistry.counter(MetricRegistry.name("MountOps"));
   private final Counter mPathsUnmounted =
       mMetricRegistry.counter(MetricRegistry.name("PathsUnmounted"));
-  private final Counter mUnmountPathsOps =
-      mMetricRegistry.counter(MetricRegistry.name("UnmountPathsOps"));
+  private final Counter mUnmountOps =
+      mMetricRegistry.counter(MetricRegistry.name("UnmountOps"));
   private final Counter mGetFileInfoOps =
       mMetricRegistry.counter(MetricRegistry.name("GetFileInfoOps"));
   private final Counter mFileInfosGot =
@@ -87,8 +87,8 @@ public class MasterSource implements Source {
   private final Counter mNewBlocksRequested =
       mMetricRegistry.counter(MetricRegistry.name("NewBlocksRequested"));
 
-  private final Counter mSetFileStatusOps =
-      mMetricRegistry.counter(MetricRegistry.name("SetFileStatusOps"));
+  private final Counter mSetStateOps =
+      mMetricRegistry.counter(MetricRegistry.name("SetStateOps"));
 
   public void registerGauges(final TachyonMaster tachyonMaster) {
     if (mGaugesRegistered) {
@@ -267,20 +267,20 @@ public class MasterSource implements Source {
     mPathsUnmounted.inc(n);
   }
 
-  public void incUnmountPathsOps(long n) {
-    mUnmountPathsOps.inc(n);
+  public void incUnmountOps(long n) {
+    mUnmountOps.inc(n);
   }
 
   public void incPathsMounted(long n) {
     mPathsMounted.inc(n);
   }
 
-  public void incMountPathsOps(long n) {
-    mMountPathsOps.inc(n);
+  public void incMountOps(long n) {
+    mMountOps.inc(n);
   }
 
-  public void incSetStatesOps(long n) {
-    mSetFileStatusOps.inc(n);
+  public void incSetStateOps(long n) {
+    mSetStateOps.inc(n);
   }
 
   public void incNewBlockRequestOps(long n) {

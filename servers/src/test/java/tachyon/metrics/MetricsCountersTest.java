@@ -48,6 +48,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * Unit tests for {@link tachyon.master.MasterSource}.
@@ -60,7 +61,8 @@ public final class MetricsCountersTest {
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
 
   private static final TachyonURI DIRECTORY_URI = new TachyonURI("/directory");
-  private static final TachyonURI MOUNT_URI = new TachyonURI("/mount");
+  private static final TachyonURI MOUNT_URI =
+      new TachyonURI("/tmp/mount-" + System.currentTimeMillis());
 
   private static CreateOptions sNestedFileOptions =
       new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
@@ -69,6 +71,8 @@ public final class MetricsCountersTest {
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId;
+
+  private UnderFileSystem mUfs = null;
 
   Map<String, Counter> mCounters;
 
@@ -94,7 +98,7 @@ public final class MetricsCountersTest {
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81));
+    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
@@ -102,6 +106,8 @@ public final class MetricsCountersTest {
 
     MasterContext.reset();
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
+
+    mUfs = UnderFileSystem.get(TachyonURI.SEPARATOR, MasterContext.getConf());
   }
 
   @Test
@@ -259,7 +265,7 @@ public final class MetricsCountersTest {
 
     mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
 
-    Assert.assertEquals(1, mCounters.get("SetFileStatusOps").getCount());
+    Assert.assertEquals(1, mCounters.get("SetStateOps").getCount());
   }
 
   @Test
@@ -311,15 +317,18 @@ public final class MetricsCountersTest {
 
   @Test
   public void mountUnmountTest() throws Exception {
-    mFileSystemMaster.mount(MOUNT_URI, TEST_URI);
+
+    mUfs.mkdirs(MOUNT_URI.getPath(), false);
+
+    mFileSystemMaster.mount(TEST_URI, MOUNT_URI);
 
     Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
-    Assert.assertEquals(1, mCounters.get("MountPathOps").getCount());
+    Assert.assertEquals(1, mCounters.get("MountOps").getCount());
 
-    mFileSystemMaster.unmount(MOUNT_URI);
+    mFileSystemMaster.unmount(TEST_URI);
 
     Assert.assertEquals(1, mCounters.get("PathsUnmounted").getCount());
-    Assert.assertEquals(1, mCounters.get("UnmountPathsOps").getCount());
+    Assert.assertEquals(1, mCounters.get("UnmountOps").getCount());
 
     // trying to mount an existing file
     mFileSystemMaster.create(MOUNT_URI, sNestedFileOptions);
@@ -330,7 +339,7 @@ public final class MetricsCountersTest {
     }
 
     Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
-    Assert.assertEquals(2, mCounters.get("MountPathOps").getCount());
+    Assert.assertEquals(2, mCounters.get("MountOps").getCount());
   }
 
   private long createCompleteFileWithSingleBlock(TachyonURI uri) throws Exception {
