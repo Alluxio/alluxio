@@ -17,9 +17,6 @@ package tachyon.master;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
@@ -47,7 +44,6 @@ import tachyon.worker.lineage.LineageWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
 
@@ -123,7 +119,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     WorkerContext.reset(mWorkerConf);
 
     runWorker();
-    LOG.info("TachyonConf: " + mWorkerConf.toString());
   }
 
   @Override
