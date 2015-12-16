@@ -30,7 +30,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Utility class for {@link TachyonConf}
  */
-public class ConfUtils {
+public final class ConfUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private ConfUtils() {} // Prevent instantiation.
