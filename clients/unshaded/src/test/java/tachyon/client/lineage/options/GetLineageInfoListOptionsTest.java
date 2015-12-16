@@ -15,6 +15,7 @@
 
 package tachyon.client.lineage.options;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
@@ -23,12 +24,14 @@ public class GetLineageInfoListOptionsTest {
 
   @Test
   public void buildTest() {
-    new GetLineageInfoListOptions.Builder(new TachyonConf()).build();
+    Assert.assertNotNull("The GetLineageInfoListOptions should not be null",
+        new GetLineageInfoListOptions.Builder(new TachyonConf()).build());
   }
 
   @Test
   public void defaultsTest() {
-    GetLineageInfoListOptions.defaults();
+    Assert.assertNotNull("The default options should not be null",
+        GetLineageInfoListOptions.defaults());
   }
 
 }
