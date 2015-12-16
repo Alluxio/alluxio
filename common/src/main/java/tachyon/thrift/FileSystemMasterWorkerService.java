@@ -50,7 +50,7 @@ public class FileSystemMasterWorkerService {
     public Set<Long> getPinIdList() throws org.apache.thrift.TException;
 
     /**
-     * Periodic lineage worker heartbeat. Returns the command for persisting
+     * Periodic file system worker heartbeat. Returns the command for persisting
      * the blocks of a file.
      * 
      * @param workerId the id of the worker

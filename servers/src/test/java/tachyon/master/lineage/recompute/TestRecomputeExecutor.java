@@ -29,7 +29,6 @@ import tachyon.job.Job;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.thrift.FileInfo;
 
 /**
  * Tests {@link RecomputeExecutor}.
@@ -49,17 +48,14 @@ public final class TestRecomputeExecutor {
     // mock planner
     RecomputePlanner planner = Mockito.mock(RecomputePlanner.class);
     Job job = Mockito.mock(Job.class);
-    Lineage lineage =
-        new Lineage(1, Lists.<Long>newArrayList(), Lists.newArrayList(fileId), job);
+    Lineage lineage = new Lineage(1, Lists.<Long>newArrayList(), Lists.newArrayList(fileId), job);
     Mockito.when(planner.plan()).thenReturn(new RecomputePlan(Lists.newArrayList(lineage)));
 
     // mock file system master
     FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
     Mockito.when(fileSystemMaster.getFileStoreView())
         .thenReturn(new FileSystemMasterView(fileSystemMaster));
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.isLost = true;
-    Mockito.when(fileSystemMaster.getFileInfo(fileId)).thenReturn(fileInfo);
+    Mockito.when(fileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(fileId));
 
     RecomputeExecutor executor = new RecomputeExecutor(planner, fileSystemMaster);
     // wait for the executor to finish running

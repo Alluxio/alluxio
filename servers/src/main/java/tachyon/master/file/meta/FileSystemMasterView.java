@@ -15,6 +15,8 @@
 
 package tachyon.master.file.meta;
 
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 
 import tachyon.exception.FileDoesNotExistException;
@@ -57,5 +59,12 @@ public final class FileSystemMasterView {
    */
   public synchronized FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getFileInfo(fileId);
+  }
+
+  /**
+   * @return all the files lost on the workers
+   */
+  public synchronized List<Long> getLostFiles() {
+    return mFileSystemMaster.getLostFiles();
   }
 }

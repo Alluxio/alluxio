@@ -29,8 +29,8 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.FileSystemMasterView;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
@@ -68,11 +68,9 @@ public final class CheckpointLatestSchedulerTest {
         .thenReturn(PersistenceState.NOT_PERSISTED);
     FileInfo fileInfo1 = new FileInfo();
     fileInfo1.isCompleted = true;
-    fileInfo1.isLost = false;
     Mockito.when(mFileSystemMaster.getFileInfo(fileId1)).thenReturn(fileInfo1);
     FileInfo fileInfo2 = new FileInfo();
     fileInfo2.isCompleted = false;
-    fileInfo1.isLost = false;
     Mockito.when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
 
     CheckpointPlan plan = mScheduler.schedule(new LineageStoreView(mLineageStore),

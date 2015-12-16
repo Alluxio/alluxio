@@ -20,8 +20,8 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import tachyon.exception.FileDoesNotExistException;
-import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.FileSystemMasterView;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -36,10 +36,10 @@ public final class LineageStateUtils {
    * @return true if all the output files of the given lineage are completed, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileStoreView)
+  public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileSystemView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
+      FileInfo fileInfo = fileSystemView.getFileInfo(outputFile);
       if (!fileInfo.isCompleted) {
         return false;
       }
@@ -51,11 +51,11 @@ public final class LineageStateUtils {
    * @return true if the lineage needs recompute, false otherwise
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static boolean needRecompute(Lineage lineage, FileSystemMasterView fileStoreView)
+  public static boolean needRecompute(Lineage lineage, FileSystemMasterView fileSystemView)
       throws FileDoesNotExistException {
+    List<Long> lostFiles = fileSystemView.getLostFiles();
     for (long outputFile : lineage.getOutputFiles()) {
-      FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
-      if (fileInfo.isLost) {
+      if (lostFiles.contains(outputFile)) {
         return true;
       }
     }
@@ -66,10 +66,10 @@ public final class LineageStateUtils {
    * @return true if all the output files are persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isPersisted(Lineage lineage, FileSystemMasterView fileStoreView)
+  public static boolean isPersisted(Lineage lineage, FileSystemMasterView fileSystemView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      if (fileStoreView.getFilePersistenceState(outputFile) != PersistenceState.PERSISTED) {
+      if (fileSystemView.getFilePersistenceState(outputFile) != PersistenceState.PERSISTED) {
         return false;
       }
     }
@@ -80,11 +80,11 @@ public final class LineageStateUtils {
    * @return true if at least one of the output files is being persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isInCheckpointing(Lineage lineage, FileSystemMasterView fileStoreView)
+  public static boolean isInCheckpointing(Lineage lineage, FileSystemMasterView fileSystemView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      if (fileStoreView.getFilePersistenceState(outputFile) == PersistenceState.SCHEDULED
-          || fileStoreView.getFilePersistenceState(outputFile) == PersistenceState.PERSISTING) {
+      if (fileSystemView.getFilePersistenceState(outputFile) == PersistenceState.SCHEDULED
+          || fileSystemView.getFilePersistenceState(outputFile) == PersistenceState.PERSISTING) {
         return true;
       }
     }
@@ -95,12 +95,12 @@ public final class LineageStateUtils {
    * @return all the output files of the given lineage that are lost on the workers
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static List<Long> getLostFiles(Lineage lineage, FileSystemMasterView fileStoreView)
+  public static List<Long> getLostFiles(Lineage lineage, FileSystemMasterView fileSystemView)
       throws FileDoesNotExistException {
     List<Long> result = Lists.newArrayList();
+    List<Long> lostFiles = fileSystemView.getLostFiles();
     for (long outputFile : lineage.getOutputFiles()) {
-      FileInfo fileInfo = fileStoreView.getFileInfo(outputFile);
-      if (fileInfo.isLost) {
+      if (lostFiles.contains(outputFile)) {
         result.add(outputFile);
       }
     }
