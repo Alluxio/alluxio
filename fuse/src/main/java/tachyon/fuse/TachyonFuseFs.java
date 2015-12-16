@@ -217,9 +217,11 @@ final class TachyonFuseFs extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // Since Tachyon does not support ownership yet,
-      // set fake ownership on the user and group that
-      // is running tachyon-fuse
+      // TODO(andreareale): understand how to map FileInfo#getUserName()
+      // and FileInfo#getGroupName() to UIDs and GIDs of the node
+      // where tachyon-fuse is mounted.
+      // While this is not done, just use uid and gid of the user
+      // running tachyon-fuse.
       stat.st_uid.set(UID_AND_GID[0]);
       stat.st_gid.set(UID_AND_GID[1]);
 
