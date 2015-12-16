@@ -104,7 +104,7 @@ These are the configuration parameters related to Tachyon's lineage feature.
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.interval.ms</td>
-  <td>600000</td>
+  <td>500000</td>
   <td>
   The interval (in milliseconds) between Tachyon's checkpoint scheduling.
   </td>
@@ -120,11 +120,11 @@ These are the configuration parameters related to Tachyon's lineage feature.
 </tr>
 <tr>
   <td>tachyon.master.lineage.recompute.interval.ms</td>
-  <td>600000</td>
+  <td>300000</td>
   <td>
   The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the 
   all the lost files tracked by lineage, and re-executes the corresponding jobs.
-  every 10 minutes.
+  every 5 minutes.
   </td>
 </tr>
 <tr>
