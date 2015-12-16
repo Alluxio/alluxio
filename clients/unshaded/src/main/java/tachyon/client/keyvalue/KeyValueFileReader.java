@@ -46,5 +46,5 @@ public interface KeyValueFileReader {
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
    */
-  byte[] get(byte[] key) throws IOException;
+  byte[] get(byte[] key) throws IOException, TachyonException;
 }
