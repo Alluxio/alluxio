@@ -11,40 +11,37 @@
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
- *
  */
 
 package tachyon.client.keyvalue;
 
+import java.io.IOException;
+import java.util.List;
+
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
-import java.io.IOException;
-
 /**
- * Interface of the reader class to access a Tachyon key-value file.
+ * A client to talk to remote key-value worker to access a key
  */
-public interface KeyValueFileReader {
+public class ClientKeyValueFileReader implements KeyValueFileReader {
 
-  class Factory {
-    /**
-     * Factory method to create a KeyValueFileReader.
-     *
-     * @param uri Tachyon URI of the key-value file as input
-     * @return an instance of a {@link KeyValueFileReader}
-     * @throws TachyonException
-     * @throws IOException
-     */
-    public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
-      return new ClientKeyValueFileReader(uri);
-    }
+  private long mBlockId;
+
+  public ClientKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
+    Preconditions.checkArgument(uri != null);
+    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
+    TachyonFile tFile = tfs.open(uri);
+    List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
+    mBlockId = blockIds.get(0);
   }
 
-  /**
-   * Gets the value associated with the given key in the key-value file, return null if not found.
-   *
-   * @param key key to get, cannot be null
-   * @return bytes of the value if found, null otherwise
-   */
-  byte[] get(byte[] key) throws IOException;
+  @Override
+  public byte[] get(byte[] key) throws IOException {
+    return null;
+  }
 }

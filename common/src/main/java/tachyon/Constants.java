@@ -72,6 +72,7 @@ public final class Constants {
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long RAW_TABLE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
