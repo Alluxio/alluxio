@@ -139,6 +139,10 @@ public final class LocalTachyonMaster {
 
   }
 
+  public void kill() throws Exception {
+    mMasterThread.interrupt();
+  }
+
   public void clearClients() throws IOException {
     mClientPool.close();
   }

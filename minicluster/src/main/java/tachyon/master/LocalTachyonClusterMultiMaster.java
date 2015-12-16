@@ -110,7 +110,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       if (!mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is a standby. killing it...", k);
-          mMasters.get(k).stop();
+          mMasters.get(k).kill();
           LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
@@ -127,7 +127,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       if (mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is the leader. killing it...", k);
-          mMasters.get(k).stop();
+          mMasters.get(k).kill();
           LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
