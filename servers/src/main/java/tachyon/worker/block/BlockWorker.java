@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
+import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.thrift.KeyValueWorkerService;
 import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -48,6 +50,7 @@ import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.keyvalue.KeyValueServiceHandler;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
@@ -67,8 +70,10 @@ public final class BlockWorker extends WorkerBase {
   private final PinListSync mPinListSync;
   /** Runnable responsible for clean up potential zombie sessions. */
   private final SessionCleaner mSessionCleanerThread;
-  /** Logic for handling RPC requests. */
-  private final BlockServiceHandler mServiceHandler;
+  /** Logic for handling block RPC requests. */
+  private final BlockServiceHandler mBlockServiceHandler;
+  /** Logic for handling key-value RPC requests. */
+  private final KeyValueServiceHandler mKeyValueServiceHandler;
   /** Logic for managing block store and under file system store. */
   private final BlockDataManager mBlockDataManager;
   /** Server for data requests and responses. */
@@ -104,10 +109,11 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * @return the worker service handler
+   * TODO(binfan): refactor this test-only method outside main class
+   * @return the worker service handler (test only)
    */
   public BlockServiceHandler getWorkerServiceHandler() {
-    return mServiceHandler;
+    return mBlockServiceHandler;
   }
 
   /**
@@ -192,7 +198,10 @@ public final class BlockWorker extends WorkerBase {
     mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
-    mServiceHandler = new BlockServiceHandler(mBlockDataManager);
+    // TODO(binfan): move RPC setup from BlockWorker to TachyonWorker, following the same
+    // pattern as in TachyonMaster
+    mBlockServiceHandler = new BlockServiceHandler(mBlockDataManager);
+    mKeyValueServiceHandler = new KeyValueServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
     // reset worker RPC port
@@ -306,8 +315,17 @@ public final class BlockWorker extends WorkerBase {
   private TThreadPoolServer createThriftServer() {
     int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
     int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
-    WorkerService.Processor<BlockServiceHandler> processor =
-        new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
+    // set up multiplexed thrift processors
+    // TODO(binfan): move this logic outside BlockWorker but to TachyonWorker
+    TMultiplexedProcessor processor = new TMultiplexedProcessor();
+    // TODO(binfan): make names returned from corresponding worker
+    processor.registerProcessor("BlockWorker", new WorkerService.Processor<BlockServiceHandler>
+        (mBlockServiceHandler));
+    processor.registerProcessor("KeyValueWorker", new KeyValueWorkerService
+        .Processor<KeyValueServiceHandler>
+        (mKeyValueServiceHandler));
+
+    // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;
     try {
       tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);

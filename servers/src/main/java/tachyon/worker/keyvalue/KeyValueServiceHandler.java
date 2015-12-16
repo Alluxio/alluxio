@@ -56,10 +56,9 @@ public final class KeyValueServiceHandler implements KeyValueWorkerService.Iface
   /**
    * Gets the value for <code>key</code> in the given block, or null if key is not found.
    *
-   * @param key key to fetch
    * @param blockId block Id
+   * @param key key to fetch
    * @return value or null if not found
-   * @throws BlockDoesNotExistException
    */
   @Override
   public ByteBuffer get(long blockId, ByteBuffer key) throws TachyonTException, ThriftIOException {
