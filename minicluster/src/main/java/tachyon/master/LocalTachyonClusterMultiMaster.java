@@ -79,6 +79,12 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public LocalTachyonMaster getMaster() {
+    for (LocalTachyonMaster master : mMasters) {
+      // Return the leader master, if possible.
+      if (master.isServing()) {
+        return master;
+      }
+    }
     return mMasters.get(0);
   }
 
