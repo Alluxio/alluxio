@@ -22,6 +22,8 @@ import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,8 +197,9 @@ public final class BlockWorkerClient extends ClientBase {
     if (!mConnected) {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
-      mProtocol =
+      TProtocol binaryProtocol =
           new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       mClient = new BlockWorkerService.Client(mProtocol);
 
       try {
