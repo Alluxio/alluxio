@@ -38,7 +38,7 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -319,7 +319,7 @@ public final class BlockWorker extends WorkerBase {
     // TODO(binfan): move this logic outside BlockWorker but to TachyonWorker
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     // TODO(binfan): make names returned from corresponding worker
-    processor.registerProcessor("BlockWorker", new WorkerService.Processor<BlockServiceHandler>
+    processor.registerProcessor("BlockWorker", new BlockWorkerService.Processor<BlockServiceHandler>
         (mBlockServiceHandler));
     processor.registerProcessor("KeyValueWorker", new KeyValueWorkerService
         .Processor<KeyValueServiceHandler>
