@@ -170,12 +170,9 @@ public class MasterFaultToleranceIntegrationTest {
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
-      LOG.info("create file: " + k);
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
-    LOG.info("list files");
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
-    LOG.info("list files done");
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
