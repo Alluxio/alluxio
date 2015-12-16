@@ -3,7 +3,7 @@ namespace java tachyon.thrift
 include "common.thrift"
 include "exception.thrift"
 
-service WorkerService extends common.TachyonService {
+service BlockWorkerService extends common.TachyonService {
 
   /**
    * Accesses a block given the block id.

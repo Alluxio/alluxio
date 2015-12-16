@@ -41,13 +41,13 @@ import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerService;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
  *
- * Since {@link WorkerService.Client} is not thread safe, this class has to guarantee thread safety.
+ * Since {@link BlockWorkerService.Client} is not thread safe, this class has to guarantee thread safety.
  */
 public final class WorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -55,7 +55,7 @@ public final class WorkerClient extends ClientBase {
 
   private final boolean mIsLocal;
 
-  private WorkerService.Client mClient;
+  private BlockWorkerService.Client mClient;
   private long mSessionId;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
@@ -195,7 +195,7 @@ public final class WorkerClient extends ClientBase {
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
           mTachyonConf, mAddress));
-      mClient = new WorkerService.Client(mProtocol);
+      mClient = new BlockWorkerService.Client(mProtocol);
 
       try {
         mProtocol.getTransport().open();
