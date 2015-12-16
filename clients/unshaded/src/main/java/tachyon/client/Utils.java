@@ -24,6 +24,9 @@ import java.util.Random;
 public final class Utils {
   private static Random sRandom = new Random();
 
+  /**
+   * @return a random long which is guaranteed to be non negative (zero is allowed)
+   */
   public static synchronized long getRandomNonNegativeLong() {
     return Math.abs(sRandom.nextLong());
   }
