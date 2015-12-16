@@ -63,7 +63,8 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name("DeletePathOps"));
   private final Counter mPathsRenamed =
       mMetricRegistry.counter(MetricRegistry.name("PathsRenamed"));
-  private final Counter mRenamePathOps = mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
+  private final Counter mRenamePathOps =
+      mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
   private final Counter mFilesPersisted =
       mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
   private final Counter mPathsMounted =
