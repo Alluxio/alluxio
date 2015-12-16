@@ -37,14 +37,14 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
+import tachyon.worker.BlockWorkerClient;
 
 /**
  * Tests for {@link TachyonBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, NetworkAddressUtils.class,
-    WorkerClient.class})
+    BlockWorkerClient.class})
 public final class TachyonBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 1000L;
@@ -74,16 +74,16 @@ public final class TachyonBlockStoreTest {
   private TachyonBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
   private BlockMasterClient mMasterClient;
-  private WorkerClient mWorkerClient;
+  private BlockWorkerClient mBlockWorkerClient;
 
   /**
    * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
    *
    * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
-   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and {@link #mWorkerClient}
+   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and {@link #mBlockWorkerClient}
    *    when asked for master/worker clients<br>
    * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
-   * 4. {@link #mWorkerClient} is made to understand that locking {@link #BLOCK_ID} should return
+   * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should return
    *    the path to {@link #mTestFile}.
    */
   @Before
@@ -99,10 +99,10 @@ public final class TachyonBlockStoreTest {
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
     Mockito.when(mBlockStoreContext.acquireMasterClient()).thenReturn(mMasterClient);
 
-    mWorkerClient = PowerMockito.mock(WorkerClient.class);
-    Mockito.when(mWorkerClient.lockBlock(BLOCK_ID)).thenReturn(mTestFile.getAbsolutePath());
+    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(mTestFile.getAbsolutePath());
     Mockito.when(mBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
-        .thenReturn(mWorkerClient);
+        .thenReturn(mBlockWorkerClient);
   }
 
   /**

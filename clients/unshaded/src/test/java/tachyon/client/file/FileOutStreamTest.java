@@ -51,11 +51,11 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.WorkerClient;
+import tachyon.worker.BlockWorkerClient;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
-    TachyonBlockStore.class, UnderFileSystem.class, WorkerClient.class})
+    TachyonBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -66,7 +66,7 @@ public class FileOutStreamTest {
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
   private UnderFileSystem mUnderFileSystem;
-  private WorkerClient mWorkerClient;
+  private BlockWorkerClient mBlockWorkerClient;
 
   private Map<Long, TestBufferedBlockOutStream> mTachyonOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
@@ -86,10 +86,10 @@ public class FileOutStreamTest {
     mBlockStore = PowerMockito.mock(TachyonBlockStore.class);
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mWorkerClient = PowerMockito.mock(WorkerClient.class);
+    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
     Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getFileInfo(Mockito.anyLong())).thenReturn(new FileInfo());
 

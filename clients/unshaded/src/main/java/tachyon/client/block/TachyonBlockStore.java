@@ -30,7 +30,7 @@ import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
+import tachyon.worker.BlockWorkerClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -229,13 +229,13 @@ public final class TachyonBlockStore {
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr.getHost());
     try {
-      workerClient.promoteBlock(blockId);
+      blockWorkerClient.promoteBlock(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(workerClient);
+      mContext.releaseWorkerClient(blockWorkerClient);
     }
   }
 }

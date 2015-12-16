@@ -27,7 +27,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerClient;
+import tachyon.worker.BlockWorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
@@ -40,7 +40,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   /** File channel providing access to the local data. */
   private final FileChannel mLocalFileChannel;
   /** Client to communicate with the local worker. */
-  private final WorkerClient mWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
 
@@ -55,19 +55,19 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     mContext = BlockStoreContext.INSTANCE;
 
     mCloser = Closer.create();
-    mWorkerClient =
+    mBlockWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
     FileChannel localFileChannel = null;
 
     try {
-      String blockPath = mWorkerClient.lockBlock(blockId);
+      String blockPath = mBlockWorkerClient.lockBlock(blockId);
       if (blockPath == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
       localFileChannel = mCloser.register(localFile.getChannel());
     } catch (IOException e) {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
 
@@ -81,14 +81,14 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     }
     try {
       if (mBlockIsRead) {
-        mWorkerClient.accessBlock(mBlockId);
+        mBlockWorkerClient.accessBlock(mBlockId);
         ClientContext.getClientMetrics().incBlocksReadLocal(1);
       }
-      mWorkerClient.unlockBlock(mBlockId);
+      mBlockWorkerClient.unlockBlock(mBlockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       mCloser.close();
       if (mBuffer != null && mBuffer.isDirect()) {
         BufferUtils.cleanDirectBuffer(mBuffer);
