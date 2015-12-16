@@ -26,8 +26,6 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -38,16 +36,20 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.BlockWorkerService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.BlockWorkerService;
 import tachyon.util.network.NetworkAddressUtils;
 
+import com.google.common.base.Preconditions;
+
 /**
- * The client talks to a worker server. It keeps sending keep alive message to the worker server.
+ * The client talks to a block worker server. It keeps sending keep alive message to the worker
+ * server.
  *
- * Since {@link BlockWorkerService.Client} is not thread safe, this class has to guarantee thread safety.
+ * Since {@link BlockWorkerService.Client} is not thread safe, this class has to guarantee thread
+ * safety.
  */
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -74,8 +76,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
-                           TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "worker");
+      TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
@@ -91,8 +93,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void accessBlock(final long blockId) throws ConnectionFailedException,
-      IOException {
+  public synchronized void accessBlock(final long blockId)
+      throws ConnectionFailedException, IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -110,8 +112,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
-      TachyonException {
+  public synchronized boolean asyncCheckpoint(final long fileId)
+      throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
@@ -176,7 +178,7 @@ public final class BlockWorkerClient extends ClientBase {
 
   @Override
   protected String getServiceName() {
-    return Constants.WORKER_CLIENT_SERVICE_NAME;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
   }
 
   @Override
@@ -193,8 +195,8 @@ public final class BlockWorkerClient extends ClientBase {
     if (!mConnected) {
       LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
-      mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
-          mTachyonConf, mAddress));
+      mProtocol =
+          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
       mClient = new BlockWorkerService.Client(mProtocol);
 
       try {
@@ -209,17 +211,16 @@ public final class BlockWorkerClient extends ClientBase {
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
         final int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
-        mHeartbeat =
-            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
-                mHeartbeatExecutor, interval));
+        mHeartbeat = mExecutorService.submit(
+            new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor, interval));
       }
     }
   }
 
   /**
    * Updates the session id of the client, starting a new session. The previous session's held
-   * resources should have already been freed, and will be automatically freed after the timeout
-   * is exceeded.
+   * resources should have already been freed, and will be automatically freed after the timeout is
+   * exceeded.
    *
    * @param newSessionId the new id that represents the new session
    */
@@ -304,8 +305,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean promoteBlock(final long blockId) throws IOException,
-      TachyonException {
+  public synchronized boolean promoteBlock(final long blockId)
+      throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
@@ -348,8 +349,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
-          IOException {
+  public synchronized boolean requestSpace(final long blockId, final long requestBytes)
+      throws IOException {
     try {
       return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
         @Override
@@ -374,8 +375,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean unlockBlock(final long blockId) throws ConnectionFailedException,
-      IOException {
+  public synchronized boolean unlockBlock(final long blockId)
+      throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws TException {
