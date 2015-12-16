@@ -16,7 +16,6 @@
 package tachyon.client;
 
 import java.net.InetSocketAddress;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -68,7 +67,6 @@ public final class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
     sClientMetrics = new ClientMetrics();
-    sRandom = new Random();
 
     if (sExecutorService != null) {
       sExecutorService.shutdown();
