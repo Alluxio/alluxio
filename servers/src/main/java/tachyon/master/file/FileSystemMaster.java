@@ -990,7 +990,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean rename(long fileId, TachyonURI dstPath)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    MasterContext.getMasterSource().incRenameOps(1);
+    MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
       TachyonURI srcPath = mInodeTree.getPath(srcInode);
@@ -1113,7 +1113,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private void renameFromEntry(RenameEntry entry) {
-    MasterContext.getMasterSource().incRenameOps(1);
+    MasterContext.getMasterSource().incRenamePathOps(1);
     try {
       renameInternal(entry.getId(), new TachyonURI(entry.getDstPath()), true,
           entry.getOpTimeMs());
