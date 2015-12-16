@@ -31,14 +31,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.thrift.KeyValueWorkerService;
-import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.BlockWorkerService;
+import tachyon.thrift.KeyValueWorkerService;
+import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -50,6 +49,7 @@ import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.worker.keyvalue.KeyValueServiceHandler;
 
 /**
@@ -110,6 +110,7 @@ public final class BlockWorker extends WorkerBase {
 
   /**
    * TODO(binfan): refactor this test-only method outside main class
+   *
    * @return the worker service handler (test only)
    */
   public BlockServiceHandler getWorkerServiceHandler() {
@@ -172,11 +173,13 @@ public final class BlockWorker extends WorkerBase {
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup MasterClientBase
-    mBlockMasterClient = new BlockMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
+    mBlockMasterClient =
+        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mTachyonConf), mTachyonConf);
 
-    mFileSystemMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
+    mFileSystemMasterClient =
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mTachyonConf), mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -220,8 +223,8 @@ public final class BlockWorker extends WorkerBase {
             NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
             mStartTimeMs, mTachyonConf);
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
-        mBlockMasterClient);
+    mBlockMasterSync =
+        new BlockMasterSync(mBlockDataManager, mWorkerNetAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
@@ -319,11 +322,10 @@ public final class BlockWorker extends WorkerBase {
     // TODO(binfan): move this logic outside BlockWorker but to TachyonWorker
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     // TODO(binfan): make names returned from corresponding worker
-    processor.registerProcessor("BlockWorker", new BlockWorkerService.Processor<BlockServiceHandler>
-        (mBlockServiceHandler));
-    processor.registerProcessor("KeyValueWorker", new KeyValueWorkerService
-        .Processor<KeyValueServiceHandler>
-        (mKeyValueServiceHandler));
+    processor.registerProcessor(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        new BlockWorkerService.Processor<BlockServiceHandler>(mBlockServiceHandler));
+    processor.registerProcessor(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
+        new KeyValueWorkerService.Processor<KeyValueServiceHandler>(mKeyValueServiceHandler));
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;
@@ -332,9 +334,11 @@ public final class BlockWorker extends WorkerBase {
     } catch (IOException ioe) {
       throw Throwables.propagate(ioe);
     }
-    Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
-        .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
-        .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    Args args =
+        new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
+            .maxWorkerThreads(maxWorkerThreads).processor(processor)
+            .transportFactory(tTransportFactory)
+            .protocolFactory(new TBinaryProtocol.Factory(true, true));
     args.stopTimeoutVal = WorkerContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
     return new TThreadPoolServer(args);
   }
