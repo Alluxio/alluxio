@@ -139,6 +139,11 @@ public final class LocalTachyonMaster {
 
   }
 
+  /**
+   * Kill the master thread, by calling {@link Thread#interrupt()}.
+   *
+   * @throws Exception if master thread cannot be interrupted.
+   */
   public void kill() throws Exception {
     mMasterThread.interrupt();
   }
