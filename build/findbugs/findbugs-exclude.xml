@@ -38,9 +38,18 @@
 	SIC: Could be refactored into a named static inner class
 	UC: Useless non-empty void method
 	UPM: Private method is never called
-	UrF: Unread public/protected field
       -->
-    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM,UrF"/>
+    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM"/>
+  </Match>
+
+  <Match>
+    <!-- This Match uses the BUG_PATTERN for matching.
+
+        URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD: allow unread public/protected variables, but not private ones
+        UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD: allow unused public/protected variables, but not private ones
+
+      -->
+    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD,UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
   </Match>
 
 </FindBugsFilter>
