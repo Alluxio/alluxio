@@ -224,9 +224,7 @@ public final class DataServerMessage {
       // The request message has a lockId and a sessionId
       mHeader.putLong(mLockId);
       mHeader.putLong(mSessionId);
-    }
-
-    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
+    } else if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
       // The response message has a status.
       mHeader.putShort(mStatus.getId());
     }
@@ -275,7 +273,7 @@ public final class DataServerMessage {
   }
 
   /**
-   * Gets the sessionId of the message's data in the block. Make sure the message is ready before
+   * Gets the sessionId of the worker making the request. Make sure the message is ready before
    * calling this method.
    *
    * @return The session id of the requester

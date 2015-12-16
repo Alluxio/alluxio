@@ -42,6 +42,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -113,7 +114,6 @@ public class RemoteBlockInStreamIntegrationTest {
     mReadNoCache = StreamOptionUtils.getInStreamOptionsReadNoCache(mTachyonConf);
     mWorkerToMasterHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-
   }
 
   /**
@@ -556,18 +556,34 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
 
       NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      InetSocketAddress workerInetAddr =
+          new InetSocketAddress(workerAddr.getHost(), workerAddr.getDataPort());
+
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(),
-              new InetSocketAddress(workerAddr.getHost(), workerAddr.getDataPort()));
-      byte[] ret = new byte[k / 2];
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
       Assert.assertEquals(0, is.read());
       mTfs.delete(f);
       CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
+      // The file has been deleted.
       checkFileDeleted(f);
+      // Look! We can still read the deleted file since we have a lock!
+      byte[] ret = new byte[k / 2];
       Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
       is.close();
       checkFileDeleted(f);
+
+      // Try to create an in stream again, and it should fail.
+      RemoteBlockInStream is2 = null;
+      try {
+        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+      } catch (IOException e) {
+        Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
+      } finally {
+        if (is2 != null) {
+          is2.close();
+        }
+      }
     }
   }
 

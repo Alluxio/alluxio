@@ -40,7 +40,7 @@ service WorkerService extends common.TachyonService {
 
   /**
    * Locks the file in Tachyon's space while the session is reading it. If lock succeeds, the path of 
-   * the block file along with the internal lock id of locked block will be returned. If the block file 
+   * the block's file along with the internal lock id of locked block will be returned. If the block's file 
    * is not found, FileDoesNotExistException will be thrown.
    */
   LockBlockResult lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
