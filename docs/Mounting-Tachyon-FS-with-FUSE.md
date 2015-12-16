@@ -188,6 +188,13 @@ These are the configuration parameters for Tachyon-FUSE.
   Path, within the Tachyon namespace, that will be used as the root of the FUSE mount.
   </td>
 </tr>
+<tr>
+  <td>tachyon.fuse.fs.name</td>
+  <td>tachyo-fuse</td>
+  <td>
+  Descriptive name used by FUSE to mount the file system.
+  </td>
+</tr>
 </table>
 
 # Acknowledgements
