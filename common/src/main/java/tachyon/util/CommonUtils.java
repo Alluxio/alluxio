@@ -15,12 +15,17 @@
 
 package tachyon.util;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.slf4j.Logger;
+import com.google.common.collect.Lists;
+
+import tachyon.util.ShellUtils.ExitCodeException;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -140,4 +145,32 @@ public final class CommonUtils {
   }
 
   private CommonUtils() {} // prevent instantiation
+
+  /**
+   * Get the current user's group list from Unix by running the command 'groups' NOTE. For
+   * non-existing user it will return EMPTY list.
+   *
+   * @param user user name
+   * @return the groups list that the <code>user</code> belongs to. The primary group is returned
+   *         first.
+   * @throws IOException if encounter any error when running the command
+   */
+  public static List<String> getUnixGroups(String user) throws IOException {
+    String result = "";
+    List<String> groups = Lists.newArrayList();
+    try {
+      result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
+    } catch (ExitCodeException e) {
+      // if we didn't get the group - just return empty list;
+      // LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
+      return groups;
+    }
+
+    StringTokenizer tokenizer = new StringTokenizer(result, ShellUtils.TOKEN_SEPARATOR_REGEX);
+    while (tokenizer.hasMoreTokens()) {
+      groups.add(tokenizer.nextToken());
+    }
+    return groups;
+  }
+
 }

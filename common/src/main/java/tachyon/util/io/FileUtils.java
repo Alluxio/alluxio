@@ -17,20 +17,15 @@ package tachyon.util.io;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
+import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Closer;
-import com.google.common.io.Files;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.InvalidPathException;
+import tachyon.util.ShellUtils;
 
 /**
  * Provides utility methods for working with files and directories.
@@ -49,54 +44,7 @@ public final class FileUtils {
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     // TODO(cc): Switch to java's Files.setPosixFilePermissions() when Java 6 support is dropped.
-    List<String> commands = new ArrayList<String>();
-    commands.add("/bin/chmod");
-    commands.add(perms);
-    File file = new File(filePath);
-    commands.add(file.getAbsolutePath());
-
-    try {
-      ProcessBuilder builder = new ProcessBuilder(commands);
-      Process process = builder.start();
-
-      process.waitFor();
-
-      redirectIO(process);
-
-      if (process.exitValue() != 0) {
-        throw new IOException("Can not change the file " + file.getAbsolutePath()
-            + " 's permission to be " + perms);
-      }
-    } catch (InterruptedException e) {
-      LOG.error(e.getMessage());
-      throw new IOException(e);
-    }
-  }
-
-  /**
-   * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
-   *
-   * @param process process whose stdout/stderr to copy
-   * @throws IOException when operation fails
-   */
-  private static void redirectIO(final Process process) throws IOException {
-    Preconditions.checkNotNull(process);
-    /*
-     * Because chmod doesn't have a lot of error or output messages, it is safe to process the
-     * output after the process is done. As of java 7, you can have the process redirect to
-     * System.out and System.err without forking a process.
-     *
-     * TODO(cc): When java 6 support is dropped switch to ProcessBuilder.html#inheritIO().
-     */
-    Closer closer = Closer.create();
-    try {
-      ByteStreams.copy(closer.register(process.getInputStream()), System.out);
-      ByteStreams.copy(closer.register(process.getErrorStream()), System.err);
-    } catch (Exception e) {
-      throw closer.rethrow(e);
-    } finally {
-      closer.close();
-    }
+    ShellUtils.execCommand(ShellUtils.getSetPermissionCommand(perms, filePath));
   }
 
   /**
