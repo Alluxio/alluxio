@@ -284,7 +284,7 @@ public class TachyonMaster {
       mTServerSocket.close();
       mIsServing = false;
     } else {
-      LOG.info("Stopping Tachyon Master @ " + mMasterAddress);
+      LOG.info("Stopping Tachyon Master @ {}", mMasterAddress);
     }
   }
 

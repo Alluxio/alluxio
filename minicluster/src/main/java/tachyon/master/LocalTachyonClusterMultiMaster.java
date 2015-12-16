@@ -57,7 +57,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
     try {
       mCuratorServer = new TestingServer();
-      LOG.info("Started testing zookeeper: " + mCuratorServer.getConnectString());
+      LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -221,7 +221,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasters.get(k).stop();
     }
-    LOG.info("Stopping testing zookeeper: " + mCuratorServer.getConnectString());
+    LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
   }
 }
