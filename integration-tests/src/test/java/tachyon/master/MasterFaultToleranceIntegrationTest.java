@@ -63,6 +63,7 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    // TODO(gpang): Implement multi-master cluster as a resource.
     // Reset the master conf.
     MasterContext.getConf().merge(new TachyonConf());
     mLocalTachyonClusterMultiMaster =
