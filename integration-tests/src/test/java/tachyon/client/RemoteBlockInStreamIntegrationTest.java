@@ -563,7 +563,9 @@ public class RemoteBlockInStreamIntegrationTest {
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
       Assert.assertEquals(0, is.read());
       mTfs.delete(f);
-      CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
+
+      // TODO(andrew): Consider using HeartbeatScheduler to make this more deterministic.
+      CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs * 2);
 
       // The file has been deleted.
       checkFileDeleted(f);
