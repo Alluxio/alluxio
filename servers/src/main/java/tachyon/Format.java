@@ -28,7 +28,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Format Tachyon File System.
  */
-public class Format {
+public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String USAGE = String.format("java -cp %s tachyon.Format <MASTER/WORKER>",
       Version.TACHYON_JAR);
