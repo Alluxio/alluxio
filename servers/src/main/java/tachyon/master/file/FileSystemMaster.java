@@ -728,7 +728,9 @@ public final class FileSystemMaster extends MasterBase {
         throw new BlockInfoException(
             "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
       }
-      return generateFileBlockInfo(file, blockInfoList.get(0));
+      FileBlockInfo blockInfo = generateFileBlockInfo(file, blockInfoList.get(0));
+      MasterContext.getMasterSource().incFileBlockInfosGot(1);
+      return blockInfo;
     }
   }
 
@@ -755,6 +757,7 @@ public final class FileSystemMaster extends MasterBase {
       for (BlockInfo blockInfo : blockInfoList) {
         ret.add(generateFileBlockInfo(file, blockInfo));
       }
+      MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
       return ret;
     }
   }
@@ -820,7 +823,6 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
     }
-    MasterContext.getMasterSource().incFileBlockInfosGot(1);
     return fileBlockInfo;
   }
 
@@ -1353,7 +1355,7 @@ public final class FileSystemMaster extends MasterBase {
 
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
-    MasterContext.getMasterSource().incMountPathsOps(1);
+    MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       if (mountInternal(tachyonPath, ufsPath)) {
         boolean loadMetadataSuceeded = false;
@@ -1411,7 +1413,7 @@ public final class FileSystemMaster extends MasterBase {
 
   public boolean unmount(TachyonURI tachyonPath)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    MasterContext.getMasterSource().incUnmountPathsOps(1);
+    MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
@@ -1474,7 +1476,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public void setState(long fileId, SetStateOptions options)
       throws FileDoesNotExistException, InvalidPathException {
-    MasterContext.getMasterSource().incSetStatesOps(1);
+    MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
