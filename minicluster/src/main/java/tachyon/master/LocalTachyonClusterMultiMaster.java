@@ -165,19 +165,13 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  protected void setupTest(TachyonConf conf) throws IOException {}
-
-  @Override
   protected void startMaster(TachyonConf conf) throws IOException {
     mMasterConf = conf;
     mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-
-    // re-build the dir to set permission to 777
-    deleteDir(mTachyonHome);
-    mkdir(mTachyonHome);
+    MasterContext.reset(mMasterConf);
 
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
