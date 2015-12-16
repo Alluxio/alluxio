@@ -40,7 +40,6 @@ public final class ClientContext {
   private static TachyonConf sTachyonConf;
   private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
-  private static Random sRandom;
   private static boolean sInitialized;
 
   static {
