@@ -158,6 +158,14 @@ public final class Constants {
       "tachyon.integration.worker.resource.cpu";
   public static final String INTEGRATION_WORKER_RESOURCE_MEM =
       "tachyon.integration.worker.resource.mem";
+  public static final String INTEGRATION_MESOS_ROLE =
+      "tachyon.integration.mesos.role";
+  public static final String INTEGRATION_MESOS_USER =
+      "tachyon.integration.mesos.user";
+  public static final String INTEGRATION_MESOS_PRINCIPAL =
+      "tachyon.integration.mesos.principal";
+  public static final String INTEGRATION_MESOS_SECRET =
+      "tachyon.integration.mesos.secret";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
