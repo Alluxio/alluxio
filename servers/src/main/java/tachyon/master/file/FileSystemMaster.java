@@ -38,6 +38,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
@@ -105,8 +106,6 @@ import tachyon.thrift.PersistFile;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The master that handles all file system metadata management.
@@ -1530,6 +1529,7 @@ public final class FileSystemMaster extends MasterBase {
     long workerId = getWorkerStoringFile(fileId);
 
     if (workerId == IdUtils.INVALID_WORKER_ID) {
+      LOG.warn("No worker found to schedule async persistence for file {}", fileId);
       // no worker found, do nothing
       return workerId;
     }
