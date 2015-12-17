@@ -137,9 +137,9 @@ function mount_ramfs_linux() {
   fi
 
   mem_size_to_bytes
-  FREE_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
-  if [ $FREE_MEM -lt $BYTE_SIZE ] ; then
-    echo "ERROR: Memory($FREE_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce TACHYON_WORKER_MEMORY_SIZE"
+  TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
+  if [ $TOTAL_MEM -lt $BYTE_SIZE ] ; then
+    echo "ERROR: Memory($TOTAL_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce TACHYON_WORKER_MEMORY_SIZE"
     exit 1
   fi
 
