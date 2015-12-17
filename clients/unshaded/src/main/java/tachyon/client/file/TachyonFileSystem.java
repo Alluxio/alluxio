@@ -57,7 +57,7 @@ import tachyon.thrift.FileInfo;
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
-  public static class TachyonFileSystemFactory {
+  public static final class TachyonFileSystemFactory {
     private TachyonFileSystemFactory() {} // to prevent initialization
 
     public static synchronized TachyonFileSystem get() {
