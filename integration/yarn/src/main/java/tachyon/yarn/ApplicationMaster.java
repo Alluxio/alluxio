@@ -327,9 +327,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
     } catch (YarnException e) {
-      LOG.error("Failed to unregister application ", e);
+      LOG.error("Failed to unregister application", e);
     } catch (IOException e) {
-      LOG.error("Failed to unregister application ", e);
+      LOG.error("Failed to unregister application", e);
     }
     mRMClient.stop();
     // TODO(andrew): Think about whether we should stop mNMClient here
@@ -402,7 +402,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
             mNMClient.startContainer(container, ctx);
             mWorkerHosts.add(container.getNodeId().getHost());
           } catch (Exception e) {
-            LOG.error("Error launching container {}",container.getId(), e);
+            LOG.error("Error launching container {}", container.getId(), e);
           }
         }
         mOutstandingWorkerContainerRequestsLatch.countDown();
