@@ -17,6 +17,9 @@ package tachyon.network.protocol;
 
 import io.netty.buffer.ByteBuf;
 
+/**
+ * Represents an encoded message.
+ */
 public interface EncodedMessage {
 
   /**
