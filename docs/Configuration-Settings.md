@@ -712,6 +712,26 @@ configuration options.
   <td>Memory resource required to run a Tachyon worker. This memory does not include the memory
   configured for tiered storage.</td>
 </tr>
+<tr>
+  <td>tachyon.integration.mesos.role</td>
+  <td>*</td>
+  <td>Role that Tachyon framework in Mesos cluster may belong to.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.user</td>
+  <td>root</td>
+  <td>Account used by the Mesos executor to run Tachyon workers.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.principal</td>
+  <td></td>
+  <td>Tachyon framework’s identity.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.secret</td>
+  <td></td>
+  <td>Tachyon framework’s secret.</td>
+</tr>
 </table>
 
 ## Configure multihomed networks
