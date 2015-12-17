@@ -41,4 +41,4 @@ ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${JAR_HDFS}
 export YARN_OPTS="${YARN_OPTS} ${TACHYON_JAVA_OPTS}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client -jar ${JAR_HDFS} \
-    -num_workers $NUM_WORKERS -tachyon_home ${DEPLOY_TACHYON_HOME} -master_address localhost
+    -num_workers $NUM_WORKERS -tachyon_home ${DEPLOY_TACHYON_HOME} -master_address ${TACHYON_MASTER_ADDRESS:-localhost}
