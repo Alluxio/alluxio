@@ -28,10 +28,10 @@ import tachyon.exception.TachyonException;
  * {@link TachyonRawTablesFactory#get()}.
  */
 @PublicApi
-public class TachyonRawTables extends AbstractTachyonRawTables {
+public final class TachyonRawTables extends AbstractTachyonRawTables {
   private static TachyonRawTables sTachyonRawTables;
 
-  public static class TachyonRawTablesFactory {
+  public static final class TachyonRawTablesFactory {
     private TachyonRawTablesFactory() {} // prevent init
 
     public static synchronized TachyonRawTables get() {
