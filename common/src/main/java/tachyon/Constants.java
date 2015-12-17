@@ -388,7 +388,6 @@ public final class Constants {
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   // Group Mapping
   public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
-  public static final String SECURITY_GROUPS_CACHE_SECS = "tachyon.security.groups.cache.secs";
 
   private Constants() {} // prevent instantiation
 }
