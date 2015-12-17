@@ -98,10 +98,12 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
+import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.PersistCommand;
+import tachyon.thrift.PersistCommandOptions;
 import tachyon.thrift.PersistFile;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
@@ -1673,7 +1675,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path is invalid
    */
-  public synchronized PersistCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
+  public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException {
     if (!persistedFiles.isEmpty()) {
       for (long fileId : persistedFiles) {
@@ -1688,7 +1690,9 @@ public final class FileSystemMaster extends MasterBase {
     if (!filesToCheckpoint.isEmpty()) {
       LOG.info("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
     }
-    return new PersistCommand(CommandType.Persist, filesToCheckpoint);
+    FileSystemCommandOptions options = new FileSystemCommandOptions();
+    options.persistOptions(new PersistCommandOptions(filesToCheckpoint));
+    return new FileSystemCommand(CommandType.Persist, options);
   }
 
   private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)

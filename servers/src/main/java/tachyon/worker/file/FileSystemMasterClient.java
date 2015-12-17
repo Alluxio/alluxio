@@ -30,8 +30,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemMasterWorkerService;
-import tachyon.thrift.PersistCommand;
 import tachyon.thrift.TachyonService;
 
 /**
@@ -109,15 +109,15 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the persisted files
-   * @return the command for persisting the blocks of a file
+   * @return the command for file system worker
    * @throws IOException if file persistence fails
    * @throws ConnectionFailedException if network connection failed
    */
-  public synchronized PersistCommand heartbeat(final long workerId,
+  public synchronized FileSystemCommand heartbeat(final long workerId,
       final List<Long> persistedFiles) throws ConnectionFailedException, IOException {
-    return retryRPC(new RpcCallable<PersistCommand>() {
+    return retryRPC(new RpcCallable<FileSystemCommand>() {
       @Override
-      public PersistCommand call() throws TException {
+      public FileSystemCommand call() throws TException {
         return mClient.heartbeat(workerId, persistedFiles);
       }
     });
