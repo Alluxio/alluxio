@@ -33,29 +33,53 @@ import tachyon.thrift.FileInfo;
 import java.util.List;
 
 interface FileSystem {
-  FileOutStream create(TachyonURI path);
-  FileOutStream create(TachyonURI path, CreateOptions options);
   TachyonURI createDirectory(TachyonURI path);
+
   TachyonURI createDirectory(TachyonURI path, MkdirOptions options);
+
+  FileOutStream createFile(TachyonURI path);
+
+  FileOutStream createFile(TachyonURI path, CreateOptions options);
+
   void delete(TachyonURI path);
+
   void delete(TachyonURI path, DeleteOptions options);
+
   boolean exists(TachyonURI path);
+
   void free(TachyonURI path);
+
   void free(TachyonURI path, FreeOptions options);
+
   FileInfo getStatus(TachyonURI path);
+
   FileInfo getStatus(TachyonURI path, GetInfoOptions options);
+
   List<FileInfo> listStatus(TachyonURI path);
+
   List<FileInfo> listStatus(TachyonURI path, ListStatusOptions options);
+
   TachyonURI loadMetadata(TachyonURI path);
+
   TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options);
+
   void mount(TachyonURI src, TachyonURI dst);
+
   void mount(TachyonURI src, TachyonURI dst, MountOptions options);
-  FileInStream open(TachyonURI path);
-  FileInStream open(TachyonURI path, OpenOptions options);
+
+  FileInStream openFile(TachyonURI path);
+
+  FileInStream openFile(TachyonURI path, OpenOptions options);
+
   void rename(TachyonURI src, TachyonURI dst);
+
   void rename(TachyonURI src, TachyonURI dst, RenameOptions options);
-  void setAttr(TachyonURI path);
-  void setAttr(TachyonURI path, SetStateOptions options);
+
+  void setAttribute(TachyonURI path);
+
+  void setAttribute(TachyonURI path, SetStateOptions options);
+
   void unmount(TachyonURI path);
+
   void unmount(TachyonURI path, UnmountOptions options);
 }
