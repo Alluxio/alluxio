@@ -221,12 +221,25 @@ public final class TachyonConf {
   // Public accessor methods
 
   // TODO(binfan): this method should be hidden and only used during initialization and tests.
+
+  /**
+   * Set the value for the appropriate key in the {@link Properties}.
+   *
+   * @param key the key to set
+   * @param value the value for the key
+   */
   public void set(String key, String value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
     mProperties.put(key, value);
   }
 
+  /**
+   * Gets the value for the given key in the {@link Properties}.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key
+   */
   public String get(String key) {
     if (!mProperties.containsKey(key)) {
       // if key is not found among the default properties
@@ -236,10 +249,22 @@ public final class TachyonConf {
     return lookup(raw);
   }
 
+  /**
+   * Checks if the {@link Properties} contains the given key.
+   *
+   * @param key the key to check
+   * @return true if the key is in the {@link Properties}, false otherwise
+   */
   public boolean containsKey(String key) {
     return mProperties.containsKey(key);
   }
 
+  /**
+   * Gets the integer representation of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as an {@code int}
+   */
   public int getInt(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -253,6 +278,12 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the long representation of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as a {@code long}
+   */
   public long getLong(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -266,6 +297,12 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the double representation of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as a {@code double}
+   */
   public double getDouble(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -279,6 +316,12 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the float representation of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as a {@code float}
+   */
   public float getFloat(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -292,6 +335,12 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the boolean representation of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the value for the given key as a {@code boolean}
+   */
   public boolean getBoolean(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -301,6 +350,13 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the value for the given key as a list.
+   *
+   * @param key the key to get the value for
+   * @param delimiter the delimiter to split the values
+   * @return the list of values for the given key
+   */
   public List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Tachyon properties as "
         + "list");
@@ -312,6 +368,14 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the value for the given key as an enum value.
+   *
+   * @param key the key to get the value for
+   * @param enumType the type of the enum
+   * @param <T> the type of the enum
+   * @return the value for the given key as an enum value
+   */
   public <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
     if (!mProperties.containsKey(key)) {
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -320,6 +384,12 @@ public final class TachyonConf {
     return Enum.valueOf(enumType, val);
   }
 
+  /**
+   * Gets the bytes of the value for the given key.
+   *
+   * @param key the key to get the value for
+   * @return the bytes of the value for the given key
+   */
   public long getBytes(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = get(key);
@@ -332,6 +402,13 @@ public final class TachyonConf {
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
   }
 
+  /**
+   * Gets the value for the given key as a class.
+   *
+   * @param key the key to get the value for
+   * @param <T> the type of the class
+   * @return the value for the given key as a class
+   */
   @SuppressWarnings("unchecked")
   public <T> Class<T> getClass(String key) {
     if (mProperties.containsKey(key)) {
