@@ -488,7 +488,9 @@ public final class TachyonConf {
   }
 
   /**
-   * {@link Constants.USER_FILE_BUFFER_BYTES} should not bigger than Integer.MAX_VALUE bytes.
+   * {@link Constants#USER_FILE_BUFFER_BYTES} should not bigger than {@link Integer#MAX_VALUE}
+   * bytes.
+   *
    * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
    */
   private void checkUserFileBufferBytes() {
