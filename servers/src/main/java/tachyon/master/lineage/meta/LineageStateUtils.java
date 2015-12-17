@@ -36,10 +36,10 @@ public final class LineageStateUtils {
    * @return true if all the output files of the given lineage are completed, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileSystemView)
+  public static boolean isCompleted(Lineage lineage, FileSystemMasterView fileSystemMasterView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      FileInfo fileInfo = fileSystemView.getFileInfo(outputFile);
+      FileInfo fileInfo = fileSystemMasterView.getFileInfo(outputFile);
       if (!fileInfo.isCompleted) {
         return false;
       }
@@ -51,9 +51,9 @@ public final class LineageStateUtils {
    * @return true if the lineage needs recompute, false otherwise
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static boolean needRecompute(Lineage lineage, FileSystemMasterView fileSystemView)
+  public static boolean needRecompute(Lineage lineage, FileSystemMasterView fileSystemMasterView)
       throws FileDoesNotExistException {
-    List<Long> lostFiles = fileSystemView.getLostFiles();
+    List<Long> lostFiles = fileSystemMasterView.getLostFiles();
     for (long outputFile : lineage.getOutputFiles()) {
       if (lostFiles.contains(outputFile)) {
         return true;
@@ -66,10 +66,10 @@ public final class LineageStateUtils {
    * @return true if all the output files are persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isPersisted(Lineage lineage, FileSystemMasterView fileSystemView)
+  public static boolean isPersisted(Lineage lineage, FileSystemMasterView fileSystemMasterView)
       throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      if (fileSystemView.getFilePersistenceState(outputFile) != PersistenceState.PERSISTED) {
+      if (fileSystemMasterView.getFilePersistenceState(outputFile) != PersistenceState.PERSISTED) {
         return false;
       }
     }
@@ -80,11 +80,11 @@ public final class LineageStateUtils {
    * @return true if at least one of the output files is being persisted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public static boolean isInCheckpointing(Lineage lineage, FileSystemMasterView fileSystemView)
-      throws FileDoesNotExistException {
+  public static boolean isInCheckpointing(Lineage lineage,
+      FileSystemMasterView fileSystemMasterView) throws FileDoesNotExistException {
     for (long outputFile : lineage.getOutputFiles()) {
-      if (fileSystemView.getFilePersistenceState(outputFile) == PersistenceState.SCHEDULED
-          || fileSystemView.getFilePersistenceState(outputFile) == PersistenceState.PERSISTING) {
+      if (fileSystemMasterView
+          .getFilePersistenceState(outputFile) == PersistenceState.IN_PROGRESS) {
         return true;
       }
     }
@@ -95,10 +95,10 @@ public final class LineageStateUtils {
    * @return all the output files of the given lineage that are lost on the workers
    * @throws FileDoesNotExistException if any output file of the lineage does not exist
    */
-  public static List<Long> getLostFiles(Lineage lineage, FileSystemMasterView fileSystemView)
+  public static List<Long> getLostFiles(Lineage lineage, FileSystemMasterView fileSystemMasterView)
       throws FileDoesNotExistException {
     List<Long> result = Lists.newArrayList();
-    List<Long> lostFiles = fileSystemView.getLostFiles();
+    List<Long> lostFiles = fileSystemMasterView.getLostFiles();
     for (long outputFile : lineage.getOutputFiles()) {
       if (lostFiles.contains(outputFile)) {
         result.add(outputFile);
