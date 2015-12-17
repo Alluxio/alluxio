@@ -223,7 +223,7 @@ public final class TachyonConf {
   // TODO(binfan): this method should be hidden and only used during initialization and tests.
 
   /**
-   * Set the value for the appropriate key in the {@link Properties}.
+   * Sets the value for the appropriate key in the {@link Properties}.
    *
    * @param key the key to set
    * @param value the value for the key
