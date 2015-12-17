@@ -15,24 +15,52 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when the file of a size is invalid.
+ */
 public class InvalidFileSizeException extends TachyonException {
   private static final long serialVersionUID = -4913703614829472342L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.INVALID_FILE_SIZE;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public InvalidFileSizeException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public InvalidFileSizeException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public InvalidFileSizeException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public InvalidFileSizeException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }

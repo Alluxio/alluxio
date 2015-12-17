@@ -15,24 +15,53 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when a worker is in an invalid state, i.e. the id of a block does not belong
+ * to the session id.
+ */
 public class InvalidWorkerStateException extends TachyonException {
   private static final long serialVersionUID = -5416224494611880597L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.INVALID_WORKER_STATE;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public InvalidWorkerStateException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public InvalidWorkerStateException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public InvalidWorkerStateException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public InvalidWorkerStateException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
