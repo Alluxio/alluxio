@@ -17,9 +17,12 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
@@ -30,6 +33,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -72,6 +76,25 @@ public final class TachyonBlockStore {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getBlockInfo(blockId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  /**
+   * @return the info of all active block workers.
+   */
+  public List<BlockWorkerInfo> getBlockWorkerInfoList() throws IOException {
+    BlockMasterClient masterClient = mContext.acquireMasterClient();
+    List<BlockWorkerInfo> infoList = Lists.newArrayList();
+    try {
+      for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
+        infoList.add(new BlockWorkerInfo(workerInfo.getAddress().getHost(),
+            workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
+      }
+      return infoList;
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
