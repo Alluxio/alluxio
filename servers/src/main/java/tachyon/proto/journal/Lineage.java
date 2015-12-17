@@ -531,39 +531,39 @@ public final class Lineage {
     long getOutputFileIds(int index);
 
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     boolean hasJobCommand();
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     java.lang.String getJobCommand();
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     com.google.protobuf.ByteString
         getJobCommandBytes();
 
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     boolean hasJobOutputPath();
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     java.lang.String getJobOutputPath();
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     com.google.protobuf.ByteString
         getJobOutputPathBytes();
 
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     boolean hasCreationTimeMs();
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     long getCreationTimeMs();
   }
@@ -571,7 +571,7 @@ public final class Lineage {
    * Protobuf type {@code tachyon.proto.journal.LineageEntry}
    *
    * <pre>
-   * next available id: 8
+   * next available id: 7
    * </pre>
    */
   public static final class LineageEntry extends
@@ -670,19 +670,19 @@ public final class Lineage {
               input.popLimit(limit);
               break;
             }
-            case 42: {
+            case 34: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
               jobCommand_ = bs;
               break;
             }
-            case 50: {
+            case 42: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
               jobOutputPath_ = bs;
               break;
             }
-            case 56: {
+            case 48: {
               bitField0_ |= 0x00000008;
               creationTimeMs_ = input.readInt64();
               break;
@@ -792,16 +792,16 @@ public final class Lineage {
       return outputFileIds_.get(index);
     }
 
-    public static final int JOB_COMMAND_FIELD_NUMBER = 5;
+    public static final int JOB_COMMAND_FIELD_NUMBER = 4;
     private java.lang.Object jobCommand_;
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     public boolean hasJobCommand() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     public java.lang.String getJobCommand() {
       java.lang.Object ref = jobCommand_;
@@ -818,7 +818,7 @@ public final class Lineage {
       }
     }
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     public com.google.protobuf.ByteString
         getJobCommandBytes() {
@@ -834,16 +834,16 @@ public final class Lineage {
       }
     }
 
-    public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 6;
+    public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 5;
     private java.lang.Object jobOutputPath_;
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     public boolean hasJobOutputPath() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     public java.lang.String getJobOutputPath() {
       java.lang.Object ref = jobOutputPath_;
@@ -860,7 +860,7 @@ public final class Lineage {
       }
     }
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     public com.google.protobuf.ByteString
         getJobOutputPathBytes() {
@@ -876,16 +876,16 @@ public final class Lineage {
       }
     }
 
-    public static final int CREATION_TIME_MS_FIELD_NUMBER = 7;
+    public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public boolean hasCreationTimeMs() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
@@ -922,13 +922,13 @@ public final class Lineage {
         output.writeInt64(3, outputFileIds_.get(i));
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(5, getJobCommandBytes());
+        output.writeBytes(4, getJobCommandBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(6, getJobOutputPathBytes());
+        output.writeBytes(5, getJobOutputPathBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(7, creationTimeMs_);
+        output.writeInt64(6, creationTimeMs_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -963,15 +963,15 @@ public final class Lineage {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getJobCommandBytes());
+          .computeBytesSize(4, getJobCommandBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(6, getJobOutputPathBytes());
+          .computeBytesSize(5, getJobOutputPathBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(7, creationTimeMs_);
+          .computeInt64Size(6, creationTimeMs_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1055,7 +1055,7 @@ public final class Lineage {
      * Protobuf type {@code tachyon.proto.journal.LineageEntry}
      *
      * <pre>
-     * next available id: 8
+     * next available id: 7
      * </pre>
      */
     public static final class Builder extends
@@ -1405,13 +1405,13 @@ public final class Lineage {
 
       private java.lang.Object jobCommand_ = "";
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public boolean hasJobCommand() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public java.lang.String getJobCommand() {
         java.lang.Object ref = jobCommand_;
@@ -1428,7 +1428,7 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public com.google.protobuf.ByteString
           getJobCommandBytes() {
@@ -1444,7 +1444,7 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public Builder setJobCommand(
           java.lang.String value) {
@@ -1457,7 +1457,7 @@ public final class Lineage {
         return this;
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public Builder clearJobCommand() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -1466,7 +1466,7 @@ public final class Lineage {
         return this;
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public Builder setJobCommandBytes(
           com.google.protobuf.ByteString value) {
@@ -1481,13 +1481,13 @@ public final class Lineage {
 
       private java.lang.Object jobOutputPath_ = "";
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public boolean hasJobOutputPath() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public java.lang.String getJobOutputPath() {
         java.lang.Object ref = jobOutputPath_;
@@ -1504,7 +1504,7 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public com.google.protobuf.ByteString
           getJobOutputPathBytes() {
@@ -1520,7 +1520,7 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public Builder setJobOutputPath(
           java.lang.String value) {
@@ -1533,7 +1533,7 @@ public final class Lineage {
         return this;
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public Builder clearJobOutputPath() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -1542,7 +1542,7 @@ public final class Lineage {
         return this;
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public Builder setJobOutputPathBytes(
           com.google.protobuf.ByteString value) {
@@ -1557,19 +1557,19 @@ public final class Lineage {
 
       private long creationTimeMs_ ;
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public boolean hasCreationTimeMs() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public long getCreationTimeMs() {
         return creationTimeMs_;
       }
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder setCreationTimeMs(long value) {
         bitField0_ |= 0x00000020;
@@ -1578,7 +1578,7 @@ public final class Lineage {
         return this;
       }
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder clearCreationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -2999,9 +2999,9 @@ public final class Lineage {
       "ournal\"9\n\022DeleteLineageEntry\022\022\n\nlineage_" +
       "id\030\001 \001(\003\022\017\n\007cascade\030\002 \001(\010\"\220\001\n\014LineageEnt" +
       "ry\022\n\n\002id\030\001 \001(\003\022\023\n\013input_files\030\002 \003(\003\022\027\n\017o" +
-      "utput_file_ids\030\003 \003(\003\022\023\n\013job_command\030\005 \001(" +
-      "\t\022\027\n\017job_output_path\030\006 \001(\t\022\030\n\020creation_t" +
-      "ime_ms\030\007 \001(\003\"2\n\027LineageIdGeneratorEntry\022" +
+      "utput_file_ids\030\003 \003(\003\022\023\n\013job_command\030\004 \001(" +
+      "\t\022\027\n\017job_output_path\030\005 \001(\t\022\030\n\020creation_t" +
+      "ime_ms\030\006 \001(\003\"2\n\027LineageIdGeneratorEntry\022" +
       "\027\n\017sequence_number\030\001 \001(\003\"%\n\021PersistFiles" +
       "Entry\022\020\n\010file_ids\030\001 \003(\003\",\n\030PersistFilesR" +
       "equestEntry\022\020\n\010file_ids\030\001 \003(\003"
