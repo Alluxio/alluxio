@@ -32,6 +32,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueWorkerService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
+import tachyon.util.io.BufferUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
@@ -73,22 +74,25 @@ public final class KeyValueServiceHandler implements KeyValueWorkerService.Iface
 
   /**
    * @param blockId Block Id
-   * @param key bytes of key
+   * @param keyBuffer bytes of key
    * @return key found in the key-value block or null if not found
    * @throws IOException if read operation failed
    * @throws BlockDoesNotExistException
    */
-  private ByteBuffer getInternal(long blockId, ByteBuffer key) throws
-      BlockDoesNotExistException, IOException {
+  private ByteBuffer getInternal(long blockId, ByteBuffer keyBuffer)
+      throws BlockDoesNotExistException, IOException {
     BlockReader blockReader;
     final long sessionId = Sessions.KEYVALUE_SESSION_ID;
     final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
+    final byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(keyBuffer);
     try {
       blockReader = mBlockDataManager.readBlockRemote(sessionId, blockId, lockId);
-      ByteBuffer buffer = blockReader.read(0, blockReader.getLength());
-      RandomAccessKeyValueFileReader reader = new RandomAccessKeyValueFileReader(buffer.array());
-      // TODO(binfan): clean buffer which is a direct byte buffer
-      return ByteBuffer.wrap(reader.get(key.array()));
+      ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
+      // TODO(binfan): see if we could do zero copy to avoid creating a byte array from fileBuffer
+      byte[] fileBytes = BufferUtils.newByteArrayFromByteBuffer(fileBuffer);
+      RandomAccessKeyValueFileReader reader = new RandomAccessKeyValueFileReader(fileBytes);
+      // TODO(binfan): clean fileBuffer which is a direct byte buffer
+      return ByteBuffer.wrap(reader.get(keyBytes));
     } catch (InvalidWorkerStateException e) {
       // We shall never reach here
       LOG.error("Reaching invalid state to get a key", e);
