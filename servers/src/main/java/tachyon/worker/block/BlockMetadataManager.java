@@ -50,7 +50,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * {@link StorageDir} should go through this class.
  */
 // TODO(bin): consider how to better expose information to Evictor and Allocator.
-public class BlockMetadataManager {
+public final class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** A list of managed {@link StorageTier}, in order from lowest tier ordinal to greatest */
