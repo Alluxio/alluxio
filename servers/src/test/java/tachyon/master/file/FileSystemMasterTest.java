@@ -54,8 +54,8 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.PersistCommand;
 import tachyon.util.IdUtils;
 
 /**
@@ -406,12 +406,14 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
     mFileSystemMaster.scheduleAsyncPersistence(fileId);
 
-    PersistCommand command =
+    FileSystemCommand command =
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
     Assert.assertEquals(CommandType.Persist, command.commandType);
-    Assert.assertEquals(1, command.persistFiles.size());
-    Assert.assertEquals(fileId, command.persistFiles.get(0).fileId);
-    Assert.assertEquals(blockId, (long) command.persistFiles.get(0).blockIds.get(0));
+    Assert.assertEquals(1, command.getCommandOptions().getPersistOptions().persistFiles.size());
+    Assert.assertEquals(fileId,
+        command.getCommandOptions().getPersistOptions().persistFiles.get(0).fileId);
+    Assert.assertEquals(blockId,
+        (long) command.getCommandOptions().getPersistOptions().persistFiles.get(0).blockIds.get(0));
   }
 
   @Test
