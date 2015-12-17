@@ -31,9 +31,9 @@ import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
+import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 
@@ -50,25 +50,23 @@ import tachyon.worker.WorkerIdRegistry;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
-public final class BlockMasterSync implements Runnable {
+public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
-  /** Milliseconds between each heartbeat */
-  private final int mHeartbeatIntervalMs;
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
   private final BlockMasterClient mMasterClient;
-
-  /** Flag to indicate if the sync should continue */
-  private volatile boolean mRunning;
   /** The thread pool to remove block */
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
+
+  /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed */
+  private long mLastSuccessfulHeartbeatMs;
 
   /**
    * Constructor for BlockMasterSync
@@ -83,10 +81,17 @@ public final class BlockMasterSync implements Runnable {
     mWorkerAddress = workerAddress;
     TachyonConf conf = WorkerContext.getConf();
     mMasterClient = masterClient;
-    mHeartbeatIntervalMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
-    mRunning = true;
+    try {
+      registerWithMaster();
+      mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
+    } catch (IOException ioe) {
+      // If failed to register when the thread starts, no retry will happen.
+      throw new RuntimeException("Failed to register with master.", ioe);
+    } catch (ConnectionFailedException e) {
+      throw new RuntimeException("Failed to register with master.", e);
+    }
   }
 
   /**
@@ -113,64 +118,35 @@ public final class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Main loop for the sync, continuously heartbeats to the master node about the change in the
-   * worker's managed space.
+   * Heartbeats to the master node about the change in the worker's managed space.
    */
   @Override
-  public void run() {
-    long lastHeartbeatMs = System.currentTimeMillis();
+  public void heartbeat() {
+    // Prepare metadata for the next heartbeat
+    BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
+    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+
+    // Send the heartbeat and execute the response
+    Command cmdFromMaster = null;
     try {
-      registerWithMaster();
-    } catch (IOException ioe) {
-      // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", ioe);
-    } catch (ConnectionFailedException e) {
-      throw new RuntimeException("Failed to register with master.", e);
-    }
-    while (mRunning) {
-      // Check the time since last heartbeat, and wait until it is within heartbeat interval
-      long lastIntervalMs = System.currentTimeMillis() - lastHeartbeatMs;
-      long toSleepMs = mHeartbeatIntervalMs - lastIntervalMs;
-      if (toSleepMs > 0) {
-        CommonUtils.sleepMs(LOG, toSleepMs);
+      cmdFromMaster = mMasterClient
+          .heartbeat(WorkerIdRegistry.getWorkerId(), storeMeta.getUsedBytesOnTiers(),
+              blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+      handleMasterCommand(cmdFromMaster);
+      mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
+    } catch (Exception e) {
+      // An error occurred, log and ignore it or error if heartbeat timeout is reached
+      if (cmdFromMaster == null) {
+        LOG.error("Failed to receive master heartbeat command.", e);
       } else {
-        LOG.warn("Heartbeat took: {}, expected: {}", lastIntervalMs, mHeartbeatIntervalMs);
+        LOG.error("Failed to receive or execute master heartbeat command: {}",
+            cmdFromMaster.toString(), e);
       }
-
-      // Prepare metadata for the next heartbeat
-      BlockHeartbeatReport blockReport = mBlockDataManager.getReport();
-      BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
-
-      // Send the heartbeat and execute the response
-      Command cmdFromMaster = null;
-      try {
-        cmdFromMaster = mMasterClient
-            .heartbeat(WorkerIdRegistry.getWorkerId(), storeMeta.getUsedBytesOnTiers(),
-                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
-        lastHeartbeatMs = System.currentTimeMillis();
-        handleMasterCommand(cmdFromMaster);
-      } catch (Exception e) {
-        // An error occurred, retry after 1 second or error if heartbeat timeout is reached
-        if (cmdFromMaster == null) {
-          LOG.error("Failed to receive master heartbeat command.", e);
-        } else {
-          LOG.error("Failed to receive or execute master heartbeat command: {}",
-              cmdFromMaster.toString(), e);
-        }
-        mMasterClient.resetConnection();
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-        if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
-          throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
-        }
+      mMasterClient.resetConnection();
+      if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
+        throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
       }
     }
-  }
-
-  /**
-   * Stops the sync, once this method is called, the object should be discarded
-   */
-  public void stop() {
-    mRunning = false;
   }
 
   /**
