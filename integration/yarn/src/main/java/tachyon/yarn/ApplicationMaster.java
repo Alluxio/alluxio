@@ -130,6 +130,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
+    Preconditions.checkState(args.length == 3,
+        "ApplicationMaster expects 3 arguments, but received %s. "
+            + "Usage: ApplicationMaster num_workers tachyon_home master_address", args.length);
     Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
     Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
