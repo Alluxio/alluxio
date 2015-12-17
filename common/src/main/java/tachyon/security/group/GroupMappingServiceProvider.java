@@ -25,7 +25,7 @@ import tachyon.conf.TachyonConf;
  */
 public interface GroupMappingServiceProvider {
   /**
-   * Get all various group memberships of a given user. Returns EMPTY list in case of non-existing
+   * Gets all various group memberships of a given user. Returns EMPTY list in case of non-existing
    * user.
    *
    * @param user User's name
@@ -35,7 +35,7 @@ public interface GroupMappingServiceProvider {
   public List<String> getGroups(String user) throws IOException;
 
   /**
-   * Set the configuration to GroupMappingService. For example, when we get user-groups mapping from
+   * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping from
    * LDAP, we will need configuration to set up the connection to LDAP server.
    *
    * @param conf The tachyon configuration set to GroupMappingServiceProvider
