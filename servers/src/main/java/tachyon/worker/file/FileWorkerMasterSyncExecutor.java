@@ -29,7 +29,7 @@ import tachyon.Constants;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.PersistCommand;
+import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.PersistFile;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockMasterSync;
@@ -71,7 +71,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
       LOG.info("files {} persisted", persistedFiles);
     }
 
-    PersistCommand command = null;
+    FileSystemCommand command = null;
     try {
       command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(),
           persistedFiles);
@@ -82,9 +82,9 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }
     Preconditions.checkState(command.commandType == CommandType.Persist);
 
-    for (PersistFile persistFile : command.persistFiles) {
-      mFixedExecutionService.execute(new FilePersister(mFileDataManager, persistFile.fileId,
-          persistFile.blockIds));
+    for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
+      mFixedExecutionService
+          .execute(new FilePersister(mFileDataManager, persistFile.fileId, persistFile.blockIds));
     }
   }
 

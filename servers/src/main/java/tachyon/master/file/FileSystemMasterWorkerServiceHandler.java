@@ -27,15 +27,15 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemMasterWorkerService;
-import tachyon.thrift.PersistCommand;
 import tachyon.thrift.TachyonTException;
 
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon worker.
  */
-public final class FileSystemMasterWorkerServiceHandler implements
-    FileSystemMasterWorkerService.Iface {
+public final class FileSystemMasterWorkerServiceHandler
+    implements FileSystemMasterWorkerService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
   public FileSystemMasterWorkerServiceHandler(FileSystemMaster fileSystemMaster) {
@@ -63,7 +63,7 @@ public final class FileSystemMasterWorkerServiceHandler implements
   }
 
   @Override
-  public PersistCommand heartbeat(long workerId, List<Long> persistedFiles)
+  public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles)
       throws TachyonTException, TException {
     try {
       return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
