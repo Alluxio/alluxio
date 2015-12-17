@@ -15,35 +15,23 @@
 
 package tachyon.client.lineage.options;
 
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
+import org.junit.Assert;
+import org.junit.Test;
+
 import tachyon.conf.TachyonConf;
 
-@PublicApi
-public final class GetLineageInfoListOptions {
-  public static class Builder {
-    /**
-     * Creates a new builder for {@link GetLineageInfoListOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
+public class GetLineageInfoListOptionsTest {
 
-    /**
-     * @return builds a new instance of {@link GetLineageInfoListOptions}
-     */
-    public GetLineageInfoListOptions build() {
-      return new GetLineageInfoListOptions(this);
-    }
+  @Test
+  public void buildTest() {
+    Assert.assertNotNull("The GetLineageInfoListOptions should not be null",
+        new GetLineageInfoListOptions.Builder(new TachyonConf()).build());
   }
 
-  /**
-   * @return the default options
-   */
-  public static GetLineageInfoListOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+  @Test
+  public void defaultsTest() {
+    Assert.assertNotNull("The default options should not be null",
+        GetLineageInfoListOptions.defaults());
   }
-
-  private GetLineageInfoListOptions(GetLineageInfoListOptions.Builder buidler) {}
 
 }

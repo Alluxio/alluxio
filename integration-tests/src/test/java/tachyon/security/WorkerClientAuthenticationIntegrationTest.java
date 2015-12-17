@@ -16,7 +16,6 @@
 package tachyon.security;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,6 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
@@ -88,7 +88,7 @@ public class WorkerClientAuthenticationIntegrationTest {
     authenticationOperationTest();
   }
 
-  @Test
+  @Test(timeout = 10000)
   @LocalTachyonClusterResource.Config(tachyonConfParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
       "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
       NameMatchAuthenticationProvider.FULL_CLASS_NAME}, startCluster = false)
@@ -101,9 +101,11 @@ public class WorkerClientAuthenticationIntegrationTest {
     mLocalTachyonClusterResource.start();
 
     // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
+    // Clear the login user so that it will be reloaded and pick up our no-tachyon change
     clearLoginUser();
     mThrown.expect(IOException.class);
-    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
+    mThrown.expectMessage("Failed to connect to the worker");
 
     WorkerClient workerClient =
         new WorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
@@ -136,9 +138,6 @@ public class WorkerClientAuthenticationIntegrationTest {
   }
 
   private void clearLoginUser() throws Exception {
-    // User reflection to reset the private static member sLoginUser in LoginUser.
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (User) null);
   }
 }
