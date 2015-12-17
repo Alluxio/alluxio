@@ -15,7 +15,11 @@
 
 package tachyon.client.file;
 
+import java.io.IOException;
+import java.util.List;
+
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
@@ -28,47 +32,244 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.exception.DirectoryNotEmptyException;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
-import java.util.List;
-
+/**
+ * Basic file system interface supporting metadata operations and data operations. Developers
+ * should not implement this class but extend the default implementation provided by {@link
+ * BasicFileSystem} instead. This ensures any new methods added to the interface will be provided
+ * by the default implementation.
+ */
+@PublicApi
 interface FileSystem {
-  TachyonURI createDirectory(TachyonURI path);
+  /**
+   * Convenience method for creating a directory with default options.
+   *
+   * @param path the path of the directory to create in Tachyon space
+   * @return the {@link TachyonURI} referencing the newly created directory
+   */
+  TachyonURI createDirectory(TachyonURI path)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
-  TachyonURI createDirectory(TachyonURI path, MkdirOptions options);
+  /**
+   * Creates a directory.
+   *
+   * @param path the path of the directory to create in Tachyon space
+   * @param options options to associate with this operation
+   * @return the {@link TachyonURI} referencing the newly created directory
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  TachyonURI createDirectory(TachyonURI path, MkdirOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
-  FileOutStream createFile(TachyonURI path);
+  /**
+   * Convenience method for creating a file with default options.
+   *
+   * @param path the path of the file to create in Tachyon space
+   * @return a {@link FileOutStream} which will write data to the newly created file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  FileOutStream createFile(TachyonURI path)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
-  FileOutStream createFile(TachyonURI path, CreateOptions options);
+  /**
+   * Creates a file.
+   *
+   * @param path the path of the file to create in Tachyon space
+   * @param options options to associate with this operation
+   * @return a {@link FileOutStream} which will write data to the newly created file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  FileOutStream createFile(TachyonURI path, CreateOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
-  void delete(TachyonURI path);
+  /**
+   * Convenience method for delete with default options.
+   *
+   * @param path the path to delete in Tachyon space
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   */
+  void delete(TachyonURI path)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException;
 
-  void delete(TachyonURI path, DeleteOptions options);
+  /**
+   * Deletes a file or a directory.
+   *
+   * @param path the path to delete in Tachyon space
+   * @param options options to associate with this operation
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   */
+  void delete(TachyonURI path, DeleteOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException;
 
-  boolean exists(TachyonURI path);
+  /**
+   * Checks whether a path exists in Tachyon space
+   *
+   * @param path the path in question
+   * @return true if the path exists, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   */
+  boolean exists(TachyonURI path) throws InvalidPathException, IOException, TachyonException;
 
-  void free(TachyonURI path);
+  /**
+   * Convenience method to free a path with default options.
+   *
+   * @param path the path to free in Tachyon space
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  void free(TachyonURI path) throws FileDoesNotExistException, IOException, TachyonException;
 
-  void free(TachyonURI path, FreeOptions options);
+  /**
+   * Evicts any data under the given path from Tachyon space, but does not delete the data from the
+   * UFS.
+   *
+   * @param path the path to free in Tachyon space
+   * @param options options to associate with this operation
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  void free(TachyonURI path, FreeOptions options)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  PathStatus getStatus(TachyonURI path);
+  /**
+   * Convenience method for get status with default options.
+   *
+   * @param path the path to obtain information about
+   * @return the {@link PathStatus} of the file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the path does not exist
+   */
+  PathStatus getStatus(TachyonURI path) throws FileDoesNotExistException, IOException;
 
-  PathStatus getStatus(TachyonURI path, GetInfoOptions options);
+  /**
+   * Gets the {@link PathStatus} object that represents the metadata of a Tachyon path.
+   *
+   * @param path the path to obtain information about
+   * @param options options to associate with this operation
+   * @return the {@link PathStatus} of the file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the path does not exist
+   */
+  PathStatus getStatus(TachyonURI path, GetInfoOptions options)
+      throws FileDoesNotExistException, IOException;
 
-  List<FileInfo> listStatus(TachyonURI path);
+  /**
+   * Convenience method for list status with default options.
+   *
+   * @param path the path to list information about
+   * @return a list of {@link PathStatus}s representing the paths which are children of the given
+   * path
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  List<FileInfo> listStatus(TachyonURI path)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  List<FileInfo> listStatus(TachyonURI path, ListStatusOptions options);
+  /**
+   * If the path is a directory, returns the {@link PathStatus} of all the direct entries in it.
+   * Otherwise returns the {@link PathStatus} for the file.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @return a list of {@link PathStatus}s representing the paths which are children of the given
+   * path
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  List<FileInfo> listStatus(TachyonURI path, ListStatusOptions options)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  TachyonURI loadMetadata(TachyonURI path);
+  /**
+   * Convenience method to load metadata with default options.
+   *
+   * @param path the path for which to load metadata from UFS
+   * @return the {@link TachyonURI} referencing the new path available in Tachyon
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  TachyonURI loadMetadata(TachyonURI path)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options);
+  /**
+   * Loads metadata about a path in the UFS to Tachyon. No data will be transferred.
+   *
+   * @param path the path for which to load metadata from UFS
+   * @param options options to associate with this operation
+   * @return the {@link TachyonURI} referencing the new path available in Tachyon
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  void mount(TachyonURI src, TachyonURI dst);
+  /**
+   * Convenience method to mount with default options.
+   *
+   * @param src a Tachyon path to mount the data to
+   * @param dst a UFS path to mount the data from
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  void mount(TachyonURI src, TachyonURI dst) throws IOException, TachyonException;
 
-  void mount(TachyonURI src, TachyonURI dst, MountOptions options);
+  /**
+   * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
+   * the method creates it. This method does not transfer any data or metadata from the UFS. It
+   * simply establishes the connection between the given Tachyon path and UFS path.
+   *
+   * @param src a Tachyon path to mount the data to
+   * @param dst a UFS path to mount the data from
+   * @param options options to associate with this operation
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  void mount(TachyonURI src, TachyonURI dst, MountOptions options)
+      throws IOException, TachyonException;
 
+  /**
+   * Convenience method to open a file with default options.
+   *
+   * @param path the file to read from
+   * @return a {@link FileInStream} for the given path
+   */
   FileInStream openFile(TachyonURI path);
 
+  /**
+   * Convenience method to open a file with default options.
+   *
+   * @param path the file to read from
+   * @param options options to associate with this operation
+   * @return a {@link FileInStream} for the given path
+   */
   FileInStream openFile(TachyonURI path, OpenOptions options);
 
   void rename(TachyonURI src, TachyonURI dst);
