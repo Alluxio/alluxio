@@ -15,7 +15,7 @@
 
 package tachyon.client.file;
 
-import tachyon.Path;
+import tachyon.TachyonURI;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
@@ -33,29 +33,29 @@ import tachyon.thrift.FileInfo;
 import java.util.List;
 
 interface FileSystem {
-  FileOutStream create(Path path);
-  FileOutStream create(Path path, CreateOptions options);
-  Path createDirectory(Path path);
-  Path createDirectory(Path path, MkdirOptions options);
-  void delete(Path path);
-  void delete(Path path, DeleteOptions options);
-  boolean exists(Path path);
-  void free(Path path);
-  void free(Path path, FreeOptions options);
-  FileInfo getStatus(Path path);
-  FileInfo getStatus(Path path, GetInfoOptions options);
-  List<FileInfo> listStatus(Path path);
-  List<FileInfo> listStatus(Path path, ListStatusOptions options);
-  Path loadMetadata(Path path);
-  Path loadMetadata(Path path, LoadMetadataOptions options);
-  void mount(Path src, Path dst);
-  void mount(Path src, Path dst, MountOptions options);
-  FileInStream open(Path path);
-  FileInStream open(Path path, OpenOptions options);
-  void rename(Path src, Path dst);
-  void rename(Path src, Path dst, RenameOptions options);
-  void setAttr(Path path);
-  void setAttr(Path path, SetStateOptions options);
-  void unmount(Path path);
-  void unmount(Path path, UnmountOptions options);
+  FileOutStream create(TachyonURI path);
+  FileOutStream create(TachyonURI path, CreateOptions options);
+  TachyonURI createDirectory(TachyonURI path);
+  TachyonURI createDirectory(TachyonURI path, MkdirOptions options);
+  void delete(TachyonURI path);
+  void delete(TachyonURI path, DeleteOptions options);
+  boolean exists(TachyonURI path);
+  void free(TachyonURI path);
+  void free(TachyonURI path, FreeOptions options);
+  FileInfo getStatus(TachyonURI path);
+  FileInfo getStatus(TachyonURI path, GetInfoOptions options);
+  List<FileInfo> listStatus(TachyonURI path);
+  List<FileInfo> listStatus(TachyonURI path, ListStatusOptions options);
+  TachyonURI loadMetadata(TachyonURI path);
+  TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options);
+  void mount(TachyonURI src, TachyonURI dst);
+  void mount(TachyonURI src, TachyonURI dst, MountOptions options);
+  FileInStream open(TachyonURI path);
+  FileInStream open(TachyonURI path, OpenOptions options);
+  void rename(TachyonURI src, TachyonURI dst);
+  void rename(TachyonURI src, TachyonURI dst, RenameOptions options);
+  void setAttr(TachyonURI path);
+  void setAttr(TachyonURI path, SetStateOptions options);
+  void unmount(TachyonURI path);
+  void unmount(TachyonURI path, UnmountOptions options);
 }
