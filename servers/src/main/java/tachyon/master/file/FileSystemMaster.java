@@ -106,6 +106,8 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * The master that handles all file system metadata management.
  */
@@ -128,7 +130,7 @@ public final class FileSystemMaster extends MasterBase {
    * The service that tries to check inodefiles with ttl set.
    * We store it here so that it can be accessed from tests.
    */
-  @SuppressWarnings("unused")
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTTLCheckerService;
 
   private final TTLBucketList mTTLBuckets = new TTLBucketList();
@@ -1535,7 +1537,7 @@ public final class FileSystemMaster extends MasterBase {
     // update the state
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(PersistenceState.SCHEDULED);
+      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
     }
 
     if (!mWorkerToAsyncPersistFile.containsKey(workerId)) {
@@ -1626,7 +1628,7 @@ public final class FileSystemMaster extends MasterBase {
           PersistFile toCheckpoint = new PersistFile(fileId, blockIds);
           files.add(toCheckpoint);
           // update the inode file persisence state
-          inode.setPersistenceState(PersistenceState.PERSISTING);
+          inode.setPersistenceState(PersistenceState.IN_PROGRESS);
           scheduledFiles.remove(fileId);
         }
       }
@@ -1654,7 +1656,7 @@ public final class FileSystemMaster extends MasterBase {
     }
     for (long fileId : fileIds) {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(PersistenceState.PERSISTING);
+      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
     }
   }
 

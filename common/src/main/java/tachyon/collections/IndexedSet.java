@@ -97,6 +97,8 @@ import com.google.common.collect.Sets;
  * <pre>
  *   Puppy heart = puppies.getFirstByField(idIndex, 1L);
  * </pre>
+ *
+ * @param <T> the type of object
  */
 public class IndexedSet<T> implements Iterable<T> {
   /** All objects in the set */

@@ -31,15 +31,17 @@ public interface CheckpointScheduler {
   class Factory {
     /**
      * @param conf TachyonConf to determine the scheduler type
+     * @param lineageStoreView a view of the lineage store
+     * @param fileSystemMasterView a view of the file system master
      * @return the generated scheduler
      */
     public static CheckpointScheduler createScheduler(TachyonConf conf,
-        LineageStoreView lineageStoreView, FileSystemMasterView fileStoreView) {
+        LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<CheckpointScheduler>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
             new Class[] {LineageStoreView.class, FileSystemMasterView.class},
-            new Object[] {lineageStoreView, fileStoreView});
+            new Object[] {lineageStoreView, fileSystemMasterView});
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -56,9 +58,10 @@ public interface CheckpointScheduler {
    * </p>
    *
    * @param lineageStoreView a readonly view of the lineage store
-   * @param fileStoreView a readonly view of the inode tree
+   * @param fileSystemMasterView a readonly view of the file system master
    * @return a scheduling plan (possibly empty) to checkpoint the lineages, or null if no plan is
    *         feasible
    */
-  CheckpointPlan schedule(LineageStoreView lineageStoreView, FileSystemMasterView fileStoreView);
+  CheckpointPlan schedule(LineageStoreView lineageStoreView,
+      FileSystemMasterView fileSystemMasterView);
 }

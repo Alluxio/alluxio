@@ -135,6 +135,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Dependency for findbugs (SuppressFBWarnings) -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

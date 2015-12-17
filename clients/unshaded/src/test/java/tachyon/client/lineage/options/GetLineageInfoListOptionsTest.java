@@ -13,13 +13,25 @@
  * the License.
  */
 
-package tachyon.master.file.meta;
+package tachyon.client.lineage.options;
 
-/**
- * The persistence state of a file in the under-storage system.
- */
-public enum PersistenceState {
-  NOT_PERSISTED, // file not persisted in the under FS
-  IN_PROGRESS, // used for async persistence, the async persistence is scheduled and in progress
-  PERSISTED // the file is persisted in the under FS
+import org.junit.Assert;
+import org.junit.Test;
+
+import tachyon.conf.TachyonConf;
+
+public class GetLineageInfoListOptionsTest {
+
+  @Test
+  public void buildTest() {
+    Assert.assertNotNull("The GetLineageInfoListOptions should not be null",
+        new GetLineageInfoListOptions.Builder(new TachyonConf()).build());
+  }
+
+  @Test
+  public void defaultsTest() {
+    Assert.assertNotNull("The default options should not be null",
+        GetLineageInfoListOptions.defaults());
+  }
+
 }

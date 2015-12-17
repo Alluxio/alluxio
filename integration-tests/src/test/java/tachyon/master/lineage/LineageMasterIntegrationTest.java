@@ -138,7 +138,7 @@ public final class LineageMasterIntegrationTest {
           TimeUnit.SECONDS));
 
       fileInfo = getFileSystemMasterClient().getFileInfo(fileId);
-      Assert.assertEquals(PersistenceState.PERSISTING.toString(),
+      Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(),
           fileInfo.getPersistenceState());
 
       // sleep and wait for worker to persist the file
