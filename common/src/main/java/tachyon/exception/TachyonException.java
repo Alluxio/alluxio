@@ -28,6 +28,11 @@ public abstract class TachyonException extends Exception {
 
   private final TachyonExceptionType mType;
 
+  /**
+   * Constructs a {@link TachyonException} with an exception type from a {@link TachyonTException}.
+   *
+   * @param te the type of the exception
+   */
   public TachyonException(TachyonTException te) {
     super(te.getMessage());
     mType = TachyonExceptionType.valueOf(te.type);
@@ -48,10 +53,20 @@ public abstract class TachyonException extends Exception {
     mType = type;
   }
 
+  /**
+   * Gets the type of the exception.
+   *
+   * @return the type of the exception
+   */
   public TachyonExceptionType getType() {
     return mType;
   }
 
+  /**
+   * Constructs a {@link TachyonTException} from a {@link TachyonException}.
+   *
+   * @return a {@link TachyonTException} of the type of this exception
+   */
   public TachyonTException toTachyonTException() {
     return new TachyonTException(mType.name(), getMessage());
   }
