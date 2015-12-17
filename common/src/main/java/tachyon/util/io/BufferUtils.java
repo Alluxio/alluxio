@@ -317,5 +317,19 @@ public final class BufferUtils {
     }
   }
 
+  /**
+   * Creates a byte array from the given ByteBuffer, respecting the position of buffer.
+   *
+   * @param buf source ByteBuffer
+   * @return a newly created byte array
+   */
+  public static byte[] newByteArrayFromByteBuffer(ByteBuffer buf) {
+    final int length = buf.remaining();
+    byte[] bytes = new byte[length];
+    // transfer bytes from this buffer into the given destination array
+    buf.get(bytes, 0, length);
+    return bytes;
+  }
+
   private BufferUtils() {} // prevent instantiation
 }

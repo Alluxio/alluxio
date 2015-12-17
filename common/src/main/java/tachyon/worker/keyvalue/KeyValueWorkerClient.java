@@ -32,7 +32,7 @@ public class KeyValueWorkerClient extends ClientBase {
   /**
    * Creates a KeyValueWorkerClient.
    *
-   * @param workerNetAddress to worker's location
+   * @param workerNetAddress location of the worker to connect to
    * @param conf Tachyon configuration
    */
   public KeyValueWorkerClient(NetAddress workerNetAddress, TachyonConf conf) {
@@ -52,6 +52,11 @@ public class KeyValueWorkerClient extends ClientBase {
   @Override
   protected long getServiceVersion() {
     return Constants.KEY_VALUE_WORKER_SERVICE_VERSION;
+  }
+
+  @Override
+  protected void afterConnect() throws IOException {
+    mClient = new KeyValueWorkerService.Client(mProtocol);
   }
 
   /**

@@ -19,8 +19,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
@@ -29,12 +33,15 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.io.BufferUtils;
 import tachyon.worker.keyvalue.KeyValueWorkerClient;
 
 /**
  * A client to talk to remote key-value worker to access a key
  */
 public class ClientKeyValueFileReader implements KeyValueFileReader {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private KeyValueWorkerClient mClient;
   private long mBlockId;
 
@@ -51,10 +58,12 @@ public class ClientKeyValueFileReader implements KeyValueFileReader {
 
   @Override
   public byte[] get(byte[] key) throws IOException, TachyonException {
-    ByteBuffer value = mClient.get(mBlockId, ByteBuffer.wrap(key));
+    LOG.debug("get key of length: {}", key.length);
+    ByteBuffer keyBuffer = ByteBuffer.wrap(key);
+    ByteBuffer value = mClient.get(mBlockId, keyBuffer);
     if (value == null) {
       return null;
     }
-    return value.array();
+    return BufferUtils.newByteArrayFromByteBuffer(value);
   }
 }
