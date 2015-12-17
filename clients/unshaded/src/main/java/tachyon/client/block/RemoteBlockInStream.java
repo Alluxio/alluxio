@@ -47,7 +47,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param location the location
-   * @throws IOException if I/O error occurs
+   * @throws IOException if the block is not available on the remote worker
    */
   public RemoteBlockInStream(long blockId, long blockSize, InetSocketAddress location)
       throws IOException {
