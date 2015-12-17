@@ -37,21 +37,23 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
   /**
    * CheckpointLatestScheduler does not use the lineage store view.
    *
-   * @param storeView view of a lineage store
+   * @param lineageStoreView view of a lineage store
+   * @param fileSystemMasterView a view of the file system master
    */
-  public CheckpointLatestScheduler(LineageStoreView storeView,
-      FileSystemMasterView fileStoreView) {}
+  public CheckpointLatestScheduler(LineageStoreView lineageStoreView,
+      FileSystemMasterView fileSystemMasterView) {}
 
   @Override
-  public CheckpointPlan schedule(LineageStoreView store, FileSystemMasterView fileStoreView) {
+  public CheckpointPlan schedule(LineageStoreView store,
+      FileSystemMasterView fileSystemMasterView) {
     Lineage toCheckpoint = null;
     long latestCreated = 0;
     for (Lineage lineage : store.getAllLineagesInTopologicalOrder()) {
       try {
-        if (!LineageStateUtils.isCompleted(lineage, fileStoreView)
-            || LineageStateUtils.isPersisted(lineage, fileStoreView)
-            || LineageStateUtils.needRecompute(lineage, fileStoreView)
-            || LineageStateUtils.isInCheckpointing(lineage, fileStoreView)) {
+        if (!LineageStateUtils.isCompleted(lineage, fileSystemMasterView)
+            || LineageStateUtils.isPersisted(lineage, fileSystemMasterView)
+            || LineageStateUtils.needRecompute(lineage, fileSystemMasterView)
+            || LineageStateUtils.isInCheckpointing(lineage, fileSystemMasterView)) {
           continue;
         }
       } catch (FileDoesNotExistException e) {
