@@ -62,5 +62,6 @@ public interface CheckpointScheduler {
    * @return a scheduling plan (possibly empty) to checkpoint the lineages, or null if no plan is
    *         feasible
    */
-  CheckpointPlan schedule(LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView);
+  CheckpointPlan schedule(LineageStoreView lineageStoreView,
+      FileSystemMasterView fileSystemMasterView);
 }
