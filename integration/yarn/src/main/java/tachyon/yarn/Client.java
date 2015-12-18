@@ -64,18 +64,8 @@ import tachyon.util.io.PathUtils;
  * </p>
  * {@code
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
-<<<<<<< HEAD
- * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
- * -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
- * }
-||||||| merged common ancestors
- * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
- * -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
- * </code>
-=======
  * hdfs://HDFSMaster:port/path/ -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
- * </code>
->>>>>>> origin/branch-0.8-yarn
+ * }
  *
  * <p>
  * Get help and a full list of options:
