@@ -7,5 +7,10 @@ tar zxf tachyon.tar.gz
 if [ $1 = 'master' ]; then
   ./integration/bin/tachyon-master-yarn.sh
 else
-  ./integration/bin/tachyon-worker-yarn.sh
+  if  [ $1 = 'worker' ]; then
+    ./integration/bin/tachyon-worker-yarn.sh
+  else
+    shift
+    ./integration/bin/tachyon-application-master.sh $@
+  fi
 fi
