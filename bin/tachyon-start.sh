@@ -26,9 +26,9 @@ MOPT is one of:
 
 -f  format Journal, UnderFS Data and Workers Folder on master
 
--N  Do not try to kill prior running masters and/or workers in all or local
+-N  do not try to kill prior running masters and/or workers in all or local
 
--w  Wait for processes to end before returning
+-w  wait for processes to end before returning
 
 -h  display this help."
 
