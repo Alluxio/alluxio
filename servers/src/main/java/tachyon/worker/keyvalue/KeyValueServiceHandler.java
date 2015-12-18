@@ -88,9 +88,7 @@ public final class KeyValueServiceHandler implements KeyValueWorkerService.Iface
     try {
       blockReader = mBlockDataManager.readBlockRemote(sessionId, blockId, lockId);
       ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
-      // TODO(binfan): see if we could do zero copy to avoid creating a byte array from fileBuffer
-      byte[] fileBytes = BufferUtils.newByteArrayFromByteBuffer(fileBuffer);
-      RandomAccessKeyValueFileReader reader = new RandomAccessKeyValueFileReader(fileBytes);
+      RandomAccessKeyValueFileReader reader = new RandomAccessKeyValueFileReader(fileBuffer);
       // TODO(binfan): clean fileBuffer which is a direct byte buffer
       return ByteBuffer.wrap(reader.get(keyBytes));
     } catch (InvalidWorkerStateException e) {

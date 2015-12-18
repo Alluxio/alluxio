@@ -1,8 +1,11 @@
 package tachyon.worker.keyvalue;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import tachyon.client.file.ByteArrayOutStream;
 
 /**
@@ -65,18 +68,21 @@ public class LinearProbingIndexTest {
     mOutStreamPayloadWriter.close();
 
     // Read all keys back, expect same value as inserted
-    RandomAccessPayloadReader payloadReader = new RandomAccessPayloadReader(mOutStream.toByteArray());
+    RandomAccessPayloadReader payloadReader =
+        new RandomAccessPayloadReader(ByteBuffer.wrap(mOutStream.toByteArray()));
     for (int i = 0; i < test_keys; i ++) {
-      byte[] value = index.get(keys[i], payloadReader);
-      Assert.assertArrayEquals(values[i], value);
+      ByteBuffer value = index.get(ByteBuffer.wrap(keys[i]), payloadReader);
+      Assert.assertEquals(ByteBuffer.wrap(values[i]), value);
     }
   }
 
   @Test
   public void getNonExistentKeyTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
-    RandomAccessPayloadReader payloadReaderNotUsed = new RandomAccessPayloadReader(new byte[] {});
-    byte[] nonExistentKey = "NotInserted".getBytes();
+    RandomAccessPayloadReader payloadReaderNotUsed =
+        new RandomAccessPayloadReader(ByteBuffer.allocate(1));
+    ByteBuffer nonExistentKey = ByteBuffer.allocate(10);
+    nonExistentKey.put("NoSuchKey".getBytes());
     Assert.assertNull(index.get(nonExistentKey, payloadReaderNotUsed));
   }
 }

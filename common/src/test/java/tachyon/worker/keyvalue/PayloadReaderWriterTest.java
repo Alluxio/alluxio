@@ -4,6 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import tachyon.client.file.ByteArrayOutStream;
 
+import java.nio.ByteBuffer;
+
 /**
  * Unit test of {@link OutStreamPayloadWriter}.
  */
@@ -72,10 +74,10 @@ public class PayloadReaderWriterTest {
     Assert.assertEquals(0, offset);
     mTestWriter.close();
 
-    byte[] buf = mTestOutStream.toByteArray();
+    ByteBuffer buf = ByteBuffer.wrap(mTestOutStream.toByteArray());
     mTestReader = new RandomAccessPayloadReader(buf);
-    Assert.assertArrayEquals(KEY1, mTestReader.getKey(0));
-    Assert.assertArrayEquals(VALUE1, mTestReader.getValue(0));
+    Assert.assertEquals(ByteBuffer.wrap(KEY1), mTestReader.getKey(0));
+    Assert.assertEquals(ByteBuffer.wrap(VALUE1), mTestReader.getValue(0));
   }
 
   @Test
@@ -84,9 +86,9 @@ public class PayloadReaderWriterTest {
     int offset = mTestWriter.addKeyAndValue(KEY1, VALUE1);
     mTestWriter.close();
 
-    byte[] buf = mTestOutStream.toByteArray();
+    ByteBuffer buf = ByteBuffer.wrap(mTestOutStream.toByteArray());
     mTestReader = new RandomAccessPayloadReader(buf);
-    Assert.assertArrayEquals(KEY1, mTestReader.getKey(offset));
-    Assert.assertArrayEquals(VALUE1, mTestReader.getValue(offset));
+    Assert.assertEquals(ByteBuffer.wrap(KEY1), mTestReader.getKey(offset));
+    Assert.assertEquals(ByteBuffer.wrap(VALUE1), mTestReader.getValue(offset));
   }
 }

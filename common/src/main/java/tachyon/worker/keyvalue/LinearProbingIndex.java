@@ -16,11 +16,13 @@
 package tachyon.worker.keyvalue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
 /**
@@ -48,7 +50,7 @@ public final class LinearProbingIndex implements Index {
   /** Size of each bucket in bytes */
   private static final int BUCKET_SIZE_BYTES = (Byte.SIZE + Integer.SIZE) / Byte.SIZE;
 
-  private byte[] mBuf;
+  private ByteBuffer mBuf;
   private int mNumBuckets;
   private int mKeyCount;
 
@@ -59,16 +61,16 @@ public final class LinearProbingIndex implements Index {
     int numBuckets = 1 << 15;
     byte[] buffer = new byte[numBuckets * BUCKET_SIZE_BYTES];
     Arrays.fill(buffer, (byte) 0);
-    return new LinearProbingIndex(buffer, numBuckets, 0);
+    return new LinearProbingIndex(ByteBuffer.wrap(buffer), numBuckets, 0);
   }
 
-  public static LinearProbingIndex loadFromByteArray(byte[] buffer) {
-    int numBuckets = buffer.length / BUCKET_SIZE_BYTES;
+  public static LinearProbingIndex loadFromByteArray(ByteBuffer buffer) {
+    int numBuckets = buffer.limit() / BUCKET_SIZE_BYTES;
     // TODO(binfan): fix the key count which is wrong now.
     return new LinearProbingIndex(buffer, numBuckets, 0);
   }
 
-  private LinearProbingIndex(byte[] buf, int numBuckets, int keyCount) {
+  private LinearProbingIndex(ByteBuffer buf, int numBuckets, int keyCount) {
     mBuf = buf;
     mNumBuckets = numBuckets;
     mKeyCount = keyCount;
@@ -106,7 +108,7 @@ public final class LinearProbingIndex implements Index {
   }
 
   @Override
-  public byte[] get(byte[] key, PayloadReader reader) {
+  public ByteBuffer get(ByteBuffer key, PayloadReader reader) {
     int bucketIndex = indexHash(key);
     byte fingerprint = fingerprintHash(key);
 
@@ -115,8 +117,8 @@ public final class LinearProbingIndex implements Index {
       int pos = bucketIndex * BUCKET_SIZE_BYTES;
       if (fingerprint == ByteIOUtils.readByte(mBuf, pos)) {
         int offset = ByteIOUtils.readInt(mBuf, pos + 1);
-        byte[] keyStored = reader.getKey(offset);
-        if (Arrays.equals(key, keyStored)) {
+        ByteBuffer keyStored = reader.getKey(offset);
+        if (key.equals(keyStored)) {
           return reader.getValue(offset);
         }
       }
@@ -127,7 +129,7 @@ public final class LinearProbingIndex implements Index {
 
   @Override
   public byte[] getBytes() {
-    return mBuf;
+    return mBuf.array();
   }
 
   /**
@@ -142,6 +144,11 @@ public final class LinearProbingIndex implements Index {
     return (v >= 0) ? v : -v;
   }
 
+  public int indexHash(ByteBuffer key) {
+    byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(key);
+    return indexHash(keyBytes);
+  }
+
 
   /**
    * Hashes the key into a non-zero fingerprint in byte.
@@ -153,5 +160,10 @@ public final class LinearProbingIndex implements Index {
     int hash = FINGERPRINT_HASHER.hashBytes(key).asInt();
     hash = (hash >> 24) & 0xff; // use high-order bits
     return (byte) ((hash == 0) ? 1 : hash);
+  }
+
+  public byte fingerprintHash(ByteBuffer key) {
+    byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(key);
+    return fingerprintHash(keyBytes);
   }
 }

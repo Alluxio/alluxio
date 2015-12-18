@@ -15,35 +15,37 @@
 
 package tachyon.worker.keyvalue;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
 /**
  * An implementation of {@link PayloadReader} with ability to random access the underline storage.
  */
 public final class RandomAccessPayloadReader implements PayloadReader {
-  private byte[] mBuf;
+  private ByteBuffer mBuf;
 
-  public RandomAccessPayloadReader(byte[] buf) {
-    mBuf = Preconditions.checkNotNull(buf);
+  public RandomAccessPayloadReader(ByteBuffer buf) {
+    mBuf = Preconditions.checkNotNull(buf).duplicate();
   }
 
   @Override
-  public byte[] getKey(int pos) {
+  public ByteBuffer getKey(int pos) {
     final int keyLength = ByteIOUtils.readInt(mBuf, pos);
     final int keyFrom = pos + 8;
-    return Arrays.copyOfRange(mBuf, keyFrom, keyFrom + keyLength);
+    return BufferUtils.sliceByteBuffer(mBuf, keyFrom, keyLength);
   }
 
   @Override
-  public byte[] getValue(int pos) {
+  public ByteBuffer getValue(int pos) {
     final int keyLength = ByteIOUtils.readInt(mBuf, pos);
     final int valueLength = ByteIOUtils.readInt(mBuf, pos + 4);
     final int valueFrom = pos + 8 + keyLength;
-    return Arrays.copyOfRange(mBuf, valueFrom, valueFrom + valueLength);
+    return BufferUtils.sliceByteBuffer(mBuf, valueFrom, valueLength);
   }
 
 }
