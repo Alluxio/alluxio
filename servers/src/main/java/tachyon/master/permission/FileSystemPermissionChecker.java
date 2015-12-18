@@ -25,7 +25,7 @@ import tachyon.security.authorization.FileSystemAction;
 /**
  * Base class to provide permission check logic.
  */
-public class FileSystemPermissionChecker {
+public final class FileSystemPermissionChecker {
   private static boolean sPermissionCheckEnabled;
 
   /** The owner of root directory. */
@@ -36,6 +36,7 @@ public class FileSystemPermissionChecker {
 
   /**
    * Initialize the permission related property of the whole Tachyon file system.
+   *
    * @param permissionCheckEnabled whether permission checking is enabled
    * @param owner the user of root directory, who is seen as the super user
    * @param superGroup the super group of the whole Tachyon file system
@@ -48,16 +49,20 @@ public class FileSystemPermissionChecker {
   }
 
   /**
-   * TODO(dong): add static methods to check access permission.
-   * The input is User and its Groups, requested Permission and INodes (traverse the Path).
-   *
+   * This method check access permission.
+   * The input is User and its Groups, requested Permission and inodes (traverse the Path).
    * The initialized static attributes will be used in the checking logic to bypass checking.
-   * Then User, Group, and Action will be compared to those of INodes.
-   *
+   * Then User, Group, and Action will be compared to those of inodes.
    * It will return if check passed, and throw exception if check failed.
+   *
+   * @param user who requests access permission
+   * @param groups in which user belongs to
+   * @param action requested {@link FileSystemAction} by user
+   * @param inodes all the inodes retrieved by traversing the path
+   * @throws IOException if permission checking fails
    */
   public static void checkPermission(User user, List<String> groups, FileSystemAction action,
-      List<Inode> iNodes) throws IOException {
+      List<Inode> inodes) throws IOException {
     if (!sPermissionCheckEnabled) {
       return;
     }
@@ -65,6 +70,6 @@ public class FileSystemPermissionChecker {
     if (sFileSystemOwner.equals(user.getName()) || groups.contains(sFileSystemSuperGroup)) {
       return;
     }
-    // Impl in TACHYON-1416
+    // TODO(dong): Implement TACHYON-1416
   }
 }

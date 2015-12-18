@@ -86,10 +86,10 @@ public final class InodeTreeTest {
 
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "superGroup");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     MasterContext.reset(conf);
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
-    verifyPermissionChecker(true, TEST_PERMISSION_STATUS.getUserName(), "superGroup");
+    verifyPermissionChecker(true, TEST_PERMISSION_STATUS.getUserName(), "test-supergroup");
   }
 
   @BeforeClass
@@ -114,7 +114,7 @@ public final class InodeTreeTest {
     Inode root = mTree.getInodeByPath(new TachyonURI("/"));
     // initializeRoot call does nothing
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
-    verifyPermissionChecker(true, root.getUserName(), "superGroup");
+    verifyPermissionChecker(true, root.getUserName(), "test-supergroup");
     Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
     Assert.assertEquals(root, newRoot);
   }
