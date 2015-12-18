@@ -13,26 +13,24 @@
  * the License.
  */
 
-package tachyon.network.protocol;
+package tachyon.client;
 
-import io.netty.buffer.ByteBuf;
+import java.util.Random;
 
 /**
- * Represents an encoded message.
+ * Utilities class for Tachyon Client. All methods and variables are static. This class is thread
+ * safe.
  */
-public interface EncodedMessage {
+public final class Utils {
+  private static Random sRandom = new Random();
 
   /**
-   * Returns the number bytes for the message when it is encoded.
-   *
-   * @return the length of the encoded message, in bytes
+   * @return a random long which is guaranteed to be non negative (zero is allowed)
    */
-  int getEncodedLength();
+  public static synchronized long getRandomNonNegativeLong() {
+    return Math.abs(sRandom.nextLong());
+  }
 
-  /**
-   * Encodes the message to the output {@link ByteBuf}.
-   *
-   * @param out the output ByteBuf where the message should be encoded
-   */
-  void encode(ByteBuf out);
+  // Prevent instantiation
+  private Utils() {}
 }

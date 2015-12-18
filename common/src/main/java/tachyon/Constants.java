@@ -143,6 +143,8 @@ public final class Constants {
       "tachyon.integration.master.resource.cpu";
   public static final String INTEGRATION_MASTER_RESOURCE_MEM =
       "tachyon.integration.master.resource.mem";
+  public static final String INTEGRATION_YARN_ONE_WORKER_PER_HOST =
+      "tachyon.integration.yarn.one.worker.per.host";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
   public static final String INTEGRATION_MESOS_JRE_PATH =

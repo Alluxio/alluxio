@@ -21,12 +21,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidWorkerStateException;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(BlockMetadataManager.class)
 public class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
@@ -41,8 +46,8 @@ public class BlockLockManagerTest {
 
   @Before
   public void before() throws Exception {
-    BlockMetadataManager mockMetaManager = Mockito.mock(BlockMetadataManager.class);
-    Mockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
+    BlockMetadataManager mockMetaManager = PowerMockito.mock(BlockMetadataManager.class);
+    PowerMockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
     mLockManager = new BlockLockManager();
   }
 
