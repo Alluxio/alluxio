@@ -39,8 +39,8 @@ public final class RPCBlockWriteRequest extends RPCRequest {
    *
    * @param sessionId the id of the session
    * @param blockId the id of the block
-   * @param offset the offset
-   * @param length the length
+   * @param offset the block offset to begin reading at
+   * @param length the number of bytes to read
    * @param data the data
    */
   public RPCBlockWriteRequest(long sessionId, long blockId, long offset, long length,
@@ -101,8 +101,6 @@ public final class RPCBlockWriteRequest extends RPCRequest {
   }
 
   /**
-   * Gets the id of the session.
-   *
    * @return the id of the session
    */
   public long getSessionId() {
@@ -110,8 +108,6 @@ public final class RPCBlockWriteRequest extends RPCRequest {
   }
 
   /**
-   * Gets the id of the block.
-   *
    * @return the id of the block
    */
   public long getBlockId() {
@@ -119,18 +115,14 @@ public final class RPCBlockWriteRequest extends RPCRequest {
   }
 
   /**
-   * Gets the length.
-   *
-   * @return the length
+   * @return the number of bytes to read
    */
   public long getLength() {
     return mLength;
   }
 
   /**
-   * Gets the offset.
-   *
-   * @return the offset
+   * @return the block offset to begin reading at
    */
   public long getOffset() {
     return mOffset;

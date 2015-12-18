@@ -56,8 +56,6 @@ public final class RPCErrorResponse extends RPCResponse {
   }
 
   /**
-   * Gets the status.
-   *
    * @return the status
    */
   public Status getStatus() {
