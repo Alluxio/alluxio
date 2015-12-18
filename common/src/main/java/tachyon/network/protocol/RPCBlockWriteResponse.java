@@ -36,8 +36,8 @@ public final class RPCBlockWriteResponse extends RPCResponse {
    *
    * @param sessionId the id of the session
    * @param blockId the id of the block
-   * @param offset the block offset to begin reading at
-   * @param length the number of bytes to read
+   * @param offset the block offset that the writing began at
+   * @param length the number of bytes written
    * @param status the status
    */
   public RPCBlockWriteResponse(long sessionId, long blockId, long offset, long length,
@@ -116,14 +116,14 @@ public final class RPCBlockWriteResponse extends RPCResponse {
   }
 
   /**
-   * @return the number of bytes to read
+   * @return the number of bytes written
    */
   public long getLength() {
     return mLength;
   }
 
   /**
-   * @return the block offset to begin reading at
+   * @return the block offset that the writing began at
    */
   public long getOffset() {
     return mOffset;
