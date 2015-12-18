@@ -36,6 +36,7 @@ public class HeartbeatContextTest {
     checkNotNull(HeartbeatContext.MASTER_TTL_CHECK);
     checkNotNull(HeartbeatContext.WORKER_CLIENT);
     checkNotNull(HeartbeatContext.WORKER_LINEAGE_SYNC);
+    checkNotNull(HeartbeatContext.PIN_LIST_SYNC);
   }
 
   @Test
@@ -49,6 +50,7 @@ public class HeartbeatContextTest {
     checkInstanceOf(HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.WORKER_CLIENT, HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.WORKER_LINEAGE_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
+    checkInstanceOf(HeartbeatContext.PIN_LIST_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
   @Test
