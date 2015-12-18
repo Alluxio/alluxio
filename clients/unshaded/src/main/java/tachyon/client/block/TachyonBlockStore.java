@@ -84,7 +84,7 @@ public final class TachyonBlockStore {
   }
 
   /**
-   * @return the info of all active block workers.
+   * @return the info of all active block workers
    */
   public List<BlockWorkerInfo> getBlockWorkerInfoList() throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();

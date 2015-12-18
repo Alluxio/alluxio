@@ -43,14 +43,14 @@ public final class BlockWorkerInfo {
   }
 
   /**
-   * @return the capacity of the worker in bytes.
+   * @return the capacity of the worker in bytes
    */
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
   /**
-   * @return the used bytes of the worker.
+   * @return the used bytes of the worker
    */
   public long getUsedBytes() {
     return mUsedBytes;
