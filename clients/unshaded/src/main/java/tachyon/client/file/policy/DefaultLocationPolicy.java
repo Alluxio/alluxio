@@ -23,7 +23,7 @@ import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.file.options.OutStreamOptions;
 
 /**
- * A default location policy that returns the hostname specified in the {@link OutStreamOptions}.
+ * A default location policy that returns localhost.
  */
 public final class DefaultLocationPolicy implements FileWriteLocationPolicy {
   private OutStreamOptions mOptions;

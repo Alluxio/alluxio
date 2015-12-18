@@ -37,7 +37,6 @@ import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
@@ -64,6 +63,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final long mNonce;
   private String mUfsPath;
   private FileWriteLocationPolicy mLocationPolicy;
+  private final String mHostname;
 
   protected boolean mCanceled;
   protected boolean mClosed;
@@ -86,6 +86,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
+    mHostname = options.getHostname();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
@@ -101,7 +102,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-    mLocationPolicy = FileWriteLocationPolicy.Factory.createPolicy(new TachyonConf(), options);
+    mLocationPolicy =
+        FileWriteLocationPolicy.Factory.createPolicy(ClientContext.getConf(), options);
   }
 
   @Override
@@ -255,8 +257,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
-      String hostname =
-          mLocationPolicy.getWorkerForNextBlock(TachyonBlockStore.get().getBlockWorkerInfoList());
+      String hostname = mHostname == null
+          ? mLocationPolicy.getWorkerForNextBlock(TachyonBlockStore.get().getBlockWorkerInfoList())
+          : mHostname;
       mCurrentBlockOutStream =
           mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
       mShouldCacheCurrentBlock = true;
