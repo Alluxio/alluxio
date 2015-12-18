@@ -36,7 +36,8 @@ tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
   assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
   servers/src/main/webapp \
   bin conf integration/bin/common.sh integration/bin/tachyon-master-yarn.sh \
-  integration/bin/tachyon-worker-yarn.sh
+  integration/bin/tachyon-worker-yarn.sh \
+  integration/bin/tachyon-application-master.sh \
 
 JAR_LOCAL=${TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
 
@@ -48,6 +49,10 @@ ${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-yarn-setup.sh ${HDFS_PATH}/tachyo
 ${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-application-master.sh ${HDFS_PATH}/tachyon-application-master.sh
 
 echo "Starting YARN client to launch Tachyon on YARN"
+
+# Add Tachyon java options to the yarn options so that tachyon.yarn.Client can be configured via
+# tachyon java options
+export YARN_OPTS="${YARN_OPTS:-${TACHYON_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
     -num_workers $NUM_WORKERS \
