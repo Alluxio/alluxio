@@ -36,6 +36,7 @@ public final class HeartbeatContext {
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
   public static final String WORKER_LINEAGE_SYNC = "Worker Lineage Sync";
   public static final String WORKER_CLIENT = "Worker Client";
+  public static final String PIN_LIST_SYNC = "Pin List Sync";
 
   static {
     sTimerClasses = new HashMap<String, Class<? extends HeartbeatTimer>>();
@@ -46,6 +47,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_BLOCK_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_LINEAGE_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization
