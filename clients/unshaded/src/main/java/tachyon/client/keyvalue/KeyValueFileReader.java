@@ -20,6 +20,7 @@ import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Interface of the reader class to access a Tachyon key-value file.
@@ -46,5 +47,5 @@ public interface KeyValueFileReader {
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
    */
-  byte[] get(byte[] key) throws IOException, TachyonException;
+  ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 }
