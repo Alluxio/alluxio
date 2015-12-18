@@ -29,10 +29,11 @@ distributed with Tachyon binaries. We do not recommend beginner users to edit th
 which Tachyon is running. The easiest way is to put the site properties file in directory
 `$TACHYON_HOME/conf`.
 
-All Tachyon configuration properties fall into one of the four categories:
+All Tachyon configuration properties fall into one of the five categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration), and
-[User specific](#user-configuration).
+[User specific](#user-configuration), and [Cluster specific](#cluster-management) (used for running
+Tachyon with cluster managers like Mesos and YARN).
 
 ## Common Configuration
 
