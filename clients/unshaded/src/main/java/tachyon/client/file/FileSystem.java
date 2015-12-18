@@ -256,31 +256,98 @@ interface FileSystem {
       throws IOException, TachyonException;
 
   /**
-   * Convenience method to open a file with default options.
+   * Convenience method to open a file for reading with default options.
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  FileInStream openFile(TachyonURI path);
+  FileInStream openFile(TachyonURI path)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method to open a file with default options.
+   * Opens a file for reading.
    *
    * @param path the file to read from
    * @param options options to associate with this operation
    * @return a {@link FileInStream} for the given path
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  FileInStream openFile(TachyonURI path, OpenOptions options);
+  FileInStream openFile(TachyonURI path, OpenOptions options)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  void rename(TachyonURI src, TachyonURI dst);
+  /**
+   * Convenience method for rename with default options.
+   *
+   * @param src the path of the source, this must already exist
+   * @param dst the path of the destination, this path should not exist
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  void rename(TachyonURI src, TachyonURI dst)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  void rename(TachyonURI src, TachyonURI dst, RenameOptions options);
+  /**
+   * Renames an existing Tachyon path to another Tachyon path in Tachyon.
+   *
+   * @param src the path of the source, this must already exist
+   * @param dst the path of the destination, this path should not exist
+   * @param options options to associate with this operation
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  void rename(TachyonURI src, TachyonURI dst, RenameOptions options)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  void setAttribute(TachyonURI path);
+  /**
+   * Convenience method for setAttribute with default parameters.
+   *
+   * @param path the file handler for the file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  void setAttribute(TachyonURI path)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
-  void setAttribute(TachyonURI path, SetStateOptions options);
+  /**
+   * Sets any number of a path's attributes.
+   *
+   * @param path the file handler for the file
+   * @param options options to associate with this operation
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  void setAttribute(TachyonURI path, SetStateOptions options)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
+  /**
+   * Convenience method for unmount with default parameters.
+   *
+   * @param path a Tachyon path, this must be a mount point
+   * @return true if the UFS subtree was unmounted successfully, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   void unmount(TachyonURI path);
 
+  /**
+   * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a
+   * previously mounted path. The contents of the subtree rooted at this path are removed from
+   * Tachyon but the corresponding UFS subtree is left untouched.
+   *
+   * @param path a Tachyon path, this must be a mount point
+   * @param options options to associate with this operation
+   * @return true if the UFS subtree was unmounted successfully, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   void unmount(TachyonURI path, UnmountOptions options);
 }
