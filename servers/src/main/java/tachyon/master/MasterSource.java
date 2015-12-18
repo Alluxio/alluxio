@@ -39,54 +39,55 @@ public class MasterSource implements Source {
   private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
 
+  private final Counter mDirectoriesCreated =
+          mMetricRegistry.counter(MetricRegistry.name("DirectoriesCreated"));
+  private final Counter mFileBlockInfosGot =
+          mMetricRegistry.counter(MetricRegistry.name("FileBlockInfosGot"));
+  private final Counter mFileInfosGot =
+          mMetricRegistry.counter(MetricRegistry.name("FileInfosGot"));
+  private final Counter mFilesCompleted =
+          mMetricRegistry.counter(MetricRegistry.name("FilesCompleted"));
+  private final Counter mFilesCreated =
+          mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
+  private final Counter mFilesFreed =
+          mMetricRegistry.counter(MetricRegistry.name("FilesFreed"));
+  private final Counter mFilesPersisted =
+          mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
+  private final Counter mNewBlocksGot =
+          mMetricRegistry.counter(MetricRegistry.name("NewBlocksGot"));
+  private final Counter mPathsDeleted =
+          mMetricRegistry.counter(MetricRegistry.name("PathsDeleted"));
+  private final Counter mPathsMounted =
+          mMetricRegistry.counter(MetricRegistry.name("PathsMounted"));
+  private final Counter mPathsRenamed =
+          mMetricRegistry.counter(MetricRegistry.name("PathsRenamed"));
+  private final Counter mPathsUnmounted =
+          mMetricRegistry.counter(MetricRegistry.name("PathsUnmounted"));
+
   private final Counter mCompleteFileOps =
       mMetricRegistry.counter(MetricRegistry.name("CompleteFileOps"));
-  private final Counter mFilesCompleted =
-      mMetricRegistry.counter(MetricRegistry.name("FilesCompleted"));
+  private final Counter mCreateDirectoryOps =
+          mMetricRegistry.counter(MetricRegistry.name("CreateDirectoryOps"));
+  private final Counter mCreateFileOps =
+          mMetricRegistry.counter(MetricRegistry.name("CreateFileOps"));
+  private final Counter mDeletePathOps =
+          mMetricRegistry.counter(MetricRegistry.name("DeletePathOps"));
   private final Counter mFreeFileOps =
       mMetricRegistry.counter(MetricRegistry.name("FreeFileOps"));
-  private final Counter mFilesFreed =
-      mMetricRegistry.counter(MetricRegistry.name("FilesFreed"));
-  private final Counter mFilesCreated =
-      mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
-  private final Counter mCreateFileOps =
-      mMetricRegistry.counter(MetricRegistry.name("CreateFileOps"));
-  private final Counter mDirectoriesCreated =
-      mMetricRegistry.counter(MetricRegistry.name("DirectoriesCreated"));
-  private final Counter mCreateDirectoryOps =
-      mMetricRegistry.counter(MetricRegistry.name("CreateDirectoryOps"));
-  private final Counter mPathsDeleted =
-      mMetricRegistry.counter(MetricRegistry.name("PathsDeleted"));
-  private final Counter mDeletePathOps =
-      mMetricRegistry.counter(MetricRegistry.name("DeletePathOps"));
-  private final Counter mPathsRenamed =
-      mMetricRegistry.counter(MetricRegistry.name("PathsRenamed"));
+  private final Counter mGetFileBlockInfoOps =
+          mMetricRegistry.counter(MetricRegistry.name("GetFileBlockInfoOps"));
+  private final Counter mGetFileInfoOps =
+          mMetricRegistry.counter(MetricRegistry.name("GetFileInfoOps"));
+  private final Counter mGetNewBlockOps =
+          mMetricRegistry.counter(MetricRegistry.name("GetNewBlockOps"));
+  private final Counter mMountOps =
+          mMetricRegistry.counter(MetricRegistry.name("MountOps"));
   private final Counter mRenamePathOps =
       mMetricRegistry.counter(MetricRegistry.name("RenamePathOps"));
-  private final Counter mFilesPersisted =
-      mMetricRegistry.counter(MetricRegistry.name("FilesPersisted"));
-  private final Counter mPathsMounted =
-      mMetricRegistry.counter(MetricRegistry.name("PathsMounted"));
-  private final Counter mMountOps =
-      mMetricRegistry.counter(MetricRegistry.name("MountOps"));
-  private final Counter mPathsUnmounted =
-      mMetricRegistry.counter(MetricRegistry.name("PathsUnmounted"));
+  private final Counter mSetStateOps =
+          mMetricRegistry.counter(MetricRegistry.name("SetStateOps"));
   private final Counter mUnmountOps =
       mMetricRegistry.counter(MetricRegistry.name("UnmountOps"));
-  private final Counter mGetFileInfoOps =
-      mMetricRegistry.counter(MetricRegistry.name("GetFileInfoOps"));
-  private final Counter mFileInfosGot =
-      mMetricRegistry.counter(MetricRegistry.name("FileInfosGot"));
-  private final Counter mGetFileBlockInfoOps =
-      mMetricRegistry.counter(MetricRegistry.name("GetFileBlockInfoOps"));
-  private final Counter mFileBlockInfosGot =
-      mMetricRegistry.counter(MetricRegistry.name("FileBlockInfosGot"));
-  private final Counter mGetNewBlockOps =
-      mMetricRegistry.counter(MetricRegistry.name("GetNewBlockOps"));
-  private final Counter mNewBlocksGot =
-      mMetricRegistry.counter(MetricRegistry.name("NewBlocksGot"));
-  private final Counter mSetStateOps =
-      mMetricRegistry.counter(MetricRegistry.name("SetStateOps"));
 
   public void registerGauges(final TachyonMaster tachyonMaster) {
     if (mGaugesRegistered) {
@@ -193,20 +194,60 @@ public class MasterSource implements Source {
     return mMetricRegistry;
   }
 
-  public void incCompleteFileOps(long n) {
-    mCompleteFileOps.inc(n);
+  public void incDirectoriesCreated(long n) {
+    mDirectoriesCreated.inc(n);
+  }
+
+  public void incFileBlockInfosGot(long n) {
+    mFileBlockInfosGot.inc(n);
+  }
+
+  public void incFileInfosGot(long n) {
+    mFileInfosGot.inc(n);
   }
 
   public void incFilesCompleted(long n) {
     mFilesCompleted.inc(n);
   }
 
-  public void incFreeFileOps(long n) {
-    mFreeFileOps.inc(n);
+  public void incFilesCreated(long n) {
+    mFilesCreated.inc(n);
   }
 
   public void incFilesFreed(long n) {
     mFilesFreed.inc(n);
+  }
+
+  public void incFilesPersisted(long n) {
+    mFilesPersisted.inc(n);
+  }
+
+  public void incNewBlocksGot(long n) {
+    mNewBlocksGot.inc(n);
+  }
+
+  public void incPathsDeleted(long n) {
+    mPathsDeleted.inc(n);
+  }
+
+  public void incPathsMounted(long n) {
+    mPathsMounted.inc(n);
+  }
+
+  public void incPathsRenamed(long n) {
+    mPathsRenamed.inc(n);
+  }
+
+  public void incPathsUnmounted(long n) {
+    mPathsUnmounted.inc(n);
+  }
+
+  public void incCompleteFileOps(long n) {
+    mCompleteFileOps.inc(n);
+  }
+
+  public void incCreateDirectoriesOps(long n) {
+    mCreateDirectoryOps.inc();
   }
 
   public void incCreateFileOps(long n) {
@@ -217,75 +258,35 @@ public class MasterSource implements Source {
     mDeletePathOps.inc(n);
   }
 
-  public void incFilesCreated(long n) {
-    mFilesCreated.inc(n);
-  }
-
-  public void incDirectoriesCreated(long n) {
-    mDirectoriesCreated.inc(n);
-  }
-
-  public void incCreateDirectoriesOps(long n) {
-    mCreateDirectoryOps.inc();
-  }
-
-  public void incPathsDeleted(long n) {
-    mPathsDeleted.inc(n);
-  }
-
-  public void incPathsRenamed(long n) {
-    mPathsRenamed.inc(n);
-  }
-
-  public void incFilesPersisted(long n) {
-    mFilesPersisted.inc(n);
-  }
-
-  public void incGetFileInfoOps(long n) {
-    mGetFileInfoOps.inc(n);
-  }
-
-  public void incFileInfosGot(long n) {
-    mFileInfosGot.inc(n);
+  public void incFreeFileOps(long n) {
+    mFreeFileOps.inc(n);
   }
 
   public void incGetFileBlockInfoOps(long n) {
     mGetFileBlockInfoOps.inc(n);
   }
 
-  public void incFileBlockInfosGot(long n) {
-    mFileBlockInfosGot.inc(n);
-  }
-
-  public void incRenamePathOps(long n) {
-    mRenamePathOps.inc(n);
-  }
-
-  public void incPathsUnmounted(long n) {
-    mPathsUnmounted.inc(n);
-  }
-
-  public void incUnmountOps(long n) {
-    mUnmountOps.inc(n);
-  }
-
-  public void incPathsMounted(long n) {
-    mPathsMounted.inc(n);
-  }
-
-  public void incMountOps(long n) {
-    mMountOps.inc(n);
-  }
-
-  public void incSetStateOps(long n) {
-    mSetStateOps.inc(n);
+  public void incGetFileInfoOps(long n) {
+    mGetFileInfoOps.inc(n);
   }
 
   public void incGetNewBlockOps(long n) {
     mGetNewBlockOps.inc(n);
   }
 
-  public void incNewBlocksGot(long n) {
-    mNewBlocksGot.inc(n);
+  public void incMountOps(long n) {
+    mMountOps.inc(n);
+  }
+
+  public void incRenamePathOps(long n) {
+    mRenamePathOps.inc(n);
+  }
+
+  public void incSetStateOps(long n) {
+    mSetStateOps.inc(n);
+  }
+
+  public void incUnmountOps(long n) {
+    mUnmountOps.inc(n);
   }
 }
