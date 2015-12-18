@@ -238,7 +238,7 @@ public final class FileSystemMaster extends MasterBase {
       }
     } else if (innerEntry instanceof PersistFilesRequestEntry) {
       try {
-        setPersistingStateFromEntry((PersistFilesRequestEntry) innerEntry);
+        setPersistingState(((PersistFilesRequestEntry) innerEntry).getFileIdsList());
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -1618,7 +1618,7 @@ public final class FileSystemMaster extends MasterBase {
       }
 
       Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
-      for (long fileId : Sets.newHashSet(scheduledFiles)) {
+      for (long fileId : scheduledFiles) {
         InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
         if (inode.isCompleted()) {
           fileIdsToPersist.add(fileId);
@@ -1635,7 +1635,8 @@ public final class FileSystemMaster extends MasterBase {
       }
     }
 
-    setPersistingState(fileIdsToPersist);
+    mWorkerToAsyncPersistFiles.get(workerId).remove(fileIdsToPersist);
+
     // write to journal
     PersistFilesRequestEntry persistFilesRequest =
         PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
@@ -1659,11 +1660,6 @@ public final class FileSystemMaster extends MasterBase {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
       inode.setPersistenceState(PersistenceState.IN_PROGRESS);
     }
-  }
-
-  private void setPersistingStateFromEntry(PersistFilesRequestEntry entry)
-      throws FileDoesNotExistException {
-    setPersistingState(entry.getFileIdsList());
   }
 
   /**
