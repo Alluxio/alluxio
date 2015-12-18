@@ -51,7 +51,6 @@ The following shows the details of the available metrics.
 * CapacityTotal: Total capacity of the file system in bytes.
 * CapacityUsed: Used capacity of the file system in bytes.
 * CapacityFree: Free capacity of the file system in bytes.
-* FilesPinned: Total number of the files pinned.
 * PathsTotal: Total number of files and directories in the file system.
 * UnderFsCapacityTotal: Total capacity of the under file system in bytes.
 * UnderFsCapacityUsed: Used capacity of the under file system in bytes.
@@ -64,7 +63,7 @@ The following shows the details of the available metrics.
 * FilesCreated: Total number of files created.
 * FilesFreed: Total number of files freed.
 * FilesPersisted: Total number of the files persisted.
-* NewBlocksRequested: Total number of new blocks requested.
+* FilesPinned: Total number of the files pinned.
 * PathsDeleted: Total number of files and directories deleted.
 * PathsMounted: Total number of paths mounted.
 * PathsRenamed: Total number of files and directories renamed.
@@ -76,8 +75,9 @@ The following shows the details of the available metrics.
 * FreeFileOps: Total number of FreeFile operations.
 * GetFileBlockInfoOps: Total number of GetFileBlockInfo operations.
 * GetFileInfoOps: Total number of GetFileInfo operations.
+* NewBlocksGot: Total number of new blocks got.
 * MountOps: Total number of Mount operations.
-* NewBlockRequestOps: Total number of NewBlockRequest operations.
+* GetNewBlockOps: Total number of GetNewBlock operations.
 * RenamePathOps: Total number of the RenamePath operations.
 * SetStateOps: Total number of the SetState operations.
 * UnmountOps: Total number of Unmount operations.

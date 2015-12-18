@@ -25,7 +25,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -375,7 +374,7 @@ public final class FileSystemMaster extends MasterBase {
   public void completeFile(long fileId, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException {
-    MasterContext.getMasterSource().incCompleteFileOps();
+    MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -439,7 +438,7 @@ public final class FileSystemMaster extends MasterBase {
         currLength -= blockSize;
       }
     }
-    MasterContext.getMasterSource().incFilesCompleted();
+    MasterContext.getMasterSource().incFilesCompleted(1);
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry)
@@ -494,10 +493,8 @@ public final class FileSystemMaster extends MasterBase {
 
     mTTLBuckets.insert(inode);
 
-    MasterContext.getMasterSource()
-        .incFilesCreated(Iterables.size(Iterables.filter(created, InodeFile.class)));
-    MasterContext.getMasterSource()
-        .incDirectoriesCreated(Iterables.size(Iterables.filter(created, InodeDirectory.class)));
+    MasterContext.getMasterSource().incFilesCreated(1);
+    MasterContext.getMasterSource().incDirectoriesCreated(created.size() - 1);
     return createResult;
   }
 
@@ -542,7 +539,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
-    MasterContext.getMasterSource().incNewBlockRequestOps(1);
+    MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode inode;
     synchronized (mInodeTree) {
       inode = mInodeTree.getInodeById(fileId);
@@ -550,9 +547,8 @@ public final class FileSystemMaster extends MasterBase {
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
     }
-    long newBlock = ((InodeFile) inode).getNewBlockId();
-    MasterContext.getMasterSource().incNewBlocksRequested(1);
-    return newBlock;
+    MasterContext.getMasterSource().incNewBlocksGot(1);
+    return ((InodeFile) inode).getNewBlockId();
   }
 
   /**
@@ -1168,7 +1164,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
-    MasterContext.getMasterSource().incFreeFileOps();
+    MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -1193,7 +1189,7 @@ public final class FileSystemMaster extends MasterBase {
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
         }
       }
-      MasterContext.getMasterSource().incFilesReleased(freeInodes.size());
+      MasterContext.getMasterSource().incFilesFreed(freeInodes.size());
     }
     return true;
   }

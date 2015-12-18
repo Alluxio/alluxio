@@ -23,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import com.codahale.metrics.Counter;
@@ -79,9 +78,6 @@ public final class MetricsCountersTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
   @Before
   public void before() throws Exception {
     MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS,
@@ -120,6 +116,7 @@ public final class MetricsCountersTest {
     // trying to create a file that already exist
     try {
       mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
+      Assert.fail("create a file that already exist must throw an eception");
     } catch (FileAlreadyExistsException e) {
       // do nothing
     }
@@ -143,9 +140,10 @@ public final class MetricsCountersTest {
     Assert.assertEquals(1, mCounters.get("CreateDirectoryOps").getCount());
     Assert.assertEquals(1, mCounters.get("DirectoriesCreated").getCount());
 
-    // trying to create a file that already exist
+    // trying to create a directory that already exist
     try {
       mFileSystemMaster.mkdir(DIRECTORY_URI, MkdirOptions.defaults());
+      Assert.fail("create a directory that already exist must throw an exception");
     } catch (FileAlreadyExistsException e) {
       // do nothing
     }
@@ -166,6 +164,7 @@ public final class MetricsCountersTest {
     // trying to get non-existent file info
     try {
       mFileSystemMaster.getFileInfo(-1);
+      Assert.fail("get file info for a non existing file must throw an exception");
     } catch (FileDoesNotExistException e) {
       // do nothing
     }
@@ -198,6 +197,7 @@ public final class MetricsCountersTest {
     // trying to get block info list for a non-existent file
     try {
       mFileSystemMaster.getFileBlockInfoList(-1);
+      Assert.fail("get file block info for a non existing file must throw an exception");
     } catch (FileDoesNotExistException e) {
       // do nothing
     }
@@ -220,6 +220,7 @@ public final class MetricsCountersTest {
     // trying to complete a completed file
     try {
       completeFile(singleBlocksfileId);
+      Assert.fail("complete an already completed file must throw an exception");
     } catch (FileAlreadyCompletedException e) {
       // do nothing
     }
@@ -256,7 +257,7 @@ public final class MetricsCountersTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
 
-    Assert.assertEquals(1, mCounters.get("NewBlockRequestOps").getCount());
+    Assert.assertEquals(1, mCounters.get("GetNewBlockOps").getCount());
   }
 
   @Test
@@ -325,21 +326,16 @@ public final class MetricsCountersTest {
     Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
     Assert.assertEquals(1, mCounters.get("MountOps").getCount());
 
+    // trying to mount an existing file
+    Assert.assertFalse(mFileSystemMaster.mount(TEST_URI, MOUNT_URI));
+
+    Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
+    Assert.assertEquals(2, mCounters.get("MountOps").getCount());
+
     mFileSystemMaster.unmount(TEST_URI);
 
     Assert.assertEquals(1, mCounters.get("PathsUnmounted").getCount());
     Assert.assertEquals(1, mCounters.get("UnmountOps").getCount());
-
-    // trying to mount an existing file
-    mFileSystemMaster.create(MOUNT_URI, sNestedFileOptions);
-    try {
-      mFileSystemMaster.mount(MOUNT_URI, TEST_URI);
-    } catch (FileAlreadyExistsException e) {
-      // do nothing
-    }
-
-    Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
-    Assert.assertEquals(2, mCounters.get("MountOps").getCount());
   }
 
   private long createCompleteFileWithSingleBlock(TachyonURI uri) throws Exception {
