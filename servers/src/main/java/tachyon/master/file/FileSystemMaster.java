@@ -38,7 +38,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
@@ -108,6 +107,8 @@ import tachyon.thrift.PersistFile;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The master that handles all file system metadata management.
