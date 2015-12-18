@@ -332,11 +332,10 @@ interface FileSystem {
    * Convenience method for unmount with default parameters.
    *
    * @param path a Tachyon path, this must be a mount point
-   * @return true if the UFS subtree was unmounted successfully, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if a Tachyon exception occurs
    */
-  void unmount(TachyonURI path);
+  void unmount(TachyonURI path) throws IOException, TachyonException;
 
   /**
    * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a
@@ -345,9 +344,8 @@ interface FileSystem {
    *
    * @param path a Tachyon path, this must be a mount point
    * @param options options to associate with this operation
-   * @return true if the UFS subtree was unmounted successfully, false otherwise
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if a Tachyon exception occurs
    */
-  void unmount(TachyonURI path, UnmountOptions options);
+  void unmount(TachyonURI path, UnmountOptions options) throws IOException, TachyonException;
 }
