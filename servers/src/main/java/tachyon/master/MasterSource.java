@@ -43,12 +43,10 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name("CompleteFileOps"));
   private final Counter mFilesCompleted =
       mMetricRegistry.counter(MetricRegistry.name("FilesCompleted"));
-
   private final Counter mFreeFileOps =
       mMetricRegistry.counter(MetricRegistry.name("FreeFileOps"));
   private final Counter mFilesFreed =
       mMetricRegistry.counter(MetricRegistry.name("FilesFreed"));
-
   private final Counter mFilesCreated =
       mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
   private final Counter mCreateFileOps =
@@ -83,11 +81,10 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name("GetFileBlockInfoOps"));
   private final Counter mFileBlockInfosGot =
       mMetricRegistry.counter(MetricRegistry.name("FileBlockInfosGot"));
-  private final Counter mNewBlockRequestOps =
-      mMetricRegistry.counter(MetricRegistry.name("NewBlockRequestOps"));
-  private final Counter mNewBlocksRequested =
-      mMetricRegistry.counter(MetricRegistry.name("NewBlocksRequested"));
-
+  private final Counter mGetNewBlockOps =
+      mMetricRegistry.counter(MetricRegistry.name("GetNewBlockOps"));
+  private final Counter mNewBlocksGot =
+      mMetricRegistry.counter(MetricRegistry.name("NewBlocksGot"));
   private final Counter mSetStateOps =
       mMetricRegistry.counter(MetricRegistry.name("SetStateOps"));
 
@@ -196,19 +193,19 @@ public class MasterSource implements Source {
     return mMetricRegistry;
   }
 
-  public void incCompleteFileOps() {
-    mCompleteFileOps.inc();
+  public void incCompleteFileOps(long n) {
+    mCompleteFileOps.inc(n);
   }
 
-  public void incFilesCompleted() {
-    mFilesCompleted.inc();
+  public void incFilesCompleted(long n) {
+    mFilesCompleted.inc(n);
   }
 
-  public void incFreeFileOps() {
-    mFreeFileOps.inc();
+  public void incFreeFileOps(long n) {
+    mFreeFileOps.inc(n);
   }
 
-  public void incFilesReleased(long n) {
+  public void incFilesFreed(long n) {
     mFilesFreed.inc(n);
   }
 
@@ -284,11 +281,11 @@ public class MasterSource implements Source {
     mSetStateOps.inc(n);
   }
 
-  public void incNewBlockRequestOps(long n) {
-    mNewBlockRequestOps.inc(n);
+  public void incGetNewBlockOps(long n) {
+    mGetNewBlockOps.inc(n);
   }
 
-  public void incNewBlocksRequested(long n) {
-    mNewBlocksRequested.inc(n);
+  public void incNewBlocksGot(long n) {
+    mNewBlocksGot.inc(n);
   }
 }
