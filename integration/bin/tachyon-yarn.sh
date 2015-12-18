@@ -26,19 +26,26 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
+TACHYON_MASTER_JAVA_OPTS="${TACHYON_MASTER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
+TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
 DEPLOY_TACHYON_HOME=$1
 NUM_WORKERS=$2
-PATH_HDFS=$3
+HDFS_PATH=$3
 
 JAR_LOCAL=${DEPLOY_TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
-JAR_HDFS=${PATH_HDFS}/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
 
-${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${JAR_HDFS}
+${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
+${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-master-yarn.sh ${HDFS_PATH}/tachyon-master-yarn.sh
+${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-worker-yarn.sh ${HDFS_PATH}/tachyon-worker-yarn.sh
 
 # Add Tachyon java options to the yarn options so that tachyon.yarn.Client can be configured via
 # tachyon java options
 export YARN_OPTS="${YARN_OPTS} ${TACHYON_JAVA_OPTS}"
 
-${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client -jar ${JAR_HDFS} \
-    -num_workers $NUM_WORKERS -tachyon_home ${DEPLOY_TACHYON_HOME} -master_address ${TACHYON_MASTER_ADDRESS:-localhost}
+${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
+    -num_workers $NUM_WORKERS \
+    -master_address ${TACHYON_MASTER_ADDRESS:-localhost} \
+    -resource_path ${HDFS_PATH} \
+    -master_java_opts "$TACHYON_MASTER_JAVA_OPTS" \
+    -worker_java_opts "$TACHYON_WORKER_JAVA_OPTS"
