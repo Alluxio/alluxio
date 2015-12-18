@@ -1695,7 +1695,7 @@ public final class FileSystemMaster extends MasterBase {
       LOG.info("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
     }
     FileSystemCommandOptions options = new FileSystemCommandOptions();
-    options.persistOptions(new PersistCommandOptions(filesToCheckpoint));
+    options.setPersistOptions(new PersistCommandOptions(filesToCheckpoint));
     return new FileSystemCommand(CommandType.Persist, options);
   }
 
