@@ -232,8 +232,10 @@ public final class LineageMaster extends MasterBase {
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     deleteLineageInternal(lineageId, cascade);
-    DeleteLineageEntry deleteLineage =
-        DeleteLineageEntry.newBuilder().setLineageId(lineageId).setCascade(cascade).build();
+    DeleteLineageEntry deleteLineage = DeleteLineageEntry.newBuilder()
+        .setLineageId(lineageId)
+        .setCascade(cascade)
+        .build();
     writeJournalEntry(JournalEntry.newBuilder().setDeleteLineage(deleteLineage).build());
     flushJournal();
     return true;
@@ -328,7 +330,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * It takes a checkpoint plan and schedules lineage output file for persistence.
+   * Schedules persistence for the output files of the given checkpoint plan.
    *
    * @param plan the plan for checkpointing
    * @throws FileDoesNotExistException when a file doesn't exist
