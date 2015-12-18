@@ -20,8 +20,8 @@ Where WHAT is one of:
   restart_workers\tRestart any failed workers on worker nodes
 
 MOPT is one of:
-  Mount\t\t\tMount the configured RamFS
-  SudoMount\t\tMount the configured RamFS using sudo
+  Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
+  SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
   NoMount\t\tDo not mount the configured RamFS
 
 -f  format Journal, UnderFS Data and Workers Folder on master
