@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
@@ -38,8 +37,6 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  * Isolated is defined as having its own root directory, and port.
  */
 public final class LocalTachyonMaster {
-  // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
-  private final String mTachyonHome;
   private final String mHostname;
 
   private final String mJournalFolder;
@@ -55,10 +52,8 @@ public final class LocalTachyonMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private LocalTachyonMaster(final String tachyonHome)
+  private LocalTachyonMaster()
       throws IOException {
-    mTachyonHome = tachyonHome;
-
     TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
@@ -98,7 +93,7 @@ public final class LocalTachyonMaster {
     // Update Tachyon home in the passed TachyonConf instance.
     tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
 
-    return new LocalTachyonMaster(tachyonHome);
+    return new LocalTachyonMaster();
   }
 
   /**
@@ -113,7 +108,7 @@ public final class LocalTachyonMaster {
     TachyonConf tachyonConf = MasterContext.getConf();
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
-    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));
+    return new LocalTachyonMaster();
   }
 
   public void start() {

@@ -13,26 +13,25 @@
  * the License.
  */
 
-package tachyon.network.protocol;
+package tachyon.client.lineage.options;
 
-import io.netty.buffer.ByteBuf;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * Represents an encoded message.
- */
-public interface EncodedMessage {
+import tachyon.conf.TachyonConf;
 
-  /**
-   * Returns the number bytes for the message when it is encoded.
-   *
-   * @return the length of the encoded message, in bytes
-   */
-  int getEncodedLength();
+public class GetLineageInfoListOptionsTest {
 
-  /**
-   * Encodes the message to the output {@link ByteBuf}.
-   *
-   * @param out the output ByteBuf where the message should be encoded
-   */
-  void encode(ByteBuf out);
+  @Test
+  public void buildTest() {
+    Assert.assertNotNull("The GetLineageInfoListOptions should not be null",
+        new GetLineageInfoListOptions.Builder(new TachyonConf()).build());
+  }
+
+  @Test
+  public void defaultsTest() {
+    Assert.assertNotNull("The default options should not be null",
+        GetLineageInfoListOptions.defaults());
+  }
+
 }

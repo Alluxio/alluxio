@@ -84,6 +84,8 @@ import tachyon.thrift.LineageMasterWorkerService;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * The lineage master stores the lineage metadata in Tachyon, and it contains the components that
  * manage all lineage-related activities.
@@ -99,12 +101,12 @@ public final class LineageMaster extends MasterBase {
   /**
    * The service that checkpoints lineages. We store it here so that it can be accessed from tests.
    */
-  @SuppressWarnings("unused")
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mCheckpointExecutionService;
   /**
    * The service that recomputes lineages. We store it here so that it can be accessed from tests.
    */
-  @SuppressWarnings("unused")
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mRecomputeExecutionService;
 
   /** Map from worker to the files to checkpoint on that worker. Used by checkpoint service. */

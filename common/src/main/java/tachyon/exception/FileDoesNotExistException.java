@@ -15,24 +15,52 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when a file does not exist in Tachyon.
+ */
 public class FileDoesNotExistException extends TachyonException {
   private static final long serialVersionUID = -3162552529145071329L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.FILE_DOES_NOT_EXIST;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public FileDoesNotExistException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public FileDoesNotExistException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public FileDoesNotExistException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public FileDoesNotExistException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }

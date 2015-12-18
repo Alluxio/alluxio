@@ -39,7 +39,6 @@ import tachyon.worker.block.BlockDataManager;
 public final class LineageWorker extends WorkerBase {
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
-  /** Threadpool for the lineage master sync */
   /** Client for lineage master communication. */
   private final LineageMasterClient mLineageMasterWorkerClient;
   /** Configuration object */
