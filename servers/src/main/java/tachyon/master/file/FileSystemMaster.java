@@ -1600,14 +1600,15 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Polls the files to send to the given worker for persistence.
+   * Polls the files to send to the given worker for persistence. It also removes files from the
+   * worker entry in {@link #mWorkerToAsyncPersistFiles}.
    *
    * @param workerId the worker id
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  private List<PersistFile> pollToCheckpoint(long workerId)
+  private List<PersistFile> pollFilesToCheckpoint(long workerId)
       throws FileDoesNotExistException, InvalidPathException {
     List<PersistFile> filesToPersist = Lists.newArrayList();
     List<Long> fileIdsToPersist = Lists.newArrayList();
@@ -1679,7 +1680,7 @@ public final class FileSystemMaster extends MasterBase {
     }
 
     // get the files for the given worker to checkpoint
-    List<PersistFile> filesToCheckpoint = pollToCheckpoint(workerId);
+    List<PersistFile> filesToCheckpoint = pollFilesToCheckpoint(workerId);
     if (!filesToCheckpoint.isEmpty()) {
       LOG.info("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
     }
