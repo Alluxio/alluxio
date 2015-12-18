@@ -64,20 +64,20 @@ The following shows the details of the available metrics.
 * FilesFreed: Total number of files freed.
 * FilesPersisted: Total number of the files persisted.
 * FilesPinned: Total number of the files pinned.
+* NewBlocksGot: Total number of new blocks got.
 * PathsDeleted: Total number of files and directories deleted.
 * PathsMounted: Total number of paths mounted.
 * PathsRenamed: Total number of files and directories renamed.
 * PathsUnmounted: Total number of paths unmounted.
+* CompleteFileOps: Total number of the CompleteFile operations.
 * CreateDirectoryOps: Total number of the CreateDirectory operations.
 * CreateFileOps: Total number of the CreateFile operations.
-* CompleteFileOps: Total number of CompleteFile operations.
 * DeletePathOps: Total number of the DeletePath operations.
 * FreeFileOps: Total number of FreeFile operations.
 * GetFileBlockInfoOps: Total number of GetFileBlockInfo operations.
 * GetFileInfoOps: Total number of GetFileInfo operations.
-* NewBlocksGot: Total number of new blocks got.
-* MountOps: Total number of Mount operations.
 * GetNewBlockOps: Total number of GetNewBlock operations.
+* MountOps: Total number of Mount operations.
 * RenamePathOps: Total number of the RenamePath operations.
 * SetStateOps: Total number of the SetState operations.
 * UnmountOps: Total number of Unmount operations.
