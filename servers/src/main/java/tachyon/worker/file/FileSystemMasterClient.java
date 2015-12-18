@@ -108,7 +108,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Heartbeats to the worker. It also carries command for the worker to persist the given files.
    *
    * @param workerId the id of the worker that heartbeats
-   * @param persistedFiles the persisted files
+   * @param persistedFiles the files which have been persisted since the last heartbeat
    * @return the command for file system worker
    * @throws IOException if file persistence fails
    * @throws ConnectionFailedException if network connection failed

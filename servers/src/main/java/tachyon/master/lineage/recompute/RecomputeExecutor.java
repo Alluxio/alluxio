@@ -96,7 +96,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
             }
           }
         } catch (FileDoesNotExistException e) {
-          LOG.error("the output file of lineage {} does not exist", lineage.getId(), e);
+          LOG.error("an output file of lineage {} does not exist", lineage.getId(), e);
         }
 
         boolean success = lineage.getJob().run();

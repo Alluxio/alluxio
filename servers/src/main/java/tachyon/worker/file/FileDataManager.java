@@ -43,7 +43,7 @@ import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
 /**
- * Responsible for managing the file storing into under file system.
+ * Responsible for Storing files into under file system.
  */
 public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

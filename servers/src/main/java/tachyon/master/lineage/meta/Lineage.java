@@ -72,14 +72,14 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the input files id
+   * @return the input file ids
    */
   public synchronized List<Long> getInputFiles() {
     return Collections.unmodifiableList(mInputFiles);
   }
 
   /**
-   * @return the output files id
+   * @return the output file ids
    */
   public synchronized List<Long> getOutputFiles() {
     return Collections.unmodifiableList(mOutputFiles);
@@ -129,9 +129,14 @@ public final class Lineage implements JournalEntryRepresentable {
     String jobCommand = commandLineJob.getCommand();
     String jobOutputPath = commandLineJob.getJobConf().getOutputFilePath();
 
-    LineageEntry lineage = LineageEntry.newBuilder().setId(mId).addAllInputFiles(inputFileIds)
-        .addAllOutputFileIds(outputFileIds).setJobCommand(jobCommand)
-        .setJobOutputPath(jobOutputPath).setCreationTimeMs(mCreationTimeMs).build();
+    LineageEntry lineage = LineageEntry.newBuilder()
+        .setId(mId)
+        .addAllInputFiles(inputFileIds)
+        .addAllOutputFileIds(outputFileIds)
+        .setJobCommand(jobCommand)
+        .setJobOutputPath(jobOutputPath)
+        .setCreationTimeMs(mCreationTimeMs)
+        .build();
     return JournalEntry.newBuilder().setLineage(lineage).build();
   }
 

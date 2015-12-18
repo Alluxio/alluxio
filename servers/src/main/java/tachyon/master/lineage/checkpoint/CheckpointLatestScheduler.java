@@ -37,7 +37,7 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
   /**
    * CheckpointLatestScheduler does not use the lineage store view.
    *
-   * @param lineageStoreView view of a lineage store
+   * @param lineageStoreView a view of a lineage store
    * @param fileSystemMasterView a view of the file system master
    */
   public CheckpointLatestScheduler(LineageStoreView lineageStoreView,
@@ -57,7 +57,7 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
           continue;
         }
       } catch (FileDoesNotExistException e) {
-        LOG.error("The lineage file does not exist {}", e);
+        LOG.error("The lineage file does not exist", e);
         continue;
       }
       if (lineage.getCreationTime() > latestCreated) {
