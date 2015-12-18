@@ -17,11 +17,9 @@ package tachyon.yarn;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
@@ -44,8 +42,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multiset;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -82,9 +81,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mNumWorkers;
   private final String mTachyonHome;
   private final String mMasterAddress;
+  private final boolean mOneWorkerPerHost;
 
   /** Set of hostnames for launched workers. The implementation must be thread safe */
-  private final Set<String> mWorkerHosts;
+  private final Multiset<String> mWorkerHosts;
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
   /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
@@ -103,7 +103,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /**
    * The number of worker container requests we are waiting to hear back from. Initialized during
    * {@link #requestWorkerContainers()} and decremented during
-   * {@link #launchTachyonWorkerContainers(List).
+   * {@link #launchTachyonWorkerContainers(List)}.
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
@@ -118,10 +118,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         (int) mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
     // memory for running ramdisk
     mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+    mOneWorkerPerHost = mTachyonConf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
-    mWorkerHosts = Collections.synchronizedSet(Sets.<String>newHashSet());
+    mWorkerHosts = ConcurrentHashMultiset.create();
     mMasterContainerAllocatedLatch = new CountDownLatch(1);
     mApplicationDoneLatch = new CountDownLatch(1);
   }
@@ -136,7 +137,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     Preconditions.checkArgument(args[1] != null, "Tachyon home cannot be null");
     Preconditions.checkArgument(args[2] != null, "Address of Tachyon master cannot be null");
     try {
-      LOG.info("Starting Application Master with args " + Arrays.toString(args));
+      LOG.info("Starting Application Master with args {}", Arrays.toString(args));
       final int numWorkers = Integer.parseInt(args[0]);
       final String tachyonHome = args[1];
       final String masterAddress = args[2];
@@ -146,7 +147,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       applicationMaster.requestContainers();
       applicationMaster.stop();
     } catch (Exception e) {
-      LOG.error("Error running Application Master " + e);
+      LOG.error("Error running Application Master ", e);
       System.exit(1);
     }
   }
@@ -289,18 +290,24 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     int neededWorkers = mNumWorkers - currentNumWorkers;
 
     mOutstandingWorkerContainerRequestsLatch = new CountDownLatch(neededWorkers);
-    String[] unusedWorkerHosts = getUnusedWorkerHosts();
-    if (unusedWorkerHosts.length < neededWorkers) {
-      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers,
-          unusedWorkerHosts.length));
+    String[] hosts;
+    boolean relaxLocality = !mOneWorkerPerHost;
+    if (mOneWorkerPerHost) {
+      hosts = getUnusedWorkerHosts();
+      if (hosts.length < neededWorkers) {
+        throw new RuntimeException(
+            ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(neededWorkers, hosts.length));
+      }
+    } else {
+      hosts = null;
     }
     // Make container requests for workers to ResourceManager
     for (int i = currentNumWorkers; i < mNumWorkers; i ++) {
       // TODO(andrew): Consider partitioning the available hosts among the worker requests
-      ContainerRequest containerAsk = new ContainerRequest(workerResource, unusedWorkerHosts,
-          null /* any racks */, WORKER_PRIORITY, false /* demand only unused workers */);
+      ContainerRequest containerAsk = new ContainerRequest(workerResource, hosts,
+          null /* any racks */, WORKER_PRIORITY, relaxLocality);
       LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on hosts {}", i,
-          workerResource.getVirtualCores(), workerResource.getMemory(), unusedWorkerHosts);
+          workerResource.getVirtualCores(), workerResource.getMemory(), hosts);
       mRMClient.addContainerRequest(containerAsk);
     }
   }
@@ -323,9 +330,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
     } catch (YarnException e) {
-      LOG.error("Failed to unregister application " + e);
+      LOG.error("Failed to unregister application", e);
     } catch (IOException e) {
-      LOG.error("Failed to unregister application " + e);
+      LOG.error("Failed to unregister application", e);
     }
     mRMClient.stop();
     // TODO(andrew): Think about whether we should stop mNMClient here
@@ -359,11 +366,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       mNMClient.startContainer(container, ctx);
       String containerUri = container.getNodeHttpAddress(); // in the form of 1.2.3.4:8042
       mMasterContainerNetAddress = containerUri.split(":")[0];
-      LOG.info("Master address: " + mMasterContainerNetAddress);
+      LOG.info("Master address: {}", mMasterContainerNetAddress);
       mMasterContainerAllocatedLatch.countDown();
       return;
     } catch (Exception e) {
-      LOG.error("Error launching container " + container.getId() + " " + e);
+      LOG.error("Error launching container {}", container.getId(), e);
     }
   }
 
@@ -382,10 +389,10 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     for (Container container : containers) {
       synchronized (mWorkerHosts) {
         if (mWorkerHosts.size() >= mNumWorkers
-            || mWorkerHosts.contains(container.getNodeId().getHost())) {
+            || (mOneWorkerPerHost && mWorkerHosts.contains(container.getNodeId().getHost()))) {
           // 1. Yarn will sometimes offer more containers than were requested, so we ignore offers
           // when mWorkerHosts.size() >= mNumWorkers
-          // 2. Avoid re-using nodes - we don't support multiple workers on the same node
+          // 2. Avoid re-using nodes if mOneWorkerPerHost is true
           LOG.info("Releasing assigned container on {}", container.getNodeId().getHost());
           mRMClient.releaseAssignedContainer(container.getId());
         } else {
@@ -398,7 +405,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
             mNMClient.startContainer(container, ctx);
             mWorkerHosts.add(container.getNodeId().getHost());
           } catch (Exception e) {
-            LOG.error("Error launching container " + container.getId() + " " + e);
+            LOG.error("Error launching container {}", container.getId(), e);
           }
         }
         mOutstandingWorkerContainerRequestsLatch.countDown();

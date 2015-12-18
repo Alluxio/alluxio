@@ -702,6 +702,11 @@ configuration options.
   <td>The Mesos task name for the Tachyon worker task.</td>
 </tr>
 <tr>
+  <td>tachyon.integration.yarn.one.worker.per.host</td>
+  <td>true</td>
+  <td>If true, Tachyon workers in Yarn will be spread out to have at most one worker per host.</td>
+</tr>
+<tr>
   <td>tachyon.integration.worker.resource.cpu</td>
   <td>1</td>
   <td>CPU resource in terms of number of cores required to run a Tachyon worker.</td>
