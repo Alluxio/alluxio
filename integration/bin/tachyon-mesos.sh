@@ -18,14 +18,14 @@ Usage="Usage: tachyon-mesos.sh [-hw] MESOS_MASTER_ADDRESS
 while getopts "hw" o; do
   case "${o}" in
     h)
-      echo -e "$Usage"
+      echo -e "${Usage}"
       exit 0
       ;;
     w)
       wait="true"
       ;;
     *)
-      echo -e "$Usage"
+      echo -e "${Usage}"
       exit 1
       ;;
   esac
@@ -34,8 +34,8 @@ done
 shift $((OPTIND-1))
 
 MESOS_MASTER_ADDRESS="$1"
-if [ ! "$MESOS_MASTER_ADDRESS" ]; then
-  echo -e "$Usage"
+if [[ ! "${MESOS_MASTER_ADDRESS}" ]]; then
+  echo -e "${Usage}"
   exit 1
 fi
 
