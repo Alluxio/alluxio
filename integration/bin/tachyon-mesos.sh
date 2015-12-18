@@ -11,7 +11,7 @@ MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 Usage="Usage: tachyon-mesos.sh [-hw] MESOS_MASTER_ADDRESS
 +MESOS_MASTER_ADDRESS is of the form 'mesos.example.com:5050'
 +
-+-w  Wait for process to finish before returning
++-w  wait for process to finish before returning
 +
 +-h  display this help."
 
