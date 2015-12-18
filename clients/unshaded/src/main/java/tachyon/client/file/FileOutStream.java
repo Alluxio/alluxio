@@ -33,8 +33,11 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
 import tachyon.client.block.BufferedBlockOutStream;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
@@ -60,10 +63,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
   private String mUfsPath;
+  private FileWriteLocationPolicy mLocationPolicy;
 
   protected boolean mCanceled;
   protected boolean mClosed;
-  private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
@@ -97,8 +100,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
     mClosed = false;
     mCanceled = false;
-    mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mLocationPolicy = FileWriteLocationPolicy.Factory.createPolicy(new TachyonConf(), options);
   }
 
   @Override
@@ -252,8 +255,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
+      String hostname =
+          mLocationPolicy.getWorkerForNextBlock(TachyonBlockStore.get().getBlockWorkerInfoList());
       mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
       mShouldCacheCurrentBlock = true;
     }
   }
