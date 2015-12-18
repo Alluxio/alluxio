@@ -123,7 +123,7 @@ interface FileSystem {
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Checks whether a path exists in Tachyon space
+   * Convenience method for exists with default options.
    *
    * @param path the path in question
    * @return true if the path exists, false otherwise
@@ -132,6 +132,19 @@ interface FileSystem {
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   boolean exists(TachyonURI path) throws InvalidPathException, IOException, TachyonException;
+
+  /**
+   * Checks whether a path exists in Tachyon space
+   *
+   * @param path the path in question
+   * @param options options to associate with this operation
+   * @return true if the path exists, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
+   */
+  boolean exists(TachyonURI path, ExistsOptions options) throws InvalidPathException, IOException,
+      TachyonException;
 
   /**
    * Convenience method to free a path with default options.
