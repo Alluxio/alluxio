@@ -28,6 +28,13 @@ public final class RPCBlockReadRequest extends RPCRequest {
   private final long mOffset;
   private final long mLength;
 
+  /**
+   * Constructs a new RPC request to read a block from a DataServer.
+   *
+   * @param blockId the id of the block
+   * @param offset the offset
+   * @param length the length
+   */
   public RPCBlockReadRequest(long blockId, long offset, long length) {
     mBlockId = blockId;
     mOffset = offset;
@@ -77,14 +84,29 @@ public final class RPCBlockReadRequest extends RPCRequest {
     return "RPCBlockReadRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
   }
 
+  /**
+   * Gets the id of the block.
+   *
+   * @return the id of the block
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
+  /**
+   * Gets the length.
+   *
+   * @return the length
+   */
   public long getLength() {
     return mLength;
   }
 
+  /**
+   * Gets the offset.
+   *
+   * @return the offset
+   */
   public long getOffset() {
     return mOffset;
   }
