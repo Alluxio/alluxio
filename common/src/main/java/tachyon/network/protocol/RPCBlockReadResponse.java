@@ -38,8 +38,8 @@ public final class RPCBlockReadResponse extends RPCResponse {
    * Constructs a new RPC response of a {@link RPCBlockReadRequest}.
    *
    * @param blockId the id of the block
-   * @param offset the block offset to begin reading at
-   * @param length the number of bytes to read
+   * @param offset the block offset that the read began at
+   * @param length the number of bytes read
    * @param data the data for the response
    * @param status the status of the response
    */
@@ -128,14 +128,14 @@ public final class RPCBlockReadResponse extends RPCResponse {
   }
 
   /**
-   * @return the number of bytes to read
+   * @return the number of bytes read
    */
   public long getLength() {
     return mLength;
   }
 
   /**
-   * @return the block offset to begin reading at
+   * @return the block offset that the read began at
    */
   public long getOffset() {
     return mOffset;
