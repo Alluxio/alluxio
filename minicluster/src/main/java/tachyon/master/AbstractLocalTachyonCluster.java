@@ -32,11 +32,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
-import tachyon.util.LineageUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.file.FileSystemWorker;
@@ -392,20 +390,13 @@ public abstract class AbstractLocalTachyonCluster {
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
     mWorker = new BlockWorker();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      // Setup the lineage worker
-      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      mFileSystemWorker = new FileSystemWorker(mWorker.getBlockDataManager());
-    }
+    mFileSystemWorker = new FileSystemWorker(mWorker.getBlockDataManager());
 
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
-          // Start the lineage worker
-          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-            mFileSystemWorker.start();
-          }
+          mFileSystemWorker.start();
           mWorker.process();
 
         } catch (Exception e) {

@@ -285,7 +285,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the persistent state of the file.
+   * Sets the persistence state of the file.
    */
   public synchronized void setPersistenceState(PersistenceState filePersistenceState) {
     mPersistenceState = filePersistenceState;

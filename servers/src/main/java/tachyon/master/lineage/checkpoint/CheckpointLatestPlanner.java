@@ -29,22 +29,22 @@ import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
  * This class tries to checkpoint the latest created lineage that is ready for persistence. This
- * class serves as an example to implement a scheduler.
+ * class serves as an example to implement a planner.
  */
-public final class CheckpointLatestScheduler implements CheckpointScheduler {
+public final class CheckpointLatestPlanner implements CheckpointPlanner {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * CheckpointLatestScheduler does not use the lineage store view.
+   * {@linkplain CheckpointLatestPlanner} does not use the lineage store view.
    *
-   * @param lineageStoreView view of a lineage store
+   * @param lineageStoreView a view of a lineage store
    * @param fileSystemMasterView a view of the file system master
    */
-  public CheckpointLatestScheduler(LineageStoreView lineageStoreView,
+  public CheckpointLatestPlanner(LineageStoreView lineageStoreView,
       FileSystemMasterView fileSystemMasterView) {}
 
   @Override
-  public CheckpointPlan schedule(LineageStoreView store,
+  public CheckpointPlan generatePlan(LineageStoreView store,
       FileSystemMasterView fileSystemMasterView) {
     Lineage toCheckpoint = null;
     long latestCreated = 0;
@@ -57,7 +57,7 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
           continue;
         }
       } catch (FileDoesNotExistException e) {
-        LOG.error("The lineage file does not exist {}", e);
+        LOG.error("The lineage file does not exist", e);
         continue;
       }
       if (lineage.getCreationTime() > latestCreated) {

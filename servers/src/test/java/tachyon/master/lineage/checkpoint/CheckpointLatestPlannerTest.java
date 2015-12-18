@@ -36,20 +36,23 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.thrift.FileInfo;
 
+/**
+ * Tests {@link CheckpointLatestPlanner}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
-public final class CheckpointLatestSchedulerTest {
+public final class CheckpointLatestPlannerTest {
   private LineageStore mLineageStore;
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
-  private CheckpointLatestScheduler mScheduler;
+  private CheckpointLatestPlanner mPlanner;
 
   @Before
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    mScheduler = new CheckpointLatestScheduler(new LineageStoreView(mLineageStore),
+    mPlanner = new CheckpointLatestPlanner(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
   }
 
@@ -73,13 +76,13 @@ public final class CheckpointLatestSchedulerTest {
     fileInfo2.isCompleted = false;
     Mockito.when(mFileSystemMaster.getFileInfo(fileId2)).thenReturn(fileInfo2);
 
-    CheckpointPlan plan = mScheduler.schedule(new LineageStoreView(mLineageStore),
+    CheckpointPlan plan = mPlanner.generatePlan(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
     Assert.assertEquals((Long) l1, plan.getLineagesToCheckpoint().get(0));
 
     // complete file 2 and it's ready for checkpoint
     fileInfo2.isCompleted = true;
-    plan = mScheduler.schedule(new LineageStoreView(mLineageStore),
+    plan = mPlanner.generatePlan(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
     Assert.assertEquals((Long) l2, plan.getLineagesToCheckpoint().get(0));
   }
