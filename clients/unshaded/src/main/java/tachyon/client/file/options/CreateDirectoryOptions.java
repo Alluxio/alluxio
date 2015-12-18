@@ -100,7 +100,7 @@ public final class CreateDirectoryOptions {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("MkdirOptions(");
+    StringBuilder sb = new StringBuilder("CreateDirectoryOptions(");
     sb.append(super.toString()).append(", AllowExists: ").append(mAllowExists);
     sb.append(super.toString()).append(", Recursive: ").append(mRecursive);
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
@@ -111,6 +111,7 @@ public final class CreateDirectoryOptions {
   /**
    * @return Thrift representation of the options
    */
+  // TODO(calvin): Rename the mkdir options to CreateDirectoryOptions
   public MkdirTOptions toThrift() {
     MkdirTOptions options = new MkdirTOptions();
     options.setAllowExists(mAllowExists);
