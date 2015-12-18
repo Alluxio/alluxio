@@ -58,8 +58,8 @@ syntax of each command.
 <tr>
   <td>format</td>
   <td>[-s]</td>
-  <td>Format Tachyon Master and all Workers. The option [-s] indicates that only format when underfs
-  is local and doesn't already exist.</td>
+  <td>Format Tachyon Master and all Workers. The option [-s] indicates that the command should only
+  format when the underfs is local and doesn't already exist.</td>
 </tr>
 <tr>
   <td>formatWorker</td>
@@ -69,8 +69,8 @@ syntax of each command.
 <tr>
   <td>bootstrap-conf</td>
   <td>&lt;TACHYON_MASTER_HOSTNAME&gt;</td>
-  <td>Generate the bootstrap config file `tachyon-env.sh` with the specified
-  `TACHYON_MASTER_HOSTNAME`, if the config file doesn't exist.</td>
+  <td>Generate the bootstrap config file <code>tachyon-env.sh</code> with the specified
+  <code>TACHYON_MASTER_HOSTNAME</code>, if the config file doesn't exist.</td>
 </tr>
 <tr>
   <td>tfs</td>
@@ -81,45 +81,45 @@ syntax of each command.
 <tr>
   <td>loadufs</td>
   <td>&lt;TachyonPath&gt; &lt;UfsPath&gt; [ExcludePathPrefixes]</td>
-  <td>Loads files under `UfsPath` to the given `TachyonPath`. `ExcludePathPrefixes` can be a set of
-  prefixes which are separated by ';'. The paths with the prefix in `ExcludePathPrefixes` will not
-  be loaded.</td>
+  <td>Loads files under <code>UfsPath</code> to the given <code>TachyonPath</code>.
+  <code>ExcludePathPrefixes</code> can be a set of prefixes which are separated by ';'.
+  The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.</td>
 </tr>
 <tr>
   <td>runTest</td>
   <td>&lt;Example&gt; &lt;ReadType&gt; &lt;WriteType&gt;</td>
-  <td>Run an end-to-end test on a Tachyon cluster. `Example` should be "Basic", "BasicNonByteBuffer"
-  or "BasicRawTable". `ReadType` should be "CACHE_PROMOTE", "CACHE", or "NO_CACHE". `WriteType`
-  should be "MUST_CACHE", "CACHE_THROUGH" or "THROUGH".</td>
+  <td>Run an end-to-end test on a Tachyon cluster. <code>Example</code> should be "Basic",
+  "BasicNonByteBuffer" or "BasicRawTable". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
+  or "NO_CACHE". <code>WriteType</code> should be "MUST_CACHE", "CACHE_THROUGH" or "THROUGH".</td>
 </tr>
 <tr>
   <td>runTests</td>
   <td>None</td>
-  <td>Run all end-to-end tests on a Tachyon cluster. That is, execute the `runTest` command with
-  all the possible args.</td>
+  <td>Run all end-to-end tests on a Tachyon cluster. That is, execute the <code>runTest</code> command
+  with all the possible args.</td>
 </tr>
 <tr>
   <td>journalCrashTest</td>
   <td>[-creates &lt;arg&gt;] [-deletes &lt;arg&gt;] [-renames &lt;arg&gt;] [-maxAlive &lt;arg&gt;]
   [-testDir &lt;arg&gt;] [-totalTime &lt;arg&gt;] [-help]</td>
-  <td>Test the Master Journal System in a crash scenario. Try `tachyon journalCrashTest -help` to
-  see the meanings of each argument in detail, or you can run it without args by default.</td>
+  <td>Test the Master Journal System in a crash scenario. Try <code>tachyon journalCrashTest -help</code>
+  to see the meanings of each argument in detail, or you can run it without args by default.</td>
 </tr>
 <tr>
   <td>readJournal</td>
   <td>[-help] [-noTimeout]</td>
   <td>Read a Tachyon journal file from stdin and write a human-readable version of it to stdout. You
-  can run this on the journal file as `tachyon readJournal < journal/FileSystemMaster/log.out`.</td>
+  can run this on the journal file as <code>tachyon readJournal < journal/FileSystemMaster/log.out</code>.</td>
 </tr>
 <tr>
   <td>killAll</td>
   <td>&lt;WORD&gt;</td>
-  <td>Kill processes whose pid or command contains the `WORD` specified by the user.</td>
+  <td>Kill processes whose pid or command contains the <code>WORD</code> specified by the user.</td>
 </tr>
 <tr>
   <td>copyDir</td>
   <td>&lt;PATH&gt;</td>
-  <td>Copy the `PATH` to all worker nodes.</td>
+  <td>Copy the <code>PATH</code> to all worker nodes.</td>
 </tr>
 <tr>
   <td>clearCache</td>
@@ -150,9 +150,8 @@ syntax of each command.
 </tr>
 </table>
 
-
-In addition, these commands have different prerequisites. The prerequisite for `format`,
+In addition, these commands have different prerequisites. The prerequisite for the `format`,
 `formatWorker`, `journalCrashTest`, `readJournal`, `version` and `validateConf` commands is that you
 have already built Tachyon (see [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
-about how to building Tachyon manually). Further, the prerequisite for `tfs`, `loadufs`, `runTest`
+about how to build Tachyon manually). Further, the prerequisite for the `tfs`, `loadufs`, `runTest`
 and `runTests` commands is that you have a running Tachyon system.
