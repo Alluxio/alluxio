@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.util.LineageUtils;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.file.FileSystemWorker;
 
@@ -61,9 +60,7 @@ public final class TachyonWorker {
       LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
       try {
         worker.stop();
-        if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-          fileWorker.stop();
-        }
+        fileWorker.stop();
       } catch (Exception ex) {
         LOG.error("Failed to stop block worker. Exiting.", ex);
       }
