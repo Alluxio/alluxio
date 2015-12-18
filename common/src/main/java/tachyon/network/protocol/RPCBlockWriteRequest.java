@@ -34,6 +34,15 @@ public final class RPCBlockWriteRequest extends RPCRequest {
   private final long mLength;
   private final DataBuffer mData;
 
+  /**
+   * Constructs a new request to write a block to a DataServer.
+   *
+   * @param sessionId the id of the session
+   * @param blockId the id of the block
+   * @param offset the offset
+   * @param length the length
+   * @param data the data
+   */
   public RPCBlockWriteRequest(long sessionId, long blockId, long offset, long length,
       DataBuffer data) {
     mSessionId = sessionId;
@@ -91,18 +100,38 @@ public final class RPCBlockWriteRequest extends RPCRequest {
     return mData;
   }
 
+  /**
+   * Gets the id of the session.
+   *
+   * @return the id of the session
+   */
   public long getSessionId() {
     return mSessionId;
   }
 
+  /**
+   * Gets the id of the block.
+   *
+   * @return the id of the block
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
+  /**
+   * Gets the length.
+   *
+   * @return the length
+   */
   public long getLength() {
     return mLength;
   }
 
+  /**
+   * Gets the offset.
+   *
+   * @return the offset
+   */
   public long getOffset() {
     return mOffset;
   }

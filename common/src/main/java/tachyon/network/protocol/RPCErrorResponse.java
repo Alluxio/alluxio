@@ -25,6 +25,11 @@ import io.netty.buffer.ByteBuf;
 public final class RPCErrorResponse extends RPCResponse {
   private final Status mStatus;
 
+  /**
+   * Constructs a new RPC response, containing an error.
+   *
+   * @param status the status
+   */
   public RPCErrorResponse(Status status) {
     mStatus = status;
   }
@@ -50,6 +55,11 @@ public final class RPCErrorResponse extends RPCResponse {
     return Shorts.BYTES;
   }
 
+  /**
+   * Gets the status.
+   *
+   * @return the status
+   */
   public Status getStatus() {
     return mStatus;
   }
