@@ -63,8 +63,10 @@ import tachyon.util.io.PathUtils;
  * Launch Tachyon on YARN:
  * </p>
  * {@code
- * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
- * hdfs://HDFSMaster:port/path/ -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
+ * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client \
+ *     -num_workers NumTachyonWorkers \
+ *     -master_address MasterAddress \
+ *     -resource_path ResourcePath
  * }
  *
  * <p>
