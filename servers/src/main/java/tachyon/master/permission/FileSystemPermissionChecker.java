@@ -35,7 +35,7 @@ public final class FileSystemPermissionChecker {
   private static String sFileSystemSuperGroup;
 
   /**
-   * Initialize the permission related property of the whole Tachyon file system.
+   * Initializes the permission related property of the whole Tachyon file system.
    *
    * @param permissionCheckEnabled whether permission checking is enabled
    * @param owner the user of root directory, who is seen as the super user
@@ -49,7 +49,7 @@ public final class FileSystemPermissionChecker {
   }
 
   /**
-   * This method check access permission.
+   * This method checks access permission.
    * The input is User and its Groups, requested Permission and inodes (traverse the Path).
    * The initialized static attributes will be used in the checking logic to bypass checking.
    * Then User, Group, and Action will be compared to those of inodes.
