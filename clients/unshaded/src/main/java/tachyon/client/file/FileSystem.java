@@ -21,7 +21,7 @@ import java.util.List;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.options.CreateDirectoryOptions;
-import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
@@ -94,7 +94,7 @@ interface FileSystem {
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  FileOutStream createFile(TachyonURI path, CreateOptions options)
+  FileOutStream createFile(TachyonURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
   /**
