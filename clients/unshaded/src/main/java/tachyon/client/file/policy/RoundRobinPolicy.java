@@ -56,7 +56,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   }
 
   /**
-   * @param workerInfoList the list of worker info.
+   * @param workerInfoList the list of worker info
    * @param hostname the hostname to look for
    * @return the worker info in the list that matches the host name, null if not found
    */
