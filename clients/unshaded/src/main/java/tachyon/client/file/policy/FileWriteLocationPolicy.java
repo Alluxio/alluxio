@@ -29,7 +29,8 @@ import tachyon.util.CommonUtils;
 
 /**
  * Interface for the location policy of which workers a file's block are written into. A file policy
- * instance is used only once per file write.
+ * instance is used only once per file write, and only when the hostname in the options is not
+ * specified.
  */
 @PublicApi
 public interface FileWriteLocationPolicy {
