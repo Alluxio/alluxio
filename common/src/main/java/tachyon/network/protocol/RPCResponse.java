@@ -19,12 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents the base class to constructs a RPC response.
+ * The base class for constructing RPC responses.
  */
 public abstract class RPCResponse extends RPCMessage {
-
-  // The possible types of status for RPC responses.
-  //
 
   /**
    * The possible types of status for RPC responses. When modifying values,
