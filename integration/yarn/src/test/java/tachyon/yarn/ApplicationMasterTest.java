@@ -72,6 +72,7 @@ import tachyon.util.network.NetworkAddressUtils;
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String TACHYON_HOME = "/tmp/tachyonhome";
+  private static final String RESOURCE_ADDRESS = "/tmp/resource";
   private static final TachyonConf CONF = new TachyonConf();
   private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
@@ -104,7 +105,7 @@ public class ApplicationMasterTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = new ApplicationMaster(NUM_WORKERS, TACHYON_HOME, MASTER_ADDRESS);
+    mMaster = new ApplicationMaster(NUM_WORKERS, TACHYON_HOME, MASTER_ADDRESS, RESOURCE_ADDRESS);
     mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     // Mock Node Manager client
