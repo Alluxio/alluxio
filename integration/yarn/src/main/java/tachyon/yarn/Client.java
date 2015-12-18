@@ -280,7 +280,7 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    final String amCommand = new CommandBuilder("./tachyon-application-master.sh")
+    final String amCommand = new CommandBuilder("./tachyon-yarn-setup.sh").addArg("application-master")
         .addArg("-num_workers", mNumWorkers)
         .addArg("-master_address", mMasterAddress)
         .addArg("-resource_path", mResourcePath)
@@ -292,8 +292,10 @@ public final class Client {
 
     // Setup local resources
     Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
-    localResources.put("tachyon-application-master.sh",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-application-master.sh"));
+    localResources.put("tachyon.tar.gz",
+        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
+    localResources.put("tachyon-yarn-setup.sh",
+        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
     localResources.put("tachyon.jar", Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
     mAmContainer.setLocalResources(localResources);
 
@@ -312,6 +314,8 @@ public final class Client {
     }
     Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
+
+    appMasterEnv.put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$());
   }
 
   /**
