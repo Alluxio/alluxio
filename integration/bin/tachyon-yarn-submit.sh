@@ -45,6 +45,7 @@ echo "Uploading files to HDFS to distribute tachyon runtime"
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${TACHYON_TARFILE} ${HDFS_PATH}/$TACHYON_TARFILE
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
 ${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-yarn-setup.sh ${HDFS_PATH}/tachyon-yarn-setup.sh
+${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-application-master.sh ${HDFS_PATH}/tachyon-application-master.sh
 
 echo "Starting YARN client to launch Tachyon on YARN"
 

@@ -280,8 +280,7 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    final String amCommand = new CommandBuilder(
-        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-application-master.sh"))
+    final String amCommand = new CommandBuilder("./tachyon-application-master.sh")
         .addArg("-num_workers", mNumWorkers)
         .addArg("-master_address", mMasterAddress)
         .addArg("-resource_path", mResourcePath)
@@ -291,10 +290,12 @@ public final class Client {
     System.out.println("ApplicationMaster command: " + amCommand);
     mAmContainer.setCommands(Collections.singletonList(amCommand));
 
-    // Setup jar for ApplicationMaster
-    LocalResource appMasterJar =
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar");
-    mAmContainer.setLocalResources(Collections.singletonMap("tachyon.jar", appMasterJar));
+    // Setup local resources
+    Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
+    localResources.put("tachyon-application-master.sh",
+        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-application-master.sh"));
+    localResources.put("tachyon.jar", Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
+    mAmContainer.setLocalResources(localResources);
 
     // Setup CLASSPATH for ApplicationMaster
     Map<String, String> appMasterEnv = new HashMap<String, String>();
