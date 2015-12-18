@@ -20,13 +20,13 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
-import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
@@ -67,7 +67,7 @@ interface FileSystem {
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  TachyonURI createDirectory(TachyonURI path, MkdirOptions options)
+  TachyonURI createDirectory(TachyonURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
   /**
