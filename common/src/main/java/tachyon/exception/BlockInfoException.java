@@ -15,23 +15,52 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when something with the block goes wrong, i.e. the if an output file cannot
+ * be created or the bytes of the block size are invalid.
+ */
 public class BlockInfoException extends TachyonException {
   private static final long serialVersionUID = 3516332549351705198L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.BLOCK_INFO;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public BlockInfoException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public BlockInfoException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public BlockInfoException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public BlockInfoException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }

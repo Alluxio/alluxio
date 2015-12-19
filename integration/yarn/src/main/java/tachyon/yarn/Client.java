@@ -58,6 +58,7 @@ import org.apache.hadoop.yarn.util.Records;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -81,9 +82,6 @@ import tachyon.util.io.PathUtils;
  * }
  */
 public final class Client {
-  /** Main class to invoke ApplicationMaster. */
-  private static final String AM_MAIN_CLASS = ApplicationMaster.class.getName();
-
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
   /** Yarn configuration. */
@@ -110,6 +108,8 @@ public final class Client {
   private String mTachyonHome;
   /** Address to run Tachyon master. */
   private String mMasterAddress;
+  /** Whether to allow multiple workers on a single host */
+  private boolean mOneWorkerPerHost;
   /** Id of the application */
   private ApplicationId mAppId;
   /** Command line options */
@@ -208,6 +208,8 @@ public final class Client {
     mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
+    mOneWorkerPerHost =
+        new TachyonConf().getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
@@ -240,7 +242,9 @@ public final class Client {
     // Check if the cluster has enough resource to launch the ApplicationMaster
     checkClusterResource(appResponse);
 
-    checkNodesAvailable();
+    if (mOneWorkerPerHost) {
+      checkNodesAvailable();
+    }
 
     // Set up the container launch context for the application master
     mAmContainer = Records.newRecord(ContainerLaunchContext.class);
@@ -281,9 +285,9 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    final String amCommand =
-        new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
-            .addArg(AM_MAIN_CLASS).addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
+    final String amCommand = new CommandBuilder(
+        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-application-master.sh"))
+            .addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
