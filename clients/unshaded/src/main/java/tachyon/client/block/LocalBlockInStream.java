@@ -26,6 +26,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.worker.WorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.LockBlockResult;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -60,11 +61,11 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     FileChannel localFileChannel = null;
 
     try {
-      String blockPath = mWorkerClient.lockBlock(blockId);
-      if (blockPath == null) {
+      LockBlockResult result = mWorkerClient.lockBlock(blockId);
+      if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
-      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
+      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(result.blockPath, "r"));
       localFileChannel = mCloser.register(localFile.getChannel());
     } catch (IOException e) {
       mContext.releaseWorkerClient(mWorkerClient);
