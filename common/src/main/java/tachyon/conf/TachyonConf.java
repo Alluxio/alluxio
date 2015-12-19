@@ -377,7 +377,8 @@ public final class TachyonConf {
         + "list");
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
-      return Lists.newLinkedList(Splitter.on(',').trimResults().omitEmptyStrings().split(rawValue));
+      return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+          .split(rawValue));
     }
     // if key is not found among the default properties
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
