@@ -20,6 +20,9 @@ import javax.security.sasl.AuthenticationException;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Abstraction for an authentication provider for different authentication types.
+ */
 public interface AuthenticationProvider {
   /**
    * Factory method to create an instance of {@link AuthenticationProvider} based on
