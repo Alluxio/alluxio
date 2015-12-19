@@ -50,11 +50,11 @@ $ bin/tachyon protoGen
 
 ### Full list of the commands in bin/tachyon
 
-Most commands in `bin/tachyon` are for developers. The following table explains the meaning and the
-syntax of each command.
+Most commands in `bin/tachyon` are for developers. The following table explains the description and
+the syntax of each command.
 
 <table class="table table-striped">
-<tr><th>Command</th><th>Args</th><th>Meaning</th></tr>
+<tr><th>Command</th><th>Args</th><th>Description</th></tr>
 <tr>
   <td>format</td>
   <td>[-s]</td>
