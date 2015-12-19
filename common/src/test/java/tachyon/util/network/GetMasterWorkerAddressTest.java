@@ -24,7 +24,16 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
+/**
+ * Tests the {@link NetworkAddressUtils} methods related to connecting to the master and worker
+ * nodes.
+ */
 public class GetMasterWorkerAddressTest {
+
+  /**
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method for a
+   * master node.
+   */
   @Test
   public void getMasterAddressTest() {
     TachyonConf conf = new TachyonConf();
@@ -56,6 +65,10 @@ public class GetMasterWorkerAddressTest {
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method for a
+   * worker node.
+   */
   @Test
   public void getWorkerAddressTest() {
     TachyonConf conf = new TachyonConf();
