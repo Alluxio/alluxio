@@ -34,9 +34,10 @@ public class HeartbeatContextTest {
     checkNotNull(HeartbeatContext.MASTER_FILE_RECOMPUTATION);
     checkNotNull(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
     checkNotNull(HeartbeatContext.MASTER_TTL_CHECK);
+    checkNotNull(HeartbeatContext.WORKER_BLOCK_SYNC);
     checkNotNull(HeartbeatContext.WORKER_CLIENT);
     checkNotNull(HeartbeatContext.WORKER_LINEAGE_SYNC);
-    checkNotNull(HeartbeatContext.PIN_LIST_SYNC);
+    checkNotNull(HeartbeatContext.WORKER_PIN_LIST_SYNC);
   }
 
   @Test
@@ -48,9 +49,10 @@ public class HeartbeatContextTest {
     checkInstanceOf(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
         HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.SLEEPING_TIMER_CLASS);
+    checkInstanceOf(HeartbeatContext.WORKER_BLOCK_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.WORKER_CLIENT, HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.WORKER_LINEAGE_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
-    checkInstanceOf(HeartbeatContext.PIN_LIST_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
+    checkInstanceOf(HeartbeatContext.WORKER_PIN_LIST_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
   @Test

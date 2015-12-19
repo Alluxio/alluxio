@@ -255,8 +255,8 @@ public final class BlockWorker extends WorkerBase {
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.PIN_LIST_SYNC, mPinListSync,
-                    WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+        new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
+            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleanerThread);

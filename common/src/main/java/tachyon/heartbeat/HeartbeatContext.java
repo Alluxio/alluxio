@@ -34,9 +34,9 @@ public final class HeartbeatContext {
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
-  public static final String WORKER_LINEAGE_SYNC = "Worker Lineage Sync";
   public static final String WORKER_CLIENT = "Worker Client";
-  public static final String PIN_LIST_SYNC = "Pin List Sync";
+  public static final String WORKER_LINEAGE_SYNC = "Worker Lineage Sync";
+  public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
 
   static {
     sTimerClasses = new HashMap<String, Class<? extends HeartbeatTimer>>();
@@ -45,9 +45,9 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_BLOCK_SYNC, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(WORKER_LINEAGE_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(WORKER_LINEAGE_SYNC, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization
