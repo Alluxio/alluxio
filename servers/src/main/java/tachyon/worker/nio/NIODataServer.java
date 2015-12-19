@@ -58,9 +58,6 @@ public final class NIODataServer implements Runnable, DataServer {
   // The selector we will be monitoring.
   private Selector mSelector;
 
-  // Instance of TachyonConf
-  private final TachyonConf mTachyonConf;
-
   private final Map<SocketChannel, DataServerMessage> mSendingData =
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
   private final Map<SocketChannel, DataServerMessage> mReceivingData =
@@ -83,7 +80,6 @@ public final class NIODataServer implements Runnable, DataServer {
   public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ {}", address);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address));
     mAddress = address;
     mDataManager = Preconditions.checkNotNull(dataManager);

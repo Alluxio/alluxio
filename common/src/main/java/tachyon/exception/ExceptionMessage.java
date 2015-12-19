@@ -155,6 +155,12 @@ public enum ExceptionMessage {
     mMessage = new MessageFormat(message);
   }
 
+  /**
+   * Formats the message of the exception.
+   *
+   * @param params the parameters for the exception message
+   * @return the formatted message
+   */
   public String getMessage(Object... params) {
     Preconditions.checkArgument(mMessage.getFormats().length == params.length, "The message takes "
         + mMessage.getFormats().length + " arguments, but is given " + params.length);
