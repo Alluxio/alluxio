@@ -30,7 +30,8 @@ public class ExponentialBackoffRetry extends SleepingRetry {
   private final int mMaxSleepMs;
 
   /**
-   * Constructs a new retry which grows exponentially.
+   * Constructs a new retry facility which sleeps for an exponentially increasing amount of time
+   * between retries.
    *
    * @param baseSleepTimeMs the sleep in milliseconds to begin with
    * @param maxSleepMs the max sleep in milliseconds as a bounding
