@@ -82,7 +82,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mWorkerMemInMB;
   private final int mRamdiskMemInMB;
   private final int mNumWorkers;
-  private final String mTachyonHome;
   private final String mMasterAddress;
   private final boolean mOneWorkerPerHost;
   private final String mResourcePath;
@@ -111,9 +110,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
-  public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress,
-      String resourcePath) {
-
+  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
         (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
@@ -126,7 +123,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
     mOneWorkerPerHost = mTachyonConf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
     mNumWorkers = numWorkers;
-    mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;
     mWorkerHosts = ConcurrentHashMultiset.create();
@@ -151,17 +147,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
       CommandLine cliParser = new GnuParser().parse(options, args);
       int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-      String tachyonHome;
-      if (cliParser.hasOption("tachyon_home")) {
-        tachyonHome = cliParser.getOptionValue("tachyon_home");
-      } else {
-        tachyonHome = ApplicationConstants.Environment.PWD.$();
-      }
       String masterAddress = cliParser.getOptionValue("master_address");
       String resourcePath = cliParser.getOptionValue("resource_path");
 
       ApplicationMaster applicationMaster =
-          new ApplicationMaster(numWorkers, tachyonHome, masterAddress, resourcePath);
+          new ApplicationMaster(numWorkers, masterAddress, resourcePath);
       applicationMaster.start();
       applicationMaster.requestContainers();
       applicationMaster.stop();
