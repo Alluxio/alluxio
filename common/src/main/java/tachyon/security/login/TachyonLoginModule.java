@@ -45,7 +45,7 @@ public final class TachyonLoginModule implements LoginModule {
    *
    * The implementation does not really authenticate the user here. Always return true.
    * @return true in all cases
-   * @throws javax.security.auth.login.LoginException when the login fails
+   * @throws LoginException when the login fails
    */
   @Override
   public boolean login() throws LoginException {
