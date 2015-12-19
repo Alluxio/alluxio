@@ -22,7 +22,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.client.block.TachyonBlockStore;
+import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
@@ -48,7 +48,9 @@ public interface FileWriteLocationPolicy {
         return CommonUtils.createNewClassInstance(
             conf.<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
             new Class[] {List.class, OutStreamOptions.class},
-            new Object[] {TachyonBlockStore.get().getBlockWorkerInfoList(), options});
+            new Object[] {
+                FileSystemContext.INSTANCE.getTachyonBlockStore().getBlockWorkerInfoList(),
+                options});
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

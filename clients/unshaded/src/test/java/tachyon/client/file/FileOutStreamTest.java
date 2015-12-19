@@ -34,11 +34,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockOutStream;
@@ -120,6 +123,8 @@ public class FileOutStreamTest {
             return outStreamMap.get(blockId);
           }
         });
+    BlockWorkerInfo workerInfo = new BlockWorkerInfo("localhost", Constants.GB, 0);
+    Mockito.when(mBlockStore.getBlockWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
