@@ -16,6 +16,7 @@
     <module>glusterfs</module>
     <module>swift</module>
     <module>s3</module>
+    <module>oss</module>
   </modules>
 
   <properties>
