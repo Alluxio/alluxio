@@ -29,7 +29,7 @@ public final class BlockWorkerInfo {
   /**
    * Constructs the block worker information.
    */
-  BlockWorkerInfo(String host, long capacityBytes, long usedBytes) {
+  public BlockWorkerInfo(String host, long capacityBytes, long usedBytes) {
     mHost = host;
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
