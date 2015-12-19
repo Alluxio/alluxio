@@ -18,14 +18,14 @@ package tachyon.underfs;
 import tachyon.conf.TachyonConf;
 
 /**
- * Interface for under file system factories
+ * Interface for under file system factories.
  */
 public interface UnderFileSystemFactory {
 
   /**
    * Creates a new client for accessing the given path. An {@link IllegalArgumentException} is
    * thrown if this factory does not support clients for the given path or if the configuration
-   * provided is insufficient to create a client
+   * provided is insufficient to create a client.
    *
    * @param path File path
    * @param tachyonConf Tachyon configuration
@@ -36,7 +36,7 @@ public interface UnderFileSystemFactory {
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, TachyonConf, Object)} can succeed for this path
+   * {@link #create(String, TachyonConf, Object)} can succeed for this path.
    *
    * @param path File path
    * @param tachyonConf Tachyon configuration
