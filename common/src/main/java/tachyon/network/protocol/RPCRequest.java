@@ -15,5 +15,8 @@
 
 package tachyon.network.protocol;
 
+/**
+ * The base class for constructing RPC requests.
+ */
 public abstract class RPCRequest extends RPCMessage {
 }
