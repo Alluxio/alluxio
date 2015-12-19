@@ -31,6 +31,11 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
 
   private final AuthenticationProvider mCustomProvider;
 
+  /**
+   * Constructs a new custom authentication provider.
+   *
+   * @param providerName the name of the provider
+   */
   public CustomAuthenticationProviderImpl(String providerName) {
     Class<?> customProviderClass;
     try {
@@ -48,6 +53,9 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
     }
   }
 
+  /**
+   * @return the custom authentication provider
+   */
   public AuthenticationProvider getCustomProvider() {
     return mCustomProvider;
   }

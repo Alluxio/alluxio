@@ -70,6 +70,7 @@ public final class ReplayCache<V> {
   /**
    * Creates a cache with default maximum size and key expiration time.
    *
+   * @param <V> the type of value returned by this cache
    * @return a cache with the default maximum size and expiration time
    */
   public static <V> ReplayCache<V> newInstance() {
@@ -79,6 +80,7 @@ public final class ReplayCache<V> {
   /**
    * Creates a cache with the given maximum size and key expiration time.
    *
+   * @param <V> the type of value returned by this cache
    * @param maxSize the maximum number of elements the cache may hold
    * @param expireMs the amount of time to hold entries before they expire
    * @return a cache with the specified maximum size and expiration time
@@ -106,6 +108,12 @@ public final class ReplayCache<V> {
    * @param <V> the return type of {@link #call()}
    */
   public interface ReplayCallable<V> {
+    /**
+     * Calls the RPC handler.
+     *
+     * @return the results of the handler
+     * @throws TachyonException if an unexpected exception in Tachyon is thrown
+     */
     V call() throws TachyonException;
   }
 
@@ -116,6 +124,13 @@ public final class ReplayCache<V> {
    * @param <V> the return type of {@link #call()}
    */
   public interface ReplayCallableThrowsIOException<V> {
+    /**
+     * Calls the RPC handler.
+     *
+     * @return the result of the handler
+     * @throws TachyonException if an unexpected exception in Tachyon is thrown
+     * @throws IOException if a non-Tachyon exception occurs
+     */
     V call() throws TachyonException, IOException;
   }
 
