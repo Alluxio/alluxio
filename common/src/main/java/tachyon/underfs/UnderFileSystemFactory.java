@@ -23,14 +23,14 @@ import tachyon.conf.TachyonConf;
 public interface UnderFileSystemFactory {
 
   /**
-   * Creates a new client for accessing the given path
+   * Creates a new client for accessing the given path. An {@link IllegalArgumentException} is
+   * thrown if this factory does not support clients for the given path or if the configuration
+   * provided is insufficient to create a client
    *
    * @param path File path
    * @param tachyonConf Tachyon configuration
    * @param ufsConf Optional configuration object for the UFS, may be null
-   * @return Client
-   * @throws IllegalArgumentException Thrown if this factory does not support clients for the given
-   *         path or if the configuration provided is insufficient to create a client
+   * @return the client
    */
   UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf);
 

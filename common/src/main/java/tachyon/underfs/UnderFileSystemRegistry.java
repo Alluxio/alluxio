@@ -93,14 +93,14 @@ public final class UnderFileSystemRegistry {
   }
 
   /**
-   * Creates a client for operations involved with the under file system.
+   * Creates a client for operations involved with the under file system. An
+   * {@link IllegalArgumentException} is thrown if there is no under file system for the given path
+   * or if no under file system could successfully be created.
    *
    * @param path Path
    * @param tachyonConf Tachyon Configuration
    * @param ufsConf Optional configuration object for the UFS, may be null
    * @return Client for the under file system
-   * @throws IllegalArgumentException Thrown if there is no under file system for the given path or
-   *         if no under file system could successfully be created
    */
   public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
     // Try to obtain the appropriate factory
