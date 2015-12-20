@@ -46,7 +46,7 @@ public class OSSUnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ */
   //private final String mBucketPrefix;
 
-  protected OSSUnderFileSystem(String bucketName, TachyonConf tachyonConf) {
+  protected OSSUnderFileSystem(String bucketName, TachyonConf tachyonConf) throws Exception {
     super(tachyonConf);
     // TODO(luoli523523) Auto-generated constructor stub
   }
