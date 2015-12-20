@@ -33,7 +33,7 @@ import tachyon.util.CommonUtils;
  * mapping and protects against mapping inconsistencies between servers and clients in a Tachyon
  * cluster.
  */
-public class UserToGroupsMappingService {
+public final class UserToGroupsMappingService {
   private static final Logger LOG = LoggerFactory.getLogger(UserToGroupsMappingService.class);
 
   private final GroupMappingService mGroupMappingService;

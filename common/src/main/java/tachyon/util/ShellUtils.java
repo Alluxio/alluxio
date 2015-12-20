@@ -29,7 +29,7 @@ import tachyon.Constants;
 /**
  * A base class for running a Unix command.
  */
-public class ShellUtils {
+public final class ShellUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** a Unix command to set permission */
