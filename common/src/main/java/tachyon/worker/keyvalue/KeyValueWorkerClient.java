@@ -63,7 +63,7 @@ public class KeyValueWorkerClient extends ClientBase {
    * Notifies the worker to checkpoint the file asynchronously.
    *
    * @param blockId The id of the block
-   * @return true if success, false otherwise
+   * @return ByteBuffer of value, or null if not found
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */

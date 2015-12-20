@@ -84,13 +84,12 @@ public final class KeyValueServiceHandler implements KeyValueWorkerService.Iface
     BlockReader blockReader;
     final long sessionId = Sessions.KEYVALUE_SESSION_ID;
     final long lockId = mBlockDataManager.lockBlock(sessionId, blockId);
-    final byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(keyBuffer);
     try {
       blockReader = mBlockDataManager.readBlockRemote(sessionId, blockId, lockId);
       ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
       RandomAccessKeyValueFileReader reader = new RandomAccessKeyValueFileReader(fileBuffer);
       // TODO(binfan): clean fileBuffer which is a direct byte buffer
-      return ByteBuffer.wrap(reader.get(keyBytes));
+      return reader.get(keyBuffer);
     } catch (InvalidWorkerStateException e) {
       // We shall never reach here
       LOG.error("Reaching invalid state to get a key", e);
