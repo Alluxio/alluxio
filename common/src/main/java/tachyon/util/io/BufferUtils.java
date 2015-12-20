@@ -327,12 +327,24 @@ public final class BufferUtils {
     final int length = buf.remaining();
     byte[] bytes = new byte[length];
     // transfer bytes from this buffer into the given destination array
-    buf.get(bytes, 0, length);
+    buf.duplicate().get(bytes, 0, length);
     return bytes;
   }
 
+  /**
+   * Creates a new ByteBuffer sliced from a given ByteBuffer. The new ByteBuffer shares the
+   * content of the existing one, but with independent position/mark/limit. After slicing, the
+   * new ByteBuffer has position 0, and the input ByteBuffer is unmodified.
+   *
+   * @param buffer source ByteBuffer to slice
+   * @param position position in the source ByteBuffer to slice
+   * @param length length of the sliced ByteBuffer
+   * @return sliced ByteBuffer
+   */
   public static ByteBuffer sliceByteBuffer(ByteBuffer buffer, int position, int length) {
-    return (ByteBuffer) buffer.duplicate().position(position).limit(position + length);
+    ByteBuffer slicedBuffer = ((ByteBuffer) buffer.duplicate().position(position)).slice();
+    slicedBuffer.limit(length);
+    return slicedBuffer;
   }
 
   private BufferUtils() {} // prevent instantiation

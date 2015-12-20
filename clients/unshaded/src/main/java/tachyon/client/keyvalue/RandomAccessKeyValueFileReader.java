@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
@@ -58,6 +59,16 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
 
   public RandomAccessPayloadReader createPayloadReader() {
     return new RandomAccessPayloadReader(mBuf);
+  }
+
+  // This could be slow when value size is large, use in cautious.
+  @Override
+  public byte[] get(byte[] key) throws IOException, TachyonException {
+    ByteBuffer valueBuffer = get(ByteBuffer.wrap(key));
+    if (valueBuffer == null) {
+      return null;
+    }
+    return BufferUtils.newByteArrayFromByteBuffer(valueBuffer);
   }
 
   @Override

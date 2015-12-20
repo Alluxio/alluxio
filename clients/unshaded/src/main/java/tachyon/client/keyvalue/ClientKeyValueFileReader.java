@@ -56,14 +56,20 @@ public class ClientKeyValueFileReader implements KeyValueFileReader {
     mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
   }
 
+  // This could be slow when value size is large, use in cautious.
   @Override
   public byte[] get(byte[] key) throws IOException, TachyonException {
-    LOG.debug("get key of length: {}", key.length);
     ByteBuffer keyBuffer = ByteBuffer.wrap(key);
-    ByteBuffer value = mClient.get(mBlockId, keyBuffer);
+    ByteBuffer value = get(keyBuffer);
     if (value == null) {
       return null;
     }
     return BufferUtils.newByteArrayFromByteBuffer(value);
+  }
+
+  @Override
+  public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
+    LOG.debug("get key of length: {}", key.limit());
+    return mClient.get(mBlockId, key);
   }
 }
