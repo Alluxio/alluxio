@@ -153,8 +153,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public static void main(String[] args) {
     Options options = new Options();
     options.addOption("num_workers", true, "Number of Tachyon workers to launch. Default 1");
-    options.addOption("tachyon_home", true,
-        "Path of the home dir of Tachyon deployment on YARN slave machines");
     options.addOption("master_address", true, "(Required) Address to run Tachyon master");
     options.addOption("resource_path", true,
         "(Required) HDFS path containing the Application Master");
