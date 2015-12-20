@@ -13,32 +13,36 @@
  * the License.
  */
 
-package tachyon.security.group;
+package tachyon.security.group.provider;
 
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import tachyon.conf.TachyonConf;
+import tachyon.security.group.GroupMappingService;
 
 /**
- * An interface for the implementation of a user-to-groups mapping service used by {@link Groups}.
+ * A simple implementation of {@link GroupMappingService} that returns a group which is same name
+ * with the given user name.
  */
-public interface GroupMappingServiceProvider {
-  /**
-   * Gets all various group memberships of a given user. Returns EMPTY list in case of non-existing
-   * user.
-   *
-   * @param user User's name
-   * @return group memberships of user
-   * @throws IOException
-   */
-  public List<String> getGroups(String user) throws IOException;
+public final class IdentityUserGroupsMapping implements GroupMappingService {
 
   /**
-   * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping from
-   * LDAP, we will need configuration to set up the connection to LDAP server.
+   * Returns list of groups for a user.
    *
-   * @param conf The tachyon configuration set to GroupMappingServiceProvider
+   * @param user get groups for this user
+   * @return list of groups for a given user
    */
-  public void setConf(TachyonConf conf);
+  @Override
+  public List<String> getGroups(String user) throws IOException {
+    return Lists.newArrayList(user);
+  }
+
+  @Override
+  public void setConf(TachyonConf conf) {
+    // does nothing in this provider of user to groups mapping
+  }
+
 }

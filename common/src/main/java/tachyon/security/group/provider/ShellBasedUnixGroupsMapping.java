@@ -16,17 +16,19 @@
 package tachyon.security.group.provider;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import tachyon.conf.TachyonConf;
-import tachyon.security.group.GroupMappingServiceProvider;
+import tachyon.security.group.GroupMappingService;
 import tachyon.util.CommonUtils;
 
 /**
- * A simple shell-based implementation of {@link GroupMappingServiceProvider} that exec's the
+ * A simple shell-based implementation of {@link GroupMappingService} that exec's the
  * <code>groups</code> shell command to fetch the group memberships of a given user.
  */
-public final class ShellBasedUnixGroupsMapping implements GroupMappingServiceProvider {
+public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
 
   /**
    * Returns list of groups for a user.
@@ -38,15 +40,7 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingServicePro
   public List<String> getGroups(String user) throws IOException {
     List<String> groups = CommonUtils.getUnixGroups(user);
     // remove duplicated primary group
-    if (groups != null && groups.size() > 1) {
-      for (int i = 1; i < groups.size(); i++) {
-        if (groups.get(i).equals(groups.get(0))) {
-          groups.remove(i);
-          break;
-        }
-      }
-    }
-    return groups;
+    return new ArrayList<String>(new LinkedHashSet<String>(groups));
   }
 
   @Override

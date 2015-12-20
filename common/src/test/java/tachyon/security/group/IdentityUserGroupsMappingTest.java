@@ -18,23 +18,18 @@ package tachyon.security.group;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
 
 /**
- * Unit test for {@link tachyon.security.group.UserToGroupsMappingService}
+ * Unit test for {@link tachyon.security.group.provider.IdentityUserGroupsMapping}
  */
-public final class GroupsTest {
+public final class IdentityUserGroupsMappingTest {
 
   @Test
-  public void groupTest() throws Throwable {
+  public void userGroupTest() throws Throwable {
     String userName = "tachyon-user1";
 
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    UserToGroupsMappingService groups =
-        UserToGroupsMappingService.getUserToGroupsMappingService(conf);
+    GroupMappingService groups = new IdentityUserGroupsMapping();
 
     Assert.assertNotNull(groups);
     Assert.assertNotNull(groups.getGroups(userName));
