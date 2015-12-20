@@ -3,6 +3,17 @@ namespace java tachyon.thrift
 include "common.thrift"
 include "exception.thrift"
 
+struct CompleteFileTOptions {
+  1: optional i64 ufsLength
+}
+
+struct CreateTOptions {
+  1: optional i64 blockSizeBytes
+  2: optional bool persisted
+  3: optional bool recursive
+  4: optional i64 ttl
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
@@ -26,26 +37,15 @@ struct FileInfo {
   21: string persistenceState
 }
 
-struct CompleteFileTOptions {
-  1: optional i64 ufsLength
-}
-
-struct CreateTOptions {
-  1: optional i64 blockSizeBytes
-  2: optional bool persisted
-  3: optional bool recursive
-  4: optional i64 ttl
+struct FileSystemCommand {
+  1: common.CommandType commandType
+  2: FileSystemCommandOptions commandOptions
 }
 
 struct MkdirTOptions {
   1: optional bool persisted
   2: optional bool recursive
   3: optional bool allowExists
-}
-
-struct FileSystemCommand {
-  1: common.CommandType commandType
-  2: FileSystemCommandOptions commandOptions
 }
 
 struct PersistCommandOptions {
