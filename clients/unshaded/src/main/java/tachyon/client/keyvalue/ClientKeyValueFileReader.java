@@ -72,4 +72,9 @@ public class ClientKeyValueFileReader implements KeyValueFileReader {
     LOG.debug("get key of length: {}", key.limit());
     return mClient.get(mBlockId, key);
   }
+
+  @Override
+  public void close() {
+    mClient.close();
+  }
 }
