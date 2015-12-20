@@ -80,11 +80,11 @@ public final class TachyonBlockStoreTest {
    * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
    *
    * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
-   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and {@link #mBlockWorkerClient}
-   *    when asked for master/worker clients<br>
+   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and
+   * {@link #mBlockWorkerClient} when asked for master/worker clients<br>
    * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
-   * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should return
-   *    the path to {@link #mTestFile}.
+   * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should
+   * return the path to {@link #mTestFile}.
    */
   @Before
   public void before() throws Exception {
@@ -119,8 +119,7 @@ public final class TachyonBlockStoreTest {
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();
     Mockito.verify(mBlockStoreContext).releaseMasterClient(mMasterClient);
   }
@@ -139,8 +138,7 @@ public final class TachyonBlockStoreTest {
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
     Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_LENGTH, Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mLocation"));
     Mockito.verify(mBlockStoreContext).acquireMasterClient();
