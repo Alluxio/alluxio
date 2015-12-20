@@ -15,12 +15,9 @@
 
 package tachyon.util.io;
 
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
 
 /**
  * A collection of utility functions to read/write primitive value to byte array.
@@ -53,7 +50,6 @@ public final class ByteIOUtils {
     return (((buf.get(pos) & 0xff) << 24) | ((buf.get(pos + 1) & 0xff) << 16)
         | ((buf.get(pos + 2) & 0xff) << 8) | (buf.get(pos + 3) & 0xff));
   }
-
 
   public static long readLong(byte[] buf, int pos) {
     checkBoundary(buf, pos, 8);

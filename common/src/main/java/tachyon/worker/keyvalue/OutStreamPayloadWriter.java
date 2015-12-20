@@ -15,22 +15,21 @@
 
 package tachyon.worker.keyvalue;
 
-import com.google.common.base.Preconditions;
-import tachyon.client.file.AbstractOutStream;
-import tachyon.util.io.ByteIOUtils;
-
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
+
+import tachyon.client.file.AbstractOutStream;
+import tachyon.util.io.ByteIOUtils;
+
 /**
  * An implementation of {@link PayloadWriter} using stream API to write to underline storage.
  *
- * For each key-value pair, this writer appends the following 4 pieces of data in order:
- * (1) keyLength (4 bytes)
- * (2) valueLength (4 bytes)
- * (3) keyData (keyLength bytes)
- * (4) valueData (valueLength bytes)
+ * For each key-value pair, this writer appends the following 4 pieces of data in order: (1)
+ * keyLength (4 bytes) (2) valueLength (4 bytes) (3) keyData (keyLength bytes) (4) valueData
+ * (valueLength bytes)
  */
 public final class OutStreamPayloadWriter implements Closeable, Flushable, PayloadWriter {
   private AbstractOutStream mOutStream;
