@@ -83,7 +83,7 @@ public class ClientHandlerTest {
    */
   @Test
   public void channelRead0ThrowsExceptionTest() throws IOException {
-    final RPCMessage message = new RPCBlockReadRequest(0, 0, 0);
+    final RPCMessage message = new RPCBlockReadRequest(0, 0, 0, 0, 0);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.NO_RPC_HANDLER.getMessage(message.getType()));
 
