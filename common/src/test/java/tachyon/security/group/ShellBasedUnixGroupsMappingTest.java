@@ -52,7 +52,7 @@ public final class ShellBasedUnixGroupsMappingTest {
     userGroups.add(userGroup2);
     setupShellMocks(userName,userGroups);
 
-    GroupMappingServiceProvider groups = new ShellBasedUnixGroupsMapping();
+    GroupMappingService groups = new ShellBasedUnixGroupsMapping();
 
     Assert.assertNotNull(groups);
     Assert.assertNotNull(groups.getGroups(userName));
