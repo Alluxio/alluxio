@@ -25,6 +25,12 @@ import java.io.IOException;
 
 /**
  * An implementation of {@link PayloadWriter} using stream API to write to underline storage.
+ *
+ * For each key-value pair, this writer appends the following 4 pieces of data in order:
+ * (1) keyLength (4 bytes)
+ * (2) valueLength (4 bytes)
+ * (3) keyData (keyLength bytes)
+ * (4) valueData (valueLength bytes)
  */
 public final class OutStreamPayloadWriter implements Closeable, Flushable, PayloadWriter {
   private AbstractOutStream mOutStream;
@@ -44,8 +50,8 @@ public final class OutStreamPayloadWriter implements Closeable, Flushable, Paylo
   }
 
   @Override
-  public int addKeyAndValue(byte[] key, byte[] value) throws IOException {
-    int offset = mOutStream.getCount();
+  public int insert(byte[] key, byte[] value) throws IOException {
+    int offset = mOutStream.getBytesWritten();
     // Pack key and value into a byte array
     ByteIOUtils.writeInt(mOutStream, key.length);
     ByteIOUtils.writeInt(mOutStream, value.length);

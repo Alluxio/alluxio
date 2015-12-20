@@ -17,13 +17,13 @@ package tachyon.worker.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+
+import tachyon.Constants;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.ByteIOUtils;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-
-import tachyon.util.io.BufferUtils;
-import tachyon.util.io.ByteIOUtils;
 
 /**
  * Index structure using linear probing. It keeps a collection of buckets. Each bucket stores a
@@ -43,12 +43,12 @@ public final class LinearProbingIndex implements Index {
   /** Hash function to calculate bucket index */
   private static final HashFunction INDEX_HASHER = Hashing.murmur3_32(INDEX_HASHER_SEED);
   /** Hash function to calculate fingerprint */
-  private static final HashFunction FINGERPRINT_HASHER = Hashing
-      .murmur3_32(FINGERPRINT_HASHER_SEED);
+  private static final HashFunction FINGERPRINT_HASHER =
+      Hashing.murmur3_32(FINGERPRINT_HASHER_SEED);
   /** Max number of probes for linear probing */
   private static final int MAX_PROBES = 50;
   /** Size of each bucket in bytes */
-  private static final int BUCKET_SIZE_BYTES = (Byte.SIZE + Integer.SIZE) / Byte.SIZE;
+  private static final int BUCKET_SIZE_BYTES = Constants.BYTES_IN_INTEGER + 1;
 
   private ByteBuffer mBuf;
   private int mNumBuckets;
@@ -60,7 +60,6 @@ public final class LinearProbingIndex implements Index {
   public static LinearProbingIndex createEmptyIndex() {
     int numBuckets = 1 << 15;
     byte[] buffer = new byte[numBuckets * BUCKET_SIZE_BYTES];
-    Arrays.fill(buffer, (byte) 0);
     return new LinearProbingIndex(ByteBuffer.wrap(buffer), numBuckets, 0);
   }
 
@@ -89,20 +88,21 @@ public final class LinearProbingIndex implements Index {
   @Override
   public boolean put(byte[] key, byte[] value, PayloadWriter writer) throws IOException {
     int bucketIndex = indexHash(key);
-    // Linear probing until next empty bucket is found
+    int pos = bucketIndex * BUCKET_SIZE_BYTES;
+    // Linear probing until the next empty bucket (fingerprint is 0) is found
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      int pos = bucketIndex * BUCKET_SIZE_BYTES;
       byte fingerprint = ByteIOUtils.readByte(mBuf, pos);
       if (fingerprint == 0) {
         // bucket is empty
         // Pack key and value into a byte array payload
-        final int offset = writer.addKeyAndValue(key, value);
+        final int offset = writer.insert(key, value);
         ByteIOUtils.writeByte(mBuf, pos ++, fingerprintHash(key));
         ByteIOUtils.writeInt(mBuf, pos, offset);
         mKeyCount ++;
         return true;
       }
       bucketIndex = (bucketIndex + 1) % mNumBuckets;
+      pos = (bucketIndex == 0) ? 0 : pos + BUCKET_SIZE_BYTES;
     }
     return false;
   }
@@ -111,18 +111,18 @@ public final class LinearProbingIndex implements Index {
   public ByteBuffer get(ByteBuffer key, PayloadReader reader) {
     int bucketIndex = indexHash(key);
     byte fingerprint = fingerprintHash(key);
-
-    // Linear probing until next empty bucket is found
+    int bucketOffset = bucketIndex * BUCKET_SIZE_BYTES;
+    // Linear probing until a bucket having the same fingerprint is found
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      int pos = bucketIndex * BUCKET_SIZE_BYTES;
-      if (fingerprint == ByteIOUtils.readByte(mBuf, pos)) {
-        int offset = ByteIOUtils.readInt(mBuf, pos + 1);
+      if (fingerprint == ByteIOUtils.readByte(mBuf, bucketOffset)) {
+        int offset = ByteIOUtils.readInt(mBuf, bucketOffset + 1);
         ByteBuffer keyStored = reader.getKey(offset);
         if (key.equals(keyStored)) {
           return reader.getValue(offset);
         }
       }
       bucketIndex = (bucketIndex + 1) % mNumBuckets;
+      bucketOffset = (bucketIndex == 0) ? 0 : bucketOffset + BUCKET_SIZE_BYTES;
     }
     return null;
   }

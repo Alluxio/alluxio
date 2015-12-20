@@ -33,14 +33,14 @@ public final class ByteArrayOutStream extends AbstractOutStream {
 
   public void write(int b) {
     mOut.write(b);
-    mCount ++;
+    mBytesWritten++;
   }
 
   /**
    * @return the number of bytes written to this output stream
    */
-  public int getCount() {
-    return mCount;
+  public int getBytesWritten() {
+    return mBytesWritten;
   }
 
   /**
