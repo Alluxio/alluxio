@@ -22,10 +22,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
+/**
+ * This test ensures the OSS ufs module correctly accepts paths that begin with oss://
+ */
 public class OSSUnderFileSystemFactoryTest {
-  /**
-   * This test ensures the OSS ufs module correctly accepts paths that begin with oss://
-   */
   @Test
   public void factoryTest() {
     TachyonConf conf = new TachyonConf();

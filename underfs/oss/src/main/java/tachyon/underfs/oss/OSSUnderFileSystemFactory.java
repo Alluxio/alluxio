@@ -15,6 +15,8 @@
 
 package tachyon.underfs.oss;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +32,6 @@ import tachyon.underfs.UnderFileSystemFactory;
 public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static final String HEADER_OSS = "oss://";
-  public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
-  public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
-
   @Override
   public UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
     Preconditions.checkNotNull(path);
@@ -43,17 +41,20 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
       TachyonURI uri = new TachyonURI(path);
       try {
         return new OSSUnderFileSystem(uri.getHost(), tachyonConf);
-      } catch (Exception se) {
-        LOG.error("Failed to create OSSUnderFileSystem.", se);
-        throw Throwables.propagate(se);
+      } catch (Exception e) {
+        LOG.error("Failed to create OSSUnderFileSystem.", e);
+        throw Throwables.propagate(e);
       }
     }
-    return null;
+
+    String err = "OSS Credentials not available, cannot create OSS Under File System.";
+    LOG.error(err);
+    throw Throwables.propagate(new IOException(err));
   }
 
   @Override
   public boolean supportsPath(String path, TachyonConf tachyonConf) {
-    return path != null && path.startsWith(HEADER_OSS);
+    return path != null && path.startsWith(Constants.HEADER_OSS);
   }
 
   /**
@@ -63,11 +64,11 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckOSSCredentials(TachyonConf tachyonConf) {
-    String accessKeyConf = OSS_ACCESS_KEY;
+    String accessKeyConf = Constants.OSS_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && tachyonConf.get(accessKeyConf) == null) {
       tachyonConf.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = OSS_SECRET_KEY;
+    String secretKeyConf = Constants.OSS_SECRET_KEY;
     if (System.getProperty(secretKeyConf) != null && tachyonConf.get(secretKeyConf) == null) {
       tachyonConf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
