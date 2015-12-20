@@ -98,7 +98,7 @@ public class FileOutStream extends AbstractOutStream implements Cancelable {
     mCanceled = false;
     mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-    mCount = 0;
+    mBytesWritten = 0;
   }
 
   @Override
@@ -192,7 +192,7 @@ public class FileOutStream extends AbstractOutStream implements Cancelable {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-        mCount ++;
+        mBytesWritten++;
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
@@ -227,11 +227,11 @@ public class FileOutStream extends AbstractOutStream implements Cancelable {
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
-            mCount += tLen;
+            mBytesWritten += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
-            mCount += (int) currentBlockLeftBytes;
+            mBytesWritten += (int) currentBlockLeftBytes;
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
           }

@@ -30,7 +30,7 @@ public final class ByteIOUtils {
   private ByteIOUtils() {} // prevent instantiation.
 
   public static byte readByte(byte[] buf, int pos) {
-    checkBoundary(buf, pos, 0);
+    checkBoundary(buf, pos, 1);
     return (byte) (buf[pos] & 0xff);
   }
 
@@ -39,12 +39,12 @@ public final class ByteIOUtils {
   }
 
   public static short readShort(byte[] buf, int pos) {
-    checkBoundary(buf, pos, 1);
-    return (short) (((short) (buf[pos ++] & 0xff) << 8) | ((short) (buf[pos] & 0xff)));
+    checkBoundary(buf, pos, 2);
+    return (short) (((short) (buf[pos] & 0xff) << 8) | ((short) (buf[pos + 1] & 0xff)));
   }
 
   public static int readInt(byte[] buf, int pos) {
-    checkBoundary(buf, pos, 3);
+    checkBoundary(buf, pos, 4);
     return (((buf[pos ++] & 0xff) << 24) | ((buf[pos ++] & 0xff) << 16)
         | ((buf[pos ++] & 0xff) << 8) | (buf[pos] & 0xff));
   }
@@ -56,7 +56,7 @@ public final class ByteIOUtils {
 
 
   public static long readLong(byte[] buf, int pos) {
-    checkBoundary(buf, pos, 7);
+    checkBoundary(buf, pos, 8);
     return (((long) (buf[pos ++] & 0xff) << 56) | ((long) (buf[pos ++] & 0xff) << 48)
         | ((long) (buf[pos ++] & 0xff) << 40) | ((long) (buf[pos ++] & 0xff) << 32)
         | ((long) (buf[pos ++] & 0xff) << 24) | ((long) (buf[pos ++] & 0xff) << 16)
@@ -64,7 +64,7 @@ public final class ByteIOUtils {
   }
 
   public static void writeByte(byte[] buf, int pos, byte v) {
-    checkBoundary(buf, pos, 0);
+    checkBoundary(buf, pos, 1);
     buf[pos] = v;
   }
 
@@ -86,7 +86,7 @@ public final class ByteIOUtils {
   }
 
   public static void writeShort(byte[] buf, int pos, short v) {
-    checkBoundary(buf, pos, 1);
+    checkBoundary(buf, pos, 2);
     buf[pos ++] = (byte) (0xff & (v >> 8));
     buf[pos] = (byte) (0xff & v);
   }
@@ -105,7 +105,7 @@ public final class ByteIOUtils {
   }
 
   public static void writeInt(byte[] buf, int pos, int v) {
-    checkBoundary(buf, pos, 3);
+    checkBoundary(buf, pos, 4);
     buf[pos ++] = (byte) (0xff & (v >> 24));
     buf[pos ++] = (byte) (0xff & (v >> 16));
     buf[pos ++] = (byte) (0xff & (v >> 8));
@@ -135,7 +135,7 @@ public final class ByteIOUtils {
   }
 
   public static void writeLong(byte[] buf, int pos, long v) {
-    checkBoundary(buf, pos, 7);
+    checkBoundary(buf, pos, 8);
     buf[pos ++] = (byte) (0xff & (v >> 56));
     buf[pos ++] = (byte) (0xff & (v >> 48));
     buf[pos ++] = (byte) (0xff & (v >> 40));
@@ -166,9 +166,11 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Ensures there N bytes
+   * Ensures there are len bytes from pos in buf
    */
-  private static void checkBoundary(byte[] buf, int pos, int n) {
-    Preconditions.checkState(pos + n < buf.length);
+  private static void checkBoundary(byte[] buf, int pos, int len) {
+    if (pos + len > buf.length) {
+      throw new ArrayIndexOutOfBoundsException();
+    }
   }
 }

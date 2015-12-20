@@ -31,5 +31,5 @@ public interface PayloadWriter {
    * @return the offset of this key-value pair in payload storage
    * @throws IOException if error occurs writing the key and value to output stream
    */
-  int addKeyAndValue(byte[] key, byte[] value) throws IOException;
+  int insert(byte[] key, byte[] value) throws IOException;
 }

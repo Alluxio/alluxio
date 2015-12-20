@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
@@ -27,6 +28,7 @@ import tachyon.util.io.ByteIOUtils;
  * An implementation of {@link PayloadReader} with ability to random access the underline storage.
  */
 public final class RandomAccessPayloadReader implements PayloadReader {
+  private static final int KEY_DATA_OFFSET = 2 * Constants.BYTES_IN_INTEGER;
   private ByteBuffer mBuf;
 
   public RandomAccessPayloadReader(ByteBuffer buf) {
@@ -36,7 +38,7 @@ public final class RandomAccessPayloadReader implements PayloadReader {
   @Override
   public ByteBuffer getKey(int pos) {
     final int keyLength = ByteIOUtils.readInt(mBuf, pos);
-    final int keyFrom = pos + 8;
+    final int keyFrom = pos + KEY_DATA_OFFSET;
     return BufferUtils.sliceByteBuffer(mBuf, keyFrom, keyLength);
   }
 
@@ -44,7 +46,7 @@ public final class RandomAccessPayloadReader implements PayloadReader {
   public ByteBuffer getValue(int pos) {
     final int keyLength = ByteIOUtils.readInt(mBuf, pos);
     final int valueLength = ByteIOUtils.readInt(mBuf, pos + 4);
-    final int valueFrom = pos + 8 + keyLength;
+    final int valueFrom = pos + KEY_DATA_OFFSET + keyLength;
     return BufferUtils.sliceByteBuffer(mBuf, valueFrom, valueLength);
   }
 

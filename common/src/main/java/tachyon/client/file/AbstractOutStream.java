@@ -10,12 +10,12 @@ import java.io.OutputStream;
 public abstract class AbstractOutStream extends OutputStream {
   // TODO(binfan): make count long.
   /** The number of bytes written */
-  protected int mCount = 0;
+  protected int mBytesWritten = 0;
 
   /**
    * @return the number of bytes written to this stream
    */
-  public int getCount() {
-    return mCount;
+  public int getBytesWritten() {
+    return mBytesWritten;
   }
 }

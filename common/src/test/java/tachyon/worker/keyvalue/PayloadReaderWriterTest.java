@@ -26,26 +26,26 @@ public class PayloadReaderWriterTest {
     int expectedLength = 0;
 
     // Both key and value are empty, expect only 8 bytes of two integer length values
-    offset = mTestWriter.addKeyAndValue("".getBytes(), "".getBytes());
+    offset = mTestWriter.insert("".getBytes(), "".getBytes());
     Assert.assertEquals(expectedLength, offset);
 
     mTestWriter.flush();
     expectedLength += 8;
-    Assert.assertEquals(expectedLength, mTestOutStream.getCount());
+    Assert.assertEquals(expectedLength, mTestOutStream.getBytesWritten());
 
-    offset = mTestWriter.addKeyAndValue(KEY1, "".getBytes());
+    offset = mTestWriter.insert(KEY1, "".getBytes());
     Assert.assertEquals(expectedLength, offset);
 
     mTestWriter.flush();
     expectedLength += 8 + KEY1.length;
-    Assert.assertEquals(expectedLength, mTestOutStream.getCount());
+    Assert.assertEquals(expectedLength, mTestOutStream.getBytesWritten());
 
-    offset = mTestWriter.addKeyAndValue("".getBytes(), VALUE1);
+    offset = mTestWriter.insert("".getBytes(), VALUE1);
     Assert.assertEquals(expectedLength, offset);
 
     mTestWriter.flush();
     expectedLength += 8 + VALUE1.length;
-    Assert.assertEquals(expectedLength, mTestOutStream.getCount());
+    Assert.assertEquals(expectedLength, mTestOutStream.getBytesWritten());
   }
 
   @Test
@@ -53,24 +53,24 @@ public class PayloadReaderWriterTest {
     int offset;
     int expectedLength = 0;
 
-    offset = mTestWriter.addKeyAndValue(KEY1, VALUE1);
+    offset = mTestWriter.insert(KEY1, VALUE1);
     Assert.assertEquals(expectedLength, offset);
 
     mTestWriter.flush();
     expectedLength += 8 + KEY1.length + VALUE1.length;
-    Assert.assertEquals(expectedLength, mTestOutStream.getCount());
+    Assert.assertEquals(expectedLength, mTestOutStream.getBytesWritten());
 
-    offset = mTestWriter.addKeyAndValue(KEY2, VALUE2);
+    offset = mTestWriter.insert(KEY2, VALUE2);
     Assert.assertEquals(expectedLength, offset);
 
     mTestWriter.flush();
     expectedLength += 8 + KEY2.length + VALUE2.length;
-    Assert.assertEquals(expectedLength, mTestOutStream.getCount());
+    Assert.assertEquals(expectedLength, mTestOutStream.getBytesWritten());
   }
 
   @Test
   public void getKeyAndValueZeroOffsetTest() throws Exception {
-    int offset = mTestWriter.addKeyAndValue(KEY1, VALUE1);
+    int offset = mTestWriter.insert(KEY1, VALUE1);
     Assert.assertEquals(0, offset);
     mTestWriter.close();
 
@@ -83,7 +83,7 @@ public class PayloadReaderWriterTest {
   @Test
   public void getKeyAndValueNonZeroOffsetTest() throws Exception {
     mTestOutStream.write("meaningless padding".getBytes());
-    int offset = mTestWriter.addKeyAndValue(KEY1, VALUE1);
+    int offset = mTestWriter.insert(KEY1, VALUE1);
     mTestWriter.close();
 
     ByteBuffer buf = ByteBuffer.wrap(mTestOutStream.toByteArray());

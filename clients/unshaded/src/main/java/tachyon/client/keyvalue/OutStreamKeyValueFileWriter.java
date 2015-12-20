@@ -34,13 +34,15 @@ import tachyon.worker.keyvalue.PayloadWriter;
  * Writer that implements {@link KeyValueFileWriter} using Tachyon file stream interface to
  * generate a key-value file.
  *
+ * TODO(binfan): describe the key-value file format
+ *
  * <p>
  * This class is not thread-safe.
  */
 public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** handler to underline Tachyon file */
+  /** handle to write to the underlying file */
   private final AbstractOutStream mFileOutStream;
   /** number of key-value pairs added */
   private long mKeyCount = 0;
@@ -48,7 +50,7 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   private Index mIndex;
   /** key-value payload */
   private PayloadWriter mPayloadWriter;
-
+  /** whether this writer is closed */
   private boolean mClosed;
 
   /**
@@ -75,18 +77,10 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
 
   @Override
   public void close() throws IOException {
+    Preconditions.checkState(!mClosed);
+    build();
     mFileOutStream.close();
     mClosed = true;
-  }
-
-  @Override
-  public void build() throws IOException {
-    Preconditions.checkState(!mClosed);
-    mFileOutStream.flush();
-    int indexOffset = mFileOutStream.getCount();
-    mFileOutStream.write(mIndex.getBytes());
-    ByteIOUtils.writeInt(mFileOutStream, indexOffset);
-    close();
   }
 
   @Override
@@ -98,6 +92,14 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   public long byteCount() {
     Preconditions.checkState(!mClosed);
     // last pointer to index
-    return mFileOutStream.getCount() + mIndex.byteCount() + Integer.SIZE / Byte.SIZE;
+    return mFileOutStream.getBytesWritten() + mIndex.byteCount() + Integer.SIZE / Byte.SIZE;
+  }
+
+  private void build() throws IOException {
+    Preconditions.checkState(!mClosed);
+    mFileOutStream.flush();
+    int indexOffset = mFileOutStream.getBytesWritten();
+    mFileOutStream.write(mIndex.getBytes());
+    ByteIOUtils.writeInt(mFileOutStream, indexOffset);
   }
 }
