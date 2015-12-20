@@ -57,6 +57,7 @@ public final class FormatUtils {
    * content of the buffer in 4-byte increments as space separated integers.
    *
    * @param buf buffer to use
+   * @return the String representation of the {@link ByteBuffer}
    */
   public static String byteBufferToString(ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
