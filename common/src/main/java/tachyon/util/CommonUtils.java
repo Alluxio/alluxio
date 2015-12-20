@@ -117,6 +117,7 @@ public final class CommonUtils {
   /**
    * Creates new instance of a class by calling a constructor that receives ctorClassArgs arguments.
    *
+   * @param <T> type of the object
    * @param cls the class to create
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
    *        constructor will be called

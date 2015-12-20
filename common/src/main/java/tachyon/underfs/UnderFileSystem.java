@@ -44,6 +44,10 @@ public abstract class UnderFileSystem {
    */
   private boolean mProvidesStorage = true;
 
+  /**
+   * The different types of space indicate the total space, the free space and the space used in the
+   * under file system.
+   */
   public enum SpaceType {
 
     /**
@@ -68,7 +72,7 @@ public abstract class UnderFileSystem {
     }
 
     /**
-     * Get the integer value of this enum value.
+     * @return the integer value of this enum value
      */
     public int getValue() {
       return mValue;
@@ -80,7 +84,6 @@ public abstract class UnderFileSystem {
    *
    * @param path file path storing over the ufs
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance
-   * @throws IllegalArgumentException for unknown scheme
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, TachyonConf tachyonConf) {
@@ -93,7 +96,6 @@ public abstract class UnderFileSystem {
    * @param path file path storing over the ufs
    * @param ufsConf the configuration object for ufs only
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance
-   * @throws IllegalArgumentException for unknown scheme
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object ufsConf, TachyonConf tachyonConf) {
@@ -127,6 +129,10 @@ public abstract class UnderFileSystem {
    *
    * To decide if a path should use the hadoop implementation, we check
    * {@link String#startsWith(String)} to see if the configured schemas are found.
+   *
+   * @param path the path in under filesystem
+   * @param tachyonConf the configuration for Tachyon
+   * @return true if the given path is on a Hadoop under file system, false otherwise
    */
   public static boolean isHadoopUnderFS(final String path, TachyonConf tachyonConf) {
     // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
@@ -143,6 +149,8 @@ public abstract class UnderFileSystem {
 
   /**
    * Checks whether the underFS provides storage
+   *
+   * @return true if the under filesystem provides storage, false otherwise
    */
   public boolean providesStorage() {
     return mProvidesStorage;
@@ -154,6 +162,7 @@ public abstract class UnderFileSystem {
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    *
    * @param path the input path string
+   * @param tachyonConf the configuration for Tachyon
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
@@ -196,7 +205,7 @@ public abstract class UnderFileSystem {
    *
    * @param conf Tachyon configuration
    * @param hostname The host that wants to connect to the under file system
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract void connectFromMaster(TachyonConf conf, String hostname) throws IOException;
 
@@ -209,14 +218,14 @@ public abstract class UnderFileSystem {
    *
    * @param conf Tachyon configuration
    * @param hostname The host that wants to connect to the under file system
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract void connectFromWorker(TachyonConf conf, String hostname) throws IOException;
 
   /**
    * Closes this under file system.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract void close() throws IOException;
 
@@ -225,7 +234,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return A {@code OutputStream} object
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract OutputStream create(String path) throws IOException;
 
@@ -235,7 +244,7 @@ public abstract class UnderFileSystem {
    * @param path The file name
    * @param blockSizeByte The block size in bytes
    * @return A {@code OutputStream} object
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract OutputStream create(String path, int blockSizeByte) throws IOException;
 
@@ -247,7 +256,7 @@ public abstract class UnderFileSystem {
    * @param replication The number of replications for each block
    * @param blockSizeByte The block size in bytes
    * @return A {@code OutputStream} object
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract OutputStream create(String path, short replication, int blockSizeByte)
       throws IOException;
@@ -258,7 +267,7 @@ public abstract class UnderFileSystem {
    * @param path The file or folder name
    * @param recursive Whether we delete folder and its children
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract boolean delete(String path, boolean recursive) throws IOException;
 
@@ -267,7 +276,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract boolean exists(String path) throws IOException;
 
@@ -276,7 +285,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return file size in bytes
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract long getBlockSizeByte(String path) throws IOException;
 
@@ -292,7 +301,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return The list of locations
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract List<String> getFileLocations(String path) throws IOException;
 
@@ -302,7 +311,7 @@ public abstract class UnderFileSystem {
    * @param path The file name
    * @param offset Offset in bytes
    * @return The list of locations
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract List<String> getFileLocations(String path, long offset) throws IOException;
 
@@ -311,7 +320,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return the file size in bytes
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract long getFileSize(String path) throws IOException;
 
@@ -320,7 +329,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file or folder name
    * @return modification time in milliseconds
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract long getModificationTimeMs(String path) throws IOException;
 
@@ -331,7 +340,7 @@ public abstract class UnderFileSystem {
    * @param path The path to query
    * @param type The type of queries
    * @return The space in bytes
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract long getSpace(String path, SpaceType type) throws IOException;
 
@@ -340,7 +349,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The path name
    * @return true if this is a file, false otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract boolean isFile(String path) throws IOException;
 
@@ -362,7 +371,7 @@ public abstract class UnderFileSystem {
    * @return An array of strings naming the files and directories in the directory denoted by this
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract String[] list(String path) throws IOException;
 
@@ -424,7 +433,7 @@ public abstract class UnderFileSystem {
    *        directories. Otherwise, the method does not create nonexistent parent directories.
    * @return {@code true} if and only if the directory was created; {@code false}
    *         otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
@@ -433,7 +442,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The file name
    * @return The {@code InputStream} object
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract InputStream open(String path) throws IOException;
 
@@ -443,7 +452,7 @@ public abstract class UnderFileSystem {
    * @param src The source file or folder name
    * @param dst The destination file or folder name
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract boolean rename(String src, String dst) throws IOException;
 
@@ -460,7 +469,7 @@ public abstract class UnderFileSystem {
    *
    * @param path path of the file
    * @param posixPerm standard posix permission like "777", "775", etc
-   * @throws IOException
+   * @throws IOException if a non-Tachyon error occurs
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
 }
