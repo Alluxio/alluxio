@@ -31,13 +31,28 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.TachyonURI;
 
+/**
+ * Tests for the {@link FileUtils} class.
+ */
 public class FileUtilsTest {
+
+  /**
+   * The temporary folder.
+   */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * The expected exception thrown during a test.
+   */
   @Rule
   public final ExpectedException mException = ExpectedException.none();
 
+  /**
+   * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
@@ -57,6 +72,12 @@ public class FileUtilsTest {
     Assert.fail("opening a read-only file for writing should have failed");
   }
 
+  /**
+   * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a non-existent
+   * file to thrown an exception.
+   *
+   * @throws IOException thrown when trying to change the file permissions of a non-existent file
+   */
   @Test
   public void changeNonExistentFileTest() throws IOException {
     // ghostFile is never created, so changing permission should fail
@@ -66,6 +87,11 @@ public class FileUtilsTest {
     Assert.fail("changing permissions of a non-existent file should have failed");
   }
 
+  /**
+   * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a directory.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void changeLocalDirPermissionTests() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
@@ -76,6 +102,11 @@ public class FileUtilsTest {
     Assert.assertTrue(tempFile.delete());
   }
 
+  /**
+   * Tests the {@link FileUtils#move(String, String)} method.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void moveFileTest() throws IOException {
     File fromFile = mTestFolder.newFile("from.txt");
@@ -86,6 +117,12 @@ public class FileUtilsTest {
     Assert.assertTrue(toFile.exists());
   }
 
+  /**
+   * Tests the {@link FileUtils#move(String, String)} method to thrown an exception when trying to
+   * move a non-existent file.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void moveNonExistentFileTest() throws IOException {
     // ghostFile is never created, so deleting should fail
@@ -96,6 +133,11 @@ public class FileUtilsTest {
     Assert.fail("moving a non-existent file should have failed");
   }
 
+  /**
+   * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void deleteFileTest() throws IOException {
     File tempFile = mTestFolder.newFile("fileToDelete");
@@ -107,6 +149,12 @@ public class FileUtilsTest {
     Assert.assertFalse(tempFolder.exists());
   }
 
+  /**
+   * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
+   * non-existent file.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void deleteNonExistentFileTest() throws IOException {
     // ghostFile is never created, so deleting should fail
@@ -116,6 +164,11 @@ public class FileUtilsTest {
     Assert.fail("deleting a non-existent file should have failed");
   }
 
+  /**
+   * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void setLocalDirStickyBitTest() throws IOException {
     File tempFolder = mTestFolder.newFolder("dirToModify");
@@ -142,6 +195,11 @@ public class FileUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link FileUtils#createBlockPath(String)} method.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void createBlockPathTest() throws IOException {
     String absolutePath = PathUtils.concatPath(mTestFolder.getRoot(), "tmp", "bar");
@@ -150,6 +208,11 @@ public class FileUtilsTest {
     Assert.assertTrue(FileUtils.exists(tempFile.getParent()));
   }
 
+  /**
+   * Tests the {@link FileUtils#createFile(String)} method.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void createFileTest() throws IOException {
     File tempFile = new File(mTestFolder.getRoot(), "tmp");
@@ -158,6 +221,11 @@ public class FileUtilsTest {
     Assert.assertTrue(tempFile.delete());
   }
 
+  /**
+   * Tests the {@link FileUtils#createDir(String)} method.
+   *
+   * @throws IOException thrown if a non-Tachyon related exception occurs
+   */
   @Test
   public void createDirTest() throws IOException {
     File tempDir = new File(mTestFolder.getRoot(), "tmp");
