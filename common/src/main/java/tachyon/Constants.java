@@ -45,6 +45,8 @@ public final class Constants {
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
+  public static final int BYTES_IN_INTEGER = 4;
+
   public static final String SCHEME = "tachyon";
   public static final String HEADER = SCHEME + "://";
 

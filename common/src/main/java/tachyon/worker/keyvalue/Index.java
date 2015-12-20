@@ -29,8 +29,8 @@ public interface Index {
    * @param key bytes of key
    * @param value bytes of value
    * @param writer writer to store key-value payload
-   * @return true on success, false otherwise
-   * @throws IOException
+   * @return true on success, false otherwise (e.g., unresolvable hash collision)
+   * @throws IOException if errors happen when writer writes key/value
    */
   boolean put(byte[] key, byte[] value, PayloadWriter writer) throws IOException;
 
@@ -38,7 +38,7 @@ public interface Index {
    * Gets the bytes of value given the key and payload storage reader.
    *
    * @param key bytes of key
-   * @param reader the byte array of all key value payload
+   * @param reader reader to access key-value payload
    * @return ByteBuffer of value, or null if not found
    */
   ByteBuffer get(ByteBuffer key, PayloadReader reader) throws IOException;
