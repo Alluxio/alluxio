@@ -29,10 +29,11 @@ distributed with Tachyon binaries. We do not recommend beginner users to edit th
 which Tachyon is running. The easiest way is to put the site properties file in directory
 `$TACHYON_HOME/conf`.
 
-All Tachyon configuration properties fall into one of the four categories:
+All Tachyon configuration properties fall into one of the five categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration), and
-[User specific](#user-configuration).
+[User specific](#user-configuration), and [Cluster specific](#cluster-management) (used for running
+Tachyon with cluster managers like Mesos and YARN).
 
 ## Common Configuration
 
@@ -700,6 +701,11 @@ configuration options.
   <td>tachyon.integration.mesos.worker.name</td>
   <td>TachyonWorker</td>
   <td>The Mesos task name for the Tachyon worker task.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.yarn.one.worker.per.host</td>
+  <td>true</td>
+  <td>If true, Tachyon workers in Yarn will be spread out to have at most one worker per host.</td>
 </tr>
 <tr>
   <td>tachyon.integration.worker.resource.cpu</td>

@@ -67,7 +67,7 @@ public class RecomputePlanner {
           throw new IllegalStateException(e); // should not happen
         }
         try {
-          if (!LineageStateUtils.isPersisted(lineage, mFileSystemMaster.getFileStoreView())) {
+          if (!LineageStateUtils.isPersisted(lineage, mFileSystemMaster.getFileSystemMasterView())) {
             toRecompute.add(lineage);
           }
         } catch (FileDoesNotExistException e) {

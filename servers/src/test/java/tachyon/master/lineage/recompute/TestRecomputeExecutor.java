@@ -53,7 +53,7 @@ public final class TestRecomputeExecutor {
 
     // mock file system master
     FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    Mockito.when(fileSystemMaster.getFileStoreView())
+    Mockito.when(fileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(fileSystemMaster));
     Mockito.when(fileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(fileId));
 

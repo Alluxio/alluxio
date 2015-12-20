@@ -29,6 +29,14 @@ public class ExponentialBackoffRetry extends SleepingRetry {
   private final int mBaseSleepTimeMs;
   private final int mMaxSleepMs;
 
+  /**
+   * Constructs a new retry facility which sleeps for an exponentially increasing amount of time
+   * between retries.
+   *
+   * @param baseSleepTimeMs the sleep in milliseconds to begin with
+   * @param maxSleepMs the max sleep in milliseconds as a bounding
+   * @param maxRetries the max count of retries
+   */
   public ExponentialBackoffRetry(int baseSleepTimeMs, int maxSleepMs, int maxRetries) {
     super(maxRetries);
     Preconditions.checkArgument(baseSleepTimeMs >= 0, "Base must be a positive number, or 0");

@@ -42,10 +42,13 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -69,6 +72,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private OutStreamOptions mWriteUnderStore;
   private InStreamOptions mReadNoCache;
   private InStreamOptions mReadCache;
+  private int mWorkerToMasterHeartbeatIntervalMs;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -108,6 +112,8 @@ public class RemoteBlockInStreamIntegrationTest {
     mWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(mTachyonConf);
     mReadCache = StreamOptionUtils.getInStreamOptionsReadCache(mTachyonConf);
     mReadNoCache = StreamOptionUtils.getInStreamOptionsReadNoCache(mTachyonConf);
+    mWorkerToMasterHeartbeatIntervalMs =
+        mTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
   }
 
   /**
@@ -534,5 +540,61 @@ public class RemoteBlockInStreamIntegrationTest {
     is.seek(99);
     Assert.assertEquals(99, is.read());
     is.close();
+  }
+
+  /**
+   * Test remote read stream lock in <code>RemoteBlockInStream</code>.
+   */
+  @Test
+  public void remoteReadLockTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, k, mWriteTachyon);
+
+      long blockId = mTfs.getInfo(f).getBlockIds().get(0);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+
+      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      InetSocketAddress workerInetAddr =
+          new InetSocketAddress(workerAddr.getHost(), workerAddr.getDataPort());
+
+      RemoteBlockInStream is =
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+      Assert.assertEquals(0, is.read());
+      mTfs.delete(f);
+
+      // TODO(andrew): Consider using HeartbeatScheduler to make this more deterministic.
+      CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs * 2);
+
+      // The file has been deleted.
+      checkFileDeleted(f);
+      // Look! We can still read the deleted file since we have a lock!
+      byte[] ret = new byte[k / 2];
+      Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
+      is.close();
+      checkFileDeleted(f);
+
+      // Try to create an in stream again, and it should fail.
+      RemoteBlockInStream is2 = null;
+      try {
+        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerInetAddr);
+      } catch (IOException e) {
+        Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
+      } finally {
+        if (is2 != null) {
+          is2.close();
+        }
+      }
+    }
+  }
+
+  private void checkFileDeleted(TachyonFile f) throws IOException {
+    try {
+      mTfs.getInfo(f);
+      Assert.fail();
+    } catch (TachyonException e) {
+      Assert.assertEquals(TachyonExceptionType.FILE_DOES_NOT_EXIST, e.getType());
+    }
   }
 }
