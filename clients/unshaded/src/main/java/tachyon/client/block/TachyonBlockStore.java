@@ -85,18 +85,18 @@ public final class TachyonBlockStore {
 
   /**
    * @return the info of all active block workers
+   * @throws IOException when work info list cannot be obtained from master
+   * @throws TachyonException if network connection failed
    */
-  public List<BlockWorkerInfo> getBlockWorkerInfoList() throws IOException {
-    BlockMasterClient masterClient = mContext.acquireMasterClient();
+  public List<BlockWorkerInfo> getBlockWorkerInfoList() throws IOException, TachyonException {
     List<BlockWorkerInfo> infoList = Lists.newArrayList();
+    BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
         infoList.add(new BlockWorkerInfo(workerInfo.getAddress().getHost(),
             workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
       }
       return infoList;
-    } catch (TachyonException e) {
-      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
