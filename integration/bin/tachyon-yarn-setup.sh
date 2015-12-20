@@ -4,10 +4,10 @@
 tar zxf tachyon.tar.gz
 
 # launch master or worker on this container
-if [ $1 = 'master' ]; then
+if [ $1 = 'tachyon-master' ]; then
   ./integration/bin/tachyon-master-yarn.sh
 else
-  if  [ $1 = 'worker' ]; then
+  if  [ $1 = 'tachyon-worker' ]; then
     ./integration/bin/tachyon-worker-yarn.sh
   else
     shift

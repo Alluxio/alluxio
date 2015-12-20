@@ -50,11 +50,13 @@ import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.Records;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.yarn.Utils.YarnContainerType;
 
 /**
  * The client to submit the application to run Tachyon to YARN ResourceManager.
@@ -280,12 +282,13 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    final String amCommand = new CommandBuilder("./tachyon-yarn-setup.sh").addArg("application-master")
-        .addArg("-num_workers", mNumWorkers)
-        .addArg("-master_address", mMasterAddress)
-        .addArg("-resource_path", mResourcePath)
-        .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-        .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
+    Map<String, String> applicationMasterArgs = ImmutableMap.<String, String>of(
+        "-num_workers", Integer.toString(mNumWorkers),
+        "-master_address", mMasterAddress,
+        "-resource_path", mResourcePath);
+
+    final String amCommand =
+        Utils.buildCommand(YarnContainerType.APPLICATION_MASTER, applicationMasterArgs);
 
     System.out.println("ApplicationMaster command: " + amCommand);
     mAmContainer.setCommands(Collections.singletonList(amCommand));
@@ -296,7 +299,8 @@ public final class Client {
         Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
     localResources.put("tachyon-yarn-setup.sh",
         Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
-    localResources.put("tachyon.jar", Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
+    localResources.put("tachyon.jar",
+        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
     mAmContainer.setLocalResources(localResources);
 
     // Setup CLASSPATH for ApplicationMaster
