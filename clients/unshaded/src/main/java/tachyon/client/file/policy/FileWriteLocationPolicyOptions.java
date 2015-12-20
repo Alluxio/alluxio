@@ -15,24 +15,9 @@
 
 package tachyon.client.file.policy;
 
-import java.util.List;
-
-import tachyon.annotation.PublicApi;
-import tachyon.client.block.BlockWorkerInfo;
-
 /**
- * Interface for the location policy of which workers a file's block are written into. A file policy
- * instance is used only once per file write, and only when the hostname in the options is not
- * specified.
+ * Interface for describing the options passed to the corresponding {@link FileWriteLocationPolicy}.
  */
-@PublicApi
-public interface FileWriteLocationPolicy<T extends FileWriteLocationPolicyOptions> {
+public interface FileWriteLocationPolicyOptions {
 
-  /**
-   * Gets the worker's host name for the next block to write to.
-   *
-   * @param workerInfoList the info of the active workers
-   * @return the host name of worker to write to
-   */
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList);
 }

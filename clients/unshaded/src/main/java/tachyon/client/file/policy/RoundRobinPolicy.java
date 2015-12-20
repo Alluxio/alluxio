@@ -26,7 +26,7 @@ import tachyon.client.file.options.OutStreamOptions;
  * A policy that chooses the worker for the next block in a RR manner and skips workers that do not
  * have enough space. The policy returns null if no worker can be found.
  */
-public final class RoundRobinPolicy implements FileWriteLocationPolicy {
+public final class RoundRobinPolicy implements FileWriteLocationPolicy<RoundRobinPolicyOptions> {
   private final OutStreamOptions mOptions;
   private final List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex = 0;

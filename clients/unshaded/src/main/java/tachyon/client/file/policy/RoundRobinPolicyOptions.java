@@ -15,28 +15,6 @@
 
 package tachyon.client.file.policy;
 
-import java.util.List;
+public class RoundRobinPolicyOptions implements FileWriteLocationPolicyOptions {
 
-import com.google.common.base.Preconditions;
-
-import tachyon.client.block.BlockWorkerInfo;
-import tachyon.client.file.options.OutStreamOptions;
-
-/**
- * A default location policy that returns localhost.
- */
-public final class DefaultLocationPolicy implements FileWriteLocationPolicy {
-  private OutStreamOptions mOptions;
-
-  /**
-   * Constructs the default location policy.
-   */
-  public DefaultLocationPolicy(List<BlockWorkerInfo> workerInfoList, OutStreamOptions options) {
-    mOptions = Preconditions.checkNotNull(options);
-  }
-
-  @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList) {
-    return mOptions.getHostname();
-  }
 }
