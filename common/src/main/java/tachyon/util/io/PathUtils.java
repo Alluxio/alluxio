@@ -134,6 +134,7 @@ public final class PathUtils {
    * @param path a path
    * @param prefix a prefix
    * @return whether the given path has the given prefix
+   * @throws InvalidPathException thrown when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
     String[] pathComponents = getPathComponents(path);

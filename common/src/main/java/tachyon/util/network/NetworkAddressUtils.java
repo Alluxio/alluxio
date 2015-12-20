@@ -167,11 +167,21 @@ public final class NetworkAddressUtils {
     }
   }
 
+  /**
+   * Checks if the given port is valid.
+   *
+   * @param port the port to check
+   */
   public static void assertValidPort(final int port) {
     Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
     Preconditions.checkArgument(port >= 0, "Port must be non-negative");
   }
 
+  /**
+   * Checks if the given port in the address is valid.
+   *
+   * @param address the address with the port to check
+   */
   public static void assertValidPort(final InetSocketAddress address) {
     assertValidPort(address.getPort());
   }
@@ -498,6 +508,8 @@ public final class NetworkAddressUtils {
    * {@link #getThriftSocket(org.apache.thrift.transport.TServerSocket)}, so reflection will be used
    * to get the port.
    *
+   * @param thriftSocket the underline socket
+   * @return the thrift port for the underline socket
    * @see #getThriftSocket(org.apache.thrift.transport.TServerSocket)
    */
   public static int getThriftPort(TServerSocket thriftSocket) {
@@ -508,7 +520,8 @@ public final class NetworkAddressUtils {
    * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used is not
    * exposed in the API, so this function will use reflection to get access to it.
    *
-   * @throws RuntimeException if reflection calls fail
+   * @param thriftSocket the underline thrift socket
+   * @return the server socket
    */
   public static ServerSocket getThriftSocket(final TServerSocket thriftSocket) {
     try {
@@ -545,7 +558,6 @@ public final class NetworkAddressUtils {
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress
-   * @throws RuntimeException if the host is not known
    */
   public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
     try {
@@ -562,7 +574,6 @@ public final class NetworkAddressUtils {
    *
    * @param netAddress the input network address representation
    * @return InetSocketAddress
-   * @throws RuntimeException if the host is not known
    */
   public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
     try {
