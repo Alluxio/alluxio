@@ -116,10 +116,16 @@ public final class RPCBlockReadRequest extends RPCRequest {
     return mOffset;
   }
 
+  /**
+   * @return the id of the lock
+   */
   public long getLockId() {
     return mLockId;
   }
 
+  /**
+   * @return the id of the session
+   */
   public long getSessionId() {
     return mSessionId;
   }
