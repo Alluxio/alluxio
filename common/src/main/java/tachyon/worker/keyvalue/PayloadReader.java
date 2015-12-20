@@ -15,6 +15,8 @@
 
 package tachyon.worker.keyvalue;
 
+import java.nio.ByteBuffer;
+
 /**
  * Interface to access key and value from payload storage.
  */
@@ -24,15 +26,15 @@ public interface PayloadReader {
    * Gets the key given the position of payload storage.
    *
    * @param pos position in the payload storage in bytes
-   * @return bytes of the key
+   * @return key in ByteBuffer
    */
-  byte[] getKey(int pos);
+  ByteBuffer getKey(int pos);
 
   /**
    * Gets the value given the position of payload storage.
    *
    * @param pos position in the payload storage in bytes
-   * @return bytes of the key
+   * @return value in ByteBuffer
    */
-  byte[] getValue(int pos);
+  ByteBuffer getValue(int pos);
 }

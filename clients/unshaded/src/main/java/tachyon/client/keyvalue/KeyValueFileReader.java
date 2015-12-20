@@ -16,15 +16,11 @@
 
 package tachyon.client.keyvalue;
 
-import com.google.common.base.Preconditions;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.exception.TachyonException;
 
 import java.io.IOException;
-import java.util.List;
+import java.nio.ByteBuffer;
 
 /**
  * Interface of the reader class to access a Tachyon key-value file.
@@ -41,11 +37,7 @@ public interface KeyValueFileReader {
      * @throws IOException
      */
     public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
-      Preconditions.checkArgument(uri != null);
-      TachyonFileSystem tfs = TachyonFileSystemFactory.get();
-      TachyonFile tFile = tfs.open(uri);
-      List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
-      return null; // new RemoteKeyValueFileReader(blockIds);
+      return new ClientKeyValueFileReader(uri);
     }
   }
 
@@ -55,5 +47,7 @@ public interface KeyValueFileReader {
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
    */
-  byte[] get(byte[] key) throws IOException;
+  byte[] get(byte[] key) throws IOException, TachyonException;
+
+  ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 }

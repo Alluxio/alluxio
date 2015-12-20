@@ -16,8 +16,7 @@
 package tachyon.client.keyvalue;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.TachyonException;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.LinearProbingIndex;
@@ -39,20 +40,20 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
 
   private Index mIndex;
   private PayloadReader mPayloadReader;
-  private byte[] mBuf;
+  private ByteBuffer mBuf;
   private int mBufferLength;
 
-  public RandomAccessKeyValueFileReader(byte[] fileBytes) {
+  public RandomAccessKeyValueFileReader(ByteBuffer fileBytes) {
     mBuf = Preconditions.checkNotNull(fileBytes);
-    mBufferLength = mBuf.length;
+    mBufferLength = mBuf.limit();
     mIndex = createIndex();
     mPayloadReader = createPayloadReader();
   }
 
   public Index createIndex() {
     int indexOffset = ByteIOUtils.readInt(mBuf, mBufferLength - 4);
-    // TODO(binfan): this array copy might be expensive and unnecessary
-    byte[] indexBytes = Arrays.copyOfRange(mBuf, indexOffset, mBufferLength - 4);
+    ByteBuffer indexBytes =
+        BufferUtils.sliceByteBuffer(mBuf, indexOffset, mBufferLength - 4 - indexOffset);
     return LinearProbingIndex.loadFromByteArray(indexBytes);
   }
 
@@ -60,8 +61,18 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
     return new RandomAccessPayloadReader(mBuf);
   }
 
+  // This could be slow when value size is large, use in cautious.
   @Override
-  public byte[] get(byte[] key) throws IOException {
+  public byte[] get(byte[] key) throws IOException, TachyonException {
+    ByteBuffer valueBuffer = get(ByteBuffer.wrap(key));
+    if (valueBuffer == null) {
+      return null;
+    }
+    return BufferUtils.newByteArrayFromByteBuffer(valueBuffer);
+  }
+
+  @Override
+  public ByteBuffer get(ByteBuffer key) throws IOException {
     LOG.trace("get: key");
     return mIndex.get(key, mPayloadReader);
   }

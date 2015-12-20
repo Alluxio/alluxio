@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 
 /**
@@ -33,6 +34,10 @@ public final class ByteIOUtils {
     return (byte) (buf[pos] & 0xff);
   }
 
+  public static byte readByte(ByteBuffer buf, int pos) {
+    return (byte) (buf.get(pos) & 0xff);
+  }
+
   public static short readShort(byte[] buf, int pos) {
     checkBoundary(buf, pos, 1);
     return (short) (((short) (buf[pos ++] & 0xff) << 8) | ((short) (buf[pos] & 0xff)));
@@ -43,6 +48,12 @@ public final class ByteIOUtils {
     return (((buf[pos ++] & 0xff) << 24) | ((buf[pos ++] & 0xff) << 16)
         | ((buf[pos ++] & 0xff) << 8) | (buf[pos] & 0xff));
   }
+
+  public static int readInt(ByteBuffer buf, int pos) {
+    return (((buf.get(pos) & 0xff) << 24) | ((buf.get(pos + 1) & 0xff) << 16)
+        | ((buf.get(pos + 2) & 0xff) << 8) | (buf.get(pos + 3) & 0xff));
+  }
+
 
   public static long readLong(byte[] buf, int pos) {
     checkBoundary(buf, pos, 7);
@@ -55,6 +66,10 @@ public final class ByteIOUtils {
   public static void writeByte(byte[] buf, int pos, byte v) {
     checkBoundary(buf, pos, 0);
     buf[pos] = v;
+  }
+
+  public static void writeByte(ByteBuffer buf, int pos, byte v) {
+    buf.put(pos, v);
   }
 
   /**
@@ -97,6 +112,12 @@ public final class ByteIOUtils {
     buf[pos] = (byte) (0xff & v);
   }
 
+  public static void writeInt(ByteBuffer buf, int pos, int v) {
+    buf.put(pos ++, (byte) (0xff & (v >> 24)));
+    buf.put(pos ++, (byte) (0xff & (v >> 16)));
+    buf.put(pos ++, (byte) (0xff & (v >> 8)));
+    buf.put(pos, (byte) (0xff & v));
+  }
 
   /**
    * Writes a specific integer value (4 bytes) to the output stream.
