@@ -18,12 +18,12 @@ package tachyon.worker.keyvalue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+
 import tachyon.Constants;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
-
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 
 /**
  * Index structure using linear probing. It keeps a collection of buckets. Each bucket stores a
@@ -148,7 +148,6 @@ public final class LinearProbingIndex implements Index {
     byte[] keyBytes = BufferUtils.newByteArrayFromByteBuffer(key);
     return indexHash(keyBytes);
   }
-
 
   /**
    * Hashes the key into a non-zero fingerprint in byte.
