@@ -22,6 +22,8 @@ import tachyon.client.file.ByteArrayOutStream;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
+import java.nio.ByteBuffer;
+
 /**
  * unit tests of {@link OutStreamKeyValueFileWriter} and {@link RandomAccessKeyValueFileReader}
  */
@@ -51,7 +53,7 @@ public class KeyValueFileReaderWriterTest {
     mWriter.put(KEY2, VALUE2);
     mWriter.build();
     byte[] fileData = mOutStream.toByteArray();
-    mReader = new RandomAccessKeyValueFileReader(fileData);
+    mReader = new RandomAccessKeyValueFileReader(ByteBuffer.wrap(fileData));
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
 

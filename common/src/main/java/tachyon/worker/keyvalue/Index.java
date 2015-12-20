@@ -16,6 +16,7 @@
 package tachyon.worker.keyvalue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Interface of key-value Index.
@@ -38,9 +39,9 @@ public interface Index {
    *
    * @param key bytes of key
    * @param reader the byte array of all key value payload
-   * @return bytes of value, or null if not found
+   * @return ByteBuffer of value, or null if not found
    */
-  byte[] get(byte[] key, PayloadReader reader) throws IOException ;
+  ByteBuffer get(ByteBuffer key, PayloadReader reader) throws IOException;
 
   /**
    * @return byte array of this index
