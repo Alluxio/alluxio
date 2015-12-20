@@ -25,10 +25,22 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.exception.InvalidPathException;
 
+/**
+ * Tests for the {@link PathUtils} class.
+ */
 public class PathUtilsTest {
+
+  /**
+   * The expected exception thrown during a test.
+   */
   @Rule
   public final ExpectedException mException = ExpectedException.none();
 
+  /**
+   * Tests the {@link PathUtils#cleanPath(String)} method.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void cleanPathNoExceptionTest() throws InvalidPathException {
     // test clean path
@@ -54,12 +66,21 @@ public class PathUtilsTest {
     Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
   }
 
+  /**
+   * Tests the {@link PathUtils#cleanPath(String)} method to thrown an exception in case an invalid
+   * path is provided.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void cleanPathExceptionTest() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
   }
 
+  /**
+   * Tests the {@link PathUtils#concatPath(Object, Object...)} method.
+   */
   @Test
   public void concatPathTest() {
     Assert.assertEquals("/", PathUtils.concatPath("/"));
@@ -103,6 +124,11 @@ public class PathUtilsTest {
         PathUtils.concatPath(Constants.HEADER + "host:port", "/foo", "bar"));
   }
 
+  /**
+   * Tests the {@link PathUtils#getParent(String)} method.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void getParentTest() throws InvalidPathException {
     // get a parent that is non-root
@@ -122,6 +148,11 @@ public class PathUtilsTest {
     Assert.assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
   }
 
+  /**
+   * Tests the {@link PathUtils#getPathComponents(String)} method.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void getPathComponentsNoExceptionTest() throws InvalidPathException {
     Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
@@ -136,12 +167,23 @@ public class PathUtilsTest {
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 
+  /**
+   * Tests the {@link PathUtils#getPathComponents(String)} method to thrown an exception in case the
+   * path is invalid.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void getPathComponentsExceptionTest() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     PathUtils.getPathComponents("/\\   foo / bar");
   }
 
+  /**
+   * Tests the {@link PathUtils#hasPrefix(String, String)} method.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void hasPrefixTest() throws InvalidPathException {
     Assert.assertTrue(PathUtils.hasPrefix("/", "/"));
@@ -162,6 +204,11 @@ public class PathUtilsTest {
     Assert.assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c"));
   }
 
+  /**
+   * Tests the {@link PathUtils#isRoot(String)} method.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void isRootTest() throws InvalidPathException {
     // check a path that is non-root
@@ -181,6 +228,9 @@ public class PathUtilsTest {
     Assert.assertTrue(PathUtils.isRoot("/foo/../"));
   }
 
+  /**
+   * Tests the {@link PathUtils#temporaryFileName(long, long, String)} method.
+   */
   @Test
   public void temporaryFileNameTest() {
     Assert.assertEquals(PathUtils.temporaryFileName(1, 1, "/"),
@@ -193,11 +243,19 @@ public class PathUtilsTest {
         PathUtils.temporaryFileName(1, 1, "/a"));
   }
 
+  /**
+   * Tests the {@link PathUtils#uniqPath()} method.
+   */
   @Test
   public void uniqPathTest() {
     Assert.assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
   }
 
+  /**
+   * Tests the {@link PathUtils#validatePath(String)} method.
+   *
+   * @throws InvalidPathException thrown if the path is invalid
+   */
   @Test
   public void validatePathTest() throws InvalidPathException {
     // check valid paths
