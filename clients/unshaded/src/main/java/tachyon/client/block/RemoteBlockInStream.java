@@ -21,6 +21,9 @@ import java.nio.ByteBuffer;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockReader;
+import tachyon.client.worker.WorkerClient;
+import tachyon.exception.ConnectionFailedException;
+import tachyon.exception.ExceptionMessage;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
@@ -30,6 +33,13 @@ import tachyon.client.RemoteBlockReader;
 public final class RemoteBlockInStream extends BufferedBlockInStream {
   /** The address of the worker to read the data from. */
   private final InetSocketAddress mLocation;
+  /** The returned lock id after acquiring the block lock. */
+  private final Long mLockId;
+
+  /** Client to communicate with the remote worker. */
+  private final WorkerClient mWorkerClient;
+  /** The block store context which provides block worker clients. */
+  private final BlockStoreContext mContext;
 
   /**
    * Creates a new remote block input stream.
@@ -37,11 +47,25 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param location the location
+   * @throws IOException if the block is not available on the remote worker
    */
-  // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
-  public RemoteBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
+  public RemoteBlockInStream(long blockId, long blockSize, InetSocketAddress location)
+      throws IOException {
     super(blockId, blockSize);
     mLocation = location;
+
+    mContext = BlockStoreContext.INSTANCE;
+    mWorkerClient = mContext.acquireWorkerClient(location.getHostName());
+
+    try {
+      mLockId = mWorkerClient.lockBlock(blockId).lockId;
+      if (mLockId == null) {
+        throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
+      }
+    } catch (IOException e) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw e;
+    }
   }
 
   @Override
@@ -52,6 +76,14 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
 
     // TODO(calvin): Perhaps verify that something was read from this stream
     ClientContext.getClientMetrics().incBlocksReadRemote(1);
+
+    try {
+      mWorkerClient.unlockBlock(mBlockId);
+    } catch (ConnectionFailedException e) {
+      throw new IOException(e);
+    } finally {
+      mContext.releaseWorkerClient(mWorkerClient);
+    }
     mClosed = true;
   }
 
@@ -96,7 +128,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       RemoteBlockReader reader =
           RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
       try {
-        ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, getPosition(), bytesLeft);
+        ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, getPosition(),
+            bytesLeft, mLockId, mWorkerClient.getSessionId());
         int bytesRead = data.remaining();
         data.get(b, off, bytesRead);
         bytesLeft -= bytesRead;

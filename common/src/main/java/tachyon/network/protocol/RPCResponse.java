@@ -18,10 +18,15 @@ package tachyon.network.protocol;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The base class for constructing RPC responses.
+ */
 public abstract class RPCResponse extends RPCMessage {
 
-  // The possible types of status for RPC responses.
-  // When modifying values, statusToMessage() must be updated for the appropriate status messages.
+  /**
+   * The possible types of status for RPC responses. When modifying values,
+   * {@link #statusToMessage(Status)} must be updated for the appropriate status messages.
+   */
   public enum Status {
     // Success.
     SUCCESS(0),

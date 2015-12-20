@@ -38,6 +38,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
@@ -261,12 +262,12 @@ public final class WorkerClient extends ClientBase {
    * @return the path of the block file locked
    * @throws IOException
    */
-  public synchronized String lockBlock(final long blockId) throws IOException {
+  public synchronized LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
-      return retryRPC(new RpcCallableThrowsTachyonTException<String>() {
+      return retryRPC(new RpcCallableThrowsTachyonTException<LockBlockResult>() {
         @Override
-        public String call() throws TachyonTException, TException {
+        public LockBlockResult call() throws TachyonTException, TException {
           return mClient.lockBlock(blockId, mSessionId);
         }
       });

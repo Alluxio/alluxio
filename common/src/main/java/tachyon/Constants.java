@@ -143,6 +143,8 @@ public final class Constants {
       "tachyon.integration.master.resource.cpu";
   public static final String INTEGRATION_MASTER_RESOURCE_MEM =
       "tachyon.integration.master.resource.mem";
+  public static final String INTEGRATION_YARN_ONE_WORKER_PER_HOST =
+      "tachyon.integration.yarn.one.worker.per.host";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
   public static final String INTEGRATION_MESOS_JRE_PATH =
@@ -319,6 +321,22 @@ public final class Constants {
 
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "tachyon.user.file.waitcompleted.poll.ms";
+
+  /** tachyon-fuse related conf keys */
+
+  /**
+   * Passed to fuse-mount, maximum granularity of write operations:
+   * Capped by the kernel to 128KB max (as of Linux 3.16.0).
+   */
+  public static final String FUSE_MAXWRITE_BYTES = "tachyon.fuse.maxwrite.bytes";
+  /** Have the fuse process log every FS request */
+  public static final String FUSE_DEBUG_ENABLE = "tachyon.fuse.debug.enabled";
+  /** Maxium number of Tachyon Paths to cache for fuse conversion */
+  public static final String FUSE_PATHCACHE_SIZE = "tachyon.fuse.cachedpaths.max";
+  public static final String FUSE_DEFAULT_MOUNTPOINT = "tachyon.fuse.mount.default";
+  public static final String FUSE_FS_ROOT = "tachyon.fuse.fs.root";
+  /** FUSE file system name */
+  public static final String FUSE_FS_NAME = "tachyon.fuse.fs.name";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
