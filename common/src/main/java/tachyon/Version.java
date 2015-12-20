@@ -31,7 +31,7 @@ public final class Version {
   }
 
   /**
-   * The relative path to the Tachyon target jar
+   * The relative path to the Tachyon target jar.
    */
   public static final String TACHYON_JAR = "target/tachyon-" + VERSION
       + "-jar-with-dependencies.jar";
