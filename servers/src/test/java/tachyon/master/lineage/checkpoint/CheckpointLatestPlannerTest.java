@@ -65,9 +65,9 @@ public final class CheckpointLatestPlannerTest {
     long l2 =
         mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
 
-    Mockito.when(mFileSystemMaster.getFilePersistenceState(fileId1))
+    Mockito.when(mFileSystemMaster.getPersistenceState(fileId1))
         .thenReturn(PersistenceState.NOT_PERSISTED);
-    Mockito.when(mFileSystemMaster.getFilePersistenceState(fileId2))
+    Mockito.when(mFileSystemMaster.getPersistenceState(fileId2))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     FileInfo fileInfo1 = new FileInfo();
     fileInfo1.isCompleted = true;

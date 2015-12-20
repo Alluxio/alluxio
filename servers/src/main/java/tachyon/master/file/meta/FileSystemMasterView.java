@@ -47,7 +47,7 @@ public final class FileSystemMasterView {
    */
   public synchronized PersistenceState getFilePersistenceState(long fileId)
       throws FileDoesNotExistException {
-    return mFileSystemMaster.getFilePersistenceState(fileId);
+    return mFileSystemMaster.getPersistenceState(fileId);
   }
 
   /**

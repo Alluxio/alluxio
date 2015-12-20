@@ -342,7 +342,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the persistence state
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public PersistenceState getFilePersistenceState(long fileId)
+  public PersistenceState getPersistenceState(long fileId)
       throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -1546,6 +1546,8 @@ public final class FileSystemMaster extends MasterBase {
       }
       mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
     }
+
+    // TODO(yupeng) TACHYON-1456 add fault tolerance and flush journal
 
     return workerId;
   }
