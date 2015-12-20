@@ -48,7 +48,7 @@ public final class RecomputePlannerTest {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    Mockito.when(mFileSystemMaster.getFileStoreView())
+    Mockito.when(mFileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(mFileSystemMaster));
     mPlanner = new RecomputePlanner(mLineageStore, mFileSystemMaster);
   }

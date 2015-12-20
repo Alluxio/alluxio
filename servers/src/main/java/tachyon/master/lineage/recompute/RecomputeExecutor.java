@@ -88,7 +88,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
         // empty all the lost files
         try {
           for (Long fileId : LineageStateUtils.getLostFiles(lineage,
-              mFileSystemMaster.getFileStoreView())) {
+              mFileSystemMaster.getFileSystemMasterView())) {
             try {
               mFileSystemMaster.resetFile(fileId);
             } catch (FileDoesNotExistException e) {

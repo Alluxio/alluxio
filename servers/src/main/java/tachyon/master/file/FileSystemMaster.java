@@ -394,9 +394,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return a read-only view of the inode tree
+   * @return a read-only view of the file system master
    */
-  public FileSystemMasterView getFileStoreView() {
+  public FileSystemMasterView getFileSystemMasterView() {
     return new FileSystemMasterView(this);
   }
 
@@ -1559,11 +1559,11 @@ public final class FileSystemMaster extends MasterBase {
    */
   private long getWorkerStoringFile(long fileId) throws FileDoesNotExistException {
     Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
-    int totalBlockNum;
+    List<FileBlockInfo> blockInfoList;
     try {
-      totalBlockNum = getFileBlockInfoList(fileId).size();
+      blockInfoList = getFileBlockInfoList(fileId);
 
-      for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+      for (FileBlockInfo fileBlockInfo : blockInfoList) {
         for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
           if (workerBlockCounts.containsKey(blockLocation.workerId)) {
             workerBlockCounts.put(blockLocation.workerId,
@@ -1584,13 +1584,13 @@ public final class FileSystemMaster extends MasterBase {
     if (workerBlockCounts.size() == 0) {
       LOG.error("The file " + fileId + " does not exist on any worker");
       return IdUtils.INVALID_WORKER_ID;
-    } else if (workerBlockCounts.size() > 1) {
-      LOG.info("The file is stored at more than one worker: " + workerBlockCounts);
     }
 
+    // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the same
+    // worker
     // return the first worker that has all the blocks
     for (Entry<Long, Integer> entry : workerBlockCounts.entrySet()) {
-      if (entry.getValue() == totalBlockNum) {
+      if (entry.getValue() == blockInfoList.size()) {
         return entry.getKey();
       }
     }
@@ -1634,17 +1634,17 @@ public final class FileSystemMaster extends MasterBase {
           scheduledFiles.remove(fileId);
         }
       }
+
+      mWorkerToAsyncPersistFiles.get(workerId).remove(fileIdsToPersist);
+
+      // write to journal
+      PersistFilesRequestEntry persistFilesRequest =
+          PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
+      writeJournalEntry(
+          JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
+      flushJournal();
+      return filesToPersist;
     }
-
-    mWorkerToAsyncPersistFiles.get(workerId).remove(fileIdsToPersist);
-
-    // write to journal
-    PersistFilesRequestEntry persistFilesRequest =
-        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
-    writeJournalEntry(
-        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
-    flushJournal();
-    return filesToPersist;
   }
 
   /**
