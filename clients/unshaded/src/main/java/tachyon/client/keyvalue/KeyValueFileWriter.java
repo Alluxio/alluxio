@@ -32,15 +32,16 @@ public interface KeyValueFileWriter extends Closeable {
 
   class Factory {
     /**
-     * Factory method to create a {@link KeyValueFileWriter} instance.
+     * Factory method to create a {@link KeyValueFileWriter} instance that writes to a new the
+     * key-value data in a new file in Tachyon.
      *
-     * @param uri Tachyon URI of the key-value file as output
+     * @param uri URI of the key-value file to write to
      * @return an instance of a {@link KeyValueFileWriter}
      * @throws TachyonException if error occurs
      * @throws IOException if error occurs
      */
     public static KeyValueFileWriter create(TachyonURI uri) throws TachyonException, IOException {
-      Preconditions.checkArgument(uri != null);
+      Preconditions.checkNotNull(uri);
       TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
       FileOutStream fileOutStream = tfs.getOutStream(uri);
       return new OutStreamKeyValueFileWriter(fileOutStream);
@@ -49,18 +50,13 @@ public interface KeyValueFileWriter extends Closeable {
 
   /**
    * Adds a key and the associated value to this writer.
+   * TODO(binfan): throw already exists exception if key is already inserted.
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
    * @throws IOException
    */
   void put(byte[] key, byte[] value) throws IOException;
-
-  /**
-   * Builds and outputs key-value file, closes this writer.
-   * @throws IOException
-   */
-  void build() throws IOException;
 
   /**
    * Closes the writer.

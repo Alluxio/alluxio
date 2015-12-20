@@ -15,12 +15,12 @@
 
 package tachyon.client.keyvalue;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.client.file.ByteArrayOutStream;
-import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
 import java.nio.ByteBuffer;
 
@@ -51,7 +51,7 @@ public class KeyValueFileReaderWriterTest {
   public void buildAndLoadTest() throws Exception {
     mWriter.put(KEY1, VALUE1);
     mWriter.put(KEY2, VALUE2);
-    mWriter.build();
+    mWriter.close();
     byte[] fileData = mOutStream.toByteArray();
     mReader = new RandomAccessKeyValueFileReader(ByteBuffer.wrap(fileData));
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));

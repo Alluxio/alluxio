@@ -77,4 +77,6 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
     return mIndex.get(key, mPayloadReader);
   }
 
+  @Override
+  public void close() { }
 }

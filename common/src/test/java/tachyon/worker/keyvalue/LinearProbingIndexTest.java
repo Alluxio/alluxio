@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.worker.keyvalue;
 
 import java.nio.ByteBuffer;
@@ -49,10 +64,10 @@ public class LinearProbingIndexTest {
   @Test
   public void getInsertedKeysTest() throws Exception {
     // Initialize a batch of key-value pairs
-    int test_keys = 100;
-    byte[][] keys = new byte[test_keys][];
-    byte[][] values = new byte[test_keys][];
-    for (int i = 0; i < test_keys; i ++) {
+    int testKeys = 100;
+    byte[][] keys = new byte[testKeys][];
+    byte[][] values = new byte[testKeys][];
+    for (int i = 0; i < testKeys; i ++) {
       keys[i] = String.format("test-key:%d", i).getBytes();
       values[i] = String.format("test-val:%d", i).getBytes();
     }
@@ -61,7 +76,7 @@ public class LinearProbingIndexTest {
 
     // Insert this batch of key-value pairs
 
-    for (int i = 0; i < test_keys; i ++) {
+    for (int i = 0; i < testKeys; i ++) {
       Assert.assertTrue(index.put(keys[i], values[i], mOutStreamPayloadWriter));
       Assert.assertEquals(i + 1, index.keyCount());
     }
@@ -70,7 +85,7 @@ public class LinearProbingIndexTest {
     // Read all keys back, expect same value as inserted
     RandomAccessPayloadReader payloadReader =
         new RandomAccessPayloadReader(ByteBuffer.wrap(mOutStream.toByteArray()));
-    for (int i = 0; i < test_keys; i ++) {
+    for (int i = 0; i < testKeys; i ++) {
       ByteBuffer value = index.get(ByteBuffer.wrap(keys[i]), payloadReader);
       Assert.assertEquals(ByteBuffer.wrap(values[i]), value);
     }
