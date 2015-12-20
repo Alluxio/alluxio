@@ -93,7 +93,6 @@ public final class Constants {
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorker";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorker";
 
-
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
    * Version 2 [0.5.0] Starts to use JSON. <br>

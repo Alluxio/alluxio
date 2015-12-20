@@ -28,6 +28,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -43,8 +45,6 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
-
-import com.google.common.base.Preconditions;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker

@@ -22,8 +22,6 @@ import org.junit.Test;
 
 import tachyon.client.file.ByteArrayOutStream;
 
-import java.nio.ByteBuffer;
-
 /**
  * Unit test of {@link OutStreamPayloadWriter}.
  */

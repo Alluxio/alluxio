@@ -16,7 +16,6 @@
 package tachyon.worker.keyvalue;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
