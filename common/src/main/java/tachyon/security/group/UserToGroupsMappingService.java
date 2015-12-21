@@ -34,7 +34,7 @@ import tachyon.util.CommonUtils;
  * cluster.
  */
 public final class UserToGroupsMappingService {
-  private static final Logger LOG = LoggerFactory.getLogger(UserToGroupsMappingService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final GroupMappingService mGroupMappingService;
 

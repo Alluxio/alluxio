@@ -50,7 +50,7 @@ public final class ShellUtils {
    *
    * @param perm the permission of file
    * @param filePath the file path
-   * @return the Unix command to
+   * @return the Unix command to set permission
    */
   public static String[] getSetPermissionCommand(String perm, String filePath) {
     return new String[] {SET_PERMISSION_COMMAND, perm, filePath};
@@ -205,6 +205,7 @@ public final class ShellUtils {
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
+   * @throws IOException if command ran failed
    */
   public static String execCommand(String... cmd) throws IOException {
     ShellUtils exec = new ShellUtils(cmd);
