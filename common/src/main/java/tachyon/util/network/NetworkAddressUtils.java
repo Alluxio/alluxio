@@ -180,7 +180,7 @@ public final class NetworkAddressUtils {
   /**
    * Checks if the given port in the address is valid.
    *
-   * @param address the address with the port to check
+   * @param address the {@link InetSocketAddress} with the port to check
    */
   public static void assertValidPort(final InetSocketAddress address) {
     assertValidPort(address.getPort());
