@@ -31,7 +31,7 @@ public final class FileSystemPermissionChecker {
   /** The owner of root directory. */
   private static String sFileSystemOwner;
 
-  /** The super group of Tachyon file system. All users in this group has super permission. */
+  /** The super group of Tachyon file system. All users in this group have super permission. */
   private static String sFileSystemSuperGroup;
 
   /**
@@ -41,7 +41,7 @@ public final class FileSystemPermissionChecker {
    * @param owner the user of root directory, who is seen as the super user
    * @param superGroup the super group of the whole Tachyon file system
    */
-  public static void initializeFileSystem(boolean permissionCheckEnabled, String owner,
+  public static synchronized void initializeFileSystem(boolean permissionCheckEnabled, String owner,
       String superGroup) {
     sPermissionCheckEnabled = permissionCheckEnabled;
     sFileSystemOwner = owner;
