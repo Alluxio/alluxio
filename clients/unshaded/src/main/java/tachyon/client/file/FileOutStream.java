@@ -36,6 +36,8 @@ import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.LocalFirstPolicy;
+import tachyon.client.file.policy.LocationPolicyRegistry;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
@@ -101,8 +103,19 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-    mLocationPolicy =
-        FileWriteLocationPolicy.Factory.createPolicy(ClientContext.getConf(), options);
+
+    // use local first as default policy
+    Class<? extends FileWriteLocationPolicy> locationPolicyClass = LocalFirstPolicy.class;
+    if(options.getLocationPolicyClass() != null) {
+      locationPolicyClass = options.getLocationPolicyClass();
+    }
+    try {
+      mLocationPolicy = LocationPolicyRegistry.create(locationPolicyClass,
+          mContext.getTachyonBlockStore().getBlockWorkerInfoList(),
+          options.getLocationPolicyOptions());
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -258,11 +271,14 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (mTachyonStorageType.isStore()) {
       String hostname;
       try {
-        hostname = mHostname == null ? mLocationPolicy.getWorkerForNextBlock(
-            mContext.getTachyonBlockStore().getBlockWorkerInfoList()) : mHostname;
-            mCurrentBlockOutStream =
-                mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
-            mShouldCacheCurrentBlock = true;
+        hostname =
+            mHostname == null
+                ? mLocationPolicy.getWorkerForNextBlock(
+                    mContext.getTachyonBlockStore().getBlockWorkerInfoList(), mBlockSize)
+                : mHostname;
+        mCurrentBlockOutStream =
+            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
+        mShouldCacheCurrentBlock = true;
       } catch (TachyonException e) {
         throw new IOException(e);
       }
