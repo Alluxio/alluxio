@@ -78,8 +78,8 @@ import tachyon.client.block.BlockWorkerInfo;
  */
 @SuppressWarnings("rawtypes")
 public final class LocationPolicyRegistry {
-  private static final Map<Class<? extends FileWriteLocationPolicy>, FileWriteLocationPolicyFactory> FACTORIES =
-      Maps.newHashMap();
+  private static final Map<Class<? extends FileWriteLocationPolicy>, FileWriteLocationPolicyFactory>
+      FACTORIES = Maps.newHashMap();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
 
@@ -87,7 +87,6 @@ public final class LocationPolicyRegistry {
     // Call the actual initializer which is a synchronized method for thread safety purposes
     init();
   }
-
 
   public static Set<Class<? extends FileWriteLocationPolicy>> availablePolices() {
     return Collections.unmodifiableSet(FACTORIES.keySet());

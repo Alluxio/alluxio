@@ -106,7 +106,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
     // use local first as default policy
     Class<? extends FileWriteLocationPolicy> locationPolicyClass = LocalFirstPolicy.class;
-    if(options.getLocationPolicyClass() != null) {
+    if (options.getLocationPolicyClass() != null) {
       locationPolicyClass = options.getLocationPolicyClass();
     }
     try {

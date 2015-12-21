@@ -123,7 +123,7 @@ public final class OutStreamOptions {
     }
 
     /**
-     * @param locationPolicyClass the {@link FileWriteLocationPolicy} to use for this operation.
+     * @param locationPolicyClass the {@link FileWriteLocationPolicy} to use for this operation
      * @return the builder
      */
     public Builder setLocationPolicyClass(
