@@ -18,9 +18,10 @@ package tachyon.client.file.policy;
 import tachyon.annotation.PublicApi;
 
 /**
- * Interface for describing the options passed to the corresponding {@link FileWriteLocationPolicy}.
+ * Options that configure {@link FileWriteLocationPolicy}. This class can be extended to pass
+ * additional options a particular location policy.
  */
 @PublicApi
-public interface FileWriteLocationPolicyOptions {
+public class FileWriteLocationPolicyOptions {
 
 }

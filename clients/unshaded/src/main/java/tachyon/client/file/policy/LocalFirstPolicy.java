@@ -26,8 +26,15 @@ import tachyon.util.network.NetworkAddressUtils;
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list.
  */
-public final class LocalFirstPolicy implements FileWriteLocationPolicy<LocalFirstPolicyOptions> {
+public final class LocalFirstPolicy implements FileWriteLocationPolicy {
   private String mLocalHostName = null;
+
+  /**
+   * Constructs a {@link LocalFirstPolicy}.
+   */
+  public LocalFirstPolicy() {
+    mLocalHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+  }
 
   @Override
   public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
@@ -47,11 +54,5 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy<LocalFirs
       }
     }
     return null;
-  }
-
-  @Override
-  public void initialize(List<BlockWorkerInfo> workerInfoList,
-      LocalFirstPolicyOptions policyOptions) {
-    mLocalHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
   }
 }

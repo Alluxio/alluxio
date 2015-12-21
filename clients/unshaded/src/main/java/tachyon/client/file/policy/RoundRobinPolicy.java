@@ -23,9 +23,19 @@ import tachyon.client.block.BlockWorkerInfo;
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
  * that do not have enough space. The policy returns null if no worker can be found.
  */
-public final class RoundRobinPolicy implements FileWriteLocationPolicy<RoundRobinPolicyOptions> {
+public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
+
+  /**
+   * Constructs a new {@link RoundRobinPolicy}.
+   *
+   * @param workerInfoList the list of active worker information
+   */
+  public RoundRobinPolicy(List<BlockWorkerInfo> workerInfoList) {
+    mWorkerInfoList = workerInfoList;
+    mIndex = 0;
+  }
 
   @Override
   public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
@@ -56,12 +66,5 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy<RoundRobi
       }
     }
     return null;
-  }
-
-  @Override
-  public void initialize(List<BlockWorkerInfo> workerInfoList,
-      RoundRobinPolicyOptions policyOptions) {
-    mWorkerInfoList = workerInfoList;
-    mIndex = 0;
   }
 }

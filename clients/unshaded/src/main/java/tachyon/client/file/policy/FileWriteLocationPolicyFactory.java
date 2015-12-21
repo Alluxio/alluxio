@@ -15,9 +15,22 @@
 
 package tachyon.client.file.policy;
 
-/**
- * Options that configure {@link RoundRobinPolicyOptions}.
- */
-public class RoundRobinPolicyOptions implements FileWriteLocationPolicyOptions {
+import java.util.List;
 
+import tachyon.annotation.PublicApi;
+import tachyon.client.block.BlockWorkerInfo;
+
+/**
+ * Interface for factories of constructing {@link FileWriteLocationPolicy}.
+ */
+@PublicApi
+public interface FileWriteLocationPolicyFactory<T extends FileWriteLocationPolicy> {
+  /**
+   * Creates a new instance of policy for writing a file.
+   *
+   * @param workerInfoList the list of active workers information
+   * @param options optional configurations for building the policy
+   * @return a new instance of the policy
+   */
+  T create(List<BlockWorkerInfo> workerInfoList, FileWriteLocationPolicyOptions options);
 }

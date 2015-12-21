@@ -20,7 +20,6 @@ import java.util.List;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.options.OutStreamOptions;
 
 /**
  * <p>
@@ -29,24 +28,13 @@ import tachyon.client.file.options.OutStreamOptions;
  * </p>
  *
  * <p>
- * The {@link FileOutStream} creates a new policy based on the
- * {@link FileWriteLocationPolicyOptions} passed in {@link OutStreamOptions}. And then the stream
- * calls the {@link #initialize(List, FileWriteLocationPolicyOptions)} to initialize the policy.
- * Then the stream calls {@link #getWorkerForNextBlock(List)} to decide which worker to write the
- * next block per block write.
+ * The {@link FileOutStream} creates a new policy using {@link FileWriteLocationPolicyFactory}. Then
+ * the stream calls {@link #getWorkerForNextBlock(List)} to decide which worker to write the next
+ * block per block write.
  * </p>
  */
 @PublicApi
-public interface FileWriteLocationPolicy<T extends FileWriteLocationPolicyOptions> {
-
-  /**
-   * Initializes the location policy with the information of the active workers and the options.
-   *
-   * @param workerInfoList the list of active workers information
-   * @param policyOptions the policy options for configuring the policy
-   */
-  public void initialize(List<BlockWorkerInfo> workerInfoList, T policyOptions);
-
+public interface FileWriteLocationPolicy {
   /**
    * Gets the worker's host name for the next block to write to.
    *
