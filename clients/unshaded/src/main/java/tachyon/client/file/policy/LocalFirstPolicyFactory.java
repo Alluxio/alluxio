@@ -29,4 +29,9 @@ public class LocalFirstPolicyFactory implements FileWriteLocationPolicyFactory<L
       FileWriteLocationPolicyOptions options) {
     return new LocalFirstPolicy();
   }
+
+  @Override
+  public Class<LocalFirstPolicy> getPolicyClass() {
+    return LocalFirstPolicy.class;
+  }
 }

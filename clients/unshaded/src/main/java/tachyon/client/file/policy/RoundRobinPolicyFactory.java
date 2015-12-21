@@ -30,4 +30,8 @@ public class RoundRobinPolicyFactory implements FileWriteLocationPolicyFactory<R
     return new RoundRobinPolicy(workerInfoList);
   }
 
+  @Override
+  public Class<RoundRobinPolicy> getPolicyClass() {
+    return RoundRobinPolicy.class;
+  }
 }

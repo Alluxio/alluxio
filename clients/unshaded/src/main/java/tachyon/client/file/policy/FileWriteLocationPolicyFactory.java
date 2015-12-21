@@ -33,4 +33,6 @@ public interface FileWriteLocationPolicyFactory<T extends FileWriteLocationPolic
    * @return a new instance of the policy
    */
   T create(List<BlockWorkerInfo> workerInfoList, FileWriteLocationPolicyOptions options);
+
+  Class<T> getPolicyClass();
 }

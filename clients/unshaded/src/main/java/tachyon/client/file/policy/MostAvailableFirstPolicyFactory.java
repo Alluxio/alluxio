@@ -31,4 +31,9 @@ public class MostAvailableFirstPolicyFactory
     return new MostAvailableFirstPolicy();
   }
 
+  @Override
+  public Class<MostAvailableFirstPolicy> getPolicyClass() {
+    return MostAvailableFirstPolicy.class;
+  }
+
 }
