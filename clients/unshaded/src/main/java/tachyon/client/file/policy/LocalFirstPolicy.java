@@ -15,28 +15,43 @@
 
 package tachyon.client.file.policy;
 
+import java.util.Collections;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
-
+import tachyon.client.ClientContext;
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * A default location policy that returns localhost.
+ * A policy that returns localhost first, if the local worker doesn't have enough availability, it
+ * randomly picks a worker from the active workers list.
  */
 public final class LocalFirstPolicy implements FileWriteLocationPolicy<LocalFirstPolicyOptions> {
-  private OutStreamOptions mOptions;
+  private String mLocalHostName = null;
 
-  /**
-   * Constructs the default location policy.
-   */
-  public LocalFirstPolicy(List<BlockWorkerInfo> workerInfoList, OutStreamOptions options) {
-    mOptions = Preconditions.checkNotNull(options);
+  @Override
+  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
+    // first try the local host
+    for (BlockWorkerInfo workerInfo : workerInfoList) {
+      if (workerInfo.getHost().equals(mLocalHostName)
+          && workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > blockSizeBytes) {
+        return mLocalHostName;
+      }
+    }
+
+    // otherwise randomly pick a worker that has enough availability
+    Collections.shuffle(workerInfoList);
+    for (BlockWorkerInfo workerInfo : workerInfoList) {
+      if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > blockSizeBytes) {
+        return workerInfo.getHost();
+      }
+    }
+    return null;
   }
 
   @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList) {
-    return mOptions.getHostname();
+  public void initialize(List<BlockWorkerInfo> workerInfoList,
+      LocalFirstPolicyOptions policyOptions) {
+    mLocalHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
   }
 }

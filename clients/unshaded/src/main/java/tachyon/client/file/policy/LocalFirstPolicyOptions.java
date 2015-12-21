@@ -15,6 +15,9 @@
 
 package tachyon.client.file.policy;
 
+/**
+ * The options to configure a {@link LocalFirstPolicyOptions}.
+ */
 public class LocalFirstPolicyOptions implements FileWriteLocationPolicyOptions {
 
 }
