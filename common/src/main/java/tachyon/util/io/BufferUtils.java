@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public final class BufferUtils {
       }
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
-        LOG.error("Failed to get cleaner for ByteBuffer");
+        LOG.warn("Failed to get cleaner for ByteBuffer: {}", buffer.getClass().getName());
         return;
       }
       if (sCleanerCleanMethod == null) {
@@ -75,7 +76,7 @@ public final class BufferUtils {
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
-      LOG.warn("Fail to unmap direct buffer due to " + e.getMessage(), e);
+      LOG.warn("Failed to unmap direct buffer due to {}", e.getMessage(), e);
     } finally {
       buffer = null;
     }
