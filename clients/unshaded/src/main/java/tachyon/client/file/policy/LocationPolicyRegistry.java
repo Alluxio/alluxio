@@ -52,11 +52,12 @@ import tachyon.client.block.BlockWorkerInfo;
  * <h4>Automatic Discovery</h4>
  * <p>
  * To use the {@linkplain ServiceLoader} based mechanism you need to have a file named
- * {@code tachyon.underfs.UnderFileSystemFactory} placed in the {@code META-INF\services} directory
- * of your project. This file should contain the full name of your factory types (one per line),
- * your factory types must have a public unparameterised constructor available (see
- * {@link ServiceLoader} for more detail on this). You can enable {@code DEBUG} level logging to see
- * factories as they are discovered if you wish to check that your implementation gets discovered.
+ * {@code tachyon.client.file.policy.FileWriteLocationPolicyFactory} placed in the
+ * {@code META-INF\services} directory of your project. This file should contain the full name of
+ * your factory types (one per line), your factory types must have a public unparameterised
+ * constructor available (see {@link ServiceLoader} for more detail on this). You can enable
+ * {@code DEBUG} level logging to see factories as they are discovered if you wish to check that
+ * your implementation gets discovered.
  * </p>
  * <p>
  * Note that if you are bundling Tachyon plus your code in a shaded JAR using Maven, make sure to
