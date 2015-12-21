@@ -1,0 +1,3 @@
+tachyon.client.file.policy.LocalFirstPolicyFactory
+tachyon.client.file.policy.MostAvailableFirstPolicy
+tachyon.client.file.policy.RoudnRobinPolicy
