@@ -51,8 +51,6 @@ public final class Constants {
   public static final String SCHEME_FT = "tachyon-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
-  public static final String HEADER_OSS = "oss://";
-
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
 
@@ -339,9 +337,6 @@ public final class Constants {
   public static final String FUSE_FS_ROOT = "tachyon.fuse.fs.root";
   /** FUSE file system name */
   public static final String FUSE_FS_NAME = "tachyon.fuse.fs.name";
-
-  public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
-  public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
