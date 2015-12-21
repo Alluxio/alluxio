@@ -23,8 +23,8 @@ import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * A policy that returns localhost first, if the local worker doesn't have enough availability, it
- * randomly picks a worker from the active workers list.
+ * A policy that returns local host first, and if the local worker doesn't have enough availability,
+ * it randomly picks a worker from the active workers list.
  */
 public final class LocalFirstPolicy implements FileWriteLocationPolicy<LocalFirstPolicyOptions> {
   private String mLocalHostName = null;

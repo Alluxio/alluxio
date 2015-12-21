@@ -17,11 +17,9 @@ package tachyon.client.file.policy;
 
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.client.file.options.OutStreamOptions;
 
 /**
  * A policy that returns the worker with the most available bytes. The policy returns null if no
@@ -29,17 +27,9 @@ import tachyon.client.file.options.OutStreamOptions;
  */
 public final class MostAvailableFirstPolicy
     implements FileWriteLocationPolicy<MostAvailableFirstPolicyOptions> {
-  private final OutStreamOptions mOptions;
-
-  /**
-   * Creates the policy.
-   */
-  public MostAvailableFirstPolicy(List<BlockWorkerInfo> workerInfoList, OutStreamOptions options) {
-    mOptions = Preconditions.checkNotNull(options);
-  }
 
   @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList) {
+  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
     List<BlockWorkerInfo> inputList = Lists.newArrayList(workerInfoList);
     long mostAvailableBytes = -1;
     String result = null;
@@ -49,10 +39,16 @@ public final class MostAvailableFirstPolicy
         result = workerInfo.getHost();
       }
     }
-    if (mostAvailableBytes < mOptions.getBlockSizeBytes()) {
+    if (mostAvailableBytes < blockSizeBytes) {
       // no worker has enough space
       return null;
     }
     return result;
+  }
+
+  @Override
+  public void initialize(List<BlockWorkerInfo> workerInfoList,
+      MostAvailableFirstPolicyOptions policyOptions) {
+    // nothing to do
   }
 }
