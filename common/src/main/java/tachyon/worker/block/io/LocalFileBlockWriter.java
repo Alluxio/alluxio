@@ -59,6 +59,11 @@ public final class LocalFileBlockWriter implements BlockWriter {
     return write(mLocalFileChannel.size(), inputBuf);
   }
 
+  @Override
+  public void close() throws IOException {
+    mCloser.close();
+  }
+
   /**
    * Writes data to the block from an input {@link ByteBuffer}.
    *
@@ -75,10 +80,5 @@ public final class LocalFileBlockWriter implements BlockWriter {
     int bytesWritten = outputBuf.limit();
     BufferUtils.cleanDirectBuffer(outputBuf);
     return bytesWritten;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mCloser.close();
   }
 }
