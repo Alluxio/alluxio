@@ -23,12 +23,13 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.ExistsOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
-import tachyon.client.file.options.OpenOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
@@ -290,7 +291,7 @@ interface FileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  FileInStream openFile(TachyonURI path, OpenOptions options)
+  FileInStream openFile(TachyonURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
