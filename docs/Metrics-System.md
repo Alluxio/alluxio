@@ -44,9 +44,17 @@ metrics in JSON format.
 
 # Supported Metrics
 
-The following shows the details of the available metrics.
+Metrics are classified as:
 
-### Master
+* General: overall measures of the cluster (e.g. CapacityTotal).
+* Logical Operations: number of operations performed (e.g. FilesCreated).
+* RPC Invocations: number of RPC invocations per operation (e.g. CreateFileOps).
+
+The following shows the details of the available metrics. 
+
+## Master
+
+### General
 
 * CapacityTotal: Total capacity of the file system in bytes.
 * CapacityUsed: Used capacity of the file system in bytes.
@@ -56,6 +64,9 @@ The following shows the details of the available metrics.
 * UnderFsCapacityUsed: Used capacity of the under file system in bytes.
 * UnderFsCapacityFree: Free capacity of the under file system in bytes.
 * Workers: Number of the workers.
+
+### Logical Operations
+
 * DirectoriesCreated: Total number of directories created.
 * FileBlockInfosGot: Total number of the file block infos retrieved.
 * FileInfosGot: Total number of the file infos retrieved.
@@ -69,6 +80,9 @@ The following shows the details of the available metrics.
 * PathsMounted: Total number of paths mounted.
 * PathsRenamed: Total number of files and directories renamed.
 * PathsUnmounted: Total number of paths unmounted.
+
+### RPC Invocations
+
 * CompleteFileOps: Total number of the CompleteFile operations.
 * CreateDirectoryOps: Total number of the CreateDirectory operations.
 * CreateFileOps: Total number of the CreateFile operations.
@@ -82,11 +96,16 @@ The following shows the details of the available metrics.
 * SetStateOps: Total number of the SetState operations.
 * UnmountOps: Total number of Unmount operations.
 
-### Worker
+## Worker
+
+### General
 
 * CapacityTotal: Total capacity of the worker in bytes.
 * CapacityUsed: Used capacity of the worker in bytes.
 * CapacityFree: Free capacity of the worker in bytes.
+
+### Logical Operations
+
 * BlocksAccessed: Total number of the blocks accessed.
 * BlocksCached: Total number of blocks cached.
 * BlocksCanceled: Total number of blocks canceled.
