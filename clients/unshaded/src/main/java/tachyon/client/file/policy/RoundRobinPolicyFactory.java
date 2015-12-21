@@ -15,9 +15,19 @@
 
 package tachyon.client.file.policy;
 
+import java.util.List;
+
+import tachyon.client.block.BlockWorkerInfo;
+
 /**
- * Options that configure {@link MostAvailableFirstPolicy}.
+ * Factory that creates a {@link RoundRobinPolicyFactory}.
  */
-public class MostAvailableFirstPolicyOptions implements FileWriteLocationPolicyOptions {
+public class RoundRobinPolicyFactory implements FileWriteLocationPolicyFactory<RoundRobinPolicy> {
+
+  @Override
+  public RoundRobinPolicy create(List<BlockWorkerInfo> workerInfoList,
+      FileWriteLocationPolicyOptions options) {
+    return new RoundRobinPolicy(workerInfoList);
+  }
 
 }

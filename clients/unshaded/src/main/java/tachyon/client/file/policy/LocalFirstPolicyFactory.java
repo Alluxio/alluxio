@@ -17,31 +17,16 @@ package tachyon.client.file.policy;
 
 import java.util.List;
 
-import com.google.common.collect.Lists;
-
 import tachyon.client.block.BlockWorkerInfo;
 
 /**
- * A policy that returns the worker with the most available bytes. The policy returns null if no
- * worker is qualified.
+ * Factory that constructs a {@link LocalFirstPolicy}.
  */
-public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
+public class LocalFirstPolicyFactory implements FileWriteLocationPolicyFactory<LocalFirstPolicy> {
 
   @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
-    List<BlockWorkerInfo> inputList = Lists.newArrayList(workerInfoList);
-    long mostAvailableBytes = -1;
-    String result = null;
-    for (BlockWorkerInfo workerInfo : inputList) {
-      if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > mostAvailableBytes) {
-        mostAvailableBytes = workerInfo.getCapacityBytes() - workerInfo.getUsedBytes();
-        result = workerInfo.getHost();
-      }
-    }
-    if (mostAvailableBytes < blockSizeBytes) {
-      // no worker has enough space
-      return null;
-    }
-    return result;
+  public LocalFirstPolicy create(List<BlockWorkerInfo> workerInfoList,
+      FileWriteLocationPolicyOptions options) {
+    return new LocalFirstPolicy();
   }
 }

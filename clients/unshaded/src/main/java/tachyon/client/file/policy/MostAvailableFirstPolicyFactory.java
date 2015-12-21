@@ -15,9 +15,20 @@
 
 package tachyon.client.file.policy;
 
+import java.util.List;
+
+import tachyon.client.block.BlockWorkerInfo;
+
 /**
- * The options to configure a {@link LocalFirstPolicy}.
+ * Factory that constructs {@link MostAvailableFirstPolicy}.
  */
-public class LocalFirstPolicyOptions implements FileWriteLocationPolicyOptions {
+public class MostAvailableFirstPolicyFactory
+    implements FileWriteLocationPolicyFactory<MostAvailableFirstPolicy> {
+
+  @Override
+  public MostAvailableFirstPolicy create(List<BlockWorkerInfo> workerInfoList,
+      FileWriteLocationPolicyOptions options) {
+    return new MostAvailableFirstPolicy();
+  }
 
 }
