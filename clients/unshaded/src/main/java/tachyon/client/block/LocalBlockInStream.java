@@ -18,6 +18,7 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import com.google.common.io.Closer;
@@ -109,7 +110,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
 
   @Override
   public int directRead(byte[] b, int off, int len) throws IOException {
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
+    MappedByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
     buf.get(b, off, len);
     BufferUtils.cleanDirectBuffer(buf);
     return len;
