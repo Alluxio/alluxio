@@ -15,6 +15,9 @@
 
 package tachyon.client.file.policy;
 
+/**
+ * Options that configure {@link RoundRobinPolicyOptions}.
+ */
 public class RoundRobinPolicyOptions implements FileWriteLocationPolicyOptions {
 
 }

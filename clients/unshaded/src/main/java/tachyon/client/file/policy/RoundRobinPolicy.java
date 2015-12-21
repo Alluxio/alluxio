@@ -17,39 +17,27 @@ package tachyon.client.file.policy;
 
 import java.util.List;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.client.file.options.OutStreamOptions;
 
 /**
- * A policy that chooses the worker for the next block in a RR manner and skips workers that do not
- * have enough space. The policy returns null if no worker can be found.
+ * A policy that chooses the worker for the next block in a round-robin manner and skips workers
+ * that do not have enough space. The policy returns null if no worker can be found.
  */
 public final class RoundRobinPolicy implements FileWriteLocationPolicy<RoundRobinPolicyOptions> {
-  private final OutStreamOptions mOptions;
-  private final List<BlockWorkerInfo> mWorkerInfoList;
-  private int mIndex = 0;
-
-  /**
-   * Creates the policy.
-   */
-  public RoundRobinPolicy(List<BlockWorkerInfo> workerInfoList, OutStreamOptions options) {
-    mOptions = Preconditions.checkNotNull(options);
-    mWorkerInfoList = Preconditions.checkNotNull(workerInfoList);
-  }
+  private List<BlockWorkerInfo> mWorkerInfoList;
+  private int mIndex;
 
   @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList) {
+  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i ++) {
       String candidate = mWorkerInfoList.get(mIndex).getHost();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
-      if (workerInfo == null || workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() < mOptions
-          .getBlockSizeBytes()) {
+      mIndex = (mIndex + 1) % mWorkerInfoList.size();
+      if (workerInfo == null
+          || workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() < blockSizeBytes) {
         continue;
       }
-      mIndex = (mIndex + 1) % mWorkerInfoList.size();
       return candidate;
     }
     return null;
@@ -68,5 +56,12 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy<RoundRobi
       }
     }
     return null;
+  }
+
+  @Override
+  public void initialize(List<BlockWorkerInfo> workerInfoList,
+      RoundRobinPolicyOptions policyOptions) {
+    mWorkerInfoList = workerInfoList;
+    mIndex = 0;
   }
 }
