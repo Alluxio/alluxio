@@ -87,6 +87,11 @@ The common configuration contains constants shared by different components.
   <td>Flag used only during tests to allow special behavior.</td>
 </tr>
 <tr>
+  <td>tachyon.thrift.stop.timeout.seconds</td>
+  <td>60</td>
+  <td>Time to wait for thrift server to stop gracefully, in seconds.</td>
+</tr>
+<tr>
   <td>tachyon.underfs.address</td>
   <td>${tachyon.home}/underFSStorage</td>
   <td>Tachyon folder in the underlayer file system.</td>
@@ -638,6 +643,11 @@ The user configuration specifies values regarding file system access.
   <td>Flag to enable lineage feature.</td>
 </tr>
 <tr>
+  <td>tachyon.user.lineage.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for lineage master client to talk to lineage master.</td>
+</tr>
+<tr>
   <td>tachyon.user.network.netty.timeout.ms</td>
   <td>3000</td>
   <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to
@@ -652,6 +662,11 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.quota.unit.bytes</td>
   <td>8 MB</td>
   <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
+</tr>
+<tr>
+  <td>tachyon.user.raw.table.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for raw table master client to talk to raw table master.</td>
 </tr>
 </table>
 
