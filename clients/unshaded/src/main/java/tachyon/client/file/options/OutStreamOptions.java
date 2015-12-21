@@ -21,6 +21,8 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.FileWriteLocationPolicyOptions;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
@@ -31,6 +33,8 @@ public final class OutStreamOptions {
     private TachyonStorageType mTachyonStorageType;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
+    private FileWriteLocationPolicyOptions mLocationPolicyOptions;
+    private Class<? extends FileWriteLocationPolicy> mLocationPolicyClass;
 
     /**
      * Creates a new builder for {@link OutStreamOptions}.
@@ -52,6 +56,8 @@ public final class OutStreamOptions {
       mTachyonStorageType = defaultWriteType.getTachyonStorageType();
       mUnderStorageType = defaultWriteType.getUnderStorageType();
       mTTL = Constants.NO_TTL;
+      mLocationPolicyClass = null;
+      mLocationPolicyOptions = null;
     }
 
     /**
@@ -117,6 +123,26 @@ public final class OutStreamOptions {
     }
 
     /**
+     * @param locationPolicyClass the {@link FileWriteLocationPolicy} to use for this operation.
+     * @return the builder
+     */
+    public Builder setLocationPolicyClass(
+        Class<? extends FileWriteLocationPolicy> locationPolicyClass) {
+      mLocationPolicyClass = locationPolicyClass;
+      return this;
+    }
+
+    /**
+     * @param locationPolicyOptions the {@link FileWriteLocationPolicyOptions} to use for this
+     *        operation. This will configure the {@link FileWriteLocationPolicy}
+     * @return the builder
+     */
+    public Builder setLocationPolicyOptions(FileWriteLocationPolicyOptions locationPolicyOptions) {
+      mLocationPolicyOptions = locationPolicyOptions;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link OutStreamOptions}.
      *
      * @return a {@link OutStreamOptions} instance
@@ -132,6 +158,8 @@ public final class OutStreamOptions {
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final long mTTL;
+  private FileWriteLocationPolicyOptions mLocationPolicyOptions;
+  private Class<? extends FileWriteLocationPolicy> mLocationPolicyClass;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -146,6 +174,8 @@ public final class OutStreamOptions {
     mTachyonStorageType = builder.mTachyonStorageType;
     mTTL = builder.mTTL;
     mUnderStorageType = builder.mUnderStorageType;
+    mLocationPolicyClass = builder.mLocationPolicyClass;
+    mLocationPolicyOptions = builder.mLocationPolicyOptions;
   }
 
   /**
@@ -185,6 +215,20 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the class of the location policy
+   */
+  public Class<? extends FileWriteLocationPolicy> getLocationPolicyClass() {
+    return mLocationPolicyClass;
+  }
+
+  /**
+   * @return the options for configuring the location policy
+   */
+  public FileWriteLocationPolicyOptions getLocationPolicyOptions() {
+    return mLocationPolicyOptions;
+  }
+
+  /**
    * @return the name : value pairs for all the fields
    */
   @Override
@@ -195,6 +239,8 @@ public final class OutStreamOptions {
     sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTTL);
+    sb.append(", LocationPolicyClass").append(mLocationPolicyClass.toString());
+    sb.append(", LocationPolicyOptions").append(mLocationPolicyOptions.toString());
     sb.append(")");
     return sb.toString();
   }
