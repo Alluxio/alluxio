@@ -301,8 +301,6 @@ public final class Constants {
       "tachyon.user.block.remote.read.buffer.size.bytes";
   public static final String USER_FILE_WRITE_TYPE_DEFAULT = "tachyon.user.file.writetype.default";
   public static final String USER_FILE_READ_TYPE_DEFAULT = "tachyon.user.file.readtype.default";
-  public static final String USER_FILE_WRITE_LOCATION_POLICY =
-      "tachyon.user.file.write.location.policy.class";
   public static final String USER_BLOCK_REMOTE_READER =
       "tachyon.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
