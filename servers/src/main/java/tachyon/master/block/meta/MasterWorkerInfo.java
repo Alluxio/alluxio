@@ -67,6 +67,12 @@ public final class MasterWorkerInfo {
   /** IDs of blocks the worker should remove */
   private Set<Long> mToRemoveBlocks;
 
+  /**
+   * Creates a new isntance of {@link MasterWorkerInfo}.
+   *
+   * @param id the worker id to use
+   * @param address the worker address to use
+   */
   public MasterWorkerInfo(long id, NetAddress address) {
     mWorkerAddress = Preconditions.checkNotNull(address);
     mId = id;
@@ -147,18 +153,18 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Adds a block to the worker
+   * Adds a block to the worker.
    *
-   * @param blockId the ID of the block to be added
+   * @param blockId the id of the block to be added
    */
   public synchronized void addBlock(long blockId) {
     mBlocks.add(blockId);
   }
 
   /**
-   * Removes a block from the worker
+   * Removes a block from the worker.
    *
-   * @param blockId the ID of the block to be removed
+   * @param blockId the id of the block to be removed
    */
   public synchronized void removeBlock(long blockId) {
     mBlocks.remove(blockId);
@@ -166,7 +172,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return Generated {@link WorkerInfo} for this worker
+   * @return generated {@link WorkerInfo} for this worker
    */
   public synchronized WorkerInfo generateClientWorkerInfo() {
     WorkerInfo ret = new WorkerInfo();
@@ -210,7 +216,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the ID of the worker
+   * @return the id of the worker
    */
   public synchronized long getId() {
     return mId;
@@ -295,7 +301,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Updates the last updated time of the worker in ms
+   * Updates the last updated time of the worker in ms.
    */
   public synchronized void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
@@ -318,7 +324,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Set the used space of the worker in bytes.
+   * Sets the used space of the worker in bytes.
    *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
@@ -331,7 +337,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Set the used space of the worker in bytes.
+   * Sets the used space of the worker in bytes.
    *
    * @param tierAlias alias of storage tier
    * @param usedBytesOnTier used bytes on certain storage tier
