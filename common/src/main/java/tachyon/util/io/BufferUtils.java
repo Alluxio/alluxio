@@ -39,6 +39,12 @@ public final class BufferUtils {
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 
+  /**
+   * Converts a byte to an integer.
+   *
+   * @param b the byte to convert
+   * @return the integer representation of the byte
+   */
   public static int byteToInt(byte b) {
     return b & 0xFF;
   }
