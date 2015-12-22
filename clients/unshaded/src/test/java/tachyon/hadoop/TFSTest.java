@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.MockClassLoader;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -39,8 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
@@ -49,6 +50,7 @@ import tachyon.conf.TachyonConf;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
+@PowerMockIgnore("javax.security.*")
 public class TFSTest {
   private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
 
