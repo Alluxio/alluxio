@@ -36,7 +36,6 @@ import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
-import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.LocationPolicyRegistry;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -104,8 +103,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
 
-    // use local first as default policy
-    Class<? extends FileWriteLocationPolicy> locationPolicyClass = LocalFirstPolicy.class;
+    // get default policy
+    Class<? extends FileWriteLocationPolicy> locationPolicyClass = ClientContext.getConf()
+        .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY);
     if (options.getLocationPolicyClass() != null) {
       locationPolicyClass = options.getLocationPolicyClass();
     }

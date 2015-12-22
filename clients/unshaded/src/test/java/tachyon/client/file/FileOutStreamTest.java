@@ -47,6 +47,9 @@ import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.LocalFirstPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
 import tachyon.client.worker.WorkerClient;
@@ -315,6 +318,28 @@ public class FileOutStreamTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     mTestStream.write(null, 0, 0);
+  }
+
+  /**
+   * Tests the location policy created with different options.
+   */
+  @Test
+  public void locationPolicyTest() throws IOException {
+    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
+        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    mTestStream = createTestStream(FILE_ID, options);
+
+    // by default local first policy used
+    FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
+    Assert.assertTrue(policy instanceof LocalFirstPolicy);
+
+    // configure a different policy
+    options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
+        .setUnderStorageType(UnderStorageType.NO_PERSIST)
+        .setLocationPolicyClass(RoundRobinPolicy.class).build();
+    mTestStream = createTestStream(FILE_ID, options);
+    policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
+    Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
 
   private void verifyIncreasingBytesWritten(int len) {
