@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # prepare Tachyon dir structure for a YARN container to launch master or worker
+# the name of this tar file is referenced in code
 tar zxf tachyon.tar.gz
 
 CONTAINER_TYPE=$1
