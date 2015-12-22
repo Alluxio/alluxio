@@ -561,7 +561,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.block.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for block master client to talk to block master.</td>
+  <td>The number of threads used by a block master client to talk to the block master.</td>
 </tr>
 <tr>
   <td>tachyon.user.block.worker.client.threads</td>
@@ -602,7 +602,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for file system master client to talk to block master.</td>
+  <td>The number of threads used by a file master client to talk to the file master.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.waitcompleted.poll.ms</td>
@@ -638,6 +638,11 @@ The user configuration specifies values regarding file system access.
   <td>Flag to enable lineage feature.</td>
 </tr>
 <tr>
+  <td>tachyon.user.lineage.master.client.threads</td>
+  <td>10</td>
+  <td>The number of threads used by a lineage master client to talk to the lineage master.</td>
+</tr>
+<tr>
   <td>tachyon.user.network.netty.timeout.ms</td>
   <td>3000</td>
   <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to
@@ -652,6 +657,11 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.quota.unit.bytes</td>
   <td>8 MB</td>
   <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
+</tr>
+<tr>
+  <td>tachyon.user.raw.table.master.client.threads</td>
+  <td>10</td>
+  <td>The number of threads used by a raw table master client to talk to the raw table master.</td>
 </tr>
 </table>
 
