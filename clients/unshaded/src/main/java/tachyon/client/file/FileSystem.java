@@ -26,6 +26,7 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.ExistsOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
+import tachyon.client.file.options.GetStatusOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
@@ -43,7 +44,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
  * should not implement this class but extend the default implementation provided by {@link
- * BasicFileSystem} instead. This ensures any new methods added to the interface will be provided
+ * BaseFileSystem} instead. This ensures any new methods added to the interface will be provided
  * by the default implementation.
  */
 @PublicApi
@@ -189,7 +190,7 @@ interface FileSystem {
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
    */
-  PathStatus getStatus(TachyonURI path, GetInfoOptions options)
+  PathStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException;
 
   /**
