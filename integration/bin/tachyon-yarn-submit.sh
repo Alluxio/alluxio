@@ -6,7 +6,7 @@
 function printUsage {
   echo "Usage: tachyon-yarn-submit.sh <numWorkers> <pathHdfs>"
   echo -e "  numWorkers        \tNumber of Tachyon workers to launch"
-  echo -e "  pathHdfs          \tpath on HDFS to put tachyon jar and distribute it to YARN"
+  echo -e "  pathHdfs          \tPath on HDFS to put tachyon jar and distribute it to YARN"
   echo
   echo "Example: ./tachyon-yarn-submit.sh 10 hdfs://localhost:9000/tmp/"
 }
