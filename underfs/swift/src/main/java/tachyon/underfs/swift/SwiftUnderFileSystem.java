@@ -48,7 +48,7 @@ import tachyon.underfs.swift.http.SwiftDirectClient;
 /**
  * Under file system implementation for OpenStack Swift based on
  * the JOSS library.
- * Swift {@link UnderFileSystem} implementation
+ * Swift {@link UnderFileSystem} implementation.
  */
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -112,7 +112,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    LOG.debug("Create method: " + path);
+    LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
     SwiftOutputStream out = SwiftDirectClient.PUT(mAccess, newPath);
     return out;
@@ -122,7 +122,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path,
       int blockSizeByte) throws IOException {
     LOG.warn("Create with block size is not supported"
-        + "with SwiftDirectUnderFileSystem. Block size will be " + "ignored.");
+        + "with SwiftDirectUnderFileSystem. Block size will be ignored.");
     return create(path);
   }
 
@@ -135,16 +135,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#delete(java.lang.String, boolean)
-   *
-   * recursive will delete all objects with given prefix
-   * parent will not be deleted
-   *
-   * Method return 'true' always.
+   * @see tachyon.underfs.UnderFileSystem#delete(java.lang.String, boolean).
+   * recursive will delete all objects with given prefix.
+   * parent will not be deleted.
+   * Method always returns {@code true}.
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("Delete method: " + path + ",recursive: " + recursive);
+    LOG.debug("Delete method: {}, recursive {}", path, recursive);
     String strippedPath = stripPrefixIfPresent(path);
     Container c = mAccount.getContainer(mContainerName);
     if (recursive) {
@@ -176,7 +174,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Check if the object exists
+   * Checks if the object exists.
    * @param path the key to get the object details of
    * @return boolean indicating if the object exists
    */
@@ -250,8 +248,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /* @inheritDoc
    * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
    *
-   * There is no notion of directories in Swift
-   * The content of containers are objects
+   * There is no notion of directories in Swift.
+   * The content of containers are objects.
    * Object name may contain nested structure like a/b/c/d.data
    */
   @Override
@@ -308,7 +306,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names
-   * and not contain the folder suffix
+   * and not contain the folder suffix.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well

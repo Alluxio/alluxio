@@ -59,7 +59,7 @@ if [[ $(uname -s) == Darwin ]]; then
   export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
 else
   # Assuming Linux
-  if [[ -z "${JAVA_HOME}" ]]; theni
+  if [[ -z "${JAVA_HOME}" ]]; then
     if [ -d /usr/lib/jvm/java-7-oracle ]; then
       export JAVA_HOME=/usr/lib/jvm/java-7-oracle
     else
