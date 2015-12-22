@@ -326,8 +326,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
-    MasterContext.getMasterSource().incGetFileStatusOps();
-    // TODO(gene): metrics
+    MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       return getFileInfoInternal(inode);
@@ -364,6 +363,7 @@ public final class FileSystemMaster extends MasterBase {
     if (!path.equals(resolvedPath)) {
       fileInfo.setUfsPath(resolvedPath.toString());
     }
+    MasterContext.getMasterSource().incFileInfosGot(1);
     return fileInfo;
   }
 
@@ -377,6 +377,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
+    MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -388,6 +389,7 @@ public final class FileSystemMaster extends MasterBase {
       } else {
         ret.add(getFileInfoInternal(inode));
       }
+      MasterContext.getMasterSource().incFileInfosGot(ret.size());
       return ret;
     }
   }
@@ -413,6 +415,7 @@ public final class FileSystemMaster extends MasterBase {
   public void completeFile(long fileId, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException {
+    MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -476,6 +479,7 @@ public final class FileSystemMaster extends MasterBase {
         currLength -= blockSize;
       }
     }
+    MasterContext.getMasterSource().incFilesCompleted(1);
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry)
@@ -500,7 +504,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
-    MasterContext.getMasterSource().incCreateFileOps();
+    MasterContext.getMasterSource().incCreateFileOps(1);
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
@@ -530,7 +534,8 @@ public final class FileSystemMaster extends MasterBase {
 
     mTTLBuckets.insert(inode);
 
-    MasterContext.getMasterSource().incFilesCreated(created.size());
+    MasterContext.getMasterSource().incFilesCreated(1);
+    MasterContext.getMasterSource().incDirectoriesCreated(created.size() - 1);
     return createResult;
   }
 
@@ -575,6 +580,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
+    MasterContext.getMasterSource().incGetNewBlockOps(1);
     Inode inode;
     synchronized (mInodeTree) {
       inode = mInodeTree.getInodeById(fileId);
@@ -582,7 +588,7 @@ public final class FileSystemMaster extends MasterBase {
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
     }
-
+    MasterContext.getMasterSource().incNewBlocksGot(1);
     return ((InodeFile) inode).getNewBlockId();
   }
 
@@ -591,7 +597,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @return the number of files and directories
    */
-  public int getNumberOfFiles() {
+  public int getNumberOfPaths() {
     synchronized (mInodeTree) {
       return mInodeTree.getSize();
     }
@@ -620,7 +626,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean deleteFile(long fileId, boolean recursive)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException {
-    MasterContext.getMasterSource().incDeleteFileOps();
+    MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
@@ -636,7 +642,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private void deleteFileFromEntry(DeleteFileEntry entry) {
-    MasterContext.getMasterSource().incDeleteFileOps();
+    MasterContext.getMasterSource().incDeletePathOps(1);
     try {
       deleteFileInternal(entry.getId(), entry.getRecursive(), true, entry.getOpTimeMs());
     } catch (Exception e) {
@@ -729,7 +735,7 @@ public final class FileSystemMaster extends MasterBase {
 
       mInodeTree.deleteInode(delInode, opTimeMs);
     }
-    MasterContext.getMasterSource().incFilesDeleted(delInodes.size());
+    MasterContext.getMasterSource().incPathsDeleted(delInodes.size());
     return true;
   }
 
@@ -744,6 +750,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
+    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
@@ -758,7 +765,9 @@ public final class FileSystemMaster extends MasterBase {
         throw new BlockInfoException(
             "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
       }
-      return generateFileBlockInfo(file, blockInfoList.get(0));
+      FileBlockInfo blockInfo = generateFileBlockInfo(file, blockInfoList.get(0));
+      MasterContext.getMasterSource().incFileBlockInfosGot(1);
+      return blockInfo;
     }
   }
 
@@ -771,6 +780,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public List<FileBlockInfo> getFileBlockInfoList(long fileId)
       throws FileDoesNotExistException, InvalidPathException {
+    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
@@ -784,6 +794,7 @@ public final class FileSystemMaster extends MasterBase {
       for (BlockInfo blockInfo : blockInfoList) {
         ret.add(generateFileBlockInfo(file, blockInfo));
       }
+      MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
       return ret;
     }
   }
@@ -948,7 +959,7 @@ public final class FileSystemMaster extends MasterBase {
   public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException {
     LOG.debug("mkdir {} ", path);
-    // TODO(gene): metrics
+    MasterContext.getMasterSource().incCreateDirectoriesOps(1);
     synchronized (mInodeTree) {
       try {
         CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
@@ -966,6 +977,7 @@ public final class FileSystemMaster extends MasterBase {
         journalCreatePathResult(createResult);
         flushJournal();
         LOG.debug("flushed journal for mkdir {}", path);
+        MasterContext.getMasterSource().incDirectoriesCreated(1);
         return createResult;
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should
@@ -1015,7 +1027,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean rename(long fileId, TachyonURI dstPath)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    MasterContext.getMasterSource().incRenameOps();
+    MasterContext.getMasterSource().incRenamePathOps(1);
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
       TachyonURI srcPath = mInodeTree.getPath(srcInode);
@@ -1131,14 +1143,14 @@ public final class FileSystemMaster extends MasterBase {
     srcInode.setName(dstPath.getName());
     ((InodeDirectory) dstParentInode).addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
-    MasterContext.getMasterSource().incFilesRenamed();
+    MasterContext.getMasterSource().incPathsRenamed(1);
     propagatePersisted(srcInode, replayed);
 
     return true;
   }
 
   private void renameFromEntry(RenameEntry entry) {
-    MasterContext.getMasterSource().incRenameOps();
+    MasterContext.getMasterSource().incRenamePathOps(1);
     try {
       renameInternal(entry.getId(), new TachyonURI(entry.getDstPath()), true,
           entry.getOpTimeMs());
@@ -1192,7 +1204,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    */
   public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
-    // TODO(gene): metrics
+    MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -1217,6 +1229,7 @@ public final class FileSystemMaster extends MasterBase {
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
         }
       }
+      MasterContext.getMasterSource().incFilesFreed(freeInodes.size());
     }
     return true;
   }
@@ -1378,6 +1391,7 @@ public final class FileSystemMaster extends MasterBase {
 
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
+    MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
       if (mountInternal(tachyonPath, ufsPath)) {
         boolean loadMetadataSuceeded = false;
@@ -1396,6 +1410,7 @@ public final class FileSystemMaster extends MasterBase {
                 .setUfsPath(ufsPath.toString()).build();
         writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
         flushJournal();
+        MasterContext.getMasterSource().incPathsMounted(1);
         return true;
       }
     }
@@ -1434,6 +1449,7 @@ public final class FileSystemMaster extends MasterBase {
 
   public boolean unmount(TachyonURI tachyonPath)
       throws FileDoesNotExistException, InvalidPathException, IOException {
+    MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
@@ -1453,6 +1469,7 @@ public final class FileSystemMaster extends MasterBase {
             .build();
         writeJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
         flushJournal();
+        MasterContext.getMasterSource().incPathsUnmounted(1);
         return true;
       }
     }
@@ -1493,15 +1510,13 @@ public final class FileSystemMaster extends MasterBase {
    * @param options state options to be set, see {@link SetStateOptions}
    * @throws FileDoesNotExistException if the file doesn't exist
    */
-  public void setState(long fileId, SetStateOptions options)
-      throws FileDoesNotExistException {
-    // TODO(gene) Metrics
+  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+    MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      SetStateEntry.Builder setState = SetStateEntry.newBuilder()
-          .setId(fileId)
-          .setOpTimeMs(opTimeMs);
+      SetStateEntry.Builder setState =
+          SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
@@ -1715,7 +1730,7 @@ public final class FileSystemMaster extends MasterBase {
         file.setPersistenceState(PersistenceState.PERSISTED);
         propagatePersisted(file, false);
         file.setLastModificationTimeMs(opTimeMs);
-        MasterContext.getMasterSource().incFilesCheckpointed();
+        MasterContext.getMasterSource().incFilesPersisted(1);
       }
     }
   }

@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.master.block.BlockId;
 
+/**
+ * Utility methods for working with an id in Tachyon.
+ */
 public final class IdUtils {
   private IdUtils() {} // prevent instantiation
 
@@ -31,6 +34,9 @@ public final class IdUtils {
   public static final long INVALID_WORKER_ID = -1;
 
   /**
+   * Creates an id for a file based on the given id of the container.
+   *
+   * @param containerId the id of the container
    * @return a file id based on the given container id
    */
   public static long createFileId(long containerId) {
@@ -45,6 +51,9 @@ public final class IdUtils {
     return id;
   }
 
+  /**
+   * @return the created RPC id
+   */
   public static String createRpcId() {
     return UUID.randomUUID().toString();
   }
