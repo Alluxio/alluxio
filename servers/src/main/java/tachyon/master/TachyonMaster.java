@@ -401,7 +401,7 @@ public class TachyonMaster {
    *
    * @param journalDirectory The journal directory to check
    * @return true if the journal directory was formatted previously, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     TachyonConf conf = MasterContext.getConf();
