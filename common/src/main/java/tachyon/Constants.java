@@ -120,7 +120,6 @@ public final class Constants {
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
-  public static final String THRIFT_STOP_TIMEOUT_SECONDS = "tachyon.thrift.stop.timeout.seconds";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -362,6 +361,12 @@ public final class Constants {
   public static final int BYTES_WRITTEN_LOCAL_INDEX = 8;
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
+
+  /**
+   * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
+   * 0 instead of this value so that they can run faster.
+   */
+  public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
 
   // ttl related
   public static final long NO_TTL = -1;
