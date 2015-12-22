@@ -31,7 +31,7 @@ import tachyon.security.group.provider.ShellBasedUnixGroupsMapping;
 import tachyon.util.CommonUtils;
 
 /**
- * Unit test for {@link tachyon.security.group.provider.ShellBasedUnixGroupsMapping}
+ * Unit test for {@link tachyon.security.group.provider.ShellBasedUnixGroupsMapping}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CommonUtils.class)

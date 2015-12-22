@@ -21,7 +21,7 @@ import org.junit.Test;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
 
 /**
- * Unit test for {@link tachyon.security.group.provider.IdentityUserGroupsMapping}
+ * Unit test for {@link tachyon.security.group.provider.IdentityUserGroupsMapping}.
  */
 public final class IdentityUserGroupsMappingTest {
 

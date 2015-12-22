@@ -18,13 +18,53 @@ package tachyon.security.group;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 
 /**
- * An interface for the implementation of a user-to-groups mapping service used by
- * {@link UserToGroupsMappingService}.
+ * {@link GroupMappingService} allows for server to get the various group memberships of a given
+ * user via the {@link #getGroups(String)} call, thus ensuring a consistent user-to-groups mapping
+ * and protects against mapping inconsistencies between servers and clients in a Tachyon cluster.
  */
-public interface GroupMappingService {
+public abstract class GroupMappingService {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /**
+   * Gets the groups being used to map user-to-groups.
+   *
+   * @return the groups being used to map user-to-groups
+   */
+  public static GroupMappingService getUserToGroupsMappingService() {
+    return getUserToGroupsMappingService(new TachyonConf());
+  }
+
+  /**
+   * Gets the groups being used to map user-to-groups.
+   *
+   * @param conf Tachyon configuration
+   * @return the groups being used to map user-to-groups
+   */
+  public static GroupMappingService getUserToGroupsMappingService(TachyonConf conf) {
+    GroupMappingService mGroupMappingService;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Creating new Groups object");
+    }
+    try {
+      mGroupMappingService =
+          CommonUtils.createNewClassInstance(
+              conf.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
+      mGroupMappingService.setConf(conf);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return mGroupMappingService;
+  }
+
   /**
    * Gets all various group memberships of a given user. Returns EMPTY list in case of non-existing
    * user.
@@ -33,7 +73,7 @@ public interface GroupMappingService {
    * @return group memberships of user
    * @throws IOException if can't get user's groups
    */
-  public List<String> getGroups(String user) throws IOException;
+  public abstract List<String> getGroups(String user) throws IOException;
 
   /**
    * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping
@@ -42,5 +82,5 @@ public interface GroupMappingService {
    * @param conf The tachyon configuration set to GroupMappingService
    * @throws IOException if failed config GroupMappingService
    */
-  public void setConf(TachyonConf conf) throws IOException;
+  public abstract void setConf(TachyonConf conf) throws IOException;
 }
