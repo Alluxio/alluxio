@@ -48,13 +48,13 @@ Possible values of `<swift-use-public>` are `true`, `false`.
 Possible values of `<swift-auth-model>` are `keystone`,
 `tempauth`, `swiftauth`
 
-On the successfull authentication, Keystone will return two access URLs: public and private. If Tachyon is used inside company network and Swift located on the same network it's adviced to set value of `<swift-auth-model>`  to `false`.
+On the successfull authentication, Keystone will return two access URLs: public and private. If Tachyon is used inside company network and Swift is located on the same network it is adviced to set value of `<swift-auth-model>`  to `false`.
 
 
 ## Accessing IBM SoftLayer object store
 
 Using the Swift module also makes the IBM SoftLayer object store an option as an under storage system for Tachyon. 
-SoftLayer requeres `<swift-auth-model>` to be configured `swiftauth`
+SoftLayer requires `<swift-auth-model>` to be configured as `swiftauth`
  
 # Running Tachyon Locally with Swift
 

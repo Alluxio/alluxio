@@ -29,8 +29,8 @@ import tachyon.Constants;
 
 /**
  * Swift output stream implements OutputStream.
- * This class is used to write data into Swift
- * Class is not thread-safe
+ * This class is used to write data into Swift.
+ * Class is not thread-safe.
  */
 public class SwiftOutputStream extends OutputStream {
 
