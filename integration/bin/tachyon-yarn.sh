@@ -1,14 +1,14 @@
 #!/bin/bash
 #
 # Usage:
-#  tachyon-yarn-submit.sh <numWorkers> <pathHdfs>
+#  tachyon-yarn.sh <numWorkers> <pathHdfs>
 
 function printUsage {
-  echo "Usage: tachyon-yarn-submit.sh <numWorkers> <pathHdfs>"
+  echo "Usage: tachyon-yarn.sh <numWorkers> <pathHdfs>"
   echo -e "  numWorkers        \tNumber of Tachyon workers to launch"
   echo -e "  pathHdfs          \tPath on HDFS to put tachyon jar and distribute it to YARN"
   echo
-  echo "Example: ./tachyon-yarn-submit.sh 10 hdfs://localhost:9000/tmp/"
+  echo "Example: ./tachyon-yarn.sh 10 hdfs://localhost:9000/tmp/"
 }
 
 if [ "$#" != 2 ]; then
