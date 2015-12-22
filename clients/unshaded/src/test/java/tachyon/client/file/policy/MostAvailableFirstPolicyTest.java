@@ -30,7 +30,7 @@ import tachyon.client.block.BlockWorkerInfo;
  */
 public final class MostAvailableFirstPolicyTest {
   @Test
-  public void getMostAvaiableWorkerTest() {
+  public void getMostAvailableWorkerTest() {
     List<BlockWorkerInfo> workInfoList = Lists.newArrayList();
     workInfoList.add(new BlockWorkerInfo("worker1", Constants.GB, 0));
     workInfoList.add(new BlockWorkerInfo("worker2", 2 * (long) Constants.GB, 0));
@@ -40,7 +40,7 @@ public final class MostAvailableFirstPolicyTest {
   }
 
   @Test
-  public void noAvaiableWorkerTest() {
+  public void noAvailableWorkerTest() {
     List<BlockWorkerInfo> workInfoList = Lists.newArrayList();
     workInfoList.add(new BlockWorkerInfo("worker1", Constants.GB, 0));
     workInfoList.add(new BlockWorkerInfo("worker2", 2 * (long) Constants.GB, 0));
