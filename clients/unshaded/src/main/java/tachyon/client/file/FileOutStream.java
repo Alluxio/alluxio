@@ -49,7 +49,7 @@ import tachyon.util.io.PathUtils;
  * data to the under storage system.
  */
 @PublicApi
-public class FileOutStream extends AbstractOutStream implements Cancelable {
+public class FileOutStream extends AbstractCountingOutStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
