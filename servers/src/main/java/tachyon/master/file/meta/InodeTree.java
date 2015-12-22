@@ -172,7 +172,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   /**
    * @param path the path to get the inodes list for
-   * @return the inodes list with the given path. Put null element if it does not exist in the path
+   * @return the inodes list with the given path. Puts null elements for the path components which
+   * do not exist in the path
    * @throws InvalidPathException if the path is invalid
    */
   public List<Inode> getInodesInPath(TachyonURI path) throws InvalidPathException {
@@ -634,7 +635,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     /**
      * The list of all inodes encountered during the traversal, including null elements in the
-     * list if corresponding inode in the path is not found.
+     * list if corresponding inodes in the path are not found.
      */
     private final List<Inode> mInodesIncludeNull;
 

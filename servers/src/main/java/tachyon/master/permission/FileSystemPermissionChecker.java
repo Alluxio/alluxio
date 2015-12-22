@@ -50,7 +50,7 @@ public final class FileSystemPermissionChecker {
   }
 
   /**
-   * Checks required permission on the last node and basic permission on the whole path.
+   * Checks requested permission on the last node and basic permission on the whole path.
    *
    * @param user who requests access permission
    * @param groups in which user belongs to
@@ -64,7 +64,7 @@ public final class FileSystemPermissionChecker {
   }
 
   /**
-   * Checks required permission on the parent or ancestor of the last node and basic permission
+   * Checks requested permission on the parent or ancestor of the last node and basic permission
    * on the whole path.
    * Parent means the parent directory of the last node.
    * Ancestor means the last existing (closest) ancestor directory of the last node.
@@ -93,8 +93,7 @@ public final class FileSystemPermissionChecker {
   }
 
   /**
-   * Checks whether a user is the owner of a path, with basic permission checking succeeding on
-   * the whole path.
+   * Checks whether a user is the owner of a path and basic permission on the whole path.
    *
    * @param user who is checked whether it is the owner
    * @param groups in which user belongs to
