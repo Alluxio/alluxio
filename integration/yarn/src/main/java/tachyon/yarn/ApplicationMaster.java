@@ -17,11 +17,13 @@ package tachyon.yarn;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.Exception;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
@@ -77,12 +79,17 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /** Maximum number of rounds of requesting and re-requesting worker containers */
   // TODO(andrew): make this configurable
   private static final int MAX_WORKER_CONTAINER_REQUEST_ROUNDS = 20;
+
   /**
    * Resources needed by the master and worker containers. Yarn will copy these to the container
    * before running the container's command.
    */
   private static final List<String> LOCAL_RESOURCE_NAMES =
       Lists.newArrayList(TACHYON_TARBALL, Utils.TACHYON_SETUP_SCRIPT);
+
+  private static final int CONTAINER_REQUEST_TIME_THRESHOLD = 3;
+  private static final int MAX_CONTAINER_REQUEST_RETRIES = 3;
+
   /** Container request priorities are intra-application */
   private static final Priority MASTER_PRIORITY = Priority.newInstance(0);
   /**
@@ -250,14 +257,22 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // is initialized to the number of requests made. (2) is then achieved by counting down whenever
     // a container is allocated, and waiting here for the number of outstanding requests to hit 0.
     int round = 0;
-    while (mWorkerHosts.size() < mNumWorkers && round < MAX_WORKER_CONTAINER_REQUEST_ROUNDS) {
-      requestWorkerContainers();
-      LOG.info("Waiting for {} worker containers to be allocated",
-          mOutstandingWorkerContainerRequestsLatch.getCount());
-      // TODO(andrew): Handle the case where something goes wrong and some worker containers never
-      // get allocated. See TACHYON-1410
-      mOutstandingWorkerContainerRequestsLatch.await();
-      round ++;
+    while (mWorkerHosts.size() < mNumWorkers && round ++ < MAX_WORKER_CONTAINER_REQUEST_ROUNDS) {
+      int retries = 0;
+      boolean allocated = false;
+      while (retries ++ < MAX_CONTAINER_REQUEST_RETRIES) {
+        requestWorkerContainers();
+        LOG.info("Waiting for {} worker containers to be allocated",
+                mOutstandingWorkerContainerRequestsLatch.getCount());
+        allocated = mOutstandingWorkerContainerRequestsLatch.await(mNumWorkers
+            * CONTAINER_REQUEST_TIME_THRESHOLD, TimeUnit.SECONDS)
+        if (allocated) {
+          break;
+        }
+      }
+      if (!allocated) {
+        throw new Exception("Failed to allocate worker containers due to timeout");
+      }
     }
     if (mWorkerHosts.size() < mNumWorkers) {
       LOG.error(
@@ -275,6 +290,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * {@link #launchTachyonMasterContainers(List)}.
    */
   private void requestMasterContainer() throws Exception {
+
     LOG.info("Requesting master container");
     // Resource requirements for master containers
     Resource masterResource = Records.newRecord(Resource.class);
@@ -288,18 +304,25 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     if (!mMasterAddress.equals("localhost")) {
       relaxLocality = false;
     }
-    ContainerRequest masterContainerAsk = new ContainerRequest(masterResource, nodes,
-        null /* any racks */, MASTER_PRIORITY, relaxLocality);
-    LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
-        masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
 
-    mRMClient.addContainerRequest(masterContainerAsk);
-
-    LOG.info("Waiting for master container to be allocated");
-    // Wait for the latch to be decremented in launchTachyonMasterContainers
-    // TODO(andrew): Handle the case where something goes wrong and a master container never
-    // gets allocated. See TACHYON-1410
-    mMasterContainerAllocatedLatch.await();
+    int retries = 0;
+    boolean allocated = false;
+    while (retries ++ < MAX_CONTAINER_REQUEST_RETRIES) {
+      ContainerRequest masterContainerAsk = new ContainerRequest(masterResource, nodes,
+          null /* any racks */, MASTER_PRIORITY, relaxLocality);
+      LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
+          masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
+      mRMClient.addContainerRequest(masterContainerAsk);
+      LOG.info("Waiting for master container to be allocated");
+      allocated = mMasterContainerAllocatedLatch.await(CONTAINER_REQUEST_TIME_THRESHOLD,
+          TimeUnit.SECONDS);
+      if (allocated) {
+        return;
+      }
+    }
+    if (!allocated) {
+      throw new Exception("Failed to allocate master container due to timeout");
+    }
   }
 
   /**
