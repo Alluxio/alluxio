@@ -18,10 +18,16 @@ package tachyon.security.authorization;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests the {@link FileSystemAction} class.
+ */
 public final class FileSystemActionTest {
 
+  /**
+   * Tests the {@link FileSystemAction#imply(FileSystemAction)} method.
+   */
   @Test
-  public void impliesTest() throws Exception {
+  public void impliesTest() {
     Assert.assertTrue(FileSystemAction.ALL.imply(FileSystemAction.READ));
     Assert.assertTrue(FileSystemAction.ALL.imply(FileSystemAction.WRITE));
     Assert.assertTrue(FileSystemAction.ALL.imply(FileSystemAction.EXECUTE));
@@ -42,15 +48,21 @@ public final class FileSystemActionTest {
     Assert.assertFalse(FileSystemAction.READ_WRITE.imply(FileSystemAction.EXECUTE));
   }
 
+  /**
+   * Tests the {@link FileSystemAction#not()} method.
+   */
   @Test
-  public void notOperationTest() throws Exception {
+  public void notOperationTest() {
     Assert.assertEquals(FileSystemAction.WRITE, FileSystemAction.READ_EXECUTE.not());
     Assert.assertEquals(FileSystemAction.READ, FileSystemAction.WRITE_EXECUTE.not());
     Assert.assertEquals(FileSystemAction.EXECUTE, FileSystemAction.READ_WRITE.not());
   }
 
+  /**
+   * Tests the {@link FileSystemAction#or(FileSystemAction)} method.
+   */
   @Test
-  public void orOperationTest() throws Exception {
+  public void orOperationTest() {
     Assert.assertEquals(FileSystemAction.WRITE_EXECUTE,
         FileSystemAction.WRITE.or(FileSystemAction.EXECUTE));
     Assert.assertEquals(FileSystemAction.READ_EXECUTE,
@@ -59,8 +71,11 @@ public final class FileSystemActionTest {
         FileSystemAction.WRITE.or(FileSystemAction.READ));
   }
 
+  /**
+   * Tests the {@link FileSystemAction#and(FileSystemAction)} method.
+   */
   @Test
-  public void andOperationTest() throws Exception {
+  public void andOperationTest() {
     Assert.assertEquals(FileSystemAction.NONE, FileSystemAction.READ.and(FileSystemAction.WRITE));
     Assert.assertEquals(FileSystemAction.READ,
         FileSystemAction.READ_EXECUTE.and(FileSystemAction.READ));
