@@ -335,7 +335,7 @@ public class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Internal function to delete a key in S3
+   * Internal function to delete a key in OSS
    * @param key the key to delete
    * @return true if successful, false if an exception is thrown
    */
