@@ -171,6 +171,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
+   * @param path the path to get the inodes list for
+   * @return the inodes list with the given path. Put null element if it does not exist in the path
+   * @throws InvalidPathException if the path is invalid
+   */
+  public List<Inode> getInodesInPath(TachyonURI path) throws InvalidPathException {
+    TraversalResult traversalResult =
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
+    return traversalResult.getInodesIncludeNull();
+  }
+
+  /**
    * @param inode the inode to get the path for
    * @return the path for a given inode
    */
@@ -552,6 +563,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted)
       throws InvalidPathException {
     List<Inode> nonPersistedInodes = Lists.newArrayList();
+    List<Inode> inodesIncludingNull = Lists.newArrayList();
 
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");
@@ -559,13 +571,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throw new InvalidPathException("passed-in pathComponents is empty");
     } else if (pathComponents.length == 1) {
       if (pathComponents[0].equals("")) {
-        return TraversalResult.createFoundResult(mRoot, nonPersistedInodes);
+        inodesIncludingNull.add(mRoot);
+        return TraversalResult.createFoundResult(mRoot, nonPersistedInodes, inodesIncludingNull);
       } else {
         throw new InvalidPathException("File name starts with " + pathComponents[0]);
       }
     }
 
     Inode current = mRoot;
+    inodesIncludingNull.add(current);
 
     // iterate from 1, because 0 is root and it's already added
     for (int i = 1; i < pathComponents.length; i ++) {
@@ -574,17 +588,23 @@ public final class InodeTree implements JournalCheckpointStreamable {
         // The user might want to create the nonexistent directories, so return the traversal result
         // current inode with the last Inode taken, and the index of the first path component that
         // couldn't be found.
-        return TraversalResult.createNotFoundResult(current, i, nonPersistedInodes);
+        for (int j = i; j < pathComponents.length; j++) {
+          inodesIncludingNull.add(null);
+        }
+        return TraversalResult.createNotFoundResult(current, i, nonPersistedInodes,
+            inodesIncludingNull);
       } else if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.
         // Otherwise, we can't traverse further, so we clean up and throw an exception.
         if (i == pathComponents.length - 1) {
-          return TraversalResult.createFoundResult(next, nonPersistedInodes);
+          inodesIncludingNull.add(next);
+          return TraversalResult.createFoundResult(next, nonPersistedInodes, inodesIncludingNull);
         } else {
           throw new InvalidPathException(
               "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
         }
       } else {
+        inodesIncludingNull.add(next);
         if (!next.isPersisted() && collectNonPersisted) {
           // next is a directory and not persisted
           nonPersistedInodes.add(next);
@@ -592,7 +612,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         current = next;
       }
     }
-    return TraversalResult.createFoundResult(current, nonPersistedInodes);
+    return TraversalResult.createFoundResult(current, nonPersistedInodes, inodesIncludingNull);
   }
 
   private static final class TraversalResult {
@@ -612,19 +632,29 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     private final List<Inode> mNonPersisted;
 
-    static TraversalResult createFoundResult(Inode inode, List<Inode> nonPersisted) {
-      return new TraversalResult(true, -1, inode, nonPersisted);
+    /**
+     * The list of all inodes encountered during the traversal, including null elements in the
+     * list if corresponding inode in the path is not found.
+     */
+    private final List<Inode> mInodesIncludeNull;
+
+    static TraversalResult createFoundResult(Inode inode, List<Inode> nonPersisted,
+        List<Inode> inodesIncludeNull) {
+      return new TraversalResult(true, -1, inode, nonPersisted, inodesIncludeNull);
     }
 
-    static TraversalResult createNotFoundResult(Inode inode, int index, List<Inode> nonPersisted) {
-      return new TraversalResult(false, index, inode, nonPersisted);
+    static TraversalResult createNotFoundResult(Inode inode, int index, List<Inode> nonPersisted,
+        List<Inode> inodesIncludeNull) {
+      return new TraversalResult(false, index, inode, nonPersisted, inodesIncludeNull);
     }
 
-    private TraversalResult(boolean found, int index, Inode inode, List<Inode> nonPersisted) {
+    private TraversalResult(boolean found, int index, Inode inode, List<Inode> nonPersisted,
+        List<Inode> inodesIncludeNull) {
       mFound = found;
       mNonexistentIndex = index;
       mInode = inode;
       mNonPersisted = nonPersisted;
+      mInodesIncludeNull = inodesIncludeNull;
     }
 
     boolean isFound() {
@@ -647,6 +677,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     List<Inode> getNonPersisted() {
       return mNonPersisted;
+    }
+
+    /**
+     * @return the list of all inodes encountered during the traversal
+     */
+    List<Inode> getInodesIncludeNull() {
+      return mInodesIncludeNull;
     }
   }
 
