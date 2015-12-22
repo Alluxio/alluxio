@@ -78,8 +78,8 @@ import tachyon.client.block.BlockWorkerInfo;
  */
 @SuppressWarnings("rawtypes")
 public final class LocationPolicyRegistry {
-  private static final Map<Class<? extends FileWriteLocationPolicy>, FileWriteLocationPolicyFactory>
-      FACTORIES = Maps.newHashMap();
+  private static final Map<Class<? extends FileWriteLocationPolicy>, FileWriteLocationPolicyFactory> FACTORIES =
+      Maps.newHashMap();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
 
@@ -147,7 +147,7 @@ public final class LocationPolicyRegistry {
   }
 
   /**
-   * Resets the registry to its default state
+   * Resets the registry to its default state.
    * <p>
    * This clears the registry as it stands and rediscovers the available factories.
    * </p>
@@ -164,16 +164,16 @@ public final class LocationPolicyRegistry {
   }
 
   /**
-   * Unregisters an existing factory
+   * Unregisters an existing factory.
    *
-   * @param factory Factory to unregister
+   * @param policyClass the class of the policy
    */
-  public static void unregister(FileWriteLocationPolicyFactory<?> factory) {
-    if (factory == null) {
+  public static void unregister(Class<? extends FileWriteLocationPolicy> policyClass) {
+    if (policyClass == null) {
       return;
     }
 
-    LOG.debug("Unregistered file-write location policy factory {}", factory.getClass());
-    FACTORIES.remove(factory.getClass());
+    LOG.debug("Unregistered factory of file-write location policy {}", policyClass);
+    FACTORIES.remove(policyClass);
   }
 }
