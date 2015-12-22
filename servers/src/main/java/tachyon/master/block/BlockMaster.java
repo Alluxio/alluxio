@@ -79,7 +79,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block metadata management. */
+  // Block metadata management.
   /**
    * Blocks on all workers, including active and lost blocks. This state must be journaled. Access
    * must be synchronized on mBlocks. If both block and worker metadata must be locked, mBlocks must
@@ -95,7 +95,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
 
-  /** Worker metadata management. */
+  // Worker metadata management.
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
@@ -150,6 +150,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
   }
 
+  /**
+   * Creates a new instance of {@link BlockMaster}.
+   *
+   * @param journal the journal to use for tracking master operations
+   */
   public BlockMaster(Journal journal) {
     super(journal, 2);
   }
