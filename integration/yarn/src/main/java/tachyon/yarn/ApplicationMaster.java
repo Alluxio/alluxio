@@ -87,7 +87,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private static final List<String> LOCAL_RESOURCE_NAMES =
       Lists.newArrayList(TACHYON_TARBALL, Utils.TACHYON_SETUP_SCRIPT);
 
-  private static final int CONTAINER_REQUEST_TIME_THRESHOLD = 3;
+  private static final int CONTAINER_REQUEST_TIME_THRESHOLD = 30;
   private static final int MAX_CONTAINER_REQUEST_RETRIES = 3;
 
   /** Container request priorities are intra-application */
@@ -264,8 +264,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         requestWorkerContainers();
         LOG.info("Waiting for {} worker containers to be allocated",
                 mOutstandingWorkerContainerRequestsLatch.getCount());
-        allocated = mOutstandingWorkerContainerRequestsLatch.await(mNumWorkers
-            * CONTAINER_REQUEST_TIME_THRESHOLD, TimeUnit.SECONDS)
+        allocated = mOutstandingWorkerContainerRequestsLatch.await((mNumWorkers － mWorkerHosts
+            .size()) * CONTAINER_REQUEST_TIME_THRESHOLD, TimeUnit.SECONDS)
         if (allocated) {
           break;
         }
