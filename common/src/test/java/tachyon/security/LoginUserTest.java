@@ -27,14 +27,21 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit test for {@link tachyon.security.LoginUser}
+ * Unit test for {@link tachyon.security.LoginUser}.
  */
 public final class LoginUserTest {
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  // User reflection to reset the private static member sLoginUser in LoginUser.
+  /**
+   * User reflection to reset the private static member sLoginUser in LoginUser.
+   *
+   * @throws Exception thrown if the user fields cannot be set
+   */
   @Before
   public void before() throws Exception {
     Field field = LoginUser.class.getDeclaredField("sLoginUser");
@@ -44,7 +51,8 @@ public final class LoginUserTest {
 
   /**
    * Test whether we can get login user with conf in SIMPLE mode.
-   * @throws Exception
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
   public void getSimpleLoginUserTest() throws Exception {
@@ -60,7 +68,8 @@ public final class LoginUserTest {
   /**
    * Test whether we can get login user with conf in SIMPLE mode, when user name is provided by
    * the application through configuration.
-   * @throws Exception
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
@@ -83,7 +92,8 @@ public final class LoginUserTest {
    * Test whether we can get login user with conf in SIMPLE mode, when user name is set to an
    * empty string in the application configuration. In this case, login should return the OS user
    * instead of empty string.
-   * @throws Exception
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
@@ -101,7 +111,8 @@ public final class LoginUserTest {
 
   /**
    * Test whether we can get login user with conf in CUSTOM mode.
-   * @throws Exception
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
   public void getCustomLoginUserTest() throws Exception {
@@ -117,7 +128,8 @@ public final class LoginUserTest {
   /**
    * Test whether we can get login user with conf in CUSTOM mode, when user name is provided by
    * the application through configuration.
-   * @throws Exception
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
@@ -140,7 +152,8 @@ public final class LoginUserTest {
    * Test whether we can get login user with conf in CUSTOM mode, when user name is set to an
    * empty string in the application configuration. In this case, login should return the OS user
    * instead of empty string.
-   * @throws Exception
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
@@ -159,11 +172,12 @@ public final class LoginUserTest {
   // TODO(dong): getKerberosLoginUserTest()
 
   /**
-   * Test whether we can get exception when getting a login user in non-security mode
-   * @throws Exception
+   * Test whether we can get exception when getting a login user in non-security mode.
+   *
+   * @throws Exception thrown if the current user cannot be retrieved
    */
   @Test
-  public void securityEnabledTest() throws Throwable {
+  public void securityEnabledTest() throws Exception {
     // TODO(dong): add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
     TachyonConf conf = new TachyonConf();
