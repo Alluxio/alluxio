@@ -56,7 +56,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
 
   @Override
   public long append(ByteBuffer inputBuf) throws IOException {
-    return write(mLocalFileChannel.size(), inputBuf);
+    return write(mLocalFileChannel.size(), inputBuf.duplicate());
   }
 
   @Override
@@ -73,7 +73,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * @throws IOException
    */
   private long write(long offset, ByteBuffer inputBuf) throws IOException {
-    int inputBufLength = inputBuf.limit();
+    int inputBufLength = inputBuf.limit() - inputBuf.position();
     ByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
