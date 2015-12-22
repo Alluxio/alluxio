@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.file.ByteArrayOutStream;
+import tachyon.client.file.ByteArrayCountingOutStream;
 
 /**
  * Unit test of {@link OutStreamPayloadWriter}.
@@ -32,7 +32,7 @@ public class PayloadReaderWriterTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
-  private ByteArrayOutStream mTestOutStream = new ByteArrayOutStream();
+  private ByteArrayCountingOutStream mTestOutStream = new ByteArrayCountingOutStream();
   private OutStreamPayloadWriter mTestWriter = new OutStreamPayloadWriter(mTestOutStream);
   private RandomAccessPayloadReader mTestReader;
 

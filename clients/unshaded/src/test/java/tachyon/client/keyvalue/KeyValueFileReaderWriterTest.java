@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.file.ByteArrayOutStream;
+import tachyon.client.file.ByteArrayCountingOutStream;
 
 /**
  * unit tests of {@link OutStreamKeyValueFileWriter} and {@link RandomAccessKeyValueFileReader}
@@ -31,7 +31,7 @@ public class KeyValueFileReaderWriterTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
-  private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
+  private ByteArrayCountingOutStream mOutStream = new ByteArrayCountingOutStream();
   private KeyValueFileWriter mWriter = new OutStreamKeyValueFileWriter(mOutStream);
   private KeyValueFileReader mReader;
 

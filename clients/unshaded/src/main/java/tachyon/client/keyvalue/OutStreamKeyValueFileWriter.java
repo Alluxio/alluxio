@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.file.AbstractOutStream;
+import tachyon.client.file.AbstractCountingOutStream;
 import tachyon.util.io.ByteIOUtils;
 import tachyon.worker.keyvalue.Index;
 import tachyon.worker.keyvalue.LinearProbingIndex;
@@ -43,7 +43,7 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handle to write to the underlying file */
-  private final AbstractOutStream mFileOutStream;
+  private final AbstractCountingOutStream mFileOutStream;
   /** number of key-value pairs added */
   private long mKeyCount = 0;
   /** key-value index */
@@ -56,7 +56,7 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   /**
    * @param fileOutStream output stream to store the key-value file
    */
-  public OutStreamKeyValueFileWriter(AbstractOutStream fileOutStream) {
+  public OutStreamKeyValueFileWriter(AbstractCountingOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
