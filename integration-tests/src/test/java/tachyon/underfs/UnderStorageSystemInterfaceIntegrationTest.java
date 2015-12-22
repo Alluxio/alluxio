@@ -225,6 +225,8 @@ public class UnderStorageSystemInterfaceIntegrationTest {
   @Test
   public void testListRecursive() throws IOException {
     String root = mUnderfsAddress;
+    // TODO(andrew): Should this directory be created in LocalTachyonCluster creation code?
+    mUfs.mkdirs(root, true);
     // Empty lsr should be empty
     Assert.assertEquals(0, mUfs.listRecursive(root).length);
 

@@ -27,8 +27,16 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
+/**
+ * Tests for the {@link NetworkAddressUtils} class.
+ */
 public class NetworkAddressUtilsTest {
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method.
+   *
+   * @throws Exception thrown if something goes wrong
+   */
   @Test
   public void testGetConnectAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
@@ -98,6 +106,11 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(new InetSocketAddress(localHostName, 10000), masterAddress);
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType, TachyonConf)} method.
+   *
+   * @throws Exception thrown if something goes wrong
+   */
   @Test
   public void testGetBindAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
@@ -176,6 +189,11 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(new InetSocketAddress(localHostName, 20000), workerAddress);
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#replaceHostName(TachyonURI)} method.
+   *
+   * @throws UnknownHostException thrown if the host is unknown
+   */
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(TachyonURI.EMPTY_URI),
@@ -193,6 +211,11 @@ public class NetworkAddressUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#resolveHostName(String)} method.
+   *
+   * @throws UnknownHostException thrown if the host is unknown
+   */
   @Test
   public void resolveHostNameTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.resolveHostName(""), null);
@@ -200,6 +223,12 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(NetworkAddressUtils.resolveHostName("localhost"), "localhost");
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getFqdnHost(InetSocketAddress)} and
+   * {@link NetworkAddressUtils#getFqdnHost(NetAddress)} methods.
+   *
+   * @throws UnknownHostException thrown if the host is unknown
+   */
   @Test
   public void getFqdnHostTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),

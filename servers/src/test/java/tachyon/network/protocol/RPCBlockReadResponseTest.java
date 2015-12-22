@@ -34,6 +34,9 @@ public class RPCBlockReadResponseTest {
   // The RPCMessageEncoder sends the payload separately from the message, so these unit tests only
   // test the message encoding part. Therefore, the 'length' should be 0.
   private static final long LENGTH = 0;
+  private static final long LOCK_ID = 4444;
+  private static final long SESSION_ID = 5555;
+
   private static final RPCResponse.Status STATUS = RPCResponse.Status.SUCCESS;
 
   @Rule
@@ -97,7 +100,8 @@ public class RPCBlockReadResponseTest {
 
   @Test
   public void createErrorResponseTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
+        SESSION_ID);
 
     for (RPCResponse.Status status : RPCResponse.Status.values()) {
       if (status == RPCResponse.Status.SUCCESS) {

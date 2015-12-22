@@ -32,8 +32,8 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
@@ -183,10 +183,10 @@ public class TachyonFileSystemIntegrationTest {
    * @throws IOException if a UnderFS I/O error occurs
    */
   private String createAlternateUfs() throws InvalidPathException, IOException {
-    String parentDir =
-        PathUtils.getParent(mLocalTachyonClusterResource.getTestConf().get(
-            Constants.UNDERFS_ADDRESS));
-    String alternateUfsRoot = PathUtils.concatPath(parentDir, "alternateUnderFSStorage");
+    TachyonURI parentURI =
+        new TachyonURI(mLocalTachyonClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
+            .getParent();
+    String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot,
         mLocalTachyonClusterResource.getTestConf());
     return alternateUfsRoot;

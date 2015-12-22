@@ -26,8 +26,14 @@ import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
 
+/**
+ * Tests the {@link PermissionStatus} class.
+ */
 public final class PermissionStatusTest {
 
+  /**
+   * Tests the {@link PermissionStatus#getDirDefault()} method.
+   */
   @Test
   public void permissionStatusTest() {
     PermissionStatus permissionStatus =
@@ -40,6 +46,9 @@ public final class PermissionStatusTest {
     verifyPermissionStatus("", "", (short) 0777, permissionStatus);
   }
 
+  /**
+   * Tests the {@link PermissionStatus#applyUMask(FileSystemPermission)} method.
+   */
   @Test
   public void applyUMaskTest() {
     FileSystemPermission umaskPermission = new FileSystemPermission((short)0022);
@@ -55,6 +64,11 @@ public final class PermissionStatusTest {
     Assert.assertEquals(0755, permissionStatus.getPermission().toShort());
   }
 
+  /**
+   * Tests the {@link PermissionStatus#get(TachyonConf, boolean)} method.
+   *
+   * @throws Exception thrown if the status cannot be retrieved
+   */
   @Test
   public void getPermissionStatusTest() throws Exception {
     TachyonConf conf = new TachyonConf();

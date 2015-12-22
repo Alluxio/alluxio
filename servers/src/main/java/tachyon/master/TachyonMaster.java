@@ -118,7 +118,7 @@ public class TachyonMaster {
    * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
    * {@link TachyonConf}.
    */
-  public static class Factory {
+  public static final class Factory {
     /**
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
@@ -370,7 +370,11 @@ public class TachyonMaster {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.stopTimeoutVal = MasterContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    if (MasterContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+      args.stopTimeoutVal = 0;
+    } else {
+      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
+    }
     mMasterServiceServer = new TThreadPoolServer(args);
 
     // start thrift rpc server

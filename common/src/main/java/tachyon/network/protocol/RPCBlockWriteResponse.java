@@ -31,6 +31,15 @@ public final class RPCBlockWriteResponse extends RPCResponse {
   private final long mLength;
   private final Status mStatus;
 
+  /**
+   * Constructs a new response to a {@link RPCBlockWriteRequest}.
+   *
+   * @param sessionId the id of the session
+   * @param blockId the id of the block
+   * @param offset the block offset that the writing began at
+   * @param length the number of bytes written
+   * @param status the status
+   */
   public RPCBlockWriteResponse(long sessionId, long blockId, long offset, long length,
       Status status) {
     mSessionId = sessionId;
@@ -92,22 +101,37 @@ public final class RPCBlockWriteResponse extends RPCResponse {
     out.writeShort(mStatus.getId());
   }
 
+  /**
+   * @return the id of the session
+   */
   public long getSessionId() {
     return mSessionId;
   }
 
+  /**
+   * @return the id of the block
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
+  /**
+   * @return the number of bytes written
+   */
   public long getLength() {
     return mLength;
   }
 
+  /**
+   * @return the block offset that the writing began at
+   */
   public long getOffset() {
     return mOffset;
   }
 
+  /**
+   * @return the status
+   */
   public Status getStatus() {
     return mStatus;
   }

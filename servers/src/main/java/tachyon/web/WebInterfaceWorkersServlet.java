@@ -42,7 +42,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
    */
-  public static class NodeInfo implements Comparable<NodeInfo> {
+  public static final class NodeInfo implements Comparable<NodeInfo> {
     private final String mHost;
     private final int mWebPort;
     private final String mLastContactSec;

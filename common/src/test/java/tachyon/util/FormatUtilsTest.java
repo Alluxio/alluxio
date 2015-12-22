@@ -26,7 +26,14 @@ import org.junit.Test;
 
 import tachyon.Constants;
 
+/**
+ * Tests the {@link FormatUtils} class.
+ */
 public class FormatUtilsTest {
+
+  /**
+   * Tests the {@link FormatUtils#parametersToString(Object...)} method.
+   */
   @Test
   public void parametersToStringTest() {
     class TestCase {
@@ -56,6 +63,9 @@ public class FormatUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link FormatUtils#byteBufferToString(ByteBuffer)} method.
+   */
   @Test
   public void byteBufferToStringTest() {
     class TestCase {
@@ -84,6 +94,9 @@ public class FormatUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link FormatUtils#formatTimeTakenMs(long, String)} method.
+   */
   @Test
   public void formatTimeTakenMsTest() {
     class TestCase {
@@ -111,6 +124,9 @@ public class FormatUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link FormatUtils#formatTimeTakenNs(long, String)} method.
+   */
   @Test
   public void formatTimeTakenNsTest() {
     class TestCase {
@@ -138,6 +154,9 @@ public class FormatUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link FormatUtils#getSizeFromBytes(long)} method.
+   */
   @Test
   public void getSizeFromBytesTest() {
     class TestCase {
@@ -170,6 +189,9 @@ public class FormatUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link FormatUtils#parseSpaceSize(String)} method.
+   */
   @Test
   public void parseSpaceSizeTest() {
     long max = 10240;
