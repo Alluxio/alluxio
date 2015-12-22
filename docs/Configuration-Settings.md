@@ -87,11 +87,6 @@ The common configuration contains constants shared by different components.
   <td>Flag used only during tests to allow special behavior.</td>
 </tr>
 <tr>
-  <td>tachyon.thrift.stop.timeout.seconds</td>
-  <td>60</td>
-  <td>Time to wait for thrift server to stop gracefully, in seconds.</td>
-</tr>
-<tr>
   <td>tachyon.underfs.address</td>
   <td>${tachyon.home}/underFSStorage</td>
   <td>Tachyon folder in the underlayer file system.</td>
@@ -566,7 +561,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.block.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for block master client to talk to block master.</td>
+  <td>The number of threads used by a block master client to talk to the block master.</td>
 </tr>
 <tr>
   <td>tachyon.user.block.worker.client.threads</td>
@@ -607,7 +602,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for file system master client to talk to block master.</td>
+  <td>The number of threads used by a file master client to talk to the file master.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.waitcompleted.poll.ms</td>
@@ -645,7 +640,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.lineage.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for lineage master client to talk to lineage master.</td>
+  <td>The number of threads used by a lineage master client to talk to the lineage master.</td>
 </tr>
 <tr>
   <td>tachyon.user.network.netty.timeout.ms</td>
@@ -666,7 +661,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.raw.table.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for raw table master client to talk to raw table master.</td>
+  <td>The number of threads used by a raw table master client to talk to the raw table master.</td>
 </tr>
 </table>
 
