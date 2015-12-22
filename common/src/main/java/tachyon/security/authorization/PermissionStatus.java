@@ -25,6 +25,9 @@ import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
 
+/**
+ * The permission status for a file or directory.
+ */
 public final class PermissionStatus {
   private String mUserName;
   private String mGroupName;
@@ -81,6 +84,7 @@ public final class PermissionStatus {
   /**
    * Applies umask.
    *
+   * @param umask the umask to apply
    * @return a new {@link PermissionStatus}
    * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
@@ -103,6 +107,7 @@ public final class PermissionStatus {
   /**
    * Creates the {@link PermissionStatus} for a file or a directory.
    *
+   * @param conf the runtime configuration of Tachyon
    * @param remote true if the request is for creating permission from client side, the
    *               username binding into inode will be gotten from {@code AuthorizedClientUser
    *               .get().getName()}.

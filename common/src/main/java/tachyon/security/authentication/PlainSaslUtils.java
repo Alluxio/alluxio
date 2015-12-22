@@ -95,6 +95,12 @@ public final class PlainSaslUtils {
     private final String mUserName;
     private final String mPassword;
 
+    /**
+     * Constructs a new client side callback.
+     *
+     * @param userName the name of the user
+     * @param password the password
+     */
     public PlainClientCallbackHandler(String userName, String password) {
       mUserName = userName;
       mPassword = password;

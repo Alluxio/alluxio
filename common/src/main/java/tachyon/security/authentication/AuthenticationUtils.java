@@ -101,6 +101,7 @@ public final class AuthenticationUtils {
    * Creates a new Thrift socket what will connect to the given address
    *
    * @param address The given address to connect
+   * @param timeoutMs the timeout in milliseconds
    * @return An unconnected socket
    */
   public static TSocket createTSocket(InetSocketAddress address, int timeoutMs) {

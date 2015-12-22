@@ -24,14 +24,24 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 
+/**
+ * Tests the {@link FileSystemPermission} class.
+ */
 public final class FileSystemPermissionTest {
+
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   private TachyonConf mConf = new TachyonConf();
 
+  /**
+   * Tests the {@link FileSystemPermission#toShort()} method.
+   */
   @Test
-  public void toShortTest() throws Exception {
+  public void toShortTest() {
     FileSystemPermission permission =
         new FileSystemPermission(FileSystemAction.ALL, FileSystemAction.READ_EXECUTE,
             FileSystemAction.READ_EXECUTE);
@@ -45,8 +55,11 @@ public final class FileSystemPermissionTest {
     Assert.assertEquals(0644, permission.toShort());
   }
 
+  /**
+   * Tests the {@link FileSystemPermission#fromShort(short)} method.
+   */
   @Test
-  public void fromShortTest() throws Exception {
+  public void fromShortTest() {
     FileSystemPermission permission = new FileSystemPermission((short)0777);
     Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
     Assert.assertEquals(FileSystemAction.ALL, permission.getGroupAction());
@@ -63,8 +76,11 @@ public final class FileSystemPermissionTest {
     Assert.assertEquals(FileSystemAction.READ_EXECUTE, permission.getOtherAction());
   }
 
+  /**
+   * Tests the {@link FileSystemPermission#FileSystemPermission(FileSystemPermission)} constructor.
+   */
   @Test
-  public void copyConstructorTest() throws Exception {
+  public void copyConstructorTest() {
     FileSystemPermission permission = new FileSystemPermission(FileSystemPermission.getDefault());
     Assert.assertEquals(FileSystemAction.ALL, permission.getUserAction());
     Assert.assertEquals(FileSystemAction.ALL, permission.getGroupAction());
@@ -72,8 +88,11 @@ public final class FileSystemPermissionTest {
     Assert.assertEquals(0777, permission.toShort());
   }
 
+  /**
+   * Tests the {@link FileSystemPermission#getNoneFsPermission()} method.
+   */
   @Test
-  public void getNoneFsPermissionTest() throws Exception {
+  public void getNoneFsPermissionTest() {
     FileSystemPermission permission = FileSystemPermission.getNoneFsPermission();
     Assert.assertEquals(FileSystemAction.NONE, permission.getUserAction());
     Assert.assertEquals(FileSystemAction.NONE, permission.getGroupAction());
@@ -81,8 +100,12 @@ public final class FileSystemPermissionTest {
     Assert.assertEquals(0000, permission.toShort());
   }
 
+  /**
+   * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} and
+   * {@link FileSystemPermission#applyUMask(FileSystemPermission)} methods.
+   */
   @Test
-  public void umaskTest() throws Exception {
+  public void umaskTest() {
     String umask = "0022";
     mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     FileSystemPermission umaskPermission = FileSystemPermission.getUMask(mConf);
@@ -94,8 +117,12 @@ public final class FileSystemPermissionTest {
     Assert.assertEquals(0755, permission.toShort());
   }
 
+  /**
+   * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} method to thrown an exception when
+   * it exceeds the length.
+   */
   @Test
-  public void umaskExceedLengthTest() throws Exception {
+  public void umaskExceedLengthTest() {
     String umask = "00022";
     mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
@@ -104,8 +131,12 @@ public final class FileSystemPermissionTest {
     FileSystemPermission.getUMask(mConf);
   }
 
+  /**
+   * Tests the {@link FileSystemPermission#getUMask(TachyonConf)} method to thrown an exception when
+   * it is not an integer.
+   */
   @Test
-  public void umaskNotIntegerTest() throws Exception {
+  public void umaskNotIntegerTest() {
     String umask = "NotInteger";
     mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);

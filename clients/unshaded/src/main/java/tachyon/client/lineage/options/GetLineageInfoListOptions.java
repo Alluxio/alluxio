@@ -21,7 +21,7 @@ import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class GetLineageInfoListOptions {
-  private static class Builder {
+  public static class Builder {
     /**
      * Creates a new builder for {@link GetLineageInfoListOptions}.
      *
