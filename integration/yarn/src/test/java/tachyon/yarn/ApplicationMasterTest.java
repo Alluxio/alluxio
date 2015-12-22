@@ -224,7 +224,7 @@ public class ApplicationMasterTest {
    * already used by other workers. This tests {@link ApplicationMaster} as a whole, only mocking
    * its clients.
    */
-  @Test(timeout = 100000)
+  @Test(timeout = 10000)
   public void negotiateUniqueWorkerHostsTest() throws Exception {
     final Random random = new Random();
     final List<Container> mockContainers = Lists.newArrayList();
