@@ -15,12 +15,12 @@
 
 package tachyon.client.file.options;
 
-public class ExistsOptions {
-  public static ExistsOptions defaults() {
-    return new ExistsOptions();
+public class GetStatusOptions {
+  public static GetStatusOptions defaults() {
+    return new GetStatusOptions();
   }
 
-  private ExistsOptions() {
+  private GetStatusOptions() {
 
   }
 }
