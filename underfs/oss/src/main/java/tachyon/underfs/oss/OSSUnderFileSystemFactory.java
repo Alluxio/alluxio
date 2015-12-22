@@ -72,7 +72,12 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
     if (System.getProperty(secretKeyConf) != null && tachyonConf.get(secretKeyConf) == null) {
       tachyonConf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
+    String endPointConf = Constants.OSS_ENDPOINT_KEY;
+    if (System.getProperty(endPointConf) != null && tachyonConf.get(endPointConf) == null) {
+      tachyonConf.set(endPointConf, System.getProperty(endPointConf));
+    }
     return tachyonConf.get(accessKeyConf) != null
-        && tachyonConf.get(secretKeyConf) != null;
+        && tachyonConf.get(secretKeyConf) != null
+        && tachyonConf.get(endPointConf) != null;
   }
 }
