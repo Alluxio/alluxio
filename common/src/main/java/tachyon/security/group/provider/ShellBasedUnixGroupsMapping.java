@@ -28,7 +28,7 @@ import tachyon.util.CommonUtils;
  * A simple shell-based implementation of {@link GroupMappingService} that exec's the
  * <code>groups</code> shell command to fetch the group memberships of a given user.
  */
-public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
+public final class ShellBasedUnixGroupsMapping extends GroupMappingService {
 
   /**
    * Returns list of groups for a user.
