@@ -320,7 +320,6 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
     testConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
     testConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
-    testConf.set(Constants.THRIFT_STOP_TIMEOUT_SECONDS, "0");
 
     testConf.set(Constants.MASTER_BIND_HOST, mHostname);
     testConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
