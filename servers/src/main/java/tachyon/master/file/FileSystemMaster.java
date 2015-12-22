@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -1573,6 +1572,12 @@ public final class FileSystemMaster extends MasterBase {
           } else {
             workerBlockCounts.put(blockLocation.workerId, 1);
           }
+
+          // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the
+          // same worker, for now it returns the first worker that has all the blocks
+          if (workerBlockCounts.get(blockLocation.workerId) == blockInfoList.size()) {
+            return blockLocation.workerId;
+          }
         }
       }
     } catch (FileDoesNotExistException e) {
@@ -1586,15 +1591,6 @@ public final class FileSystemMaster extends MasterBase {
     if (workerBlockCounts.size() == 0) {
       LOG.error("The file " + fileId + " does not exist on any worker");
       return IdUtils.INVALID_WORKER_ID;
-    }
-
-    // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the same
-    // worker
-    // return the first worker that has all the blocks
-    for (Entry<Long, Integer> entry : workerBlockCounts.entrySet()) {
-      if (entry.getValue() == blockInfoList.size()) {
-        return entry.getKey();
-      }
     }
 
     LOG.error("Not all the blocks of file {} stored on the same worker", fileId);
@@ -1616,37 +1612,38 @@ public final class FileSystemMaster extends MasterBase {
     List<Long> fileIdsToPersist = Lists.newArrayList();
 
     synchronized (mWorkerToAsyncPersistFiles) {
-      if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-        return filesToPersist;
-      }
-
-      Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
-      for (long fileId : scheduledFiles) {
-        InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-        if (inode.isCompleted()) {
-          fileIdsToPersist.add(fileId);
-          List<Long> blockIds = Lists.newArrayList();
-          for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
-            blockIds.add(fileBlockInfo.blockInfo.blockId);
-          }
-
-          filesToPersist.add(new PersistFile(fileId, blockIds));
-          // update the inode file persisence state
-          inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-          scheduledFiles.remove(fileId);
+      synchronized (mInodeTree) {
+        if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
+          return filesToPersist;
         }
+
+        Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
+        for (long fileId : scheduledFiles) {
+          InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+          if (inode.isCompleted()) {
+            fileIdsToPersist.add(fileId);
+            List<Long> blockIds = Lists.newArrayList();
+            for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+              blockIds.add(fileBlockInfo.blockInfo.blockId);
+            }
+
+            filesToPersist.add(new PersistFile(fileId, blockIds));
+            // update the inode file persisence state
+            inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+          }
+        }
+
       }
-
-      mWorkerToAsyncPersistFiles.get(workerId).remove(fileIdsToPersist);
-
-      // write to journal
-      PersistFilesRequestEntry persistFilesRequest =
-          PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
-      writeJournalEntry(
-          JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
-      flushJournal();
-      return filesToPersist;
     }
+    mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
+
+    // write to journal
+    PersistFilesRequestEntry persistFilesRequest =
+        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
+    flushJournal();
+    return filesToPersist;
   }
 
   /**
@@ -1656,9 +1653,6 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException when a file does not exist
    */
   private void setPersistingState(List<Long> fileIds) throws FileDoesNotExistException {
-    if (!fileIds.isEmpty()) {
-      LOG.info("Request file persistency: {}", fileIds);
-    }
     for (long fileId : fileIds) {
       InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
       inode.setPersistenceState(PersistenceState.IN_PROGRESS);
@@ -1684,7 +1678,7 @@ public final class FileSystemMaster extends MasterBase {
     // get the files for the given worker to checkpoint
     List<PersistFile> filesToCheckpoint = pollFilesToCheckpoint(workerId);
     if (!filesToCheckpoint.isEmpty()) {
-      LOG.info("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
+      LOG.debug("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
     }
     FileSystemCommandOptions options = new FileSystemCommandOptions();
     options.setPersistOptions(new PersistCommandOptions(filesToCheckpoint));
