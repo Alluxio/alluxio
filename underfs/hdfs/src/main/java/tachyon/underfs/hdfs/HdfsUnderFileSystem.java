@@ -134,7 +134,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         LOG.debug("Creating HDFS file at {}", path);
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
-        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e);
+        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage() , e);
         te = e;
         if (!retryPolicy.attemptRetry()) {
           break;
