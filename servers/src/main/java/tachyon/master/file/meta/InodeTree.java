@@ -50,6 +50,7 @@ import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.File.InodeDirectoryEntry;
 import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.master.permission.FileSystemPermissionChecker;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
@@ -118,6 +119,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
+    FileSystemPermissionChecker.initializeFileSystem(
+        MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED),
+        mRoot.getUserName(),
+        MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP));
   }
 
   /**
