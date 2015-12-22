@@ -40,6 +40,8 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.retry.RetryPolicy;
+import tachyon.retry.SleepingRetry;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -48,6 +50,7 @@ import tachyon.underfs.UnderFileSystem;
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
+  private static final long SLEEP_TIME = 0;
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
@@ -121,15 +124,21 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path) throws IOException {
     IOException te = null;
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new SleepingRetry(MAX_TRY) {
+      @Override protected long getSleepTime() {
+        return SLEEP_TIME;
+      }
+    };
+    while (true) {
       try {
         LOG.debug("Creating HDFS file at {}", path);
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} : {}", cnt, e.getMessage(), e);
+        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e);
         te = e;
+        if (!retryPolicy.attemptRetry()) {
+          break;
+        }
       }
     }
     throw te;
