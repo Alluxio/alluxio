@@ -46,7 +46,7 @@ public final class AppLoginModule implements LoginModule {
    * Retrieves the user name by querying the property of {@link Constants#SECURITY_LOGIN_USERNAME}.
    *
    * @return true if user name provided by application is set and not empty
-   * @throws javax.security.auth.login.LoginException
+   * @throws LoginException when the login fails
    */
   @Override
   public boolean login() throws LoginException {
@@ -68,7 +68,7 @@ public final class AppLoginModule implements LoginModule {
    * cleans up any state that was changed in the login and commit methods.
    *
    * @return true in all cases
-   * @throws LoginException
+   * @throws LoginException when the abortion fails
    */
   @Override
   public boolean abort() throws LoginException {

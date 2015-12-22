@@ -23,8 +23,14 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests the {@link CommonUtils} class.
+ */
 public class CommonUtilsTest {
 
+  /**
+   * Tests the {@link CommonUtils#getCurrentMs()} and {@link CommonUtils#sleepMs(long)} methods.
+   */
   @Test
   public void getCurrentMsAndSleepMsTest() {
     long delta = 100;
@@ -37,6 +43,9 @@ public class CommonUtilsTest {
     Assert.assertTrue(currentTime <= 2 * delta + startTime);
   }
 
+  /**
+   * Tests the {@link CommonUtils#listToString(List)} method.
+   */
   @Test
   public void listToStringTest() {
     class TestCase {
@@ -61,6 +70,9 @@ public class CommonUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link CommonUtils#toStringArray(ArrayList)} method.
+   */
   @Test
   public void toStringArrayTest() {
     class TestCase {
@@ -89,6 +101,9 @@ public class CommonUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link CommonUtils#createNewClassInstance(Class, Class[], Object[])} method.
+   */
   @Test
   public void createNewClassInstanceTest() {
     class TestCase {
