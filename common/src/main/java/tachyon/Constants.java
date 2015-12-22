@@ -364,5 +364,11 @@ public final class Constants {
   public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
 
+  // TODO(dong): TACHYON-1462. Document these security related properties in configuration page
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+      "tachyon.security.authorization.permission.enabled";
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+      "tachyon.security.authorization.permission.supergroup";
+
   private Constants() {} // prevent instantiation
 }
