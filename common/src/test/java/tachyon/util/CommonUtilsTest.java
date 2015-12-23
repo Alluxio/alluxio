@@ -175,6 +175,11 @@ public class CommonUtilsTest {
         .thenReturn(shellResult);
   }
 
+  /**
+   * Tests the {@link CommonUtils#getUnixGroups(String)} method.
+   *
+   * @throws Throwable when the retrieval of the UNIX groups fails
+   */
   @Test
   public void userGroupTest() throws Throwable {
     String userName = "tachyon-user1";

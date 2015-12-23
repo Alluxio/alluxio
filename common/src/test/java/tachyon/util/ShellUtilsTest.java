@@ -23,6 +23,11 @@ import org.junit.Test;
  */
 public class ShellUtilsTest {
 
+  /**
+   * Tests the {@link ShellUtils#execCommand(String...)} method.
+   *
+   * @throws Throwable when the execution of the command fails
+   */
   @Test
   public void execCommandTest() throws Throwable {
     String testString = "tachyon";
@@ -31,6 +36,11 @@ public class ShellUtilsTest {
     Assert.assertEquals(testString + "\n", result);
   }
 
+  /**
+   * Tests the {@link ShellUtils#execCommand(String...)} method for a group of commands.
+   *
+   * @throws Throwable when the execution of the commands fails
+   */
   @Test
   public void execGetGroupCommandTest() throws Throwable {
     String testUser = "root";
