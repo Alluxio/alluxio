@@ -35,8 +35,10 @@ import tachyon.util.CommonUtils;
 @PublicApi
 public interface GroupMappingService {
 
+  /**
+   * Factory for creating a new instance.
+   */
   class Factory {
-
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
     /**
