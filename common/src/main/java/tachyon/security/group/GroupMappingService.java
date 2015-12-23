@@ -81,7 +81,7 @@ public interface GroupMappingService {
    * @return group memberships of user
    * @throws IOException if can't get user's groups
    */
-  public List<String> getGroups(String user) throws IOException;
+  List<String> getGroups(String user) throws IOException;
 
   /**
    * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping
@@ -90,5 +90,5 @@ public interface GroupMappingService {
    * @param conf The tachyon configuration set to GroupMappingService
    * @throws IOException if failed config GroupMappingService
    */
-  public void setConf(TachyonConf conf) throws IOException;
+  void setConf(TachyonConf conf) throws IOException;
 }
