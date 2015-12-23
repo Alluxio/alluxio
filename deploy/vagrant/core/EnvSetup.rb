@@ -199,13 +199,6 @@ end
 
 class HadoopVersion
   def initialize(yml)
-    apache_url = "http://archive.apache.org/dist/hadoop/common/hadoop-%{Version}/hadoop-%{Version}.tar.gz"
-    cdh_url = "https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/%{Version}/hadoop-dist-%{Version}.tar.gz"
-    @url_template = {
-      "apache" => apache_url,
-      "cdh"    => cdh_url,
-    }
-
     @type = ''
     @version = ''
     @spark_profile = ''
@@ -223,6 +216,18 @@ class HadoopVersion
       exit(1)
     end
     @spark_profile = yml['SparkProfile'] or @spark_profile
+
+    apache_url = "http://archive.apache.org/dist/hadoop/common/hadoop-%{Version}/hadoop-%{Version}.tar.gz"
+    cdh_url = "https://repository.cloudera.com/cloudera/cloudera-repos/org/apache/hadoop/hadoop-dist/%{Version}/hadoop-dist-%{Version}.tar.gz"
+    # cdh repository is different for cdh5
+    if @version.include?('cdh5')
+      cdh_url = "https://archive.cloudera.com/cdh5/cdh/5/hadoop-%{Version}.tar.gz"
+    end
+    @url_template = {
+      "apache" => apache_url,
+      "cdh"    => cdh_url,
+    }
+
   end
 
   def tarball_url
