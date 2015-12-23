@@ -87,13 +87,17 @@ public class ApplicationMasterTest {
       (int) CONF.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU = CONF.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
   private static final Map<String, LocalResource> EXPECTED_LOCAL_RESOURCES = Maps.newHashMap();
+
   static {
     EXPECTED_LOCAL_RESOURCES.put(
         (String) Whitebox.getInternalState(ApplicationMaster.class, "TACHYON_TARBALL"),
         Records.newRecord(LocalResource.class));
-    EXPECTED_LOCAL_RESOURCES.put(Utils.TACHYON_SETUP_SCRIPT, Records.newRecord(LocalResource.class));
+    EXPECTED_LOCAL_RESOURCES.put(Utils.TACHYON_SETUP_SCRIPT,
+        Records.newRecord(LocalResource.class));
   }
-  private static String ENV_CLASSPATH = Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
+
+  private static final String ENV_CLASSPATH =
+      Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
   private static final String EXPECTED_WORKER_COMMAND = "test-worker-command";
   private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
       ImmutableMap.<String, String>builder()
@@ -150,8 +154,10 @@ public class ApplicationMasterTest {
         .when(
             Utils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
         .thenReturn(Records.newRecord(LocalResource.class));
-    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_MASTER)).thenReturn(EXPECTED_MASTER_COMMAND);
-    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_WORKER)).thenReturn(EXPECTED_WORKER_COMMAND);
+    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_MASTER))
+        .thenReturn(EXPECTED_MASTER_COMMAND);
+    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_WORKER))
+        .thenReturn(EXPECTED_WORKER_COMMAND);
 
     mMaster.start();
   }
