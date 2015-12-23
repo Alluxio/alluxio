@@ -77,7 +77,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . ${TACHYON_LIBEXEC_DIR}/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <STORE|NO_STORE> <SYNC_PERSIST|NO_PERSIST>"
+  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <CACHE_PROMOTE|CACHE|NO_CACHE> <MUST_CACHE|CACHE_THROUGH|THROUGH>"
 
   if [[ $# -ne 3 ]]; then
     echo ${Usage}
