@@ -45,6 +45,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
       Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE);
 
   /**
+   * Creates a new instance of {@link RecomputeExecutor}.
+   *
    * @param planner recompute planner
    */
   public RecomputeExecutor(RecomputePlanner planner, FileSystemMaster fileSystemMaster) {
@@ -77,6 +79,11 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   final class RecomputeLauncher implements Runnable {
     private RecomputePlan mPlan;
 
+    /**
+     * Creates a new instance of {@link RecomputeLauncher}.
+     *
+     * @param plan the recompute plan
+     */
     RecomputeLauncher(RecomputePlan plan) {
       mPlan = Preconditions.checkNotNull(plan);
     }
