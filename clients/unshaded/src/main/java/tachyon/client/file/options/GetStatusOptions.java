@@ -15,7 +15,10 @@
 
 package tachyon.client.file.options;
 
-public class GetStatusOptions {
+import tachyon.annotation.PublicApi;
+
+@PublicApi
+public final class GetStatusOptions {
   public static GetStatusOptions defaults() {
     return new GetStatusOptions();
   }

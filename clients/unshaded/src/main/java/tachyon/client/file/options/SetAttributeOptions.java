@@ -16,10 +16,13 @@
 package tachyon.client.file.options;
 
 import com.google.common.base.Preconditions;
+
+import tachyon.annotation.PublicApi;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
-public class SetAttributeOptions {
+@PublicApi
+public final class SetAttributeOptions {
   /**
    * @return the default {@link SetStateOptions}
    */

@@ -15,10 +15,12 @@
 
 package tachyon.client.file.options;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.CompleteFileTOptions;
 
+@PublicApi
 public final class CompleteFileOptions {
   public static class Builder {
     private long mUfsLength;
