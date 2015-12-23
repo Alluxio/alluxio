@@ -369,7 +369,7 @@ public class OSSUnderFileSystem extends UnderFileSystem {
         return mOssClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException e) {
-      LOG.warn("Failed to get Object {}, return null", key);
+      LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
 
