@@ -35,7 +35,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     private boolean mPinned;
 
     /**
-     * Creates a new instance of {@link Builder}.
+     * Creates a new builder for {@link Inode}.
      */
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();

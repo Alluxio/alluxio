@@ -43,6 +43,8 @@ public final class JournalTailer {
   private long mLatestSequenceNumber = 0;
 
   /**
+   * Creates a new instance of {@link JournalTailer}.
+   *
    * @param master the master to apply the journal entries to
    * @param journal the journal to tail
    */
@@ -83,7 +85,7 @@ public final class JournalTailer {
    *
    * @param applyToMaster if true, apply all the checkpoint events to the master. Otherwise, simply
    *        open the checkpoint file.
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
     // Load the checkpoint file.
@@ -109,7 +111,7 @@ public final class JournalTailer {
    * {@link #processJournalCheckpoint(boolean)} must have been called previously.
    *
    * @return the number of completed log files processed
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public int processNextJournalLogFiles() throws IOException {
     int numFilesProcessed = 0;
