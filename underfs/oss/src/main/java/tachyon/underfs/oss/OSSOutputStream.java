@@ -87,26 +87,49 @@ public class OSSOutputStream extends OutputStream {
     mClosed = false;
   }
 
+  /**
+   * Writes the specified bytes to this output stream.
+   * Before close, the bytes are all writen to local file
+   */
   @Override
   public void write(int b) throws IOException {
     mLocalOutputStream.write(b);
   }
 
+  /**
+   * Writes b.length bytes from the specified byte array to this output stream.
+   * Before close, the bytes are all writen to local file
+   */
   @Override
   public void write(byte[] b) throws IOException {
     mLocalOutputStream.write(b, 0, b.length);
   }
 
+  /**
+   * Writes len bytes from the specified byte array starting at offset off to this output stream
+   * Before close, the bytes are all writen to local file
+   */
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     mLocalOutputStream.write(b, off, len);
   }
 
+  /**
+   * Flushes this output stream and forces any buffered
+   * output bytes to be written out.
+   * Before close, the data are flushed to local file
+   */
   @Override
   public void flush() throws IOException {
     mLocalOutputStream.flush();
   }
 
+  /**
+   * Closing the OSSOutputStream is the place that do the real
+   * upload from local temp file to OSS Service
+   * After closed, the file will uploaded to OSS and the local
+   * temp file will be deleted
+   */
   @Override
   public void close() throws IOException {
     if (mClosed) {
@@ -119,7 +142,6 @@ public class OSSOutputStream extends OutputStream {
           new FileInputStream(mFile));
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(mFile.length());
-      // TODO(luoli523) confirm Object MD5 with OSS Team
       if (mHash != null) {
         byte[] hashBytes = mHash.digest();
         objMeta.setContentMD5(new String(
