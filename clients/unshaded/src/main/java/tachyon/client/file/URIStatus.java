@@ -103,14 +103,15 @@ public class URIStatus {
   }
 
   /**
-   * @return the entire path component of the entity referenced by this uri
+   * @return the entire path component of the entity referenced by this uri, mutable
    */
   public String getPath() {
     return mInfo.getPath();
   }
 
   /**
-   * @return the int representation of the ACL permissions of the entity referenced by this uri
+   * @return the int representation of the ACL permissions of the entity referenced by this uri,
+   *         mutable
    */
   public int getPermission() {
     return mInfo.getPermission();
@@ -118,21 +119,21 @@ public class URIStatus {
 
   /**
    * @return the time-to-live in milliseconds since the creation time of the entity referenced by
-   *         this uri
+   *         this uri, mutable
    */
   public long getTtl() {
     return mInfo.getTtl();
   }
 
   /**
-   * @return the uri of the under storage location of the entity referenced by this uri
+   * @return the uri of the under storage location of the entity referenced by this uri, mutable
    */
   public String getUfsPath() {
     return mInfo.getUfsPath();
   }
 
   /**
-   * @return the user which owns the entity referenced by this uri
+   * @return the user which owns the entity referenced by this uri, mutable
    */
   public String getUsername() {
     return mInfo.getUserName();
