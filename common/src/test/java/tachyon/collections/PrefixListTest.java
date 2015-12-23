@@ -33,7 +33,7 @@ public final class PrefixListTest {
    */
   @Test
   public void emptyPrefixTest() {
-    PrefixList prefixList = new PrefixList(ImmutableList.<String>of(""));
+    PrefixList prefixList = new PrefixList(ImmutableList.of(""));
     Assert.assertTrue(prefixList.inList("a"));
 
     Assert.assertTrue(prefixList.outList(""));
@@ -44,7 +44,7 @@ public final class PrefixListTest {
    */
   @Test
   public void prefixListTest() {
-    PrefixList prefixList = new PrefixList(ImmutableList.<String>of("test", "apple", "sun"));
+    PrefixList prefixList = new PrefixList(ImmutableList.of("test", "apple", "sun"));
     Assert.assertTrue(prefixList.inList("test"));
     Assert.assertTrue(prefixList.inList("apple"));
     Assert.assertTrue(prefixList.inList("sun"));
