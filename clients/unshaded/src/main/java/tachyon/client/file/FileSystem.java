@@ -38,7 +38,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -174,50 +173,50 @@ interface FileSystem {
    * Convenience method for get status with default options.
    *
    * @param path the path to obtain information about
-   * @return the {@link PathStatus} of the file
+   * @return the {@link URIStatus} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
    */
-  PathStatus getStatus(TachyonURI path) throws FileDoesNotExistException, IOException;
+  URIStatus getStatus(TachyonURI path) throws FileDoesNotExistException, IOException;
 
   /**
-   * Gets the {@link PathStatus} object that represents the metadata of a Tachyon path.
+   * Gets the {@link URIStatus} object that represents the metadata of a Tachyon path.
    *
    * @param path the path to obtain information about
    * @param options options to associate with this operation
-   * @return the {@link PathStatus} of the file
+   * @return the {@link URIStatus} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
    */
-  PathStatus getStatus(TachyonURI path, GetStatusOptions options)
+  URIStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException;
 
   /**
    * Convenience method for list status with default options.
    *
    * @param path the path to list information about
-   * @return a list of {@link PathStatus}s representing the paths which are children of the given
+   * @return a list of {@link URIStatus}s representing the paths which are children of the given
    * path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  List<FileInfo> listStatus(TachyonURI path)
+  List<URIStatus> listStatus(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * If the path is a directory, returns the {@link PathStatus} of all the direct entries in it.
-   * Otherwise returns the {@link PathStatus} for the file.
+   * If the path is a directory, returns the {@link URIStatus} of all the direct entries in it.
+   * Otherwise returns the {@link URIStatus} for the file.
    *
    * @param path the path to list information about
    * @param options options to associate with this operation
-   * @return a list of {@link PathStatus}s representing the paths which are children of the given
+   * @return a list of {@link URIStatus}s representing the paths which are children of the given
    * path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  List<FileInfo> listStatus(TachyonURI path, ListStatusOptions options)
+  List<URIStatus> listStatus(TachyonURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
