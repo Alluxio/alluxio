@@ -75,8 +75,8 @@ public class OSSUnderFileSystem extends UnderFileSystem {
         "Property " + Constants.OSS_SECRET_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(tachyonConf.containsKey(Constants.OSS_ENDPOINT_KEY),
         "Property " + Constants.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = Constants.OSS_ACCESS_KEY;
-    mAccessKey = Constants.OSS_SECRET_KEY;
+    mAccessId = tachyonConf.get(Constants.OSS_ACCESS_KEY);
+    mAccessKey = tachyonConf.get(Constants.OSS_SECRET_KEY);
     mBucketName = bucketName;
     mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
     mEndPoint = tachyonConf.get(Constants.OSS_ENDPOINT_KEY);
@@ -106,23 +106,23 @@ public class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
-      return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path),mOssClient);
+      return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mOssClient);
     }
     return null;
   }
 
   @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("Create with block size is not supported with OSSUnderFileSystem. Block size will be "
-        + "ignored.");
+    LOG.warn("blocksize is not supported with OSSUnderFileSystem. Block size will be ignored.");
     return create(path);
   }
 
   @Override
   public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    LOG.warn("Create with block size is not supported with OSSUnderFileSystem. Block size will be "
-        + "ignored.");
+    LOG.warn(
+        "blocksize and replication is not supported with OSSUnderFileSystem. Will be ignored.");
     return create(path);
   }
 
@@ -369,6 +369,7 @@ public class OSSUnderFileSystem extends UnderFileSystem {
         return mOssClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException e) {
+      LOG.warn("Failed to get Object {}, return null", key);
       return null;
     }
 
@@ -392,7 +393,7 @@ public class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Set the OSS Client Configuration
+   * Sets the OSS Client Configuration
    * @param tachyonConf The TachyonConf
    * @return The {@link ClientConfiguration} hold the OSS Client config
    */
@@ -490,7 +491,7 @@ public class OSSUnderFileSystem extends UnderFileSystem {
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
-      LOG.error("Failed to list path {}", path);
+      LOG.error("Failed to list path {}", path, e);
       return null;
     }
   }
@@ -544,6 +545,18 @@ public class OSSUnderFileSystem extends UnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isFolder(parentKey);
+  }
+
+  /**
+   * If the path passed to this filesystem is not an URI path, then add oss prefix
+   * @param path the path to process
+   * @return the path with oss prefix
+   */
+  private String toURIPath(String path) {
+    if (!path.startsWith(Constants.HEADER_OSS)) {
+      path = Constants.HEADER_OSS + mBucketName + path;
+    }
+    return path;
   }
 
   /**
