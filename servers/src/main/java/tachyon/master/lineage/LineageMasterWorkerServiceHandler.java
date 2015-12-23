@@ -31,6 +31,11 @@ import tachyon.thrift.TachyonTException;
 public final class LineageMasterWorkerServiceHandler implements LineageMasterWorkerService.Iface {
   private final LineageMaster mLineageMaster;
 
+  /**
+   * Creates a new instance of {@link LineageMasterWorkerServiceHandler}.
+   *
+   * @param lineageMaster the {@link LineageMaster} the handler uses internally
+   */
   public LineageMasterWorkerServiceHandler(LineageMaster lineageMaster) {
     Preconditions.checkNotNull(lineageMaster);
     mLineageMaster = lineageMaster;

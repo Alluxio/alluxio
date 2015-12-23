@@ -121,7 +121,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Creates the lineage master.
+   * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
    * @param journal the journal
@@ -428,7 +428,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Polls the files to send to the given worker for checkpoint
+   * Polls the files to send to the given worker for checkpoint.
    *
    * @param workerId the worker id
    * @return the list of files
@@ -469,7 +469,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Request a list of files as being persisted
+   * Requests that a list of files is persisted.
    *
    * @param fileIds the id of the files
    * @throws LineageDoesNotExistException if the lineage does not exist
