@@ -15,9 +15,6 @@
 
 package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
-
-@PublicApi
 /**
  * This interface should be implemented by all Tachyon option builders for client-side operations.
  */
