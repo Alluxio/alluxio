@@ -50,7 +50,6 @@ import tachyon.underfs.UnderFileSystem;
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
-  private static final long SLEEP_TIME = 0;
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
@@ -125,16 +124,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public FSDataOutputStream create(String path) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (true) {
+    while (retryPolicy.attemptRetry()) {
       try {
         LOG.debug("Creating HDFS file at {}", path);
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
-        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage() , e);
+        LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
-        if (!retryPolicy.attemptRetry()) {
-          break;
-        }
       }
     }
     throw te;
@@ -176,13 +172,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("deleting {} {}", path, recursive);
     IOException te = null;
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
       try {
         return mFs.delete(new Path(path), recursive);
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} : {}", cnt, e.getMessage(), e);
+        LOG.error("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
       }
     }
@@ -192,13 +187,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     IOException te = null;
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
       try {
         return mFs.exists(new Path(path));
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} try to check if {} exists : {}", cnt, path, e.getMessage(), e);
+        LOG.error("{} try to check if {} exists : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage(), e);
         te = e;
       }
     }
@@ -243,15 +238,15 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    int cnt = 0;
     Path tPath = new Path(path);
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
       try {
         FileStatus fs = mFs.getFileStatus(tPath);
         return fs.getLen();
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} try to get file size for {} : {}", cnt, path, e.getMessage(), e);
+        LOG.error("{} try to get file size for {} : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage(), e);
       }
     }
     return -1;
@@ -349,8 +344,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     IOException te = null;
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
       try {
         Path hdfsPath = new Path(path);
         if (mFs.exists(hdfsPath)) {
@@ -373,8 +368,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         }
         return true;
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} try to make directory for {} : {}", cnt, path, e.getMessage(), e);
+        LOG.error("{} try to make directory for {} : {}", retryPolicy.getRetryCount(), path,
+            e.getMessage(), e);
         te = e;
       }
     }
@@ -384,13 +379,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataInputStream open(String path) throws IOException {
     IOException te = null;
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
       try {
         return mFs.open(new Path(path));
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} try to open {} : {}", cnt, path, e.getMessage(), e);
+        LOG.error("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage(), e);
         te = e;
       }
     }
@@ -410,14 +404,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       return false;
     }
 
-    int cnt = 0;
     IOException te = null;
-    while (cnt < MAX_TRY) {
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    while (retryPolicy.attemptRetry()) {
       try {
         return mFs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
-        cnt ++;
-        LOG.error("{} try to rename {} to {} : {}", cnt, src, dst, e.getMessage(), e);
+        LOG.error("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
+            e.getMessage(), e);
         te = e;
       }
     }
