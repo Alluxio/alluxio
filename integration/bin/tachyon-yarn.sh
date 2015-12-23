@@ -1,18 +1,17 @@
 #!/bin/bash
 #
 # Usage:
-#  tachyon-yarn.sh <deployTachyonHome> <numWorkers> <pathHdfs>
+#  tachyon-yarn.sh <numWorkers> <pathHdfs>
 
 function printUsage {
-  echo "Usage: tachyon-yarn.sh <deployTachyonHome> <numWorkers> <pathHdfs>"
-  echo -e "  deployTachyonHome \tHome directory of Tachyon deployment on YARN slave machines"
+  echo "Usage: tachyon-yarn.sh <numWorkers> <pathHdfs>"
   echo -e "  numWorkers        \tNumber of Tachyon workers to launch"
-  echo -e "  pathHdfs          \tpath on HDFS to put tachyon jar and distribute it to YARN"
+  echo -e "  pathHdfs          \tPath on HDFS to put tachyon jar and distribute it to YARN"
   echo
-  echo "Example: ./tachyon-yarn.sh /path/to/tachyon/deployment 10 hdfs://NAMENODE:9000/tmp/"
+  echo "Example: ./tachyon-yarn.sh 10 hdfs://localhost:9000/tmp/"
 }
 
-if [ "$#" != 3 ]; then
+if [ "$#" != 2 ]; then
   printUsage
   exit 1
 fi
@@ -25,20 +24,37 @@ else
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+TACHYON_HOME="$(cd "${SCRIPT_DIR}/../.."; pwd)"
+
 source "${SCRIPT_DIR}/common.sh"
 
-DEPLOY_TACHYON_HOME=$1
-NUM_WORKERS=$2
-PATH_HDFS=$3
+NUM_WORKERS=$1
+HDFS_PATH=$2
+TACHYON_TARFILE="tachyon.tar.gz"
+rm -rf $TACHYON_TARFILE
+tar -C $TACHYON_HOME -zcf $TACHYON_TARFILE \
+  assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar libexec \
+  servers/src/main/webapp \
+  bin conf integration/bin/common.sh integration/bin/tachyon-master-yarn.sh \
+  integration/bin/tachyon-worker-yarn.sh \
+  integration/bin/tachyon-application-master.sh \
 
-JAR_LOCAL=${DEPLOY_TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
-JAR_HDFS=${PATH_HDFS}/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
+JAR_LOCAL=${TACHYON_HOME}/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar
 
-${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${JAR_HDFS}
+echo "Uploading files to HDFS to distribute tachyon runtime"
+
+${HADOOP_HOME}/bin/hadoop fs -put -f ${TACHYON_TARFILE} ${HDFS_PATH}/$TACHYON_TARFILE
+${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/tachyon.jar
+${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-yarn-setup.sh ${HDFS_PATH}/tachyon-yarn-setup.sh
+${HADOOP_HOME}/bin/hadoop fs -put -f ./tachyon-application-master.sh ${HDFS_PATH}/tachyon-application-master.sh
+
+echo "Starting YARN client to launch Tachyon on YARN"
 
 # Add Tachyon java options to the yarn options so that tachyon.yarn.Client can be configured via
 # tachyon java options
-export YARN_OPTS="${YARN_OPTS} ${TACHYON_JAVA_OPTS}"
+export YARN_OPTS="${YARN_OPTS:-${TACHYON_JAVA_OPTS}}"
 
-${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client -jar ${JAR_HDFS} \
-    -num_workers $NUM_WORKERS -tachyon_home ${DEPLOY_TACHYON_HOME} -master_address ${TACHYON_MASTER_ADDRESS:-localhost}
+${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
+    -num_workers $NUM_WORKERS \
+    -master_address localhost \
+    -resource_path ${HDFS_PATH}
