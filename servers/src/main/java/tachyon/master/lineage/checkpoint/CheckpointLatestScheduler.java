@@ -27,7 +27,8 @@ import tachyon.master.lineage.meta.LineageStoreView;
 public final class CheckpointLatestScheduler implements CheckpointScheduler {
 
   /**
-   * CheckpointLatestScheduler does not use the lineage store view.
+   * Creates a new instance of {@link CheckpointLatestScheduler}, which does not use the lineage
+   * store view.
    *
    * @param storeView view of a lineage store
    */
