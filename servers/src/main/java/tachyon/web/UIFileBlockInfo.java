@@ -27,14 +27,19 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 
-public final class UiBlockInfo {
+public final class UIFileBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
   private final Set<String> mTierAliases = new HashSet<String>();
   private final long mId;
   private final long mBlockLength;
   private final long mLastAccessTimeMs;
 
-  public UiBlockInfo(FileBlockInfo fileBlockInfo) {
+  /**
+   * Creates a new instance of {@link UIFileBlockInfo}.
+   *
+   * @param fileBlockInfo underlying {@link FileBlockInfo}
+   */
+  public UIFileBlockInfo(FileBlockInfo fileBlockInfo) {
     Preconditions.checkNotNull(fileBlockInfo);
     mId = fileBlockInfo.getBlockInfo().getBlockId();
     mBlockLength = fileBlockInfo.getBlockInfo().getLength();
@@ -45,7 +50,15 @@ public final class UiBlockInfo {
     }
   }
 
-  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, String tierAlias) {
+  /**
+   * Creates a new instance of {@link UIFileBlockInfo}.
+   *
+   * @param blockId the block id
+   * @param blockLength the block length
+   * @param blockLastAccessTimeMs the block last access time in milliseconds
+   * @param tierAlias the tier alias of the block
+   */
+  public UIFileBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, String tierAlias) {
     mId = blockId;
     mBlockLength = blockLength;
     mLastAccessTimeMs = blockLastAccessTimeMs;
@@ -72,18 +85,30 @@ public final class UiBlockInfo {
     return mTierAliases.contains(tierAlias);
   }
 
+  /**
+   * @return the block length
+   */
   public long getBlockLength() {
     return mBlockLength;
   }
 
+  /**
+   * @return the block id
+   */
   public long getID() {
     return mId;
   }
 
+  /**
+   * @return the block last access time in milliseconds
+   */
   public long getLastAccessTimeMs() {
     return mLastAccessTimeMs;
   }
 
+  /**
+   * @return the block locations
+   */
   public List<String> getLocations() {
     return mLocations;
   }
