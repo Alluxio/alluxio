@@ -86,4 +86,9 @@ public final class CountCommand extends AbstractTfsShellCommand {
     }
     return rtn;
   }
+
+  @Override
+  public String getUsage() {
+    return "count <path>";
+  }
 }
