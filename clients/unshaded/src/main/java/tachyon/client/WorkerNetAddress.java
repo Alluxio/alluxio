@@ -13,49 +13,55 @@
  * the License.
  */
 
-package tachyon.client.block;
-
-import com.google.common.base.Preconditions;
+package tachyon.client;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.WorkerNetAddress;
 
 /**
- * Information of an active block worker.
+ * The network of a worker.
  */
 @PublicApi
-public final class BlockWorkerInfo {
-  private final WorkerNetAddress mNetAddress;
-  private final long mCapacityBytes;
-  private final long mUsedBytes;
+public final class WorkerNetAddress {
+  private final String mHost;
+  private final int mRpcPort;
+  private final int mDataPort;
+  private final int mWebPort;
 
   /**
-   * Constructs the block worker information.
+   * Constructs the worker net address.
    */
-  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
-    mNetAddress = Preconditions.checkNotNull(netAddress);
-    mCapacityBytes = capacityBytes;
-    mUsedBytes = usedBytes;
+  public WorkerNetAddress(String host, int rpcPort, int dataPort, int webPort) {
+    mHost = host;
+    mRpcPort = rpcPort;
+    mDataPort = dataPort;
+    mWebPort = webPort;
   }
 
   /**
-   * @return the address of the worker
+   * @return the host of the worker.
    */
-  public WorkerNetAddress getNetAddress() {
-    return mNetAddress;
+  public String getHost() {
+    return mHost;
   }
 
   /**
-   * @return the capacity of the worker in bytes
+   * @return the RPC port.
    */
-  public long getCapacityBytes() {
-    return mCapacityBytes;
+  public int getRpcPort() {
+    return mRpcPort;
   }
 
   /**
-   * @return the used bytes of the worker
+   * @return the data port.
    */
-  public long getUsedBytes() {
-    return mUsedBytes;
+  public int getDataPort() {
+    return mDataPort;
+  }
+
+  /**
+   * @return the web port.
+   */
+  public int getWebPort() {
+    return mWebPort;
   }
 }

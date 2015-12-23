@@ -40,7 +40,8 @@ public interface FileWriteLocationPolicy {
    *
    * @param workerInfoList the info of the active workers
    * @param the size of the block in bytes
-   * @return the host name of worker to write to
+   * @return the information of worker to write to
    */
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes);
+  public BlockWorkerInfo getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+      long blockSizeBytes);
 }

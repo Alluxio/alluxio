@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.worker.WorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -93,8 +94,11 @@ public final class TachyonBlockStore {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
-        infoList.add(new BlockWorkerInfo(workerInfo.getAddress().getHost(),
-            workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
+        WorkerNetAddress address = new WorkerNetAddress(workerInfo.getAddress().getHost(),
+            workerInfo.getAddress().getRpcPort(), workerInfo.getAddress().getDataPort(),
+            workerInfo.getAddress().getWebPort());
+        infoList.add(
+            new BlockWorkerInfo(address, workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
       }
       return infoList;
     } finally {
@@ -154,8 +158,8 @@ public final class TachyonBlockStore {
    * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
    *
    * @param blockId the block to write
-   * @param blockSize the standard block size to write, or -1 if the block already exists (and
-   *                  this stream is just storing the block in Tachyon again)
+   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
+   *        stream is just storing the block in Tachyon again)
    * @param location the worker to write the block to, fails if the worker cannot serve the request
    * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
