@@ -260,6 +260,8 @@ class HadoopVersion
     elsif @type == 'cdh'
       if @version.start_with?('2') and @version.include?('cdh4')
         suffix = 'cdh4'
+      elsif @version.start_with?('2') and @version.include?('cdh5')
+        suffix = 'cdh5'
       else
         puts errmsg
         exit(1)
