@@ -65,7 +65,6 @@ public final class LeaderInquireClient {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
-    LOG.info("create new zookeeper client. address: {}", mZookeeperAddress);
     mClient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
@@ -110,7 +109,7 @@ public final class LeaderInquireClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
-      LOG.error("Error with zookeeper: {} message: {}", mZookeeperAddress, e.getMessage());
+      LOG.error(e.getMessage(), e);
     }
 
     return null;
