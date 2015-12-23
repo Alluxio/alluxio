@@ -33,6 +33,9 @@ import tachyon.thrift.FileInfo;
 public final class InodeDirectory extends Inode {
   public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
 
+    /**
+     * Creates a new instance of {@link Builder}.
+     */
     public Builder() {
       super();
       mDirectory = true;
@@ -88,7 +91,7 @@ public final class InodeDirectory extends Inode {
    * Generates client file info for the folder.
    *
    * @param path the path of the folder in the filesystem
-   * @return the generated FileInfo
+   * @return the generated {@link FileInfo}
    */
   @Override
   public FileInfo generateClientFileInfo(String path) {
