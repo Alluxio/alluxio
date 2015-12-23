@@ -187,7 +187,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * There is no concept of a block in Swift, however the maximum allowed size of
    * one object is currently 4 GB.
-   *
    * @param path to the object
    * @return 4 GB in bytes
    * @throws IOException this implementation will not throw this exception, but subclasses may
@@ -247,7 +246,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /* @inheritDoc
    * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
-   *
    * There is no notion of directories in Swift.
    * The content of containers are objects.
    * Object name may contain nested structure like a/b/c/d.data
@@ -286,7 +284,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * Copies an object to another name.
-   *
    * @param src the source key to copy
    * @param dst the destination key to copy to
    * @return true if the operation was successful, false otherwise
@@ -307,7 +304,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Lists the files in the given path, the paths will be their logical names
    * and not contain the folder suffix.
-   *
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
@@ -340,7 +336,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Strips the folder suffix if it exists. This is a string manipulation utility
    * and does not guarantee the existence of the folder. This method will leave
    * keys without a suffix unaltered.
-   *
    * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix
    *         is not present
@@ -357,7 +352,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * input key swift://my-container-name/my-path/file, the output would be
    * my-path/file. This method will leave keys without a prefix unaltered, ie.
    * my-path/file returns my-path/file.
-   *
    * @param path the key to strip
    * @return the key without the Swift container prefix
    */
@@ -370,7 +364,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * input key swift://my-container-name/my-path/file, the output would be
    * my-path/file. This method will leave keys without a prefix unaltered, ie.
    * my-path/file returns my-path/file.
-   *
    * @param path the key to strip
    * @param prefix prefix to remove
    * @return the key without the Swift container prefix

@@ -32,7 +32,6 @@ import tachyon.underfs.swift.SwiftOutputStream;
 /**
  * Contains direct calls to OpenStack Swift.
  * This is needed to bypass certain limitations in the JOSS package.
- *
  */
 public class SwiftDirectClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
