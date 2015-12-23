@@ -44,6 +44,7 @@ import tachyon.worker.lineage.LineageWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
+
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
 
