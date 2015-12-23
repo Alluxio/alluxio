@@ -30,6 +30,9 @@ public class PairTest {
   private static final Character CHAR_TYPE = 'a';
   private Object[] mObjs = new Object[6];
 
+  /**
+   * Tests the {@link Pair} constructor.
+   */
   @Test
   public void constructorTest() {
     mObjs[0] = STR_TYPE;
