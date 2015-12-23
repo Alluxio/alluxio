@@ -34,6 +34,9 @@ public abstract class Inode implements JournalEntryRepresentable {
     private PermissionStatus mPermissionStatus;
     private boolean mPinned;
 
+    /**
+     * Creates a new instance of {@link Builder}.
+     */
     public Builder() {
       mCreationTimeMs = System.currentTimeMillis();
       mDirectory = false;
@@ -46,41 +49,73 @@ public abstract class Inode implements JournalEntryRepresentable {
       mPermissionStatus = null;
     }
 
+    /**
+     * @param creationTimeMs the creation time to use
+     * @return the builder
+     */
     public T setCreationTimeMs(long creationTimeMs) {
       mCreationTimeMs = creationTimeMs;
       return getThis();
     }
 
+    /**
+     * @param id the inode id to use
+     * @return the builder
+     */
     public T setId(long id) {
       mId = id;
       return getThis();
     }
 
+    /**
+     * @param lastModificationTimeMs the last modification time to use
+     * @return the builder
+     */
     public T setLastModificationTimeMs(long lastModificationTimeMs) {
       mLastModificationTimeMs = lastModificationTimeMs;
       return getThis();
     }
 
+    /**
+     * @param name the name to use
+     * @return the builder
+     */
     public T setName(String name) {
       mName = name;
       return getThis();
     }
 
+    /**
+     * @param parentId the parent id to use
+     * @return the builder
+     */
     public T setParentId(long parentId) {
       mParentId = parentId;
       return getThis();
     }
 
+    /**
+     * @param persisted the persistence flag to use
+     * @return the builder
+     */
     public T setPersisted(boolean persisted) {
       mPersisted = persisted;
       return getThis();
     }
 
+    /**
+     * @param ps the permission status to use
+     * @return the builder
+     */
     public T setPermissionStatus(PermissionStatus ps) {
       mPermissionStatus = ps;
       return getThis();
     }
 
+    /**
+     * @param pinned the pinned flag to use
+     * @return the builder
+     */
     public T setPinned(boolean pinned) {
       mPinned = pinned;
       return getThis();
@@ -244,34 +279,36 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Marks the inode as deleted
+   * Sets the deleted flag of the inode.
+   *
+   * @param deleted the deleted flag to use
    */
   public synchronized void setDeleted(boolean deleted) {
     mDeleted = deleted;
   }
 
   /**
-   * Sets the last modification time of the inode
+   * Sets the last modification time of the inode.
    *
-   * @param lastModificationTimeMs The last modification time, in milliseconds
+   * @param lastModificationTimeMs the last modification time, in milliseconds
    */
   public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
   /**
-   * Sets the name of the inode
+   * Sets the name of the inode.
    *
-   * @param name The new name of the inode
+   * @param name the new name of the inode
    */
   public synchronized void setName(String name) {
     mName = name;
   }
 
   /**
-   * Sets the parent folder of the inode
+   * Sets the parent folder of the inode.
    *
-   * @param parentId The new parent
+   * @param parentId the new parent
    */
   public synchronized void setParentId(long parentId) {
     mParentId = parentId;
@@ -287,7 +324,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the pinned flag of the inode
+   * Sets the pinned flag of the inode.
    *
    * @param pinned If true, the inode need pinned, and a pinned file is never evicted from memory
    */
