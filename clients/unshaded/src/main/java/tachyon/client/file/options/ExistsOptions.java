@@ -15,7 +15,10 @@
 
 package tachyon.client.file.options;
 
-public class ExistsOptions {
+import tachyon.annotation.PublicApi;
+
+@PublicApi
+public final class ExistsOptions {
   public static ExistsOptions defaults() {
     return new ExistsOptions();
   }
