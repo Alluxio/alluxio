@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
-import tachyon.collections.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.UnderFileSystemUtils;
@@ -56,13 +56,13 @@ public class UfsUtilsIntegrationTest {
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
-      if (!mUfs.exists(exclusion)) {
+      if (!mUfs.exists(mUfsRoot + exclusion)) {
         mUfs.mkdirs(mUfsRoot + exclusion, true);
       }
     }
 
     for (String inclusion : inclusions) {
-      if (!mUfs.exists(inclusion)) {
+      if (!mUfs.exists(mUfsRoot + inclusion)) {
         mUfs.mkdirs(mUfsRoot + inclusion, true);
       }
       UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
