@@ -47,7 +47,7 @@ public final class InodeFile extends Inode {
     private long mTTL;
 
     /**
-     * Creates a new instance of {@link Builder}.
+     * Creates a new builder for {@link InodeFile}.
      */
     public Builder() {
       super();

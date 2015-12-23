@@ -34,7 +34,7 @@ public final class InodeDirectory extends Inode {
   public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
 
     /**
-     * Creates a new instance of {@link Builder}.
+     * Creates a new builder for {@link InodeDirectory}.
      */
     public Builder() {
       super();
