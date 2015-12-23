@@ -32,6 +32,7 @@ import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.DirectoryNotEmptyException;
@@ -340,7 +341,7 @@ interface FileSystem {
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  void setAttribute(TachyonURI path, SetStateOptions options)
+  void setAttribute(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
