@@ -78,7 +78,7 @@ public class TachyonConfTest {
   }
 
   /**
-   * Tests the default properties.
+   * Tests the default common properties.
    */
   @Test
   public void commonDefaultTest() {
