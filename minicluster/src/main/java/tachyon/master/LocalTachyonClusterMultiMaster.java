@@ -57,6 +57,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
     try {
       mCuratorServer = new TestingServer();
+      LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -78,6 +79,12 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public LocalTachyonMaster getMaster() {
+    for (LocalTachyonMaster master : mMasters) {
+      // Return the leader master, if possible.
+      if (master.isServing()) {
+        return master;
+      }
+    }
     return mMasters.get(0);
   }
 
@@ -103,7 +110,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       if (!mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is a standby. killing it...", k);
-          mMasters.get(k).stop();
+          mMasters.get(k).kill();
           LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
@@ -120,7 +127,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       if (mMasters.get(k).isServing()) {
         try {
           LOG.info("master {} is the leader. killing it...", k);
-          mMasters.get(k).stop();
+          mMasters.get(k).kill();
           LOG.info("master {} killed.", k);
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
@@ -164,19 +171,13 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   }
 
   @Override
-  protected void setupTest(TachyonConf conf) throws IOException {}
-
-  @Override
   protected void startMaster(TachyonConf conf) throws IOException {
     mMasterConf = conf;
     mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
     mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
     mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-
-    // re-build the dir to set permission to 777
-    deleteDir(mTachyonHome);
-    mkdir(mTachyonHome);
+    MasterContext.reset(mMasterConf);
 
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
@@ -220,6 +221,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasters.get(k).stop();
     }
+    LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
   }
 }
