@@ -39,7 +39,7 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
   public CheckpointSchedulingExcecutor(LineageMaster lineageMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
     mTachyonConf = MasterContext.getConf();
-    mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf,
+    mScheduler = CheckpointScheduler.Factory.create(mTachyonConf,
         mLineageMaster.getLineageStoreView());
   }
 
