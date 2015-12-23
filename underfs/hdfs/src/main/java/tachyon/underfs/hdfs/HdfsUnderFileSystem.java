@@ -41,7 +41,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.RetryPolicy;
-import tachyon.retry.SleepingRetry;
+import tachyon.retry.CountingRetry;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -124,11 +124,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path) throws IOException {
     IOException te = null;
-    RetryPolicy retryPolicy = new SleepingRetry(MAX_TRY) {
-      @Override protected long getSleepTime() {
-        return SLEEP_TIME;
-      }
-    };
+    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (true) {
       try {
         LOG.debug("Creating HDFS file at {}", path);
