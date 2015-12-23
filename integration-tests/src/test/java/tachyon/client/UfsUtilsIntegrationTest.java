@@ -30,6 +30,7 @@ import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.UnderFileSystemUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
@@ -56,14 +57,16 @@ public class UfsUtilsIntegrationTest {
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
-      if (!mUfs.exists(mUfsRoot + exclusion)) {
-        mUfs.mkdirs(mUfsRoot + exclusion, true);
+      String path = PathUtils.concatPath(mUfsRoot, exclusion);
+      if (!mUfs.exists(path)) {
+        mUfs.mkdirs(path, true);
       }
     }
 
     for (String inclusion : inclusions) {
-      if (!mUfs.exists(mUfsRoot + inclusion)) {
-        mUfs.mkdirs(mUfsRoot + inclusion, true);
+      String path = PathUtils.concatPath(mUfsRoot, inclusion);
+      if (!mUfs.exists(path)) {
+        mUfs.mkdirs(path, true);
       }
       UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
           mLocalTachyonClusterResource.get().getMasterTachyonConf());
