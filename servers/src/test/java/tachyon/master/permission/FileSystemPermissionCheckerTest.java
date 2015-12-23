@@ -32,6 +32,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.Inode;
@@ -71,12 +72,14 @@ public class FileSystemPermissionCheckerTest {
    *    /testDir        user1     group1      755
    *    /testDir/file   user1     group1      644
    *    /testFile       user2     group2      644
+   *    /testWeirdFile  user1     group1      046
    */
 
   private static final String TEST_DIR_URI = "/testDir";
   private static final String TEST_DIR_FILE_URI = "/testDir/file";
   private static final String TEST_FILE_URI = "/testFile";
   private static final String TEST_NOT_EXIST_URI = "/testDir/notExistDir/notExistFile";
+  private static final String TEST_WEIRD_FILE_URI = "/testWeirdFile";
 
   private static final PermissionStatus TEST_PERMISSION_STATUS_SUPER =
       new PermissionStatus(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups(), (short)0755);
@@ -84,10 +87,15 @@ public class FileSystemPermissionCheckerTest {
       new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short)0755);
   private static final PermissionStatus TEST_PERMISSION_STATUS_2 =
       new PermissionStatus(TEST_USER_2.getUser(), TEST_USER_2.getGroups(), (short)0755);
+  private static final PermissionStatus TEST_PERMISSION_STATUS_WEIRD =
+      new PermissionStatus(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short)0157);
 
   private static final CreatePathOptions FILE_OPTIONS =
       new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
       .setPermissionStatus(TEST_PERMISSION_STATUS_2).build();
+  private static final CreatePathOptions WEIRD_FILE_OPTIONS =
+      new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+          .setPermissionStatus(TEST_PERMISSION_STATUS_WEIRD).build();
   private static final CreatePathOptions NESTED_FILE_OPTIONS =
       new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
       .setPermissionStatus(TEST_PERMISSION_STATUS_1).setRecursive(true).build();
@@ -123,13 +131,6 @@ public class FileSystemPermissionCheckerTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    // verify initialization
-    resetPermissionChecker();
-    FileSystemPermissionChecker.initializeFileSystem(true, TEST_USER_1.getUser(),
-        TEST_USER_1.getGroups());
-    verifyPermissionChecker(true, TEST_USER_1.getUser(), TEST_USER_1.getGroups());
-    resetPermissionChecker();
-
     // setup an InodeTree
     Journal blockJournal = new ReadWriteJournal(sTestFolder.newFolder().getAbsolutePath());
 
@@ -145,6 +146,8 @@ public class FileSystemPermissionCheckerTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     MasterContext.reset(conf);
     sTree.initializeRoot(TEST_PERMISSION_STATUS_SUPER);
+
+    // verify initialization
     verifyPermissionChecker(true, TEST_PERMISSION_STATUS_SUPER.getUserName(), TEST_SUPER_GROUP);
 
     // verify initializing root twice
@@ -159,20 +162,22 @@ public class FileSystemPermissionCheckerTest {
   private static void createFileAndDirs() throws Exception {
     sTree.createPath(new TachyonURI(TEST_DIR_FILE_URI), NESTED_FILE_OPTIONS);
     sTree.createPath(new TachyonURI(TEST_FILE_URI), FILE_OPTIONS);
+    sTree.createPath(new TachyonURI(TEST_WEIRD_FILE_URI), WEIRD_FILE_OPTIONS);
 
     verifyInodesList(TEST_DIR_FILE_URI.split("/"),
-        sTree.getInodesInPath(new TachyonURI(TEST_DIR_FILE_URI)));
+        sTree.collectInodes(new TachyonURI(TEST_DIR_FILE_URI)));
     verifyInodesList(TEST_FILE_URI.split("/"),
-        sTree.getInodesInPath(new TachyonURI(TEST_FILE_URI)));
-    verifyInodesList(new String[] {"", "testDir", null, null},
-        sTree.getInodesInPath(new TachyonURI(TEST_NOT_EXIST_URI)
-    ));
+        sTree.collectInodes(new TachyonURI(TEST_FILE_URI)));
+    verifyInodesList(TEST_WEIRD_FILE_URI.split("/"),
+        sTree.collectInodes(new TachyonURI(TEST_WEIRD_FILE_URI)));
+    verifyInodesList(new String[]{"", "testDir"},
+        sTree.collectInodes(new TachyonURI(TEST_NOT_EXIST_URI)));
   }
 
   private static void verifyInodesList(String[] expectedInodes, List<Inode> inodes) {
     String[] inodesName = new String[inodes.size()];
     for (int i = 0; i < inodes.size(); i++) {
-      inodesName[i] = inodes.get(i) != null ? inodes.get(i).getName() : null;
+      inodesName[i] = inodes.get(i).getName();
     }
 
     Assert.assertArrayEquals(expectedInodes, inodesName);
@@ -185,14 +190,8 @@ public class FileSystemPermissionCheckerTest {
         "sFileSystemOwner"));
     Assert.assertEquals(group, Whitebox.getInternalState(FileSystemPermissionChecker.class,
         "sFileSystemSuperGroup"));
-  }
-
-  private static void resetPermissionChecker() {
-    Whitebox.setInternalState(FileSystemPermissionChecker.class, "sPermissionCheckEnabled", false);
-    Whitebox.setInternalState(FileSystemPermissionChecker.class, "sFileSystemOwner",
-        (String) null);
-    Whitebox.setInternalState(FileSystemPermissionChecker.class, "sFileSystemSuperGroup",
-        (String) null);
+    Assert.assertEquals(sTree, Whitebox.getInternalState(FileSystemPermissionChecker.class,
+        "sInodeTree"));
   }
 
   @Test
@@ -237,6 +236,15 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
+  public void testCheckFallThrough() throws Exception {
+    // user can not read, but group can
+    checkSelfPermission(TEST_USER_1, FileSystemAction.READ, TEST_WEIRD_FILE_URI);
+
+    // user and group can not write, but other can
+    checkSelfPermission(TEST_USER_1, FileSystemAction.WRITE, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
   public void testParentCheckSuccess() throws Exception {
     checkParentOrAncestorPermission(TEST_USER_1, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
   }
@@ -263,37 +271,23 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testOwnerOfFileOrDir() throws Exception {
-    // file
-    FileSystemPermissionChecker.checkOwner(TEST_USER_2.getUser(),
-        Lists.newArrayList(TEST_USER_2.getGroups().split(",")),
-        sTree.getInodesInPath(new TachyonURI(TEST_FILE_URI)));
-    // dir
-    FileSystemPermissionChecker.checkOwner(TEST_USER_1.getUser(),
-        Lists.newArrayList(TEST_USER_1.getGroups().split(",")),
-        sTree.getInodesInPath(new TachyonURI(TEST_DIR_URI)));
-  }
+  public void testInvalidPath() throws Exception {
+    mThrown.expect(InvalidPathException.class);
 
-  @Test
-  public void testEmptyInodesList() throws Exception {
-    List<Inode> inodes = Lists.newArrayList();
-    mThrown.expect(AssertionError.class);
-
-    FileSystemPermissionChecker.checkSelfPermission(TEST_USER_2.getUser(),
-        Lists.newArrayList(TEST_USER_2.getGroups().split(",")), FileSystemAction.WRITE, inodes);
+    FileSystemPermissionChecker.checkPermission(TEST_USER_2.getUser(),
+        Lists.newArrayList(TEST_USER_2.getGroups().split(",")), FileSystemAction.WRITE,
+        new TachyonURI(TEST_FILE_URI + "/file"));
   }
 
   private void checkSelfPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
-    FileSystemPermissionChecker.checkSelfPermission(user.getUser(),
-        Lists.newArrayList(user.getGroups().split(",")), action,
-        sTree.getInodesInPath(new TachyonURI(path)));
+    FileSystemPermissionChecker.checkPermission(user.getUser(),
+        Lists.newArrayList(user.getGroups().split(",")), action, new TachyonURI(path));
   }
 
   private void checkParentOrAncestorPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
-    FileSystemPermissionChecker.checkParentOrAncestorPermission(user.getUser(),
-        Lists.newArrayList(user.getGroups().split(",")), action,
-        sTree.getInodesInPath(new TachyonURI(path)));
+    FileSystemPermissionChecker.checkParentPermission(user.getUser(), Lists.newArrayList(user
+        .getGroups().split(",")), action, new TachyonURI(path));
   }
 }

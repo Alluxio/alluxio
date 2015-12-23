@@ -18,10 +18,14 @@ package tachyon.master.permission;
 import java.io.IOException;
 import java.util.List;
 
+import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.file.meta.Inode;
+import tachyon.master.file.meta.InodeTree;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.FileSystemPermission;
+import tachyon.util.io.PathUtils;
 
 /**
  * Base class to provide permission check logic.
@@ -35,6 +39,9 @@ public final class FileSystemPermissionChecker {
   /** The super group of Tachyon file system. All users in this group have super permission. */
   private static String sFileSystemSuperGroup;
 
+  /** Used to traverse a path and get all inodes on the path. */
+  private static InodeTree sInodeTree;
+
   /**
    * Initializes the permission related property of the whole Tachyon file system.
    *
@@ -43,70 +50,57 @@ public final class FileSystemPermissionChecker {
    * @param superGroup the super group of the whole Tachyon file system
    */
   public static synchronized void initializeFileSystem(boolean permissionCheckEnabled, String owner,
-      String superGroup) {
+      String superGroup, InodeTree inodeTree) {
     sPermissionCheckEnabled = permissionCheckEnabled;
     sFileSystemOwner = owner;
     sFileSystemSuperGroup = superGroup;
+    sInodeTree = inodeTree;
   }
 
   /**
-   * Checks requested permission on the last node and basic permission on the whole path.
+   * Checks requested permission and basic permission on the parent of the path.
+   * Parent means the parent directory of the path.
+   * If parent directory does not exist, treat the closest ancestor directory of the path as
+   * its parent and check permission on it.
    *
    * @param user who requests access permission
    * @param groups in which user belongs to
    * @param action requested {@link FileSystemAction} by user
-   * @param inodes all the inodes retrieved by traversing the path
+   * @param path whose parent to check permission on
    * @throws IOException if permission checking fails
    */
-  public static void checkSelfPermission(String user, List<String> groups, FileSystemAction action,
-      List<Inode> inodes) throws IOException {
-    checkPermission(user, groups, action, inodes, inodes.size() - 1, -1, false);
-  }
+  public static void checkParentPermission(String user, List<String> groups, FileSystemAction
+      action, TachyonURI path) throws IOException, InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+    List<Inode> inodes = sInodeTree.collectInodes(path);
 
-  /**
-   * Checks requested permission on the parent or ancestor of the last node and basic permission
-   * on the whole path.
-   * Parent means the parent directory of the last node.
-   * Ancestor means the last existing (closest) ancestor directory of the last node.
-   * If parent exists, ancestor and parent are the same.
-   * For example, for a path "/foo/bar/baz", its parent is "/foo/bar".
-   * If "/foo/bar" exists, its ancestor is also "/foo/bar".
-   * If "/foo/bar" does not exist and "/foo" exists, its ancestor is "/foo".
-   *
-   * @param user who requests access permission
-   * @param groups in which user belongs to
-   * @param action requested {@link FileSystemAction} by user
-   * @param inodes all the inodes retrieved by traversing the path
-   * @throws IOException if permission checking fails
-   */
-  public static void checkParentOrAncestorPermission(String user, List<String> groups,
-      FileSystemAction action, List<Inode> inodes) throws IOException {
-    int parentOrAncestorIndex = -1;
-    if (inodes.size() > 1) {
-      for (parentOrAncestorIndex = inodes.size() - 2; inodes.get(parentOrAncestorIndex) == null;
-           parentOrAncestorIndex --) {
-        // Do nothing. Stop when finding a not null inode from the end of an inodes list.
-      }
+    if (pathComponents.length == inodes.size()) {
+      inodes.remove(inodes.size() - 1);
     }
-
-    checkPermission(user, groups, action, inodes, -1, parentOrAncestorIndex, false);
+    checkOnInodes(user, groups, action, inodes);
   }
 
   /**
-   * Checks whether a user is the owner of a path and basic permission on the whole path.
+   * Checks requested permission and basic permission on the path.
    *
-   * @param user who is checked whether it is the owner
+   * @param user who requests access permission
    * @param groups in which user belongs to
-   * @param inodes all the inodes retrieved by traversing the path
+   * @param action requested {@link FileSystemAction} by user
+   * @param path the path to check permission on
    * @throws IOException if permission checking fails
    */
-  public static void checkOwner(String user, List<String> groups, List<Inode> inodes)
-      throws IOException {
-    checkPermission(user, groups, null, inodes, -1, -1, true);
+  public static void checkPermission(String user, List<String> groups, FileSystemAction action,
+      TachyonURI path) throws IOException, InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+    List<Inode> inodes = sInodeTree.collectInodes(path);
+    for (int i = inodes.size(); i < pathComponents.length; i++) {
+      inodes.add(null);
+    }
+    checkOnInodes(user, groups, action, inodes);
   }
 
   /**
-   * This method provides basic permission checking logic.
+   * This method provides basic permission checking logic on a list of inodes.
    * The input is User and its Groups, requested Permission and inodes (traverse the Path).
    * The initialized static attributes will be used in the checking logic to bypass checking.
    * Then User, Group, and Action will be compared to those of inodes.
@@ -116,14 +110,10 @@ public final class FileSystemPermissionChecker {
    * @param groups in which user belongs to
    * @param action requested {@link FileSystemAction} by user
    * @param inodes all the inodes retrieved by traversing the path
-   * @param selfIndex the index of the last inode in the inodes list
-   * @param parentOrAncestorIndex the index of the parent or ancestor inode in the inodes list
-   * @param isCheckOwner indicates whether to check that the user is the owner of the last inode
    * @throws IOException if permission checking fails
    */
-  private static void checkPermission(String user, List<String> groups, FileSystemAction action,
-      List<Inode> inodes, int selfIndex, int parentOrAncestorIndex, boolean isCheckOwner)
-      throws IOException {
+  private static void checkOnInodes(String user, List<String> groups, FileSystemAction action,
+      List<Inode> inodes) throws IOException {
     int size = inodes.size();
     assert size > 0;
 
@@ -131,6 +121,7 @@ public final class FileSystemPermissionChecker {
       return;
     }
 
+    // bypass checking permission for super user or super group of Tachyon file system.
     if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
       return;
     }
@@ -140,25 +131,18 @@ public final class FileSystemPermissionChecker {
       check(user, groups, inodes.get(i), FileSystemAction.EXECUTE);
     }
 
-    // check self permission if needed
-    if (selfIndex > -1) {
-      check(user, groups, inodes.get(selfIndex), action);
-    }
-
-    // check parent or ancestor permission if needed
-    if (parentOrAncestorIndex > -1) {
-      check(user, groups, inodes.get(parentOrAncestorIndex), action);
-    }
-
-    // check owner if needed
-    if (isCheckOwner) {
-      if (user.equals(inodes.get(size - 1).getUserName())) {
-        return;
-      }
-      throw new IOException(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage()));
-    }
+    check(user, groups, inodes.get(size - 1), action);
   }
 
+  /**
+   * This method check requested permission on a given inode.
+   *
+   * @param user who requests access permission
+   * @param groups in which user belongs to
+   * @param inode on which apply permission check logic
+   * @param action requested {@link FileSystemAction} by user
+   * @throws IOException if permission checking fails
+   */
   private static void check(String user, List<String> groups, Inode inode, FileSystemAction action)
       throws IOException {
     if (inode == null) {
@@ -166,18 +150,21 @@ public final class FileSystemPermissionChecker {
     }
 
     short permission = inode.getPermission();
+
     if (user.equals(inode.getUserName())) {
-      if (FileSystemPermission.getUserAction(permission).imply(action)) {
+      if (FileSystemPermission.createUserAction(permission).imply(action)) {
         return;
       }
-    } else if (groups.contains(inode.getGroupName())) {
-      if (FileSystemPermission.getGroupAction(permission).imply(action)) {
+    }
+
+    if (groups.contains(inode.getGroupName())) {
+      if (FileSystemPermission.createGroupAction(permission).imply(action)) {
         return;
       }
-    } else {
-      if (FileSystemPermission.getOtherAction(permission).imply(action)) {
-        return;
-      }
+    }
+
+    if (FileSystemPermission.createOtherAction(permission).imply(action)) {
+      return;
     }
 
     throw new IOException(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage()));

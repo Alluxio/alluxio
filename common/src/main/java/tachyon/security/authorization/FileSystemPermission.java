@@ -70,7 +70,7 @@ public final class FileSystemPermission {
    * @param permission the digital representation of a {@link FileSystemPermission}
    * @return the user {@link FileSystemAction}
    */
-  public static FileSystemAction getUserAction(short permission) {
+  public static FileSystemAction createUserAction(short permission) {
     return FileSystemAction.values()[(permission >>> 6) & 7];
   }
 
@@ -85,7 +85,7 @@ public final class FileSystemPermission {
    * @param permission the digital representation of a {@link FileSystemPermission}
    * @return the group {@link FileSystemAction}
    */
-  public static FileSystemAction getGroupAction(short permission) {
+  public static FileSystemAction createGroupAction(short permission) {
     return FileSystemAction.values()[(permission >>> 3) & 7];
   }
 
@@ -100,7 +100,7 @@ public final class FileSystemPermission {
    * @param permission the digital representation of a {@link FileSystemPermission}
    * @return the other {@link FileSystemAction}
    */
-  public static FileSystemAction getOtherAction(short permission) {
+  public static FileSystemAction createOtherAction(short permission) {
     return FileSystemAction.values()[permission & 7];
   }
 
