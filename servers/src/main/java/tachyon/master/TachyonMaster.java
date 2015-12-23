@@ -64,7 +64,7 @@ public class TachyonMaster {
     }
 
     try {
-      Factory.createMaster().start();
+      Factory.create().start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -123,7 +123,7 @@ public class TachyonMaster {
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
      */
-    public static TachyonMaster createMaster() {
+    public static TachyonMaster create() {
       if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return new TachyonMasterFaultTolerant();
       }

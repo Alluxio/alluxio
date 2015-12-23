@@ -187,7 +187,7 @@ public final class BlockWorker extends WorkerBase {
 
     // Setup DataServer
     mDataServer =
-        DataServer.Factory.createDataServer(
+        DataServer.Factory.create(
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
             mBlockDataManager, mTachyonConf);
     // Reset data server port

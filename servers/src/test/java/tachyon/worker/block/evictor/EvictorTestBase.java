@@ -82,7 +82,7 @@ public class EvictorTestBase {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICTOR_CLASS, evictorClassName);
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView, mAllocator);
+    mAllocator = Allocator.Factory.create(conf, mManagerView);
+    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
   }
 }
