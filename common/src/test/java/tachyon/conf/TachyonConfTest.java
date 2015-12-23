@@ -19,6 +19,10 @@ import tachyon.util.network.NetworkAddressUtils;
  * Unit test for TachyonConf class
  */
 public class TachyonConfTest {
+
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
   private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
@@ -29,6 +33,9 @@ public class TachyonConfTest {
   private TachyonConf mCustomPropsTachyonConf;
   private TachyonConf mSystemPropsTachyonConf;
 
+  /**
+   * Clears the properties after the test suite is finished.
+   */
   @AfterClass
   public static void afterClass() {
     System.clearProperty(Constants.MASTER_HOSTNAME);
@@ -36,6 +43,9 @@ public class TachyonConfTest {
     System.clearProperty(Constants.ZOOKEEPER_ENABLED);
   }
 
+  /**
+   * Sets the properties and configuration before the test suite runs.
+   */
   @BeforeClass
   public static void beforeClass() {
     // initialize the test properties.
@@ -57,6 +67,9 @@ public class TachyonConfTest {
     sDefaultTachyonConf = new TachyonConf(false);
   }
 
+  /**
+   * Creates new configurations before a test runs.
+   */
   @Before
   public void beforeTests() {
     // init TachyonConf
@@ -64,8 +77,9 @@ public class TachyonConfTest {
     mSystemPropsTachyonConf = new TachyonConf();
   }
 
-  // test default properties
-
+  /**
+   * Tests the default properties.
+   */
   @Test
   public void commonDefaultTest() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
@@ -111,6 +125,9 @@ public class TachyonConfTest {
     Assert.assertEquals(10, maxTry);
   }
 
+  /**
+   * Tests the default properties for the master.
+   */
   @Test
   public void masterDefaultTest() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
@@ -159,6 +176,9 @@ public class TachyonConfTest {
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
   }
 
+  /**
+   * Tests the default properties for the worker.
+   */
   @Test
   public void workerDefaultTest() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
@@ -208,6 +228,9 @@ public class TachyonConfTest {
     Assert.assertEquals(128 * Constants.MB, longValue);
   }
 
+  /**
+   * Tests the default properties for the user.
+   */
   @Test
   public void userDefaultTest() {
     int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
@@ -226,6 +249,9 @@ public class TachyonConfTest {
     Assert.assertEquals(8 * Constants.MB, longValue);
   }
 
+  /**
+   * Tests the simple substitution of variables.
+   */
   @Test
   public void variableSubstitutionSimpleTest() {
     String home = mCustomPropsTachyonConf.get("home");
@@ -252,6 +278,9 @@ public class TachyonConfTest {
 
   }
 
+  /**
+   * Tests the recursive substitution of variables.
+   */
   @Test
   public void variableSubstitutionRecursiveTest() {
     String multiplesubs = mCustomPropsTachyonConf.get("multiplesubs");
@@ -259,6 +288,9 @@ public class TachyonConfTest {
     Assert.assertEquals(multiplesubs, recursive);
   }
 
+  /**
+   * Tests the substitution of system variables.
+   */
   @Test
   public void systemVariableSubstitutionSampleTest() {
     String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS);
@@ -266,6 +298,9 @@ public class TachyonConfTest {
     Assert.assertEquals("tachyon-ft://master:20001", masterAddress);
   }
 
+  /**
+   * Tests that an exception is thrown when the {@link Constants#USER_FILE_BUFFER_BYTES} overflows.
+   */
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest() {
     Properties mProperties = new Properties();
@@ -275,6 +310,9 @@ public class TachyonConfTest {
     new TachyonConf(mProperties);
   }
 
+  /**
+   * Tests that an exception is thrown when the {@link Constants#USER_FILE_BUFFER_BYTES} overflows.
+   */
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest1() {
     Map<String, String> properties = new LinkedHashMap<String, String>();
@@ -284,6 +322,9 @@ public class TachyonConfTest {
     new TachyonConf(properties);
   }
 
+  /**
+   * Tests that setting the {@link Constants#USER_FILE_BUFFER_BYTES} runs correctly.
+   */
   @Test
   public void variableUserFileBufferBytesNormalCheckTest() {
     Properties mProperties = new Properties();

@@ -34,6 +34,7 @@ public final class IdentityUserGroupsMapping implements GroupMappingService {
    *
    * @param user get groups for this user
    * @return list of groups for a given user
+   * @throws IOException when trying to create a new list
    */
   @Override
   public List<String> getGroups(String user) throws IOException {
