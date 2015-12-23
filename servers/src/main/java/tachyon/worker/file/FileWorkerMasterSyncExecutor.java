@@ -80,7 +80,15 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }  catch (ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
     }
-    Preconditions.checkState(command.commandType == CommandType.Persist);
+
+    if (command == null) {
+      LOG.error("The command sent from master is null");
+      return;
+    } else if (command.commandType != CommandType.Persist) {
+      LOG.error("The command sent from master should be PERSIST type, but was {}",
+          command.commandType);
+      return;
+    }
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
       mFixedExecutionService
