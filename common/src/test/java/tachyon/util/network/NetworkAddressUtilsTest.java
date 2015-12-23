@@ -179,6 +179,7 @@ public class NetworkAddressUtilsTest {
         conf.set(Constants.WORKER_WEB_PORT, "20000");
         break;
       default:
+        Assert.fail("Unrecognized service type: " + service.toString());
         break;
     }
     workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
