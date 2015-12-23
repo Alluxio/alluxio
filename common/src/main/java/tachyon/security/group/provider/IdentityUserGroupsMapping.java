@@ -27,7 +27,7 @@ import tachyon.security.group.GroupMappingService;
  * A simple implementation of {@link GroupMappingService} that returns a group which is same name
  * with the given user name.
  */
-public final class IdentityUserGroupsMapping extends GroupMappingService {
+public final class IdentityUserGroupsMapping implements GroupMappingService {
 
   /**
    * Returns list of groups for a user.

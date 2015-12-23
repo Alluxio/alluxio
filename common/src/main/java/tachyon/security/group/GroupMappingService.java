@@ -22,47 +22,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * {@link GroupMappingService} allows for server to get the various group memberships of a given
- * user via the {@link #getGroups(String)} call, thus ensuring a consistent user-to-groups mapping
- * and protects against mapping inconsistencies between servers and clients in a Tachyon cluster.
+ * Interface for Tachyon user-to-groups mapping. {@link GroupMappingService} allows for server to
+ * get the various group memberships of a given user via the {@link #getGroups(String)} call, thus
+ * ensuring a consistent user-to-groups mapping and protects against mapping inconsistencies between
+ * servers and clients in a Tachyon cluster.
  */
-public abstract class GroupMappingService {
+@PublicApi
+public interface GroupMappingService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  class Factory {
 
-  /**
-   * Gets the groups being used to map user-to-groups.
-   *
-   * @return the groups being used to map user-to-groups
-   */
-  public static GroupMappingService getUserToGroupsMappingService() {
-    return getUserToGroupsMappingService(new TachyonConf());
-  }
+    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /**
-   * Gets the groups being used to map user-to-groups.
-   *
-   * @param conf Tachyon configuration
-   * @return the groups being used to map user-to-groups
-   */
-  public static GroupMappingService getUserToGroupsMappingService(TachyonConf conf) {
-    GroupMappingService mGroupMappingService;
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Creating new Groups object");
+    /**
+     * Gets the groups being used to map user-to-groups.
+     *
+     * @return the groups being used to map user-to-groups
+     */
+    public static GroupMappingService getUserToGroupsMappingService() {
+      return getUserToGroupsMappingService(new TachyonConf());
     }
-    try {
-      mGroupMappingService =
-          CommonUtils.createNewClassInstance(
-              conf.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
-      mGroupMappingService.setConf(conf);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+
+    /**
+     * Gets the groups being used to map user-to-groups.
+     *
+     * @param conf Tachyon configuration
+     * @return the groups being used to map user-to-groups
+     */
+    public static GroupMappingService getUserToGroupsMappingService(TachyonConf conf) {
+      GroupMappingService mGroupMappingService;
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Creating new Groups object");
+      }
+      try {
+        mGroupMappingService =
+            CommonUtils.createNewClassInstance(
+                conf.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
+        mGroupMappingService.setConf(conf);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return mGroupMappingService;
     }
-    return mGroupMappingService;
   }
 
   /**
@@ -73,7 +79,7 @@ public abstract class GroupMappingService {
    * @return group memberships of user
    * @throws IOException if can't get user's groups
    */
-  public abstract List<String> getGroups(String user) throws IOException;
+  public List<String> getGroups(String user) throws IOException;
 
   /**
    * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping
@@ -82,5 +88,5 @@ public abstract class GroupMappingService {
    * @param conf The tachyon configuration set to GroupMappingService
    * @throws IOException if failed config GroupMappingService
    */
-  public abstract void setConf(TachyonConf conf) throws IOException;
+  public void setConf(TachyonConf conf) throws IOException;
 }
