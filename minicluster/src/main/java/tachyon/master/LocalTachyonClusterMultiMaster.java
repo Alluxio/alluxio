@@ -208,7 +208,8 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
       mLineageWorker.stop();
     }
     for (int k = 0; k < mNumOfMasters; k ++) {
-      mMasters.get(k).stop();
+      // Use kill() instead of stop(), because stop() does not work well in multi-master mode.
+      mMasters.get(k).kill();
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
