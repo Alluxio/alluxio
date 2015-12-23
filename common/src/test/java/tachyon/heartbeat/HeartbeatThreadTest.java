@@ -64,6 +64,8 @@ public final class HeartbeatThreadTest {
   /**
    * This is a basic test of the heartbeat scheduler logic. It steps through the execution of a
    * single dummy executor.
+   *
+   * @throws Exception when joining a thread
    */
   @Test
   public void serialHeartbeatThreadTest() throws Exception {
@@ -75,6 +77,8 @@ public final class HeartbeatThreadTest {
   /**
    * This is a stress test of the heartbeat scheduler logic. It concurrently steps through the
    * execution of multiple dummy executors.
+   *
+   * @throws Exception when joining a thread
    */
   @Test
   public void concurrentHeartbeatThreadTest() throws Exception {

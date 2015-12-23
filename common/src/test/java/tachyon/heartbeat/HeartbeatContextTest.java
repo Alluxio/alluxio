@@ -28,8 +28,11 @@ import org.junit.Test;
  */
 public class HeartbeatContextTest {
 
+  /**
+   * Tests the timer classes to be not null.
+   */
   @Test
-  public void timerClassesCheckTest() throws Exception {
+  public void timerClassesCheckTest() {
     checkNotNull(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING);
     checkNotNull(HeartbeatContext.MASTER_FILE_RECOMPUTATION);
     checkNotNull(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
@@ -40,8 +43,11 @@ public class HeartbeatContextTest {
     checkNotNull(HeartbeatContext.WORKER_PIN_LIST_SYNC);
   }
 
+  /**
+   * Tests that the instances of the context are correctly.
+   */
   @Test
-  public void checkInstanceOfTest() throws Exception {
+  public void checkInstanceOfTest() {
     checkInstanceOf(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
         HeartbeatContext.SLEEPING_TIMER_CLASS);
     checkInstanceOf(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
@@ -55,8 +61,11 @@ public class HeartbeatContextTest {
     checkInstanceOf(HeartbeatContext.WORKER_PIN_LIST_SYNC, HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
+  /**
+   * Tests that a new timer class can be added correctly.
+   */
   @Test
-  public void addNewTimerClassesTest() throws Exception {
+  public void addNewTimerClassesTest() {
     String testSleeping = "TEST_SLEEPING_%s";
     String testScheduled = "TEST_SCHEDULED_%s";
 
