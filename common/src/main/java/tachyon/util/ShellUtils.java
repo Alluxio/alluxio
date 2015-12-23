@@ -77,7 +77,11 @@ public final class ShellUtils {
     runCommand();
   }
 
-  /** Run a command */
+  /**
+   * Runs a command.
+   *
+   * @throws IOException if command ran failed
+   */
   private void runCommand() throws IOException {
     ProcessBuilder builder = new ProcessBuilder(getExecString());
 
@@ -124,7 +128,9 @@ public final class ShellUtils {
     }
   }
 
-  /** return an array containing the command name & its parameters */
+  /**
+   * @return an array containing the command name & its parameters
+   */
   protected String[] getExecString() {
     return mCommand;
   }
