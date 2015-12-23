@@ -94,6 +94,6 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getUsage() {
-    return "createLineage <inputFiles,...> <outputFiles,...> <cmd>";
+    return "createLineage <inputFile1,...> <outputFile1,...> [<cmd_arg1> <cmd_arg2> ...]";
   }
 }
