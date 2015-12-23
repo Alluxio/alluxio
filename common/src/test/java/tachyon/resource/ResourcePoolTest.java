@@ -27,6 +27,10 @@ import org.mockito.Mockito;
  * Unit test for {@code ResourcePool} class.
  */
 public class ResourcePoolTest {
+
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -53,6 +57,9 @@ public class ResourcePoolTest {
     }
   }
 
+  /**
+   * Tests the normal acquiration of resource pools.
+   */
   @Test
   public void resourcePoolNormalTest() {
     TestResourcePool testPool = new TestResourcePool(2);
@@ -62,6 +69,11 @@ public class ResourcePoolTest {
     Assert.assertEquals(resource1, resource2);
   }
 
+  /**
+   * Tests that an exception is thrown if the resource pool is used more than its size can take.
+   *
+   * @throws InterruptedException when the queue starts to poll
+   */
   @Test
   public void resourcePoolBlockingTest() throws InterruptedException {
     mThrown.expect(RuntimeException.class);

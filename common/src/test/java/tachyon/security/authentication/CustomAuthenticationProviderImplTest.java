@@ -67,6 +67,9 @@ public class CustomAuthenticationProviderImplTest {
     Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 
+  /**
+   * An {@link AuthenticationProvider} to use as a mock.
+   */
   public static class MockAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {

@@ -27,6 +27,11 @@ import tachyon.security.group.provider.IdentityUserGroupsMapping;
  */
 public final class GroupMappingServiceTest {
 
+  /**
+   * Tests the {@link GroupMappingService#getGroups(String)} method.
+   *
+   * @throws Throwable when the retrieval of the groups fails
+   */
   @Test
   public void groupTest() throws Throwable {
     String userName = "tachyon-user1";
