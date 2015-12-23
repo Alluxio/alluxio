@@ -34,13 +34,13 @@ public interface Allocator {
 
   class Factory {
     /**
-     * Create a new {@link Allocator} instance, will return {@link MaxFreeAllocator} by default
+     * Factory for {@link Allocator}.
      *
      * @param conf Tachyon conf defined Allocator type
-     * @param view {@link BlockMetadataManagerView} to pass to Allocator
-     * @return the generated Allocator, it will be a {@link MaxFreeAllocator} by default
+     * @param view {@link BlockMetadataManagerView} to pass to {@link Allocator}
+     * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */
-    public static Allocator createAllocator(TachyonConf conf, BlockMetadataManagerView view) {
+    public static Allocator create(TachyonConf conf, BlockMetadataManagerView view) {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
       try {
         return CommonUtils.createNewClassInstance(

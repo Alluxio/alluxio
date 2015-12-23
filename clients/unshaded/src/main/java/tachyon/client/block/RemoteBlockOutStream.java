@@ -40,7 +40,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    */
   public RemoteBlockOutStream(long blockId, long blockSize) throws IOException {
     super(blockId, blockSize);
-    mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
+    mRemoteWriter = RemoteBlockWriter.Factory.create(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient();
     try {
       mWorkerClient.connect();
@@ -62,7 +62,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    */
   public RemoteBlockOutStream(long blockId, long blockSize, String hostname) throws IOException {
     super(blockId, blockSize);
-    mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
+    mRemoteWriter = RemoteBlockWriter.Factory.create(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient(hostname);
     try {
       mWorkerClient.connect();

@@ -262,7 +262,7 @@ public class DataServerIntegrationTest {
     BlockInfo block = getFirstBlockInfo(file);
 
     RemoteBlockReader client =
-        RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
+        RemoteBlockReader.Factory.create(mWorkerTachyonConf);
     ByteBuffer result = readRemotely(client, block, length);
 
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
@@ -287,7 +287,7 @@ public class DataServerIntegrationTest {
     }
 
     RemoteBlockReader client =
-        RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
+        RemoteBlockReader.Factory.create(mWorkerTachyonConf);
     block.blockId = maxBlockId + 1;
     ByteBuffer result = readRemotely(client, block, length);
 

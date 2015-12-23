@@ -113,14 +113,14 @@ public final class TieredBlockStore implements BlockStore {
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
-    mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
+    mAllocator = Allocator.Factory.create(mTachyonConf, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
+    mEvictor = Evictor.Factory.create(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }

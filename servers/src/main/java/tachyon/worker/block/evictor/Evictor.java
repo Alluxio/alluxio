@@ -33,13 +33,15 @@ public interface Evictor {
 
   class Factory {
     /**
+     * Factory for {@link Evictor}.
+     *
      * @param conf {@link TachyonConf} to determine the evictor type
      * @param view {@link BlockMetadataManagerView} to pass to Evictor
      * @param allocator an allocation policy
-     * @return the generated Evictor
+     * @return the generated {@link Evictor}
      */
-    public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view,
-        Allocator allocator) {
+    public static Evictor create(TachyonConf conf, BlockMetadataManagerView view,
+                                 Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
