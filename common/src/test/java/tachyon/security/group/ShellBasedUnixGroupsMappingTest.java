@@ -42,6 +42,11 @@ public final class ShellBasedUnixGroupsMappingTest {
     PowerMockito.when(CommonUtils.getUnixGroups(Mockito.eq(username))).thenReturn(groups);
   }
 
+  /**
+   * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
+   *
+   * @throws Throwable when retrieval of the groups fails
+   */
   @Test
   public void userGroupTest() throws Throwable {
     String userName = "tachyon-user1";
