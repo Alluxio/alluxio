@@ -50,4 +50,9 @@ public final class RmrCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "rmr <path>";
+  }
 }
