@@ -64,8 +64,11 @@ public class OSSOutputStream extends OutputStream {
   private boolean mClosed;
 
   public OSSOutputStream(String bucketName, String key, OSSClient client) throws IOException {
-    Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
-        + "not be null or empty.");
+    Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
+        "Bucket name must not be null or empty.");
+    Preconditions.checkArgument(key != null && !key.isEmpty(),
+        "OSS path must not be null or empty.");
+    Preconditions.checkArgument(client != null, "OSSClient must not be null.");
     mBucketName = bucketName;
     mKey = key;
     mOssClient = client;
