@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.curator.test.TestingServer;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -43,14 +42,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
-  private final Supplier<String> mClientSuppliers = new Supplier<String>() {
-    @Override
-    public String get() {
-      return getUri();
-    }
-  };
-  private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
-
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters, int userBlockSize) {
     super(workerCapacityBytes, userBlockSize);
     mNumOfMasters = masters;
@@ -65,7 +56,7 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public synchronized TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(ClientContext.getConf());
+    return getMaster().getClient();
   }
 
   public String getUri() {
@@ -212,8 +203,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
 
   @Override
   public void stopTFS() throws Exception {
-    mClientPool.close();
-
     mWorker.stop();
     if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
       mLineageWorker.stop();
