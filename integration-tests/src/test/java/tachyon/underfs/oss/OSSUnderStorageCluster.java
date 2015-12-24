@@ -34,15 +34,6 @@ public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
   public OSSUnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
-    /*
-    String ossAccessId = System.getProperty(INTEGRATION_OSS_ACCESS_ID);
-    String ossAccessKey = System.getProperty(INTEGRATION_OSS_ACCESS_KEY);
-    String ossEndpoint = System.getProperty(INTEGRATION_OSS_ENDPOINT);
-    tachyonConf.set(Constants.OSS_ACCESS_KEY, ossAccessId);
-    tachyonConf.set(Constants.OSS_SECRET_KEY, ossAccessKey);
-    tachyonConf.set(Constants.OSS_ENDPOINT_KEY, ossEndpoint);
-    */
-
     String ossAccessId = System.getProperty(Constants.OSS_ACCESS_KEY);
     String ossAccessKey = System.getProperty(Constants.OSS_SECRET_KEY);
     String ossEndpoint = System.getProperty(Constants.OSS_ENDPOINT_KEY);
