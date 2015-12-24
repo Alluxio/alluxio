@@ -16,6 +16,7 @@
 package tachyon.security.authorization;
 
 import java.io.IOException;
+import java.util.List;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -24,6 +25,7 @@ import tachyon.security.LoginUser;
 import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
+import tachyon.security.group.GroupMappingService;
 
 /**
  * The permission status for a file or directory.
@@ -128,16 +130,29 @@ public final class PermissionStatus {
       if (user == null) {
         throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
       }
-      return new PermissionStatus(user.getName(),
-          "", // TODO(dong) group permission binding into Inode
+      return new PermissionStatus(user.getName(), getPrimaryGroupName(conf, user.getName()),
           FileSystemPermission.getDefault().applyUMask(conf));
     }
 
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
-    return new PermissionStatus(loginUserName,
-        "", // TODO(dong) group permission binding into Inode
+    return new PermissionStatus(loginUserName, getPrimaryGroupName(conf, loginUserName),
         FileSystemPermission.getDefault().applyUMask(conf));
+  }
+
+  /**
+   * Using {@link GroupMappingService} to get the primary group name.
+   *
+   * @param conf the runtime configuration of Tachyon
+   * @param userName Tachyon user name
+   * @return primary group name
+   * @throws IOException if got group failed
+   */
+  private static String getPrimaryGroupName(TachyonConf conf, String userName) throws IOException {
+    GroupMappingService groupMappingService =
+        GroupMappingService.Factory.getUserToGroupsMappingService(conf);
+    List<String> groups = groupMappingService.getGroups(userName);
+    return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
   @Override
