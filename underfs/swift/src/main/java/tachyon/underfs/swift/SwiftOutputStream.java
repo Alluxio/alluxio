@@ -15,10 +15,8 @@
 
 package tachyon.underfs.swift;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
@@ -71,7 +69,6 @@ public class SwiftOutputStream extends OutputStream {
   @Override
   public void close() throws IOException {
     mOutputStream.close();
-    BufferedReader reader = null;
     InputStream is = null;
     try {
       // Status 400 and up should be read from error stream
@@ -81,14 +78,9 @@ public class SwiftOutputStream extends OutputStream {
       } else {
         is = mHttpCon.getInputStream();
       }
-      reader = new BufferedReader(new InputStreamReader(is));
       is.close();
-      reader.close();
     } catch (Exception e) {
       LOG.error(e.getMessage());
-      if (reader != null) {
-        reader.close();
-      }
       if (is != null) {
         is.close();
       }

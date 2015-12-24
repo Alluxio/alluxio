@@ -149,20 +149,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       if (!strippedPath.endsWith("/")) {
         strippedPath = strippedPath + "/";
         PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
-        for (Integer page = 0; page < paginationMap.getNumberOfPages(); page++) {
+        for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
           for (StoredObject obj : c.list(paginationMap, page)) {
-            StoredObject so = c.getObject(obj.getName());
-            if (so.exists()) {
-              so.delete();
+            if (obj.exists()) {
+              obj.delete();
             }
           }
         }
       }
-    } else {
-      StoredObject so = c.getObject(strippedPath);
-      if (so.exists()) {
-        so.delete();
-      }
+    }
+    StoredObject so = c.getObject(strippedPath);
+    if (so.exists()) {
+      so.delete();
     }
     return true;
   }
@@ -170,7 +168,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     String newPath = stripPrefixIfPresent(path);
-    return getObjectDetails(newPath) ;
+    return isObjectExists(newPath) ;
   }
 
   /**
@@ -178,8 +176,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path the key to get the object details of
    * @return boolean indicating if the object exists
    */
-  private boolean getObjectDetails(String path) {
-    LOG.debug("Get object details: {}", path);
+  private boolean isObjectExists(String path) {
+    LOG.debug("Checking if {} exists", path);
     boolean res =  mAccount.getContainer(mContainerName).getObject(path).exists();
     return res;
   }
@@ -228,6 +226,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return so.getLastModifiedAsDate().getTime();
   }
 
+  // This call is currently only used for the web ui, where a negative value implies unknown.
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     return -1;
