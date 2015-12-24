@@ -30,7 +30,7 @@ import tachyon.client.block.BlockWorkerInfo;
  * Tests {@link MostAvailableFirstPolicy}.
  */
 public final class MostAvailableFirstPolicyTest {
-  private final static int PORT = 1;
+  private static final int PORT = 1;
 
   @Test
   public void getMostAvailableWorkerTest() {

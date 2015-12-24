@@ -40,6 +40,7 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -126,7 +127,8 @@ public class FileOutStreamTest {
             return outStreamMap.get(blockId);
           }
         });
-    BlockWorkerInfo workerInfo = new BlockWorkerInfo("localhost", Constants.GB, 0);
+    BlockWorkerInfo workerInfo =
+        new BlockWorkerInfo(new WorkerNetAddress("localhost", 1, 2, 3), Constants.GB, 0);
     Mockito.when(mBlockStore.getBlockWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 
@@ -336,7 +338,7 @@ public class FileOutStreamTest {
     // configure a different policy
     options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
         .setUnderStorageType(UnderStorageType.NO_PERSIST)
-        .setLocationPolicyClass(RoundRobinPolicy.class).build();
+        .setLocationPolicy(new RoundRobinPolicy()).build();
     mTestStream = createTestStream(FILE_ID, options);
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
