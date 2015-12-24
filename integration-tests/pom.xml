@@ -194,7 +194,7 @@
                 <!-- Change "myAccessKey" to your access key for this test -->
                 <accessKey>myAccessKey</accessKey>
                 <!-- Change "mySecreteKey" to your secrete key for this test -->
-                <secretKey>mySecreteKey</secretKey>
+                <secretKey>mySecretKey</secretKey>
                 <!-- Change "s3n://my-bucket/tachyon-test" to the name of your
                      S3 bucket for this test -->
                 <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>
