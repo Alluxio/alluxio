@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import tachyon.client.ClientContext;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -37,12 +38,13 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
+  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+      long blockSizeBytes) {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getHost().equals(mLocalHostName)
+      if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
           && workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > blockSizeBytes) {
-        return mLocalHostName;
+        return workerInfo.getNetAddress();
       }
     }
 
@@ -50,7 +52,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
     Collections.shuffle(workerInfoList);
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > blockSizeBytes) {
-        return workerInfo.getHost();
+        return workerInfo.getNetAddress();
       }
     }
     return null;

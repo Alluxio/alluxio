@@ -271,11 +271,11 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (mTachyonStorageType.isStore()) {
       String hostname;
       try {
-        hostname =
-            mHostname == null
-                ? mLocationPolicy.getWorkerForNextBlock(
-                    mContext.getTachyonBlockStore().getBlockWorkerInfoList(), mBlockSize)
-                : mHostname;
+        hostname = mHostname == null
+            ? mLocationPolicy.getWorkerForNextBlock(
+                mContext.getTachyonBlockStore().getBlockWorkerInfoList(), mBlockSize).getHost()
+            : mHostname;
+        // TODO(yupeng) use the returned address directly for constructing the out stream
         mCurrentBlockOutStream =
             mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
         mShouldCacheCurrentBlock = true;
