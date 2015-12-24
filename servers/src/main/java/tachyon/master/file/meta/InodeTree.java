@@ -122,8 +122,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     FileSystemPermissionChecker.initializeFileSystem(
         MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED),
         mRoot.getUserName(),
-        MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP),
-        this);
+        MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP));
   }
 
   /**

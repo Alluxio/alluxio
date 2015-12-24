@@ -15,7 +15,7 @@
 
 package tachyon.master.permission;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -31,6 +31,7 @@ import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
@@ -44,6 +45,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
+import tachyon.thrift.FileInfo;
 
 /**
  * Unit tests for {@link FileSystemPermissionChecker}
@@ -190,8 +192,6 @@ public class FileSystemPermissionCheckerTest {
         "sFileSystemOwner"));
     Assert.assertEquals(group, Whitebox.getInternalState(FileSystemPermissionChecker.class,
         "sFileSystemSuperGroup"));
-    Assert.assertEquals(sTree, Whitebox.getInternalState(FileSystemPermissionChecker.class,
-        "sInodeTree"));
   }
 
   @Test
@@ -219,8 +219,10 @@ public class FileSystemPermissionCheckerTest {
 
   @Test
   public void testSelfCheckFailByOtherGroup() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(""));
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+            "file")));
 
     // not the owner and in other group
     checkSelfPermission(TEST_USER_2, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
@@ -228,8 +230,10 @@ public class FileSystemPermissionCheckerTest {
 
   @Test
   public void testSelfCheckFailBySameGroup() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(""));
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_3.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+            "file")));
 
     // not the owner but in same group
     checkSelfPermission(TEST_USER_3, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
@@ -251,8 +255,10 @@ public class FileSystemPermissionCheckerTest {
 
   @Test
   public void testParentCheckFail() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(""));
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+            "testDir")));
 
     checkParentOrAncestorPermission(TEST_USER_2, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
   }
@@ -264,30 +270,55 @@ public class FileSystemPermissionCheckerTest {
 
   @Test
   public void testAncestorCheckFail() throws Exception {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(""));
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_NOT_EXIST_URI,
+            "testDir")));
 
     checkParentOrAncestorPermission(TEST_USER_2, FileSystemAction.WRITE, TEST_NOT_EXIST_URI);
   }
 
   @Test
   public void testInvalidPath() throws Exception {
+    List<FileInfo> fileInfos = Lists.newArrayList();
     mThrown.expect(InvalidPathException.class);
 
     FileSystemPermissionChecker.checkPermission(TEST_USER_2.getUser(),
         Lists.newArrayList(TEST_USER_2.getGroups().split(",")), FileSystemAction.WRITE,
-        new TachyonURI(TEST_FILE_URI + "/file"));
+        new TachyonURI(""), fileInfos);
   }
 
   private void checkSelfPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     FileSystemPermissionChecker.checkPermission(user.getUser(),
-        Lists.newArrayList(user.getGroups().split(",")), action, new TachyonURI(path));
+        Lists.newArrayList(user.getGroups().split(",")), action, new TachyonURI(path),
+        collectFileInfos(new TachyonURI(path)));
   }
 
   private void checkParentOrAncestorPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     FileSystemPermissionChecker.checkParentPermission(user.getUser(), Lists.newArrayList(user
-        .getGroups().split(",")), action, new TachyonURI(path));
+        .getGroups().split(",")), action, new TachyonURI(path),
+        collectFileInfos(new TachyonURI(path)));
+  }
+
+  private List<FileInfo> collectFileInfos(TachyonURI path) throws Exception {
+    List<Inode> inodes = sTree.collectInodes(path);
+    List<FileInfo> fileInfos = new ArrayList<FileInfo>();
+    for (Inode inode : inodes) {
+      fileInfos.add(inode.generateClientFileInfo(sTree.getPath(inode).toString()));
+    }
+    return fileInfos;
+  }
+
+  private String toExceptionMessage(String user, FileSystemAction action, String path,
+      String inodeName) {
+    StringBuilder stringBuilder = new StringBuilder()
+        .append("user=").append(user).append(", ")
+        .append("access=").append(action).append(", ")
+        .append("path=").append(path).append(": ")
+        .append("failed at ")
+        .append(inodeName);
+    return stringBuilder.toString();
   }
 }
