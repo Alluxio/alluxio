@@ -73,7 +73,9 @@ public final class BufferUtils {
       }
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
-        LOG.error("Failed to get cleaner for ByteBuffer");
+        if (buffer.capacity() > 0) {
+          LOG.error("Failed to get cleaner for ByteBuffer");
+        }
         return;
       }
       if (sCleanerCleanMethod == null) {
