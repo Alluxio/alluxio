@@ -35,7 +35,8 @@ public enum TachyonExceptionType {
   TABLE_COLUMN(TableColumnException.class),
   TABLE_DOES_NOT_EXIST(TableDoesNotExistException.class),
   TABLE_METADATA(TableMetadataException.class),
-  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class)
+  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class),
+  ACCESS_CONTROL(AccessControlException.class)
   ;
 
   private final Class<? extends TachyonException> mExceptionClass;
