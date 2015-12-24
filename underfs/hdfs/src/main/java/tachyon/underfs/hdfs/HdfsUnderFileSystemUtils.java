@@ -20,6 +20,9 @@ import org.apache.hadoop.conf.Configuration;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Utility methods for the HDFS implementation of the {@link tachyon.underfs.UnderFileSystem}.
+ */
 public class HdfsUnderFileSystemUtils {
   /**
    * Replaces default key with user provided key.
