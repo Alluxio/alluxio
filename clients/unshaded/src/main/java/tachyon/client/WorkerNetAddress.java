@@ -40,28 +40,28 @@ public final class WorkerNetAddress {
   }
 
   /**
-   * @return the host of the worker.
+   * @return the host of the worker
    */
   public String getHost() {
     return mHost;
   }
 
   /**
-   * @return the RPC port.
+   * @return the RPC port
    */
   public int getRpcPort() {
     return mRpcPort;
   }
 
   /**
-   * @return the data port.
+   * @return the data port
    */
   public int getDataPort() {
     return mDataPort;
   }
 
   /**
-   * @return the web port.
+   * @return the web port
    */
   public int getWebPort() {
     return mWebPort;

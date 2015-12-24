@@ -32,7 +32,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * Tests {@link LocalFirstPolicy}.
  */
 public final class LocalFirstPolicyTest {
-  private final static int PORT = 1;
+  private static final int PORT = 1;
 
   @Test
   public void getLocalFirst() {

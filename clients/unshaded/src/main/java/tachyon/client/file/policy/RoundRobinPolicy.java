@@ -27,20 +27,17 @@ import tachyon.client.block.BlockWorkerInfo;
 public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
-
-  /**
-   * Constructs a new {@link RoundRobinPolicy}.
-   *
-   * @param workerInfoList the list of active worker information
-   */
-  public RoundRobinPolicy(List<BlockWorkerInfo> workerInfoList) {
-    mWorkerInfoList = workerInfoList;
-    mIndex = 0;
-  }
+  private boolean mInitialized = false;
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
+    if (!mInitialized) {
+      mWorkerInfoList = workerInfoList;
+      mIndex = 0;
+      mInitialized = true;
+    }
+
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i ++) {
       WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();

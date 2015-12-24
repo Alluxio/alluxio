@@ -30,7 +30,7 @@ import tachyon.client.block.BlockWorkerInfo;
  * Tests {@link RoundRobinPolicy}.
  */
 public final class RoundRobinPolicyTest {
-  private final static int PORT = 1;
+  private static final int PORT = 1;
 
   @Test
   public void getWorkerTest() {
@@ -41,7 +41,7 @@ public final class RoundRobinPolicyTest {
         2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker3", PORT, PORT, PORT),
         3 * (long) Constants.GB, 0));
-    RoundRobinPolicy policy = new RoundRobinPolicy(workerInfoList);
+    RoundRobinPolicy policy = new RoundRobinPolicy();
 
     Assert.assertEquals("worker2",
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());

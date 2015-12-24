@@ -22,19 +22,16 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
-import tachyon.client.file.policy.FileWriteLocationPolicyOptions;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
 public final class OutStreamOptions {
   public static class Builder implements OptionsBuilder<OutStreamOptions> {
     private long mBlockSizeBytes;
-    private String mHostname;
     private TachyonStorageType mTachyonStorageType;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
-    private FileWriteLocationPolicyOptions mLocationPolicyOptions;
-    private Class<? extends FileWriteLocationPolicy> mLocationPolicyClass;
+    private FileWriteLocationPolicy mLocationPolicy;
 
     /**
      * Creates a new builder for {@link OutStreamOptions}.
@@ -50,14 +47,12 @@ public final class OutStreamOptions {
      */
     public Builder(TachyonConf conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      mHostname = null;
       WriteType defaultWriteType =
           conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
       mTachyonStorageType = defaultWriteType.getTachyonStorageType();
       mUnderStorageType = defaultWriteType.getUnderStorageType();
       mTTL = Constants.NO_TTL;
-      mLocationPolicyClass = null;
-      mLocationPolicyOptions = null;
+      mLocationPolicy = null;
     }
 
     /**
@@ -66,15 +61,6 @@ public final class OutStreamOptions {
      */
     public Builder setBlockSizeBytes(long blockSizeBytes) {
       mBlockSizeBytes = blockSizeBytes;
-      return this;
-    }
-
-    /**
-     * @param hostname the hostname to use
-     * @return the builder
-     */
-    public Builder setHostname(String hostname) {
-      mHostname = hostname;
       return this;
     }
 
@@ -123,22 +109,11 @@ public final class OutStreamOptions {
     }
 
     /**
-     * @param locationPolicyClass the {@link FileWriteLocationPolicy} to use for this operation
+     * @param locationPolicy the location policy for file write
      * @return the builder
      */
-    public Builder setLocationPolicyClass(
-        Class<? extends FileWriteLocationPolicy> locationPolicyClass) {
-      mLocationPolicyClass = locationPolicyClass;
-      return this;
-    }
-
-    /**
-     * @param locationPolicyOptions the {@link FileWriteLocationPolicyOptions} to use for this
-     *        operation. This will configure the {@link FileWriteLocationPolicy}
-     * @return the builder
-     */
-    public Builder setLocationPolicyOptions(FileWriteLocationPolicyOptions locationPolicyOptions) {
-      mLocationPolicyOptions = locationPolicyOptions;
+    public Builder setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+      mLocationPolicy = locationPolicy;
       return this;
     }
 
@@ -154,12 +129,10 @@ public final class OutStreamOptions {
   }
 
   private final long mBlockSizeBytes;
-  private final String mHostname;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final long mTTL;
-  private FileWriteLocationPolicyOptions mLocationPolicyOptions;
-  private Class<? extends FileWriteLocationPolicy> mLocationPolicyClass;
+  private FileWriteLocationPolicy mLocationPolicy;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -170,12 +143,10 @@ public final class OutStreamOptions {
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
-    mHostname = builder.mHostname;
     mTachyonStorageType = builder.mTachyonStorageType;
     mTTL = builder.mTTL;
     mUnderStorageType = builder.mUnderStorageType;
-    mLocationPolicyClass = builder.mLocationPolicyClass;
-    mLocationPolicyOptions = builder.mLocationPolicyOptions;
+    mLocationPolicy = builder.mLocationPolicy;
   }
 
   /**
@@ -183,13 +154,6 @@ public final class OutStreamOptions {
    */
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
-  }
-
-  /**
-   * @return the hostname
-   */
-  public String getHostname() {
-    return mHostname;
   }
 
   /**
@@ -215,17 +179,10 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the class of the location policy
+   * @return the location policy
    */
-  public Class<? extends FileWriteLocationPolicy> getLocationPolicyClass() {
-    return mLocationPolicyClass;
-  }
-
-  /**
-   * @return the options for configuring the location policy
-   */
-  public FileWriteLocationPolicyOptions getLocationPolicyOptions() {
-    return mLocationPolicyOptions;
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
   }
 
   /**
@@ -235,12 +192,10 @@ public final class OutStreamOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("OutStreamOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", Hostname: ").append(mHostname);
     sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTTL);
-    sb.append(", LocationPolicyClass:").append(mLocationPolicyClass.toString());
-    sb.append(", LocationPolicyOptions:").append(mLocationPolicyOptions.toString());
+    sb.append(", LocationPolicy:").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();
   }

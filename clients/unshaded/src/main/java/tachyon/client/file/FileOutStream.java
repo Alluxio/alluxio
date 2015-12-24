@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
@@ -32,16 +33,17 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
-import tachyon.client.file.policy.LocationPolicyRegistry;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -63,7 +65,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final long mNonce;
   private String mUfsPath;
   private FileWriteLocationPolicy mLocationPolicy;
-  private final String mHostname;
 
   protected boolean mCanceled;
   protected boolean mClosed;
@@ -86,7 +87,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
-    mHostname = options.getHostname();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
@@ -103,18 +103,20 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
 
-    // get default policy
-    Class<? extends FileWriteLocationPolicy> locationPolicyClass = ClientContext.getConf()
-        .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY);
-    if (options.getLocationPolicyClass() != null) {
-      locationPolicyClass = options.getLocationPolicyClass();
-    }
-    try {
-      mLocationPolicy = LocationPolicyRegistry.create(locationPolicyClass,
-          mContext.getTachyonBlockStore().getBlockWorkerInfoList(),
-          options.getLocationPolicyOptions());
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    if (options.getLocationPolicy() == null) {
+      // get the default policy
+      try {
+        mLocationPolicy =
+            CommonUtils
+                .createNewClassInstance(
+                    ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+                        Constants.USER_FILE_WRITE_LOCATION_POLICY),
+                    new Class[] {}, new Object[] {});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    } else {
+      mLocationPolicy = options.getLocationPolicy();
     }
   }
 
@@ -269,12 +271,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
-      String hostname;
       try {
-        hostname = mHostname == null
-            ? mLocationPolicy.getWorkerForNextBlock(
-                mContext.getTachyonBlockStore().getBlockWorkerInfoList(), mBlockSize).getHost()
-            : mHostname;
+        WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
+            mContext.getTachyonBlockStore().getBlockWorkerInfoList(), mBlockSize);
+        String hostname = address == null ? null : address.getHost();
         // TODO(yupeng) use the returned address directly for constructing the out stream
         mCurrentBlockOutStream =
             mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);

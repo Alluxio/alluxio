@@ -29,9 +29,12 @@ import tachyon.client.file.FileOutStream;
  * </p>
  *
  * <p>
- * The {@link FileOutStream} creates a new policy using {@link FileWriteLocationPolicyFactory}. Then
- * the stream calls {@link #getWorkerForNextBlock(List)} to decide which worker to write the next
- * block per block write.
+ * The {@link FileOutStream} calls {@link #getWorkerForNextBlock(List)} to decide which worker to
+ * write the next block per block write.
+ * </p>
+ *
+ * <p>
+ * A policy must have an empty constructor to be used as default policy.
  * </p>
  */
 @PublicApi

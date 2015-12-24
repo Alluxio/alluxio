@@ -29,7 +29,8 @@ import tachyon.client.block.BlockWorkerInfo;
 public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
+  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+      long blockSizeBytes) {
     List<BlockWorkerInfo> inputList = Lists.newArrayList(workerInfoList);
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;

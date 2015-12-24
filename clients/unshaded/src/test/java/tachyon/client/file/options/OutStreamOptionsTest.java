@@ -32,7 +32,6 @@ public class OutStreamOptionsTest {
   public void builderTest() {
     Random random = new Random();
     long blockSize = random.nextLong();
-    String hostname = "localhost";
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
@@ -40,14 +39,12 @@ public class OutStreamOptionsTest {
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf())
             .setBlockSizeBytes(blockSize)
-            .setHostname(hostname)
             .setTachyonStorageType(tachyonType)
             .setTTL(ttl)
             .setUnderStorageType(ufsType)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(hostname, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(ttl, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
@@ -65,7 +62,6 @@ public class OutStreamOptionsTest {
     OutStreamOptions options = OutStreamOptions.defaults();
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertEquals(null, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
