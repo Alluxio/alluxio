@@ -187,9 +187,9 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   /**
    * Returns an iterator for evictor cache blocks. The evictor is responsible for specifying the
    * iteration order using its own strategy. For example, {@link LRUEvictor} returns an iterator
-   * that iterates through the block IDs in LRU order.
+   * that iterates through the block ids in LRU order.
    *
-   * @return an iterator over the IDs of the blocks in the evictor cache
+   * @return an iterator over the ids of the blocks in the evictor cache
    */
   protected abstract Iterator<Long> getBlockIterator();
 
