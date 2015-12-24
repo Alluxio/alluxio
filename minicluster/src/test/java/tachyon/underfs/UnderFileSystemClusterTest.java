@@ -15,7 +15,10 @@
 
 package tachyon.underfs;
 
+import java.io.IOException;
+
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -23,28 +26,66 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-import tachyon.client.block.BlockStoreContext;
-import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystemCluster;
 
-import java.io.IOException;
+import tachyon.conf.TachyonConf;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UnderFileSystemCluster.class)
 public class UnderFileSystemClusterTest {
 
+  private String mBaseDir;
+  private TachyonConf mTachyonConf;
+  private UnderFileSystemCluster mUnderFileSystemCluster;
+
+  @Before
+  public void before() {
+    mBaseDir = "/tmp";
+    mTachyonConf = new TachyonConf();
+    mUnderFileSystemCluster = PowerMockito.mock(UnderFileSystemCluster.class);
+  }
+
   @Test
-  public void getTest () throws IOException {
-    PowerMockito.mockStatic(UnderFileSystemCluster.class);
-    UnderFileSystemCluster instance = PowerMockito.mock(UnderFileSystemCluster.class);
+  public void getTest() throws IOException {
+    PowerMockito.spy(UnderFileSystemCluster.class);
 
-    String baseDir = "good";
-    TachyonConf tachyonConf = new TachyonConf();
-    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(baseDir,
-        tachyonConf)).thenReturn(instance);
+    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(mBaseDir,
+        mTachyonConf)).thenReturn(mUnderFileSystemCluster);
 
-    Mockito.when(instance.isStarted()).thenReturn(true);
-    UnderFileSystemCluster cluster = UnderFileSystemCluster.get(baseDir, tachyonConf);
+    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSCluster",
+        (UnderFileSystemCluster) null);
+
+    Mockito.when(mUnderFileSystemCluster.isStarted()).thenReturn(false);
+
+    // execute test
+    UnderFileSystemCluster.get(mBaseDir, mTachyonConf);
+
+    UnderFileSystemCluster sUnderFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
+        .class, "sUnderFSCluster");
+
+    Assert.assertNotNull(sUnderFSCluster);
+
+    Assert.assertEquals(mUnderFileSystemCluster, sUnderFSCluster);
+
+    Mockito.verify(sUnderFSCluster).start();
+    Mockito.verify(sUnderFSCluster).registerJVMOnExistHook();
+  }
+
+  @Test
+  public void readEOFReturnsNegativeTest() {
+    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUfsClz",
+            (String) null);
+    boolean resultFalg = UnderFileSystemCluster.readEOFReturnsNegative();
+    Assert.assertFalse(resultFalg);
+
+    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUfsClz",
+        "XXXX");
+    resultFalg = UnderFileSystemCluster.readEOFReturnsNegative();
+    Assert.assertFalse(resultFalg);
+
+    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUfsClz",
+        "tachyon.underfs.hdfs.LocalMiniDFSCluster");
+    resultFalg = UnderFileSystemCluster.readEOFReturnsNegative();
+    Assert.assertTrue(resultFalg);
   }
 
 }
