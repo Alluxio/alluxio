@@ -25,10 +25,7 @@ import tachyon.underfs.UnderFileSystemCluster;
 
 public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
-  //private static final String INTEGRATION_OSS_ACCESS_ID = "accessId";
-  //private static final String INTEGRATION_OSS_ACCESS_KEY = "accessKey";
   private static final String INTEGRATION_OSS_BUCKET = "ossBucket";
-  //private static final String INTEGRATION_OSS_ENDPOINT = "ossEndpoint";
 
   private String mOSSBucket;
 
