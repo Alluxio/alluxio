@@ -15,6 +15,8 @@
 
 package tachyon.client;
 
+import com.google.common.base.Objects;
+
 import tachyon.annotation.PublicApi;
 
 /**
@@ -63,5 +65,29 @@ public final class WorkerNetAddress {
    */
   public int getWebPort() {
     return mWebPort;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof WorkerNetAddress)) {
+      return false;
+    }
+    WorkerNetAddress that = (WorkerNetAddress) o;
+    return mHost.equals(that.mHost) && mRpcPort == that.mRpcPort && mDataPort == that.mDataPort
+        && mWebPort == that.mWebPort;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("host", mHost).add("rpcPort", mRpcPort)
+        .add("dataPort", mDataPort).add("webPort", mWebPort).toString();
   }
 }

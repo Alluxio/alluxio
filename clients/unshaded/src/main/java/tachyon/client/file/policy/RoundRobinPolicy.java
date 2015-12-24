@@ -17,6 +17,7 @@ package tachyon.client.file.policy;
 
 import java.util.List;
 
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 
 /**
@@ -38,10 +39,11 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public String getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes) {
+  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+      long blockSizeBytes) {
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i ++) {
-      String candidate = mWorkerInfoList.get(mIndex).getHost();
+      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
       if (workerInfo == null
@@ -55,13 +57,13 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
 
   /**
    * @param workerInfoList the list of worker info
-   * @param hostname the hostname to look for
+   * @param address the address to look for
    * @return the worker info in the list that matches the host name, null if not found
    */
   private BlockWorkerInfo findBlockWorkerInfo(List<BlockWorkerInfo> workerInfoList,
-      String hostname) {
+      WorkerNetAddress address) {
     for (BlockWorkerInfo info : workerInfoList) {
-      if (info.getHost().equals(hostname)) {
+      if (info.getNetAddress().equals(address)) {
         return info;
       }
     }

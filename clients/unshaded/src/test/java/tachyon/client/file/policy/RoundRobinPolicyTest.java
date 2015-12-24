@@ -23,23 +23,29 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 
 /**
  * Tests {@link RoundRobinPolicy}.
  */
 public final class RoundRobinPolicyTest {
+  private final static int PORT = 1;
+
   @Test
   public void getWorkerTest() {
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
-    workerInfoList.add(new BlockWorkerInfo("worker1", Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo("worker2", 2 * (long) Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo("worker3", 3 * (long) Constants.GB, 0));
+    workerInfoList.add(
+        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT),
+        2 * (long) Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker3", PORT, PORT, PORT),
+        3 * (long) Constants.GB, 0));
     RoundRobinPolicy policy = new RoundRobinPolicy(workerInfoList);
 
     Assert.assertEquals("worker2",
-        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB));
+        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
     Assert.assertEquals("worker3",
-        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB));
+        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
   }
 }

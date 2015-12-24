@@ -23,29 +23,39 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 
 /**
  * Tests {@link MostAvailableFirstPolicy}.
  */
 public final class MostAvailableFirstPolicyTest {
+  private final static int PORT = 1;
+
   @Test
   public void getMostAvailableWorkerTest() {
-    List<BlockWorkerInfo> workInfoList = Lists.newArrayList();
-    workInfoList.add(new BlockWorkerInfo("worker1", Constants.GB, 0));
-    workInfoList.add(new BlockWorkerInfo("worker2", 2 * (long) Constants.GB, 0));
-    workInfoList.add(new BlockWorkerInfo("worker3", 3 * (long) Constants.GB, 0));
+    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+    workerInfoList.add(
+        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT),
+        2 * (long) Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker3", PORT, PORT, PORT),
+        3 * (long) Constants.GB, 0));
     MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
-    Assert.assertEquals("worker3", policy.getWorkerForNextBlock(workInfoList, Constants.MB));
+    Assert.assertEquals("worker3",
+        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
   @Test
   public void noAvailableWorkerTest() {
-    List<BlockWorkerInfo> workInfoList = Lists.newArrayList();
-    workInfoList.add(new BlockWorkerInfo("worker1", Constants.GB, 0));
-    workInfoList.add(new BlockWorkerInfo("worker2", 2 * (long) Constants.GB, 0));
-    workInfoList.add(new BlockWorkerInfo("worker3", 3 * (long) Constants.GB, 0));
+    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+    workerInfoList.add(
+        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT),
+        2 * (long) Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker3", PORT, PORT, PORT),
+        3 * (long) Constants.GB, 0));
     MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
-    Assert.assertNull(policy.getWorkerForNextBlock(workInfoList, 4 * (long) Constants.GB));
+    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, 4 * (long) Constants.GB));
   }
 }
