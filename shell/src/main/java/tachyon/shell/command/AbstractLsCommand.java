@@ -46,7 +46,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
    */
   protected void ls(TachyonURI path, boolean recursive) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
-    String format = "%-10s%-25s%-15s%-15s%-5s%n";
+    String format = "%-10s%-25s%-15s%-15s%-15s%-5s%n";
     for (FileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -58,7 +58,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
       }
       System.out.format(format, FormatUtils.getSizeFromBytes(file.getLength()),
           CommandUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getUserName(),
-          file.getPath());
+          file.getGroupName(), file.getPath());
       if (recursive && file.isFolder) {
         ls(new TachyonURI(path.getScheme(), path.getAuthority(), file.getPath()), true);
       }
