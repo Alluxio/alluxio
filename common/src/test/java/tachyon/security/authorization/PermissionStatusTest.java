@@ -34,13 +34,12 @@ import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.group.GroupMappingService;
 import tachyon.security.group.provider.IdentityUserGroupsMapping;
-import tachyon.security.group.provider.ShellBasedUnixGroupsMapping;
 
 /**
  * Tests the {@link PermissionStatus} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ShellBasedUnixGroupsMapping.class, GroupMappingService.Factory.class})
+@PrepareForTest({GroupMappingService.Factory.class})
 public final class PermissionStatusTest {
 
   /**
@@ -112,7 +111,7 @@ public final class PermissionStatusTest {
     // mock a multi-groups test case
     TachyonConf conf = new TachyonConf();
     PermissionStatus permissionStatus;
-    ShellBasedUnixGroupsMapping groupService = PowerMockito.mock(ShellBasedUnixGroupsMapping.class);
+    GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
     PowerMockito.when(groupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList("group1", "group2"));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
