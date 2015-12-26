@@ -21,6 +21,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
+/**
+ * Factory for creating Swift under file systems.
+ */
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
