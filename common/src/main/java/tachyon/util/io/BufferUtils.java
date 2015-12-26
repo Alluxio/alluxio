@@ -76,6 +76,7 @@ public final class BufferUtils {
         if (buffer.capacity() > 0) {
           LOG.error("Failed to get cleaner for ByteBuffer");
         }
+        // The cleaner could be null when the buffer is initialized as zero capacity.
         return;
       }
       if (sCleanerCleanMethod == null) {
