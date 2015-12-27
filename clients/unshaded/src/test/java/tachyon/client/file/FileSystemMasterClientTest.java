@@ -30,10 +30,18 @@ import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.FileSystemMasterClientService;
 
+/**
+ * Tests for the {@link FileSystemMasterClient} class.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(FileSystemMasterClient.class)
 public class FileSystemMasterClientTest {
 
+  /**
+   * Tests for an unsupported version.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the file system context can be used.
