@@ -27,7 +27,7 @@ public final class BlockIdTest {
 
   /**
    * Tests that the {@link BlockId#createBlockId(long, long)} method works correctly when creating a
-   * block with the {@link BlockId#getMaxSequenceNumber()} method.
+   * block with the maximum sequence number.
    */
   @Test
   public void createBlockIdWithMaxSequenceNumberTest() {

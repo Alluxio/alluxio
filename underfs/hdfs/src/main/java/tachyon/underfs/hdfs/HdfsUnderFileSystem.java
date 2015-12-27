@@ -60,7 +60,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    *
    * @param fsDefaultName the under FS prefix
    * @param tachyonConf the configuration for Tachyon
-   * @param conf the configuration
+   * @param conf the configuration for Hadoop
    */
   public HdfsUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(tachyonConf);
