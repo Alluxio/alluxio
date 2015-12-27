@@ -18,10 +18,17 @@ package tachyon.master.block;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link BlockId} class.
+ */
 public final class BlockIdTest {
 
   private static final long MAX_SEQUENCE_NUMBER = 16777215L;
 
+  /**
+   * Tests that the {@link BlockId#createBlockId(long, long)} method works correctly when creating a
+   * block with the maximum sequence number.
+   */
   @Test
   public void createBlockIdWithMaxSequenceNumberTest() {
     Assert.assertEquals(33554431L, BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()));
@@ -30,6 +37,9 @@ public final class BlockIdTest {
     Assert.assertEquals(4294967295L, BlockId.createBlockId(255, BlockId.getMaxSequenceNumber()));
   }
 
+  /**
+   * Tests the {@link BlockId#createBlockId(long, long)} method.
+   */
   @Test
   public void createBlockIdTest() {
     Assert.assertEquals(16797216L, BlockId.createBlockId(1, 20000L));
@@ -37,6 +47,10 @@ public final class BlockIdTest {
     Assert.assertEquals(2071248101952L, BlockId.createBlockId(123456, 123456L));
   }
 
+  /**
+   * Tests the {@link BlockId#getContainerId(long)} and {@link BlockId#getSequenceNumber(long)}
+   * methods.
+   */
   @Test
   public void getContainerIdAndSequenceNumberTest() {
     Assert.assertEquals(1L, BlockId.getContainerId(33554431L));
@@ -47,6 +61,9 @@ public final class BlockIdTest {
     Assert.assertEquals(123456L, BlockId.getSequenceNumber(2071248101952L));
   }
 
+  /**
+   * Tests the {@link BlockId#getMaxSequenceNumber()} method.
+   */
   @Test
   public void getMaxSequenceNumberTest() {
     Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getMaxSequenceNumber());

@@ -26,6 +26,9 @@ import tachyon.conf.TachyonConf;
  */
 public final class HdfsUnderFileSystemUtilsTest {
 
+  /**
+   * Tests the {@link HdfsUnderFileSystemUtils#addKey(Configuration, TachyonConf, String)} method.
+   */
   @Test
   public void addKeyTest() {
     String key = "key";
