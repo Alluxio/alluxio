@@ -197,4 +197,9 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "copyToLocal <src> <localDst>";
+  }
 }

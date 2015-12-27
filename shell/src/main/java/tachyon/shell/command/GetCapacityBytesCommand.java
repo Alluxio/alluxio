@@ -45,4 +45,9 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
     long capacityBytes = TachyonBlockStore.get().getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
   }
+
+  @Override
+  public String getUsage() {
+    return "getCapacityBytes";
+  }
 }

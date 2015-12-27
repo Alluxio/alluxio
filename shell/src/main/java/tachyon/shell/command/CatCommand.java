@@ -69,4 +69,9 @@ public final class CatCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "cat <path>";
+  }
 }
