@@ -62,6 +62,14 @@ public class S3OutputStream extends OutputStream {
   /** Flag to indicate this stream has been closed, to ensure close is only done once */
   private boolean mClosed;
 
+  /**
+   * Constructs a new stream for writing a file.
+   *
+   * @param bucketName the name of the bucket
+   * @param key the key of the file
+   * @param client the JetS3t client
+   * @throws IOException when a non-Tachyon related error occurs
+   */
   public S3OutputStream(String bucketName, String key, S3Service client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
