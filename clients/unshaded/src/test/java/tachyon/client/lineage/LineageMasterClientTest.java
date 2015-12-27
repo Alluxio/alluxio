@@ -30,10 +30,18 @@ import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.LineageMasterClientService;
 
+/**
+ * Tests for the {@link LineageMasterClient} class.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(LineageMasterClient.class)
 public class LineageMasterClientTest {
 
+  /**
+   * Tests for an unsupported version.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the lineage context can be used.
