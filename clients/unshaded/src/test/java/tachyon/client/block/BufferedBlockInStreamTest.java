@@ -21,24 +21,39 @@ import org.junit.Test;
 
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link BufferedBlockInStream} class.
+ */
 public class BufferedBlockInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
 
   private TestBufferedBlockInStream mTestStream;
 
+  /**
+   * Sets up the stream before a test runs.
+   */
   @Before
   public void before() {
     mTestStream = new TestBufferedBlockInStream(1L, 0, BLOCK_LENGTH);
   }
 
+  /**
+   * Verify byte by byte read is equal to increasing byte array.
+   *
+   * @throws Exception when reading from the stream fails
+   */
   @Test
   public void singleByteReadTest() throws Exception {
-    // Verify byte by byte read is equal to increasing byte array
     for (int i = 0; i < BLOCK_LENGTH; i ++) {
       Assert.assertEquals(i, mTestStream.read());
     }
   }
 
+  /**
+   * Test for the {@link BufferedBlockInStream#skip(long)} method.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void skipTest() throws Exception {
     // Skip forward
@@ -50,6 +65,11 @@ public class BufferedBlockInStreamTest {
     Assert.assertEquals(11, mTestStream.read());
   }
 
+  /**
+   * Test for the {@link BufferedBlockInStream#seek(long)} method.
+   *
+   * @throws Exception when an operation on the stream fails
+   */
   @Test
   public void seekTest() throws Exception {
     // Seek forward
@@ -65,6 +85,11 @@ public class BufferedBlockInStreamTest {
     Assert.assertEquals(-1, mTestStream.read());
   }
 
+  /**
+   * Tests that {@link BufferedBlockInStream#read(byte[], int, int)} works for bulk reads.
+   *
+   * @throws Exception when reading from the stream fails
+   */
   @Test
   public void bulkReadTest() throws Exception {
     int size = (int) BLOCK_LENGTH / 10;
