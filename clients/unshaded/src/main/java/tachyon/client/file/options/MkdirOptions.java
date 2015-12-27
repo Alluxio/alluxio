@@ -23,8 +23,15 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.MkdirTOptions;
 
+/**
+ * Method option for creating a directory.
+ */
 @PublicApi
 public final class MkdirOptions {
+
+  /**
+   * Builder for {@link MkdirOptions}.
+   */
   public static class Builder implements OptionsBuilder<MkdirOptions> {
     private boolean mAllowExists;
     private boolean mRecursive;
@@ -51,6 +58,8 @@ public final class MkdirOptions {
     }
 
     /**
+     * Sets the flag for raising an exception if the directory already exists.
+     *
      * @param allowExists the allowExists flag value to use; it specifies whether an exception
      *        should be thrown if the directory being made already exists.
      * @return the builder
@@ -61,6 +70,8 @@ public final class MkdirOptions {
     }
 
     /**
+     * Sets the recursive flag.
+     *
      * @param recursive the recursive flag value to use; it specifies whether parent directories
      *        should be created if they do not already exist
      * @return the builder
@@ -82,6 +93,8 @@ public final class MkdirOptions {
     }
 
     /**
+     * Sets the {@link WriteType}.
+     *
      * @param writeType the write type to use
      * @return the builder
      */
