@@ -88,4 +88,9 @@ public final class PersistCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "persist <tachyonPath>";
+  }
 }
