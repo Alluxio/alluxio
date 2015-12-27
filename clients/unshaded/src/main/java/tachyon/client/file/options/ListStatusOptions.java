@@ -18,8 +18,15 @@ package tachyon.client.file.options;
 import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for listing the status.
+ */
 @PublicApi
 public final class ListStatusOptions {
+
+  /**
+   * Builder for {@link ListStatusOptions}.
+   */
   public static class Builder implements OptionsBuilder<ListStatusOptions> {
     /**
      * Creates a new builder for {@link ListStatusOptions}.
