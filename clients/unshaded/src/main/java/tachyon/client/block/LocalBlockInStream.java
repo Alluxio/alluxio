@@ -59,7 +59,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     mCloser = Closer.create();
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    FileChannel localFileChannel = null;
+    FileChannel localFileChannel;
 
     try {
       LockBlockResult result = mWorkerClient.lockBlock(blockId);
