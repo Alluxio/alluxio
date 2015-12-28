@@ -26,7 +26,7 @@ import tachyon.conf.TachyonConf;
 public class GetLineageInfoListOptionsTest {
 
   /**
-   * Tests that the option can successfully be build.
+   * Tests that the option can successfully be built.
    */
   @Test
   public void buildTest() {
@@ -35,12 +35,11 @@ public class GetLineageInfoListOptionsTest {
   }
 
   /**
-   * Tests that the default for this option can successfully be build.
+   * Tests that the default for this option can successfully be built.
    */
   @Test
   public void defaultsTest() {
     Assert.assertNotNull("The default options should not be null",
         GetLineageInfoListOptions.defaults());
   }
-
 }
