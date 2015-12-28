@@ -150,9 +150,8 @@ public class ApplicationMasterTest {
 
     // Partially mock Utils to avoid hdfs IO
     PowerMockito.mockStatic(YarnUtils.class);
-    Mockito
-        .when(
-            YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
+    Mockito.when(
+        YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
         .thenReturn(Records.newRecord(LocalResource.class));
     Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER))
         .thenReturn(EXPECTED_MASTER_COMMAND);
