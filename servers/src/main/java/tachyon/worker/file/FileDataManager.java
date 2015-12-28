@@ -21,12 +21,14 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -75,13 +77,20 @@ public final class FileDataManager {
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
+    Map<Long, Long> blockIdToLockId = Maps.newHashMap();
+    // lock all the blocks to prevent any eviction
     for (long blockId : blockIds) {
       long lockId;
       try {
         lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+        blockIdToLockId.put(blockId, lockId);
       } catch (BlockDoesNotExistException e) {
         throw new IOException(e);
       }
+    }
+
+    for (long blockId : blockIds) {
+      long lockId = blockIdToLockId.get(blockId);
 
       // obtain block reader
       try {

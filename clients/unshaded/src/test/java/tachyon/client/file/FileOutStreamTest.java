@@ -49,6 +49,7 @@ import tachyon.client.util.ClientTestUtils;
 import tachyon.client.worker.WorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
@@ -347,6 +348,28 @@ public class FileOutStreamTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     mTestStream.write(null, 0, 0);
+  }
+
+  /**
+   * Tests that the async write invokes the expected client APIs.
+   *
+   * @throws IOException when the write fails
+   * @throws TachyonException
+   */
+  @Test
+  public void asyncWriteTest() throws Exception {
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
+            .setUnderStorageType(UnderStorageType.ASYNC_PERSIST).build();
+    mTestStream = createTestStream(FILE_ID, options);
+
+    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
+        .thenReturn(true);
+    mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
+    mTestStream.close();
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
+        Mockito.any(CompleteFileOptions.class));
+    Mockito.verify(mFileSystemMasterClient).scheduleAsyncPersist(Mockito.eq(FILE_ID));
   }
 
   private void verifyIncreasingBytesWritten(int len) {
