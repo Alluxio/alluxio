@@ -31,6 +31,7 @@ public final class IdUtils {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   public static final long INVALID_FILE_ID = -1;
+  public static final long INVALID_WORKER_ID = -1;
 
   /**
    * Creates an id for a file based on the given id of the container.

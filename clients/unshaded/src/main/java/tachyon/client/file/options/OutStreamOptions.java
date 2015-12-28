@@ -23,8 +23,15 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for writing a file.
+ */
 @PublicApi
 public final class OutStreamOptions {
+
+  /**
+   * Builder for {@link OutStreamOptions}.
+   */
   public static class Builder implements OptionsBuilder<OutStreamOptions> {
     private long mBlockSizeBytes;
     private String mHostname;
@@ -55,6 +62,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * Sets the size of the block in bytes.
+     *
      * @param blockSizeBytes the block size to use
      * @return the builder
      */
@@ -64,6 +73,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * Sets the name of the host.
+     *
      * @param hostname the hostname to use
      * @return the builder
      */
@@ -95,6 +106,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * Sets the time to live.
+     *
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
      *        created file should be kept around before it is automatically deleted, no matter
      *        whether the file is pinned
@@ -106,6 +119,8 @@ public final class OutStreamOptions {
     }
 
     /**
+     * Sets the {@link WriteType}.
+     *
      * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
      *                  override both the TachyonStorageType and UnderStorageType.
      * @return the builder

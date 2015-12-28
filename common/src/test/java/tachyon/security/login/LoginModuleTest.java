@@ -27,14 +27,15 @@ import tachyon.security.User;
 
 /**
  * Unit test for the login modules defined in {@link tachyon.security.login.TachyonLoginModule} and
- * used in {@link tachyon.security.login.TachyonJaasConfiguration}
+ * used in {@link tachyon.security.login.TachyonJaasConfiguration}.
  */
 public class LoginModuleTest {
 
   /**
    * This test verify whether the simple login works in JAAS framework.
    * Simple mode login get the OS user and convert to Tachyon user.
-   * @throws Exception
+   *
+   * @throws Exception thrown when failing to set the context appropriately
    */
   @Test
   public void simpleLoginTest() throws Exception {

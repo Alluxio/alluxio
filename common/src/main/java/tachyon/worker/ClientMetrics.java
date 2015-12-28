@@ -27,6 +27,9 @@ import tachyon.Constants;
 public final class ClientMetrics {
   private List<Long> mMetrics;
 
+  /**
+   * Constructs new client metrics.
+   */
   public ClientMetrics() {
     mMetrics = createDefaultMetrics();
   }

@@ -19,6 +19,9 @@ import org.apache.hadoop.conf.Configuration;
 
 import tachyon.conf.TachyonConf;
 
+/**
+ * Utility methods for the Swift implementation of the {@link tachyon.underfs.UnderFileSystem}.
+ */
 public class SwiftUnderFileSystemUtils {
 
   /**

@@ -120,7 +120,6 @@ public final class Constants {
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
-  public static final String THRIFT_STOP_TIMEOUT_SECONDS = "tachyon.thrift.stop.timeout.seconds";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -248,8 +247,8 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.attenuation.factor";
   public static final String WORKER_TIERED_STORE_LEVELS =
       "tachyon.worker.tieredstore.levels";
-  public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
-      "tachyon.worker.lineage.heartbeat.interval.ms";
+  public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
+      "tachyon.worker.filesystem.heartbeat.interval.ms";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "tachyon.worker.tieredstore.block.locks";
@@ -363,6 +362,12 @@ public final class Constants {
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
+  /**
+   * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
+   * 0 instead of this value so that they can run faster.
+   */
+  public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
+
   // ttl related
   public static final long NO_TTL = -1;
 
@@ -381,6 +386,8 @@ public final class Constants {
   public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
   public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
+  // Group Mapping
+  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
 
   private Constants() {} // prevent instantiation
 }
