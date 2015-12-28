@@ -32,8 +32,8 @@ public class KeyValueFileReaderWriterTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayCountingOutStream mOutStream = new ByteArrayCountingOutStream();
-  private KeyValueFileWriter mWriter = new OutStreamKeyValueFileWriter(mOutStream);
-  private KeyValueFileReader mReader;
+  private OutStreamKeyValueFileWriter mWriter = new OutStreamKeyValueFileWriter(mOutStream);
+  private RandomAccessKeyValueFileReader mReader;
 
   @Test
   public void putTest() throws Exception {
