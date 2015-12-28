@@ -49,4 +49,10 @@ public class LineageFileOutStream extends FileOutStream {
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
     return builder.build();
   }
+
+  @Override
+  protected void scheduleAsyncPersist() throws IOException {
+    // do nothing, the scheduling is handled by the lineage master
+    return;
+  }
 }

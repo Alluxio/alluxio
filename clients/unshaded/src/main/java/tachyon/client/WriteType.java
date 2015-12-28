@@ -50,14 +50,8 @@ public enum WriteType {
    */
   THROUGH(4),
   /**
-   * [Experimental] Write the file asynchronously to the under fs (either must cache or must
-   * through).
-   *
-   * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use
-   *             {@link tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data
-   *             persistence.
+   * Write the file asynchronously to the under fs.
    */
-  @Deprecated
   ASYNC_THROUGH(5);
 
   private final int mValue;
