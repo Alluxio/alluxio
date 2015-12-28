@@ -49,6 +49,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * Creates a new local block input stream.
    *
    * @param blockId the block id
+   * @param blockSize the size of the block
    * @throws IOException if I/O error occurs
    */
   public LocalBlockInStream(long blockId, long blockSize) throws IOException {

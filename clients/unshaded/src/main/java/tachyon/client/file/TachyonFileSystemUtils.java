@@ -148,7 +148,7 @@ public final class TachyonFileSystemUtils {
   /**
    * Persist the given file to the under file system.
    *
-   * @param tfs {@link TachyonFileSystem} to carry out tachyon operations
+   * @param tfs {@link TachyonFileSystem} to carry out Tachyon operations
    * @param file the file to persist
    * @param fileInfo the file info of the file
    * @param tachyonConf TachyonConf object

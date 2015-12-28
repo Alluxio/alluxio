@@ -23,8 +23,15 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
+/**
+ * Method option for setting the state.
+ */
 @PublicApi
 public class SetStateOptions {
+
+  /**
+   * Builder for {@link SetStateOptions}.
+   */
   public static class Builder implements OptionsBuilder<SetStateOptions> {
     private Boolean mPinned;
     private Long mTTL;
@@ -49,6 +56,8 @@ public class SetStateOptions {
     }
 
     /**
+     * Sets the pinned flag.
+     *
      * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
      *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
      *        matter this value is true or false
@@ -60,6 +69,8 @@ public class SetStateOptions {
     }
 
     /**
+     * Sets the time to live.
+     *
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
      *        created file should be kept around before it is automatically deleted, irrespective of
      *        whether the file is pinned
@@ -71,6 +82,8 @@ public class SetStateOptions {
     }
 
     /**
+     * Sets the persisted flag.
+     *
      * @param persisted the persisted flag value to use; it specifies whether the file has been
      *        persisted in the under file system or not.
      * @return the builder
@@ -102,6 +115,11 @@ public class SetStateOptions {
   private final Long mTTL;
   private final Boolean mPersisted;
 
+  /**
+   * Constructs a new method option for setting the state.
+   *
+   * @param options the options for setting the state
+   */
   public SetStateOptions(SetStateTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTTL = options.isSetTtl() ? options.getTtl() : null;

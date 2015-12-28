@@ -16,15 +16,26 @@
 package tachyon.security.authentication;
 
 import java.util.HashMap;
+import java.util.Map;
 
+import javax.security.auth.callback.CallbackHandler;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslServer;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests the {@link PlainSaslServerProvider} class.
+ */
 public class PlainSaslServerProviderTest {
 
+  /**
+   * Tests the {@link Sasl#createSaslServer(String, String, String, Map, CallbackHandler)} method to
+   * work with the {@link PlainSaslServerProvider#MECHANISM} successfully.
+   *
+   * @throws Exception thrown if the server cannot be created
+   */
   @Test
   public void createPlainSaslServerTest() throws Exception {
     // create plainSaslServer
@@ -33,6 +44,12 @@ public class PlainSaslServerProviderTest {
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM, server.getMechanismName());
   }
 
+  /**
+   * Tests the {@link Sasl#createSaslServer(String, String, String, Map, CallbackHandler)} method to
+   * be null when the provider is not plain.
+   *
+   * @throws Exception thrown if the server cannot be created
+   */
   @Test
   public void createNoSupportSaslServerTest() throws Exception {
     // create a SaslServer which PlainSaslServerProvider has not supported
@@ -41,8 +58,11 @@ public class PlainSaslServerProviderTest {
     Assert.assertNull(server);
   }
 
+  /**
+   * Tests the {@link PlainSaslUtils#isPlainSaslProviderAdded()} method.
+   */
   @Test
-  public void plainSaslProviderHasRegisteredTest() throws Exception {
+  public void plainSaslProviderHasRegisteredTest() {
     Assert.assertTrue(PlainSaslUtils.isPlainSaslProviderAdded());
   }
 }

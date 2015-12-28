@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.lineage;
+package tachyon.worker.file;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,9 +43,9 @@ import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
 /**
- * Responsible for managing the lineage storing into under file system.
+ * Responsible for Storing files into under file system.
  */
-public final class LineageDataManager {
+public final class FileDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final UnderFileSystem mUfs;
@@ -54,7 +54,7 @@ public final class LineageDataManager {
   private final List<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
-  public LineageDataManager(BlockDataManager blockDataManager) {
+  public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistedFiles = Lists.newArrayList();
     mTachyonConf = WorkerContext.getConf();

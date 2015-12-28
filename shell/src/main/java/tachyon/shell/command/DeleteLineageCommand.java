@@ -56,4 +56,9 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
     }
     System.out.println("Lineage " + lineageId + " has been deleted.");
   }
+
+  @Override
+  public String getUsage() {
+    return "deleteLineage <lineageId> <cascade(true|false)>";
+  }
 }

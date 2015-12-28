@@ -34,8 +34,6 @@ public final class JournalProtoUtils {
     switch (entry.getEntryCase()) {
       case ADD_MOUNT_POINT:
         return entry.getAddMountPoint();
-      case ASYNC_COMPLETE_FILE:
-        return entry.getAsyncCompleteFile();
       case BLOCK_CONTAINER_ID_GENERATOR:
         return entry.getBlockContainerIdGenerator();
       case BLOCK_INFO:
@@ -62,8 +60,6 @@ public final class JournalProtoUtils {
         return entry.getLineageIdGenerator();
       case PERSIST_DIRECTORY:
         return entry.getPersistDirectory();
-      case PERSIST_FILES:
-        return entry.getPersistFiles();
       case PERSIST_FILE:
         return entry.getPersistFile();
       case PERSIST_FILES_REQUEST:

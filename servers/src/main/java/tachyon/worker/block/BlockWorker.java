@@ -322,7 +322,11 @@ public final class BlockWorker extends WorkerBase {
     Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
         .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.stopTimeoutVal = WorkerContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+      args.stopTimeoutVal = 0;
+    } else {
+      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
+    }
     return new TThreadPoolServer(args);
   }
 

@@ -54,9 +54,15 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
       throw new IOException(path + " is a directory path so does not have file blocks.");
     }
 
-    System.out.println(path + " with file id " + fd.getFileId() + " has the following blocks: ");
+    System.out.println(fInfo);
+    System.out.println("Containing the following blocks: ");
     for (long blockId : fInfo.getBlockIds()) {
       System.out.println(TachyonBlockStore.get().getInfo(blockId));
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "fileinfo <path>";
   }
 }

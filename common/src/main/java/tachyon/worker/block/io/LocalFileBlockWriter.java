@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * This class provides write access to a temp block data file locally stored in managed storage.
@@ -38,16 +37,6 @@ public final class LocalFileBlockWriter implements BlockWriter {
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
-
-  /**
-   * Constructs a Block writer given the metadata of a temp block.
-   *
-   * @param tempBlockMeta metadata of this temp block
-   * @throws IOException if its file can not be open with "rw" mode
-   */
-  public LocalFileBlockWriter(TempBlockMeta tempBlockMeta) throws IOException {
-    this(Preconditions.checkNotNull(tempBlockMeta).getPath());
-  }
 
   /**
    * Constructs a Block writer given the file path of the block.
@@ -68,7 +57,12 @@ public final class LocalFileBlockWriter implements BlockWriter {
 
   @Override
   public long append(ByteBuffer inputBuf) throws IOException {
-    return write(mLocalFileChannel.size(), inputBuf);
+    return write(mLocalFileChannel.size(), inputBuf.duplicate());
+  }
+
+  @Override
+  public void close() throws IOException {
+    mCloser.close();
   }
 
   /**
@@ -80,17 +74,12 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * @throws IOException
    */
   private long write(long offset, ByteBuffer inputBuf) throws IOException {
-    int inputBufLength = inputBuf.limit();
+    int inputBufLength = inputBuf.limit() - inputBuf.position();
     MappedByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
     int bytesWritten = outputBuf.limit();
     BufferUtils.cleanDirectBuffer(outputBuf);
     return bytesWritten;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mCloser.close();
   }
 }

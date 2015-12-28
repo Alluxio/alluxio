@@ -16,8 +16,6 @@
 package tachyon.master.lineage;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -33,8 +31,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
@@ -48,14 +44,7 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.master.lineage.checkpoint.CheckpointPlan;
-import tachyon.master.lineage.meta.LineageFile;
-import tachyon.master.lineage.meta.LineageFileState;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
-import tachyon.thrift.CommandType;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.LineageCommand;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 
 @RunWith(PowerMockRunner.class)
@@ -83,6 +72,7 @@ public final class LineageMasterTest {
         Lists.newArrayList(new TachyonURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
         Lists.newArrayList(new TachyonURI("/test2")), mJob);
+    Mockito.when(mFileSystemMaster.getPath(Mockito.anyLong())).thenReturn(new TachyonURI("test"));
     List<LineageInfo> info = mLineageMaster.getLineageInfoList();
     Assert.assertEquals(2, info.size());
   }
@@ -143,6 +133,9 @@ public final class LineageMasterTest {
   public void reinitializeFileTest() throws Exception {
     mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
         Lists.newArrayList(new TachyonURI("/test1")), mJob);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.isCompleted = false;
+    Mockito.when(mFileSystemMaster.getFileInfo(Mockito.any(Long.class))).thenReturn(fileInfo);
     mLineageMaster.reinitializeFile("/test1", 500L, 10L);
     Mockito.verify(mFileSystemMaster).reinitializeFile(new TachyonURI("/test1"), 500L, 10L);
   }
@@ -155,33 +148,6 @@ public final class LineageMasterTest {
     mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
     Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(fileId),
         Mockito.any(CompleteFileOptions.class));
-  }
-
-  @Test
-  public void heartbeatTest() throws Exception {
-    long fileId = 0;
-    long workerId = 1;
-    long blockId = 2;
-
-    mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
-        Lists.newArrayList(new TachyonURI("/test1")), mJob);
-    Set<LineageFile> checkpointFiles = Sets.newHashSet();
-    checkpointFiles.add(new LineageFile(fileId, LineageFileState.COMPLETED));
-    FileBlockInfo fileBlockInfo = new FileBlockInfo();
-    fileBlockInfo.blockInfo = new BlockInfo();
-    fileBlockInfo.blockInfo.blockId = blockId;
-    Mockito.when(mFileSystemMaster.getFileBlockInfoList(fileId))
-        .thenReturn(Lists.newArrayList(fileBlockInfo));
-    Map<Long, Set<LineageFile>> workerToCheckpointFile = Maps.newHashMap();
-    workerToCheckpointFile.put(workerId, checkpointFiles);
-    Whitebox.setInternalState(mLineageMaster, "mWorkerToCheckpointFile", workerToCheckpointFile);
-
-    LineageCommand command =
-        mLineageMaster.lineageWorkerHeartbeat(workerId, Lists.newArrayList(fileId));
-    Assert.assertEquals(CommandType.Persist, command.commandType);
-    Assert.assertEquals(1, command.checkpointFiles.size());
-    Assert.assertEquals(fileId, command.checkpointFiles.get(0).fileId);
-    Assert.assertEquals(blockId, (long) command.checkpointFiles.get(0).blockIds.get(0));
   }
 
   @Test
@@ -199,28 +165,5 @@ public final class LineageMasterTest {
     Assert.assertTrue(checkpointThread.isDone());
     Assert.assertTrue(recomputeThread.isDone());
     Assert.assertTrue(service.isShutdown());
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void queueForCheckpointTest() throws Exception {
-    long workerId = 1;
-    long fileId = 0;
-    long lineageId = mLineageMaster.createLineage(Lists.<TachyonURI>newArrayList(),
-        Lists.newArrayList(new TachyonURI("/test1")), mJob);
-    FileBlockInfo fileBlockInfo = new FileBlockInfo();
-    fileBlockInfo.blockInfo = new BlockInfo();
-    BlockLocation blockLocation = new BlockLocation();
-    blockLocation.workerId = workerId;
-    fileBlockInfo.blockInfo.locations = Lists.newArrayList(blockLocation);
-    Mockito.when(mFileSystemMaster.getFileBlockInfoList(fileId))
-        .thenReturn(Lists.newArrayList(fileBlockInfo));
-
-    CheckpointPlan plan = new CheckpointPlan(Lists.newArrayList(lineageId));
-    mLineageMaster.queueForCheckpoint(plan);
-    Map<Long, Set<LineageFile>> workerToCheckpointFile = (Map<Long, Set<LineageFile>>) Whitebox
-        .getInternalState(mLineageMaster, "mWorkerToCheckpointFile");
-    Assert.assertTrue(workerToCheckpointFile.containsKey(workerId));
-    Assert.assertEquals(fileId, workerToCheckpointFile.get(workerId).iterator().next().getFileId());
   }
 }

@@ -15,31 +15,49 @@
 
 package tachyon.master.lineage.checkpoint;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageStateUtils;
 import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
  * This class tries to checkpoint the latest created lineage that is ready for persistence. This
- * class serves as an example to implement a scheduler.
+ * class serves as an example to implement a planner.
  */
-public final class CheckpointLatestScheduler implements CheckpointScheduler {
+public final class CheckpointLatestPlanner implements CheckpointPlanner {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * CheckpointLatestScheduler does not use the lineage store view.
+   * {@link CheckpointLatestPlanner} does not use the lineage store view.
    *
-   * @param storeView view of a lineage store
+   * @param lineageStoreView a view of a lineage store
+   * @param fileSystemMasterView a view of the file system master
    */
-  public CheckpointLatestScheduler(LineageStoreView storeView) {}
+  public CheckpointLatestPlanner(LineageStoreView lineageStoreView,
+      FileSystemMasterView fileSystemMasterView) {}
 
   @Override
-  public CheckpointPlan schedule(LineageStoreView store) {
+  public CheckpointPlan generatePlan(LineageStoreView store,
+      FileSystemMasterView fileSystemMasterView) {
     Lineage toCheckpoint = null;
     long latestCreated = 0;
     for (Lineage lineage : store.getAllLineagesInTopologicalOrder()) {
-      if (!lineage.isCompleted() || lineage.isPersisted() || lineage.needRecompute()
-          || lineage.isInCheckpointing()) {
+      try {
+        if (!LineageStateUtils.isCompleted(lineage, fileSystemMasterView)
+            || LineageStateUtils.isPersisted(lineage, fileSystemMasterView)
+            || LineageStateUtils.needRecompute(lineage, fileSystemMasterView)
+            || LineageStateUtils.isInCheckpointing(lineage, fileSystemMasterView)) {
+          continue;
+        }
+      } catch (FileDoesNotExistException e) {
+        LOG.error("The lineage file does not exist", e);
         continue;
       }
       if (lineage.getCreationTime() > latestCreated) {

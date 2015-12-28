@@ -30,6 +30,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import tachyon.network.ChannelType;
 import tachyon.util.ThreadFactoryUtils;
 
+/**
+ * Utility methods for working with Netty.
+ */
 public final class NettyUtils {
   private NettyUtils() {}
 
