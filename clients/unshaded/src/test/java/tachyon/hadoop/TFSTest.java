@@ -46,7 +46,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit tests for {@link TFS}
+ * Unit tests for {@link TFS}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
@@ -91,6 +91,11 @@ public class TFSTest {
     }
   }
 
+  /**
+   * Ensures that Hadoop loads TFSFT when configured.
+   *
+   * @throws IOException when the file system cannot be retrieved
+   */
   @Test
   public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
@@ -115,6 +120,11 @@ public class TFSTest {
     TachyonFileSystem.TachyonFileSystemFactory.get();
   }
 
+  /**
+   * Ensures that Hadoop loads the Tachyon file system when configured.
+   *
+   * @throws IOException when the file system cannot be retrieved
+   */
   @Test
   public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
@@ -163,6 +173,11 @@ public class TFSTest {
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
   }
 
+  /**
+   * Sets up the configuration before a test runs.
+   *
+   * @throws Exception when creating the mock fails
+   */
   @Before
   public void setup() throws Exception {
     mTachyonConf = new TachyonConf();

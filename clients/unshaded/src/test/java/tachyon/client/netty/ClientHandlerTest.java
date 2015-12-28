@@ -32,14 +32,23 @@ import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.network.protocol.databuffer.DataBuffer;
 
+/**
+ * Tests for the {@link ClientHandler} class.
+ */
 public class ClientHandlerTest {
 
   private ClientHandler mHandler;
   private ChannelHandlerContext mContext;
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the handler before a test runs.
+   */
   @Before
   public void before() {
     mHandler = new ClientHandler();
@@ -59,7 +68,7 @@ public class ClientHandlerTest {
   /**
    * Makes sure that the response is received as expected.
    *
-   * @throws IOException
+   * @throws IOException when reading from the channel fails
    */
   @Test
   public void channelRead0ResponseReceivedTest() throws IOException {
@@ -79,7 +88,7 @@ public class ClientHandlerTest {
    * Makes sure that an {@link IllegalArgumentException} is thrown when the message is
    * not a {@link tachyon.network.protocol.RPCResponse}.
    *
-   * @throws IOException
+   * @throws IOException when reading from the channel fails
    */
   @Test
   public void channelRead0ThrowsExceptionTest() throws IOException {
@@ -93,7 +102,7 @@ public class ClientHandlerTest {
   /**
    * Makes sure that the {@link ChannelHandlerContext} is closed.
    *
-   * @throws Exception
+   * @throws Exception when the exception cannot be caught
    */
   @Test
   public void exceptionCaughtClosesContextTest() throws Exception {
