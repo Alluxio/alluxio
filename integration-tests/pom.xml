@@ -229,10 +229,10 @@
             <configuration>
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.oss.OSSUnderStorageCluster</ufs>
-                <!-- Change "myAccessId" to your oss access id for this test -->
-                <fs.oss.accessKeyId>myAccessId</fs.oss.accessKeyId>
-                <!-- Change "mySecretKey" to your oss access secret key for this test -->
-                <fs.oss.accessKeySecret>mySecretKey</fs.oss.accessKeySecret>
+                <!-- Change "yourAccessId" to your oss access id for this test -->
+                <fs.oss.accessKeyId>yourAccessId</fs.oss.accessKeyId>
+                <!-- Change "yourSecretKey" to your oss access secret key for this test -->
+                <fs.oss.accessKeySecret>yourSecretKey</fs.oss.accessKeySecret>
                 <!-- Change this endpoint for your oss service address for this test -->
                 <fs.oss.endpoint>http://oss-cn-hangzhou.aliyuncs.com</fs.oss.endpoint>
                 <!-- Change "your-bucket" to your oss bucket for this test -->
