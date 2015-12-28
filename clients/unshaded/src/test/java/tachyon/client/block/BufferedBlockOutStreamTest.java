@@ -52,7 +52,7 @@ public class BufferedBlockOutStreamTest {
   }
 
   /**
-   * Test for the {@link BufferedBlockOutStream#remaining()} method.
+   * Tests for the {@link BufferedBlockOutStream#remaining()} method.
    */
   @Test
   public void remainingTest() {
@@ -67,7 +67,7 @@ public class BufferedBlockOutStreamTest {
   }
 
   /**
-   * Test writing an increasing byte array one byte at a time.
+   * Tests writing an increasing byte array one byte at a time.
    *
    * @throws Exception when an operation on the stream fails
    */
@@ -82,7 +82,7 @@ public class BufferedBlockOutStreamTest {
   }
 
   /**
-   * Test writing an increasing byte array.
+   * Tests writing an increasing byte array.
    *
    * @throws Exception when an operation on the stream fails
    */
@@ -95,7 +95,7 @@ public class BufferedBlockOutStreamTest {
   }
 
   /**
-   * Test writing the middle half of an increasing byte array and test writing more than half the
+   * Tests writing the middle half of an increasing byte array and test writing more than half the
    * buffer limit. This causes an unbuffered write and flush.
    *
    * @throws Exception when an operation on the stream fails
