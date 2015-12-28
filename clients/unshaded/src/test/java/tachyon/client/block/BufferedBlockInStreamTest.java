@@ -38,7 +38,7 @@ public class BufferedBlockInStreamTest {
   }
 
   /**
-   * Verify byte by byte read is equal to increasing byte array.
+   * Verifies byte by byte read is equal to increasing byte array.
    *
    * @throws Exception when reading from the stream fails
    */
@@ -50,7 +50,7 @@ public class BufferedBlockInStreamTest {
   }
 
   /**
-   * Test for the {@link BufferedBlockInStream#skip(long)} method.
+   * Tests for the {@link BufferedBlockInStream#skip(long)} method.
    *
    * @throws Exception when an operation on the stream fails
    */
@@ -66,7 +66,7 @@ public class BufferedBlockInStreamTest {
   }
 
   /**
-   * Test for the {@link BufferedBlockInStream#seek(long)} method.
+   * Tests for the {@link BufferedBlockInStream#seek(long)} method.
    *
    * @throws Exception when an operation on the stream fails
    */
