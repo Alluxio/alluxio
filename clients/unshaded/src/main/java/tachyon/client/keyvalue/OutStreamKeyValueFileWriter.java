@@ -83,12 +83,16 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
     mClosed = true;
   }
 
-  @Override
+  /**
+   * @return number of keys
+   */
   public long keyCount() {
     return mKeyCount;
   }
 
-  @Override
+  /**
+   * @return number of bytes estimated
+   */
   public long byteCount() {
     Preconditions.checkState(!mClosed);
     // last pointer to index
