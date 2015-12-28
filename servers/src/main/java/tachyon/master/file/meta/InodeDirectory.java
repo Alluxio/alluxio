@@ -110,6 +110,7 @@ public final class InodeDirectory extends Inode {
     ret.userName = getUserName();
     ret.groupName = getGroupName();
     ret.permission = getPermission();
+    ret.persistenceState = getPersistenceState().toString();
     return ret;
   }
 
@@ -195,7 +196,7 @@ public final class InodeDirectory extends Inode {
             .setId(entry.getId())
             .setParentId(entry.getParentId())
             .setCreationTimeMs(entry.getCreationTimeMs())
-            .setPersisted(entry.getPersisted())
+            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
@@ -210,7 +211,7 @@ public final class InodeDirectory extends Inode {
         .setId(getId())
         .setName(getName())
         .setParentId(getParentId())
-        .setPersisted(isPersisted())
+        .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setUserName(getUserName())
