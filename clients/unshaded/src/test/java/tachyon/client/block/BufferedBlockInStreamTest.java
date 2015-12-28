@@ -38,7 +38,8 @@ public class BufferedBlockInStreamTest {
   }
 
   /**
-   * Verifies byte by byte read is equal to increasing byte array.
+   * Verifies the byte by byte read is equal to an increasing byte array, where the written data is
+   * an increasing byte array.
    *
    * @throws Exception when reading from the stream fails
    */
