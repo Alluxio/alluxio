@@ -144,6 +144,12 @@ public final class Constants {
       "tachyon.integration.master.resource.mem";
   public static final String INTEGRATION_YARN_ONE_WORKER_PER_HOST =
       "tachyon.integration.yarn.one.worker.per.host";
+  public static final String INTEGRATION_YARN_WORKER_CONTAINER_REQUEST_ROUNDS_MAX =
+      "tachyon.integration.yarn.worker.container.request.rounds.max";
+  public static final String INTEGRATION_YARN_CONTAINER_REQUEST_RETRY_COUNT =
+      "tachyon.integration.yarn.container.request.retry";
+  public static final String INTEGRATION_YARN_CONTAINER_REQUEST_TIMEOUT_S =
+      "tachyon.integration.yarn.container.request.timeout.s";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
   public static final String INTEGRATION_MESOS_JRE_PATH =
