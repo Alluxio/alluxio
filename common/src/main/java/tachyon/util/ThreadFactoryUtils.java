@@ -19,6 +19,9 @@ import java.util.concurrent.ThreadFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+/**
+ * Utility methods for the {@link ThreadFactory} class.
+ */
 public final class ThreadFactoryUtils {
   private ThreadFactoryUtils() {}
 
@@ -29,6 +32,7 @@ public final class ThreadFactoryUtils {
    *                   threads.
    * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
    *                 daemon threads.
+   * @return the created factory
    */
   public static ThreadFactory build(final String nameFormat, boolean isDaemon) {
     return new ThreadFactoryBuilder().setDaemon(isDaemon).setNameFormat(nameFormat).build();

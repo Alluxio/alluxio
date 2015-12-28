@@ -25,6 +25,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Tests the {@link IndexedSet} class.
+ */
 public class IndexedSetTest {
   private static class Pair {
     private int mInt;
@@ -48,6 +51,9 @@ public class IndexedSetTest {
   private IndexedSet.FieldIndex<Pair> mIntIndex;
   private IndexedSet.FieldIndex<Pair> mLongIndex;
 
+  /**
+   * Sets up the fields before running a test.
+   */
   @Before
   public void before() {
     mIntIndex = new IndexedSet.FieldIndex<Pair>() {
@@ -71,6 +77,9 @@ public class IndexedSetTest {
     }
   }
 
+  /**
+   * Tests the {@link IndexedSet#contains(IndexedSet.FieldIndex, Object)} method.
+   */
   @Test
   public void containsTest() {
     for (int i = 0; i < 3; i ++) {
@@ -83,6 +92,9 @@ public class IndexedSetTest {
     Assert.assertFalse(mSet.contains(mLongIndex, 4L));
   }
 
+  /**
+   * Tests the {@link IndexedSet#getByField(IndexedSet.FieldIndex, Object)} method.
+   */
   @Test
   public void getTest() {
     for (int i = 0; i < 3; i ++) {
@@ -112,6 +124,9 @@ public class IndexedSetTest {
     }
   }
 
+  /**
+   * Tests the {@link IndexedSet#remove(Object)} method.
+   */
   @Test
   public void removeTest() {
     Pair toRemove = mSet.getFirstByField(mLongIndex, 1L);
@@ -123,6 +138,10 @@ public class IndexedSetTest {
     Assert.assertEquals(2, mSet.getByField(mLongIndex, toRemove.longValue()).size());
   }
 
+  /**
+   * Tests the {@link IndexedSet#remove(Object)} method to work correctly when trying to remove a
+   * non-existent item.
+   */
   @Test
   public void removeNonExistTest() {
     Assert.assertFalse(mSet.remove(new Pair(-1, -1)));
@@ -130,6 +149,9 @@ public class IndexedSetTest {
     Assert.assertFalse(mSet.removeByField(mLongIndex, -1L));
   }
 
+  /**
+   * Tests the {@link IndexedSet#removeByField(IndexedSet.FieldIndex, Object)} method.
+   */
   @Test
   public void removeByFieldTest() {
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 1).size());
@@ -144,6 +166,9 @@ public class IndexedSetTest {
     }
   }
 
+  /**
+   * Tests that the {@link IndexedSet} works correctly when adding the same object multiple times.
+   */
   @Test
   public void addTheSameObjectMultipleTimesTest() {
     for (int i = 0; i < 3; i ++) {
@@ -157,6 +182,10 @@ public class IndexedSetTest {
     }
   }
 
+  /**
+   * Tests that the remove works correctly with the iterator gathered by
+   * {@link IndexedSet#iterator()} method.
+   */
   @Test
   public void iteratorRemoveTest() {
     Iterator<Pair> it =  mSet.iterator();

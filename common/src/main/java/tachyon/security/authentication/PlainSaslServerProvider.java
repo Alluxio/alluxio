@@ -35,6 +35,9 @@ public final class PlainSaslServerProvider extends Provider {
   public static final String MECHANISM = "PLAIN";
   public static final double PROVIDER_VERSION = 1.0;
 
+  /**
+   * Constructs a new provider for the SASL server when using the PLAIN mechanism.
+   */
   public PlainSaslServerProvider() {
     super(PROVIDER_NAME, PROVIDER_VERSION, "Plain SASL server provider");
     put("SaslServerFactory." + MECHANISM, PlainSaslServerFactory.class.getName());

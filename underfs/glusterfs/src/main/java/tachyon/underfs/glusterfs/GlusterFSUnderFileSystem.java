@@ -22,10 +22,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 
 /**
- * A variant of {@link HdfsUnderFileSystem} that instead uses the Gluster FS
+ * A variant of {@link HdfsUnderFileSystem} that instead uses the Gluster FS.
  * <p>
  * Currently this implementation simply manages the extra configuration setup necessary to connect
- * to Gluster FS
+ * to Gluster FS.
  * </p>
  *
  */
@@ -36,6 +36,13 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static final String SCHEME = "glusterfs://";
 
+  /**
+   * Constructs a new Gluster FS {@link tachyon.underfs.UnderFileSystem}.
+   *
+   * @param fsDefaultName the under FS prefix
+   * @param tachyonConf the configuration for Tachyon
+   * @param conf the configuration for Hadoop or GlusterFS
+   */
   public GlusterFSUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(fsDefaultName, tachyonConf, conf);
   }

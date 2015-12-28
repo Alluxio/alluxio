@@ -28,6 +28,9 @@ public class TachyonURITest {
 
   private static final boolean WINDOWS = OSUtils.isWindows();
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor for basic paths.
+   */
   @Test
   public void basicTest1() {
     TachyonURI uri = new TachyonURI("tachyon://localhost:19998/xy z/a b c");
@@ -50,6 +53,9 @@ public class TachyonURITest {
     Assert.assertEquals("tachyon://localhost:19998/xy z/a b c", uri.toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor for basic paths.
+   */
   @Test
   public void basicTest2() {
     TachyonURI uri = new TachyonURI("hdfs://localhost/xy z/a b c");
@@ -72,6 +78,9 @@ public class TachyonURITest {
     Assert.assertEquals("hdfs://localhost/xy z/a b c", uri.toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor for basic paths.
+   */
   @Test
   public void basicTests() {
     String[] strs =
@@ -87,6 +96,9 @@ public class TachyonURITest {
     }
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor for an empty URI.
+   */
   @Test
   public void emptyURITest() {
     TachyonURI uri = new TachyonURI("");
@@ -106,6 +118,10 @@ public class TachyonURITest {
     Assert.assertEquals("", uri.toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String, String, String)} constructor to build an URI
+   * from its different components.
+   */
   @Test
   public void constructFromComponentsTests() {
     String scheme = "tachyon";
@@ -126,6 +142,9 @@ public class TachyonURITest {
     Assert.assertEquals("//" + authority + absPath, uri3.toString());
   }
 
+  /**
+   * Tests to resolve a child TachyonURI against a parent TachyonURI.
+   */
   @Test
   public void constructFromParentAndChildTests() {
     testParentChild(".", ".", ".");
@@ -170,6 +189,9 @@ public class TachyonURITest {
         "foo://bar boo:80/c:/foo");
   }
 
+  /**
+   * Tests the {@link TachyonURI#compareTo(TachyonURI)} method.
+   */
   @Test
   public void compareToTests() {
     TachyonURI[] uris =
@@ -190,6 +212,9 @@ public class TachyonURITest {
     }
   }
 
+  /**
+   * Tests the {@link TachyonURI#equals(Object)} method.
+   */
   @Test
   public void equalsTests() {
     Assert.assertFalse(new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt").equals(new TachyonURI(
@@ -205,6 +230,9 @@ public class TachyonURITest {
     }
   }
 
+  /**
+   * Tests the {@link TachyonURI#getAuthority()} method.
+   */
   @Test
   public void getAuthorityTests() {
     String[] authorities =
@@ -220,6 +248,9 @@ public class TachyonURITest {
     Assert.assertEquals(null, new TachyonURI("file:///b/c").getAuthority());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getDepth()} method.
+   */
   @Test
   public void getDepthTests() {
     Assert.assertEquals(0, new TachyonURI("").getDepth());
@@ -236,6 +267,9 @@ public class TachyonURITest {
     Assert.assertEquals(2, new TachyonURI("tachyon://localhost:1998/a/b.txt").getDepth());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getHost()} method.
+   */
   @Test
   public void getHostTests() {
     Assert.assertEquals(null, new TachyonURI("/").getHost());
@@ -247,6 +281,9 @@ public class TachyonURITest {
     Assert.assertEquals("127.0.0.1", new TachyonURI("s3", "127.0.0.1:8080", "/a/b.txt").getHost());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getName()} method.
+   */
   @Test
   public void getNameTests() {
     Assert.assertEquals("", new TachyonURI("/").getName());
@@ -258,6 +295,9 @@ public class TachyonURITest {
     Assert.assertEquals("a.txt", new TachyonURI("/a/a.txt").getName());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getParent()} method.
+   */
   @Test
   public void getParentTests() {
     Assert.assertEquals(null, new TachyonURI("/").getParent());
@@ -272,6 +312,9 @@ public class TachyonURITest {
         "tachyon://localhost:80/a/b/../c").getParent());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getPath()} method.
+   */
   @Test
   public void getPathTests() {
     Assert.assertEquals("/", new TachyonURI("/").getPath());
@@ -283,6 +326,9 @@ public class TachyonURITest {
     Assert.assertEquals("/a/b", new TachyonURI("tachyon://localhost:80/a/./b").getPath());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getPort()} method.
+   */
   @Test
   public void getPortTests() {
     Assert.assertEquals(-1, new TachyonURI("/").getPort());
@@ -293,6 +339,9 @@ public class TachyonURITest {
     Assert.assertEquals(8080, new TachyonURI("tachyon://127.0.0.1:8080/").getPort());
   }
 
+  /**
+   * Tests the {@link TachyonURI#getScheme()} method.
+   */
   @Test
   public void getSchemeTests() {
     Assert.assertEquals(null, new TachyonURI("/").getScheme());
@@ -305,6 +354,9 @@ public class TachyonURITest {
     Assert.assertEquals("glusterfs", new TachyonURI("glusterfs://localhost/").getScheme());
   }
 
+  /**
+   * Tests the {@link TachyonURI#hasAuthority()} method.
+   */
   @Test
   public void hasAuthorityTests() {
     Assert.assertFalse(new TachyonURI("/").hasAuthority());
@@ -316,6 +368,9 @@ public class TachyonURITest {
     Assert.assertTrue(new TachyonURI(null, "localhost", "/").hasAuthority());
   }
 
+  /**
+   * Tests the {@link TachyonURI#hasScheme()} method.
+   */
   @Test
   public void hasScheme() {
     Assert.assertFalse(new TachyonURI("/").hasScheme());
@@ -325,6 +380,9 @@ public class TachyonURITest {
     Assert.assertFalse(new TachyonURI("//localhost:8080/").hasScheme());
   }
 
+  /**
+   * Tests the {@link TachyonURI#isAbsolute()} method.
+   */
   @Test
   public void isAbsoluteTests() {
     Assert.assertTrue(new TachyonURI("file:/a").isAbsolute());
@@ -334,6 +392,9 @@ public class TachyonURITest {
     Assert.assertFalse(new TachyonURI("/").isAbsolute());
   }
 
+  /**
+   * Tests the {@link TachyonURI#isPathAbsolute()} method.
+   */
   @Test
   public void isPathAbsoluteTests() {
     Assert.assertFalse(new TachyonURI(".").isPathAbsolute());
@@ -345,6 +406,9 @@ public class TachyonURITest {
     Assert.assertTrue(new TachyonURI("C:\\\\a\\b").isPathAbsolute());
   }
 
+  /**
+   * Tests the {@link TachyonURI#isRoot()} method.
+   */
   @Test
   public void isRootTests() {
     Assert.assertFalse(new TachyonURI(".").isRoot());
@@ -359,6 +423,9 @@ public class TachyonURITest {
     Assert.assertFalse(new TachyonURI("a/b").isRoot());
   }
 
+  /**
+   * Tests the {@link TachyonURI#join(String)} and {@link TachyonURI#join(TachyonURI)} methods.
+   */
   @Test
   public void joinTests() {
     Assert.assertEquals(new TachyonURI("/a"), new TachyonURI("/").join("a"));
@@ -387,6 +454,10 @@ public class TachyonURITest {
         new TachyonURI("/").join(pathWithSpecialCharAndColon));
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor to work with file URIs
+   * appropriately.
+   */
   @Test
   public void fileUriTests() {
     TachyonURI uri = new TachyonURI("file:///foo/bar");
@@ -395,6 +466,10 @@ public class TachyonURITest {
     Assert.assertEquals("file:///foo/bar", uri.toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor to work with Windows paths
+   * appropriately.
+   */
   @Test
   public void windowsPathTests() {
     Assume.assumeTrue(WINDOWS);
@@ -405,6 +480,9 @@ public class TachyonURITest {
     Assert.assertEquals("C:/foo/bar", uri.toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#toString()} method to work with paths appropriately.
+   */
   @Test
   public void toStringTests() {
     String[] uris =
@@ -421,6 +499,9 @@ public class TachyonURITest {
     Assert.assertEquals("file:///a", new TachyonURI("file", null, "/a").toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#toString()} method to work with Windows paths appropriately.
+   */
   @Test
   public void toStringWindowsTests() {
     Assume.assumeTrue(WINDOWS);
@@ -436,6 +517,9 @@ public class TachyonURITest {
     Assert.assertEquals("C:/a/b.txt", new TachyonURI("C:\\\\a\\b.txt").toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#toString()} method to normalize paths.
+   */
   @Test
   public void normalizeTests() {
     Assert.assertEquals("/", new TachyonURI("//").toString());
@@ -455,6 +539,9 @@ public class TachyonURITest {
         new TachyonURI("foo://bar boo:8080/abc///c").toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#toString()} method to normalize Windows paths.
+   */
   @Test
   public void normalizeWindowsTests() {
     Assume.assumeTrue(WINDOWS);
@@ -463,16 +550,28 @@ public class TachyonURITest {
     Assert.assertEquals("c:/a/c", new TachyonURI("c:\\a\\b\\..\\c").toString());
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String, String, String)} constructor to throw an
+   * exception in case an empty path was provided.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void constructFromEmptyPathTest2() {
     new TachyonURI(null, null, null);
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String, String, String)} constructor to throw an
+   * exception in case an empty path was provided.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void constructFromEmptyPathTest3() {
     new TachyonURI("file", null, "");
   }
 
+  /**
+   * Tests the {@link TachyonURI#TachyonURI(String)} constructor to throw an exception in case an
+   * invalid URI was provided.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void invalidURISyntaxTest() {
     new TachyonURI("://localhost:8080/a");
@@ -488,6 +587,9 @@ public class TachyonURITest {
     }
   }
 
+  /**
+   * Tests the {@link TachyonURI#getLeadingPath(int)} method.
+   */
   @Test
   public void getLeadingPathTest() {
     Assert.assertEquals("/",      new TachyonURI("/a/b/c/").getLeadingPath(0));

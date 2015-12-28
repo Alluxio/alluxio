@@ -31,23 +31,36 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.security.authentication.PlainSaslServer;
 
+/**
+ * Tests the {@link PlainSaslServer} class.
+ */
 public class PlainSaslServerTest{
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>
   private PlainSaslServer mPlainSaslServer = null;
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the server before a test runs.
+   *
+   * @throws Exception thrown if setting up the server fails
+   */
   @Before
   public void before() throws Exception {
     mPlainSaslServer = new PlainSaslServer(new MockCallbackHandler());
   }
 
   /**
-   * Simulate the authentication data included user information from client side
+   * Simulate the authentication data included user information from client side.
+   *
    * @param user The name of the user will be transferred from client side
    * @param password The password will be transferred from client side
    * @return The response is simulated from the client side
+   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   private byte[] getUserInfo(String user, String password) throws Exception {
     byte[] auth = user.getBytes("UTF8");
@@ -64,6 +77,11 @@ public class PlainSaslServerTest{
     return result;
   }
 
+  /**
+   * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the user is not set.
+   *
+   * @throws Exception if the bytes for the user and password cannot be retrieved
+   */
   @Test
   public void userIsNotSetTest() throws Exception {
     mThrown.expect(SaslException.class);
@@ -71,6 +89,11 @@ public class PlainSaslServerTest{
     mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
   }
 
+  /**
+   * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the password is not set.
+   *
+   * @throws Exception if the bytes for the user and password cannot be retrieved
+   */
   @Test
   public void passwordIsNotSetTest() throws Exception {
     mThrown.expect(SaslException.class);
@@ -78,13 +101,21 @@ public class PlainSaslServerTest{
     mPlainSaslServer.evaluateResponse(getUserInfo("tachyon", ""));
   }
 
+  /**
+   * Tests the {@link PlainSaslServer#getAuthorizationID()} method.
+   */
   @Test
-  public void authenticationNotCompleteTest() throws Exception {
+  public void authenticationNotCompleteTest() {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage("PLAIN authentication not completed");
     mPlainSaslServer.getAuthorizationID();
   }
 
+  /**
+   * Tests the {@link PlainSaslServer#getAuthorizationID()} to retrieve the correct user.
+   *
+   * @throws Exception if the bytes for the user and password cannot be retrieved
+   */
   @Test
   public void userPasswordReceiveTest() throws Exception {
     String testUser = "tachyon";

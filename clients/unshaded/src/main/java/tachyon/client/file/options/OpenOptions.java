@@ -18,8 +18,15 @@ package tachyon.client.file.options;
 import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for opening a file.
+ */
 @PublicApi
 public final class OpenOptions {
+
+  /**
+   * Builder for {@link OpenOptions}.
+   */
   public static class Builder implements OptionsBuilder<OpenOptions> {
     /**
      * Creates a new builder for {@link OpenOptions}.
