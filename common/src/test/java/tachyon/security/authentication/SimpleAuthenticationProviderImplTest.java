@@ -17,8 +17,16 @@ package tachyon.security.authentication;
 
 import org.junit.Test;
 
+/**
+ * Tests the {@link SimpleAuthenticationProviderImpl} class.
+ */
 public class SimpleAuthenticationProviderImplTest {
 
+  /**
+   * Tests the {@link SimpleAuthenticationProviderImpl#authenticate(String, String)}.
+   *
+   * @throws Exception thrown if the authentication fails
+   */
   @Test
   public void anyUserAllowConnectTest() throws Exception {
     AuthenticationProvider authenticationProvider = new SimpleAuthenticationProviderImpl();

@@ -202,7 +202,7 @@ public final class TachyonBlockStore {
    * Gets the total capacity of Tachyon's BlockStore.
    *
    * @return the capacity in bytes
-   * @throws IOException
+   * @throws IOException when the connection to the client fails
    */
   public long getCapacityBytes() throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -218,7 +218,8 @@ public final class TachyonBlockStore {
   /**
    * Gets the used bytes of Tachyon's BlockStore.
    *
-   * @throws IOException
+   * @return the used bytes of Tachyon's BlockStore
+   * @throws IOException when the connection to the client fails
    */
   public long getUsedBytes() throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();

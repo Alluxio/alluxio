@@ -36,6 +36,7 @@ import tachyon.client.worker.WorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
+import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -48,6 +49,7 @@ import tachyon.util.network.NetworkAddressUtils;
 public final class TachyonBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 1000L;
+  private static final long LOCK_ID = 44L;
   private static final long WORKER_ID_LOCAL = 5L;
   private static final long WORKER_ID_REMOTE = 6L;
   private static final String WORKER_HOSTNAME_LOCAL = "localhost";
@@ -101,7 +103,8 @@ public final class TachyonBlockStoreTest {
     Mockito.when(mBlockStoreContext.acquireMasterClient()).thenReturn(mMasterClient);
 
     mWorkerClient = PowerMockito.mock(WorkerClient.class);
-    Mockito.when(mWorkerClient.lockBlock(BLOCK_ID)).thenReturn(mTestFile.getAbsolutePath());
+    Mockito.when(mWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult(LOCK_ID, mTestFile.getAbsolutePath()));
     Mockito.when(mBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
         .thenReturn(mWorkerClient);
   }

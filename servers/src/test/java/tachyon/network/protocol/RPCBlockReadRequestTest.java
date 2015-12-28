@@ -26,14 +26,19 @@ public class RPCBlockReadRequestTest {
   private static final long BLOCK_ID = 11;
   private static final long OFFSET = 22;
   private static final long LENGTH = 33;
+  private static final long LOCK_ID = 44;
+  private static final long SESSION_ID = 55;
 
   private ByteBuf mBuffer = null;
 
-  private void assertValid(long blockId, long offset, long length, RPCBlockReadRequest req) {
+  private void assertValid(long blockId, long offset, long length, long lockId, long sessionId,
+      RPCBlockReadRequest req) {
     Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_READ_REQUEST, req.getType());
     Assert.assertEquals(blockId, req.getBlockId());
     Assert.assertEquals(offset, req.getOffset());
     Assert.assertEquals(length, req.getLength());
+    Assert.assertEquals(lockId, req.getLockId());
+    Assert.assertEquals(sessionId, req.getSessionId());
   }
 
   private void assertValid(RPCBlockReadRequest req) {
@@ -60,7 +65,8 @@ public class RPCBlockReadRequestTest {
 
   @Test
   public void encodedLengthTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
+        SESSION_ID);
     int encodedLength = req.getEncodedLength();
     req.encode(mBuffer);
     Assert.assertEquals(encodedLength, mBuffer.readableBytes());
@@ -68,36 +74,41 @@ public class RPCBlockReadRequestTest {
 
   @Test
   public void encodeDecodeTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
+        SESSION_ID);
     req.encode(mBuffer);
     RPCBlockReadRequest req2 = RPCBlockReadRequest.decode(mBuffer);
-    assertValid(BLOCK_ID, OFFSET, LENGTH, req);
-    assertValid(BLOCK_ID, OFFSET, LENGTH, req2);
+    assertValid(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID, req);
+    assertValid(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID, req2);
   }
 
   @Test
   public void validateTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
+        SESSION_ID);
     assertValid(req);
   }
 
   @Test
   public void validLengthTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -1);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -1, LOCK_ID,
+        SESSION_ID);
     assertValid(req);
-    req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, 0);
+    req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, 0, LOCK_ID, SESSION_ID);
     assertValid(req);
   }
 
   @Test
   public void negativeOffsetTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, -1, LENGTH);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, -1, LENGTH, LOCK_ID,
+        SESSION_ID);
     assertInvalid(req);
   }
 
   @Test
   public void invalidLengthTest() {
-    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -100);
+    RPCBlockReadRequest req = new RPCBlockReadRequest(BLOCK_ID, OFFSET, -100, LOCK_ID,
+        SESSION_ID);
     assertInvalid(req);
   }
 }

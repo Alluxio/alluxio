@@ -23,8 +23,15 @@ import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.CreateTOptions;
 
+/**
+ * Method option for creating a file.
+ */
 @PublicApi
 public final class CreateOptions {
+
+  /**
+   * Builder for {@link CreateOptions}.
+   */
   public static class Builder implements OptionsBuilder<CreateOptions> {
     // TODO(calvin): Should this just be an int?
     private long mBlockSizeBytes;
@@ -54,6 +61,8 @@ public final class CreateOptions {
     }
 
     /**
+     * Sets the size of the block in bytes.
+     *
      * @param blockSizeBytes the block size to use
      * @return the builder
      */
@@ -63,6 +72,8 @@ public final class CreateOptions {
     }
 
     /**
+     * Sets the recursive flag.
+     *
      * @param recursive the recursive flag value to use; it specifies whether parent directories
      *        should be created if they do not already exist
      * @return the builder
@@ -73,6 +84,8 @@ public final class CreateOptions {
     }
 
     /**
+     * Sets the time to live.
+     *
      * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
      *        created file should be kept around before it is automatically deleted, irrespective of
      *        whether the file is pinned
@@ -95,6 +108,8 @@ public final class CreateOptions {
     }
 
     /**
+     * Sets the write type.
+     *
      * @param writeType the write type to use
      * @return the builder
      */

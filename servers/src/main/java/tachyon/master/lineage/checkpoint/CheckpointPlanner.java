@@ -19,24 +19,29 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.util.CommonUtils;
 
 /**
- * Scheduling strategy for Lineage checkpointing.
+ * Generates plans for Lineage checkpointing.
  */
-public interface CheckpointScheduler {
+public interface CheckpointPlanner {
 
   class Factory {
     /**
-     * @param conf TachyonConf to determine the scheduler type
-     * @return the generated scheduler
+     * @param conf TachyonConf to determine the planner type
+     * @param lineageStoreView a view of the lineage store
+     * @param fileSystemMasterView a view of the file system master
+     * @return the generated planner
      */
-    public static CheckpointScheduler createScheduler(TachyonConf conf, LineageStoreView store) {
+    public static CheckpointPlanner createPlanner(TachyonConf conf,
+        LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<CheckpointScheduler>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
-            new Class[] {LineageStoreView.class}, new Object[] {store});
+            conf.<CheckpointPlanner>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
+            new Class[] {LineageStoreView.class, FileSystemMasterView.class},
+            new Object[] {lineageStoreView, fileSystemMasterView});
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -47,14 +52,15 @@ public interface CheckpointScheduler {
    * Generates a plan to decide what lineages to checkpoint.
    *
    * <p>
-   * This method returns null if the scheduler fails to propose a feasible plan to find the lineages
-   * to checkpoint. If the checkpoint plan has no lineages, it indicates that the scheduler has no
+   * This method returns null if the planner fails to propose a feasible plan to find the lineages
+   * to checkpoint. If the checkpoint plan has no lineages, it indicates that the planner has no
    * actions to take and the requirement is already met.
    * </p>
    *
-   * @param store a readonly view of the lineage store
-   * @return a scheduling plan (possibly empty) to checkpoint the lineages, or null if no plan is
-   *         feasible
+   * @param lineageStoreView a readonly view of the lineage store
+   * @param fileSystemMasterView a readonly view of the file system master
+   * @return a plan (possibly empty) to checkpoint the lineages, or null if no plan is feasible
    */
-  CheckpointPlan schedule(LineageStoreView store);
+  CheckpointPlan generatePlan(LineageStoreView lineageStoreView,
+      FileSystemMasterView fileSystemMasterView);
 }

@@ -68,6 +68,9 @@ public final class AbstractTachyonFileSystemTest {
   private class DummyTachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
+  /**
+   * Sets up the file system and the context before a test runs.
+   */
   @Before
   public void before() {
     ClientContext.reset();
@@ -78,12 +81,21 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
   }
 
+  /**
+   * Releases the client after a test ran.
+   */
   @After
   public void after() {
     Mockito.verify(mFileContext).acquireMasterClient();
     Mockito.verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
   }
 
+  /**
+   * Tests the creation of a file via the
+   * {@link AbstractTachyonFileSystem#create(TachyonURI, CreateOptions)} method.
+   *
+   * @throws Exception when the client or file system cannot be created
+   */
   @Test
   public void createTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(), Mockito.<CreateOptions>any()))
@@ -94,6 +106,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).create("/", createOptions);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when creating a file system.
+   *
+   * @throws Exception when the client or file system cannot be created
+   */
   @Test
   public void createExceptionTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(), Mockito.<CreateOptions>any()))
@@ -107,6 +124,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#delete(TachyonFile, DeleteOptions)} method.
+   *
+   * @throws Exception when the file system cannot delete the file
+   */
   @Test
   public void deleteTest() throws Exception {
     DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
@@ -114,6 +136,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).delete(FILE_ID, true);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when deleting a file.
+   *
+   * @throws Exception when the file system cannot delete the file
+   */
   @Test
   public void deleteExceptionTest() throws Exception {
     DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
@@ -126,6 +153,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#free(TachyonFile, FreeOptions)} method.
+   *
+   * @throws Exception when the file system cannot free the file
+   */
   @Test
   public void freeTest() throws Exception {
     FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
@@ -133,6 +165,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).free(FILE_ID, true);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when freeing a file.
+   *
+   * @throws Exception when the file system cannot free the file
+   */
   @Test
   public void freeExceptionTest() throws Exception {
     FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
@@ -145,6 +182,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#getInfo(TachyonFile, GetInfoOptions)} method.
+   *
+   * @throws Exception when the information cannot be retrieved
+   */
   @Test
   public void getInfoTest() throws Exception {
     FileInfo info = new FileInfo();
@@ -154,6 +196,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).getFileInfo(FILE_ID);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when retrieving information.
+   *
+   * @throws Exception when the information cannot be retrieved
+   */
   @Test
   public void getInfoExceptionTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.getFileInfo(FILE_ID)).thenThrow(EXCEPTION);
@@ -166,6 +213,12 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#listStatus(TachyonFile, ListStatusOptions)}
+   * method.
+   *
+   * @throws Exception when listing the status fails
+   */
   @Test
   public void listStatusTest() throws Exception {
     List<FileInfo> infos = Lists.newArrayList(new FileInfo());
@@ -175,6 +228,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).getFileInfoList(FILE_ID);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when listing the status.
+   *
+   * @throws Exception when listing the status fails
+   */
   @Test
   public void listStatusExceptionTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.getFileInfoList(FILE_ID)).thenThrow(EXCEPTION);
@@ -187,6 +245,12 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#loadMetadata(TachyonURI, LoadMetadataOptions)}
+   * method.
+   *
+   * @throws Exception when loading the metadata fails
+   */
   @Test
   public void loadMetadataTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenReturn(FILE_ID);
@@ -197,6 +261,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).loadMetadata("/", true);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when loading the metadata.
+   *
+   * @throws Exception when loading the metadata fails
+   */
   @Test
   public void loadMetadataExceptionTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenThrow(EXCEPTION);
@@ -210,6 +279,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#mkdir(TachyonURI, MkdirOptions)} method.
+   *
+   * @throws Exception when the creation of the directory fails
+   */
   @Test
   public void mkdirTest() throws Exception {
     MkdirOptions mkdirOptions = MkdirOptions.defaults();
@@ -218,6 +292,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).mkdir("/", mkdirOptions);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when creating a directory.
+   *
+   * @throws Exception when the creation of the directory fails
+   */
   @Test
   public void mkdirExceptionTest() throws Exception {
     MkdirOptions mkdirOptions = MkdirOptions.defaults();
@@ -230,6 +309,12 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#mount(TachyonURI, TachyonURI, MountOptions)}
+   * method.
+   *
+   * @throws Exception when the path cannot be mounted
+   */
   @Test
   public void mountTest() throws Exception {
     TachyonURI tachyonPath = new TachyonURI("/t");
@@ -240,6 +325,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).mount(tachyonPath, ufsPath);
   }
 
+  /**
+   * Ensures that an exception is propagated correctly when mounting a path.
+   *
+   * @throws Exception when the path cannot be mounted
+   */
   @Test
   public void mountExceptionTest() throws Exception {
     TachyonURI tachyonPath = new TachyonURI("/t");
@@ -254,6 +344,12 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to
+   * complete successfully.
+   *
+   * @throws Exception when opening the file fails
+   */
   @Test
   public void openSuccessTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
@@ -262,6 +358,12 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).getFileId("/");
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to fail
+   * when the file does not exist.
+   *
+   * @throws Exception when opening the file fails
+   */
   @Test
   public void openFailTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
@@ -274,6 +376,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Ensures that an exception is propagated successfully when opening a file.
+   *
+   * @throws Exception when opening the file fails
+   */
   @Test
   public void openExceptionTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
@@ -286,6 +393,12 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#openIfExists(TachyonURI, OpenOptions)} method to
+   * complete successfully.
+   *
+   * @throws Exception when opening the file fails
+   */
   @Test
   public void openIfExistsSucessTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
@@ -295,6 +408,12 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).getFileId("/");
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#openIfExists(TachyonURI, OpenOptions)} method to
+   * fail when the file does not exist.
+   *
+   * @throws Exception when opening the file fails
+   */
   @Test
   public void openIfExistsFailTest() throws Exception {
     OpenOptions openOptions = OpenOptions.defaults();
@@ -303,6 +422,12 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).getFileId("/");
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#rename(TachyonFile, TachyonURI, RenameOptions)}
+   * method.
+   *
+   * @throws Exception when renaming the file fails
+   */
   @Test
   public void renameTest() throws Exception {
     RenameOptions renameOptions = RenameOptions.defaults();
@@ -312,6 +437,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).rename(FILE_ID, "/");
   }
 
+  /**
+   * Ensures that an exception is propagated successfully when renaming a file.
+   *
+   * @throws Exception when renaming the file fails
+   */
   @Test
   public void renameExceptionTest() throws Exception {
     RenameOptions renameOptions = RenameOptions.defaults();
@@ -324,6 +454,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#setState(TachyonFile, SetStateOptions)} method.
+   *
+   * @throws Exception when setting the state fails
+   */
   @Test
   public void setStateTest() throws Exception {
     SetStateOptions setStateOptions = SetStateOptions.defaults();
@@ -331,6 +466,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).setState(FILE_ID, setStateOptions);
   }
 
+  /**
+   * Ensures that an exception is propagated successfully when setting the state.
+   *
+   * @throws Exception when setting the state fails
+   */
   @Test
   public void setStateExceptionTest() throws Exception {
     SetStateOptions setStateOptions = SetStateOptions.defaults();
@@ -343,6 +483,11 @@ public final class AbstractTachyonFileSystemTest {
     }
   }
 
+  /**
+   * Tests for the {@link AbstractTachyonFileSystem#unmount(TachyonURI, UnmountOptions)} method.
+   *
+   * @throws Exception when unmounting the path fails
+   */
   @Test
   public void unmountTest() throws Exception {
     TachyonURI path = new TachyonURI("/");
@@ -352,6 +497,11 @@ public final class AbstractTachyonFileSystemTest {
     Mockito.verify(mFileSystemMasterClient).unmount(path);
   }
 
+  /**
+   * Ensures that an exception is propagated successfully when unmounting a path.
+   *
+   * @throws Exception when unmounting the path fails
+   */
   @Test
   public void unmountExceptionTest() throws Exception {
     TachyonURI path = new TachyonURI("/");

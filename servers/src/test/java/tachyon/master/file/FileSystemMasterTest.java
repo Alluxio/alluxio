@@ -52,7 +52,9 @@ import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.thrift.CommandType;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.NetAddress;
 import tachyon.util.IdUtils;
 
@@ -71,7 +73,8 @@ public final class FileSystemMasterTest {
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
-  private long mWorkerId;
+  private long mWorkerId1;
+  private long mWorkerId2;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -108,9 +111,14 @@ public final class FileSystemMasterTest {
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 
-    // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
-    mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
+    // set up workers
+    mWorkerId1 = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
+    mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
+        ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
+        ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
+        Maps.<String, List<Long>>newHashMap());
+    mWorkerId2 = mBlockMaster.getWorkerId(new NetAddress("remote", 80, 81, 82));
+    mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         Maps.<String, List<Long>>newHashMap());
@@ -303,10 +311,10 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "SSD", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "SSD", blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId, CompleteFileOptions.defaults());
 
     createFileWithSingleBlock(ROOT_FILE_URI);
@@ -391,10 +399,42 @@ public final class FileSystemMasterTest {
     Assert.assertTrue(service.isShutdown());
   }
 
+  @Test
+  public void workerHeartbeatTest() throws Exception {
+    long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
+
+    long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
+    mFileSystemMaster.scheduleAsyncPersistence(fileId);
+
+    FileSystemCommand command =
+        mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
+    Assert.assertEquals(CommandType.Persist, command.commandType);
+    Assert.assertEquals(1, command.getCommandOptions().getPersistOptions().persistFiles.size());
+    Assert.assertEquals(fileId,
+        command.getCommandOptions().getPersistOptions().persistFiles.get(0).fileId);
+    Assert.assertEquals(blockId,
+        (long) command.getCommandOptions().getPersistOptions().persistFiles.get(0).blockIds.get(0));
+  }
+
+  @Test
+  public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
+    long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
+    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
+    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
+    CompleteFileOptions options =
+        new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
+    mFileSystemMaster.completeFile(fileId, options);
+
+    long workerId = mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
+  }
+
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
     long fileId = mFileSystemMaster.create(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
-    mBlockMaster.commitBlock(mWorkerId, Constants.KB, "MEM", blockId, Constants.KB);
+    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
     CompleteFileOptions options =
         new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(Constants.KB).build();
     mFileSystemMaster.completeFile(fileId, options);
