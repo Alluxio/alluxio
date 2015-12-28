@@ -70,7 +70,11 @@ public class ClientKeyValueFileReader implements KeyValueFileReader {
   @Override
   public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
     LOG.debug("get key of length: {}", key.limit());
-    return mClient.get(mBlockId, key);
+    ByteBuffer value = mClient.get(mBlockId, key);
+    if (value.remaining() == 0) {
+      return null;
+    }
+    return value;
   }
 
   @Override
