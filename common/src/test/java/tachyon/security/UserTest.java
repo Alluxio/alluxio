@@ -28,10 +28,9 @@ public final class UserTest {
   /**
    * This test verifies whether the {@link tachyon.security.User} could be used in Java security
    * framework.
-   * @throws Exception
    */
   @Test
-  public void usedInSecurityContextTest() throws Exception {
+  public void usedInSecurityContextTest() {
     // add new users into Subject
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("realUser"));

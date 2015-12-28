@@ -59,7 +59,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
   @Override
   public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
-      long length) throws IOException {
+      long length, long lockId, long sessionId) throws IOException {
 
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
@@ -68,7 +68,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       Channel channel = f.channel();
       SingleResponseListener listener = new SingleResponseListener();
       mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length));
+      channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
       channel.close().sync();

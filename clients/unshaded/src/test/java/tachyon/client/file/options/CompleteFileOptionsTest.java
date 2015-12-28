@@ -22,7 +22,14 @@ import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests for the {@link CompleteFileOptions} class.
+ */
 public class CompleteFileOptionsTest {
+
+  /**
+   * Tests that building a {@link CompleteFileOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -36,6 +43,9 @@ public class CompleteFileOptionsTest {
     Assert.assertEquals(ufsLength, options.getUfsLength());
   }
 
+  /**
+   * Tests that building a {@link CompleteFileOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     CompleteFileOptions options = CompleteFileOptions.defaults();

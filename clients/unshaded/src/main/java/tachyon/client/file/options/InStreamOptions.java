@@ -22,8 +22,15 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for reading a file.
+ */
 @PublicApi
 public final class InStreamOptions {
+
+  /**
+   * Builder for {@link InStreamOptions}.
+   */
   public static class Builder implements OptionsBuilder<InStreamOptions> {
     private TachyonStorageType mTachyonStorageType;
 
@@ -46,8 +53,10 @@ public final class InStreamOptions {
     }
 
     /**
-     * @param readType the {@link tachyon.client.ReadType} for this operation. Setting this will
-     *                 override the TachyonStorageType.
+     * Sets the {@link ReadType}.
+     *
+     * @param readType the {@link ReadType} for this operation. Setting this will override the
+     *                 {@link TachyonStorageType}.
      * @return the builder
      */
     public Builder setReadType(ReadType readType) {
