@@ -10,15 +10,15 @@ Then if you haven't already done so, create your configuration file from the tem
 
     cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
-Also, in preparation for using OSS with tachyon, create a bucket or use an existing bucket. You should also note that the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket name is called OSS_BUCKET, and the directory in that bucket is called OSS_DIRECTORY. Also, for using the OSS Service, you should provide an oss endpoint to specify which range your bucket on, the endpoint here is called OSS_ENDPOINT, the endpoints for special range you can see [here](https://help.aliyun.com/knowledge_detail/5989609.html?spm=5176.7618386.5.1.K99zyd).
+Also, in preparation for using OSS with tachyon, create a bucket or use an existing bucket. You should also note that the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket name is called OSS_BUCKET, and the directory in that bucket is called OSS_DIRECTORY. Also, for using the OSS Service, you should provide an oss endpoint to specify which range your bucket is on. The endpoint here is called OSS_ENDPOINT, and to learn more about the endpoints for special range you can see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). For more information about OSS Bucket, Please see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
 ## Confugurating Tachyon
 
-To configure Tachyon to use OSS as its under storage system, modifications to the conf/tachyon-env.sh file must be made. The first modification is to specify an existing OSS bucket and directory as the under storage system. You can specify it by modifying conf/tachyon-env.sh to include:
+To configure Tachyon to use OSS as its under storage system, modifications to the ``` conf/tachyon-env.sh``` file must be made. The first modification is to specify an existing OSS bucket and directory as the under storage system. You can specify it by modifying ```conf/tachyon-env.sh``` to include:
 
     export TACHYON_UNDERFS_ADDRESS=oss://OSS_BUCKET/OSS_DIRECTORY/
     
-Next you need to specify the Aliyun credentials for OSS access. In the TACHYON_JAVA_OPTS section of the conf/tachyon-env.sh file, add:
+Next you need to specify the Aliyun credentials for OSS access. In the TACHYON_JAVA_OPTS section of the ```conf/tachyon-env.sh``` file, add:
 
     -Dfs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
     -Dfs.oss.accessKeySecret=<OSS_SECRET_ACCESS_KEY>
@@ -26,7 +26,7 @@ Next you need to specify the Aliyun credentials for OSS access. In the TACHYON_J
     
 Here, <OSS_ACCESS_KEY_ID> ,<OSS_SECRET_ACCESS_KEY> should be replaced with your actual [Aliyun keys](https://ak-console.aliyun.com/#/accesskey), or other environment variables that contain your credentials. The <OSS_ENDPOINT> for your OSS range you can get [here](https://help.aliyun.com/knowledge_detail/5989609.html?spm=5176.7618386.5.1.K99zyd). 
 
-If you feel not sure about how to change the conf/tachyon-env.sh, there is another way to provide these configurations. You can provide a properties config file named : tachyon-site.properties in the conf/ directory, and edit it as below:
+If you feel not sure about how to change the ```conf/tachyon-env.sh```, there is another way to provide these configurations. You can provide a properties config file named : ```tachyon-site.properties``` in the ```conf/``` directory, and edit it as below:
 
     # Config the OSS credentials
     fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
@@ -41,7 +41,7 @@ If you are using a Tachyon client that is running separately from the Tachyon Ma
 
     $ java -Xmx3g -Dfs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> -Dfs.oss.accessKeySecret=<OSS_SECRET_ACCESS_KEY> -Dfs.oss.endpoint=<OSS_ENDPOINT> -cp my_application.jar com.MyApplicationClass myArgs
 
-## Running Tachyon Locally with
+## Running Tachyon Locally with OSS
 
 After everythin is configured, you can start up Tachyon locally to see that everything works.
 
