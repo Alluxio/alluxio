@@ -33,7 +33,8 @@ import tachyon.worker.keyvalue.PayloadReader;
 import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
 /**
- * Reader to access a KeyValue file using random access APIs (e.g., byte[])
+ * Reader that implements {@link KeyValueFileReader} to access a key-value file using random access
+ * API.
  */
 public final class RandomAccessKeyValueFileReader implements KeyValueFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -42,26 +43,34 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
   private PayloadReader mPayloadReader;
   private ByteBuffer mBuf;
   private int mBufferLength;
+  /** whether this writer is closed */
+  private boolean mClosed;
 
   public RandomAccessKeyValueFileReader(ByteBuffer fileBytes) {
     mBuf = Preconditions.checkNotNull(fileBytes);
     mBufferLength = mBuf.limit();
     mIndex = createIndex();
     mPayloadReader = createPayloadReader();
+    mClosed = false;
   }
 
-  public Index createIndex() {
+  private Index createIndex() {
     int indexOffset = ByteIOUtils.readInt(mBuf, mBufferLength - 4);
     ByteBuffer indexBytes =
         BufferUtils.sliceByteBuffer(mBuf, indexOffset, mBufferLength - 4 - indexOffset);
     return LinearProbingIndex.loadFromByteArray(indexBytes);
   }
 
-  public RandomAccessPayloadReader createPayloadReader() {
+  private RandomAccessPayloadReader createPayloadReader() {
     return new RandomAccessPayloadReader(mBuf);
   }
 
-  // This could be slow when value size is large, use in cautious.
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This could be slow when value size is large, use this cautiously or {@link #get(ByteBuffer)}
+   * which may avoid copying data.
+   */
   @Override
   public byte[] get(byte[] key) throws IOException, TachyonException {
     ByteBuffer valueBuffer = get(ByteBuffer.wrap(key));
@@ -73,10 +82,14 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
 
   @Override
   public ByteBuffer get(ByteBuffer key) throws IOException {
+    Preconditions.checkState(!mClosed);
     LOG.trace("get: key");
     return mIndex.get(key, mPayloadReader);
   }
 
   @Override
-  public void close() { }
+  public void close() {
+    Preconditions.checkState(!mClosed);
+    mClosed = true;
+  }
 }
