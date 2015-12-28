@@ -35,6 +35,7 @@ import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.thrift.FileInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Tests {@link CheckpointLatestPlanner}.
@@ -62,6 +63,8 @@ public final class CheckpointLatestPlannerTest {
     long fileId2 = 2L;
     long l1 =
         mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(fileId1), mJob);
+    // Sleep for 1ms to guarantee that the next lineage's creation time is later than the first's
+    CommonUtils.sleepMs(1);
     long l2 =
         mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
 
