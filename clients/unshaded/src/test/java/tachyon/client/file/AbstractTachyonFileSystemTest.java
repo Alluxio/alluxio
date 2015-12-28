@@ -345,8 +345,8 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Tests for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to complete
-   * successfully.
+   * Tests for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to
+   * complete successfully.
    *
    * @throws Exception when opening the file fails
    */
