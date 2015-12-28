@@ -24,7 +24,7 @@ import tachyon.client.file.FileOutStream;
 
 /**
  * <p>
- * Interface for the location policy of which workers a file's block are written into. A location
+ * Interface for the location policy of which workers a file's blocks are written into. A location
  * policy instance is used only once per file write.
  * </p>
  *
@@ -43,7 +43,7 @@ public interface FileWriteLocationPolicy {
    * Gets the worker's host name for the next block to write to.
    *
    * @param workerInfoList the info of the active workers
-   * @param the size of the block in bytes
+   * @param blockSizeBytes the size of the block in bytes
    * @return the address of the worker to write to
    */
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,

@@ -611,7 +611,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.write.location.policy.class</td>
   <td>tachyon.client.file.policy.LocalFirstPolicy</td>
-  <td>The default location policy of choosing workers for writing a file's blocks</td>
+  <td>The default location policy for choosing workers for writing a file's blocks</td>
 </tr>
 <tr>
   <td>tachyon.user.file.readtype.default</td>
