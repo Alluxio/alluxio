@@ -63,7 +63,15 @@ public final class KeyValueServiceHandler implements KeyValueWorkerService.Iface
   @Override
   public ByteBuffer get(long blockId, ByteBuffer key) throws TachyonTException, ThriftIOException {
     try {
-      return getInternal(blockId, key);
+      ByteBuffer value = getInternal(blockId, key);
+      if (value == null) {
+        return ByteBuffer.allocate(0);
+      }
+      // Thrift assumes the ByteBuffer returned has array() method, which is not true if the
+      // ByteBuffer is direct. We make a non-direct copy of the ByteBuffer to return.
+      ByteBuffer result = ByteBuffer.allocate(value.remaining());
+      result.put(value).flip();
+      return result;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
