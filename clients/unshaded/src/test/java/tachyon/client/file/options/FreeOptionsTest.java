@@ -20,7 +20,14 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link FreeOptions} class.
+ */
 public class FreeOptionsTest {
+
+  /**
+   * Tests that building a {@link FreeOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -34,6 +41,9 @@ public class FreeOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
   }
 
+  /**
+   * Tests that building a {@link FreeOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     FreeOptions options = FreeOptions.defaults();

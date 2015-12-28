@@ -26,7 +26,14 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests for the {@link CreateOptions} class.
+ */
 public class CreateOptionsTest {
+
+  /**
+   * Tests that building a {@link CreateOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -49,6 +56,9 @@ public class CreateOptionsTest {
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
+  /**
+   * Tests that building a {@link CreateOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
