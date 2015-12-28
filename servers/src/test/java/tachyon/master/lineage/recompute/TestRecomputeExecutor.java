@@ -25,12 +25,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
 
-import tachyon.client.file.TachyonFile;
 import tachyon.job.Job;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageFile;
-import tachyon.master.lineage.meta.LineageFileState;
 
 /**
  * Tests {@link RecomputeExecutor}.
@@ -49,13 +47,15 @@ public final class TestRecomputeExecutor {
     long fileId = 5L;
     // mock planner
     RecomputePlanner planner = Mockito.mock(RecomputePlanner.class);
-    LineageFile lineageFile = new LineageFile(fileId, LineageFileState.LOST);
     Job job = Mockito.mock(Job.class);
-    Lineage lineage =
-        new Lineage(1, Lists.<TachyonFile>newArrayList(), Lists.newArrayList(lineageFile), job);
+    Lineage lineage = new Lineage(1, Lists.<Long>newArrayList(), Lists.newArrayList(fileId), job);
     Mockito.when(planner.plan()).thenReturn(new RecomputePlan(Lists.newArrayList(lineage)));
+
     // mock file system master
     FileSystemMaster fileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    Mockito.when(fileSystemMaster.getFileSystemMasterView())
+        .thenReturn(new FileSystemMasterView(fileSystemMaster));
+    Mockito.when(fileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(fileId));
 
     RecomputeExecutor executor = new RecomputeExecutor(planner, fileSystemMaster);
     // wait for the executor to finish running
