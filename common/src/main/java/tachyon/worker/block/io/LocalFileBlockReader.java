@@ -24,8 +24,6 @@ import java.nio.channels.ReadableByteChannel;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
-import tachyon.worker.block.meta.BlockMeta;
-
 /**
  * This class provides read access to a block data file locally stored in managed storage.
  * <p>
@@ -37,16 +35,6 @@ public final class LocalFileBlockReader implements BlockReader {
   private final FileChannel mLocalFileChannel;
   private final Closer mCloser = Closer.create();
   private final long mFileSize;
-
-  /**
-   * Constructs a Block reader given the metadata of this block.
-   *
-   * @param blockMeta metadata of this block
-   * @throws IOException if its file can not be open with "r" mode
-   */
-  public LocalFileBlockReader(BlockMeta blockMeta) throws IOException {
-    this(Preconditions.checkNotNull(blockMeta).getPath());
-  }
 
   /**
    * Constructs a Block reader given the file path of the block.
