@@ -69,7 +69,7 @@ else
       fi
     fi
   fi
-  if [[ -z ${TACHYON_RAM_FOLDER} ]]; then
+  if [[ -z "${TACHYON_RAM_FOLDER}" ]]; then
     export TACHYON_RAM_FOLDER="/mnt/ramdisk"
   fi
 fi
