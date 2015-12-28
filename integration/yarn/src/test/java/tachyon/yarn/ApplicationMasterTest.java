@@ -64,14 +64,14 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.yarn.Utils.YarnContainerType;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * Unit tests for {@link ApplicationMaster}.
  */
 // TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, Utils.class,
+@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
     YarnClient.class})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
@@ -91,7 +91,7 @@ public class ApplicationMasterTest {
     EXPECTED_LOCAL_RESOURCES.put(
         (String) Whitebox.getInternalState(ApplicationMaster.class, "TACHYON_TARBALL"),
         Records.newRecord(LocalResource.class));
-    EXPECTED_LOCAL_RESOURCES.put(Utils.TACHYON_SETUP_SCRIPT, Records.newRecord(LocalResource.class));
+    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.TACHYON_SETUP_SCRIPT, Records.newRecord(LocalResource.class));
   }
   private static String ENV_CLASSPATH = Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
   private static final String EXPECTED_WORKER_COMMAND = "test-worker-command";
@@ -145,13 +145,13 @@ public class ApplicationMasterTest {
     Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
 
     // Partially mock Utils to avoid hdfs IO
-    PowerMockito.mockStatic(Utils.class);
+    PowerMockito.mockStatic(YarnUtils.class);
     Mockito
         .when(
-            Utils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
+            YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
         .thenReturn(Records.newRecord(LocalResource.class));
-    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_MASTER)).thenReturn(EXPECTED_MASTER_COMMAND);
-    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_WORKER)).thenReturn(EXPECTED_WORKER_COMMAND);
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER)).thenReturn(EXPECTED_MASTER_COMMAND);
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_WORKER)).thenReturn(EXPECTED_WORKER_COMMAND);
 
     mMaster.start();
   }

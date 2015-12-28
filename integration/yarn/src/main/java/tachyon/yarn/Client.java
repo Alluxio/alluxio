@@ -56,7 +56,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.yarn.Utils.YarnContainerType;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * The client to submit the application to run Tachyon to YARN ResourceManager.
@@ -288,7 +288,7 @@ public final class Client {
         "-resource_path", mResourcePath);
 
     final String amCommand =
-        Utils.buildCommand(YarnContainerType.APPLICATION_MASTER, applicationMasterArgs);
+        YarnUtils.buildCommand(YarnContainerType.APPLICATION_MASTER, applicationMasterArgs);
 
     System.out.println("ApplicationMaster command: " + amCommand);
     mAmContainer.setCommands(Collections.singletonList(amCommand));
@@ -296,11 +296,11 @@ public final class Client {
     // Setup local resources
     Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
     localResources.put("tachyon.tar.gz",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
     localResources.put("tachyon-yarn-setup.sh",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
     localResources.put("tachyon.jar",
-        Utils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
     mAmContainer.setLocalResources(localResources);
 
     // Setup CLASSPATH for ApplicationMaster
