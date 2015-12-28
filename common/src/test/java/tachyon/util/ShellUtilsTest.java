@@ -43,9 +43,8 @@ public class ShellUtilsTest {
    */
   @Test
   public void execGetGroupCommandTest() throws Throwable {
-    String testUser = "root";
-    // Using root for getting groups test, user root always have a group which named "root".
-    String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(testUser));
-    Assert.assertTrue(result.contains(testUser));
+    String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
+    // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
+    Assert.assertTrue(result.contains("root") || result.contains("admin"));
   }
 }

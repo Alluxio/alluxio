@@ -101,8 +101,6 @@ public final class Client {
   private String mResourcePath;
   /** Number of Tachyon workers. */
   private int mNumWorkers;
-  /** Tachyon home path on YARN containers. */
-  private String mTachyonHome;
   /** Address to run Tachyon master. */
   private String mMasterAddress;
   /** Whether to allow multiple workers on a single host */

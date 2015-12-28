@@ -138,7 +138,7 @@ public final class MountTable {
    * @param uri a Tachyon path URI
    * @return mount point the given Tachyon path is nested under
    */
-  public synchronized boolean isMountPoint(TachyonURI uri) throws InvalidPathException {
+  public synchronized boolean isMountPoint(TachyonURI uri) {
     return mMountTable.containsKey(uri.getPath());
   }
 
