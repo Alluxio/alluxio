@@ -54,7 +54,7 @@ public interface Index {
   int byteCount();
 
   /**
-   * @return size of this index in bytes
+   * @return the number of keys inserted
    */
   int keyCount();
 

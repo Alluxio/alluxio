@@ -22,8 +22,8 @@ import java.io.OutputStream;
  * addition to extending abstract class {@link OutputStream} as the basics, it also keeps
  * counting the number of bytes written to the output stream.
  */
-public abstract class AbstractOutStream extends OutputStream {
-  // TODO(binfan): make count long.
+public abstract class AbstractCountingOutStream extends OutputStream {
+  // TODO(binfan): make mBytesWritten long.
   /** The number of bytes written */
   protected int mBytesWritten = 0;
 
