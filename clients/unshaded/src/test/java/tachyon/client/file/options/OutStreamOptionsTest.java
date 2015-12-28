@@ -27,7 +27,14 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests for the {@link OutStreamOptions} class.
+ */
 public class OutStreamOptionsTest {
+
+  /**
+   * Tests that building an {@link OutStreamOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -50,6 +57,9 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
+  /**
+   * Tests that building an {@link OutStreamOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;

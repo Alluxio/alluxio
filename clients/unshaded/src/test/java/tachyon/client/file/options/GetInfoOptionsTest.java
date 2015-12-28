@@ -17,12 +17,22 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
+/**
+ * Tests for the {@link GetInfoOptions} class.
+ */
 public class GetInfoOptionsTest {
+
+  /**
+   * Tests that building a {@link GetInfoOptions} works.
+   */
   @Test
   public void builderTest() {
     new GetInfoOptions.Builder().build();
   }
 
+  /**
+   * Tests that building a {@link GetInfoOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     GetInfoOptions.defaults();

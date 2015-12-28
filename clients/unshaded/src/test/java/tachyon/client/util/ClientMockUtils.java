@@ -21,9 +21,14 @@ import org.powermock.api.mockito.PowerMockito;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
+/**
+ * Utility methods for mocking the client.
+ */
 public final class ClientMockUtils {
   /**
    * Convenience method for mocking the {@link UnderFileSystem} for any ufsPath.
+   *
+   * @return the mocked {@link UnderFileSystem}
    */
   public static UnderFileSystem mockUnderFileSystem() {
     return mockUnderFileSystem(Mockito.anyString());

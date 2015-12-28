@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.MockClassLoader;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -39,16 +40,22 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit tests for {@link TFS}
+ * Unit tests for {@link TFS}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, UserGroupInformation.class})
+/*
+ * [TACHYON-1384] Tell PowerMock to defer the loading of javax.security classes to the system
+ * classloader in order to avoid linkage error when running this test with CDH.
+ * See https://code.google.com/p/powermock/wiki/FAQ.
+ */
+@PowerMockIgnore("javax.security.*")
 public class TFSTest {
   private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
 
@@ -84,6 +91,11 @@ public class TFSTest {
     }
   }
 
+  /**
+   * Ensures that Hadoop loads TFSFT when configured.
+   *
+   * @throws IOException when the file system cannot be retrieved
+   */
   @Test
   public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
@@ -108,6 +120,11 @@ public class TFSTest {
     TachyonFileSystem.TachyonFileSystemFactory.get();
   }
 
+  /**
+   * Ensures that Hadoop loads the Tachyon file system when configured.
+   *
+   * @throws IOException when the file system cannot be retrieved
+   */
   @Test
   public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
@@ -156,6 +173,11 @@ public class TFSTest {
     Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
   }
 
+  /**
+   * Sets up the configuration before a test runs.
+   *
+   * @throws Exception when creating the mock fails
+   */
   @Before
   public void setup() throws Exception {
     mTachyonConf = new TachyonConf();

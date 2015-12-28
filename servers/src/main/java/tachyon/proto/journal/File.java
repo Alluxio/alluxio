@@ -2447,13 +2447,18 @@ public final class File {
         getNameBytes();
 
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    boolean hasPersisted();
+    boolean hasPersistenceState();
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    boolean getPersisted();
+    java.lang.String getPersistenceState();
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getPersistenceStateBytes();
 
     /**
      * <code>optional bool pinned = 5;</code>
@@ -2591,9 +2596,10 @@ public final class File {
               name_ = bs;
               break;
             }
-            case 32: {
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
-              persisted_ = input.readBool();
+              persistenceState_ = bs;
               break;
             }
             case 40: {
@@ -2740,19 +2746,46 @@ public final class File {
       }
     }
 
-    public static final int PERSISTED_FIELD_NUMBER = 4;
-    private boolean persisted_;
+    public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
+    private java.lang.Object persistenceState_;
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    public boolean hasPersisted() {
+    public boolean hasPersistenceState() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    public boolean getPersisted() {
-      return persisted_;
+    public java.lang.String getPersistenceState() {
+      java.lang.Object ref = persistenceState_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          persistenceState_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPersistenceStateBytes() {
+      java.lang.Object ref = persistenceState_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        persistenceState_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int PINNED_FIELD_NUMBER = 5;
@@ -2903,7 +2936,7 @@ public final class File {
       id_ = 0L;
       parentId_ = 0L;
       name_ = "";
-      persisted_ = false;
+      persistenceState_ = "";
       pinned_ = false;
       creationTimeMs_ = 0L;
       lastModificationTimeMs_ = 0L;
@@ -2934,7 +2967,7 @@ public final class File {
         output.writeBytes(3, getNameBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBool(4, persisted_);
+        output.writeBytes(4, getPersistenceStateBytes());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBool(5, pinned_);
@@ -2977,7 +3010,7 @@ public final class File {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, persisted_);
+          .computeBytesSize(4, getPersistenceStateBytes());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
@@ -3130,7 +3163,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000002);
         name_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
-        persisted_ = false;
+        persistenceState_ = "";
         bitField0_ = (bitField0_ & ~0x00000008);
         pinned_ = false;
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -3187,7 +3220,7 @@ public final class File {
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.persisted_ = persisted_;
+        result.persistenceState_ = persistenceState_;
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
@@ -3239,8 +3272,10 @@ public final class File {
           name_ = other.name_;
           onChanged();
         }
-        if (other.hasPersisted()) {
-          setPersisted(other.getPersisted());
+        if (other.hasPersistenceState()) {
+          bitField0_ |= 0x00000008;
+          persistenceState_ = other.persistenceState_;
+          onChanged();
         }
         if (other.hasPinned()) {
           setPinned(other.getPinned());
@@ -3431,34 +3466,78 @@ public final class File {
         return this;
       }
 
-      private boolean persisted_ ;
+      private java.lang.Object persistenceState_ = "";
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public boolean hasPersisted() {
+      public boolean hasPersistenceState() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public boolean getPersisted() {
-        return persisted_;
+      public java.lang.String getPersistenceState() {
+        java.lang.Object ref = persistenceState_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            persistenceState_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public Builder setPersisted(boolean value) {
-        bitField0_ |= 0x00000008;
-        persisted_ = value;
+      public com.google.protobuf.ByteString
+          getPersistenceStateBytes() {
+        java.lang.Object ref = persistenceState_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          persistenceState_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder setPersistenceState(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        persistenceState_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public Builder clearPersisted() {
+      public Builder clearPersistenceState() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        persisted_ = false;
+        persistenceState_ = getDefaultInstance().getPersistenceState();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder setPersistenceStateBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        persistenceState_ = value;
         onChanged();
         return this;
       }
@@ -4274,13 +4353,18 @@ public final class File {
         getNameBytes();
 
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    boolean hasPersisted();
+    boolean hasPersistenceState();
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    boolean getPersisted();
+    java.lang.String getPersistenceState();
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getPersistenceStateBytes();
 
     /**
      * <code>optional bool pinned = 5;</code>
@@ -4476,9 +4560,10 @@ public final class File {
               name_ = bs;
               break;
             }
-            case 32: {
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000008;
-              persisted_ = input.readBool();
+              persistenceState_ = bs;
               break;
             }
             case 40: {
@@ -4674,19 +4759,46 @@ public final class File {
       }
     }
 
-    public static final int PERSISTED_FIELD_NUMBER = 4;
-    private boolean persisted_;
+    public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
+    private java.lang.Object persistenceState_;
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    public boolean hasPersisted() {
+    public boolean hasPersistenceState() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional bool persisted = 4;</code>
+     * <code>optional string persistence_state = 4;</code>
      */
-    public boolean getPersisted() {
-      return persisted_;
+    public java.lang.String getPersistenceState() {
+      java.lang.Object ref = persistenceState_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          persistenceState_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string persistence_state = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getPersistenceStateBytes() {
+      java.lang.Object ref = persistenceState_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        persistenceState_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int PINNED_FIELD_NUMBER = 5;
@@ -4934,7 +5046,7 @@ public final class File {
       id_ = 0L;
       parentId_ = 0L;
       name_ = "";
-      persisted_ = false;
+      persistenceState_ = "";
       pinned_ = false;
       creationTimeMs_ = 0L;
       lastModificationTimeMs_ = 0L;
@@ -4971,7 +5083,7 @@ public final class File {
         output.writeBytes(3, getNameBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBool(4, persisted_);
+        output.writeBytes(4, getPersistenceStateBytes());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBool(5, pinned_);
@@ -5032,7 +5144,7 @@ public final class File {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, persisted_);
+          .computeBytesSize(4, getPersistenceStateBytes());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5214,7 +5326,7 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000002);
         name_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
-        persisted_ = false;
+        persistenceState_ = "";
         bitField0_ = (bitField0_ & ~0x00000008);
         pinned_ = false;
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -5283,7 +5395,7 @@ public final class File {
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.persisted_ = persisted_;
+        result.persistenceState_ = persistenceState_;
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
@@ -5360,8 +5472,10 @@ public final class File {
           name_ = other.name_;
           onChanged();
         }
-        if (other.hasPersisted()) {
-          setPersisted(other.getPersisted());
+        if (other.hasPersistenceState()) {
+          bitField0_ |= 0x00000008;
+          persistenceState_ = other.persistenceState_;
+          onChanged();
         }
         if (other.hasPinned()) {
           setPinned(other.getPinned());
@@ -5577,34 +5691,78 @@ public final class File {
         return this;
       }
 
-      private boolean persisted_ ;
+      private java.lang.Object persistenceState_ = "";
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public boolean hasPersisted() {
+      public boolean hasPersistenceState() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public boolean getPersisted() {
-        return persisted_;
+      public java.lang.String getPersistenceState() {
+        java.lang.Object ref = persistenceState_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            persistenceState_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public Builder setPersisted(boolean value) {
-        bitField0_ |= 0x00000008;
-        persisted_ = value;
+      public com.google.protobuf.ByteString
+          getPersistenceStateBytes() {
+        java.lang.Object ref = persistenceState_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          persistenceState_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder setPersistenceState(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        persistenceState_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bool persisted = 4;</code>
+       * <code>optional string persistence_state = 4;</code>
        */
-      public Builder clearPersisted() {
+      public Builder clearPersistenceState() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        persisted_ = false;
+        persistenceState_ = getDefaultInstance().getPersistenceState();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string persistence_state = 4;</code>
+       */
+      public Builder setPersistenceStateBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        persistenceState_ = value;
         onChanged();
         return this;
       }
@@ -9653,34 +9811,34 @@ public final class File {
       "\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017Del" +
       "eteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 " +
       "\001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMountPo" +
-      "intEntry\022\024\n\014tachyon_path\030\001 \001(\t\"\335\001\n\023Inode" +
+      "intEntry\022\024\n\014tachyon_path\030\001 \001(\t\"\345\001\n\023Inode" +
       "DirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030" +
-      "\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\021\n\tpersisted\030\004 \001(\010\022\016",
-      "\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003" +
-      "\022!\n\031last_modification_time_ms\030\007 \001(\003\022\021\n\tu" +
-      "ser_name\030\010 \001(\t\022\022\n\ngroup_name\030\t \001(\t\022\022\n\npe" +
-      "rmission\030\n \001(\005\"O\n\036InodeDirectoryIdGenera" +
-      "torEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequen" +
-      "ce_number\030\002 \001(\003\"\305\002\n\016InodeFileEntry\022\n\n\002id" +
-      "\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022" +
-      "\021\n\tpersisted\030\004 \001(\010\022\016\n\006pinned\030\005 \001(\010\022\030\n\020cr" +
-      "eation_time_ms\030\006 \001(\003\022!\n\031last_modificatio" +
-      "n_time_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(",
-      "\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\t" +
-      "cacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r" +
-      " \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_name\030\017 " +
-      "\001(\t\022\022\n\npermission\030\020 \001(\005\"O\n\036InodeLastModi" +
-      "ficationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_mo" +
-      "dification_time_ms\030\002 \001(\003\"#\n\025PersistDirec" +
-      "toryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntr" +
-      "y\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time" +
-      "_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014\n\004pa" +
-      "th\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003tt",
-      "l\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010ds" +
-      "t_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"_\n\rSetS" +
-      "tateEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(" +
-      "\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersis" +
-      "ted\030\005 \001(\010"
+      "\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state",
+      "\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_" +
+      "ms\030\006 \001(\003\022!\n\031last_modification_time_ms\030\007 " +
+      "\001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_name\030\t \001" +
+      "(\t\022\022\n\npermission\030\n \001(\005\"O\n\036InodeDirectory" +
+      "IdGeneratorEntry\022\024\n\014container_id\030\001 \001(\003\022\027" +
+      "\n\017sequence_number\030\002 \001(\003\"\315\002\n\016InodeFileEnt" +
+      "ry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004nam" +
+      "e\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pi" +
+      "nned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031" +
+      "last_modification_time_ms\030\007 \001(\003\022\030\n\020block",
+      "_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcom" +
+      "pleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006block" +
+      "s\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\021\n\tuser_name\030\016 \001(\t\022" +
+      "\022\n\ngroup_name\030\017 \001(\t\022\022\n\npermission\030\020 \001(\005\"" +
+      "O\n\036InodeLastModificationTimeEntry\022\n\n\002id\030" +
+      "\001 \001(\003\022!\n\031last_modification_time_ms\030\002 \001(\003" +
+      "\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n" +
+      "\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030" +
+      "\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025Reinitializ" +
+      "eFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_b",
+      "ytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEntry\022\n" +
+      "\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_" +
+      "ms\030\003 \001(\003\"_\n\rSetStateEntry\022\n\n\002id\030\001 \001(\003\022\022\n" +
+      "\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl" +
+      "\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -9723,7 +9881,7 @@ public final class File {
     internal_static_tachyon_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "Persisted", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", });
     internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
@@ -9735,7 +9893,7 @@ public final class File {
     internal_static_tachyon_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "Persisted", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", });
     internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new

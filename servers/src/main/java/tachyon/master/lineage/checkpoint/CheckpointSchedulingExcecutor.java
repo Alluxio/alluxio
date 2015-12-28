@@ -22,8 +22,10 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.MasterContext;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.LineageMaster;
 
 /**
@@ -34,21 +36,29 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
 
   private final TachyonConf mTachyonConf;
   private final LineageMaster mLineageMaster;
-  private final CheckpointScheduler mScheduler;
+  private final FileSystemMaster mFileSystemMaster;
+  private final CheckpointPlanner mPlanner;
 
-  public CheckpointSchedulingExcecutor(LineageMaster lineageMaster) {
+  public CheckpointSchedulingExcecutor(LineageMaster lineageMaster,
+      FileSystemMaster fileSystemMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mTachyonConf = MasterContext.getConf();
-    mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf,
-        mLineageMaster.getLineageStoreView());
+    mPlanner = CheckpointPlanner.Factory.createPlanner(mTachyonConf,
+        mLineageMaster.getLineageStoreView(), mFileSystemMaster.getFileSystemMasterView());
   }
 
   @Override
   public void heartbeat() {
-    CheckpointPlan plan = mScheduler.schedule(mLineageMaster.getLineageStoreView());
+    CheckpointPlan plan = mPlanner.generatePlan(mLineageMaster.getLineageStoreView(),
+        mFileSystemMaster.getFileSystemMasterView());
     if (!plan.isEmpty()) {
       LOG.info("Checkpoint scheduler created the plan: {}", plan);
     }
-    mLineageMaster.queueForCheckpoint(plan);
+    try {
+      mLineageMaster.scheduleForCheckpoint(plan);
+    } catch (FileDoesNotExistException e) {
+      LOG.error("Checkpoint scheduling failed: {}", e);
+    }
   }
 }

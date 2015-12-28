@@ -8,7 +8,7 @@ fi
 
 #start up tachyon
 
-Usage="Usage: tachyon-start.sh [-hN] WHAT [MOPT] [-f]
+Usage="Usage: tachyon-start.sh [-hNw] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all workers.
   local\t\t\tStart a master and worker locally
@@ -20,13 +20,15 @@ Where WHAT is one of:
   restart_workers\tRestart any failed workers on worker nodes
 
 MOPT is one of:
-  Mount\t\t\tMount the configured RamFS
-  SudoMount\t\tMount the configured RamFS using sudo
+  Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
+  SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
   NoMount\t\tDo not mount the configured RamFS
 
 -f  format Journal, UnderFS Data and Workers Folder on master
 
--N  Do not try to kill prior running masters and/or workers in all or local
+-N  do not try to kill prior running masters and/or workers in all or local
+
+-w  wait for processes to end before returning
 
 -h  display this help."
 
@@ -145,7 +147,7 @@ run_safe() {
   done
 }
 
-while getopts "hN" o; do
+while getopts "hNw" o; do
   case "${o}" in
     h)
       echo -e "$Usage"
@@ -153,6 +155,9 @@ while getopts "hN" o; do
       ;;
     N)
       killonstart="no"
+      ;;
+    w)
+      wait="true"
       ;;
     *)
       echo -e "$Usage"
@@ -236,3 +241,7 @@ case "${WHAT}" in
     exit 1
 esac
 sleep 2
+
+if [[ "${wait}" ]]; then
+  wait
+fi

@@ -23,7 +23,14 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests the {@link BufferUtils} class.
+ */
 public class BufferUtilsTest {
+
+  /**
+   * Tests the {@link BufferUtils#cloneByteBuffer(ByteBuffer)} method.
+   */
   @Test
   public void cloneByteBufferTest() {
     final int bufferSize = 10;
@@ -36,6 +43,9 @@ public class BufferUtilsTest {
     Assert.assertEquals(buf, bufClone);
   }
 
+  /**
+   * Tests the {@link BufferUtils#cloneByteBufferList(List)} method.
+   */
   @Test
   public void cloneByteBufferListTest() {
     final int bufferSize = 10;
@@ -55,6 +65,10 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#cloneByteBuffer(ByteBuffer)} method after allocating a buffer via
+   * {@link ByteBuffer#allocateDirect(int)} method.
+   */
   @Test
   public void cloneDirectByteBufferTest() {
     final int bufferSize = 10;
@@ -67,6 +81,10 @@ public class BufferUtilsTest {
     Assert.assertEquals(bufDirect, bufClone);
   }
 
+  /**
+   * Tests the {@link BufferUtils#cloneByteBufferList(List)} method after allocating a buffer via
+   * {@link ByteBuffer#allocateDirect(int)} method.
+   */
   @Test
   public void cloneDirectByteBufferListTest() {
     final int bufferSize = 10;
@@ -86,6 +104,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#generateNewByteBufferFromThriftRPCResults(ByteBuffer)} method.
+   */
   @Test
   public void generateNewByteBufferFromThriftRPCResultsTest() {
     final int bufferSize = 10;
@@ -102,6 +123,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#putIntByteBuffer(ByteBuffer, int)} method.
+   */
   @Test
   public void putIntByteBufferTest() {
     class TestCase {
@@ -128,6 +152,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#getIncreasingByteArray(int, int)} method.
+   */
   @Test
   public void getIncreasingByteArrayTest() {
     class TestCase {
@@ -159,6 +186,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#equalIncreasingByteArray(int, int, byte[])} method.
+   */
   @Test
   public void equalIncreasingByteArrayTest() {
     class TestCase {
@@ -199,6 +229,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#getIncreasingByteBuffer(int, int)} method.
+   */
   @Test
   public void getIncreasingByteBufferTest() {
     class TestCase {
@@ -230,6 +263,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#equalIncreasingByteBuffer(int, int, ByteBuffer)} method.
+   */
   @Test
   public void equalIncreasingByteBufferTest() {
     class TestCase {
@@ -270,6 +306,9 @@ public class BufferUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link BufferUtils#getIncreasingIntBuffer(int, int)} method.
+   */
   @Test
   public void getIncreasingIntBufferTest() {
     class TestCase {
@@ -304,7 +343,7 @@ public class BufferUtilsTest {
   }
 
   /**
-   *{@link BufferUtils#cleanDirectBuffer(ByteBuffer)} forces to unmap an unused direct buffer.
+   * {@link BufferUtils#cleanDirectBuffer(ByteBuffer)} forces to unmap an unused direct buffer.
    * This test repeated allocates and de-allocates a direct buffer of size 16MB to make sure
    * cleanDirectBuffer is doing its job. The bufferArray is used to store references to the direct
    * buffers so that they won't get garbage collected automatically. It has been tested that if the

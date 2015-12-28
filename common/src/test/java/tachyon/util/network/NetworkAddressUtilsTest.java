@@ -27,8 +27,16 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
+/**
+ * Tests for the {@link NetworkAddressUtils} class.
+ */
 public class NetworkAddressUtilsTest {
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, TachyonConf)} method.
+   *
+   * @throws Exception thrown if something goes wrong
+   */
   @Test
   public void testGetConnectAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
@@ -98,14 +106,19 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(new InetSocketAddress(localHostName, 10000), masterAddress);
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType, TachyonConf)} method.
+   *
+   * @throws Exception thrown if something goes wrong
+   */
   @Test
   public void testGetBindAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      getConnectAddress(service);
+      getBindAddress(service);
     }
   }
 
-  public void getBindAddress(ServiceType service) throws Exception {
+  private void getBindAddress(ServiceType service) throws Exception {
     TachyonConf conf = new TachyonConf();
     String localHostName = NetworkAddressUtils.getLocalHostName(conf);
     InetSocketAddress workerAddress;
@@ -149,7 +162,26 @@ public class NetworkAddressUtilsTest {
         workerAddress);
 
     // connect host and wildcard bind host with port
-    conf.set(Constants.WORKER_RPC_PORT, "20000");
+    switch (service) {
+      case MASTER_RPC:
+        conf.set(Constants.MASTER_RPC_PORT, "20000");
+        break;
+      case MASTER_WEB:
+        conf.set(Constants.MASTER_WEB_PORT, "20000");
+        break;
+      case WORKER_RPC:
+        conf.set(Constants.WORKER_RPC_PORT, "20000");
+        break;
+      case WORKER_DATA:
+        conf.set(Constants.WORKER_DATA_PORT, "20000");
+        break;
+      case WORKER_WEB:
+        conf.set(Constants.WORKER_WEB_PORT, "20000");
+        break;
+      default:
+        Assert.fail("Unrecognized service type: " + service.toString());
+        break;
+    }
     workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
     Assert.assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
         workerAddress);
@@ -176,6 +208,11 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(new InetSocketAddress(localHostName, 20000), workerAddress);
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#replaceHostName(TachyonURI)} method.
+   *
+   * @throws UnknownHostException thrown if the host is unknown
+   */
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(TachyonURI.EMPTY_URI),
@@ -193,6 +230,11 @@ public class NetworkAddressUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#resolveHostName(String)} method.
+   *
+   * @throws UnknownHostException thrown if the host is unknown
+   */
   @Test
   public void resolveHostNameTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.resolveHostName(""), null);
@@ -200,6 +242,12 @@ public class NetworkAddressUtilsTest {
     Assert.assertEquals(NetworkAddressUtils.resolveHostName("localhost"), "localhost");
   }
 
+  /**
+   * Tests the {@link NetworkAddressUtils#getFqdnHost(InetSocketAddress)} and
+   * {@link NetworkAddressUtils#getFqdnHost(NetAddress)} methods.
+   *
+   * @throws UnknownHostException thrown if the host is unknown
+   */
   @Test
   public void getFqdnHostTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),

@@ -104,7 +104,7 @@ These are the configuration parameters related to Tachyon's lineage feature.
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.interval.ms</td>
-  <td>600000</td>
+  <td>300000</td>
   <td>
   The interval (in milliseconds) between Tachyon's checkpoint scheduling.
   </td>
@@ -112,7 +112,7 @@ These are the configuration parameters related to Tachyon's lineage feature.
 <tr>
   <td>tachyon.master.lineage.checkpoint.class</td>
   <td>tachyon.master.lineage.checkpoint
-    .CheckpointLatestScheduler</td>
+    .CheckpointLatestPlanner</td>
   <td>
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
   checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
@@ -120,11 +120,9 @@ These are the configuration parameters related to Tachyon's lineage feature.
 </tr>
 <tr>
   <td>tachyon.master.lineage.recompute.interval.ms</td>
-  <td>600000</td>
+  <td>300000</td>
   <td>
-  The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the 
-  all the lost files tracked by lineage, and re-executes the corresponding jobs.
-  every 10 minutes.
+  The interval (in milliseconds) between Tachyon's recompute execution. The executor scans all the lost files tracked by lineage, and re-executes the corresponding jobs every 5 minutes.
   </td>
 </tr>
 <tr>
@@ -132,13 +130,6 @@ These are the configuration parameters related to Tachyon's lineage feature.
   <td>${tachyon.home}/logs/recompute.log</td>
   <td>
   The path to the log that the recompute executor redirects the job's stdout into.
-  </td>
-</tr>
-<tr>
-  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
-  <td>1000</td>
-  <td>
-  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
   </td>
 </tr>
 <tr>
