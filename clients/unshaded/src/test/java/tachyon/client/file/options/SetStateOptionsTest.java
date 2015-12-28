@@ -20,7 +20,14 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link SetStateOptions} class.
+ */
 public class SetStateOptionsTest {
+
+  /**
+   * Tests that building a {@link SetStateOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -40,6 +47,9 @@ public class SetStateOptionsTest {
     Assert.assertEquals(persist, options.getPersisted());
   }
 
+  /**
+   * Tests that building a {@link SetStateOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     SetStateOptions options = SetStateOptions.defaults();

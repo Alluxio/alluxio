@@ -346,6 +346,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param tachyonPath the Tachyon path
    * @param ufsPath the UFS path
+   * @return true if the given UFS path can be mounted, false otherwise
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
@@ -363,6 +364,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Unmounts the given Tachyon path.
    *
    * @param tachyonPath the Tachyon path
+   * @return true if the given Tachyon path can be unmounted, false otherwise
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */

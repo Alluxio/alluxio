@@ -58,4 +58,9 @@ public final class LocationCommand extends WithWildCardPathCommand {
       }
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "location <path>";
+  }
 }
