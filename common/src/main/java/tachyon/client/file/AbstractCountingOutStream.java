@@ -23,7 +23,7 @@ import java.io.OutputStream;
  * counting the number of bytes written to the output stream.
  */
 public abstract class AbstractCountingOutStream extends OutputStream {
-  // TODO(binfan): make count long.
+  // TODO(binfan): make mBytesWritten long.
   /** The number of bytes written */
   protected int mBytesWritten = 0;
 

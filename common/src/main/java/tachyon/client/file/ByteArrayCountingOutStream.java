@@ -18,8 +18,8 @@ package tachyon.client.file;
 import java.io.ByteArrayOutputStream;
 
 /**
- * A mock implementation of {@link AbstractCountingOutStream} backed by a byte stream. Supposed to be only
- * used for tests.
+ * A mock implementation of {@link AbstractCountingOutStream} backed by a byte stream. Supposed to
+ * be only used for tests.
  *
  * TODO(binfan): move this to test jar if it turns out only used in test.
  */
@@ -33,7 +33,7 @@ public final class ByteArrayCountingOutStream extends AbstractCountingOutStream 
 
   public void write(int b) {
     mOut.write(b);
-    mBytesWritten++;
+    mBytesWritten ++;
   }
 
   /**

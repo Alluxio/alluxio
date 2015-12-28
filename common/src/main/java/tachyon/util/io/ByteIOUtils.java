@@ -162,7 +162,7 @@ public final class ByteIOUtils {
   }
 
   /**
-   * Ensures there are len bytes from pos in buf
+   * Ensures there are len bytes from pos in buf.
    */
   private static void checkBoundary(byte[] buf, int pos, int len) {
     if (pos + len > buf.length) {

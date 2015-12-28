@@ -27,7 +27,7 @@ import tachyon.util.io.ByteIOUtils;
 
 /**
  * Index structure using linear probing. It keeps a collection of buckets. Each bucket stores a
- * fingerprint (in byte) and a offset (in int) indicating where to find the key and value in
+ * fingerprint (in byte) and an offset (in int) indicating where to find the key and value in
  * payload.
  *
  * | fingerprint (byte) | offset (int) |
