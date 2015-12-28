@@ -17,11 +17,19 @@ package tachyon.retry;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * An option which allows retrying based on maximum count.
+ */
 public class CountingRetry implements RetryPolicy {
 
   private final int mMaxRetries;
-  private int mCount = 0;
+  private int mCount = -1;
 
+  /**
+   * Constructs a retry facility which allows max number of retries.
+   *
+   * @param maxRetries max number of retries
+   */
   public CountingRetry(int maxRetries) {
     Preconditions.checkArgument(maxRetries > 0, "Max retries must be a positive number");
     mMaxRetries = maxRetries;
@@ -34,10 +42,7 @@ public class CountingRetry implements RetryPolicy {
 
   @Override
   public boolean attemptRetry() {
-    if (mMaxRetries > mCount) {
-      mCount++;
-      return true;
-    }
-    return false;
+    ++ mCount;
+    return mCount < mMaxRetries;
   }
 }
