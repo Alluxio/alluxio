@@ -125,7 +125,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#delete(TachyonFile, DeleteOptions)} method.
+   * Tests for the {@link AbstractTachyonFileSystem#delete(TachyonFile, DeleteOptions)} method.
    *
    * @throws Exception when the file system cannot delete the file
    */
@@ -154,7 +154,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#free(TachyonFile, FreeOptions)} method.
+   * Tests for the {@link AbstractTachyonFileSystem#free(TachyonFile, FreeOptions)} method.
    *
    * @throws Exception when the file system cannot free the file
    */
@@ -183,7 +183,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#getInfo(TachyonFile, GetInfoOptions)} method.
+   * Tests for the {@link AbstractTachyonFileSystem#getInfo(TachyonFile, GetInfoOptions)} method.
    *
    * @throws Exception when the information cannot be retrieved
    */
@@ -214,7 +214,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#listStatus(TachyonFile, ListStatusOptions)}
+   * Tests for the {@link AbstractTachyonFileSystem#listStatus(TachyonFile, ListStatusOptions)}
    * method.
    *
    * @throws Exception when listing the status fails
@@ -246,7 +246,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#loadMetadata(TachyonURI, LoadMetadataOptions)}
+   * Tests for the {@link AbstractTachyonFileSystem#loadMetadata(TachyonURI, LoadMetadataOptions)}
    * method.
    *
    * @throws Exception when loading the metadata fails
@@ -280,7 +280,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#mkdir(TachyonURI, MkdirOptions)} method.
+   * Tests for the {@link AbstractTachyonFileSystem#mkdir(TachyonURI, MkdirOptions)} method.
    *
    * @throws Exception when the creation of the directory fails
    */
@@ -310,7 +310,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#mount(TachyonURI, TachyonURI, MountOptions)}
+   * Tests for the {@link AbstractTachyonFileSystem#mount(TachyonURI, TachyonURI, MountOptions)}
    * method.
    *
    * @throws Exception when the path cannot be mounted
@@ -345,7 +345,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to complete
+   * Tests for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to complete
    * successfully.
    *
    * @throws Exception when opening the file fails
@@ -359,7 +359,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to fail
+   * Tests for the {@link AbstractTachyonFileSystem#open(TachyonURI, OpenOptions)} method to fail
    * when the file does not exist.
    *
    * @throws Exception when opening the file fails
@@ -394,7 +394,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#openIfExists(TachyonURI, OpenOptions)} method to
+   * Tests for the {@link AbstractTachyonFileSystem#openIfExists(TachyonURI, OpenOptions)} method to
    * complete successfully.
    *
    * @throws Exception when opening the file fails
@@ -409,7 +409,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#openIfExists(TachyonURI, OpenOptions)} method to
+   * Tests for the {@link AbstractTachyonFileSystem#openIfExists(TachyonURI, OpenOptions)} method to
    * fail when the file does not exist.
    *
    * @throws Exception when opening the file fails
@@ -423,7 +423,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#rename(TachyonFile, TachyonURI, RenameOptions)}
+   * Tests for the {@link AbstractTachyonFileSystem#rename(TachyonFile, TachyonURI, RenameOptions)}
    * method.
    *
    * @throws Exception when renaming the file fails
@@ -455,7 +455,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#setState(TachyonFile, SetStateOptions)} method.
+   * Tests for the {@link AbstractTachyonFileSystem#setState(TachyonFile, SetStateOptions)} method.
    *
    * @throws Exception when setting the state fails
    */
@@ -484,7 +484,7 @@ public final class AbstractTachyonFileSystemTest {
   }
 
   /**
-   * Test for the {@link AbstractTachyonFileSystem#unmount(TachyonURI, UnmountOptions)} method.
+   * Tests for the {@link AbstractTachyonFileSystem#unmount(TachyonURI, UnmountOptions)} method.
    *
    * @throws Exception when unmounting the path fails
    */
