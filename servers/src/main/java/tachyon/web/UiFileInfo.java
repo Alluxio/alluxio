@@ -153,7 +153,8 @@ public final class UIFileInfo {
    * @param blockLastAccessTimeMs the last access time (in milliseconds)
    */
   public void addBlock(String tierAlias, long blockId, long blockSize, long blockLastAccessTimeMs) {
-    UIFileBlockInfo block = new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
+    UIFileBlockInfo block =
+        new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
     List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
     if (blocksOnTier == null) {
       blocksOnTier = new ArrayList<UIFileBlockInfo>();

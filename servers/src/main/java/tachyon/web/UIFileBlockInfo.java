@@ -58,7 +58,8 @@ public final class UIFileBlockInfo {
    * @param blockLastAccessTimeMs the block last access time in milliseconds
    * @param tierAlias the tier alias of the block
    */
-  public UIFileBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, String tierAlias) {
+  public UIFileBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs,
+      String tierAlias) {
     mId = blockId;
     mBlockLength = blockLength;
     mLastAccessTimeMs = blockLastAccessTimeMs;
