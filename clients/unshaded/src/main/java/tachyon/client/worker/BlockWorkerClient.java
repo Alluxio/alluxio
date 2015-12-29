@@ -47,9 +47,11 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 
 /**
- * The client talks to a worker server. It keeps sending keep alive message to the worker server.
+ * The client talks to a block worker server. It keeps sending keep alive message to the worker
+ * server.
  *
- * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee thread safety.
+ * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
+ * thread safety.
  */
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -68,7 +70,7 @@ public final class BlockWorkerClient extends ClientBase {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a WorkerClient.
+   * Creates a {@link BlockWorkerClient}.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
@@ -76,8 +78,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
-                           TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "worker");
+      TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;

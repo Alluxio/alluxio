@@ -108,9 +108,9 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expectMessage("Failed to connect to the worker");
 
     BlockWorkerClient blockWorkerClient =
-        new BlockWorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
-            mLocalTachyonClusterResource.get().getWorkerTachyonConf(), 1 /* fake session id */,
-            true, new ClientMetrics());
+        new BlockWorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(),
+            mExecutorService, mLocalTachyonClusterResource.get().getWorkerTachyonConf(),
+            1 /* fake session id */, true, new ClientMetrics());
     try {
       Assert.assertFalse(blockWorkerClient.isConnected());
       blockWorkerClient.connect();
@@ -126,9 +126,9 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient =
-        new BlockWorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
-            mLocalTachyonClusterResource.get().getWorkerTachyonConf(), 1 /* fake session id */,
-            true, new ClientMetrics());
+        new BlockWorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(),
+            mExecutorService, mLocalTachyonClusterResource.get().getWorkerTachyonConf(),
+            1 /* fake session id */, true, new ClientMetrics());
 
     Assert.assertFalse(blockWorkerClient.isConnected());
     blockWorkerClient.connect();
