@@ -31,7 +31,7 @@ public class TestBufferedBlockInStream extends BufferedBlockInStream {
    *
    * @param blockId the id of the block
    * @param start the position to start to read
-   * @param blockSize the size of the block
+   * @param blockSize the size of the block in bytes
    */
   public TestBufferedBlockInStream(long blockId, int start, long blockSize) {
     super(blockId, blockSize);
