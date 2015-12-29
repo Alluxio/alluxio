@@ -21,12 +21,14 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -51,16 +53,72 @@ public final class FileDataManager {
   private final UnderFileSystem mUfs;
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
-  private final List<Long> mPersistedFiles;
+
+  private final Set<Long> mPersistingFiles;
+  private final Set<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
+  /**
+   * Constructs {@link FileDataManager}.
+   */
   public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mPersistedFiles = Lists.newArrayList();
+    mPersistingFiles = Sets.newHashSet();
+    mPersistedFiles = Sets.newHashSet();
     mTachyonConf = WorkerContext.getConf();
     // Create Under FileSystem Client
     String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+  }
+
+  /**
+   * Checks if the given file is being persisted.
+   *
+   * @param fileId the file id
+   * @return true if the file is being persisted, false otherwise
+   */
+  public boolean isFilePersisting(long fileId) {
+    synchronized (mPersistingFiles) {
+      return mPersistedFiles.contains(fileId);
+    }
+  }
+
+  /**
+   * Checks if the given file is persisted.
+   *
+   * @param fileId the file id
+   * @return true if the file is being persisted, false otherwise
+   */
+  public boolean isFilePersisted(long fileId) {
+    synchronized (mPersistedFiles) {
+      return mPersistedFiles.contains(fileId);
+    }
+  }
+
+  /**
+   * Adds a file as persisted.
+   *
+   * @param fileId the file id
+   */
+  public synchronized void addPersistedFile(long fileId) {
+    synchronized (mPersistedFiles) {
+      mPersistedFiles.add(fileId);
+    }
+  }
+
+  /**
+   * Checks if the given file exists in the under storage system.
+   *
+   * @param fileId the file id
+   * @return true if the file exists in under storage system, false otherwise
+   * @throws IOException an I/O exception occurs
+   */
+  public synchronized boolean fileExistsInUfs(long fileId) throws IOException {
+    String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+    FileInfo fileInfo = mBlockDataManager.getFileInfo(fileId);
+    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+
+    return mUfs.exists(dstPath);
   }
 
   /**
@@ -70,7 +128,11 @@ public final class FileDataManager {
    * @param blockIds the list of block ids
    * @throws IOException if the file persistence fails
    */
-  public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
+  public void persistFile(long fileId, List<Long> blockIds) throws IOException {
+    synchronized (mPersistingFiles) {
+      mPersistingFiles.add(fileId);
+    }
+
     String dstPath = prepareUfsFilePath(fileId);
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
@@ -111,7 +173,12 @@ public final class FileDataManager {
     outputStream.flush();
     outputChannel.close();
     outputStream.close();
-    mPersistedFiles.add(fileId);
+    synchronized (mPersistingFiles) {
+      synchronized (mPersistedFiles) {
+        mPersistingFiles.remove(fileId);
+        mPersistedFiles.add(fileId);
+      }
+    }
   }
 
   /**
@@ -136,10 +203,17 @@ public final class FileDataManager {
     return dstPath;
   }
 
-  public synchronized List<Long> popPersistedFiles() {
+  /**
+   * Populates the persisted files.
+   *
+   * @return the persisted files.
+   */
+  public List<Long> popPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
-    toReturn.addAll(mPersistedFiles);
-    mPersistedFiles.clear();
-    return toReturn;
+    synchronized (mPersistedFiles) {
+      toReturn.addAll(mPersistedFiles);
+      mPersistedFiles.clear();
+      return toReturn;
+    }
   }
 }
