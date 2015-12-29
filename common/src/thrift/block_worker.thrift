@@ -8,7 +8,7 @@ struct LockBlockResult {
   2: string blockPath
 }
 
-service WorkerService extends common.TachyonService {
+service BlockWorkerClientService extends common.TachyonService {
 
   /**
    * Accesses a block given the block id.
@@ -39,8 +39,8 @@ service WorkerService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Locks the file in Tachyon's space while the session is reading it. If lock succeeds, the path of 
-   * the block's file along with the internal lock id of locked block will be returned. If the block's file 
+   * Locks the file in Tachyon's space while the session is reading it. If lock succeeds, the path of
+   * the block's file along with the internal lock id of locked block will be returned. If the block's file
    * is not found, FileDoesNotExistException will be thrown.
    */
   LockBlockResult lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
