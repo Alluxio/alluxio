@@ -29,14 +29,14 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.worker.WorkerContext;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-public final class BlockServiceHandler implements WorkerService.Iface {
+public final class BlockServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager that carries out most of the operations **/
