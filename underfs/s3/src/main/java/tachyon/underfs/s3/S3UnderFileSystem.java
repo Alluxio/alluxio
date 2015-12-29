@@ -72,6 +72,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Constructs a new S3 {@link UnderFileSystem}.
+   *
+   * @param bucketName the name of the bucket
+   * @param tachyonConf the configuration for Tachyon
+   * @throws ServiceException when a connection to S3 could not be created
+   */
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
     Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_ACCESS_KEY),

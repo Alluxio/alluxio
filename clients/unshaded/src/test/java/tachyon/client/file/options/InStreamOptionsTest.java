@@ -24,7 +24,14 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests for the {@link InStreamOptions} class.
+ */
 public class InStreamOptionsTest {
+
+  /**
+   * Tests that building an {@link InStreamOptions} works.
+   */
   @Test
   public void builderTest() {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
@@ -37,12 +44,18 @@ public class InStreamOptionsTest {
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
   }
 
+  /**
+   * Tests that building an {@link InStreamOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(TachyonStorageType.PROMOTE, options.getTachyonStorageType());
   }
 
+  /**
+   * Tests that building a {@link InStreamOptions} with a modified configuration works.
+   */
   @Test
   public void modifiedConfTest() {
     TachyonConf originalConf = ClientContext.getConf();

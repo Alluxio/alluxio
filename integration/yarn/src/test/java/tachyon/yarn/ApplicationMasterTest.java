@@ -32,7 +32,6 @@ import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
-import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
@@ -64,14 +63,14 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.yarn.Utils.YarnContainerType;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * Unit tests for {@link ApplicationMaster}.
  */
 // TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, Utils.class,
+@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
     YarnClient.class})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
@@ -92,7 +91,7 @@ public class ApplicationMasterTest {
     EXPECTED_LOCAL_RESOURCES.put(
         (String) Whitebox.getInternalState(ApplicationMaster.class, "TACHYON_TARBALL"),
         Records.newRecord(LocalResource.class));
-    EXPECTED_LOCAL_RESOURCES.put(Utils.TACHYON_SETUP_SCRIPT,
+    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.TACHYON_SETUP_SCRIPT,
         Records.newRecord(LocalResource.class));
   }
 
@@ -149,14 +148,13 @@ public class ApplicationMasterTest {
     Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
 
     // Partially mock Utils to avoid hdfs IO
-    PowerMockito.mockStatic(Utils.class);
-    Mockito
-        .when(
-            Utils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
+    PowerMockito.mockStatic(YarnUtils.class);
+    Mockito.when(
+        YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
         .thenReturn(Records.newRecord(LocalResource.class));
-    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_MASTER))
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER))
         .thenReturn(EXPECTED_MASTER_COMMAND);
-    Mockito.when(Utils.buildCommand(YarnContainerType.TACHYON_WORKER))
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_WORKER))
         .thenReturn(EXPECTED_WORKER_COMMAND);
 
     mMaster.start();
@@ -186,8 +184,7 @@ public class ApplicationMasterTest {
       nodeReports.add(report);
       nodeHosts.add(host);
     }
-    Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
-        .thenReturn(nodeReports);
+    Mockito.when(YarnUtils.getNodeHosts(mYarnClient)).thenReturn(Sets.newHashSet(nodeHosts));
 
     // Mock the Resource Manager to "allocate" containers when they are requested and update
     // ApplicationMaster internal state
@@ -249,9 +246,7 @@ public class ApplicationMasterTest {
       Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
       nodeReports.add(report);
     }
-
-    Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
-        .thenReturn(nodeReports);
+    Mockito.when(YarnUtils.getNodeHosts(mYarnClient)).thenReturn(Sets.newHashSet(hosts));
 
     // Pretend to be the Resource Manager, allocating containers when they are requested.
     Mockito.doAnswer(new Answer<Void>() {
@@ -394,10 +389,15 @@ public class ApplicationMasterTest {
   private ArgumentMatcher<ContainerRequest> getWorkerContainerMatcher(final List<String> hosts) {
     return new ArgumentMatcher<ContainerRequest>() {
       public boolean matches(Object arg) {
-        ContainerRequest expectedWorkerContainerRequest = new ContainerRequest(
-            Resource.newInstance(WORKER_MEM_MB + RAMDISK_MEM_MB, WORKER_CPU),
-            hosts.toArray(new String[] {}), null, Priority.newInstance(1), false);
-        return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
+        Assert.assertTrue(arg instanceof ContainerRequest);
+        ContainerRequest argContainer = (ContainerRequest) arg;
+        // Wrap hosts with Sets to ignore ordering
+        return argContainer.getCapability()
+            .equals(Resource.newInstance(WORKER_MEM_MB + RAMDISK_MEM_MB, WORKER_CPU))
+            && Sets.newHashSet(argContainer.getNodes()).equals(Sets.newHashSet(hosts))
+            && argContainer.getRacks() == null
+            && argContainer.getPriority().equals(Priority.newInstance(1))
+            && !argContainer.getRelaxLocality();
       }
     };
   }

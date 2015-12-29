@@ -410,16 +410,16 @@ the port number.
   LFU; and larger value makes LRFU closer to LRU.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.filesystem.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The heartbeat interval (in milliseconds) between the worker and file system master.
+  </td>
+</tr>
+<tr>
   <td>tachyon.worker.hostname</td>
   <td>localhost</td>
   <td>The hostname of Tachyon worker.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
-  <td>1000</td>
-  <td>
-  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
-  </td>
 </tr>
 <tr>
   <td>tachyon.worker.memory.size</td>
@@ -706,6 +706,26 @@ configuration options.
   <td>tachyon.integration.mesos.master.node.count</td>
   <td>1</td>
   <td>The number of Tachyon master processes to start.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.principal</td>
+  <td>tachyon</td>
+  <td>Tachyon framework’s identity.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.role</td>
+  <td>*</td>
+  <td>Role that Tachyon framework in Mesos cluster may belong to.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.secret</td>
+  <td></td>
+  <td>Tachyon framework’s secret.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.user</td>
+  <td>root</td>
+  <td>Account used by the Mesos executor to run Tachyon workers.</td>
 </tr>
 <tr>
   <td>tachyon.integration.mesos.worker.name</td>
