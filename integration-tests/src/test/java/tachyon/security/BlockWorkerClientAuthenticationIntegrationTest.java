@@ -29,7 +29,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
 
@@ -38,7 +38,7 @@ import tachyon.worker.ClientMetrics;
  * KERBEROS.
  */
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
-public class WorkerClientAuthenticationIntegrationTest {
+public class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(1000, 1000, Constants.GB);
@@ -107,15 +107,15 @@ public class WorkerClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
-    WorkerClient workerClient =
-        new WorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
+    BlockWorkerClient blockWorkerClient =
+        new BlockWorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
             mLocalTachyonClusterResource.get().getWorkerTachyonConf(), 1 /* fake session id */,
             true, new ClientMetrics());
     try {
-      Assert.assertFalse(workerClient.isConnected());
-      workerClient.connect();
+      Assert.assertFalse(blockWorkerClient.isConnected());
+      blockWorkerClient.connect();
     } finally {
-      workerClient.close();
+      blockWorkerClient.close();
     }
   }
 
@@ -125,16 +125,16 @@ public class WorkerClientAuthenticationIntegrationTest {
    * @throws Exception
    */
   private void authenticationOperationTest() throws Exception {
-    WorkerClient workerClient =
-        new WorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
+    BlockWorkerClient blockWorkerClient =
+        new BlockWorkerClient(mLocalTachyonClusterResource.get().getWorkerAddress(), mExecutorService,
             mLocalTachyonClusterResource.get().getWorkerTachyonConf(), 1 /* fake session id */,
             true, new ClientMetrics());
 
-    Assert.assertFalse(workerClient.isConnected());
-    workerClient.connect();
-    Assert.assertTrue(workerClient.isConnected());
+    Assert.assertFalse(blockWorkerClient.isConnected());
+    blockWorkerClient.connect();
+    Assert.assertTrue(blockWorkerClient.isConnected());
 
-    workerClient.close();
+    blockWorkerClient.close();
   }
 
   private void clearLoginUser() throws Exception {

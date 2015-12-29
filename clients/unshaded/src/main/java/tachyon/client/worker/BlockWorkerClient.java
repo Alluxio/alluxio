@@ -51,7 +51,7 @@ import tachyon.worker.ClientMetrics;
  *
  * Since {@link WorkerService.Client} is not thread safe, this class has to guarantee thread safety.
  */
-public final class WorkerClient extends ClientBase {
+public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
@@ -75,8 +75,8 @@ public final class WorkerClient extends ClientBase {
    * @param conf Tachyon configuration
    * @param clientMetrics metrics of the client
    */
-  public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
-      TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+  public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
+                           TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "worker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
