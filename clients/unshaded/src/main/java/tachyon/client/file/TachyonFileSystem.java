@@ -264,7 +264,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #loadMetadata(TachyonURI, LoadMetadataOptions)} with default
    * options.
    *
-   * @param path the path for which to load metadat from UFS
+   * @param path the path for which to load metadata from UFS
    * @return the {@link TachyonFile} instance identifying the resulting file in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
