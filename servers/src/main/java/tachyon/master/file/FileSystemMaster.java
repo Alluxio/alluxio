@@ -1561,8 +1561,12 @@ public final class FileSystemMaster extends MasterBase {
       mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
     }
 
-    // TODO(yupeng) TACHYON-1456 add fault tolerance and flush journal
-
+//    // write to journal
+//    PersistFilesRequestEntry persistFilesRequest =
+//        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
+//    writeJournalEntry(
+//        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
+//    flushJournal();
     return workerId;
   }
 
@@ -1651,13 +1655,6 @@ public final class FileSystemMaster extends MasterBase {
       }
     }
     mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
-
-    // write to journal
-    PersistFilesRequestEntry persistFilesRequest =
-        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
-    writeJournalEntry(
-        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
-    flushJournal();
     return filesToPersist;
   }
 
