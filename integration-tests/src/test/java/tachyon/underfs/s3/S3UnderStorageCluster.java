@@ -18,7 +18,6 @@ package tachyon.underfs.s3;
 import java.io.IOException;
 import java.util.UUID;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
