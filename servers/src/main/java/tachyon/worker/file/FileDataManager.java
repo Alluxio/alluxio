@@ -89,7 +89,8 @@ public final class FileDataManager {
       }
     }
 
-    for (long blockId : blockIds) {
+    for (int i = 0; i < blockIds.size(); i ++) {
+      long blockId = blockIds.get(i);
       long lockId = blockIdToLockId.get(blockId);
 
       // obtain block reader
@@ -108,6 +109,15 @@ public final class FileDataManager {
         ReadableByteChannel inputChannel = reader.getChannel();
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
+      } catch (Exception e) {
+        // release all the other locks
+        for (int j = i + 1; j < blockIds.size(); j ++) {
+          try {
+            mBlockDataManager.unlockBlock(lockId);
+          } catch (BlockDoesNotExistException bdnee) {
+            throw new IOException(bdnee);
+          }
+        }
       } finally {
         try {
           mBlockDataManager.unlockBlock(lockId);
