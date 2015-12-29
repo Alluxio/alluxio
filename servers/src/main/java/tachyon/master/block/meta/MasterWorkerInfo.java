@@ -62,9 +62,9 @@ public final class MasterWorkerInfo {
   /** Mapping from storage tier alias to used bytes */
   private Map<String, Long> mUsedBytesOnTiers;
 
-  /** IDs of blocks the worker contains */
+  /** ids of blocks the worker contains */
   private Set<Long> mBlocks;
-  /** IDs of blocks the worker should remove */
+  /** ids of blocks the worker should remove */
   private Set<Long> mToRemoveBlocks;
 
   /**
@@ -202,7 +202,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return IDs of all blocks the worker contains
+   * @return ids of all blocks the worker contains
    */
   public synchronized Set<Long> getBlocks() {
     return new HashSet<Long>(mBlocks);
@@ -230,7 +230,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return IDs of blocks the worker should remove
+   * @return ids of blocks the worker should remove
    */
   public synchronized List<Long> getToRemoveBlocks() {
     return new ArrayList<Long>(mToRemoveBlocks);
@@ -311,7 +311,7 @@ public final class MasterWorkerInfo {
    * Adds or removes a block from the to-be-removed blocks set of the worker.
    *
    * @param add true if to add, to remove otherwise
-   * @param blockId the ID of the block to be added or removed
+   * @param blockId the id of the block to be added or removed
    */
   public synchronized void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {

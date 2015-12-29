@@ -52,8 +52,8 @@ public class EvictorTestBase {
    * Cache a block to the tiered storage managed by the {@link #mMetaManager}. It's a wrapper around
    * {@link TieredBlockStoreTestUtils#cache}.
    *
-   * @param sessionId ID of session to cache this block
-   * @param blockId ID of the block
+   * @param sessionId id of session to cache this block
+   * @param blockId id of the block
    * @param bytes length of the block in bytes
    * @param tierLevel tier level for the block in the tiered storage
    * @param dirIndex directory index in tierLevel for the block in the tiered storage

@@ -110,7 +110,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Initialized the root of the inode tree.
+   * Initializes the root of the inode tree.
    *
    * @param rootPermissionStatus the root {@link PermissionStatus}
    */
