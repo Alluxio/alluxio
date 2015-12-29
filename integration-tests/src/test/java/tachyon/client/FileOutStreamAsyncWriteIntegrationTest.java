@@ -42,7 +42,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest extends FileOutStreamI
 
   private OutStreamOptions mWriteAsync;
 
-
   @BeforeClass
   public static void beforeClass() {
     HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
