@@ -39,14 +39,14 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
     mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
-    mBaseDir = PathUtils.concatPath(mS3Bucket + UUID.randomUUID());
+    mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
   }
 
   @Override
   public void cleanup() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
     ufs.delete(mBaseDir, true);
-    mBaseDir = PathUtils.concatPath(mS3Bucket + UUID.randomUUID());
+    mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
   }
 
   @Override
