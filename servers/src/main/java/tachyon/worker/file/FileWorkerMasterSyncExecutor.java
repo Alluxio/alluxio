@@ -91,8 +91,23 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
+      long fileId = persistFile.fileId;
+      if (mFileDataManager.isFilePersisting(fileId) || mFileDataManager.isFilePersisted(fileId)) {
+        continue;
+      }
+
+      try {
+        if(mFileDataManager.fileExistsInUfs(fileId)) {
+          // mark as persisted
+          mFileDataManager.addPersistedFile(fileId);
+          continue;
+        }
+      } catch (IOException e) {
+        LOG.error("Failed to check if file {} exists in under storage system", fileId, e);
+      }
+
       mFixedExecutionService
-          .execute(new FilePersister(mFileDataManager, persistFile.fileId, persistFile.blockIds));
+          .execute(new FilePersister(mFileDataManager, fileId, persistFile.blockIds));
     }
   }
 
