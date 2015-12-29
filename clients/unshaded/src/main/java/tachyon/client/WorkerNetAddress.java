@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import tachyon.annotation.PublicApi;
 
 /**
- * The network of a worker.
+ * The network address of a worker.
  */
 @PublicApi
 public final class WorkerNetAddress {
