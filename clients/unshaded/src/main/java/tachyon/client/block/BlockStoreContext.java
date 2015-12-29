@@ -123,6 +123,8 @@ public enum BlockStoreContext {
    * but not guaranteed. The caller should use {@link BlockWorkerClient#isLocal()} to verify if the
    * client is local before assuming so.
    *
+   * TODO(binfan): rename this into acquireBlockWorkerClient
+   *
    * @return a {@link BlockWorkerClient} to a worker in the Tachyon system
    */
   public synchronized BlockWorkerClient acquireWorkerClient() {
