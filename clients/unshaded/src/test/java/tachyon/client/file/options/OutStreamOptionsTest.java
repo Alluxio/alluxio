@@ -25,7 +25,9 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -43,6 +45,7 @@ public class OutStreamOptionsTest {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
 
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf())
@@ -50,13 +53,14 @@ public class OutStreamOptionsTest {
             .setTachyonStorageType(tachyonType)
             .setTTL(ttl)
             .setUnderStorageType(ufsType)
+            .setLocationPolicy(policy)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(ttl, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
-    Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
+    Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
   /**
@@ -77,6 +81,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();
   }
 }
