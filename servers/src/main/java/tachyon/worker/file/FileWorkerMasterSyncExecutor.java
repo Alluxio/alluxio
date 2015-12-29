@@ -73,11 +73,10 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     FileSystemCommand command = null;
     try {
-      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(),
-          persistedFiles);
+      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles);
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
-    }  catch (ConnectionFailedException e) {
+    } catch (ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
     }
 
@@ -97,7 +96,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
       }
 
       try {
-        if(mFileDataManager.fileExistsInUfs(fileId)) {
+        if (mFileDataManager.fileExistsInUfs(fileId)) {
           // mark as persisted
           mFileDataManager.addPersistedFile(fileId);
           continue;
