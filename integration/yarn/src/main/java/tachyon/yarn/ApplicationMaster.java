@@ -432,8 +432,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
       for (String resourceName : LOCAL_RESOURCE_NAMES) {
-        localResources.put(resourceName,
-            YarnUtils.createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
+        localResources.put(resourceName, YarnUtils
+            .createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
       }
       return localResources;
     } catch (IOException e) {
