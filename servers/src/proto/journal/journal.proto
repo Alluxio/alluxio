@@ -25,7 +25,7 @@ message JournalEntry {
     LineageEntry lineage = 13;
     LineageIdGeneratorEntry lineage_id_generator = 14;
     PersistDirectoryEntry persist_directory = 15;
-    PersistFilesRequestEntry persist_files_request = 16;
+    AsyncPersistRequestEntry async_persist_request = 16;
     RawTableEntry raw_table = 17;
     ReinitializeFileEntry reinitialize_file = 18;
     RenameEntry rename = 19;

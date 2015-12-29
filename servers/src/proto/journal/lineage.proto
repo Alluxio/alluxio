@@ -24,11 +24,6 @@ message LineageIdGeneratorEntry {
 }
 
 // next available id: 2
-message PersistFilesEntry {
-  repeated int64 file_ids = 1;
-}
-
-// next available id: 2
-message PersistFilesRequestEntry {
-  repeated int64 file_ids = 1;
+message AsyncPersistRequestEntry {
+  optional int64 file_id = 1;
 }

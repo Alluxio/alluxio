@@ -55,10 +55,10 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.AsyncPersistRequestEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
@@ -230,8 +230,8 @@ public abstract class JournalFormatterTestBase {
                 .setSequenceNumber(TEST_SEQUENCE_NUMBER))
             .build())
         .add(JournalEntry.newBuilder()
-            .setPersistFilesRequest(PersistFilesRequestEntry.newBuilder()
-                .addAllFileIds(Arrays.asList(1L, 2L)))
+            .setAsyncPersistRequest(AsyncPersistRequestEntry.newBuilder()
+                .setFileId(1L))
             .build())
         .add(
             JournalEntry.newBuilder()
