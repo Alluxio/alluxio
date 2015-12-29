@@ -55,7 +55,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.util.FormatUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.yarn.Utils.YarnContainerType;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * Actual owner of Tachyon running on Yarn. The YARN ResourceManager will launch this
@@ -82,7 +82,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * before running the container's command.
    */
   private static final List<String> LOCAL_RESOURCE_NAMES =
-      Lists.newArrayList(TACHYON_TARBALL, Utils.TACHYON_SETUP_SCRIPT);
+      Lists.newArrayList(TACHYON_TARBALL, YarnUtils.TACHYON_SETUP_SCRIPT);
   /** Container request priorities are intra-application */
   private static final Priority MASTER_PRIORITY = Priority.newInstance(0);
   /**
@@ -376,7 +376,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     Container container = containers.get(0);
 
-    final String command = Utils.buildCommand(YarnContainerType.TACHYON_MASTER);
+    final String command = YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER);
     try {
       ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
       ctx.setCommands(Lists.newArrayList(command));
@@ -397,7 +397,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonWorkerContainers(List<Container> containers) {
-    final String command = Utils.buildCommand(YarnContainerType.TACHYON_WORKER);
+    final String command = YarnUtils.buildCommand(YarnContainerType.TACHYON_WORKER);
 
     ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
     ctx.setCommands(Lists.newArrayList(command));
@@ -432,8 +432,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
       for (String resourceName : LOCAL_RESOURCE_NAMES) {
-        localResources.put(resourceName,
-            Utils.createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
+        localResources.put(resourceName, YarnUtils
+            .createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
       }
       return localResources;
     } catch (IOException e) {

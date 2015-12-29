@@ -23,6 +23,9 @@ import org.junit.Test;
  */
 public final class TachyonFileTest {
 
+  /**
+   * Test for the {@link TachyonFile#equals(Object)} method.
+   */
   @Test
   public void equalsTest() {
     TachyonFile file1 = new TachyonFile(1);
@@ -36,6 +39,9 @@ public final class TachyonFileTest {
     Assert.assertNotEquals(file1, file3);
   }
 
+  /**
+   * Test for the {@link TachyonFile#hashCode()} method.
+   */
   @Test
   public void hashCodeTest() {
     TachyonFile file1 = new TachyonFile(1);
@@ -47,11 +53,17 @@ public final class TachyonFileTest {
     Assert.assertNotEquals(file1.hashCode(), file3.hashCode());
   }
 
+  /**
+   * Test for the {@link TachyonFile#getFileId()} method.
+   */
   @Test
   public void getFileIdTest() {
     Assert.assertEquals(100, new TachyonFile(100).getFileId());
   }
 
+  /**
+   * Test for the {@link TachyonFile#toString()} method.
+   */
   @Test
   public void toStringTest() {
     Assert.assertEquals("TachyonFile(100)", new TachyonFile(100).toString());

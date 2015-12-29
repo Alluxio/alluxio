@@ -114,11 +114,11 @@ public class NetworkAddressUtilsTest {
   @Test
   public void testGetBindAddress() throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      getConnectAddress(service);
+      getBindAddress(service);
     }
   }
 
-  public void getBindAddress(ServiceType service) throws Exception {
+  private void getBindAddress(ServiceType service) throws Exception {
     TachyonConf conf = new TachyonConf();
     String localHostName = NetworkAddressUtils.getLocalHostName(conf);
     InetSocketAddress workerAddress;
@@ -162,7 +162,26 @@ public class NetworkAddressUtilsTest {
         workerAddress);
 
     // connect host and wildcard bind host with port
-    conf.set(Constants.WORKER_RPC_PORT, "20000");
+    switch (service) {
+      case MASTER_RPC:
+        conf.set(Constants.MASTER_RPC_PORT, "20000");
+        break;
+      case MASTER_WEB:
+        conf.set(Constants.MASTER_WEB_PORT, "20000");
+        break;
+      case WORKER_RPC:
+        conf.set(Constants.WORKER_RPC_PORT, "20000");
+        break;
+      case WORKER_DATA:
+        conf.set(Constants.WORKER_DATA_PORT, "20000");
+        break;
+      case WORKER_WEB:
+        conf.set(Constants.WORKER_WEB_PORT, "20000");
+        break;
+      default:
+        Assert.fail("Unrecognized service type: " + service.toString());
+        break;
+    }
     workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
     Assert.assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
         workerAddress);

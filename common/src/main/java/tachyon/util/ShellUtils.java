@@ -145,7 +145,7 @@ public final class ShellUtils {
     }
   }
 
-  /** Gets the output of the shell command. */
+  /** @return the output of the shell command. */
   public String getOutput() {
     return (mOutput == null) ? "" : mOutput.toString();
   }
