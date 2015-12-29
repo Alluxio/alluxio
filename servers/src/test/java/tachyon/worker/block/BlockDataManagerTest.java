@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -71,7 +72,7 @@ public class BlockDataManagerTest {
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
       mWorkerId = mRandom.nextLong();
-      Whitebox.setInternalState(WorkerIdRegistry.class, "sWorkerId", mWorkerId);
+      ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
       mManager =
