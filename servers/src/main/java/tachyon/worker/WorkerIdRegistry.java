@@ -68,13 +68,4 @@ public final class WorkerIdRegistry {
   public static Long getWorkerId() {
     return sWorkerId.get();
   }
-
-  /**
-   * Directly sets worker id without registering with master. Only for unit test.
-   *
-   * @param workerId worker ID to set
-   */
-  public static void setWorkerIdForTesting(long workerId) {
-    sWorkerId.set(workerId);
-  }
 }

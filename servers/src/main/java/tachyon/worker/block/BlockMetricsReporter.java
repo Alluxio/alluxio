@@ -42,7 +42,7 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
 
   @Override
   public void onAccessBlock(long sessionId, long blockId) {
-    mWorkerSource.incBlocksAccessed();
+    mWorkerSource.incBlocksAccessed(1);
   }
 
   @Override
@@ -51,13 +51,13 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      mWorkerSource.incBlocksPromoted();
+      mWorkerSource.incBlocksPromoted(1);
     }
   }
 
   @Override
   public void onRemoveBlockByClient(long sessionId, long blockId) {
-    mWorkerSource.incBlocksDeleted();
+    mWorkerSource.incBlocksDeleted(1);
   }
 
   @Override
@@ -66,18 +66,18 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      mWorkerSource.incBlocksPromoted();
+      mWorkerSource.incBlocksPromoted(1);
     }
   }
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
-    mWorkerSource.incBlocksEvicted();
+    mWorkerSource.incBlocksEvicted(1);
   }
 
   @Override
   public void onAbortBlock(long sessionId, long blockId) {
-    mWorkerSource.incBlocksCanceled();
+    mWorkerSource.incBlocksCanceled(1);
   }
 
   /**

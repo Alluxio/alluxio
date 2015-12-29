@@ -91,6 +91,11 @@ public class MasterSource implements Source {
   private final Counter mUnmountOps =
       mMetricRegistry.counter(MetricRegistry.name("UnmountOps"));
 
+  /**
+   * Registers metric gauges.
+   *
+   * @param tachyonMaster a Tachyon master handle
+   */
   public void registerGauges(final TachyonMaster tachyonMaster) {
     if (mGaugesRegistered) {
       return;
