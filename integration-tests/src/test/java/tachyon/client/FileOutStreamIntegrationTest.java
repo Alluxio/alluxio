@@ -47,7 +47,7 @@ import tachyon.util.io.PathUtils;
  * Integration tests for {@link tachyon.client.file.FileOutStream}.
  * TODO(binfan): Run tests with local writes enabled and disabled.
  */
-public final class FileOutStreamIntegrationTest {
+public class FileOutStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 32;
@@ -64,13 +64,14 @@ public final class FileOutStreamIntegrationTest {
 
   private OutStreamOptions mWriteBoth;
   private OutStreamOptions mWriteTachyon;
-  private OutStreamOptions mWriteUnderStore;
   private OutStreamOptions mWriteLocal;
   private TachyonConf mTestConf;
-  private TachyonFileSystem mTfs = null;
+
+  protected OutStreamOptions mWriteUnderStore;
+  protected TachyonFileSystem mTfs = null;
 
   @Before
-  public final void before() throws Exception {
+  public void before() throws Exception {
     mTestConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
     mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(mTestConf);
     mWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(mTestConf);
@@ -88,7 +89,7 @@ public final class FileOutStreamIntegrationTest {
    * @param increasingByteArrayLen expected length of increasing bytes written in the file
    * @throws IOException
    */
-  private void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen,
+  protected void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen,
       int increasingByteArrayLen) throws IOException, TachyonException {
     for (OutStreamOptions op : getOptionSet()) {
       TachyonFile file = mTfs.open(filePath);
@@ -104,7 +105,7 @@ public final class FileOutStreamIntegrationTest {
       is.close();
     }
 
-    if (underStorageType.isSyncPersist()) {
+    if (underStorageType.isSyncPersist() || underStorageType.isAsyncPersist()) {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       String checkpointPath = info.getUfsPath();
