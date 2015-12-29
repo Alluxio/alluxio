@@ -15,12 +15,19 @@
 
 package tachyon.master.permission;
 
-import java.io.IOException;
 import java.util.List;
 
-import tachyon.master.file.meta.Inode;
-import tachyon.security.User;
+import com.google.common.base.Preconditions;
+
+import tachyon.TachyonURI;
+import tachyon.exception.AccessControlException;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.PreconditionMessage;
 import tachyon.security.authorization.FileSystemAction;
+import tachyon.security.authorization.FileSystemPermission;
+import tachyon.thrift.FileInfo;
+import tachyon.util.io.PathUtils;
 
 /**
  * Base class to provide permission check logic.
@@ -49,8 +56,57 @@ public final class FileSystemPermissionChecker {
   }
 
   /**
-   * This method checks access permission.
-   * The input is User and its Groups, requested Permission and inodes (traverse the Path).
+   * Checks requested permission and basic permission on the parent of the path.
+   * Parent means the parent directory of the path.
+   * If parent directory does not exist, treat the closest ancestor directory of the path as
+   * its parent and check permission on it.
+   *
+   * @param user who requests access permission
+   * @param groups in which user belongs to
+   * @param action requested {@link FileSystemAction} by user
+   * @param path whose parent to check permission on
+   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static void checkParentPermission(String user, List<String> groups, FileSystemAction
+      action, TachyonURI path, List<FileInfo> fileInfoList) throws AccessControlException,
+      InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+
+    // remove the last element if all components of the path exist, since we only check the parent.
+    if (pathComponents.length == fileInfoList.size()) {
+      fileInfoList.remove(fileInfoList.size() - 1);
+    }
+    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList);
+  }
+
+  /**
+   * Checks requested permission and basic permission on the path.
+   *
+   * @param user who requests access permission
+   * @param groups in which user belongs to
+   * @param action requested {@link FileSystemAction} by user
+   * @param path the path to check permission on
+   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static void checkPermission(String user, List<String> groups, FileSystemAction action,
+      TachyonURI path, List<FileInfo> fileInfoList) throws AccessControlException,
+      InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+
+    for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {
+      fileInfoList.add(null);
+    }
+    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList);
+  }
+
+  /**
+   * This method provides basic permission checking logic on a list of fileInfo.
+   * The input is User and its Groups, requested Permission and fileInfo list (of inodes by
+   * traversing the Path).
    * The initialized static attributes will be used in the checking logic to bypass checking.
    * Then User, Group, and Action will be compared to those of inodes.
    * It will return if check passed, and throw exception if check failed.
@@ -58,18 +114,81 @@ public final class FileSystemPermissionChecker {
    * @param user who requests access permission
    * @param groups in which user belongs to
    * @param action requested {@link FileSystemAction} by user
-   * @param inodes all the inodes retrieved by traversing the path
-   * @throws IOException if permission checking fails
+   * @param path the path to check permission on
+   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @throws AccessControlException if permission checking fails
    */
-  public static void checkPermission(User user, List<String> groups, FileSystemAction action,
-      List<Inode> inodes) throws IOException {
+  private static void checkByFileInfoList(String user, List<String> groups, FileSystemAction
+      action, String path, List<FileInfo> fileInfoList) throws AccessControlException {
+    int size = fileInfoList.size();
+    Preconditions.checkArgument(size > 0,
+        PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
+
     if (!sPermissionCheckEnabled) {
       return;
     }
 
-    if (sFileSystemOwner.equals(user.getName()) || groups.contains(sFileSystemSuperGroup)) {
+    // bypass checking permission for super user or super group of Tachyon file system.
+    if (sFileSystemOwner.equals(user) || groups.contains(sFileSystemSuperGroup)) {
       return;
     }
-    // TODO(dong): Implement TACHYON-1416
+
+    // traverses parent path to ensure inodes in it are all executable
+    for (int i = 0; i < size - 1; i ++) {
+      check(user, groups, fileInfoList.get(i), FileSystemAction.EXECUTE, path);
+    }
+
+    check(user, groups, fileInfoList.get(size - 1), action, path);
+  }
+
+  /**
+   * This method checks requested permission on a given inode, represented by its fileInfo.
+   *
+   * @param user who requests access permission
+   * @param groups in which user belongs to
+   * @param fileInfo whose attributes used for permission check logic
+   * @param action requested {@link FileSystemAction} by user
+   * @param path the path to check permission on
+   * @throws AccessControlException if permission checking fails
+   */
+  private static void check(String user, List<String> groups, FileInfo fileInfo,
+      FileSystemAction action, String path) throws AccessControlException {
+    if (fileInfo == null) {
+      return;
+    }
+
+    short permission = (short) fileInfo.getPermission();
+
+    if (user.equals(fileInfo.getUserName())) {
+      if (FileSystemPermission.createUserAction(permission).imply(action)) {
+        return;
+      }
+    }
+
+    if (groups.contains(fileInfo.getGroupName())) {
+      if (FileSystemPermission.createGroupAction(permission).imply(action)) {
+        return;
+      }
+    }
+
+    if (FileSystemPermission.createOtherAction(permission).imply(action)) {
+      return;
+    }
+
+    throw new AccessControlException(
+        ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(user, action, path,
+            fileInfo)));
+  }
+
+  private static String toExceptionMessage(String user, FileSystemAction action, String path,
+      FileInfo fileInfo) {
+    // message format: who, action, resource: failed at where
+    StringBuilder stringBuilder = new StringBuilder()
+        .append("user=").append(user).append(", ")
+        .append("access=").append(action).append(", ")
+        .append("path=").append(path).append(": ")
+        .append("failed at ")
+        .append(fileInfo.getName());
+    return stringBuilder.toString();
   }
 }

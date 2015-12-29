@@ -16,6 +16,7 @@
 package tachyon.exception;
 
 public enum TachyonExceptionType {
+  ACCESS_CONTROL(AccessControlException.class),
   BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
   BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
   BLOCK_INFO(BlockInfoException.class),
