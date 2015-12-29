@@ -21,6 +21,7 @@ import java.util.UUID;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.util.io.PathUtils;
 
 /**
  * This class will use Amazon S3 as the backing store. The integration properties should be
@@ -38,14 +39,14 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
     mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
-    mBaseDir = mS3Bucket + UUID.randomUUID();
+    mBaseDir = PathUtils.concatPath(mS3Bucket + UUID.randomUUID());
   }
 
   @Override
   public void cleanup() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
     ufs.delete(mBaseDir, true);
-    mBaseDir = mS3Bucket + UUID.randomUUID();
+    mBaseDir = PathUtils.concatPath(mS3Bucket + UUID.randomUUID());
   }
 
   @Override
