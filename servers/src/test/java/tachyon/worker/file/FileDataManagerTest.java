@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.lineage;
+package tachyon.worker.file;
 
 import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -40,13 +40,14 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
+import tachyon.worker.file.FileDataManager;
 
 /**
- * Tests {@link LineageDataManager}.
+ * Tests {@link FileDataManager}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockDataManager.class, BufferUtils.class})
-public final class LineageDataManagerTest {
+public final class FileDataManagerTest {
 
   @Test
   @SuppressWarnings("unchecked")
@@ -68,7 +69,7 @@ public final class LineageDataManagerTest {
           .thenReturn(reader);
     }
 
-    LineageDataManager manager = new LineageDataManager(blockDataManager);
+    FileDataManager manager = new FileDataManager(blockDataManager);
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
@@ -99,7 +100,7 @@ public final class LineageDataManagerTest {
   @SuppressWarnings("unchecked")
   public void popPersistedFilesTest() {
     BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
-    LineageDataManager manager = new LineageDataManager(blockDataManager);
+    FileDataManager manager = new FileDataManager(blockDataManager);
     List<Long> persistedFiles = Lists.newArrayList(1L, 2L);
 
     Whitebox.setInternalState(manager, "mPersistedFiles", Lists.newArrayList(persistedFiles));

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -175,7 +175,7 @@ public final class TachyonBlockStore {
    * Gets the total capacity of Tachyon's BlockStore.
    *
    * @return the capacity in bytes
-   * @throws IOException
+   * @throws IOException when the connection to the client fails
    */
   public long getCapacityBytes() throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -191,7 +191,8 @@ public final class TachyonBlockStore {
   /**
    * Gets the used bytes of Tachyon's BlockStore.
    *
-   * @throws IOException
+   * @return the used bytes of Tachyon's BlockStore
+   * @throws IOException when the connection to the client fails
    */
   public long getUsedBytes() throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -229,13 +230,13 @@ public final class TachyonBlockStore {
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr.getHost());
     try {
-      workerClient.promoteBlock(blockId);
+      blockWorkerClient.promoteBlock(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(workerClient);
+      mContext.releaseWorkerClient(blockWorkerClient);
     }
   }
 }

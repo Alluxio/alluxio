@@ -24,10 +24,8 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
-import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.exception.TachyonException;
 
 /**
  * A stream API to write a file when lineage is enabled. It supports asynchronous persistence of the
@@ -36,11 +34,16 @@ import tachyon.exception.TachyonException;
 @PublicApi
 public class LineageFileOutStream extends FileOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private LineageContext mContext;
 
+  /**
+   * Creates a new file output stream when lineage is enabled.
+   *
+   * @param fileId the id of the file
+   * @param options the set of options specific to this operation
+   * @throws IOException if an I/O error occurs
+   */
   public LineageFileOutStream(long fileId, OutStreamOptions options) throws IOException {
     super(fileId, updateOutStreamOptions(options));
-    mContext = LineageContext.INSTANCE;
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
@@ -52,48 +55,5 @@ public class LineageFileOutStream extends FileOutStream {
     builder.setTTL(options.getTTL());
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
     return builder.build();
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (mClosed) {
-      return;
-    }
-
-    if (mCurrentBlockOutStream != null) {
-      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-    }
-
-    boolean canComplete = false;
-    if (mTachyonStorageType.isStore()) {
-      try {
-        if (mCanceled) {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
-          }
-        } else {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.close();
-          }
-          canComplete = true;
-        }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
-      }
-    }
-
-    if (canComplete) {
-      LineageMasterClient masterClient = mContext.acquireMasterClient();
-      try {
-        LOG.info("async complete file {}", mFileId);
-        masterClient.asyncCompleteFile(mFileId);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      } finally {
-        mContext.releaseMasterClient(masterClient);
-      }
-    } else {
-      LOG.warn("Failed to store file {} in Tachyon Storage", mFileId);
-    }
   }
 }

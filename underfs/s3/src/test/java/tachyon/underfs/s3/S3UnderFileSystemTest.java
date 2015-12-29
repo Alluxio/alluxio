@@ -28,6 +28,9 @@ import org.powermock.reflect.Whitebox;
 public class S3UnderFileSystemTest {
   private S3UnderFileSystem mMockS3UnderFileSystem;
 
+  /**
+   * Sets up the mock before a test runs.
+   */
   @Before
   public  final void before() {
     mMockS3UnderFileSystem = PowerMockito.mock(S3UnderFileSystem.class);
@@ -35,6 +38,11 @@ public class S3UnderFileSystemTest {
     Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketPrefix", "s3n://test-bucket/");
   }
 
+  /**
+   * Tests the {@link S3UnderFileSystem#convertToFolderName(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void convertToFolderNameTest() throws Exception {
     String input1 = "test";
@@ -43,6 +51,11 @@ public class S3UnderFileSystemTest {
     Assert.assertEquals(result1, "test_$folder$");
   }
 
+  /**
+   * Tests the {@link S3UnderFileSystem#getChildName(String, String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void getChildNameTest() throws Exception {
     String input11 = "s3n://test-bucket/child";
@@ -63,6 +76,11 @@ public class S3UnderFileSystemTest {
     Assert.assertNull(result3);
   }
 
+  /**
+   * Tests the {@link S3UnderFileSystem#getParentKey(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void getParentKeyTest() throws Exception {
     String input1 = "s3n://test-bucket/parent-is-root";
@@ -80,6 +98,11 @@ public class S3UnderFileSystemTest {
     Assert.assertNull(result4);
   }
 
+  /**
+   * Tests the {@link S3UnderFileSystem#isRoot(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void isRootTest() throws Exception {
     String input1 = "s3n://";
@@ -103,6 +126,11 @@ public class S3UnderFileSystemTest {
     Assert.assertFalse(result6);
   }
 
+  /**
+   * Tests the {@link S3UnderFileSystem#stripFolderSuffixIfPresent(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
     String input1 = "s3n://test-bucket/";
@@ -120,6 +148,11 @@ public class S3UnderFileSystemTest {
     Assert.assertEquals("s3n://test-bucket/dir", result3);
   }
 
+  /**
+   * Tests the {@link S3UnderFileSystem#stripPrefixIfPresent(String)} method.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {
     String[] inputs = new String[]{

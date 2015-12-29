@@ -18,8 +18,15 @@ package tachyon.client.file.options;
 import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for getting information.
+ */
 @PublicApi
 public final class GetInfoOptions {
+
+  /**
+   * Builder for {@link GetInfoOptions}.
+   */
   public static class Builder implements OptionsBuilder<GetInfoOptions> {
     /**
      * Creates a new builder for {@link GetInfoOptions}.

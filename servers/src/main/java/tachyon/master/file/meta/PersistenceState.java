@@ -13,28 +13,13 @@
  * the License.
  */
 
-package tachyon.client.file.options;
-
-import org.junit.Test;
+package tachyon.master.file.meta;
 
 /**
- * Tests for the {@link OpenOptions} class.
+ * The persistence state of a file in the under-storage system.
  */
-public class OpenOptionsTest {
-
-  /**
-   * Tests that building an {@link OpenOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    new OpenOptions.Builder().build();
-  }
-
-  /**
-   * Tests that building an {@link OpenOptions} with the defaults works.
-   */
-  @Test
-  public void defaultsTest() {
-    OpenOptions.defaults();
-  }
+public enum PersistenceState {
+  NOT_PERSISTED, // file not persisted in the under FS
+  IN_PROGRESS, // used for async persistence, the async persistence is scheduled and in progress
+  PERSISTED // the file is persisted in the under FS
 }
