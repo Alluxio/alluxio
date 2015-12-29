@@ -38,10 +38,6 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
-    String s3AccessKey = System.getProperty(Constants.S3_ACCESS_KEY);
-    String s3AccessSecretKey = System.getProperty(Constants.S3_SECRET_KEY);
-    tachyonConf.set(Constants.S3_ACCESS_KEY, s3AccessKey);
-    tachyonConf.set(Constants.S3_SECRET_KEY, s3AccessSecretKey);
     mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
     mBaseDir = mS3Bucket + UUID.randomUUID();
   }
