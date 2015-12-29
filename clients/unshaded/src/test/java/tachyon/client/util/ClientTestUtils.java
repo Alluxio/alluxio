@@ -19,9 +19,15 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Utility methods for the client tests.
+ */
 public final class ClientTestUtils {
+
+  /**
+   * Sets small buffer sizes so that Tachyon does not run out of heap space.
+   */
   public static void setSmallBufferSizes() {
-    // Sets small buffer sizes so that we don't run out of heap space
     TachyonConf mConf = new TachyonConf();
     mConf.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
     mConf.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
