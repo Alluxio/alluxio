@@ -19,7 +19,7 @@ import tachyon.TachyonURI;
 import tachyon.master.MasterContext;
 
 /**
- * This encapsulates the journal for a master. The journal is made up of 2 components:
+ * This class encapsulates the journal for a master. The journal is made up of 2 components:
  * - The checkpoint: the full state of the master
  * - The entries: incremental entries to apply to the checkpoint.
  *

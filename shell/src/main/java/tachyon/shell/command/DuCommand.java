@@ -73,4 +73,9 @@ public final class DuCommand extends WithWildCardPathCommand {
     }
     return sizeInBytes;
   }
+
+  @Override
+  public String getUsage() {
+    return "du <path>";
+  }
 }

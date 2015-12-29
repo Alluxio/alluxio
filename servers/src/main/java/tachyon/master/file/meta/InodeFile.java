@@ -172,6 +172,7 @@ public final class InodeFile extends Inode {
     ret.userName = getUserName();
     ret.groupName = getGroupName();
     ret.permission = getPermission();
+    ret.persistenceState = getPersistenceState().toString();
     return ret;
   }
 
@@ -338,7 +339,7 @@ public final class InodeFile extends Inode {
             .setCreationTimeMs(entry.getCreationTimeMs())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setParentId(entry.getParentId())
-            .setPersisted(entry.getPersisted())
+            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setTTL(entry.getTtl())
             .setPermissionStatus(permissionStatus)
@@ -347,7 +348,6 @@ public final class InodeFile extends Inode {
     inode.setBlockIds(entry.getBlocksList());
     inode.setCompleted(entry.getCompleted());
     inode.setLength(entry.getLength());
-    inode.setPersisted(entry.getPersisted());
     inode.setPinned(entry.getPinned());
     inode.setCacheable(entry.getCacheable());
     inode.setLastModificationTimeMs(entry.getLastModificationTimeMs());
@@ -362,7 +362,7 @@ public final class InodeFile extends Inode {
         .setId(getId())
         .setName(getName())
         .setParentId(getParentId())
-        .setPersisted(isPersisted())
+        .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setBlockSizeBytes(getBlockSizeBytes())

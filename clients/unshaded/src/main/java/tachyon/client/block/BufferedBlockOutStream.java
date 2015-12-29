@@ -57,6 +57,12 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   /** Number of bytes written, including unflushed bytes */
   protected long mWrittenBytes;
 
+  /**
+   * Constructs a new {@link BufferedBlockOutStream}.
+   *
+   * @param blockId the id of the block
+   * @param blockSize the size of the block
+   */
   public BufferedBlockOutStream(long blockId, long blockSize) {
     mBlockId = blockId;
     mBlockSize = blockSize;
@@ -65,6 +71,9 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
     mContext = BlockStoreContext.INSTANCE;
   }
 
+  /**
+   * @return the remaining size of the block
+   */
   public long remaining() {
     return mBlockSize - mWrittenBytes;
   }

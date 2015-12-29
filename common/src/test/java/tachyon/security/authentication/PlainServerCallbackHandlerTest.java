@@ -99,6 +99,9 @@ public class PlainServerCallbackHandlerTest {
     mPlainServerCBHandler.handle(callbacks);
   }
 
+  /**
+   * An {@link AuthenticationProvider} that only allows users starting with tachyon.
+   */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {

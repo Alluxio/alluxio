@@ -30,10 +30,18 @@ import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.RawTableMasterClientService;
 
+/**
+ * Tests for the {@link RawTableMasterClient} class.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(RawTableMasterClient.class)
 public class RawTableMasterClientTest {
 
+  /**
+   * Tests for an unsupported version.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void unsupportedVersionTest() throws Exception {
     // Client context needs to be initialized before the raw table context can be used.
