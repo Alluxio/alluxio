@@ -39,6 +39,12 @@ public final class BufferUtils {
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 
+  /**
+   * Converts a byte to an integer.
+   *
+   * @param b the byte to convert
+   * @return the integer representation of the byte
+   */
   public static int byteToInt(byte b) {
     return b & 0xFF;
   }
@@ -67,7 +73,10 @@ public final class BufferUtils {
       }
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
-        LOG.error("Failed to get cleaner for ByteBuffer");
+        if (buffer.capacity() > 0) {
+          LOG.error("Failed to get cleaner for ByteBuffer");
+        }
+        // The cleaner could be null when the buffer is initialized as zero capacity.
         return;
       }
       if (sCleanerCleanMethod == null) {

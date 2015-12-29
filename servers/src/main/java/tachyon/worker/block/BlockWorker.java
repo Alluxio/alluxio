@@ -33,11 +33,14 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
-import tachyon.thrift.BlockWorkerService;
-import tachyon.thrift.KeyValueWorkerService;
+import tachyon.thrift.BlockWorkerClientService;
+import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -50,16 +53,16 @@ import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.file.FileSystemMasterClient;
-import tachyon.worker.keyvalue.KeyValueServiceHandler;
+import tachyon.worker.keyvalue.KeyValueWorkerClientServiceHandler;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
  *
- * Servers: BlockServiceHandler (RPC Server), BlockDataServer (Data Server)
+ * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server), BlockDataServer (Data Server)
  *
- * Periodic Threads: BlockMasterSync (Worker to Master continuous communication)
+ * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
- * Logic: BlockDataManager (Logic for all block related storage operations)
+ * Logic: {@link BlockDataManager} (Logic for all block related storage operations)
  */
 public final class BlockWorker extends WorkerBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -71,9 +74,9 @@ public final class BlockWorker extends WorkerBase {
   /** Runnable responsible for clean up potential zombie sessions. */
   private final SessionCleaner mSessionCleanerThread;
   /** Logic for handling block RPC requests. */
-  private final BlockServiceHandler mBlockServiceHandler;
+  private final BlockWorkerClientServiceHandler mBlockServiceHandler;
   /** Logic for handling key-value RPC requests. */
-  private final KeyValueServiceHandler mKeyValueServiceHandler;
+  private final KeyValueWorkerClientServiceHandler mKeyValueServiceHandler;
   /** Logic for managing block store and under file system store. */
   private final BlockDataManager mBlockDataManager;
   /** Server for data requests and responses. */
@@ -113,7 +116,7 @@ public final class BlockWorker extends WorkerBase {
    *
    * @return the worker service handler (test only)
    */
-  public BlockServiceHandler getWorkerServiceHandler() {
+  public BlockWorkerClientServiceHandler getWorkerServiceHandler() {
     return mBlockServiceHandler;
   }
 
@@ -173,55 +176,58 @@ public final class BlockWorker extends WorkerBase {
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup MasterClientBase
-    mBlockMasterClient =
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mTachyonConf);
+    mBlockMasterClient = new BlockMasterClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
-    mFileSystemMasterClient =
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mTachyonConf);
+    mFileSystemMasterClient = new FileSystemMasterClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
-    mBlockDataManager =
-        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient,
-            new TieredBlockStore());
+    mBlockDataManager = new BlockDataManager(workerSource, mBlockMasterClient,
+        mFileSystemMasterClient, new TieredBlockStore());
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
     workerSource.registerGauges(mBlockDataManager);
     mWorkerMetricsSystem.registerSource(workerSource);
 
-    // Set up DataServer
+    // Setup DataServer
     mDataServer =
         DataServer.Factory.createDataServer(
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
             mBlockDataManager, mTachyonConf);
-    // reset data server port
+    // Reset data server port
     mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
     // TODO(binfan): move RPC setup from BlockWorker to TachyonWorker, following the same
     // pattern as in TachyonMaster
-    mBlockServiceHandler = new BlockServiceHandler(mBlockDataManager);
-    mKeyValueServiceHandler = new KeyValueServiceHandler(mBlockDataManager);
+    mBlockServiceHandler = new BlockWorkerClientServiceHandler(mBlockDataManager);
+    mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-    // reset worker RPC port
+    // Reset worker RPC port
     mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
-    mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-            mPort, mDataServer.getPort());
-    // Get the worker id
-    WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
-    // Set up web server
+    // Setup web server
     mWebServer =
         new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
             ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
             NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
             mStartTimeMs, mTachyonConf);
+    mWorkerMetricsSystem.start();
+    // Add the metrics servlet to the web server, this must be done after the metrics system starts
+    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
+    mWebServer.startWebServer();
+    int webPort = mWebServer.getLocalPort();
+
+    // Get the worker id
+    mWorkerNetAddress =
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+            mPort, mDataServer.getPort(), webPort);
+    WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
     mBlockMasterSync =
         new BlockMasterSync(mBlockDataManager, mWorkerNetAddress, mBlockMasterClient);
@@ -240,7 +246,7 @@ public final class BlockWorker extends WorkerBase {
 
   /**
    * Gets this worker's {@link tachyon.thrift.NetAddress}, which is the worker's hostname, rpc
-   * server port, and data server port
+   * server port, data server port, and web server port.
    *
    * @return the worker's net address
    */
@@ -253,15 +259,14 @@ public final class BlockWorker extends WorkerBase {
    * down.
    */
   public void process() {
-    mWorkerMetricsSystem.start();
-
-    // Add the metrics servlet to the web server, this must be done after the metrics system starts
-    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
-
-    getExecutorService().submit(mBlockMasterSync);
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
+            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
-    getExecutorService().submit(mPinListSync);
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
+            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleanerThread);
@@ -271,7 +276,6 @@ public final class BlockWorker extends WorkerBase {
       getExecutorService().submit(mSpaceReserver);
     }
 
-    mWebServer.startWebServer();
     mThriftServer.serve();
   }
 
@@ -284,15 +288,14 @@ public final class BlockWorker extends WorkerBase {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mBlockMasterSync.stop();
-    mPinListSync.stop();
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
       mSpaceReserver.stop();
     }
     mFileSystemMasterClient.close();
-    getExecutorService().shutdown();
+    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
+    getExecutorService().shutdownNow();
     mWorkerMetricsSystem.stop();
     try {
       mWebServer.shutdownWebServer();
@@ -323,9 +326,11 @@ public final class BlockWorker extends WorkerBase {
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     // TODO(binfan): make names returned from corresponding worker
     processor.registerProcessor(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
-        new BlockWorkerService.Processor<BlockServiceHandler>(mBlockServiceHandler));
+        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
+            mBlockServiceHandler));
     processor.registerProcessor(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
-        new KeyValueWorkerService.Processor<KeyValueServiceHandler>(mKeyValueServiceHandler));
+        new KeyValueWorkerClientService.Processor<KeyValueWorkerClientServiceHandler>(
+            mKeyValueServiceHandler));
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory tTransportFactory;
@@ -334,12 +339,14 @@ public final class BlockWorker extends WorkerBase {
     } catch (IOException ioe) {
       throw Throwables.propagate(ioe);
     }
-    Args args =
-        new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
-            .maxWorkerThreads(maxWorkerThreads).processor(processor)
-            .transportFactory(tTransportFactory)
-            .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.stopTimeoutVal = WorkerContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
+        .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+      args.stopTimeoutVal = 0;
+    } else {
+      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
+    }
     return new TThreadPoolServer(args);
   }
 
@@ -350,8 +357,8 @@ public final class BlockWorker extends WorkerBase {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-          mTachyonConf));
+      return new TServerSocket(
+          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);

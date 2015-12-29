@@ -15,6 +15,9 @@
 
 package tachyon.exception;
 
+/**
+ * Holds the different types of exceptions thrown by Tachyon.
+ */
 public enum TachyonExceptionType {
   BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
   BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
@@ -47,6 +50,11 @@ public enum TachyonExceptionType {
     mExceptionClass = exceptionClass;
   }
 
+  /**
+   * Gets the class of the exception.
+   *
+   * @return the class of the exception
+   */
   public Class<? extends TachyonException> getExceptionClass() {
     return mExceptionClass;
   }

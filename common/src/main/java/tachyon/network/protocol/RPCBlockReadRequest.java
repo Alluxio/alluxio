@@ -27,11 +27,24 @@ public final class RPCBlockReadRequest extends RPCRequest {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
+  private final long mLockId;
+  private final long mSessionId;
 
-  public RPCBlockReadRequest(long blockId, long offset, long length) {
+  /**
+   * Constructs a new RPC request to read a block from a DataServer.
+   *
+   * @param blockId the id of the block
+   * @param offset the block offset to begin reading at
+   * @param length the number of bytes to read
+   * @param lockId the id of the block lock that is held by the client
+   * @param sessionId the id of the client session
+   */
+  public RPCBlockReadRequest(long blockId, long offset, long length, long lockId, long sessionId) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
+    mLockId = lockId;
+    mSessionId = sessionId;
   }
 
   @Override
@@ -49,13 +62,15 @@ public final class RPCBlockReadRequest extends RPCRequest {
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
-    return new RPCBlockReadRequest(blockId, offset, length);
+    long lockId = in.readLong();
+    long sessionId = in.readLong();
+    return new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId);
   }
 
   @Override
   public int getEncodedLength() {
-    // 3 longs (mBLockId, mOffset, mLength)
-    return Longs.BYTES * 3;
+    // 5 longs (mBLockId, mOffset, mLength, mLockId, mSessionId)
+    return Longs.BYTES * 5;
   }
 
   @Override
@@ -63,6 +78,8 @@ public final class RPCBlockReadRequest extends RPCRequest {
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
+    out.writeLong(mLockId);
+    out.writeLong(mSessionId);
   }
 
   @Override
@@ -74,18 +91,42 @@ public final class RPCBlockReadRequest extends RPCRequest {
 
   @Override
   public String toString() {
-    return "RPCBlockReadRequest(" + mBlockId + ", " + mOffset + ", " + mLength + ")";
+    return String.format("RPCBlockReadRequest(%s, %s, %s, %s, %s)",
+        mBlockId, mOffset, mLength, mLockId, mSessionId);
   }
 
+  /**
+   * @return the id of the block
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
+  /**
+   * @return the number of bytes to read
+   */
   public long getLength() {
     return mLength;
   }
 
+  /**
+   * @return the block offset to begin reading at
+   */
   public long getOffset() {
     return mOffset;
+  }
+
+  /**
+   * @return the id of the lock
+   */
+  public long getLockId() {
+    return mLockId;
+  }
+
+  /**
+   * @return the id of the session
+   */
+  public long getSessionId() {
+    return mSessionId;
   }
 }

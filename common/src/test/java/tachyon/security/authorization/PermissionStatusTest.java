@@ -17,17 +17,34 @@ package tachyon.security.authorization;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
+import tachyon.security.group.GroupMappingService;
+import tachyon.security.group.provider.IdentityUserGroupsMapping;
 
+/**
+ * Tests the {@link PermissionStatus} class.
+ */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({GroupMappingService.Factory.class})
 public final class PermissionStatusTest {
 
+  /**
+   * Tests the {@link PermissionStatus#getDirDefault()} method.
+   */
   @Test
   public void permissionStatusTest() {
     PermissionStatus permissionStatus =
@@ -40,6 +57,9 @@ public final class PermissionStatusTest {
     verifyPermissionStatus("", "", (short) 0777, permissionStatus);
   }
 
+  /**
+   * Tests the {@link PermissionStatus#applyUMask(FileSystemPermission)} method.
+   */
   @Test
   public void applyUMaskTest() {
     FileSystemPermission umaskPermission = new FileSystemPermission((short)0022);
@@ -55,6 +75,11 @@ public final class PermissionStatusTest {
     Assert.assertEquals(0755, permissionStatus.getPermission().toShort());
   }
 
+  /**
+   * Tests the {@link PermissionStatus#get(TachyonConf, boolean)} method.
+   *
+   * @throws Exception thrown if the status cannot be retrieved
+   */
   @Test
   public void getPermissionStatusTest() throws Exception {
     TachyonConf conf = new TachyonConf();
@@ -68,14 +93,54 @@ public final class PermissionStatusTest {
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     permissionStatus = PermissionStatus.get(conf, true);
-    verifyPermissionStatus("test_client_user", "", (short) 0755, permissionStatus);
+    verifyPermissionStatus("test_client_user", "test_client_user", (short) 0755, permissionStatus);
 
     // authentication is enabled, and remote is false
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
+    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     permissionStatus = PermissionStatus.get(conf, false);
-    verifyPermissionStatus("test_login_user", "", (short) 0755, permissionStatus);
+    verifyPermissionStatus("test_login_user", "test_login_user", (short) 0755, permissionStatus);
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+  }
+
+  /**
+   * Tests that retrieving the {@link PermissionStatus} with multiple groups works as expected.
+   *
+   * @throws Exception if the permission status cannot be retrieved
+   */
+  @Test
+  public void getPermissionStatusWithMultiGroupsTest() throws Exception {
+    // mock a multi-groups test case
+    TachyonConf conf = new TachyonConf();
+    PermissionStatus permissionStatus;
+    GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
+    PowerMockito.when(groupService.getGroups(Mockito.anyString())).thenReturn(
+        Lists.newArrayList("group1", "group2"));
+    PowerMockito.mockStatic(GroupMappingService.Factory.class);
+    Mockito.when(
+        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(TachyonConf.class)))
+        .thenReturn(groupService);
+
+    // no authentication
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    permissionStatus = PermissionStatus.get(conf, true);
+    verifyPermissionStatus("", "", (short) 0000, permissionStatus);
+
+    // authentication is enabled, and remote is true
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    PlainSaslServer.AuthorizedClientUser.set("test_client_user");
+    permissionStatus = PermissionStatus.get(conf, true);
+    verifyPermissionStatus("test_client_user", "group1", (short) 0755, permissionStatus);
+
+    // authentication is enabled, and remote is false
+    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
+    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    permissionStatus = PermissionStatus.get(conf, false);
+    verifyPermissionStatus("test_login_user", "group1", (short) 0755, permissionStatus);
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 

@@ -29,6 +29,11 @@ import tachyon.client.ClientContext;
  */
 public final class RawTableContextTest {
 
+  /**
+   * Tests the concurrency of the {@link RawTableContext}.
+   *
+   * @throws Exception when the thread fails to wait
+   */
   @Test
   public void concurrencyTest() throws Exception {
     final List<RawTableMasterClient> clients = Lists.newArrayList();

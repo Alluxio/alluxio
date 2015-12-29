@@ -14,7 +14,6 @@ echo "Formatting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties \
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
@@ -25,7 +24,6 @@ echo "Starting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties \
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \

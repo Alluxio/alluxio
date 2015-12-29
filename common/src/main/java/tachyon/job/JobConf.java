@@ -27,7 +27,7 @@ public class JobConf implements Serializable {
   /**
    * Constructs the job configuration.
    *
-   * @param outputFilePath
+   * @param outputFilePath the path of the output file
    */
   public JobConf(String outputFilePath) {
     mOutputFilePath = outputFilePath;

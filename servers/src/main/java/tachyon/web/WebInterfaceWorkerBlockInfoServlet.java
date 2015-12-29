@@ -59,8 +59,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */
@@ -107,6 +107,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     List<Long> fileIds = getSortedFileIds();
     request.setAttribute("nTotalFile", fileIds.size());
 
+    request.setAttribute("orderedTierAliases",
+        new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
+
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -122,8 +125,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         uiFileInfos.add(getUiFileInfo(tFS, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
-      request.setAttribute("orderedTierAliases",
-          new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("fatalError", "Error: Invalid FileId " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -176,9 +177,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   }
 
   /***
-   * Get the UiFileInfo object based on fileId.
+   * Get the {@link UiFileInfo} object based on fileId.
    *
-   * @param tachyonFileSystem the TachyonFileSystem client
+   * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param fileId the file id of the file
    * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
@@ -190,9 +191,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   }
 
   /***
-   * Get the UiFileInfo object based on filePath.
+   * Get the {@link UiFileInfo} object based on filePath.
    *
-   * @param tachyonFileSystem the TachyonFileSystem client
+   * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param filePath the path of the file
    * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
@@ -204,9 +205,9 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   }
 
   /**
-   * Gets the UiFileInfo object that represents the fileId, or the filePath if fileId is -1.
+   * Gets the {@link UiFileInfo} object that represents the fileId, or the filePath if fileId is -1.
    *
-   * @param tachyonFileSystem the TachyonFileSystem client
+   * @param tachyonFileSystem the {@link TachyonFileSystem} client
    * @param fileId the file id of the file
    * @param filePath the path of the file. valid iff fileId is -1
    * @return the UiFileInfo object of the file

@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +30,14 @@ import tachyon.Constants;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
+import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.CommonUtils;
-import tachyon.util.LineageUtils;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockWorker;
-import tachyon.worker.lineage.LineageWorker;
+import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster.
@@ -47,6 +48,7 @@ public abstract class AbstractLocalTachyonCluster {
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
   private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
   private static final String ELLIPSIS = "…";
+  private static final Random RANDOM_GENERATOR = new Random();
 
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
@@ -56,12 +58,22 @@ public abstract class AbstractLocalTachyonCluster {
   protected TachyonConf mWorkerConf;
 
   protected BlockWorker mWorker;
-  protected LineageWorker mLineageWorker;
+  protected FileSystemWorker mFileSystemWorker;
+  protected UnderFileSystemCluster mUfsCluster;
 
   protected String mTachyonHome;
   protected String mHostname;
 
   protected Thread mWorkerThread;
+
+  /** The names of all the master services, for creating journal folders. */
+  // TODO(gpang): Consolidate this array of services with the one in Format.java
+  protected String[] mMasterServiceNames = new String[] {
+      Constants.BLOCK_MASTER_NAME,
+      Constants.FILE_SYSTEM_MASTER_NAME,
+      Constants.LINEAGE_MASTER_NAME,
+      Constants.RAW_TABLE_MASTER_NAME,
+  };
 
   public AbstractLocalTachyonCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
@@ -204,7 +216,54 @@ public abstract class AbstractLocalTachyonCluster {
    * @param conf configuration of this test
    * @throws IOException when creating or deleting dirs failed
    */
-  protected abstract void setupTest(TachyonConf conf) throws IOException;
+  protected void setupTest(TachyonConf conf) throws IOException {
+    String tachyonHome = conf.get(Constants.TACHYON_HOME);
+    // Delete the tachyon home dir for this test from ufs to avoid permission problems
+    UnderFileSystemUtils.deleteDir(tachyonHome, conf);
+
+    // Create ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
+    UnderFileSystemUtils.mkdirIfNotExists(conf.get(Constants.UNDERFS_ADDRESS), conf);
+
+    // Create storage dirs for worker
+    int numLevel = conf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+    for (int level = 0; level < numLevel; level ++) {
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      String[] dirPaths = conf.get(tierLevelDirPath).split(",");
+      for (String dirPath : dirPaths) {
+        UnderFileSystemUtils.mkdirIfNotExists(dirPath, conf);
+      }
+    }
+
+    // Start the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
+    // (see also {@link tachyon.LocalMiniDFSCluster} and sets up the folder like
+    // "hdfs://xxx:xxx/tachyon*".
+    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, conf);
+
+    // Set the journal folder
+    String journalFolder =
+        mUfsCluster.getUnderFilesystemAddress() + "/journal" + RANDOM_GENERATOR.nextLong();
+    conf.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
+
+    // Format the journal
+    UnderFileSystemUtils.mkdirIfNotExists(journalFolder, conf);
+    for (String masterServiceName : mMasterServiceNames) {
+      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
+          conf);
+    }
+    UnderFileSystemUtils
+        .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()), conf);
+
+    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
+    // the cluster's current address. This must happen after UFS is started with
+    // UnderFileSystemCluster.get().
+    // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
+    // instead of comparing classnames.
+    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mTachyonHome;
+      conf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+    }
+  }
 
   /**
    * Stop both of the tachyon and underfs service threads.
@@ -230,7 +289,12 @@ public abstract class AbstractLocalTachyonCluster {
    *
    * @throws Exception when the operation fails
    */
-  public abstract void stopUFS() throws Exception;
+  protected void stopUFS() throws Exception {
+    LOG.info("stop under storage system");
+    if (mUfsCluster != null) {
+      mUfsCluster.cleanup();
+    }
+  }
 
   /**
    * Create a default {@link tachyon.conf.TachyonConf} for testing.
@@ -254,7 +318,6 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
     testConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
     testConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
-    testConf.set(Constants.THRIFT_STOP_TIMEOUT_SECONDS, "0");
 
     testConf.set(Constants.MASTER_BIND_HOST, mHostname);
     testConf.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
@@ -326,20 +389,13 @@ public abstract class AbstractLocalTachyonCluster {
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
     mWorker = new BlockWorker();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      // Setup the lineage worker
-      LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
-      mLineageWorker = new LineageWorker(mWorker.getBlockDataManager());
-    }
+    mFileSystemWorker = new FileSystemWorker(mWorker.getBlockDataManager());
 
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
-          // Start the lineage worker
-          if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-            mLineageWorker.start();
-          }
+          mFileSystemWorker.start();
           mWorker.process();
 
         } catch (Exception e) {

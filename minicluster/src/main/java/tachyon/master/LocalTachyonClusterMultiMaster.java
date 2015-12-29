@@ -30,7 +30,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.LineageUtils;
 import tachyon.worker.WorkerContext;
 
 /**
@@ -214,18 +213,10 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
     mClientPool.close();
 
     mWorker.stop();
-    if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
-      mLineageWorker.stop();
-    }
+    mFileSystemWorker.stop();
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasters.get(k).stop();
     }
     mCuratorServer.stop();
-  }
-
-  @Override
-  public void stopUFS() throws Exception {
-    // masters share underfs, so only need to call on the first master
-    mMasters.get(0).cleanupUnderfs();
   }
 }
