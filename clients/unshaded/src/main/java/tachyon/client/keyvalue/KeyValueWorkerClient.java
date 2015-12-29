@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.keyvalue;
+package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,7 +26,7 @@ import tachyon.ClientBase;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.KeyValueWorkerService;
+import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
@@ -36,13 +36,13 @@ import tachyon.util.network.NetworkAddressUtils;
  * The client talks to a key-value worker server. It keeps sending keep alive message to the worker
  * server.
  *
- * Since {@link KeyValueWorkerService.Client} is not thread safe, this class has to guarantee thread
- * safety.
+ * Since {@link KeyValueWorkerClientService.Client} is not thread safe, this class has to guarantee
+ * thread safety.
  */
 public class KeyValueWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private KeyValueWorkerService.Client mClient = null;
+  private KeyValueWorkerClientService.Client mClient = null;
 
   /**
    * Creates a KeyValueWorkerClient.
@@ -71,7 +71,7 @@ public class KeyValueWorkerClient extends ClientBase {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new KeyValueWorkerService.Client(mProtocol);
+    mClient = new KeyValueWorkerClientService.Client(mProtocol);
   }
 
   /**

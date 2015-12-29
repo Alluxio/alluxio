@@ -34,18 +34,17 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.keyvalue.KeyValueWorkerClient;
 
 /**
- * A client to talk to remote key-value worker to access a key
+ * A client to talk to remote key-value worker to access a key.
  */
-public class ClientKeyValueFileReader implements KeyValueFileReader {
+public final class BaseKeyValueFileReader implements KeyValueFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private KeyValueWorkerClient mClient;
   private long mBlockId;
 
-  public ClientKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
+  public BaseKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
     Preconditions.checkArgument(uri != null);
     TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
     TachyonFile tFile = tfs.open(uri);

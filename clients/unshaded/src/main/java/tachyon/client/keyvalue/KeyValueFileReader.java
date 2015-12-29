@@ -40,7 +40,7 @@ public interface KeyValueFileReader extends Closeable {
      */
     public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
-      return new ClientKeyValueFileReader(uri);
+      return new BaseKeyValueFileReader(uri);
     }
   }
 
