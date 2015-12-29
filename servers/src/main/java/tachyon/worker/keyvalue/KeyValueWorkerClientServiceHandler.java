@@ -56,7 +56,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   }
 
   /**
-   * Gets the value for <code>key</code> in the given block, or null if key is not found.
+   * Gets the value for {@code key} in the given block, or null if key is not found.
    *
    * @param blockId block Id
    * @param key key to fetch
@@ -82,6 +82,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   }
 
   /**
+   * Internal logic to get value from the given block.
+   *
    * @param blockId Block Id
    * @param keyBuffer bytes of key
    * @return key found in the key-value block or null if not found

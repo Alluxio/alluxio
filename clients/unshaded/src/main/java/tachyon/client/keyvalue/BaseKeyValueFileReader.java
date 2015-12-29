@@ -44,6 +44,13 @@ public final class BaseKeyValueFileReader implements KeyValueFileReader {
   private KeyValueWorkerClient mClient;
   private long mBlockId;
 
+  /**
+   * Constructs a new instance of {@link BaseKeyValueFileReader}.
+   *
+   * @param uri URI of the key-value file
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   public BaseKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
     Preconditions.checkArgument(uri != null);
     TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();

@@ -45,7 +45,6 @@ import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 
@@ -98,8 +97,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void accessBlock(final long blockId)
-      throws ConnectionFailedException, IOException {
+  public synchronized void accessBlock(final long blockId) throws ConnectionFailedException,
+      IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -117,8 +116,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean asyncCheckpoint(final long fileId)
-      throws IOException, TachyonException {
+  public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
+      TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
@@ -217,8 +216,9 @@ public final class BlockWorkerClient extends ClientBase {
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
         final int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
-        mHeartbeat = mExecutorService.submit(
-            new HeartbeatThread(HeartbeatContext.WORKER_CLIENT, mHeartbeatExecutor, interval));
+        mHeartbeat =
+            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+                mHeartbeatExecutor, interval));
       }
     }
   }
@@ -311,8 +311,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean promoteBlock(final long blockId)
-      throws IOException, TachyonException {
+  public synchronized boolean promoteBlock(final long blockId) throws IOException,
+      TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
@@ -381,8 +381,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean unlockBlock(final long blockId)
-      throws ConnectionFailedException, IOException {
+  public synchronized boolean unlockBlock(final long blockId) throws ConnectionFailedException,
+      IOException {
     return retryRPC(new RpcCallable<Boolean>() {
       @Override
       public Boolean call() throws TException {
