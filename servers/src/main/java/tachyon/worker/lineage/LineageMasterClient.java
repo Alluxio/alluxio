@@ -43,8 +43,10 @@ public final class LineageMasterClient extends ClientBase {
   private LineageMasterWorkerService.Client mClient = null;
 
   /**
+   * Creates a new instance of {@link LineageMasterClient}.
+   *
    * @param masterAddress the master address
-   * @param tachyonConf tachyonConf
+   * @param tachyonConf Tachyon configuration
    */
   public LineageMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf, "lineage-worker");

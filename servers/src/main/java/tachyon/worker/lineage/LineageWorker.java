@@ -47,6 +47,12 @@ public final class LineageWorker extends WorkerBase {
   /** The service that persists files for lineage checkpointing */
   private Future<?> mFilePersistenceService;
 
+  /**
+   * Creates a new instance of {@link LineageWorker}.
+   *
+   * @param blockDataManager a block data manager handle
+   * @throws IOException if an I/O error occurs
+   */
   public LineageWorker(BlockDataManager blockDataManager) throws IOException {
     super(Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("lineage-worker-heartbeat-%d",
         true)));
@@ -61,6 +67,9 @@ public final class LineageWorker extends WorkerBase {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
   }
 
+  /**
+   * Starts the lineage worker service.
+   */
   public void start() {
     mFilePersistenceService =
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.WORKER_LINEAGE_SYNC,
@@ -68,6 +77,9 @@ public final class LineageWorker extends WorkerBase {
             mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
   }
 
+  /**
+   * Stops the lineage worker service.
+   */
   public void stop() {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
