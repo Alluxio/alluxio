@@ -15,12 +15,6 @@ struct PartitionInfo {
 service KeyValueMasterClientService extends common.TachyonService {
 
   /**
-   * Creates a new key-value store on master.
-   */
-  void createStore( /** the path of the store */  1: string path)
-    throws (1: exception.TachyonTException e)
-
-  /**
    * Marks a partition complete and add it to the store.
    */
   void completePartition( /** the path of the store */  1: string path,
@@ -31,6 +25,12 @@ service KeyValueMasterClientService extends common.TachyonService {
    * Marks a store complete with its filesystem path.
    */
   void completeStore( /** the path of the store */ 1: string path)
+    throws (1: exception.TachyonTException e)
+
+  /**
+   * Creates a new key-value store on master.
+   */
+  void createStore( /** the path of the store */  1: string path)
     throws (1: exception.TachyonTException e)
 
   /**
