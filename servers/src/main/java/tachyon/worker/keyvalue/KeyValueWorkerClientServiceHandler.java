@@ -37,6 +37,8 @@ import tachyon.worker.block.io.BlockReader;
 
 /**
  * Class to read a KeyValue Block.
+ *
+ * TODO(binfan): move logic outside and make this a simple wrapper.
  */
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
