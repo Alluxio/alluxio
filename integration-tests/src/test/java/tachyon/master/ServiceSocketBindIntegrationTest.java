@@ -34,7 +34,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.worker.BlockWorkerClient;
 
 /**
  * Simple integration tests for the bind configuration options.

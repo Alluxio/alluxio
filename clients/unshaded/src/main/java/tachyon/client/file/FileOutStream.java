@@ -31,6 +31,7 @@ import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.Utils;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -78,7 +79,7 @@ public class FileOutStream extends AbstractCountingOutStream implements Cancelab
    */
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
-    mNonce = ClientContext.getRandomNonNegativeLong();
+    mNonce = Utils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();

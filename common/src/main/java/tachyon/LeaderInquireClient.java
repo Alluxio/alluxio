@@ -38,6 +38,15 @@ public final class LeaderInquireClient {
   private static HashMap<String, LeaderInquireClient> sCreatedClients =
       new HashMap<String, LeaderInquireClient>();
 
+  /**
+   * Gets the client.
+   *
+   * @param zookeeperAddress the address for Zookeeper
+   * @param leaderPath the path of the leader
+   * @param tachyonConf the configuration for Tachyon
+   *
+   * @return the client
+   */
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
       String leaderPath, TachyonConf tachyonConf) {
     String key = zookeeperAddress + leaderPath;
@@ -64,6 +73,11 @@ public final class LeaderInquireClient {
     mMaxTry = tachyonConf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
+  /**
+   * Gets the address of the master.
+   *
+   * @return the address of the master
+   */
   public synchronized String getMasterAddress() {
     int tried = 0;
     try {

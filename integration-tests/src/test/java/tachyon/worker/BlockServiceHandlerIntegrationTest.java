@@ -19,32 +19,36 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.TException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.block.BlockMasterClient;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.BlockMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidPathException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockWorkerClientServiceHandler;
@@ -67,9 +71,16 @@ public class BlockServiceHandlerIntegrationTest {
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
 
-  @After
-  public final void after() throws Exception {
-    mBlockMasterClient.close();
+  @BeforeClass
+  public static void beforeClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
   @Before
@@ -84,6 +95,11 @@ public class BlockServiceHandlerIntegrationTest {
         new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
             mLocalTachyonClusterResource.get().getMasterPort()),
         mWorkerTachyonConf);
+  }
+
+  @After
+  public final void after() throws Exception {
+    mBlockMasterClient.close();
   }
 
   // Tests that caching a block successfully persists the block if the block exists
@@ -151,7 +167,7 @@ public class BlockServiceHandlerIntegrationTest {
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
-    String localPath = mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
+    String localPath = mWorkerServiceHandler.lockBlock(blockId, SESSION_ID).blockPath;
 
     // The local path should exist
     Assert.assertNotNull(localPath);
@@ -216,7 +232,8 @@ public class BlockServiceHandlerIntegrationTest {
 
     // File 3 should be in memory and one of file 1 or 2 should be in memory
     Assert.assertEquals(100, fileInfo3.inMemoryPercentage);
-    Assert.assertTrue(fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
+    Assert.assertTrue("Exactly one of file1 and file2 should be 100% in memory",
+        fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
   }
 
   // Tests that space will be allocated when possible
@@ -280,9 +297,13 @@ public class BlockServiceHandlerIntegrationTest {
     out.close();
   }
 
-  // Sleeps for a duration so that the worker heartbeat to master can be processed
-  private void waitForHeartbeat() {
-    CommonUtils
-        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 3);
+  // Waits for a worker heartbeat to master to be processed
+  private void waitForHeartbeat() throws InterruptedException {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // Wait for the next heartbeat to be ready to guarantee that the previous heartbeat has finished
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
   }
 }

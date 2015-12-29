@@ -24,6 +24,12 @@ import tachyon.conf.TachyonConf;
 public final class LineageUtils {
   private LineageUtils() {} // prevent instantiation
 
+  /**
+   * Checks if lineage is enabled.
+   *
+   * @param conf the configuration for Tachyon
+   * @return true if lineage is enabled, false otherwise
+   */
   public static boolean isLineageEnabled(TachyonConf conf) {
     return conf.getBoolean(Constants.USER_LINEAGE_ENABLED);
   }

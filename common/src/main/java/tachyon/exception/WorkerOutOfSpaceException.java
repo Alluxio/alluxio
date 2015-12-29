@@ -15,24 +15,52 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when a worker is out of space.
+ */
 public class WorkerOutOfSpaceException extends TachyonException {
   private static final long serialVersionUID = 8148784998226149669L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.WORKER_OUT_OF_SPACE;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public WorkerOutOfSpaceException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public WorkerOutOfSpaceException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public WorkerOutOfSpaceException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public WorkerOutOfSpaceException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }

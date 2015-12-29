@@ -283,6 +283,19 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+
+      <!--
+          Dependency for FindBugs Plugin. This enables @SuppressFBWarnings.
+          Note that this package can be unnecessary for runtime, and the
+          'provided' scope makes it available for compilation and test,
+          but not be packaged into the jar.
+        -->
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.1</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -632,6 +645,17 @@
         </plugins>
       </pluginManagement>
       </build>
+    </profile>
+
+    <!-- profile that activates tachyon fuse for java8 or newer -->
+    <profile>
+      <id>buildFuse</id>
+      <activation>
+        <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
+      </activation>
+      <modules>
+        <module>fuse</module>
+      </modules>
     </profile>
   </profiles>
 </project>

@@ -3,6 +3,11 @@ namespace java tachyon.thrift
 include "common.thrift"
 include "exception.thrift"
 
+struct LockBlockResult {
+  1: i64 lockId
+  2: string blockPath
+}
+
 service BlockWorkerClientService extends common.TachyonService {
 
   /**
@@ -34,11 +39,11 @@ service BlockWorkerClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Locks the file in Tachyon's space while the session is reading it, and the path of the block file
-   * locked will be returned, if the block file is not found, FileDoesNotExistException will be
-   * thrown.
+   * Locks the file in Tachyon's space while the session is reading it. If lock succeeds, the path of 
+   * the block's file along with the internal lock id of locked block will be returned. If the block's file 
+   * is not found, FileDoesNotExistException will be thrown.
    */
-  string lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
+  LockBlockResult lockBlock( /** the id of the block being accessed */ 1: i64 blockId,
       /** the id of the current session */ 2: i64 sessionId)
     throws (1: exception.TachyonTException e)
 

@@ -51,8 +51,10 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.BlockWorkerClient;
 
+/**
+ * Tests for the {@link FileOutStream} class.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
     TachyonBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
@@ -74,9 +76,17 @@ public class FileOutStreamTest {
 
   private FileOutStream mTestStream;
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the different contexts and clients before a test runs.
+   *
+   * @throws Exception when the {@link FileSystemMasterClient} fails
+   */
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
@@ -144,6 +154,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that a single byte is written to the out stream correctly.
+   *
+   * @throws Exception when the write fails
    */
   @Test
   public void singleByteWriteTest() throws Exception {
@@ -153,6 +165,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that many bytes, written one at a time, are written to the out streams correctly.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void manyBytesWriteTest() throws IOException {
@@ -165,6 +179,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that writing a buffer all at once will write bytes to the out streams correctly.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void writeBufferTest() throws IOException {
@@ -175,6 +191,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests writing a buffer at an offset.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void writeOffsetTest() throws IOException {
@@ -188,6 +206,8 @@ public class FileOutStreamTest {
   /**
    * Tests that {@link FileOutStream#close()} will close but not cancel the underlying out streams.
    * Also checks that {@link FileOutStream#close()} persists and completes the file.
+   *
+   * @throws Exception when the write fails
    */
   @Test
   public void closeTest() throws Exception {
@@ -207,6 +227,8 @@ public class FileOutStreamTest {
    * Tests that {@link FileOutStream#cancel()} will cancel and close the underlying out streams,
    * and delete from the under file system. Also makes sure that cancel() doesn't persist or
    * complete the file.
+   *
+   * @throws Exception when the write fails
    */
   @Test
   public void cancelTest() throws Exception {
@@ -225,6 +247,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that {@link FileOutStream#flush()} will flush the under store stream.
+   *
+   * @throws IOException when the flushing fails
    */
   @Test
   public void flushTest() throws IOException {
@@ -237,6 +261,8 @@ public class FileOutStreamTest {
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
    * {@link UnderStorageType#NO_PERSIST} for their under storage type, the correct exception
    * message will be thrown.
+   *
+   * @throws  IOException when the write fails
    */
   @Test
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
@@ -258,6 +284,8 @@ public class FileOutStreamTest {
    * {@link UnderStorageType#SYNC_PERSIST} for their under storage type, the error is recovered
    * from by writing the data to the under storage out stream and setting the current block as not
    * cacheable.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void cacheWriteExceptionSyncPersistTest() throws IOException {
@@ -273,6 +301,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that write only writes a byte.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void truncateWriteTest() throws IOException {
@@ -284,6 +314,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that the correct exception is thrown when a buffer is written with invalid offset/length.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void writeBadBufferOffsetTest() throws IOException {
@@ -294,6 +326,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that writing a null buffer throws the correct exception.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void writeNullBufferTest() throws IOException {
@@ -304,6 +338,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests that writing a null buffer with offset/length information throws the correct exception.
+   *
+   * @throws IOException when the write fails
    */
   @Test
   public void writeNullBufferOffsetTest() throws IOException {

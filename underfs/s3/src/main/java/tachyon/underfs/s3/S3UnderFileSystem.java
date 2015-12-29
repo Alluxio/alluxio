@@ -72,6 +72,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Constructs a new S3 {@link UnderFileSystem}.
+   *
+   * @param bucketName the name of the bucket
+   * @param tachyonConf the configuration for Tachyon
+   * @throws ServiceException when a connection to S3 could not be created
+   */
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
     Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_ACCESS_KEY),
@@ -387,10 +394,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
-   * file or folder, null is returned
+   * Gets the {@link StorageObject} representing the metadata of a key. If the key does not exist as
+   * a file or folder, null is returned
    * @param key the key to get the object details of
-   * @return StorageObject of the key, or null if the key does not exist as a file or folder
+   * @return {@link StorageObject} of the key, or null if the key does not exist as a file or folder
    */
   private StorageObject getObjectDetails(String key) {
     try {
@@ -426,7 +433,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Determines if the key represents a folder. If false is returned, it is not guaranteed that the
    * path exists.
    * @param key the key to check
-   * @return S3Object containing metadata
+   * @return {@link S3Object} containing metadata
    */
   private boolean isFolder(String key) {
     key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;

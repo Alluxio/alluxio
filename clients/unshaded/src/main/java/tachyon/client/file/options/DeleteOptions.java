@@ -19,8 +19,15 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for deleting a file.
+ */
 @PublicApi
 public final class DeleteOptions {
+
+  /**
+   * Builder for {@link DeleteOptions}.
+   */
   public static class Builder implements OptionsBuilder<DeleteOptions> {
     private boolean mRecursive;
 
@@ -41,6 +48,8 @@ public final class DeleteOptions {
     }
 
     /**
+     * Sets the recursive flag.
+     *
      * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
      *        the flag specifies whether the directory content should be recursively deleted as well
      * @return the builder

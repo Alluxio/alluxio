@@ -16,9 +16,7 @@
 package tachyon.client.block;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +27,9 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.util.io.BufferUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.BlockWorkerClient;
+import tachyon.worker.block.io.LocalFileBlockWriter;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will directly write the
@@ -43,8 +40,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
-  private final FileChannel mLocalFileChannel;
-
+  private final LocalFileBlockWriter mWriter;
   private long mReservedBytes;
 
   /**
@@ -65,8 +61,8 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;
       FileUtils.createBlockPath(blockPath);
-      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
-      mLocalFileChannel = mCloser.register(localFile.getChannel());
+      mWriter = new LocalFileBlockWriter(blockPath);
+      mCloser.register(mWriter);
       // Change the permission of the temporary file in order that the worker can move it.
       FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
@@ -116,13 +112,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mReservedBytes < bytesToWrite) {
       mReservedBytes += requestSpace(bytesToWrite - mReservedBytes);
     }
-    MappedByteBuffer mappedBuffer =
-        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mFlushedBytes, bytesToWrite);
-    mappedBuffer.put(mBuffer.array(), 0, bytesToWrite);
-    BufferUtils.cleanDirectBuffer(mappedBuffer);
+    mBuffer.flip();
+    mWriter.append(mBuffer);
+    mBuffer.clear();
     mReservedBytes -= bytesToWrite;
     mFlushedBytes += bytesToWrite;
-    mBuffer.clear();
     ClientContext.getClientMetrics().incBytesWrittenLocal(bytesToWrite);
   }
 
@@ -131,10 +125,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     if (mReservedBytes < len) {
       mReservedBytes += requestSpace(len - mReservedBytes);
     }
-    MappedByteBuffer mappedBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE,
-        mFlushedBytes, len);
-    mappedBuffer.put(b, off, len);
-    BufferUtils.cleanDirectBuffer(mappedBuffer);
+    mWriter.append(ByteBuffer.wrap(b, off, len));
     mReservedBytes -= len;
     mFlushedBytes += len;
     ClientContext.getClientMetrics().incBytesWrittenLocal(len);
