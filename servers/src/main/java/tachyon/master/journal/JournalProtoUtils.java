@@ -60,8 +60,6 @@ public final class JournalProtoUtils {
         return entry.getLineageIdGenerator();
       case PERSIST_DIRECTORY:
         return entry.getPersistDirectory();
-      case PERSIST_FILE:
-        return entry.getPersistFile();
       case PERSIST_FILES_REQUEST:
         return entry.getPersistFilesRequest();
       case RAW_TABLE:
