@@ -25,7 +25,7 @@ import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
 public class RawTable implements JournalEntryRepresentable {
-  /** Table ID */
+  /** Table id */
   private final long mId;
   /** Number of columns */
   private final int mColumns;

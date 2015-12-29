@@ -55,7 +55,7 @@ public class SessionInfo {
   }
 
   /**
-   * Checks whether the session has timed out
+   * Checks whether the session has timed out.
    *
    * @return true if the session has timed out and false otherwise
    */

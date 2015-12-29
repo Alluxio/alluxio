@@ -45,7 +45,7 @@ public final class TachyonWorker {
       worker = new BlockWorker();
       if (LineageUtils.isLineageEnabled(WorkerContext.getConf())) {
         // Setup the lineage worker
-        LOG.info("Started lineage worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+        LOG.info("Started lineage worker at worker with id {}", WorkerIdRegistry.getWorkerId());
         lineageWorker = new LineageWorker(worker.getBlockDataManager());
       }
 

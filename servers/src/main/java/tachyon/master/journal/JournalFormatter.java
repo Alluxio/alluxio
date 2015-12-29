@@ -32,7 +32,7 @@ import tachyon.util.CommonUtils;
 public interface JournalFormatter {
   class Factory {
     /**
-     * Factory method for {@link JournalFormatter}
+     * Factory method for {@link JournalFormatter}.
      *
      * @param conf TachyonConf to get the type of {@link JournalFormatter}
      * @return the created formatter

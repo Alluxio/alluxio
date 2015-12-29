@@ -408,7 +408,7 @@ public final class TieredBlockStore implements BlockStore {
    * Checks if a blockId is available for a new temp block. This method must be enclosed by
    * {@link #mMetadataLock}.
    *
-   * @param blockId the ID of block
+   * @param blockId the id of block
    * @throws BlockAlreadyExistsException if blockId already exists
    */
   private void checkTempBlockIdAvailable(long blockId) throws BlockAlreadyExistsException {
@@ -424,8 +424,8 @@ public final class TieredBlockStore implements BlockStore {
    * Checks if blockId is a temporary block and owned by sessionId. This method must be enclosed by
    * {@link #mMetadataLock}.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the id of session
+   * @param blockId the id of block
    * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidWorkerStateException if blockId is not owned by sessionId
@@ -446,8 +446,8 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Aborts a temp block.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the id of session
+   * @param blockId the id of block
    * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidWorkerStateException if blockId is not owned by sessionId
@@ -487,8 +487,8 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Commits a temp block.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the id of session
+   * @param blockId the id of block
    * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidWorkerStateException if blockId is not owned by sessionId
@@ -867,7 +867,7 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Updates the pinned blocks.
    *
-   * @param inodes a set of IDs inodes that are pinned
+   * @param inodes a set of ids inodes that are pinned
    */
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
