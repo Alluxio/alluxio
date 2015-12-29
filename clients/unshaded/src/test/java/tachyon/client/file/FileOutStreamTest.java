@@ -46,7 +46,7 @@ import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
@@ -58,7 +58,7 @@ import tachyon.util.io.BufferUtils;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
-    TachyonBlockStore.class, UnderFileSystem.class, WorkerClient.class})
+    TachyonBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
@@ -69,7 +69,7 @@ public class FileOutStreamTest {
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
   private UnderFileSystem mUnderFileSystem;
-  private WorkerClient mWorkerClient;
+  private BlockWorkerClient mBlockWorkerClient;
 
   private Map<Long, TestBufferedBlockOutStream> mTachyonOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
@@ -97,10 +97,10 @@ public class FileOutStreamTest {
     mBlockStore = PowerMockito.mock(TachyonBlockStore.class);
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mWorkerClient = PowerMockito.mock(WorkerClient.class);
+    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
     Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getFileInfo(Mockito.anyLong())).thenReturn(new FileInfo());
 
