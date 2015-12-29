@@ -23,16 +23,16 @@ import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 
 /**
- * Always returns the worker of the specified hostname. Returns null if no active worker on that
+ * Always returns a worker with the specified hostname. Returns null if no active worker on that
  * hostname found.
  */
-public final class DirectlySetPolicy implements FileWriteLocationPolicy {
+public final class SpecificHostPolicy implements FileWriteLocationPolicy {
   private final String mHostname;
 
   /**
    * Constructs the policy with the hostname.
    */
-  public DirectlySetPolicy(String hostname) {
+  public SpecificHostPolicy(String hostname) {
     mHostname = Preconditions.checkNotNull(hostname);
   }
 

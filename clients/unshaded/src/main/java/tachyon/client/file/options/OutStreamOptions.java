@@ -220,7 +220,7 @@ public final class OutStreamOptions {
     sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTTL);
-    sb.append(", LocationPolicy:").append(mLocationPolicy.toString());
+    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();
   }

@@ -30,6 +30,12 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private int mIndex;
   private boolean mInitialized = false;
 
+  /**
+   * The policy uses the first fetch of worker info list as the base, and visits each of them in a
+   * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
+   * in the subsequent calls has the same order from the first, and it will skip the workers that
+   * are no longer active.
+   */
   @Override
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
@@ -45,10 +51,9 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
-      if (workerInfo == null || workerInfo.getCapacityBytes() < blockSizeBytes) {
-        continue;
+      if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
+        return candidate;
       }
-      return candidate;
     }
     return null;
   }
