@@ -153,14 +153,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     String strippedPath = stripPrefixIfPresent(path);
     Container c = mAccount.getContainer(mContainerName);
     if (recursive) {
-      if (!strippedPath.endsWith("/")) {
-        strippedPath = strippedPath + "/";
-        PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
-        for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-          for (StoredObject obj : c.list(paginationMap, page)) {
-            if (obj.exists()) {
-              obj.delete();
-            }
+      strippedPath = makeQualifiedPath(strippedPath);
+      PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
+      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+        for (StoredObject obj : c.list(paginationMap, page)) {
+          if (obj.exists()) {
+            obj.delete();
           }
         }
       }
@@ -270,14 +268,53 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return is;
   }
 
+  /**
+   * Each path is checked both for leading "/" and ending "/"
+   * Leading "/" is removed, and "/" is added at the end if not present
+   * @param path
+   * @return qualified path
+   */
+  private String makeQualifiedPath(String path) {
+    if (!path.endsWith("/")) {
+      path = path + "/";
+    }
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+    return path;
+  }
+
+  /* @inheritDoc
+   * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
+   * The rename works as follows:
+   * If src path exists: src renamed to dst. src is deleted on the success.
+   * If src path is not exists: src is assumed to be directory.
+   * Both src and dst paths are formatted to a/b/c/
+   * Listing is performed on src.
+   * For each returned object: src in the name is replaced with dst.
+   * Object is deleted if copy was successful.
+   * Directory rename always returns true.
+   */
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    if (!exists(src)) {
-      LOG.error("Unable to rename {} to {}. Source does not exists", src, dst);
-      return false;
+    String strippedSrcPath = stripPrefixIfPresent(src);
+    String strippedDstPath = stripPrefixIfPresent(dst);
+    if (exists(src) && copy(strippedSrcPath, strippedDstPath)) {
+      return delete(src, true);
     }
-    copy(src, dst);
-    return delete(src, true);
+    Container c = mAccount.getContainer(mContainerName);
+    strippedSrcPath = makeQualifiedPath(strippedSrcPath);
+    strippedDstPath = makeQualifiedPath(strippedDstPath);
+    PaginationMap paginationMap = c.getPaginationMap(strippedSrcPath, 100);
+    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+      for (StoredObject obj : c.list(paginationMap, page)) {
+        if (obj.exists() && copy(obj.getName(),
+            obj.getName().replace(strippedSrcPath, strippedDstPath))) {
+          delete(obj.getName(), false);
+        }
+      }
+    }
+    return true;
   }
 
   @Override
@@ -298,8 +335,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.debug("copy from {} to {}", src, dst);
     try {
       Container container = mAccount.getContainer(mContainerName);
-      container.getObject(stripPrefixIfPresent(src)).copyObject(container,
-          container.getObject(stripPrefixIfPresent(dst)));
+      container.getObject(src).copyObject(container,
+          container.getObject(dst));
       return true;
     } catch (Exception e) {
       LOG.error(e.getMessage());
@@ -379,7 +416,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       String res =  path.substring(prefix.length());
       return res;
     }
-    LOG.warn("Attempted to strip key {} with invalid prefix {}", prefix, path);
     return path;
   }
 
