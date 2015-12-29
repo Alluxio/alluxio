@@ -206,7 +206,7 @@ public final class FileDataManager {
   /**
    * Populates the persisted files.
    *
-   * @return the persisted files.
+   * @return the persisted files
    */
   public List<Long> popPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
