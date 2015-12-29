@@ -24,6 +24,7 @@ public class CountingRetryTest {
   public void testNumRetries() {
     int numTries = 10;
     CountingRetry countingRetry = new CountingRetry(numTries);
+    Assert.assertEquals(0, countingRetry.getRetryCount());
     int retryAttempts = 0;
     while (countingRetry.attemptRetry()) {
       retryAttempts++;

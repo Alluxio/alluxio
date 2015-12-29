@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 public class CountingRetry implements RetryPolicy {
 
   private final int mMaxRetries;
-  private int mCount = -1;
+  private int mCount = 0;
 
   /**
    * Constructs a retry facility which allows max number of retries.
@@ -37,12 +37,11 @@ public class CountingRetry implements RetryPolicy {
 
   @Override
   public int getRetryCount() {
-    return mCount;
+    return mCount == 0 ? 0 : mCount - 1;
   }
 
   @Override
   public boolean attemptRetry() {
-    ++ mCount;
-    return mCount < mMaxRetries;
+    return mCount ++ < mMaxRetries;
   }
 }
