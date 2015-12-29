@@ -25,6 +25,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -55,6 +56,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(ttl, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
   }
 
   /**

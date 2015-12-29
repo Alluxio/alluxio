@@ -27,14 +27,14 @@ import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 
 /**
- * Tests {@link DirectlySetPolicy}.
+ * Tests {@link SpecificHostPolicy}.
  */
-public final class DirectlySetPolicyTest {
+public final class SpecificHostPolicyTest {
   private static final int PORT = 1;
 
   @Test
   public void policyTest() {
-    DirectlySetPolicy policy = new DirectlySetPolicy("worker2");
+    SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
         new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
@@ -46,7 +46,7 @@ public final class DirectlySetPolicyTest {
 
   @Test
   public void noMatchingHostTest() {
-    DirectlySetPolicy policy = new DirectlySetPolicy("worker3");
+    SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
         new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
