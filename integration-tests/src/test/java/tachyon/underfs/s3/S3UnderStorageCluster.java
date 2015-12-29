@@ -43,10 +43,9 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
   @Override
   public void cleanup() throws IOException {
-    String oldDir = mBaseDir;
-    mBaseDir = mS3Bucket + UUID.randomUUID();
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
-    ufs.delete(oldDir, true);
+    ufs.delete(mBaseDir, true);
+    mBaseDir = mS3Bucket + UUID.randomUUID();
   }
 
   @Override
