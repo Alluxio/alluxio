@@ -41,6 +41,9 @@ public final class ReplayCacheTest {
 
   private ReplayCache<Long> mCache;
 
+  /**
+   * Sets up a new {@link ReplayCache} instance before a test runs.
+   */
   @Before
   public void before() {
     mCache = ReplayCache.newInstance(TEST_MAX_SIZE, TEST_TIMEOUT_MS);
@@ -48,6 +51,8 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that the {@link ReplayCallable} is only called when the key doesn't exist in the cache.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testCaching1() throws Exception {
@@ -66,6 +71,8 @@ public final class ReplayCacheTest {
   /**
    * Tests that the {@link ReplayCallableThrowsIOException} is only called when the key doesn't
    * exist in the cache.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testCaching2() throws Exception {
@@ -83,6 +90,8 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that old keys are evicted when the configured maximum size is exceeded.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testSizeEviction() throws Exception {
@@ -98,6 +107,8 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that keys are evicted after the configured timeout.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testTimeEviction() throws Exception {
@@ -113,6 +124,8 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallable}s that {@link TachyonException}s are properly re-thrown as
    * {@link TachyonTException}s.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testTachyonExceptionRethrow1() throws Exception {
@@ -128,6 +141,8 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link TachyonException}s are properly
    * rethrown as {@link TachyonTException}s.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testTachyonExceptionRethrow2() throws Exception {
@@ -144,6 +159,8 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link IOException}s are correctly
    * re-thrown as {@link ThriftIOException}s.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testIOExceptionRethrow() throws Exception {
@@ -157,6 +174,8 @@ public final class ReplayCacheTest {
 
   /**
    * Tests for {@link ReplayCallable}s that {@link RuntimeException}s are correctly propagated.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testRuntimeExceptionPropagated1() throws Exception {
@@ -172,6 +191,8 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link RuntimeException}s are correctly
    * propagated.
+   *
+   * @throws Exception when the replay logic fails
    */
   @Test
   public void testRuntimeExceptionPropagated2() throws Exception {

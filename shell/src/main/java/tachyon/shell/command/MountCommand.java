@@ -55,4 +55,9 @@ public final class MountCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "mount <tachyonPath> <ufsURI>";
+  }
 }

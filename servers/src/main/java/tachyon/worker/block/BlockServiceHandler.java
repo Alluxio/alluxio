@@ -26,6 +26,7 @@ import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 import tachyon.thrift.WorkerService;
@@ -126,10 +127,10 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @throws TachyonTException if a tachyon error occurs
    */
   @Override
-  public String lockBlock(long blockId, long sessionId) throws TachyonTException {
+  public LockBlockResult lockBlock(long blockId, long sessionId) throws TachyonTException {
     try {
       long lockId = mWorker.lockBlock(sessionId, blockId);
-      return mWorker.readBlock(sessionId, blockId, lockId);
+      return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

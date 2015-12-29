@@ -26,11 +26,18 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.hdfs.HdfsUnderFileSystem;
 
 /**
- * Swift UnderFilesystem implementation
+ * Swift {@link tachyon.underfs.UnderFileSystem} implementation
  */
 public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new Swift {@link tachyon.underfs.UnderFileSystem}.
+   *
+   * @param fsDefaultName the under FS prefix
+   * @param tachyonConf the configuration for Tachyon
+   * @param conf the configuration
+   */
   public SwiftUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(fsDefaultName, tachyonConf, conf);
     LOG.debug("Swift constuctor method");

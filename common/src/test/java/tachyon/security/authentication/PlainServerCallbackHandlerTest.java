@@ -30,13 +30,25 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests the {@link tachyon.security.authentication.PlainSaslServer.PlainServerCallbackHandler}
+ * class.
+ */
 public class PlainServerCallbackHandlerTest {
   private TachyonConf mConf;
   private CallbackHandler mPlainServerCBHandler;
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the configuration and callback handler before running a test.
+   *
+   * @throws Exception thrown if the authentication provider cannot be set up
+   */
   @Before
   public void before() throws Exception {
     mConf = new TachyonConf();
@@ -46,6 +58,11 @@ public class PlainServerCallbackHandlerTest {
         AuthenticationProvider.Factory.getAuthenticationProvider(AuthType.CUSTOM, mConf));
   }
 
+  /**
+   * Tests that the authentication callbacks matches.
+   *
+   * @throws Exception thrown if the handler fails
+   */
   @Test
   public void authenticateNameMatchTest() throws Exception {
     String authenticateId = "tachyon-1";
@@ -60,6 +77,11 @@ public class PlainServerCallbackHandlerTest {
     mPlainServerCBHandler.handle(callbacks);
   }
 
+  /**
+   * Tests that the authentication callbacks do not match.
+   *
+   * @throws Exception thrown if the handler fails
+   */
   @Test
   public void authenticateNameNotMatchTest() throws Exception {
     mThrown.expect(AuthenticationException.class);
@@ -77,6 +99,9 @@ public class PlainServerCallbackHandlerTest {
     mPlainServerCBHandler.handle(callbacks);
   }
 
+  /**
+   * An {@link AuthenticationProvider} that only allows users starting with tachyon.
+   */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {

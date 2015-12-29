@@ -30,11 +30,17 @@ import tachyon.conf.TachyonConf;
 public final class UnderFileSystemTest {
   private TachyonConf mTachyonConf;
 
+  /**
+   * Sets up the configuration for Tachyon before running a test.
+   */
   @Before
   public void before() {
     mTachyonConf = new TachyonConf();
   }
 
+  /**
+   * Tests the {@link UnderFileSystem#parse(TachyonURI, TachyonConf)} method.
+   */
   @Test
   public void parseTest() {
     Pair<String, String> result = UnderFileSystem.parse(new TachyonURI("/path"), mTachyonConf);
@@ -78,6 +84,10 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse"), mTachyonConf), null);
   }
 
+  /**
+   * Tests the {@link UnderFileSystemRegistry#find(String, TachyonConf)} method when using a core
+   * factory.
+   */
   @Test
   public void coreFactoryTest() {
     // Supported in core
@@ -88,6 +98,10 @@ public final class UnderFileSystemTest {
     Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
   }
 
+  /**
+   * Tests the {@link UnderFileSystemRegistry#find(String, TachyonConf)} method when using an
+   * external factory.
+   */
   @Test
   public void externalFactoryTest() {
     // As we are going to use some Maven trickery to re-use the test cases as is in the external

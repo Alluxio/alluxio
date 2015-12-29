@@ -52,6 +52,9 @@ import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link FileInStream} class.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, TachyonBlockStore.class, UnderFileSystem.class})
 public class FileInStreamTest {
@@ -68,9 +71,17 @@ public class FileInStreamTest {
 
   private FileInStream mTestStream;
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the context and streams before a test runs.
+   *
+   * @throws IOException when the read and write streams fail
+   */
   @Before
   public void before() throws IOException {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
@@ -107,6 +118,9 @@ public class FileInStreamTest {
         .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
   }
 
+  /**
+   * Resets the context after a test ran.
+   */
   @After
   public void after() {
     ClientContext.reset();
@@ -114,6 +128,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading through the file one byte at a time will yield the correct data.
+   *
+   * @throws Exception when reading from the stream or closing the stream fails
    */
   @Test
   public void singleByteReadTest() throws Exception {
@@ -125,21 +141,41 @@ public class FileInStreamTest {
     Assert.assertTrue((Boolean) Whitebox.getInternalState(mTestStream, "mClosed"));
   }
 
+  /**
+   * Tests that reading half of a file works.
+   *
+   * @throws Exception when reading from the stream fails
+   */
   @Test
   public void readHalfFileTest() throws Exception {
     testReadBuffer((int) (FILE_LENGTH / 2));
   }
 
+  /**
+   * Tests that reading a part of a file works.
+   *
+   * @throws Exception when reading from the stream fails
+   */
   @Test
   public void readPartialBlockTest() throws Exception {
     testReadBuffer((int) (BLOCK_LENGTH / 2));
   }
 
+  /**
+   * Tests that reading the complete block works.
+   *
+   * @throws Exception when reading from the stream fails
+   */
   @Test
   public void readBlockTest() throws Exception {
     testReadBuffer((int) BLOCK_LENGTH);
   }
 
+  /**
+   * Tests that reading the complete file works.
+   *
+   * @throws Exception when reading from the stream fails
+   */
   @Test
   public void readFileTest() throws Exception {
     testReadBuffer((int) FILE_LENGTH);
@@ -147,6 +183,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading a buffer at an offset writes the bytes to the correct places.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readOffsetTest() throws IOException {
@@ -162,6 +200,8 @@ public class FileInStreamTest {
 
   /**
    * Read through the file in small chunks and verify each chunk.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readManyChunks() throws IOException {
@@ -181,6 +221,8 @@ public class FileInStreamTest {
   /**
    * Tests that {@link FileInStream#remaining()} is correctly updated during reads, skips, and
    * seeks.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void testRemaining() throws IOException {
@@ -200,6 +242,8 @@ public class FileInStreamTest {
   /**
    * Tests seek, particularly that seeking over part of a block will cause us not to cache it, and
    * cancels the existing cache stream.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void testSeek() throws IOException {
@@ -227,6 +271,8 @@ public class FileInStreamTest {
   /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
    * cancels the existing cache stream.
+   *
+   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void testSkip() throws IOException {
@@ -252,6 +298,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that we promote blocks when they are read.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void testPromote() throws IOException {
@@ -268,6 +316,8 @@ public class FileInStreamTest {
   /**
    * Tests that {@link IOException}s thrown by the {@link TachyonBlockStore} are properly
    * propagated.
+   *
+   * @throws IOException when an operation on the BlockStore or on the stream fails
    */
   @Test
   public void failGetInStreamTest() throws IOException {
@@ -280,6 +330,8 @@ public class FileInStreamTest {
 
   /**
    * Tests the capability to fall back to a ufs stream when getting a tachyon stream fails.
+   *
+   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void failToUnderFsTest() throws IOException {
@@ -302,6 +354,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that seeking into the middle of a block will invalidate caching for that block.
+   *
+   * @throws IOException when seeking from the stream fails
    */
   @Test
   public void dontCacheMidBlockSeekTest() throws IOException {
@@ -313,6 +367,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading out of bounds properly returns -1.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readOutOfBoundsTest() throws IOException {
@@ -323,6 +379,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that specifying an invalid offset/length for a buffer read throws the right exception.
+   *
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readBadBufferTest() throws IOException {
@@ -333,6 +391,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that seeking to a negative position will throw the right exception.
+   *
+   * @throws IOException when seeking from the stream fails
    */
   @Test
   public void seekNegativeTest() throws IOException {
@@ -343,6 +403,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that seeking past the end of the stream will throw the right exception.
+   *
+   * @throws IOException when seeking from the stream fails
    */
   @Test
   public void seekPastEndTest() throws IOException {
@@ -354,6 +416,8 @@ public class FileInStreamTest {
 
   /**
    * Tests that skipping a negative amount correctly reports that 0 bytes were skipped.
+   *
+   * @throws IOException when skipping on the stream fails
    */
   @Test
   public void skipNegativeTest() throws IOException {
@@ -363,6 +427,8 @@ public class FileInStreamTest {
   /**
    * Tests that an {@link IOException} thrown by a {@link BlockInStream} during a skip will be
    * handled correctly.
+   *
+   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void skipInstreamExceptionTest() throws IOException {
@@ -380,6 +446,9 @@ public class FileInStreamTest {
   /**
    * Tests that reading dataRead bytes into a buffer will properly write those bytes to the cache
    * streams and that the correct bytes are read from the {@link FileInStream}.
+   *
+   * @param dataRead the bytes to read
+   * @throws Exception when reading from the stream fails
    */
   private void testReadBuffer(int dataRead) throws Exception {
     byte[] buffer = new byte[dataRead];
@@ -391,6 +460,8 @@ public class FileInStreamTest {
 
   /**
    * Verifies that data was properly written to the cache streams.
+   *
+   * @param dataRead the bytes to read
    */
   private void verifyCacheStreams(long dataRead) {
     for (int streamIndex = 0; streamIndex < NUM_STREAMS; streamIndex ++) {

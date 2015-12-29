@@ -131,3 +131,12 @@ by Google Inc, which can be obtained at:
     * New BSD License
   * HOMEPAGE:
     * http://code.google.com/p/snappy/
+
+This product optionally depends on 'jnr-fuse', a FUSE implementation in java using 
+Java Native Runtime (JNR), written by Sergey Tselovalnikov. It can be obtained at:
+
+  * LICENSE:
+    * MIT License
+  * HOMEPAGE:
+    * https://github.com/SerCeMan/jnr-fuse
+

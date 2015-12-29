@@ -45,7 +45,7 @@ public final class TachyonLoginModule implements LoginModule {
    *
    * The implementation does not really authenticate the user here. Always return true.
    * @return true in all cases
-   * @throws javax.security.auth.login.LoginException
+   * @throws LoginException when the login fails
    */
   @Override
   public boolean login() throws LoginException {
@@ -58,7 +58,7 @@ public final class TachyonLoginModule implements LoginModule {
    * This method is called if the LoginContext's overall authentication failed. (login failed)
    * It cleans up any state that was changed in the login and commit methods.
    * @return true in all cases
-   * @throws LoginException
+   * @throws LoginException when the abortion fails
    */
   @Override
   public boolean abort() throws LoginException {

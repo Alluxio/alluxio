@@ -50,6 +50,7 @@ struct NetAddress {
   1: string host
   2: i32 rpcPort
   3: i32 dataPort
+  4: i32 webPort
 }
 
 /**

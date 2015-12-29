@@ -20,7 +20,14 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link DeleteOptions} class.
+ */
 public class DeleteOptionsTest {
+
+  /**
+   * Tests that building a {@link DeleteOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -34,6 +41,9 @@ public class DeleteOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
   }
 
+  /**
+   * Tests that building a {@link DeleteOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     DeleteOptions options = DeleteOptions.defaults();

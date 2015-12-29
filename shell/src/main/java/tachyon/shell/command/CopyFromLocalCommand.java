@@ -82,7 +82,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    * wildcards.
    *
    * @param srcFiles The list of files in the local filesystem
-   * @param dstPath The TachyonURI of the destination
+   * @param dstPath The {@link TachyonURI} of the destination
    * @throws IOException
    */
   private void copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
@@ -125,7 +125,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    * Tachyon filesystem space. Will fail if the path given already exists in the filesystem.
    *
    * @param srcFile The source file in the local filesystem
-   * @param dstPath The TachyonURI of the destination
+   * @param dstPath The {@link TachyonURI} of the destination
    * @throws IOException
    */
   private void copyFromLocal(File srcFile, TachyonURI dstPath)
@@ -199,5 +199,10 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  @Override
+  public String getUsage() {
+    return "copyFromLocal <src> <remoteDst>";
   }
 }

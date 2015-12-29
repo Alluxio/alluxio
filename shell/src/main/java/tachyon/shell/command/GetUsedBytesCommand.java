@@ -22,7 +22,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Gets number of bytes used in the TachyonFileSystem
+ * Gets number of bytes used in the {@link TachyonFileSystem}
  */
 public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
 
@@ -44,5 +44,10 @@ public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
   public void run(String... args) throws IOException {
     long usedBytes = TachyonBlockStore.get().getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
+  }
+
+  @Override
+  public String getUsage() {
+    return "getUsedBytes";
   }
 }
