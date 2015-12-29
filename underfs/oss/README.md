@@ -1,6 +1,6 @@
 # Configuring Tachyon with OSS
 
-This guide describes how to configure Tachyon with [Aliyun OSS](http://www.aliyun.com/product/oss/?spm=5176.383338.201.8.yfBFvm&lang=en) as the under storage system. Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
+This guide describes how to configure Tachyon with [Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en) as the under storage system. Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
 
 ## Initial Setup
 
@@ -14,19 +14,19 @@ Also, in preparation for using OSS with tachyon, create a bucket or use an exist
 
 ## Confugurating Tachyon
 
-To configure Tachyon to use OSS as its under storage system, modifications to the ``` conf/tachyon-env.sh``` file must be made. The first modification is to specify an existing OSS bucket and directory as the under storage system. You can specify it by modifying ```conf/tachyon-env.sh``` to include:
+To configure Tachyon to use OSS as its under storage system, modifications to the `conf/tachyon-env.sh` file must be made. The first modification is to specify an existing OSS bucket and directory as the under storage system. You can specify it by modifying `conf/tachyon-env.sh` to include:
 
     export TACHYON_UNDERFS_ADDRESS=oss://OSS_BUCKET/OSS_DIRECTORY/
     
-Next you need to specify the Aliyun credentials for OSS access. In the TACHYON_JAVA_OPTS section of the ```conf/tachyon-env.sh``` file, add:
+Next you need to specify the Aliyun credentials for OSS access. In the TACHYON_JAVA_OPTS section of the `conf/tachyon-env.sh` file, add:
 
     -Dfs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
     -Dfs.oss.accessKeySecret=<OSS_SECRET_ACCESS_KEY>
     -Dfs.oss.endpoint=<OSS_ENDPOINT>
     
-Here, <OSS_ACCESS_KEY_ID> ,<OSS_SECRET_ACCESS_KEY> should be replaced with your actual [Aliyun keys](https://ak-console.aliyun.com/#/accesskey), or other environment variables that contain your credentials. The <OSS_ENDPOINT> for your OSS range you can get [here](https://help.aliyun.com/knowledge_detail/5989609.html?spm=5176.7618386.5.1.K99zyd). 
+Here, `<OSS_ACCESS_KEY_ID>` ,`<OSS_SECRET_ACCESS_KEY>` should be replaced with your actual [Aliyun keys](https://ak-console.aliyun.com/#/accesskey), or other environment variables that contain your credentials. The `<OSS_ENDPOINT>` for your OSS range you can get [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). 
 
-If you feel not sure about how to change the ```conf/tachyon-env.sh```, there is another way to provide these configurations. You can provide a properties config file named : ```tachyon-site.properties``` in the ```conf/``` directory, and edit it as below:
+If you feel not sure about how to change the `conf/tachyon-env.sh`, there is another way to provide these configurations. You can provide a properties config file named : `tachyon-site.properties` in the `conf/` directory, and edit it as below:
 
     # Config the OSS credentials
     fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
