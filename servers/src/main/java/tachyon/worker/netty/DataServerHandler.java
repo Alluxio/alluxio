@@ -31,7 +31,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
-import tachyon.Sessions;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.conf.TachyonConf;
@@ -104,21 +103,12 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    long lockId;
-    try {
-      lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
-    } catch (BlockDoesNotExistException ioe) {
-      LOG.error("Failed to lock block: {}", blockId, ioe);
-      RPCBlockReadResponse resp =
-          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
-      ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
-      return;
-    }
+    final long lockId = req.getLockId();
+    final long sessionId = req.getSessionId();
 
     BlockReader reader;
     try {
-      reader = mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
+      reader = mDataManager.readBlockRemote(sessionId, blockId, lockId);
     } catch (BlockDoesNotExistException nfe) {
       throw new IOException(nfe);
     } catch (InvalidWorkerStateException fpe) {
@@ -134,7 +124,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
-      mDataManager.accessBlock(Sessions.DATASERVER_SESSION_ID, blockId);
+      mDataManager.accessBlock(sessionId, blockId);
       LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
       LOG.error("The file is not here : {}", e.getMessage(), e);
@@ -144,12 +134,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       future.addListener(ChannelFutureListener.CLOSE);
       if (reader != null) {
         reader.close();
-      }
-    } finally {
-      try {
-        mDataManager.unlockBlock(lockId);
-      } catch (BlockDoesNotExistException nfe) {
-        throw new IOException(nfe);
       }
     }
   }
@@ -217,13 +201,13 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   }
 
   /**
-   * Returns the appropriate DataBuffer representing the data to send, depending on the configurable
-   * transfer type.
+   * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
+   * configurable transfer type.
    *
-   * @param req The initiating RPCBlockReadRequest
-   * @param reader The BlockHandler for the block to read
+   * @param req The initiating {@link RPCBlockReadRequest}
+   * @param reader The {@link BlockReader} for the block to read
    * @param readLength The length, in bytes, of the data to read from the block
-   * @return a DataBuffer representing the data
+   * @return a {@link DataBuffer} representing the data
    * @throws IOException
    * @throws IllegalArgumentException
    */

@@ -17,12 +17,22 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
+/**
+ * Tests for the {@link MountOptions} class.
+ */
 public class MountOptionsTest {
+
+  /**
+   * Tests that building a {@link MountOptions} works.
+   */
   @Test
   public void builderTest() {
     new MountOptions.Builder().build();
   }
 
+  /**
+   * Tests that building a {@link MountOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     MountOptions.defaults();

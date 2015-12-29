@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -53,6 +54,9 @@ public class RawTableIntegrationTest {
   }
 
   @Test
+  @Ignore("TACHYON-1278")
+  // This test often fails because it takes more than a minute to complete the table creation call.
+  // We are tracking this issue in TACHYON-1278
   public void getColumnsTest() throws Exception {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/table" + k);

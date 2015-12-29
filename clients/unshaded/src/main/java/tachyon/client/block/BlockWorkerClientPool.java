@@ -20,9 +20,10 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.Utils;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.resource.ResourcePool;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.BlockWorkerClient;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with
@@ -60,13 +61,13 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
     } catch (Exception e) {
       LOG.warn("Failed sending client metrics before releasing the worker client", e);
     }
-    blockWorkerClient.createNewSession(ClientContext.getRandomNonNegativeLong());
+    blockWorkerClient.createNewSession(Utils.getRandomNonNegativeLong());
     super.release(blockWorkerClient);
   }
 
   @Override
   protected BlockWorkerClient createNewResource() {
-    long clientId = ClientContext.getRandomNonNegativeLong();
+    long clientId = Utils.getRandomNonNegativeLong();
     return new BlockWorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, true, ClientContext.getClientMetrics());
   }

@@ -71,6 +71,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
@@ -85,7 +87,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
   /**
-   * Keeps track of block which are no longer in tachyon storage. Access must be synchronized on
+   * Keeps track of block which are no longer in Tachyon storage. Access must be synchronized on
    * mBlocks.
    */
   private final Set<Long> mLostBlocks = new HashSet<Long>();
@@ -135,7 +137,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * The service that detects lost worker nodes, and tries to restart the failed workers.
    * We store it here so that it can be accessed from tests.
    */
-  @SuppressWarnings("unused")
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
   private final AtomicLong mNextWorkerId = new AtomicLong(1);

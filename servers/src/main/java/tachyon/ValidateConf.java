@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
 import tachyon.conf.TachyonConf;
 
 /**
- * Validate the TachyonConf object.
+ * Validate the {@link TachyonConf} object.
  *
  */
-public class ValidateConf {
+public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static boolean validate() {

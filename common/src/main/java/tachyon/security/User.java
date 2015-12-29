@@ -26,6 +26,11 @@ public final class User implements Principal {
 
   // TODO(dong): add more attributes and methods for supporting Kerberos
 
+  /**
+   * Constructs a new user with a name.
+   *
+   * @param name the name of the user
+   */
   public User(String name) {
     mName = name;
   }

@@ -25,9 +25,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageStateUtils;
 import tachyon.master.lineage.meta.LineageStore;
 
 /**
@@ -60,12 +62,17 @@ public class RecomputePlanner {
 
         Lineage lineage;
         try {
-          lineage = mLineageStore.reportLostFile(lostFile);
+          lineage = mLineageStore.getLineageOfOutputFile(lostFile);
         } catch (LineageDoesNotExistException e) {
           throw new IllegalStateException(e); // should not happen
         }
-        if (!lineage.isPersisted()) {
-          toRecompute.add(lineage);
+        try {
+          if (!LineageStateUtils.isPersisted(lineage,
+              mFileSystemMaster.getFileSystemMasterView())) {
+            toRecompute.add(lineage);
+          }
+        } catch (FileDoesNotExistException e) {
+          throw new IllegalStateException(e); // should not happen
         }
       }
     }

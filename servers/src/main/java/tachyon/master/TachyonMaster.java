@@ -118,7 +118,7 @@ public class TachyonMaster {
    * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
    * {@link TachyonConf}.
    */
-  public static class Factory {
+  public static final class Factory {
     /**
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
@@ -129,6 +129,8 @@ public class TachyonMaster {
       }
       return new TachyonMaster();
     }
+
+    private Factory() {} // prevent instantiation.
   }
 
   protected TachyonMaster() {
@@ -147,6 +149,12 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
+      if (!conf.getBoolean(Constants.IN_TEST_MODE)) {
+        Preconditions.checkState(conf.getInt(Constants.MASTER_RPC_PORT) > 0,
+            "Master rpc port is only allowed to be zero in test mode.");
+        Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
+            "Master web port is only allowed to be zero in test mode.");
+      }
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
@@ -362,7 +370,11 @@ public class TachyonMaster {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.stopTimeoutVal = MasterContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    if (MasterContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+      args.stopTimeoutVal = 0;
+    } else {
+      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
+    }
     mMasterServiceServer = new TThreadPoolServer(args);
 
     // start thrift rpc server

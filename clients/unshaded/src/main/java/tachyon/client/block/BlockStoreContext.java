@@ -22,12 +22,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.client.ClientContext;
+import tachyon.client.Utils;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.BlockWorkerClient;
 import tachyon.worker.ClientMetrics;
 
 /**
@@ -122,6 +123,8 @@ public enum BlockStoreContext {
    * but not guaranteed. The caller should use {@link BlockWorkerClient#isLocal()} to verify if the
    * client is local before assuming so.
    *
+   * TODO(binfan): rename this into acquireBlockWorkerClient
+   *
    * @return a {@link BlockWorkerClient} to a worker in the Tachyon system
    */
   public synchronized BlockWorkerClient acquireWorkerClient() {
@@ -189,7 +192,7 @@ public enum BlockStoreContext {
       // TODO(calvin): Better exception usage.
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
     }
-    long clientId = ClientContext.getRandomNonNegativeLong();
+    long clientId = Utils.getRandomNonNegativeLong();
     return new BlockWorkerClient(workerAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
   }

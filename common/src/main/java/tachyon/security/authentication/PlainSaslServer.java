@@ -175,6 +175,11 @@ public final class PlainSaslServer implements SaslServer {
   public static final class PlainServerCallbackHandler implements CallbackHandler {
     private final AuthenticationProvider mAuthenticationProvider;
 
+    /**
+     * Constructs a new callback handler.
+     *
+     * @param authenticationProvider the authentication provider used
+     */
     public PlainServerCallbackHandler(AuthenticationProvider authenticationProvider) {
       mAuthenticationProvider = authenticationProvider;
     }

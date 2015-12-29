@@ -24,12 +24,15 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 import tachyon.network.protocol.databuffer.DataBuffer;
 
-// This is the main base class for all RPC messages to the DataServer.
-// The message and type encoding scheme is adapted from the implementation found in the streaming
-// server in Apache Spark.
+/**
+ * This is the main base class for all RPC messages to the DataServer. The message and type encoding
+ * scheme is adapted from the implementation found in the streaming server in Apache Spark.
+ */
 public abstract class RPCMessage implements EncodedMessage {
 
-  // The possible types of RPC messages.
+  /**
+   * The possible types of RPC messages.
+   */
   public enum Type implements EncodedMessage {
     RPC_ERROR_RESPONSE(0),
     RPC_BLOCK_READ_REQUEST(1),
@@ -165,5 +168,4 @@ public abstract class RPCMessage implements EncodedMessage {
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }
   }
-
 }

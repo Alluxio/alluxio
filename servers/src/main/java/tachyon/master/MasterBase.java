@@ -195,10 +195,6 @@ public abstract class MasterBase implements Master {
     mJournal = Preconditions.checkNotNull(journal);
   }
 
-  protected boolean isStandbyMode() {
-    return !mIsLeader;
-  }
-
   /**
    * Writes a {@link JournalEntry} to the journal. Does NOT flush the journal.
    *

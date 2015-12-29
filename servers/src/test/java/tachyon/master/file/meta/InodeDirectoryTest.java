@@ -27,7 +27,7 @@ import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
- * Unit tests for tachyon.InodeDirectory.
+ * Unit tests for {@link tachyon.master.file.meta.InodeDirectory}.
  */
 public final class InodeDirectoryTest extends AbstractInodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

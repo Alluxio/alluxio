@@ -114,7 +114,6 @@ public final class LinearProbingIndex implements Index {
     int bucketOffset = bucketIndex * BUCKET_SIZE_BYTES;
     // Linear probing until a bucket having the same fingerprint is found
     for (int probe = 0; probe < MAX_PROBES; probe ++) {
-      int pos = bucketIndex * BUCKET_SIZE_BYTES;
       if (fingerprint == ByteIOUtils.readByte(mBuf, bucketOffset)) {
         int offset = ByteIOUtils.readInt(mBuf, bucketOffset + 1);
         ByteBuffer keyStored = reader.getKey(offset);

@@ -8,524 +8,6 @@ public final class Lineage {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  /**
-   * Protobuf enum {@code tachyon.proto.journal.LineageFileState}
-   *
-   * <pre>
-   * next available id: 6
-   * </pre>
-   */
-  public enum LineageFileState
-      implements com.google.protobuf.ProtocolMessageEnum {
-    /**
-     * <code>CREATED = 1;</code>
-     */
-    CREATED(0, 1),
-    /**
-     * <code>COMPLETED = 2;</code>
-     */
-    COMPLETED(1, 2),
-    /**
-     * <code>PERSISTED = 3;</code>
-     */
-    PERSISTED(2, 3),
-    /**
-     * <code>PERSISENCE_REQUESTED = 4;</code>
-     */
-    PERSISENCE_REQUESTED(3, 4),
-    /**
-     * <code>LOST = 5;</code>
-     */
-    LOST(4, 5),
-    ;
-
-    /**
-     * <code>CREATED = 1;</code>
-     */
-    public static final int CREATED_VALUE = 1;
-    /**
-     * <code>COMPLETED = 2;</code>
-     */
-    public static final int COMPLETED_VALUE = 2;
-    /**
-     * <code>PERSISTED = 3;</code>
-     */
-    public static final int PERSISTED_VALUE = 3;
-    /**
-     * <code>PERSISENCE_REQUESTED = 4;</code>
-     */
-    public static final int PERSISENCE_REQUESTED_VALUE = 4;
-    /**
-     * <code>LOST = 5;</code>
-     */
-    public static final int LOST_VALUE = 5;
-
-
-    public final int getNumber() { return value; }
-
-    public static LineageFileState valueOf(int value) {
-      switch (value) {
-        case 1: return CREATED;
-        case 2: return COMPLETED;
-        case 3: return PERSISTED;
-        case 4: return PERSISENCE_REQUESTED;
-        case 5: return LOST;
-        default: return null;
-      }
-    }
-
-    public static com.google.protobuf.Internal.EnumLiteMap<LineageFileState>
-        internalGetValueMap() {
-      return internalValueMap;
-    }
-    private static com.google.protobuf.Internal.EnumLiteMap<LineageFileState>
-        internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<LineageFileState>() {
-            public LineageFileState findValueByNumber(int number) {
-              return LineageFileState.valueOf(number);
-            }
-          };
-
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
-        getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
-    }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptorForType() {
-      return getDescriptor();
-    }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
-        getDescriptor() {
-      return tachyon.proto.journal.Lineage.getDescriptor().getEnumTypes().get(0);
-    }
-
-    private static final LineageFileState[] VALUES = values();
-
-    public static LineageFileState valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-      if (desc.getType() != getDescriptor()) {
-        throw new java.lang.IllegalArgumentException(
-          "EnumValueDescriptor is not for this type.");
-      }
-      return VALUES[desc.getIndex()];
-    }
-
-    private final int index;
-    private final int value;
-
-    private LineageFileState(int index, int value) {
-      this.index = index;
-      this.value = value;
-    }
-
-    // @@protoc_insertion_point(enum_scope:tachyon.proto.journal.LineageFileState)
-  }
-
-  public interface AsyncCompleteFileEntryOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.AsyncCompleteFileEntry)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>optional int64 file_id = 1;</code>
-     */
-    boolean hasFileId();
-    /**
-     * <code>optional int64 file_id = 1;</code>
-     */
-    long getFileId();
-  }
-  /**
-   * Protobuf type {@code tachyon.proto.journal.AsyncCompleteFileEntry}
-   *
-   * <pre>
-   * next available id: 2
-   * </pre>
-   */
-  public static final class AsyncCompleteFileEntry extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:tachyon.proto.journal.AsyncCompleteFileEntry)
-      AsyncCompleteFileEntryOrBuilder {
-    // Use AsyncCompleteFileEntry.newBuilder() to construct.
-    private AsyncCompleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private AsyncCompleteFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final AsyncCompleteFileEntry defaultInstance;
-    public static AsyncCompleteFileEntry getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public AsyncCompleteFileEntry getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private AsyncCompleteFileEntry(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              fileId_ = input.readInt64();
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.class, tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<AsyncCompleteFileEntry> PARSER =
-        new com.google.protobuf.AbstractParser<AsyncCompleteFileEntry>() {
-      public AsyncCompleteFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new AsyncCompleteFileEntry(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<AsyncCompleteFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    private int bitField0_;
-    public static final int FILE_ID_FIELD_NUMBER = 1;
-    private long fileId_;
-    /**
-     * <code>optional int64 file_id = 1;</code>
-     */
-    public boolean hasFileId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional int64 file_id = 1;</code>
-     */
-    public long getFileId() {
-      return fileId_;
-    }
-
-    private void initFields() {
-      fileId_ = 0L;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt64(1, fileId_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, fileId_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(tachyon.proto.journal.Lineage.AsyncCompleteFileEntry prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code tachyon.proto.journal.AsyncCompleteFileEntry}
-     *
-     * <pre>
-     * next available id: 2
-     * </pre>
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:tachyon.proto.journal.AsyncCompleteFileEntry)
-        tachyon.proto.journal.Lineage.AsyncCompleteFileEntryOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.class, tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.Builder.class);
-      }
-
-      // Construct using tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        fileId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_descriptor;
-      }
-
-      public tachyon.proto.journal.Lineage.AsyncCompleteFileEntry getDefaultInstanceForType() {
-        return tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.getDefaultInstance();
-      }
-
-      public tachyon.proto.journal.Lineage.AsyncCompleteFileEntry build() {
-        tachyon.proto.journal.Lineage.AsyncCompleteFileEntry result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public tachyon.proto.journal.Lineage.AsyncCompleteFileEntry buildPartial() {
-        tachyon.proto.journal.Lineage.AsyncCompleteFileEntry result = new tachyon.proto.journal.Lineage.AsyncCompleteFileEntry(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.fileId_ = fileId_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof tachyon.proto.journal.Lineage.AsyncCompleteFileEntry) {
-          return mergeFrom((tachyon.proto.journal.Lineage.AsyncCompleteFileEntry)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(tachyon.proto.journal.Lineage.AsyncCompleteFileEntry other) {
-        if (other == tachyon.proto.journal.Lineage.AsyncCompleteFileEntry.getDefaultInstance()) return this;
-        if (other.hasFileId()) {
-          setFileId(other.getFileId());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        tachyon.proto.journal.Lineage.AsyncCompleteFileEntry parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (tachyon.proto.journal.Lineage.AsyncCompleteFileEntry) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      private long fileId_ ;
-      /**
-       * <code>optional int64 file_id = 1;</code>
-       */
-      public boolean hasFileId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional int64 file_id = 1;</code>
-       */
-      public long getFileId() {
-        return fileId_;
-      }
-      /**
-       * <code>optional int64 file_id = 1;</code>
-       */
-      public Builder setFileId(long value) {
-        bitField0_ |= 0x00000001;
-        fileId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 file_id = 1;</code>
-       */
-      public Builder clearFileId() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        fileId_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.AsyncCompleteFileEntry)
-    }
-
-    static {
-      defaultInstance = new AsyncCompleteFileEntry(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AsyncCompleteFileEntry)
-  }
-
   public interface DeleteLineageEntryOrBuilder extends
       // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.DeleteLineageEntry)
       com.google.protobuf.MessageOrBuilder {
@@ -1049,52 +531,39 @@ public final class Lineage {
     long getOutputFileIds(int index);
 
     /**
-     * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-     */
-    java.util.List<tachyon.proto.journal.Lineage.LineageFileState> getOutputFileStatesList();
-    /**
-     * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-     */
-    int getOutputFileStatesCount();
-    /**
-     * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-     */
-    tachyon.proto.journal.Lineage.LineageFileState getOutputFileStates(int index);
-
-    /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     boolean hasJobCommand();
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     java.lang.String getJobCommand();
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     com.google.protobuf.ByteString
         getJobCommandBytes();
 
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     boolean hasJobOutputPath();
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     java.lang.String getJobOutputPath();
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     com.google.protobuf.ByteString
         getJobOutputPathBytes();
 
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     boolean hasCreationTimeMs();
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     long getCreationTimeMs();
   }
@@ -1102,7 +571,7 @@ public final class Lineage {
    * Protobuf type {@code tachyon.proto.journal.LineageEntry}
    *
    * <pre>
-   * next available id: 8
+   * next available id: 7
    * </pre>
    */
   public static final class LineageEntry extends
@@ -1201,52 +670,19 @@ public final class Lineage {
               input.popLimit(limit);
               break;
             }
-            case 32: {
-              int rawValue = input.readEnum();
-              tachyon.proto.journal.Lineage.LineageFileState value = tachyon.proto.journal.Lineage.LineageFileState.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(4, rawValue);
-                } else {
-                if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-                  outputFileStates_ = new java.util.ArrayList<tachyon.proto.journal.Lineage.LineageFileState>();
-                  mutable_bitField0_ |= 0x00000008;
-                }
-                outputFileStates_.add(value);
-              }
-              break;
-            }
             case 34: {
-              int length = input.readRawVarint32();
-              int oldLimit = input.pushLimit(length);
-              while(input.getBytesUntilLimit() > 0) {
-                int rawValue = input.readEnum();
-                tachyon.proto.journal.Lineage.LineageFileState value = tachyon.proto.journal.Lineage.LineageFileState.valueOf(rawValue);
-                if (value == null) {
-                  unknownFields.mergeVarintField(4, rawValue);
-                  } else {
-                  if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-                    outputFileStates_ = new java.util.ArrayList<tachyon.proto.journal.Lineage.LineageFileState>();
-                    mutable_bitField0_ |= 0x00000008;
-                  }
-                  outputFileStates_.add(value);
-                }
-              }
-              input.popLimit(oldLimit);
-              break;
-            }
-            case 42: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
               jobCommand_ = bs;
               break;
             }
-            case 50: {
+            case 42: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
               jobOutputPath_ = bs;
               break;
             }
-            case 56: {
+            case 48: {
               bitField0_ |= 0x00000008;
               creationTimeMs_ = input.readInt64();
               break;
@@ -1264,9 +700,6 @@ public final class Lineage {
         }
         if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
           outputFileIds_ = java.util.Collections.unmodifiableList(outputFileIds_);
-        }
-        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
-          outputFileStates_ = java.util.Collections.unmodifiableList(outputFileStates_);
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1359,37 +792,16 @@ public final class Lineage {
       return outputFileIds_.get(index);
     }
 
-    public static final int OUTPUT_FILE_STATES_FIELD_NUMBER = 4;
-    private java.util.List<tachyon.proto.journal.Lineage.LineageFileState> outputFileStates_;
-    /**
-     * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-     */
-    public java.util.List<tachyon.proto.journal.Lineage.LineageFileState> getOutputFileStatesList() {
-      return outputFileStates_;
-    }
-    /**
-     * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-     */
-    public int getOutputFileStatesCount() {
-      return outputFileStates_.size();
-    }
-    /**
-     * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-     */
-    public tachyon.proto.journal.Lineage.LineageFileState getOutputFileStates(int index) {
-      return outputFileStates_.get(index);
-    }
-
-    public static final int JOB_COMMAND_FIELD_NUMBER = 5;
+    public static final int JOB_COMMAND_FIELD_NUMBER = 4;
     private java.lang.Object jobCommand_;
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     public boolean hasJobCommand() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     public java.lang.String getJobCommand() {
       java.lang.Object ref = jobCommand_;
@@ -1406,7 +818,7 @@ public final class Lineage {
       }
     }
     /**
-     * <code>optional string job_command = 5;</code>
+     * <code>optional string job_command = 4;</code>
      */
     public com.google.protobuf.ByteString
         getJobCommandBytes() {
@@ -1422,16 +834,16 @@ public final class Lineage {
       }
     }
 
-    public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 6;
+    public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 5;
     private java.lang.Object jobOutputPath_;
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     public boolean hasJobOutputPath() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     public java.lang.String getJobOutputPath() {
       java.lang.Object ref = jobOutputPath_;
@@ -1448,7 +860,7 @@ public final class Lineage {
       }
     }
     /**
-     * <code>optional string job_output_path = 6;</code>
+     * <code>optional string job_output_path = 5;</code>
      */
     public com.google.protobuf.ByteString
         getJobOutputPathBytes() {
@@ -1464,16 +876,16 @@ public final class Lineage {
       }
     }
 
-    public static final int CREATION_TIME_MS_FIELD_NUMBER = 7;
+    public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public boolean hasCreationTimeMs() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional int64 creation_time_ms = 7;</code>
+     * <code>optional int64 creation_time_ms = 6;</code>
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
@@ -1483,7 +895,6 @@ public final class Lineage {
       id_ = 0L;
       inputFiles_ = java.util.Collections.emptyList();
       outputFileIds_ = java.util.Collections.emptyList();
-      outputFileStates_ = java.util.Collections.emptyList();
       jobCommand_ = "";
       jobOutputPath_ = "";
       creationTimeMs_ = 0L;
@@ -1510,17 +921,14 @@ public final class Lineage {
       for (int i = 0; i < outputFileIds_.size(); i++) {
         output.writeInt64(3, outputFileIds_.get(i));
       }
-      for (int i = 0; i < outputFileStates_.size(); i++) {
-        output.writeEnum(4, outputFileStates_.get(i).getNumber());
-      }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(5, getJobCommandBytes());
+        output.writeBytes(4, getJobCommandBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(6, getJobOutputPathBytes());
+        output.writeBytes(5, getJobOutputPathBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(7, creationTimeMs_);
+        output.writeInt64(6, creationTimeMs_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1553,26 +961,17 @@ public final class Lineage {
         size += dataSize;
         size += 1 * getOutputFileIdsList().size();
       }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < outputFileStates_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeEnumSizeNoTag(outputFileStates_.get(i).getNumber());
-        }
-        size += dataSize;
-        size += 1 * outputFileStates_.size();
-      }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getJobCommandBytes());
+          .computeBytesSize(4, getJobCommandBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(6, getJobOutputPathBytes());
+          .computeBytesSize(5, getJobOutputPathBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(7, creationTimeMs_);
+          .computeInt64Size(6, creationTimeMs_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1656,7 +1055,7 @@ public final class Lineage {
      * Protobuf type {@code tachyon.proto.journal.LineageEntry}
      *
      * <pre>
-     * next available id: 8
+     * next available id: 7
      * </pre>
      */
     public static final class Builder extends
@@ -1701,14 +1100,12 @@ public final class Lineage {
         bitField0_ = (bitField0_ & ~0x00000002);
         outputFileIds_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000004);
-        outputFileStates_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);
         jobCommand_ = "";
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         jobOutputPath_ = "";
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         creationTimeMs_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
 
@@ -1751,20 +1148,15 @@ public final class Lineage {
           bitField0_ = (bitField0_ & ~0x00000004);
         }
         result.outputFileIds_ = outputFileIds_;
-        if (((bitField0_ & 0x00000008) == 0x00000008)) {
-          outputFileStates_ = java.util.Collections.unmodifiableList(outputFileStates_);
-          bitField0_ = (bitField0_ & ~0x00000008);
-        }
-        result.outputFileStates_ = outputFileStates_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000002;
         }
         result.jobCommand_ = jobCommand_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000004;
         }
         result.jobOutputPath_ = jobOutputPath_;
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000008;
         }
         result.creationTimeMs_ = creationTimeMs_;
@@ -1807,23 +1199,13 @@ public final class Lineage {
           }
           onChanged();
         }
-        if (!other.outputFileStates_.isEmpty()) {
-          if (outputFileStates_.isEmpty()) {
-            outputFileStates_ = other.outputFileStates_;
-            bitField0_ = (bitField0_ & ~0x00000008);
-          } else {
-            ensureOutputFileStatesIsMutable();
-            outputFileStates_.addAll(other.outputFileStates_);
-          }
-          onChanged();
-        }
         if (other.hasJobCommand()) {
-          bitField0_ |= 0x00000010;
+          bitField0_ |= 0x00000008;
           jobCommand_ = other.jobCommand_;
           onChanged();
         }
         if (other.hasJobOutputPath()) {
-          bitField0_ |= 0x00000020;
+          bitField0_ |= 0x00000010;
           jobOutputPath_ = other.jobOutputPath_;
           onChanged();
         }
@@ -2021,87 +1403,15 @@ public final class Lineage {
         return this;
       }
 
-      private java.util.List<tachyon.proto.journal.Lineage.LineageFileState> outputFileStates_ =
-        java.util.Collections.emptyList();
-      private void ensureOutputFileStatesIsMutable() {
-        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
-          outputFileStates_ = new java.util.ArrayList<tachyon.proto.journal.Lineage.LineageFileState>(outputFileStates_);
-          bitField0_ |= 0x00000008;
-        }
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public java.util.List<tachyon.proto.journal.Lineage.LineageFileState> getOutputFileStatesList() {
-        return java.util.Collections.unmodifiableList(outputFileStates_);
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public int getOutputFileStatesCount() {
-        return outputFileStates_.size();
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public tachyon.proto.journal.Lineage.LineageFileState getOutputFileStates(int index) {
-        return outputFileStates_.get(index);
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public Builder setOutputFileStates(
-          int index, tachyon.proto.journal.Lineage.LineageFileState value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureOutputFileStatesIsMutable();
-        outputFileStates_.set(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public Builder addOutputFileStates(tachyon.proto.journal.Lineage.LineageFileState value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureOutputFileStatesIsMutable();
-        outputFileStates_.add(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public Builder addAllOutputFileStates(
-          java.lang.Iterable<? extends tachyon.proto.journal.Lineage.LineageFileState> values) {
-        ensureOutputFileStatesIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, outputFileStates_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated .tachyon.proto.journal.LineageFileState output_file_states = 4;</code>
-       */
-      public Builder clearOutputFileStates() {
-        outputFileStates_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000008);
-        onChanged();
-        return this;
-      }
-
       private java.lang.Object jobCommand_ = "";
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public boolean hasJobCommand() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public java.lang.String getJobCommand() {
         java.lang.Object ref = jobCommand_;
@@ -2118,7 +1428,7 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public com.google.protobuf.ByteString
           getJobCommandBytes() {
@@ -2134,36 +1444,36 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public Builder setJobCommand(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000008;
         jobCommand_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public Builder clearJobCommand() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000008);
         jobCommand_ = getDefaultInstance().getJobCommand();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string job_command = 5;</code>
+       * <code>optional string job_command = 4;</code>
        */
       public Builder setJobCommandBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000008;
         jobCommand_ = value;
         onChanged();
         return this;
@@ -2171,13 +1481,13 @@ public final class Lineage {
 
       private java.lang.Object jobOutputPath_ = "";
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public boolean hasJobOutputPath() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public java.lang.String getJobOutputPath() {
         java.lang.Object ref = jobOutputPath_;
@@ -2194,7 +1504,7 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public com.google.protobuf.ByteString
           getJobOutputPathBytes() {
@@ -2210,36 +1520,36 @@ public final class Lineage {
         }
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public Builder setJobOutputPath(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000020;
+  bitField0_ |= 0x00000010;
         jobOutputPath_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public Builder clearJobOutputPath() {
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000010);
         jobOutputPath_ = getDefaultInstance().getJobOutputPath();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string job_output_path = 6;</code>
+       * <code>optional string job_output_path = 5;</code>
        */
       public Builder setJobOutputPathBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000020;
+  bitField0_ |= 0x00000010;
         jobOutputPath_ = value;
         onChanged();
         return this;
@@ -2247,31 +1557,31 @@ public final class Lineage {
 
       private long creationTimeMs_ ;
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public boolean hasCreationTimeMs() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public long getCreationTimeMs() {
         return creationTimeMs_;
       }
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder setCreationTimeMs(long value) {
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000020;
         creationTimeMs_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int64 creation_time_ms = 7;</code>
+       * <code>optional int64 creation_time_ms = 6;</code>
        */
       public Builder clearCreationTimeMs() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000020);
         creationTimeMs_ = 0L;
         onChanged();
         return this;
@@ -3652,11 +2962,6 @@ public final class Lineage {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_DeleteLineageEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -3691,20 +2996,15 @@ public final class Lineage {
   static {
     java.lang.String[] descriptorData = {
       "\n\025journal/lineage.proto\022\025tachyon.proto.j" +
-      "ournal\")\n\026AsyncCompleteFileEntry\022\017\n\007file" +
-      "_id\030\001 \001(\003\"9\n\022DeleteLineageEntry\022\022\n\nlinea" +
-      "ge_id\030\001 \001(\003\022\017\n\007cascade\030\002 \001(\010\"\325\001\n\014Lineage" +
-      "Entry\022\n\n\002id\030\001 \001(\003\022\023\n\013input_files\030\002 \003(\003\022\027" +
-      "\n\017output_file_ids\030\003 \003(\003\022C\n\022output_file_s" +
-      "tates\030\004 \003(\0162\'.tachyon.proto.journal.Line" +
-      "ageFileState\022\023\n\013job_command\030\005 \001(\t\022\027\n\017job" +
-      "_output_path\030\006 \001(\t\022\030\n\020creation_time_ms\030\007" +
-      " \001(\003\"2\n\027LineageIdGeneratorEntry\022\027\n\017seque",
-      "nce_number\030\001 \001(\003\"%\n\021PersistFilesEntry\022\020\n" +
-      "\010file_ids\030\001 \003(\003\",\n\030PersistFilesRequestEn" +
-      "try\022\020\n\010file_ids\030\001 \003(\003*a\n\020LineageFileStat" +
-      "e\022\013\n\007CREATED\020\001\022\r\n\tCOMPLETED\020\002\022\r\n\tPERSIST" +
-      "ED\020\003\022\030\n\024PERSISENCE_REQUESTED\020\004\022\010\n\004LOST\020\005"
+      "ournal\"9\n\022DeleteLineageEntry\022\022\n\nlineage_" +
+      "id\030\001 \001(\003\022\017\n\007cascade\030\002 \001(\010\"\220\001\n\014LineageEnt" +
+      "ry\022\n\n\002id\030\001 \001(\003\022\023\n\013input_files\030\002 \003(\003\022\027\n\017o" +
+      "utput_file_ids\030\003 \003(\003\022\023\n\013job_command\030\004 \001(" +
+      "\t\022\027\n\017job_output_path\030\005 \001(\t\022\030\n\020creation_t" +
+      "ime_ms\030\006 \001(\003\"2\n\027LineageIdGeneratorEntry\022" +
+      "\027\n\017sequence_number\030\001 \001(\003\"%\n\021PersistFiles" +
+      "Entry\022\020\n\010file_ids\030\001 \003(\003\",\n\030PersistFilesR" +
+      "equestEntry\022\020\n\010file_ids\030\001 \003(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3718,38 +3018,32 @@ public final class Lineage {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(0);
-    internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_tachyon_proto_journal_AsyncCompleteFileEntry_descriptor,
-        new java.lang.String[] { "FileId", });
     internal_static_tachyon_proto_journal_DeleteLineageEntry_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(0);
     internal_static_tachyon_proto_journal_DeleteLineageEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_DeleteLineageEntry_descriptor,
         new java.lang.String[] { "LineageId", "Cascade", });
     internal_static_tachyon_proto_journal_LineageEntry_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(1);
     internal_static_tachyon_proto_journal_LineageEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_LineageEntry_descriptor,
-        new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "OutputFileStates", "JobCommand", "JobOutputPath", "CreationTimeMs", });
+        new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "JobCommand", "JobOutputPath", "CreationTimeMs", });
     internal_static_tachyon_proto_journal_LineageIdGeneratorEntry_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_tachyon_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_LineageIdGeneratorEntry_descriptor,
         new java.lang.String[] { "SequenceNumber", });
     internal_static_tachyon_proto_journal_PersistFilesEntry_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_tachyon_proto_journal_PersistFilesEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_PersistFilesEntry_descriptor,
         new java.lang.String[] { "FileIds", });
     internal_static_tachyon_proto_journal_PersistFilesRequestEntry_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_tachyon_proto_journal_PersistFilesRequestEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_PersistFilesRequestEntry_descriptor,

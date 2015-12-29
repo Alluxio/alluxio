@@ -18,8 +18,15 @@ package tachyon.client.file.options;
 import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for renaming a file or a directory.
+ */
 @PublicApi
 public final class RenameOptions {
+
+  /**
+   * Builder for {@link RenameOptions}.
+   */
   public static class Builder implements OptionsBuilder<RenameOptions> {
     /**
      * Creates a new builder for {@link RenameOptions}.

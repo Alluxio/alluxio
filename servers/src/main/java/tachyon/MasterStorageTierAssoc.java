@@ -20,7 +20,7 @@ import java.util.List;
 import tachyon.conf.TachyonConf;
 
 /**
- * StorageTierAssoc for masters
+ * {@link StorageTierAssoc} for masters
  */
 public class MasterStorageTierAssoc extends StorageTierAssoc {
   public MasterStorageTierAssoc(TachyonConf conf) {

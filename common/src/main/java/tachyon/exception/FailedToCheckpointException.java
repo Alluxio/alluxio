@@ -15,24 +15,52 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when Tachyon failed to create a checkpoint.
+ */
 public class FailedToCheckpointException extends TachyonException {
   private static final long serialVersionUID = -3192642866222213537L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.FAILED_TO_CHECKPOINT;
 
+  /**
+   * Constructs a new exception with the specified detail message
+   *
+   * @param message the detail message
+   */
   public FailedToCheckpointException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public FailedToCheckpointException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public FailedToCheckpointException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public FailedToCheckpointException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }

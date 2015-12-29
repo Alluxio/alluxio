@@ -55,10 +55,10 @@ public final class DataNettyBuffer implements DataBuffer {
 
   /**
    * We would not support this method in DataNettyBuffer because this class is only for
-   * reading netty buffers.
+   * reading netty buffers. Throws an {@link UnsupportedOperationException} whenever called.
    * TODO(qifan): Investigate if using NettyDataBuffer for outgoing message is fine.
    *
-   * @throws UnsupportedOperationException whenever called
+   * @return {@link UnsupportedOperationException} whenever called
    */
   @Override
   public Object getNettyOutput() {

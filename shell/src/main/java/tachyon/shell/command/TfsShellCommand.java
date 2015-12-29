@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 /**
- * An interface for all the commands that can be run from TfsShell
+ * An interface for all the commands that can be run from {@link tachyon.shell.TfsShell}
  */
 public interface TfsShellCommand {
 
@@ -44,4 +44,9 @@ public interface TfsShellCommand {
    * @throws IOException when the command fails
    */
   void run(String... args) throws IOException;
+
+  /**
+   * @return the usage information of the command
+   */
+  String getUsage();
 }

@@ -91,9 +91,9 @@ public final class Constants {
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
   public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
+  public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
-  public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorker";
-  public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorker";
+  public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -126,7 +126,6 @@ public final class Constants {
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
-  public static final String THRIFT_STOP_TIMEOUT_SECONDS = "tachyon.thrift.stop.timeout.seconds";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -149,17 +148,27 @@ public final class Constants {
       "tachyon.integration.master.resource.cpu";
   public static final String INTEGRATION_MASTER_RESOURCE_MEM =
       "tachyon.integration.master.resource.mem";
+  public static final String INTEGRATION_YARN_ONE_WORKER_PER_HOST =
+      "tachyon.integration.yarn.one.worker.per.host";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
   public static final String INTEGRATION_MESOS_JRE_PATH =
       "tachyon.integration.mesos.jre.path";
   public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
+  public static final String INTEGRATION_MESOS_PRINCIPAL =
+      "tachyon.integration.mesos.principal";
+  public static final String INTEGRATION_MESOS_ROLE =
+      "tachyon.integration.mesos.role";
+  public static final String INTEGRATION_MESOS_SECRET =
+      "tachyon.integration.mesos.secret";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
       "tachyon.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =
       "tachyon.integration.mesos.worker.name";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT =
       "tachyon.integration.mesos.master.node.count";
+  public static final String INTEGRATION_MESOS_USER =
+      "tachyon.integration.mesos.user";
   public static final String INTEGRATION_WORKER_RESOURCE_CPU =
       "tachyon.integration.worker.resource.cpu";
   public static final String INTEGRATION_WORKER_RESOURCE_MEM =
@@ -252,8 +261,8 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.attenuation.factor";
   public static final String WORKER_TIERED_STORE_LEVELS =
       "tachyon.worker.tieredstore.levels";
-  public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
-      "tachyon.worker.lineage.heartbeat.interval.ms";
+  public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
+      "tachyon.worker.filesystem.heartbeat.interval.ms";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "tachyon.worker.tieredstore.block.locks";
@@ -326,6 +335,22 @@ public final class Constants {
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "tachyon.user.file.waitcompleted.poll.ms";
 
+  /** tachyon-fuse related conf keys */
+
+  /**
+   * Passed to fuse-mount, maximum granularity of write operations:
+   * Capped by the kernel to 128KB max (as of Linux 3.16.0).
+   */
+  public static final String FUSE_MAXWRITE_BYTES = "tachyon.fuse.maxwrite.bytes";
+  /** Have the fuse process log every FS request */
+  public static final String FUSE_DEBUG_ENABLE = "tachyon.fuse.debug.enabled";
+  /** Maxium number of Tachyon Paths to cache for fuse conversion */
+  public static final String FUSE_PATHCACHE_SIZE = "tachyon.fuse.cachedpaths.max";
+  public static final String FUSE_DEFAULT_MOUNTPOINT = "tachyon.fuse.mount.default";
+  public static final String FUSE_FS_ROOT = "tachyon.fuse.fs.root";
+  /** FUSE file system name */
+  public static final String FUSE_FS_NAME = "tachyon.fuse.fs.name";
+
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 
@@ -351,6 +376,12 @@ public final class Constants {
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
+  /**
+   * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
+   * 0 instead of this value so that they can run faster.
+   */
+  public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
+
   // ttl related
   public static final long NO_TTL = -1;
 
@@ -369,6 +400,8 @@ public final class Constants {
   public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
   public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
+  // Group Mapping
+  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
 
   private Constants() {} // prevent instantiation
 }

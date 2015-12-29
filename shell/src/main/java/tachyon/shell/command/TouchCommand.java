@@ -55,4 +55,9 @@ public final class TouchCommand extends AbstractTfsShellCommand {
     }
     System.out.println(inputPath + " has been created");
   }
+
+  @Override
+  public String getUsage() {
+    return "touch <path>";
+  }
 }

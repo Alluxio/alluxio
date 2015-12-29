@@ -46,4 +46,9 @@ public final class ReportCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "report <path>";
+  }
 }

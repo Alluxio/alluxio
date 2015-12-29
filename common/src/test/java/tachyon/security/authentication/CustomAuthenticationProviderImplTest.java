@@ -22,34 +22,54 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+/**
+ * Tests the {@link CustomAuthenticationProviderImpl} class.
+ */
 public class CustomAuthenticationProviderImplTest {
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Tests the {@link CustomAuthenticationProviderImpl#CustomAuthenticationProviderImpl(String)}
+   * constructor to throw an exception when the class cannot be found.
+   */
   @Test
-  public void classNotFoundTest() throws Exception {
+  public void classNotFoundTest() {
     String notExistClass = "tachyon.test.custom.provider";
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notExistClass + " not found");
     new CustomAuthenticationProviderImpl(notExistClass);
   }
 
+  /**
+   * Tests the {@link CustomAuthenticationProviderImpl#CustomAuthenticationProviderImpl(String)}
+   * constructor to throw an exception when the class is not a provider.
+   */
   @Test
-  public void classNotProviderTest() throws Exception {
+  public void classNotProviderTest() {
     String notProviderClass = CustomAuthenticationProviderImplTest.class.getName();
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notProviderClass + " instantiate failed :");
     new CustomAuthenticationProviderImpl(notProviderClass);
   }
 
+  /**
+   * Tests the {@link CustomAuthenticationProviderImpl#getCustomProvider()} method.
+   */
   @Test
-  public void mockCustomProviderTest() throws Exception {
+  public void mockCustomProviderTest() {
     CustomAuthenticationProviderImpl provider =
         new CustomAuthenticationProviderImpl(MockAuthenticationProvider.class.getName());
     Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 
+  /**
+   * An {@link AuthenticationProvider} to use as a mock.
+   */
   public static class MockAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {

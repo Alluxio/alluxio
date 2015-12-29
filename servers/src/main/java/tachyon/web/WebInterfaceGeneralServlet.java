@@ -40,7 +40,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Class to make referencing tiered storage information more intuitive.
    */
-  public static class StorageTierInfo {
+  public static final class StorageTierInfo {
     private final String mStorageTierAlias;
     private final long mCapacityBytes;
     private final long mUsedBytes;
@@ -93,8 +93,8 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.
    *
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * @param request The {@link HttpServletRequest} object
+   * @param response The {@link HttpServletResponse} object
    * @throws ServletException
    * @throws IOException
    */
@@ -113,7 +113,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * List the StorageTierInfo objects of each storage level(alias).
+   * List the {@link StorageTierInfo} objects of each storage level(alias).
    *
    * @return the list of StorageTierInfo objects, in order from highest tier to lowest
    */
@@ -140,7 +140,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    *
-   * @param request The HttpServletRequest object
+   * @param request The {@link HttpServletRequest} object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {

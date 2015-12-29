@@ -23,11 +23,12 @@ import java.nio.channels.FileChannel;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.LockBlockResult;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.BlockWorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
@@ -48,6 +49,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * Creates a new local block input stream.
    *
    * @param blockId the block id
+   * @param blockSize the size of the block
    * @throws IOException if I/O error occurs
    */
   public LocalBlockInStream(long blockId, long blockSize) throws IOException {
@@ -57,14 +59,14 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     mCloser = Closer.create();
     mBlockWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    FileChannel localFileChannel = null;
+    FileChannel localFileChannel;
 
     try {
-      String blockPath = mBlockWorkerClient.lockBlock(blockId);
-      if (blockPath == null) {
+      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
+      if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_NOT_LOCALLY_AVAILABLE.getMessage(mBlockId));
       }
-      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
+      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(result.blockPath, "r"));
       localFileChannel = mCloser.register(localFile.getChannel());
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);

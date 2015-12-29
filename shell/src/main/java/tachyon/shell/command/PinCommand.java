@@ -41,4 +41,9 @@ public final class PinCommand extends WithWildCardPathCommand {
     CommandUtils.setPinned(mTfs, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
+
+  @Override
+  public String getUsage() {
+    return "pin <path>";
+  }
 }
