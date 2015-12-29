@@ -74,8 +74,8 @@ public final class LineageMasterClient extends MasterClientBase {
   /**
    * Creates a lineage.
    *
-   * @param inputFiles the list of input files
-   * @param outputFiles the list of output files
+   * @param inputFiles the list of input file names
+   * @param outputFiles the list of output file names
    * @param job the job used for the creation
    * @return the value of the lineage creation result
    * @throws IOException if a non-Tachyon exception occurs
@@ -113,7 +113,7 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   /**
-   * Reinilizates a given file.
+   * Reinitializates a given file.
    *
    * @param path the path to the file
    * @param blockSizeBytes the size of the block in bytes
