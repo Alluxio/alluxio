@@ -39,9 +39,9 @@ public final class PinListSync implements HeartbeatExecutor {
   private FileSystemMasterClient mMasterClient;
 
   /**
-   * Constructor for PinListSync
+   * Creates a new instance of {@link PinListSync}.
    *
-   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param blockDataManager a block data manager handle
    * @param masterClient the Tachyon master client
    */
   public PinListSync(BlockDataManager blockDataManager, FileSystemMasterClient masterClient) {

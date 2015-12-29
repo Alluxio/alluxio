@@ -106,6 +106,9 @@ public final class TieredBlockStore implements BlockStore {
   /** Association between storage tier aliases and ordinals */
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /**
+   * Creates a new instance of {@link TieredBlockStore}.
+   */
   public TieredBlockStore() {
     mTachyonConf = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
@@ -279,17 +282,17 @@ public final class TieredBlockStore implements BlockStore {
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-      if (moveResult.success()) {
+      if (moveResult.getSuccess()) {
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByClient(sessionId, blockId, moveResult.srcLocation(),
-                moveResult.dstLocation());
+            listener.onMoveBlockByClient(sessionId, blockId, moveResult.getSrcLocation(),
+                moveResult.getDstLocation());
           }
         }
         return;
       }
       if (i < MAX_RETRIES) {
-        freeSpaceInternal(sessionId, moveResult.blockSize(), newLocation);
+        freeSpaceInternal(sessionId, moveResult.getBlockSize(), newLocation);
       }
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
@@ -699,10 +702,10 @@ public final class TieredBlockStore implements BlockStore {
           LOG.info("Failed to move blockId {}, it could be already deleted", blockId);
           continue;
         }
-        if (moveResult.success()) {
+        if (moveResult.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-              listener.onMoveBlockByWorker(sessionId, blockId, moveResult.srcLocation(),
+              listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
                   newLocation);
             }
           }
@@ -712,7 +715,7 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Get the most updated view with most recent information on pinned inodes, and currently locked
+   * Gets the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
    * @return {@link BlockMetadataManagerView}, an updated view with most recent information
@@ -862,7 +865,7 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * updates the pinned blocks
+   * Updates the pinned blocks.
    *
    * @param inodes a set of IDs inodes that are pinned
    */
@@ -887,6 +890,14 @@ public final class TieredBlockStore implements BlockStore {
     /** Destination location of this block to move */
     private final BlockStoreLocation mDstLocation;
 
+    /**
+     * Creates a new instance of {@link MoveBlockResult}.
+     *
+     * @param success success indication
+     * @param blockSize block size
+     * @param srcLocation source location
+     * @param dstLocation destination location
+     */
     MoveBlockResult(boolean success, long blockSize, BlockStoreLocation srcLocation,
         BlockStoreLocation dstLocation) {
       mSuccess = success;
@@ -895,19 +906,31 @@ public final class TieredBlockStore implements BlockStore {
       mDstLocation = dstLocation;
     }
 
-    boolean success() {
+    /**
+     * @return the success indicator
+     */
+    boolean getSuccess() {
       return mSuccess;
     }
 
-    long blockSize() {
+    /**
+     * @return the block size
+     */
+    long getBlockSize() {
       return mBlockSize;
     }
 
-    BlockStoreLocation srcLocation() {
+    /**
+     * @return the source location
+     */
+    BlockStoreLocation getSrcLocation() {
       return mSrcLocation;
     }
 
-    BlockStoreLocation dstLocation() {
+    /**
+     * @return the destination location
+     */
+    BlockStoreLocation getDstLocation() {
       return mDstLocation;
     }
   }
