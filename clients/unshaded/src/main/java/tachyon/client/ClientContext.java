@@ -16,7 +16,6 @@
 package tachyon.client;
 
 import java.net.InetSocketAddress;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,7 +39,6 @@ public final class ClientContext {
   private static TachyonConf sTachyonConf;
   private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
-  private static Random sRandom;
   private static boolean sInitialized;
 
   static {
@@ -60,6 +58,8 @@ public final class ClientContext {
 
   /**
    * Initializes the client context singleton with a given conf.
+   *
+   * @param conf the configuration of Tachyon
    */
   public static synchronized void reset(TachyonConf conf) {
     sTachyonConf = conf;
@@ -69,7 +69,6 @@ public final class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
     sClientMetrics = new ClientMetrics();
-    sRandom = new Random();
 
     if (sExecutorService != null) {
       sExecutorService.shutdown();
@@ -112,13 +111,8 @@ public final class ClientContext {
   }
 
   /**
-   * @return a random non-negative long
+   * @return the executor service
    */
-  public static synchronized long getRandomNonNegativeLong() {
-    checkContextInitialized();
-    return Math.abs(sRandom.nextLong());
-  }
-
   public static synchronized ExecutorService getExecutorService() {
     checkContextInitialized();
     return sExecutorService;

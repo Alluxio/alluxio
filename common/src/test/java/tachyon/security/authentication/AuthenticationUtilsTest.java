@@ -51,9 +51,17 @@ public class AuthenticationUtilsTest {
   private TServerSocket mServerTSocket;
   private TSocket mClientTSocket;
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the server before running a test.
+   *
+   * @throws Exception thrown when the {@link TServerSocket} cannot be constructed
+   */
   @Before
   public void before() throws Exception {
     mTachyonConf = new TachyonConf();
@@ -68,6 +76,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In NOSASL mode, the TTransport used should be the same as Tachyon original code.
+   *
+   * @throws Exception thrown when the server cannot be started
    */
   @Test
   public void nosaslAuthenticationTest() throws Exception {
@@ -89,6 +99,9 @@ public class AuthenticationUtilsTest {
   /**
    * In SIMPLE mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use {@link tachyon.security.authentication.SimpleAuthenticationProviderImpl}.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void simpleAuthenticationTest() throws Exception {
@@ -110,6 +123,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In SIMPLE mode, if client's username is null, an exception should be thrown in client side.
+   *
+   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void simpleAuthenticationNullUserTest() throws Exception {
@@ -123,6 +138,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In SIMPLE mode, if client's password is null, an exception should be thrown in client side.
+   *
+   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void simpleAuthenticationNullPasswordTest() throws Exception {
@@ -136,6 +153,9 @@ public class AuthenticationUtilsTest {
 
   /**
    * In SIMPLE mode, if client's username is empty, an exception should be thrown in server side.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void simpleAuthenticationEmptyUserTest() throws Exception {
@@ -160,6 +180,9 @@ public class AuthenticationUtilsTest {
    * In SIMPLE mode, if client's password is empty, an exception should be thrown in server side.
    * Although password is actually not used and we do not really authenticate the user in SIMPLE
    * mode, we need the Plain SASL server has ability to check empty password.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void simpleAuthenticationEmptyPasswordTest() throws Exception {
@@ -184,6 +207,9 @@ public class AuthenticationUtilsTest {
    * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
    * client user, it use configured AuthenticationProvider. If the username:password pair matches, a
    * connection should be built.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
@@ -208,6 +234,9 @@ public class AuthenticationUtilsTest {
   /**
    * In CUSTOM mode, If the username:password pair does not match based on the configured
    * AuthenticationProvider, an exception should be thrown in server side.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
@@ -233,6 +262,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, if client's username is null, an exception should be thrown in client side.
+   *
+   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void customAuthenticationNullUserTest() throws Exception {
@@ -246,6 +277,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, if client's password is null, an exception should be thrown in client side.
+   *
+   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void customAuthenticationNullPasswordTest() throws Exception {
@@ -259,6 +292,9 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, if client's username is empty, an exception should be thrown in server side.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void customAuthenticationEmptyUserTest() throws Exception {
@@ -284,6 +320,9 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, if client's password is empty, an exception should be thrown in server side.
+   *
+   * @throws Exception thrown when the server cannot be started or the retrieval of the plain client
+   *                   transport fails
    */
   @Test
   public void customAuthenticationEmptyPasswordTest() throws Exception {
@@ -308,6 +347,9 @@ public class AuthenticationUtilsTest {
 
   /**
    * TODO(dong): In KERBEROS mode, ...
+   * Tests that an exception is thrown when trying to use KERBEROS mode.
+   *
+   * @throws Exception thrown when the server cannot be started
    */
   @Test
   public void kerberosAuthenticationTest() throws Exception {

@@ -20,7 +20,7 @@ package tachyon.client.file.options;
  */
 public interface OptionsBuilder<T> {
   /**
-   * Builds a new instance
+   * @return a new instance
    */
   T build();
 }

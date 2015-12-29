@@ -15,24 +15,52 @@
 
 package tachyon.exception;
 
+/**
+ * The excepton thrown when a dependency does not exist in Tachyon.
+ */
 public class DependencyDoesNotExistException extends TachyonException {
   private static final long serialVersionUID = -8411287237224325573L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.DEPENDENCY_DOES_NOT_EXIST;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public DependencyDoesNotExistException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public DependencyDoesNotExistException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public DependencyDoesNotExistException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public DependencyDoesNotExistException(ExceptionMessage message, Throwable cause,
       Object... params) {
     this(message.getMessage(params), cause);

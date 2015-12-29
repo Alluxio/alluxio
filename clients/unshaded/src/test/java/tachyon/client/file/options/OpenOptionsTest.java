@@ -17,12 +17,22 @@ package tachyon.client.file.options;
 
 import org.junit.Test;
 
+/**
+ * Tests for the {@link OpenOptions} class.
+ */
 public class OpenOptionsTest {
+
+  /**
+   * Tests that building an {@link OpenOptions} works.
+   */
   @Test
   public void builderTest() {
     new OpenOptions.Builder().build();
   }
 
+  /**
+   * Tests that building an {@link OpenOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     OpenOptions.defaults();

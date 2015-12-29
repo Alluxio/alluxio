@@ -43,7 +43,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * HDFS UnderFilesystem implementation
+ * HDFS {@link UnderFileSystem} implementation.
  */
 public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -55,6 +55,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
+  /**
+   * Constructs a new HDFS {@link UnderFileSystem}.
+   *
+   * @param fsDefaultName the under FS prefix
+   * @param tachyonConf the configuration for Tachyon
+   * @param conf the configuration for Hadoop
+   */
   public HdfsUnderFileSystem(String fsDefaultName, TachyonConf tachyonConf, Object conf) {
     super(tachyonConf);
     mUfsPrefix = fsDefaultName;
@@ -136,7 +143,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * BlockSize should be a multiple of 512
+   * BlockSize should be a multiple of 512.
+   *
+   * @param path the path
+   * @param blockSizeByte the size of the block in bytes
+   * @return A {@code FSDataOutputStream} object
+   * @throws IOException when a non-Tachyon related exception occurs
    */
   @Override
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
@@ -288,8 +300,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    FileStatus[] files = mFs.listStatus(new Path(path));
-    if (files != null) {
+    FileStatus[] files;
+    try {
+      files = mFs.listStatus(new Path(path));
+    } catch (FileNotFoundException e) {
+      return null;
+    }
+    if (files != null && !isFile(path)) {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {

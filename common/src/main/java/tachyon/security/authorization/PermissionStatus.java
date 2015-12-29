@@ -24,7 +24,11 @@ import tachyon.security.LoginUser;
 import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
+import tachyon.util.CommonUtils;
 
+/**
+ * The permission status for a file or directory.
+ */
 public final class PermissionStatus {
   private String mUserName;
   private String mGroupName;
@@ -81,6 +85,7 @@ public final class PermissionStatus {
   /**
    * Applies umask.
    *
+   * @param umask the umask to apply
    * @return a new {@link PermissionStatus}
    * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
@@ -103,6 +108,7 @@ public final class PermissionStatus {
   /**
    * Creates the {@link PermissionStatus} for a file or a directory.
    *
+   * @param conf the runtime configuration of Tachyon
    * @param remote true if the request is for creating permission from client side, the
    *               username binding into inode will be gotten from {@code AuthorizedClientUser
    *               .get().getName()}.
@@ -123,16 +129,15 @@ public final class PermissionStatus {
       if (user == null) {
         throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
       }
-      return new PermissionStatus(user.getName(),
-          "", // TODO(dong) group permission binding into Inode
-          FileSystemPermission.getDefault().applyUMask(conf));
+      return new PermissionStatus(user.getName(), CommonUtils.getPrimaryGroupName(conf,
+          user.getName()), FileSystemPermission.getDefault().applyUMask(conf));
     }
 
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
     return new PermissionStatus(loginUserName,
-        "", // TODO(dong) group permission binding into Inode
-        FileSystemPermission.getDefault().applyUMask(conf));
+        CommonUtils.getPrimaryGroupName(conf, loginUserName), FileSystemPermission.getDefault()
+            .applyUMask(conf));
   }
 
   @Override

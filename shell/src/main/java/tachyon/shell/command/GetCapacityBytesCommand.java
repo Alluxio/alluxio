@@ -22,7 +22,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Gets the capacity of the TachyonFileSystem.
+ * Gets the capacity of the {@link TachyonFileSystem}.
  */
 public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 
@@ -44,5 +44,10 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
   public void run(String... args) throws IOException {
     long capacityBytes = TachyonBlockStore.get().getCapacityBytes();
     System.out.println("Capacity Bytes: " + capacityBytes);
+  }
+
+  @Override
+  public String getUsage() {
+    return "getCapacityBytes";
   }
 }
