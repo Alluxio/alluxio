@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -120,7 +121,7 @@ public final class UiFileInfo {
     mUserName = "";
     mGroupName = "";
     mPermission = FileSystemPermission.getNoneFsPermission().toShort();
-    mPersistenceState = "NOT_PERSISTED";
+    mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<String>();
   }
 
