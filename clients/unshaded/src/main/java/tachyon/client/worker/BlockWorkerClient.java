@@ -45,6 +45,7 @@ import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 
@@ -72,7 +73,7 @@ public final class BlockWorkerClient extends ClientBase {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a BlockWorkerClient.
+   * Creates a {@link BlockWorkerClient}.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service

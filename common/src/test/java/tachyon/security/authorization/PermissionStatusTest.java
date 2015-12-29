@@ -106,6 +106,11 @@ public final class PermissionStatusTest {
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
+  /**
+   * Tests that retrieving the {@link PermissionStatus} with multiple groups works as expected.
+   *
+   * @throws Exception if the permission status cannot be retrieved
+   */
   @Test
   public void getPermissionStatusWithMultiGroupsTest() throws Exception {
     // mock a multi-groups test case

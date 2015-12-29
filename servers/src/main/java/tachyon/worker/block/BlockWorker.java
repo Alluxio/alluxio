@@ -40,6 +40,7 @@ import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -57,7 +58,7 @@ import tachyon.worker.keyvalue.KeyValueWorkerClientServiceHandler;
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
  *
- * Servers: BlockWorkerClientServiceHandler (RPC Server), BlockDataServer (Data Server)
+ * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server), BlockDataServer (Data Server)
  *
  * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
