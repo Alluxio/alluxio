@@ -19,6 +19,9 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for creating lineage.
+ */
 @PublicApi
 public final class CreateLineageOptions {
   private static class Builder {
