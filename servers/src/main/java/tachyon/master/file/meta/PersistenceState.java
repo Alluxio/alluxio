@@ -21,5 +21,6 @@ package tachyon.master.file.meta;
 public enum PersistenceState {
   NOT_PERSISTED, // file not persisted in the under FS
   IN_PROGRESS, // used for async persistence, the async persistence is scheduled and in progress
-  PERSISTED // the file is persisted in the under FS
+  PERSISTED, // the file is persisted in the under FS
+  LOST // the file is lost but not persisted in the under FS
 }

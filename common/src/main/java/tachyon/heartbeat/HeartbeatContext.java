@@ -31,6 +31,7 @@ public final class HeartbeatContext {
   // Names of different heartbeat executors.
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
   public static final String MASTER_FILE_RECOMPUTATION = "Master File Recomputation";
+  public static final String MASTER_LOST_FILES_DETECTION = "Master Lost Files Detection";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
@@ -42,6 +43,7 @@ public final class HeartbeatContext {
     sTimerClasses = new HashMap<String, Class<? extends HeartbeatTimer>>();
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_FILESYSTEM_MASTER_SYNC, SLEEPING_TIMER_CLASS);

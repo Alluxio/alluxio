@@ -133,6 +133,11 @@ public final class FileSystemMaster extends MasterBase {
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTTLCheckerService;
+  /**
+   * The service that detects lost files. We store it here so that it can be accessed from tests.
+   */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private Future<?> mLostFilesDetectionService;
 
   private final TTLBucketList mTTLBuckets = new TTLBucketList();
 
@@ -274,6 +279,9 @@ public final class FileSystemMaster extends MasterBase {
       mTTLCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTTLCheckExecutor(),
               MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+      mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
+          MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -1762,6 +1770,29 @@ public final class FileSystemMaster extends MasterBase {
         }
 
         mTTLBuckets.removeBuckets(expiredBuckets);
+      }
+    }
+  }
+
+  /**
+   * Lost files periodic check.
+   */
+  private final class LostFilesDetectionHeartbeatExecutor implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() {
+      for (long fileId : getLostFiles()) {
+        // update the state
+        synchronized (mInodeTree) {
+          Inode inode;
+          try {
+            inode = mInodeTree.getInodeById(fileId);
+            if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
+              inode.setPersistenceState(PersistenceState.LOST);
+            }
+          } catch (FileDoesNotExistException e) {
+            LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+          }
+        }
       }
     }
   }
