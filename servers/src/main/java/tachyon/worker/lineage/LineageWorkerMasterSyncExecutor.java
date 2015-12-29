@@ -58,6 +58,12 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
+  /**
+   * Creates a new instance of {@link LineageWorkerMasterSyncExecutor}.
+   *
+   * @param lineageDataManager a lineage data manager handle
+   * @param masterClient a lineage master client
+   */
   public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
       LineageMasterClient masterClient) {
     mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
@@ -96,6 +102,13 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     private long mFileId;
     private List<Long> mBlockIds;
 
+    /**
+     * Creates a new instance of {@link FilePersister}.
+     *
+     * @param lineageDataManager a lineage data manager handle
+     * @param fileId a file id
+     * @param blockIds a list of block ids
+     */
     public FilePersister(LineageDataManager lineageDataManager, long fileId, List<Long> blockIds) {
       mLineageDataManager = lineageDataManager;
       mFileId = fileId;
