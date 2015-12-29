@@ -156,10 +156,10 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * Creates a Tachyon Block Worker.
+   * Creates a new instance of {@link BlockWorker}.
    *
-   * @throws IOException for other exceptions
    * @throws ConnectionFailedException if network connection failed
+   * @throws IOException for other exceptions
    */
   public BlockWorker() throws IOException, ConnectionFailedException {
     super(Executors.newFixedThreadPool(4,
