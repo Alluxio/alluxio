@@ -174,7 +174,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    if(mUnderStorageType.isAsyncPersist()) {
+    if (mUnderStorageType.isAsyncPersist()) {
       scheduleAsyncPersist();
     }
     mClosed = true;
