@@ -89,7 +89,7 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
+import tachyon.proto.journal.Lineage.AsyncPersistRequestEntry;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -235,9 +235,9 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+    } else if (innerEntry instanceof AsyncPersistRequestEntry) {
       try {
-        setPersistingState(((PersistFilesRequestEntry) innerEntry).getFileIdsList());
+        scheduleAsyncPersistenceInternal(((AsyncPersistRequestEntry) innerEntry).getFileId());
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -1539,6 +1539,18 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException when the file does not exist
    */
   public long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
+    long workerId = scheduleAsyncPersistenceInternal(fileId);
+
+    // write to journal
+    AsyncPersistRequestEntry asyncPersistRequestEntry =
+        AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+    flushJournal();
+    return workerId;
+  }
+
+  private long scheduleAsyncPersistenceInternal(long fileId) throws FileDoesNotExistException {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
@@ -1560,13 +1572,6 @@ public final class FileSystemMaster extends MasterBase {
       }
       mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
     }
-
-//    // write to journal
-//    PersistFilesRequestEntry persistFilesRequest =
-//        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
-//    writeJournalEntry(
-//        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
-//    flushJournal();
     return workerId;
   }
 
