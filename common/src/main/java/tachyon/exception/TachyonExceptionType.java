@@ -16,6 +16,7 @@
 package tachyon.exception;
 
 public enum TachyonExceptionType {
+  ACCESS_CONTROL(AccessControlException.class),
   BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
   BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
   BLOCK_INFO(BlockInfoException.class),
@@ -35,8 +36,7 @@ public enum TachyonExceptionType {
   TABLE_COLUMN(TableColumnException.class),
   TABLE_DOES_NOT_EXIST(TableDoesNotExistException.class),
   TABLE_METADATA(TableMetadataException.class),
-  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class),
-  ACCESS_CONTROL(AccessControlException.class)
+  WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class)
   ;
 
   private final Class<? extends TachyonException> mExceptionClass;
