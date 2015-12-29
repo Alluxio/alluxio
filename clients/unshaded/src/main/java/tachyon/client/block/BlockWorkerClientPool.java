@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.Utils;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.resource.ResourcePool;
 import tachyon.thrift.NetAddress;
 
