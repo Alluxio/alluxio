@@ -71,7 +71,7 @@ public class BlockDataManagerTest {
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
       mWorkerId = mRandom.nextLong();
-      WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
+      Whitebox.setInternalState(WorkerIdRegistry.class, "sWorkerId", mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
       mManager =

@@ -78,7 +78,7 @@ public final class TachyonWorker {
   }
 
   /**
-   * Verifies that no parameters are passed in
+   * Verifies that no parameters are passed in.
    *
    * @param args command line arguments
    */
