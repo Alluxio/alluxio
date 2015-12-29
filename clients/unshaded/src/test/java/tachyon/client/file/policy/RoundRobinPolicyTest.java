@@ -43,9 +43,8 @@ public final class RoundRobinPolicyTest {
         3 * (long) Constants.GB, 0));
     RoundRobinPolicy policy = new RoundRobinPolicy();
 
-    Assert.assertEquals("worker2",
-        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
-    Assert.assertEquals("worker3",
+    Assert.assertNotEquals(
+        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost(),
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
   }
 }
