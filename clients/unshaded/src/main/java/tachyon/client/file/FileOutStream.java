@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
@@ -43,7 +42,6 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -102,22 +100,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-
-    if (options.getLocationPolicy() == null) {
-      // get the default policy
-      try {
-        mLocationPolicy =
-            CommonUtils
-                .createNewClassInstance(
-                    ClientContext.getConf().<FileWriteLocationPolicy>getClass(
-                        Constants.USER_FILE_WRITE_LOCATION_POLICY),
-                    new Class[] {}, new Object[] {});
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
-      }
-    } else {
-      mLocationPolicy = options.getLocationPolicy();
-    }
+    mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
+        "The location policy is not specified");
   }
 
   @Override

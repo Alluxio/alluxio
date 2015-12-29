@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
@@ -23,6 +25,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 
 /**
  * Method option for writing a file.
@@ -59,7 +62,16 @@ public final class OutStreamOptions {
       mTachyonStorageType = defaultWriteType.getTachyonStorageType();
       mUnderStorageType = defaultWriteType.getUnderStorageType();
       mTTL = Constants.NO_TTL;
-      mLocationPolicy = null;
+      try {
+        mLocationPolicy =
+            CommonUtils
+                .createNewClassInstance(
+                    ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+                        Constants.USER_FILE_WRITE_LOCATION_POLICY),
+                    new Class[] {}, new Object[] {});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
     }
 
     /**
