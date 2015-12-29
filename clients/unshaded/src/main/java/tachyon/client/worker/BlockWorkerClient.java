@@ -178,7 +178,7 @@ public final class BlockWorkerClient extends ClientBase {
 
   @Override
   protected String getServiceName() {
-    return Constants.WORKER_CLIENT_SERVICE_NAME;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
   }
 
   @Override
