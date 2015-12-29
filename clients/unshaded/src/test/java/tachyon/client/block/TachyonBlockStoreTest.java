@@ -81,10 +81,10 @@ public final class TachyonBlockStoreTest {
    *
    * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
    * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and
-   * {@link #mBlockWorkerClient} when asked for master/worker clients<br>
+   *    {@link #mBlockWorkerClient} when asked for master/worker clients<br>
    * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
    * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should
-   * return the path to {@link #mTestFile}.
+   *    return the path to {@link #mTestFile}.
    */
   @Before
   public void before() throws Exception {

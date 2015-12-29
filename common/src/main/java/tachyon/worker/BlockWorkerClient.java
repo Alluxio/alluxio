@@ -40,7 +40,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
-import tachyon.thrift.BlockWorkerService;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
@@ -50,8 +50,8 @@ import tachyon.util.network.NetworkAddressUtils;
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
  * server.
  *
- * Since {@link BlockWorkerService.Client} is not thread safe, this class has to guarantee thread
- * safety.
+ * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
+ * thread safety.
  */
 public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -59,7 +59,7 @@ public final class BlockWorkerClient extends ClientBase {
 
   private final boolean mIsLocal;
 
-  private BlockWorkerService.Client mClient;
+  private BlockWorkerClientService.Client mClient;
   private long mSessionId;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
@@ -200,7 +200,7 @@ public final class BlockWorkerClient extends ClientBase {
       TProtocol binaryProtocol =
           new TBinaryProtocol(AuthenticationUtils.getClientTransport(mTachyonConf, mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
-      mClient = new BlockWorkerService.Client(mProtocol);
+      mClient = new BlockWorkerClientService.Client(mProtocol);
 
       try {
         mProtocol.getTransport().open();

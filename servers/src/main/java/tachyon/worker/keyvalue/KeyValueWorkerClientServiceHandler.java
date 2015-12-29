@@ -29,7 +29,7 @@ import tachyon.client.keyvalue.RandomAccessKeyValueFileReader;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.KeyValueWorkerService;
+import tachyon.thrift.KeyValueWorkerClientService;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 import tachyon.worker.block.BlockDataManager;
@@ -38,13 +38,13 @@ import tachyon.worker.block.io.BlockReader;
 /**
  * Class to read a KeyValue Block.
  */
-public final class KeyValueServiceHandler implements KeyValueWorkerService.Iface {
+public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
 
-  public KeyValueServiceHandler(BlockDataManager blockDataManager) {
+  public KeyValueWorkerClientServiceHandler(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
   }
 
