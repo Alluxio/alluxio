@@ -45,17 +45,4 @@ public final class MostAvailableFirstPolicyTest {
     Assert.assertEquals("worker3",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
-
-  @Test
-  public void noAvailableWorkerTest() {
-    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
-    workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT),
-        2 * (long) Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker3", PORT, PORT, PORT),
-        3 * (long) Constants.GB, 0));
-    MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
-    Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, 4 * (long) Constants.GB));
-  }
 }
