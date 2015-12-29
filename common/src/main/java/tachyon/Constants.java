@@ -74,6 +74,7 @@ public final class Constants {
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long RAW_TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long RAW_TABLE_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
@@ -90,6 +91,7 @@ public final class Constants {
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
   public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
+  public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorker";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorker";
 
