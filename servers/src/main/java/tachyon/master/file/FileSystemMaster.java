@@ -77,6 +77,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.File.AddMountPointEntry;
+import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
 import tachyon.proto.journal.File.DeleteFileEntry;
 import tachyon.proto.journal.File.DeleteMountPointEntry;
@@ -89,7 +90,6 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.Lineage.AsyncPersistRequestEntry;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -1661,19 +1661,6 @@ public final class FileSystemMaster extends MasterBase {
     }
     mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
     return filesToPersist;
-  }
-
-  /**
-   * Updates a list of files as being persisted.
-   *
-   * @param fileIds the id of the files
-   * @throws FileDoesNotExistException when a file does not exist
-   */
-  private void setPersistingState(List<Long> fileIds) throws FileDoesNotExistException {
-    for (long fileId : fileIds) {
-      InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    }
   }
 
   /**
