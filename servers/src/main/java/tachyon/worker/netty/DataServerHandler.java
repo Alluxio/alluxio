@@ -64,6 +64,12 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   private final StorageTierAssoc mStorageTierAssoc;
   private final FileTransferType mTransferType;
 
+  /**
+   * Creates a new instance of {@link DataServerHandler}.
+   *
+   * @param dataManager a block data manager handle
+   * @param tachyonConf Tachyon configuration
+   */
   public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
