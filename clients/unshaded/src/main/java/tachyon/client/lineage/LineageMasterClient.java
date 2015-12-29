@@ -133,7 +133,7 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   /**
-   * Retrieve the list of lineage information.
+   * Retrieves the list of lineage information.
    *
    * @return a list of lineage information
    * @throws ConnectionFailedException if the connection fails
