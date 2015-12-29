@@ -35,6 +35,13 @@ import tachyon.client.file.options.OutStreamOptions;
 public class LineageFileOutStream extends FileOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Creates a new file output stream when lineage is enabled.
+   *
+   * @param fileId the id of the file
+   * @param options the set of options specific to this operation
+   * @throws IOException if an I/O error occurs
+   */
   public LineageFileOutStream(long fileId, OutStreamOptions options) throws IOException {
     super(fileId, updateOutStreamOptions(options));
   }

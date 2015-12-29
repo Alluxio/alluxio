@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.WorkerNetAddress;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
@@ -257,13 +257,13 @@ public final class TachyonBlockStore {
     // Get the first worker address for now, as this will likely be the location being read from
     // TODO(calvin): Get this location via a policy (possibly location is a parameter to promote)
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+    BlockWorkerClient blockWorkerClient = mContext.acquireWorkerClient(workerAddr.getHost());
     try {
-      workerClient.promoteBlock(blockId);
+      blockWorkerClient.promoteBlock(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(workerClient);
+      mContext.releaseWorkerClient(blockWorkerClient);
     }
   }
 }
