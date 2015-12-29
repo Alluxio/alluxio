@@ -37,7 +37,7 @@ import tachyon.heartbeat.HeartbeatThread;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -311,8 +311,8 @@ public final class BlockWorker extends WorkerBase {
   private TThreadPoolServer createThriftServer() {
     int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
     int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
-    WorkerService.Processor<BlockServiceHandler> processor =
-        new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
+    BlockWorkerClientService.Processor<BlockServiceHandler> processor =
+        new BlockWorkerClientService.Processor<BlockServiceHandler>(mServiceHandler);
     TTransportFactory tTransportFactory;
     try {
       tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);
