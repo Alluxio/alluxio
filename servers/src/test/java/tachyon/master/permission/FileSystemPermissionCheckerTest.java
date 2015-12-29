@@ -195,17 +195,21 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testFileSystemOwner() throws Exception {
+  public void fileSystemOwnerTest() throws Exception {
     checkSelfPermission(TEST_USER_ADMIN, FileSystemAction.ALL, TEST_DIR_FILE_URI);
+    checkSelfPermission(TEST_USER_ADMIN, FileSystemAction.ALL, TEST_DIR_URI);
+    checkSelfPermission(TEST_USER_ADMIN, FileSystemAction.ALL, TEST_FILE_URI);
   }
 
   @Test
-  public void testFileSystemSuperGroup() throws Exception {
+  public void fileSystemSuperGroupTest() throws Exception {
     checkSelfPermission(TEST_USER_SUPERGROUP, FileSystemAction.ALL, TEST_DIR_FILE_URI);
+    checkSelfPermission(TEST_USER_SUPERGROUP, FileSystemAction.ALL, TEST_DIR_URI);
+    checkSelfPermission(TEST_USER_SUPERGROUP, FileSystemAction.ALL, TEST_FILE_URI);
   }
 
   @Test
-  public void testSelfCheckSuccess() throws Exception {
+  public void selfCheckSuccessTest() throws Exception {
     // the same owner
     checkSelfPermission(TEST_USER_1, FileSystemAction.READ, TEST_DIR_FILE_URI);
     checkSelfPermission(TEST_USER_1, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
@@ -218,7 +222,7 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testSelfCheckFailByOtherGroup() throws Exception {
+  public void selfCheckFailByOtherGroupTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
@@ -229,7 +233,7 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testSelfCheckFailBySameGroup() throws Exception {
+  public void selfCheckFailBySameGroupTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_3.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
@@ -240,7 +244,7 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testCheckFallThrough() throws Exception {
+  public void checkFallThroughTest() throws Exception {
     // user can not read, but group can
     checkSelfPermission(TEST_USER_1, FileSystemAction.READ, TEST_WEIRD_FILE_URI);
 
@@ -249,12 +253,12 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testParentCheckSuccess() throws Exception {
+  public void parentCheckSuccessTest() throws Exception {
     checkParentOrAncestorPermission(TEST_USER_1, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
   }
 
   @Test
-  public void testParentCheckFail() throws Exception {
+  public void parentCheckFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
@@ -264,12 +268,12 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testAncestorCheckSuccess() throws Exception {
+  public void ancestorCheckSuccessTest() throws Exception {
     checkParentOrAncestorPermission(TEST_USER_1, FileSystemAction.WRITE, TEST_NOT_EXIST_URI);
   }
 
   @Test
-  public void testAncestorCheckFail() throws Exception {
+  public void ancestorCheckFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_NOT_EXIST_URI,
@@ -279,7 +283,7 @@ public class FileSystemPermissionCheckerTest {
   }
 
   @Test
-  public void testInvalidPath() throws Exception {
+  public void invalidPathTest() throws Exception {
     List<FileInfo> fileInfos = Lists.newArrayList();
     mThrown.expect(InvalidPathException.class);
 

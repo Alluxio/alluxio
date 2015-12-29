@@ -26,6 +26,8 @@ public final class PreconditionMessage {
   public static final String CLIENT_CONTEXT_NOT_INITIALIZED = "Client Context not initialized";
   public static final String COMMAND_LINE_LINEAGE_ONLY =
       "Only command line jobs are supported by createLineage";
+  public static final String EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK =
+      "The passed-in file info list can not be empty when checking permission";
   public static final String ERR_BLOCK_INDEX = "Current block index exceeds max index";
   public static final String ERR_BLOCK_REMAINING =
       "The current block still has space left, no need to get new block";
