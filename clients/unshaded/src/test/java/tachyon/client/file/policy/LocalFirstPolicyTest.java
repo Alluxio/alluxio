@@ -55,8 +55,8 @@ public final class LocalFirstPolicyTest {
     workerInfoList.add(
         new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress(localhostName, PORT, PORT, PORT),
-        Constants.GB, Constants.GB));
+        Constants.MB, Constants.MB));
     Assert.assertEquals("worker1",
-        policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
+        policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
   }
 }

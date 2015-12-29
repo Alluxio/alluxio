@@ -40,10 +40,6 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
         result = workerInfo.getNetAddress();
       }
     }
-    if (mostAvailableBytes < blockSizeBytes) {
-      // no worker has enough space
-      return null;
-    }
     return result;
   }
 }
