@@ -21,7 +21,7 @@ package tachyon.client;
  */
 public interface BoundedStream {
   /**
-   * Gets the remaining number of bytes left in the stream, starting at the current position.
+   * @return the remaining number of bytes left in the stream, starting at the current position
    */
   long remaining();
 }

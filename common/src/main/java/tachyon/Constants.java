@@ -150,12 +150,20 @@ public final class Constants {
   public static final String INTEGRATION_MESOS_JRE_PATH =
       "tachyon.integration.mesos.jre.path";
   public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
+  public static final String INTEGRATION_MESOS_PRINCIPAL =
+      "tachyon.integration.mesos.principal";
+  public static final String INTEGRATION_MESOS_ROLE =
+      "tachyon.integration.mesos.role";
+  public static final String INTEGRATION_MESOS_SECRET =
+      "tachyon.integration.mesos.secret";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
       "tachyon.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =
       "tachyon.integration.mesos.worker.name";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT =
       "tachyon.integration.mesos.master.node.count";
+  public static final String INTEGRATION_MESOS_USER =
+      "tachyon.integration.mesos.user";
   public static final String INTEGRATION_WORKER_RESOURCE_CPU =
       "tachyon.integration.worker.resource.cpu";
   public static final String INTEGRATION_WORKER_RESOURCE_MEM =
@@ -248,8 +256,8 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.attenuation.factor";
   public static final String WORKER_TIERED_STORE_LEVELS =
       "tachyon.worker.tieredstore.levels";
-  public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
-      "tachyon.worker.lineage.heartbeat.interval.ms";
+  public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
+      "tachyon.worker.filesystem.heartbeat.interval.ms";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "tachyon.worker.tieredstore.block.locks";

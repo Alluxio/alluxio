@@ -30,8 +30,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
 /**
- * This class is a factory for SwiftUnderFileSystem clients. It will ensure Swift credentials are
- * present before returning a client. The validity of the credentials are checked by the client.
+ * Factory for creating Swift under file systems.
  */
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

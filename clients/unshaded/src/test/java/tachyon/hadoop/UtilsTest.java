@@ -21,8 +21,14 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link Utils} class.
+ */
 public final class UtilsTest {
 
+  /**
+   * Test for the {@link Utils#getPathWithoutScheme(Path)} method.
+   */
   @Test
   public void testGetPathWithoutSchema() {
     final Path path = new Path("/foo/bar/baz");
@@ -31,6 +37,9 @@ public final class UtilsTest {
     Assert.assertEquals("/foo/bar/baz", output);
   }
 
+  /**
+   * Test for the {@link Utils#getPathWithoutScheme(Path)} method that contains the schema.
+   */
   @Test
   public void testGetPathWithoutSchemaThatContainsSchema() {
     final Path path = new Path("file:///foo/bar/baz");
@@ -55,6 +64,9 @@ public final class UtilsTest {
     Assert.assertFalse("/foo/bar/baz".equals(output));
   }
 
+  /**
+   * Test for the {@link Utils#getPathWithoutScheme(Path)} method from an HDFS URI.
+   */
   @Test
   public void testGetPathWithoutSchemaFromHDFSURI() {
     final Path path = new Path(URI.create("hdfs://localhost:1234/foo/bar/baz?please=dont&show=up"));
