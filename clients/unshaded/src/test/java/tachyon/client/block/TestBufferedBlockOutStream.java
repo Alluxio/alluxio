@@ -41,7 +41,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
    * Constructs a new {@link TestBufferedBlockOutStream} to be used in tests.
    *
    * @param blockId the id of the block
-   * @param blockSize the size of the block
+   * @param blockSize the size of the block in bytes
    */
   public TestBufferedBlockOutStream(long blockId, long blockSize) {
     super(blockId, blockSize);
@@ -128,7 +128,7 @@ public class TestBufferedBlockOutStream extends BufferedBlockOutStream {
    *
    * @param b the array to write
    * @param off the offset
-   * @param len the lenght to write
+   * @param len the length to write
    * @throws IOException when the write fails
    */
   @Override
