@@ -15,6 +15,7 @@
 
 package tachyon.client.file.policy;
 
+import java.util.Collections;
 import java.util.List;
 
 import tachyon.client.WorkerNetAddress;
@@ -34,6 +35,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       long blockSizeBytes) {
     if (!mInitialized) {
       mWorkerInfoList = workerInfoList;
+      Collections.shuffle(mWorkerInfoList);
       mIndex = 0;
       mInitialized = true;
     }
