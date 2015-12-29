@@ -210,11 +210,11 @@ public final class Journal {
     /**
      * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    tachyon.proto.journal.Lineage.AsyncPersistRequestEntry getAsyncPersistRequest();
+    tachyon.proto.journal.File.AsyncPersistRequestEntry getAsyncPersistRequest();
     /**
      * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    tachyon.proto.journal.Lineage.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder();
+    tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder();
 
     /**
      * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
@@ -526,13 +526,13 @@ public final class Journal {
               break;
             }
             case 130: {
-              tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.Builder subBuilder = null;
+              tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder subBuilder = null;
               if (entryCase_ == 16) {
-                subBuilder = ((tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_).toBuilder();
+                subBuilder = ((tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_).toBuilder();
               }
-              entry_ = input.readMessage(tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.PARSER, extensionRegistry);
+              entry_ = input.readMessage(tachyon.proto.journal.File.AsyncPersistRequestEntry.PARSER, extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom((tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_);
+                subBuilder.mergeFrom((tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
               entryCase_ = 16;
@@ -1099,20 +1099,20 @@ public final class Journal {
     /**
      * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    public tachyon.proto.journal.Lineage.AsyncPersistRequestEntry getAsyncPersistRequest() {
+    public tachyon.proto.journal.File.AsyncPersistRequestEntry getAsyncPersistRequest() {
       if (entryCase_ == 16) {
-         return (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_;
+         return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
       }
-      return tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
     }
     /**
      * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    public tachyon.proto.journal.Lineage.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder() {
+    public tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder() {
       if (entryCase_ == 16) {
-         return (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_;
+         return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
       }
-      return tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
     }
 
     public static final int RAW_TABLE_FIELD_NUMBER = 17;
@@ -1307,7 +1307,7 @@ public final class Journal {
         output.writeMessage(15, (tachyon.proto.journal.File.PersistDirectoryEntry) entry_);
       }
       if (entryCase_ == 16) {
-        output.writeMessage(16, (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_);
+        output.writeMessage(16, (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_);
       }
       if (entryCase_ == 17) {
         output.writeMessage(17, (tachyon.proto.journal.RawTable.RawTableEntry) entry_);
@@ -1395,7 +1395,7 @@ public final class Journal {
       }
       if (entryCase_ == 16) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(16, (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_);
+          .computeMessageSize(16, (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_);
       }
       if (entryCase_ == 17) {
         size += com.google.protobuf.CodedOutputStream
@@ -3785,7 +3785,7 @@ public final class Journal {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.Lineage.AsyncPersistRequestEntry, tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.Lineage.AsyncPersistRequestEntryOrBuilder> asyncPersistRequestBuilder_;
+          tachyon.proto.journal.File.AsyncPersistRequestEntry, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder> asyncPersistRequestBuilder_;
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
@@ -3795,23 +3795,23 @@ public final class Journal {
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public tachyon.proto.journal.Lineage.AsyncPersistRequestEntry getAsyncPersistRequest() {
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry getAsyncPersistRequest() {
         if (asyncPersistRequestBuilder_ == null) {
           if (entryCase_ == 16) {
-            return (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_;
+            return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
           }
-          return tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance();
+          return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
         } else {
           if (entryCase_ == 16) {
             return asyncPersistRequestBuilder_.getMessage();
           }
-          return tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance();
+          return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
         }
       }
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public Builder setAsyncPersistRequest(tachyon.proto.journal.Lineage.AsyncPersistRequestEntry value) {
+      public Builder setAsyncPersistRequest(tachyon.proto.journal.File.AsyncPersistRequestEntry value) {
         if (asyncPersistRequestBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -3828,7 +3828,7 @@ public final class Journal {
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
       public Builder setAsyncPersistRequest(
-          tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.Builder builderForValue) {
+          tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder builderForValue) {
         if (asyncPersistRequestBuilder_ == null) {
           entry_ = builderForValue.build();
           onChanged();
@@ -3841,11 +3841,11 @@ public final class Journal {
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public Builder mergeAsyncPersistRequest(tachyon.proto.journal.Lineage.AsyncPersistRequestEntry value) {
+      public Builder mergeAsyncPersistRequest(tachyon.proto.journal.File.AsyncPersistRequestEntry value) {
         if (asyncPersistRequestBuilder_ == null) {
           if (entryCase_ == 16 &&
-              entry_ != tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance()) {
-            entry_ = tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.newBuilder((tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_)
+              entry_ != tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.journal.File.AsyncPersistRequestEntry.newBuilder((tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_)
                 .mergeFrom(value).buildPartial();
           } else {
             entry_ = value;
@@ -3882,35 +3882,35 @@ public final class Journal {
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.Builder getAsyncPersistRequestBuilder() {
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder getAsyncPersistRequestBuilder() {
         return getAsyncPersistRequestFieldBuilder().getBuilder();
       }
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public tachyon.proto.journal.Lineage.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder() {
+      public tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder() {
         if ((entryCase_ == 16) && (asyncPersistRequestBuilder_ != null)) {
           return asyncPersistRequestBuilder_.getMessageOrBuilder();
         } else {
           if (entryCase_ == 16) {
-            return (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_;
+            return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
           }
-          return tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance();
+          return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
         }
       }
       /**
        * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.Lineage.AsyncPersistRequestEntry, tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.Lineage.AsyncPersistRequestEntryOrBuilder> 
+          tachyon.proto.journal.File.AsyncPersistRequestEntry, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder> 
           getAsyncPersistRequestFieldBuilder() {
         if (asyncPersistRequestBuilder_ == null) {
           if (!(entryCase_ == 16)) {
-            entry_ = tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.getDefaultInstance();
+            entry_ = tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
           }
           asyncPersistRequestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.journal.Lineage.AsyncPersistRequestEntry, tachyon.proto.journal.Lineage.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.Lineage.AsyncPersistRequestEntryOrBuilder>(
-                  (tachyon.proto.journal.Lineage.AsyncPersistRequestEntry) entry_,
+              tachyon.proto.journal.File.AsyncPersistRequestEntry, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder>(
+                  (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_,
                   getParentForChildren(),
                   isClean());
           entry_ = null;
