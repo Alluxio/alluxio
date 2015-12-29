@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.TachyonException;
 
 /**

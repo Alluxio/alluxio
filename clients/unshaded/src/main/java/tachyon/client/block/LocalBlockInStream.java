@@ -23,6 +23,7 @@ import java.nio.channels.FileChannel;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.LockBlockResult;

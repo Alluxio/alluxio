@@ -46,6 +46,7 @@ import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;

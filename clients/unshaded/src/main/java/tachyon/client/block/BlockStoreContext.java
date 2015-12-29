@@ -23,6 +23,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.client.ClientContext;
 import tachyon.client.Utils;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.NetAddress;
