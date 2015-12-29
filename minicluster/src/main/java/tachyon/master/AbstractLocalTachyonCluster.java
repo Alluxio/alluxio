@@ -259,7 +259,8 @@ public abstract class AbstractLocalTachyonCluster {
     // UnderFileSystemCluster.get().
     // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
     // instead of comparing classnames.
-    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")
+        || mUfsCluster.getClass().getSimpleName().equals("S3UnderStorageCluster")) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mTachyonHome;
       conf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }
