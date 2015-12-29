@@ -30,7 +30,7 @@ import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for {@link KeyValueFileWriter}
+ * Integration tests for {@link KeyValueFileReader} and {@link KeyValueFileWriter}.
  */
 public final class KeyValueFileIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;

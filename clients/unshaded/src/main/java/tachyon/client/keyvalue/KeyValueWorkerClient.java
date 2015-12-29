@@ -45,7 +45,7 @@ public class KeyValueWorkerClient extends ClientBase {
   private KeyValueWorkerClientService.Client mClient = null;
 
   /**
-   * Creates a KeyValueWorkerClient.
+   * Creates a {@link KeyValueWorkerClient}.
    *
    * @param workerNetAddress location of the worker to connect to
    * @param conf Tachyon configuration
