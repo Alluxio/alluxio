@@ -26,7 +26,14 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests for the {@link MkdirOptions} class.
+ */
 public class MkdirOptionsTest {
+
+  /**
+   * Tests that building a {@link MkdirOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -45,6 +52,9 @@ public class MkdirOptionsTest {
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
+  /**
+   * Tests that building a {@link MkdirOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     WriteType writeType = WriteType.CACHE_THROUGH;

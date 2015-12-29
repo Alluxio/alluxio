@@ -277,7 +277,7 @@ public class TieredBlockStoreTestUtils {
     TempBlockMeta tempBlockMeta = blockStore.createBlockMeta(sessionId, blockId, location, bytes);
     // write data
     FileUtils.createFile(tempBlockMeta.getPath());
-    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
 
@@ -321,7 +321,7 @@ public class TieredBlockStoreTestUtils {
 
     // write data
     FileUtils.createFile(tempBlockMeta.getPath());
-    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
     return tempBlockMeta;

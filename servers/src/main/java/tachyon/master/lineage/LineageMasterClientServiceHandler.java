@@ -87,15 +87,6 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   }
 
   @Override
-  public void asyncCompleteFile(long fileId) throws TachyonTException {
-    try {
-      mLineageMaster.asyncCompleteFile(fileId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
   public long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws TachyonTException {
     try {
@@ -108,11 +99,9 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public void reportLostFile(String path) throws TachyonTException, ThriftIOException {
     try {
-      mLineageMaster.reportListFile(path);
+      mLineageMaster.reportLostFile(path);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
     }
   }
 

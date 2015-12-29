@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.lineage;
+package tachyon.worker.file;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,56 +28,56 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatExecutor;
-import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.LineageCommand;
+import tachyon.thrift.FileSystemCommand;
+import tachyon.thrift.PersistFile;
 import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockMasterSync;
 
 /**
- * Class that communicates to lineage master via heartbeat. This class manages its own
- * {@link LineageMasterClient}.
+ * Class that communicates to file system master via heartbeat. This class manages its own
+ * {@link FileSystemMasterClient}.
  *
- * When running, this class pulls from the master to check which file to persist for lineage
- * checkpointing.
+ * When running, this class pulls from the master to check which file to persist for async
+ * persistence.
  *
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  *
  * TODO(yupeng): merge this with {@link BlockMasterSync} to use a central command pattern.
  */
-final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
+final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int DEFAULT_FILE_PERSISTER_POOL_SIZE = 10;
-  /** Logic for managing lineage file persistence */
-  private final LineageDataManager mLineageDataManager;
-  /** Client for communicating to lineage master */
-  private final LineageMasterClient mMasterClient;
+  /** Logic for managing async file persistence */
+  private final FileDataManager mFileDataManager;
+  /** Client for communicating to file system master */
+  private final FileSystemMasterClient mMasterClient;
   /** The thread pool to persist file */
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
   /**
-   * Creates a new instance of {@link LineageWorkerMasterSyncExecutor}.
+   * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
    *
    * @param lineageDataManager a lineage data manager handle
    * @param masterClient a lineage master client
    */
-  public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
-      LineageMasterClient masterClient) {
-    mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
+  public FileWorkerMasterSyncExecutor(FileDataManager fileDataManager,
+      FileSystemMasterClient masterClient) {
+    mFileDataManager = Preconditions.checkNotNull(fileDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
   }
 
   @Override
   public void heartbeat() {
-    List<Long> persistedFiles = mLineageDataManager.popPersistedFiles();
+    List<Long> persistedFiles = mFileDataManager.popPersistedFiles();
     if (!persistedFiles.isEmpty()) {
       LOG.info("files {} persisted", persistedFiles);
     }
 
-    LineageCommand command = null;
+    FileSystemCommand command = null;
     try {
       command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(),
           persistedFiles);
@@ -86,11 +86,19 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }  catch (ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
     }
-    Preconditions.checkState(command.commandType == CommandType.Persist);
 
-    for (CheckpointFile checkpointFile : command.checkpointFiles) {
-      mFixedExecutionService.execute(new FilePersister(mLineageDataManager, checkpointFile.fileId,
-          checkpointFile.blockIds));
+    if (command == null) {
+      LOG.error("The command sent from master is null");
+      return;
+    } else if (command.commandType != CommandType.Persist) {
+      LOG.error("The command sent from master should be PERSIST type, but was {}",
+          command.commandType);
+      return;
+    }
+
+    for (PersistFile persistFile : command.getCommandOptions().getPersistOptions().persistFiles) {
+      mFixedExecutionService
+          .execute(new FilePersister(mFileDataManager, persistFile.fileId, persistFile.blockIds));
     }
   }
 
@@ -98,19 +106,19 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
    * Thread to persist a file into under file system.
    */
   class FilePersister implements Runnable {
-    private LineageDataManager mLineageDataManager;
+    private FileDataManager mFileDataManager;
     private long mFileId;
     private List<Long> mBlockIds;
 
     /**
      * Creates a new instance of {@link FilePersister}.
      *
-     * @param lineageDataManager a lineage data manager handle
+     * @param fileDataManager a lineage data manager handle
      * @param fileId a file id
      * @param blockIds a list of block ids
      */
-    public FilePersister(LineageDataManager lineageDataManager, long fileId, List<Long> blockIds) {
-      mLineageDataManager = lineageDataManager;
+    public FilePersister(FileDataManager fileDataManager, long fileId, List<Long> blockIds) {
+      mFileDataManager = fileDataManager;
       mFileId = fileId;
       mBlockIds = blockIds;
     }
@@ -119,7 +127,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     public void run() {
       try {
         LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
-        mLineageDataManager.persistFile(mFileId, mBlockIds);
+        mFileDataManager.persistFile(mFileId, mBlockIds);
       } catch (IOException e) {
         LOG.error("Failed to persist file {}", mFileId, e);
       }

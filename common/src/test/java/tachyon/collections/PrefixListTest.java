@@ -15,6 +15,8 @@
 
 package tachyon.collections;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,17 +27,24 @@ import com.google.common.collect.ImmutableList;
  */
 public final class PrefixListTest {
 
+  /**
+   * Tests that the {@link PrefixList#PrefixList(List)} constructor with an empty string constructs
+   * items correctly.
+   */
   @Test
   public void emptyPrefixTest() {
-    PrefixList prefixList = new PrefixList(ImmutableList.<String>of(""));
+    PrefixList prefixList = new PrefixList(ImmutableList.of(""));
     Assert.assertTrue(prefixList.inList("a"));
 
     Assert.assertTrue(prefixList.outList(""));
   }
 
+  /**
+   * Tests that the {@link PrefixList#PrefixList(List)} constructor constructs items correctly.
+   */
   @Test
   public void prefixListTest() {
-    PrefixList prefixList = new PrefixList(ImmutableList.<String>of("test", "apple", "sun"));
+    PrefixList prefixList = new PrefixList(ImmutableList.of("test", "apple", "sun"));
     Assert.assertTrue(prefixList.inList("test"));
     Assert.assertTrue(prefixList.inList("apple"));
     Assert.assertTrue(prefixList.inList("sun"));
@@ -59,6 +68,9 @@ public final class PrefixListTest {
     Assert.assertTrue(prefixList.outList(null));
   }
 
+  /**
+   * Tests that the {@link PrefixList#PrefixList(List)} constructor constructs items correctly.
+   */
   @Test
   public void prefixListTest2() {
     PrefixList prefixList = new PrefixList("test;apple;sun", ";");
@@ -85,6 +97,9 @@ public final class PrefixListTest {
     Assert.assertTrue(prefixList.outList(null));
   }
 
+  /**
+   * Tests the {@link PrefixList#toString()} method.
+   */
   @Test
   public void toStringTest() {
     PrefixList prefixList = new PrefixList(null, ";");

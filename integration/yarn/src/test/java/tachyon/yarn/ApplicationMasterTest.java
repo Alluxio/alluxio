@@ -29,6 +29,7 @@ import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
+import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.NodeState;
@@ -38,6 +39,7 @@ import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.Records;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,24 +56,26 @@ import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * Unit tests for {@link ApplicationMaster}.
  */
 // TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnClient.class})
+@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
+    YarnClient.class})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
-  private static final String TACHYON_HOME = "/tmp/tachyonhome";
+  private static final String RESOURCE_ADDRESS = "/tmp/resource";
   private static final TachyonConf CONF = new TachyonConf();
   private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
@@ -82,19 +86,38 @@ public class ApplicationMasterTest {
   private static final int RAMDISK_MEM_MB =
       (int) CONF.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU = CONF.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+  private static final Map<String, LocalResource> EXPECTED_LOCAL_RESOURCES = Maps.newHashMap();
 
-  private static final String EXPECTED_WORKER_COMMAND = new CommandBuilder(
-      PathUtils.concatPath(TACHYON_HOME, "integration", "bin", "tachyon-worker-yarn.sh"))
-          .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-          .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
+  static {
+    EXPECTED_LOCAL_RESOURCES.put(
+        (String) Whitebox.getInternalState(ApplicationMaster.class, "TACHYON_TARBALL"),
+        Records.newRecord(LocalResource.class));
+    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.TACHYON_SETUP_SCRIPT,
+        Records.newRecord(LocalResource.class));
+  }
+
+  private static final String ENV_CLASSPATH =
+      Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
+  private static final String EXPECTED_WORKER_COMMAND = "test-worker-command";
   private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
       ImmutableMap.<String, String>builder()
+          .put("CLASSPATH", ENV_CLASSPATH)
+          .put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$())
           .put("TACHYON_MASTER_ADDRESS", "masterAddress")
           .put("TACHYON_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
           .build();
   private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =
-      ContainerLaunchContext.newInstance(null, EXPECTED_WORKER_ENVIRONMENT,
+      ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_WORKER_ENVIRONMENT,
           Lists.newArrayList(EXPECTED_WORKER_COMMAND), null, null, null);
+  private static final String EXPECTED_MASTER_COMMAND = "test-master-command";
+  private static final Map<String, String> EXPECTED_MASTER_ENVIRONMENT =
+      ImmutableMap.<String, String>builder()
+          .put("CLASSPATH", ENV_CLASSPATH)
+          .put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$())
+          .build();
+  private static final ContainerLaunchContext EXPECTED_MASTER_CONTEXT =
+      ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_MASTER_ENVIRONMENT,
+          Lists.newArrayList(EXPECTED_MASTER_COMMAND), null, null, null);
 
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
@@ -104,7 +127,7 @@ public class ApplicationMasterTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = new ApplicationMaster(NUM_WORKERS, TACHYON_HOME, MASTER_ADDRESS);
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS);
     mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     // Mock Node Manager client
@@ -124,6 +147,16 @@ public class ApplicationMasterTest {
     PowerMockito.mockStatic(YarnClient.class);
     mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
     Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
+
+    // Partially mock Utils to avoid hdfs IO
+    PowerMockito.mockStatic(YarnUtils.class);
+    Mockito.when(
+        YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
+        .thenReturn(Records.newRecord(LocalResource.class));
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_MASTER))
+        .thenReturn(EXPECTED_MASTER_COMMAND);
+    Mockito.when(YarnUtils.buildCommand(YarnContainerType.TACHYON_WORKER))
+        .thenReturn(EXPECTED_WORKER_COMMAND);
 
     mMaster.start();
   }
@@ -219,6 +252,7 @@ public class ApplicationMasterTest {
     Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
         .thenReturn(nodeReports);
 
+    // Pretend to be the Resource Manager, allocating containers when they are requested.
     Mockito.doAnswer(new Answer<Void>() {
       @Override
       public Void answer(final InvocationOnMock invocation) {
@@ -298,14 +332,8 @@ public class ApplicationMasterTest {
 
     mMaster.onContainersAllocated(Lists.newArrayList(mockContainer));
 
-    String expectedCommand = new CommandBuilder(
-        PathUtils.concatPath(TACHYON_HOME, "integration", "bin", "tachyon-master-yarn.sh"))
-            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
-    ContainerLaunchContext expectedContext = Records.newRecord(ContainerLaunchContext.class);
-    expectedContext.setCommands(Lists.newArrayList(expectedCommand));
-
-    Mockito.verify(mNMClient).startContainer(mockContainer, expectedContext);
+    Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer),
+        Mockito.argThat(getContextMatcher(EXPECTED_MASTER_CONTEXT)));
     Assert.assertEquals("1.2.3.4", mPrivateAccess.getMasterContainerNetAddress());
     Assert.assertTrue(mPrivateAccess.getMasterAllocated().getCount() == 0);
   }
@@ -329,9 +357,10 @@ public class ApplicationMasterTest {
     List<Container> containers = Lists.newArrayList(mockContainer1, mockContainer2);
 
     mMaster.onContainersAllocated(containers);
-
-    Mockito.verify(mNMClient).startContainer(mockContainer1, EXPECTED_WORKER_CONTEXT);
-    Mockito.verify(mNMClient).startContainer(mockContainer2, EXPECTED_WORKER_CONTEXT);
+    Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer1),
+        Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
+    Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer2),
+        Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
     Assert.assertEquals(containers.size(), mPrivateAccess.getWorkerHosts().size());
   }
 
@@ -341,10 +370,13 @@ public class ApplicationMasterTest {
   @Test
   public void mainTest() throws Exception {
     ApplicationMaster mockMaster = Mockito.mock(ApplicationMaster.class);
-    PowerMockito.whenNew(ApplicationMaster.class).withArguments(3, "home", "address")
+    PowerMockito.whenNew(ApplicationMaster.class)
+        .withArguments(Mockito.anyInt(), Mockito.anyString(), Mockito.anyString())
         .thenReturn(mockMaster);
 
-    ApplicationMaster.main(new String[] {"3", "home", "address"});
+    ApplicationMaster.main(new String[] {"-num_workers", "3",
+        "-master_address", "address", "-resource_path", "path"});
+    PowerMockito.verifyNew(ApplicationMaster.class).withArguments(3, "address", "path");
 
     Mockito.verify(mockMaster).start();
     Mockito.verify(mockMaster).requestContainers();
@@ -372,7 +404,6 @@ public class ApplicationMasterTest {
   /**
    * Returns an argument matcher which matches the expected master container request.
    *
-   * @param hosts the hosts in the container request
    * @return the argument matcher
    */
   private ArgumentMatcher<ContainerRequest> getMasterContainerMatcher() {
@@ -383,6 +414,25 @@ public class ApplicationMasterTest {
             new ContainerRequest(Resource.newInstance(MASTER_MEM_MB, MASTER_CPU),
                 new String[] {MASTER_ADDRESS}, null, Priority.newInstance(0), requireLocality);
         return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
+      }
+    };
+  }
+
+  /**
+   * @param expectedContext the context to test for matching
+   * @return an argument matcher which tests for matching the given container launch context
+   */
+  private ArgumentMatcher<ContainerLaunchContext> getContextMatcher(
+      final ContainerLaunchContext expectedContext) {
+    return new ArgumentMatcher<ContainerLaunchContext>() {
+      public boolean matches(Object arg) {
+        if (!(arg instanceof ContainerLaunchContext)) {
+          return false;
+        }
+        ContainerLaunchContext ctx = (ContainerLaunchContext) arg;
+        return ctx.getLocalResources().equals(expectedContext.getLocalResources())
+            && ctx.getCommands().equals(expectedContext.getCommands())
+            && ctx.getEnvironment().equals(expectedContext.getEnvironment());
       }
     };
   }

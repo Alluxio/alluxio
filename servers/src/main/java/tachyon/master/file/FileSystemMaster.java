@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 
@@ -58,12 +59,14 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.FileSystemMasterView;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
@@ -86,14 +89,20 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
+import tachyon.thrift.CommandType;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
+import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.PersistCommandOptions;
+import tachyon.thrift.PersistFile;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
@@ -113,6 +122,8 @@ public final class FileSystemMaster extends MasterBase {
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
   /** This manages the file system mount points. */
   private final MountTable mMountTable;
+  /** Map from worker to the files to persist on that worker. Used by async persistence service. */
+  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
 
   private final PrefixList mWhitelist;
 
@@ -150,6 +161,8 @@ public final class FileSystemMaster extends MasterBase {
     // TODO(gene): Handle default config value for whitelist.
     TachyonConf conf = MasterContext.getConf();
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
+
+    mWorkerToAsyncPersistFiles = Maps.newHashMap();
   }
 
   @Override
@@ -188,7 +201,7 @@ public final class FileSystemMaster extends MasterBase {
       PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
       try {
         Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersisted(true);
+        inode.setPersistenceState(PersistenceState.PERSISTED);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -206,8 +219,6 @@ public final class FileSystemMaster extends MasterBase {
       try {
         setStateFromEntry((SetStateEntry) innerEntry);
       } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof DeleteFileEntry) {
@@ -228,6 +239,12 @@ public final class FileSystemMaster extends MasterBase {
       try {
         unmountFromEntry((DeleteMountPointEntry) innerEntry);
       } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+      try {
+        setPersistingState(((PersistFilesRequestEntry) innerEntry).getFileIdsList());
+      } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -322,6 +339,21 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * Returns the persistence state of a given file.
+   *
+   * @param fileId the file id
+   * @return the persistence state
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  public PersistenceState getPersistenceState(long fileId)
+      throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(fileId);
+      return inode.getPersistenceState();
+    }
+  }
+
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
@@ -348,7 +380,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the list of {@link FileInfo}s
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
@@ -366,6 +398,13 @@ public final class FileSystemMaster extends MasterBase {
       MasterContext.getMasterSource().incFileInfosGot(ret.size());
       return ret;
     }
+  }
+
+  /**
+   * @return a read-only view of the file system master
+   */
+  public FileSystemMasterView getFileSystemMasterView() {
+    return new FileSystemMasterView(this);
   }
 
   /**
@@ -1139,10 +1178,9 @@ public final class FileSystemMaster extends MasterBase {
    * @param inode the inode to start the propagation at
    * @param replayed whether the invocation is a result of replaying the journal
    * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws InvalidPathException if an invalid path is encountered
    */
   private void propagatePersisted(Inode inode, boolean replayed)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException {
     if (!inode.isPersisted()) {
       return;
     }
@@ -1158,7 +1196,7 @@ public final class FileSystemMaster extends MasterBase {
         // Stop if a persisted directory is encountered.
         break;
       }
-      handle.setPersisted(true);
+      handle.setPersistenceState(PersistenceState.PERSISTED);
       if (!replayed) {
         PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
             .setId(inode.getId())
@@ -1503,15 +1541,13 @@ public final class FileSystemMaster extends MasterBase {
    * @param options state options to be set, see {@link SetStateOptions}
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public void setState(long fileId, SetStateOptions options)
-      throws FileDoesNotExistException, InvalidPathException {
+  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
-      SetStateEntry.Builder setState = SetStateEntry.newBuilder()
-          .setId(fileId)
-          .setOpTimeMs(opTimeMs);
+      SetStateEntry.Builder setState =
+          SetStateEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
@@ -1526,8 +1562,177 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
+  /**
+   * Schedules a file for async persistence.
+   *
+   * @param fileId the id of the file for persistence
+   * @return the id of the worker that persistence is scheduled on
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
+    // find the worker
+    long workerId = getWorkerStoringFile(fileId);
+
+    if (workerId == IdUtils.INVALID_WORKER_ID) {
+      LOG.warn("No worker found to schedule async persistence for file {}", fileId);
+      // no worker found, do nothing
+      return workerId;
+    }
+
+    // update the state
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(fileId);
+      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+    }
+
+    synchronized (mWorkerToAsyncPersistFiles) {
+      if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
+        mWorkerToAsyncPersistFiles.put(workerId, Sets.<Long>newHashSet());
+      }
+      mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
+    }
+
+    // TODO(yupeng) TACHYON-1456 add fault tolerance and flush journal
+
+    return workerId;
+  }
+
+  /**
+   * Gets a worker where the given file is stored.
+   *
+   * @param fileId the file id, -1 if no worker can be found
+   * @return the storing worker
+   * @throws FileDoesNotExistException when the file does not exist on any worker
+   */
+  private long getWorkerStoringFile(long fileId) throws FileDoesNotExistException {
+    Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
+    List<FileBlockInfo> blockInfoList;
+    try {
+      blockInfoList = getFileBlockInfoList(fileId);
+
+      for (FileBlockInfo fileBlockInfo : blockInfoList) {
+        for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
+          if (workerBlockCounts.containsKey(blockLocation.workerId)) {
+            workerBlockCounts.put(blockLocation.workerId,
+                workerBlockCounts.get(blockLocation.workerId) + 1);
+          } else {
+            workerBlockCounts.put(blockLocation.workerId, 1);
+          }
+
+          // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the
+          // same worker, for now it returns the first worker that has all the blocks
+          if (workerBlockCounts.get(blockLocation.workerId) == blockInfoList.size()) {
+            return blockLocation.workerId;
+          }
+        }
+      }
+    } catch (FileDoesNotExistException e) {
+      LOG.error("The file {} to persist does not exist", fileId);
+      return IdUtils.INVALID_WORKER_ID;
+    } catch (InvalidPathException e) {
+      LOG.error("The file {} to persist does not exist", fileId);
+      return IdUtils.INVALID_WORKER_ID;
+    }
+
+    if (workerBlockCounts.size() == 0) {
+      LOG.error("The file " + fileId + " does not exist on any worker");
+      return IdUtils.INVALID_WORKER_ID;
+    }
+
+    LOG.error("Not all the blocks of file {} stored on the same worker", fileId);
+    return IdUtils.INVALID_WORKER_ID;
+  }
+
+  /**
+   * Polls the files to send to the given worker for persistence. It also removes files from the
+   * worker entry in {@link #mWorkerToAsyncPersistFiles}.
+   *
+   * @param workerId the worker id
+   * @return the list of files
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path is invalid
+   */
+  private List<PersistFile> pollFilesToCheckpoint(long workerId)
       throws FileDoesNotExistException, InvalidPathException {
+    List<PersistFile> filesToPersist = Lists.newArrayList();
+    List<Long> fileIdsToPersist = Lists.newArrayList();
+
+    synchronized (mWorkerToAsyncPersistFiles) {
+      synchronized (mInodeTree) {
+        if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
+          return filesToPersist;
+        }
+
+        Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
+        for (long fileId : scheduledFiles) {
+          InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+          if (inode.isCompleted()) {
+            fileIdsToPersist.add(fileId);
+            List<Long> blockIds = Lists.newArrayList();
+            for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+              blockIds.add(fileBlockInfo.blockInfo.blockId);
+            }
+
+            filesToPersist.add(new PersistFile(fileId, blockIds));
+            // update the inode file persisence state
+            inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+          }
+        }
+
+      }
+    }
+    mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
+
+    // write to journal
+    PersistFilesRequestEntry persistFilesRequest =
+        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
+    flushJournal();
+    return filesToPersist;
+  }
+
+  /**
+   * Updates a list of files as being persisted.
+   *
+   * @param fileIds the id of the files
+   * @throws FileDoesNotExistException when a file does not exist
+   */
+  private void setPersistingState(List<Long> fileIds) throws FileDoesNotExistException {
+    for (long fileId : fileIds) {
+      InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
+      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
+    }
+  }
+
+  /**
+   * Instructs a worker to persist the files.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @param persistedFiles the files that persisted on the worker
+   * @return the command for persisting the blocks of a file
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   */
+  public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
+      throws FileDoesNotExistException, InvalidPathException {
+    for (long fileId : persistedFiles) {
+      SetStateOptions.Builder builder = new SetStateOptions.Builder().setPersisted(true);
+      setState(fileId, builder.build());
+    }
+
+    // get the files for the given worker to checkpoint
+    List<PersistFile> filesToCheckpoint = pollFilesToCheckpoint(workerId);
+    if (!filesToCheckpoint.isEmpty()) {
+      LOG.debug("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
+    }
+    FileSystemCommandOptions options = new FileSystemCommandOptions();
+    options.setPersistOptions(new PersistCommandOptions(filesToCheckpoint));
+    return new FileSystemCommand(CommandType.Persist, options);
+  }
+
+  private void setStateInternal(long fileId, long opTimeMs, SetStateOptions options)
+      throws FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
     if (options.hasPinned()) {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
@@ -1553,7 +1758,7 @@ public final class FileSystemMaster extends MasterBase {
       Preconditions.checkArgument(options.getPersisted(),
           PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
-        file.setPersisted(true);
+        file.setPersistenceState(PersistenceState.PERSISTED);
         propagatePersisted(file, false);
         file.setLastModificationTimeMs(opTimeMs);
         MasterContext.getMasterSource().incFilesPersisted(1);
@@ -1561,8 +1766,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void setStateFromEntry(SetStateEntry entry)
-      throws FileDoesNotExistException, InvalidPathException {
+  private void setStateFromEntry(SetStateEntry entry) throws FileDoesNotExistException {
     SetStateOptions.Builder builder = new SetStateOptions.Builder();
     if (entry.hasPinned()) {
       builder.setPinned(entry.getPinned());

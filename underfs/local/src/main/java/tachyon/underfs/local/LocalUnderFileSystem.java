@@ -45,6 +45,11 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public class LocalUnderFileSystem extends UnderFileSystem {
 
+  /**
+   * Constructs a new local node.
+   *
+   * @param conf the configuration for Tachyon
+   */
   public LocalUnderFileSystem(TachyonConf conf) {
     super(conf);
   }

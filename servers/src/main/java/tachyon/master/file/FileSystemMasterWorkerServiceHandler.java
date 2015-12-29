@@ -15,21 +15,27 @@
 
 package tachyon.master.file;
 
+import java.util.List;
 import java.util.Set;
+
+import org.apache.thrift.TException;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemMasterWorkerService;
 import tachyon.thrift.TachyonTException;
 
 /**
  * This class is a Thrift handler for file system master RPCs invoked by a Tachyon worker.
  */
-public final class FileSystemMasterWorkerServiceHandler implements
-    FileSystemMasterWorkerService.Iface {
+public final class FileSystemMasterWorkerServiceHandler
+    implements FileSystemMasterWorkerService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
   /**
@@ -59,5 +65,17 @@ public final class FileSystemMasterWorkerServiceHandler implements
   @Override
   public Set<Long> getPinIdList() {
     return mFileSystemMaster.getPinIdList();
+  }
+
+  @Override
+  public FileSystemCommand heartbeat(long workerId, List<Long> persistedFiles)
+      throws TachyonTException, TException {
+    try {
+      return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
+    } catch (FileDoesNotExistException e) {
+      throw e.toTachyonTException();
+    } catch (InvalidPathException e) {
+      throw e.toTachyonTException();
+    }
   }
 }

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.lineage;
+package tachyon.worker.file;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
@@ -34,36 +34,35 @@ import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * This class is responsible for managing all top level components of the lineage worker.
+ * This class is responsible for managing all top level components of the file system worker.
  */
-public final class LineageWorker extends WorkerBase {
-  /** Logic for managing lineage file persistence */
-  private final LineageDataManager mLineageDataManager;
-  /** Client for lineage master communication. */
-  private final LineageMasterClient mLineageMasterWorkerClient;
+public final class FileSystemWorker extends WorkerBase {
+  /** Logic for managing file persistence */
+  private final FileDataManager mFileDataManager;
+  /** Client for file system master communication. */
+  private final FileSystemMasterClient mFileSystemMasterWorkerClient;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
 
-  /** The service that persists files for lineage checkpointing */
+  /** The service that persists files */
   private Future<?> mFilePersistenceService;
 
   /**
-   * Creates a new instance of {@link LineageWorker}.
+   * Creates a new instance of {@link FileSystemWorker}.
    *
    * @param blockDataManager a block data manager handle
    * @throws IOException if an I/O error occurs
    */
-  public LineageWorker(BlockDataManager blockDataManager) throws IOException {
-    super(Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("lineage-worker-heartbeat-%d",
-        true)));
+  public FileSystemWorker(BlockDataManager blockDataManager) throws IOException {
+    super(Executors.newFixedThreadPool(3,
+        ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     Preconditions.checkState(WorkerIdRegistry.getWorkerId() != 0, "Failed to register worker");
 
     mTachyonConf = WorkerContext.getConf();
-    mLineageDataManager =
-        new LineageDataManager(Preconditions.checkNotNull(blockDataManager));
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockDataManager));
 
     // Setup MasterClientBase
-    mLineageMasterWorkerClient = new LineageMasterClient(
+    mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
   }
 
@@ -71,10 +70,10 @@ public final class LineageWorker extends WorkerBase {
    * Starts the lineage worker service.
    */
   public void start() {
-    mFilePersistenceService =
-        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.WORKER_LINEAGE_SYNC,
-            new LineageWorkerMasterSyncExecutor(mLineageDataManager, mLineageMasterWorkerClient),
-            mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
+    mFilePersistenceService = getExecutorService()
+        .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
+            new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
+            mTachyonConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
   /**
@@ -84,7 +83,7 @@ public final class LineageWorker extends WorkerBase {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
-    mLineageMasterWorkerClient.close();
+    mFileSystemMasterWorkerClient.close();
     getExecutorService().shutdown();
   }
 }
