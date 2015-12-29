@@ -46,10 +46,10 @@ public final class DuCommand extends WithWildCardPathCommand {
   }
 
   /**
-   * Calculates the size of a path (file or folder) specified by a TachyonURI.
+   * Calculates the size of a path (file or folder) specified by a {@link TachyonURI}.
    *
-   * @param tachyonFS A TachyonFileSystem
-   * @param path A TachyonURI denoting the path
+   * @param tachyonFS A {@link TachyonFileSystem}
+   * @param path A {@link TachyonURI} denoting the path
    * @return total size of the specified path in byte
    * @throws IOException
    */
@@ -72,5 +72,10 @@ public final class DuCommand extends WithWildCardPathCommand {
       }
     }
     return sizeInBytes;
+  }
+
+  @Override
+  public String getUsage() {
+    return "du <path>";
   }
 }

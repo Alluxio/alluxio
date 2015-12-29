@@ -49,6 +49,14 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
   private volatile Thread mCurrentMasterThread = null;
 
+  /**
+   * Constructs a new {@link LeaderSelectorClient}.
+   *
+   * @param zookeeperAddress the address to Zookeeper
+   * @param electionPath the election path
+   * @param leaderPath the path of the leader
+   * @param name the name
+   */
   public LeaderSelectorClient(String zookeeperAddress, String electionPath, String leaderPath,
       String name) {
     mZookeeperAddress = zookeeperAddress;
@@ -86,12 +94,19 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   }
 
   /**
+   * Gets the name of the leader.
+   *
    * @return the leader name
    */
   public String getName() {
     return mName;
   }
 
+  /**
+   * Gets the participants.
+   *
+   * @return the list of participants
+   */
   public List<String> getParticipants() {
     try {
       List<Participant> participants =
@@ -107,6 +122,11 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     }
   }
 
+  /**
+   * Checks if the client is the leader.
+   *
+   * @return true if the client is the leader, false otherwise
+   */
   public boolean isLeader() {
     return mIsLeader.get();
   }
