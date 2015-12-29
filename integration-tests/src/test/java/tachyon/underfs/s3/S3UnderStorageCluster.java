@@ -32,18 +32,16 @@ import tachyon.underfs.UnderFileSystemCluster;
  */
 public class S3UnderStorageCluster extends UnderFileSystemCluster {
 
-  private static final String INTEGRATION_S3_ACCESS_KEY = "accessKey";
-  private static final String INTEGRATION_S3_SECRET_KEY = "secretKey";
   private static final String INTEGRATION_S3_BUCKET = "s3Bucket";
 
   private String mS3Bucket;
 
   public S3UnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
-    String awsAccessKey = System.getProperty(INTEGRATION_S3_ACCESS_KEY);
-    String awsSecretKey = System.getProperty(INTEGRATION_S3_SECRET_KEY);
-    System.setProperty(Constants.S3_ACCESS_KEY, awsAccessKey);
-    System.setProperty(Constants.S3_SECRET_KEY, awsSecretKey);
+    String s3AccessKey = System.getProperty(Constants.S3_ACCESS_KEY);
+    String s3AccessSecretKey = System.getProperty(Constants.S3_SECRET_KEY);
+    tachyonConf.set(Constants.S3_ACCESS_KEY, s3AccessKey);
+    tachyonConf.set(Constants.S3_SECRET_KEY, s3AccessSecretKey);
     mS3Bucket = System.getProperty(INTEGRATION_S3_BUCKET);
     mBaseDir = mS3Bucket + UUID.randomUUID();
   }
