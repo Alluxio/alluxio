@@ -34,17 +34,24 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockStoreContext;
+import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.LocalFirstPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.client.util.ClientMockUtils;
 import tachyon.client.util.ClientTestUtils;
 import tachyon.client.worker.BlockWorkerClient;
@@ -132,6 +139,9 @@ public class FileOutStreamTest {
             return outStreamMap.get(blockId);
           }
         });
+    BlockWorkerInfo workerInfo =
+        new BlockWorkerInfo(new WorkerNetAddress("localhost", 1, 2, 3), Constants.GB, 0);
+    Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
@@ -348,6 +358,28 @@ public class FileOutStreamTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     mTestStream.write(null, 0, 0);
+  }
+
+  /**
+   * Tests the location policy created with different options.
+   */
+  @Test
+  public void locationPolicyTest() throws IOException {
+    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
+        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    mTestStream = createTestStream(FILE_NAME, options);
+
+    // by default local first policy used
+    FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
+    Assert.assertTrue(policy instanceof LocalFirstPolicy);
+
+    // configure a different policy
+    options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
+        .setUnderStorageType(UnderStorageType.NO_PERSIST)
+        .setLocationPolicy(new RoundRobinPolicy()).build();
+    mTestStream = createTestStream(FILE_NAME, options);
+    policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
+    Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
 
   private void verifyIncreasingBytesWritten(int len) {
