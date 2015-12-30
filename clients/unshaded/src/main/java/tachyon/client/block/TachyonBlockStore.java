@@ -17,12 +17,16 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -30,6 +34,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -74,6 +79,28 @@ public final class TachyonBlockStore {
       return masterClient.getBlockInfo(blockId);
     } catch (TachyonException e) {
       throw new IOException(e);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  /**
+   * @return the info of all active block workers
+   * @throws IOException when work info list cannot be obtained from master
+   * @throws TachyonException if network connection failed
+   */
+  public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, TachyonException {
+    List<BlockWorkerInfo> infoList = Lists.newArrayList();
+    BlockMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      for (WorkerInfo workerInfo : masterClient.getWorkerInfoList()) {
+        WorkerNetAddress address = new WorkerNetAddress(workerInfo.getAddress().getHost(),
+            workerInfo.getAddress().getRpcPort(), workerInfo.getAddress().getDataPort(),
+            workerInfo.getAddress().getWebPort());
+        infoList.add(
+            new BlockWorkerInfo(address, workerInfo.getCapacityBytes(), workerInfo.getUsedBytes()));
+      }
+      return infoList;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -131,8 +158,8 @@ public final class TachyonBlockStore {
    * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
    *
    * @param blockId the block to write
-   * @param blockSize the standard block size to write, or -1 if the block already exists (and
-   *                  this stream is just storing the block in Tachyon again)
+   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
+   *        stream is just storing the block in Tachyon again)
    * @param location the worker to write the block to, fails if the worker cannot serve the request
    * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
