@@ -41,8 +41,6 @@ import tachyon.client.block.BufferedBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockInStream;
 import tachyon.client.block.TestBufferedBlockOutStream;
-import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
@@ -104,7 +102,7 @@ public class FileInStreamTest {
         }
       });
 
-      Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.eq(-1L),
+      Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
           Mockito.any(WorkerNetAddress.class))).thenReturn(mCacheStreams.get(i));
     }
     mInfo.setBlockIds(blockIds);
