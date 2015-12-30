@@ -18,7 +18,7 @@ package tachyon.client.block;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.WorkerNetAddress;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Information of an active block worker.

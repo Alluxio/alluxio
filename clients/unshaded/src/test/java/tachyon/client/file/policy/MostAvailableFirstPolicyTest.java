@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Tests {@link MostAvailableFirstPolicy}.

@@ -24,9 +24,9 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Tests {@link LocalFirstPolicy}.

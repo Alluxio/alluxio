@@ -38,8 +38,8 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.NetAddress;
 import tachyon.util.OSUtils;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Common network address related utilities shared by all components in Tachyon.
@@ -499,7 +499,7 @@ public final class NetworkAddressUtils {
    * @return the resolved FQDN host name
    * @throws UnknownHostException if the host is not known
    */
-  public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
+  public static String getFqdnHost(WorkerNetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getHost());
   }
 
@@ -559,10 +559,10 @@ public final class NetworkAddressUtils {
    * @param netAddress the input network address representation
    * @return InetSocketAddress
    */
-  public static InetSocketAddress getRpcPortSocketAddress(NetAddress netAddress) {
+  public static InetSocketAddress getRpcPortSocketAddress(WorkerNetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
-      int port = netAddress.rpcPort;
+      int port = netAddress.getRpcPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);
@@ -575,10 +575,10 @@ public final class NetworkAddressUtils {
    * @param netAddress the input network address representation
    * @return InetSocketAddress
    */
-  public static InetSocketAddress getDataPortSocketAddress(NetAddress netAddress) {
+  public static InetSocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress) {
     try {
       String host = getFqdnHost(netAddress);
-      int port = netAddress.dataPort;
+      int port = netAddress.getDataPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
       throw Throwables.propagate(e);

@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
@@ -36,6 +35,7 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.

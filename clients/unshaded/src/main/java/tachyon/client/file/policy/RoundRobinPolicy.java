@@ -18,8 +18,8 @@ package tachyon.client.file.policy;
 import java.util.Collections;
 import java.util.List;
 
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers

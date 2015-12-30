@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.List;
 
 import tachyon.client.ClientContext;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,

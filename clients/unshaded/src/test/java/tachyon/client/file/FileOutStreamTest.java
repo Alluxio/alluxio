@@ -40,7 +40,6 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -59,6 +58,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Tests for the {@link FileOutStream} class.

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker;
 
 import com.google.common.base.Objects;
 

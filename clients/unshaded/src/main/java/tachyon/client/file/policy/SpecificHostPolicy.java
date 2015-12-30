@@ -19,8 +19,8 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
