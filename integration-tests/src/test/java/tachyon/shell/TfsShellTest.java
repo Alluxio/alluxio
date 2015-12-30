@@ -888,7 +888,6 @@ public class TfsShellTest {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
-    // TODO
     String testUser = "test_user_lsWildcard";
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
