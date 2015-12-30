@@ -29,6 +29,12 @@ import tachyon.thrift.FileInfo;
  */
 public final class RmCommand extends WithWildCardPathCommand {
 
+  /**
+   * Constructs a new instance to remove the file specified by argv.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public RmCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
