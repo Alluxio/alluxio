@@ -22,10 +22,12 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 
 /**
  * Reader to access a Tachyon key-value store.
  */
+@PublicApi
 public class KeyValueStoreReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
