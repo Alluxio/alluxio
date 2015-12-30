@@ -21,9 +21,11 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.thrift.CreateTOptions;
 
 @PublicApi
 public final class CreateFileOptions {
+  private boolean mRecursive;
   private long mBlockSizeBytes;
   private String mHostname;
   private TachyonStorageType mTachyonStorageType;
@@ -41,6 +43,7 @@ public final class CreateFileOptions {
    * Creates a new instance with defaults from the configuration.
    */
   private CreateFileOptions() {
+    mRecursive = false;
     mBlockSizeBytes = ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mHostname = null;
     WriteType defaultWriteType =
@@ -105,6 +108,15 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param recursive whether or not to recursively create the file's parents
+   * @return the updated object
+   */
+  public CreateFileOptions setRecurisve(boolean recursive) {
+    mRecursive = recursive;
+    return this;
+  }
+
+  /**
    * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, no matter whether
    *        the file is pinned
@@ -141,4 +153,15 @@ public final class CreateFileOptions {
     return sb.toString();
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
+  public CreateTOptions toThrift() {
+    CreateTOptions options = new CreateTOptions();
+    options.setBlockSizeBytes(mBlockSizeBytes);
+    options.setPersisted(mUnderStorageType.isSyncPersist());
+    options.setRecursive(mRecursive);
+    options.setTtl(mTTL);
+    return options;
+  }
 }
