@@ -177,7 +177,8 @@ interface FileSystem {
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the path does not exist
    */
-  URIStatus getStatus(TachyonURI path) throws FileDoesNotExistException, IOException;
+  URIStatus getStatus(TachyonURI path)
+      throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
    * Gets the {@link URIStatus} object that represents the metadata of a Tachyon path.
@@ -189,7 +190,7 @@ interface FileSystem {
    * @throws FileDoesNotExistException if the path does not exist
    */
   URIStatus getStatus(TachyonURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, IOException;
+      throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
    * Convenience method for list status with default options.

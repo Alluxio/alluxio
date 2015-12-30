@@ -35,8 +35,10 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -77,7 +79,7 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
-    return new FileOutStream(path, new OutStreamOptions.Builder().build());
+    return new FileOutStream(path, options.toOutStreamOptions());
   }
 
   @Override
@@ -89,7 +91,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void delete(TachyonURI path, DeleteOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException {
-
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      masterClient.delete(path, options);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
@@ -101,7 +108,16 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(TachyonURI path, ExistsOptions options)
       throws InvalidPathException, IOException, TachyonException {
-    return false;
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      // TODO(calvin): Make this more efficient
+      masterClient.getFileInfo(path);
+      return true;
+    } catch (FileDoesNotExistException e) {
+      return false;
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
@@ -113,18 +129,29 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void free(TachyonURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      masterClient.free(path, options);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
-  public URIStatus getStatus(TachyonURI path) throws FileDoesNotExistException, IOException {
+  public URIStatus getStatus(TachyonURI path)
+      throws FileDoesNotExistException, IOException, TachyonException {
     return getStatus(path, GetStatusOptions.defaults());
   }
 
   @Override
   public URIStatus getStatus(TachyonURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, IOException {
-    return null;
+      throws FileDoesNotExistException, IOException, TachyonException {
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      return new URIStatus(masterClient.getFileInfo(path));
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
@@ -136,7 +163,18 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(TachyonURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    return null;
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    List<FileInfo> fileInfos;
+    try {
+      fileInfos = masterClient.getFileInfoList(path);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
+    List<URIStatus> uriStatuses = new ArrayList<URIStatus>(fileInfos.size());
+    for (FileInfo info : fileInfos) {
+      uriStatuses.add(new URIStatus(info));
+    }
+    return uriStatuses;
   }
 
   @Override
@@ -148,7 +186,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    return null;
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      return masterClient.loadMetadata(path, options);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override

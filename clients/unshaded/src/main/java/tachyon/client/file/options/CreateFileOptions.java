@@ -138,6 +138,13 @@ public final class CreateFileOptions {
     return this;
   }
 
+  public OutStreamOptions toOutStreamOptions() {
+    OutStreamOptions.Builder builder = new OutStreamOptions.Builder();
+    builder.setBlockSizeBytes(mBlockSizeBytes).setHostname(mHostname).setTachyonStorageType
+        (mTachyonStorageType).setTTL(mTTL).setUnderStorageType(mUnderStorageType);
+    return builder.build();
+  }
+
   /**
    * @return the name : value pairs for all the fields
    */
