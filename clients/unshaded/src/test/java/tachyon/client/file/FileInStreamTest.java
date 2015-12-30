@@ -43,6 +43,8 @@ import tachyon.client.block.BufferedBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.block.TestBufferedBlockInStream;
 import tachyon.client.block.TestBufferedBlockOutStream;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
