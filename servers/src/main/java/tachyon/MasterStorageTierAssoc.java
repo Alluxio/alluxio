@@ -31,7 +31,7 @@ public class MasterStorageTierAssoc extends StorageTierAssoc {
   /**
    * Creates a new instance of {@link MasterStorageTierAssoc}.
    *
-   * @param storageTierAliases storage tier aliases
+   * @param storageTierAliases a list of storage tier aliases
    */
   public MasterStorageTierAssoc(List<String> storageTierAliases) {
     super(storageTierAliases);

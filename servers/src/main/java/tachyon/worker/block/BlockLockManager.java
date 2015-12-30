@@ -140,7 +140,6 @@ public final class BlockLockManager {
 
   /**
    * Releases the lock with the specified session and block id.
-   * TODO(calvin): Remove when lock and reads are separate operations.
    *
    * @param sessionId the session id
    * @param blockId the block id

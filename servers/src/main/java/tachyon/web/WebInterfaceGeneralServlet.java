@@ -136,7 +136,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * List the {@link StorageTierInfo} objects of each storage level alias.
+   * Lists the {@link StorageTierInfo} objects of each storage level alias.
    *
    * @return the list of {@link StorageTierInfo} objects, in order from highest tier to lowest
    */

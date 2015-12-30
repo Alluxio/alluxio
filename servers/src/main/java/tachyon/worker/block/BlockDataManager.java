@@ -401,12 +401,12 @@ public final class BlockDataManager {
 
   /**
    * Releases the lock with the specified session and block id.
-   * TODO(calvin): Remove when lock and reads are separate operations.
    *
    * @param sessionId the session id
    * @param blockId the block id
    * @throws BlockDoesNotExistException if block id cannot be found
    */
+  // TODO(calvin): Remove when lock and reads are separate operations.
   public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     mBlockStore.unlockBlock(sessionId, blockId);
   }

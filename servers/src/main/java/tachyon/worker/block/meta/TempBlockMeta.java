@@ -23,7 +23,7 @@ public class TempBlockMeta extends BlockMetaBase {
   private long mTempBlockSize;
 
   /**
-   * Creates a new instace of {@link TempBlockMeta}.
+   * Creates a new instance of {@link TempBlockMeta}.
    *
    * @param sessionId the session id
    * @param blockId the block id
