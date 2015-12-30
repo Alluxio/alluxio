@@ -40,7 +40,7 @@ import tachyon.util.CommonUtils;
  */
 public class TfsShell implements Closeable {
   /**
-   * Main method, starts a new TfsShell
+   * Main method, starts a new TfsShell.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
    */
