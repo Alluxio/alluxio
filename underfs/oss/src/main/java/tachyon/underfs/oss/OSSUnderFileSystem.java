@@ -46,7 +46,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Under file system implementation for Aliyun OSS using the oss SDK library.
  */
-public class OSSUnderFileSystem extends UnderFileSystem {
+public final class OSSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory */
@@ -372,7 +372,6 @@ public class OSSUnderFileSystem extends UnderFileSystem {
       LOG.warn("Failed to get Object {}, return null", key);
       return null;
     }
-
   }
 
   /**
@@ -400,11 +399,11 @@ public class OSSUnderFileSystem extends UnderFileSystem {
   private ClientConfiguration initializeOSSClientConfig(TachyonConf tachyonConf) {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
-        tachyonConf.getInt("tachyon.underfs.oss.connection.timeout.ms"));
+        tachyonConf.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf.setSocketTimeout(
-        tachyonConf.getInt("tachyon.underfs.oss.socket.timeout.ms"));
-    ossClientConf.setConnectionTTL(tachyonConf.getLong("tachyon.underfs.oss.connection.ttl"));
-    ossClientConf.setMaxConnections(tachyonConf.getInt("tachyon.underfs.oss.connection.max"));
+        tachyonConf.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf.setConnectionTTL(tachyonConf.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
+    ossClientConf.setMaxConnections(tachyonConf.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
   }
 
