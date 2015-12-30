@@ -20,7 +20,14 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link LoadMetadataOptions} class.
+ */
 public class LoadMetadataOptionsTest {
+
+  /**
+   * Tests that building a {@link LoadMetadataOptions} works.
+   */
   @Test
   public void builderTest() {
     Random random = new Random();
@@ -34,6 +41,9 @@ public class LoadMetadataOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
   }
 
+  /**
+   * Tests that building a {@link LoadMetadataOptions} with the defaults works.
+   */
   @Test
   public void defaultsTest() {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();

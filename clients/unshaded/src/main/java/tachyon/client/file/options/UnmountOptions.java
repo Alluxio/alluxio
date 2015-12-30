@@ -18,8 +18,15 @@ package tachyon.client.file.options;
 import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for unmounting a path.
+ */
 @PublicApi
 public final class UnmountOptions {
+
+  /**
+   * Builder for {@link UnmountOptions}.
+   */
   public static class Builder implements OptionsBuilder<UnmountOptions> {
     /**
      * Creates a new builder for {@link UnmountOptions}.

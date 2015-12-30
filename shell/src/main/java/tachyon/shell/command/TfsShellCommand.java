@@ -44,4 +44,9 @@ public interface TfsShellCommand {
    * @throws IOException when the command fails
    */
   void run(String... args) throws IOException;
+
+  /**
+   * @return the usage information of the command
+   */
+  String getUsage();
 }

@@ -45,4 +45,9 @@ public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
     long usedBytes = TachyonBlockStore.get().getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
   }
+
+  @Override
+  public String getUsage() {
+    return "getUsedBytes";
+  }
 }

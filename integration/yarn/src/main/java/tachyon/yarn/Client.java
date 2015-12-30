@@ -15,10 +15,10 @@
 
 package tachyon.yarn;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,9 +30,6 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
@@ -42,8 +39,6 @@ import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
-import org.apache.hadoop.yarn.api.records.LocalResourceType;
-import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -52,15 +47,16 @@ import org.apache.hadoop.yarn.client.api.YarnClientApplication;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
-import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.yarn.YarnUtils.YarnContainerType;
 
 /**
  * The client to submit the application to run Tachyon to YARN ResourceManager.
@@ -69,9 +65,10 @@ import tachyon.util.io.PathUtils;
  * Launch Tachyon on YARN:
  * </p>
  * {@code
- * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
- * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
- * -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
+ * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client \
+ *     -num_workers NumTachyonWorkers \
+ *     -master_address MasterAddress \
+ *     -resource_path ResourcePath
  * }
  *
  * <p>
@@ -101,11 +98,9 @@ public final class Client {
   /** Number of virtual cores to request for running the ApplicationMaster. */
   private int mAmVCores;
   /** ApplicationMaster jar file on HDFS. */
-  private String mAppMasterJarHdfs;
+  private String mResourcePath;
   /** Number of Tachyon workers. */
   private int mNumWorkers;
-  /** Tachyon home path on YARN containers. */
-  private String mTachyonHome;
   /** Address to run Tachyon master. */
   private String mMasterAddress;
   /** Whether to allow multiple workers on a single host */
@@ -125,7 +120,8 @@ public final class Client {
         "Amount of memory in MB to request to run ApplicationMaster. Default 256");
     mOptions.addOption("am_vcores", true,
         "Amount of virtual cores to request to run ApplicationMaster. Default 1");
-    mOptions.addOption("jar", true, "(Required) Jar file containing the Application Master");
+    mOptions.addOption("resource_path", true,
+        "(Required) HDFS path containing the Application Master");
     mOptions.addOption("tachyon_home", true,
         "(Required) Path of the home dir of Tachyon deployment on YARN slave machines");
     mOptions.addOption("master_address", true, "(Required) Address to run Tachyon master");
@@ -142,6 +138,7 @@ public final class Client {
       Client client = new Client();
       System.out.println("Initializing Client");
       if (!client.parseArgs(args)) {
+        System.out.println("Cannot parse commandline: " + Arrays.toString(args));
         System.exit(0);
       }
       System.out.println("Starting Client");
@@ -192,16 +189,14 @@ public final class Client {
       printUsage();
       return false;
     }
-    if (!cliParser.hasOption("jar") || !cliParser.hasOption("tachyon_home")
-        || !cliParser.hasOption("master_address")) {
+    if (!cliParser.hasOption("resource_path")) {
+      System.out.println("Required to specify resource_path");
       printUsage();
       return false;
     }
 
-    mAppMasterJarHdfs = cliParser.getOptionValue("jar");
-    mTachyonHome = cliParser.getOptionValue("tachyon_home");
+    mResourcePath = cliParser.getOptionValue("resource_path");
     mMasterAddress = cliParser.getOptionValue("master_address");
-
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
@@ -285,34 +280,31 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    final String amCommand = new CommandBuilder(
-        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-application-master.sh"))
-            .addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
-            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
+    Map<String, String> applicationMasterArgs = ImmutableMap.<String, String>of(
+        "-num_workers", Integer.toString(mNumWorkers),
+        "-master_address", mMasterAddress,
+        "-resource_path", mResourcePath);
+
+    final String amCommand =
+        YarnUtils.buildCommand(YarnContainerType.APPLICATION_MASTER, applicationMasterArgs);
 
     System.out.println("ApplicationMaster command: " + amCommand);
     mAmContainer.setCommands(Collections.singletonList(amCommand));
 
-    // Setup jar for ApplicationMaster
-    LocalResource appMasterJar = Records.newRecord(LocalResource.class);
-    setupAppMasterJar(appMasterJar);
-    mAmContainer.setLocalResources(Collections.singletonMap("tachyon.jar", appMasterJar));
+    // Setup local resources
+    Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
+    localResources.put("tachyon.tar.gz",
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.tar.gz"));
+    localResources.put("tachyon-yarn-setup.sh",
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon-yarn-setup.sh"));
+    localResources.put("tachyon.jar",
+        YarnUtils.createLocalResourceOfFile(mYarnConf, mResourcePath + "/tachyon.jar"));
+    mAmContainer.setLocalResources(localResources);
 
     // Setup CLASSPATH for ApplicationMaster
     Map<String, String> appMasterEnv = new HashMap<String, String>();
     setupAppMasterEnv(appMasterEnv);
     mAmContainer.setEnvironment(appMasterEnv);
-  }
-
-  private void setupAppMasterJar(LocalResource appMasterJar) throws IOException {
-    Path jarHdfsPath = new Path(mAppMasterJarHdfs); // known path to jar file on HDFS
-    FileStatus jarStat = FileSystem.get(mYarnConf).getFileStatus(jarHdfsPath);
-    appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(jarHdfsPath));
-    appMasterJar.setSize(jarStat.getLen());
-    appMasterJar.setTimestamp(jarStat.getModificationTime());
-    appMasterJar.setType(LocalResourceType.FILE);
-    appMasterJar.setVisibility(LocalResourceVisibility.PUBLIC);
   }
 
   private void setupAppMasterEnv(Map<String, String> appMasterEnv) {
@@ -324,10 +316,8 @@ public final class Client {
     }
     Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
-    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(mTachyonHome, "conf")
-        + File.separator, ApplicationConstants.CLASS_PATH_SEPARATOR);
-    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(mTachyonHome, "bin")
-        + File.separator, ApplicationConstants.CLASS_PATH_SEPARATOR);
+
+    appMasterEnv.put("TACHYON_HOME", ApplicationConstants.Environment.PWD.$());
   }
 
   /**

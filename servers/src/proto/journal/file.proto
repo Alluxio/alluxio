@@ -33,7 +33,7 @@ message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
   optional string name = 3;
-  optional bool persisted = 4;
+  optional string persistence_state = 4;
   optional bool pinned = 5;
   optional int64 creation_time_ms = 6;
   optional int64 last_modification_time_ms = 7;
@@ -53,7 +53,7 @@ message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
   optional string name = 3;
-  optional bool persisted = 4;
+  optional string persistence_state = 4;
   optional bool pinned = 5;
   optional int64 creation_time_ms = 6;
   optional int64 last_modification_time_ms = 7;

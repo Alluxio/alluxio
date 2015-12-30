@@ -44,33 +44,68 @@ metrics in JSON format.
 
 # Supported Metrics
 
-The following shows the details of the available metrics.
+Metrics are classified as:
 
-### Master
+* General: overall measures of the cluster (e.g. CapacityTotal).
+* Logical Operations: number of operations performed (e.g. FilesCreated).
+* RPC Invocations: number of RPC invocations per operation (e.g. CreateFileOps).
+
+The following shows the details of the available metrics. 
+
+## Master
+
+### General
 
 * CapacityTotal: Total capacity of the file system in bytes.
 * CapacityUsed: Used capacity of the file system in bytes.
 * CapacityFree: Free capacity of the file system in bytes.
+* PathsTotal: Total number of files and directories in the file system.
 * UnderFsCapacityTotal: Total capacity of the under file system in bytes.
 * UnderFsCapacityUsed: Used capacity of the under file system in bytes.
 * UnderFsCapacityFree: Free capacity of the under file system in bytes.
 * Workers: Number of the workers.
-* FilesTotal: Total number of files and directories in the file system.
-* FilesCheckpointed: Total number of the files checkpointed.
-* FilesCreated: Total number of files and directories created.
-* FilesDeleted: Total number of files and directories deleted.
-* FilesPinned: Total number of the files pinned.
-* FilesRenamed: Total number of file and directories renamed.
-* CreateFileOps: Total number of the CreateFile operations.
-* DeleteFileOps: Total number of the DeleteFile operations.
-* GetFileStatusOps: Total number of the getClientFileInfo operations.
-* RenameFileOps: Total number of the RenameFile operations.
 
-### Worker
+### Logical Operations
+
+* DirectoriesCreated: Total number of directories created.
+* FileBlockInfosGot: Total number of the file block infos retrieved.
+* FileInfosGot: Total number of the file infos retrieved.
+* FilesCompleted: Total number of files completed.
+* FilesCreated: Total number of files created.
+* FilesFreed: Total number of files freed.
+* FilesPersisted: Total number of the files persisted.
+* FilesPinned: Total number of the files pinned.
+* NewBlocksGot: Total number of new blocks got.
+* PathsDeleted: Total number of files and directories deleted.
+* PathsMounted: Total number of paths mounted.
+* PathsRenamed: Total number of files and directories renamed.
+* PathsUnmounted: Total number of paths unmounted.
+
+### RPC Invocations
+
+* CompleteFileOps: Total number of the CompleteFile operations.
+* CreateDirectoryOps: Total number of the CreateDirectory operations.
+* CreateFileOps: Total number of the CreateFile operations.
+* DeletePathOps: Total number of the DeletePath operations.
+* FreeFileOps: Total number of FreeFile operations.
+* GetFileBlockInfoOps: Total number of GetFileBlockInfo operations.
+* GetFileInfoOps: Total number of GetFileInfo operations.
+* GetNewBlockOps: Total number of GetNewBlock operations.
+* MountOps: Total number of Mount operations.
+* RenamePathOps: Total number of the RenamePath operations.
+* SetStateOps: Total number of the SetState operations.
+* UnmountOps: Total number of Unmount operations.
+
+## Worker
+
+### General
 
 * CapacityTotal: Total capacity of the worker in bytes.
 * CapacityUsed: Used capacity of the worker in bytes.
 * CapacityFree: Free capacity of the worker in bytes.
+
+### Logical Operations
+
 * BlocksAccessed: Total number of the blocks accessed.
 * BlocksCached: Total number of blocks cached.
 * BlocksCanceled: Total number of blocks canceled.

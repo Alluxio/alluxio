@@ -89,7 +89,7 @@ public final class Constants {
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
   public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
-  public static final String WORKER_CLIENT_SERVICE_NAME = "Worker";
+  public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -122,7 +122,6 @@ public final class Constants {
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "tachyon.network.host.resolution.timeout.ms";
-  public static final String THRIFT_STOP_TIMEOUT_SECONDS = "tachyon.thrift.stop.timeout.seconds";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -157,12 +156,20 @@ public final class Constants {
   public static final String INTEGRATION_MESOS_JRE_PATH =
       "tachyon.integration.mesos.jre.path";
   public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
+  public static final String INTEGRATION_MESOS_PRINCIPAL =
+      "tachyon.integration.mesos.principal";
+  public static final String INTEGRATION_MESOS_ROLE =
+      "tachyon.integration.mesos.role";
+  public static final String INTEGRATION_MESOS_SECRET =
+      "tachyon.integration.mesos.secret";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
       "tachyon.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =
       "tachyon.integration.mesos.worker.name";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT =
       "tachyon.integration.mesos.master.node.count";
+  public static final String INTEGRATION_MESOS_USER =
+      "tachyon.integration.mesos.user";
   public static final String INTEGRATION_WORKER_RESOURCE_CPU =
       "tachyon.integration.worker.resource.cpu";
   public static final String INTEGRATION_WORKER_RESOURCE_MEM =
@@ -255,8 +262,8 @@ public final class Constants {
       "tachyon.worker.evictor.lrfu.attenuation.factor";
   public static final String WORKER_TIERED_STORE_LEVELS =
       "tachyon.worker.tieredstore.levels";
-  public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
-      "tachyon.worker.lineage.heartbeat.interval.ms";
+  public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
+      "tachyon.worker.filesystem.heartbeat.interval.ms";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "tachyon.worker.tieredstore.block.locks";
@@ -310,6 +317,8 @@ public final class Constants {
       "tachyon.user.block.remote.read.buffer.size.bytes";
   public static final String USER_FILE_WRITE_TYPE_DEFAULT = "tachyon.user.file.writetype.default";
   public static final String USER_FILE_READ_TYPE_DEFAULT = "tachyon.user.file.readtype.default";
+  public static final String USER_FILE_WRITE_LOCATION_POLICY =
+      "tachyon.user.file.write.location.policy.class";
   public static final String USER_BLOCK_REMOTE_READER =
       "tachyon.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
@@ -374,6 +383,12 @@ public final class Constants {
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
+  /**
+   * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
+   * 0 instead of this value so that they can run faster.
+   */
+  public static final int THRIFT_STOP_TIMEOUT_SECONDS = 60;
+
   // ttl related
   public static final long NO_TTL = -1;
 
@@ -392,6 +407,8 @@ public final class Constants {
   public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
   public static final short DEFAULT_TFS_FULL_PERMISSION = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
+  // Group Mapping
+  public static final String SECURITY_GROUP_MAPPING = "tachyon.security.group.mapping";
 
   private Constants() {} // prevent instantiation
 }
