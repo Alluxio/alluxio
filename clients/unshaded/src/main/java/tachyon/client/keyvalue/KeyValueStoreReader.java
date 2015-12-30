@@ -15,32 +15,69 @@
 
 package tachyon.client.keyvalue;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.List;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
+import tachyon.thrift.PartitionInfo;
 
 /**
  * Reader to access a Tachyon key-value store.
+ *
+ * <p>
+ * This class is not thread-safe.
  */
 @PublicApi
-public class KeyValueStoreReader {
+public class KeyValueStoreReader implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private final TachyonConf mConf = ClientContext.getConf();
+  private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
+  private final KeyValueMasterClient mMasterClient;
+
+  /** A list of partitions of the store */
+  private final List<PartitionInfo> mPartitions;
 
   /**
    * Constructs a {@link KeyValueStoreReader} instance.
    *
    * @param uri URI of the key-value store
    */
-  public KeyValueStoreReader(TachyonURI uri) {
-    LOG.debug("Create KeyValueStoreReader for {}", uri);
+  public KeyValueStoreReader(TachyonURI uri) throws IOException, TachyonException {
+    LOG.info("Create KeyValueStoreReader for {}", uri);
+    mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
+    mPartitions = mMasterClient.getPartitionInfo(uri);
+    mMasterClient.close();
   }
 
-  public ByteBuffer get(ByteBuffer key) {
+  @Override
+  public void close() {
+    // cleanup any opened clients.
+  }
+
+  public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
+    Preconditions.checkNotNull(key);
+    for (PartitionInfo partition : mPartitions) {
+      if (key.compareTo(partition.keyStart) >= 0 && key.compareTo(partition.keyLimit) < 0) {
+        long blockId = partition.blockId;
+        KeyValueFileReader reader = KeyValueFileReader.Factory.create(blockId);
+        ByteBuffer value = reader.get(key);
+        reader.close();
+        return value;
+      }
+    }
     return null;
   }
 }
