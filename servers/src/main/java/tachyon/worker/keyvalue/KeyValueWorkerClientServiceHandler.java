@@ -88,7 +88,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @param keyBuffer bytes of key
    * @return key found in the key-value block or null if not found
    * @throws IOException if read operation failed
-   * @throws BlockDoesNotExistException
+   * @throws BlockDoesNotExistException if the worker is not serving this block
    */
   private ByteBuffer getInternal(long blockId, ByteBuffer keyBuffer)
       throws BlockDoesNotExistException, IOException {
