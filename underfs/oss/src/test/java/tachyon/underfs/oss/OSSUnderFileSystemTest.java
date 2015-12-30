@@ -18,19 +18,24 @@ package tachyon.underfs.oss;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link OSSUnderFileSystem} that do not require an
  * OSS backend
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(OSSUnderFileSystem.class)
 public class OSSUnderFileSystemTest {
   private OSSUnderFileSystem mMockOSSUnderFileSystem;
 
   @Before
   public  final void before() {
-    mMockOSSUnderFileSystem = PowerMockito.mock(OSSUnderFileSystem.class);
+    mMockOSSUnderFileSystem = Mockito.mock(OSSUnderFileSystem.class);
     Whitebox.setInternalState(mMockOSSUnderFileSystem, "mBucketName", "test-bucket");
     Whitebox.setInternalState(mMockOSSUnderFileSystem, "mBucketPrefix", "oss://test-bucket/");
   }
