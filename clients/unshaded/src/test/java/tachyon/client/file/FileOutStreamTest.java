@@ -15,8 +15,6 @@
 
 package tachyon.client.file;
 
-import static org.junit.Assert.fail;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
@@ -280,7 +278,7 @@ public class FileOutStreamTest {
     Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
     try {
       mTestStream.write(7);
-      fail();
+      Assert.fail();
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.FAILED_CACHE.getMessage("test error"), e.getMessage());
     }
@@ -328,7 +326,7 @@ public class FileOutStreamTest {
   public void writeBadBufferOffsetTest() throws IOException {
     try {
       mTestStream.write(new byte[10], 5, 6);
-      fail();
+      Assert.fail();
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
           e.getMessage());
@@ -344,7 +342,7 @@ public class FileOutStreamTest {
   public void writeNullBufferTest() throws IOException {
     try {
       mTestStream.write(null);
-      fail();
+      Assert.fail();
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL, e.getMessage());
     }
@@ -359,7 +357,7 @@ public class FileOutStreamTest {
   public void writeNullBufferOffsetTest() throws IOException {
     try {
       mTestStream.write(null, 0, 0);
-      fail();
+      Assert.fail();
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL, e.getMessage());
     }
@@ -394,7 +392,7 @@ public class FileOutStreamTest {
             .setUnderStorageType(UnderStorageType.NO_PERSIST).setLocationPolicy(null).build();
     try {
       mTestStream = createTestStream(FILE_ID, options);
-      fail();
+      Assert.fail();
     } catch (NullPointerException e) {
       Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
           e.getMessage());

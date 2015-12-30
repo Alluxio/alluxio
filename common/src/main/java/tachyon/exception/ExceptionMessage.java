@@ -36,7 +36,7 @@ public enum ExceptionMessage {
   BLOCK_UNAVAILABLE("Block {0} is not available in Tachyon"),
   CANNOT_REQUEST_SPACE("Unable to request space from worker"),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
-  NO_WORKER_AVAILABLE_ON_HOST("No Tachyon worker available for host {}"),
+  NO_WORKER_AVAILABLE_ON_HOST("No Tachyon worker available for host {0}"),
   NO_WORKER_AVAILABLE("No available Tachyon worker found"),
 
   // block lock manager
