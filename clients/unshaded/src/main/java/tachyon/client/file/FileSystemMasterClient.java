@@ -87,7 +87,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the file path
    * @param options method options
-   * @return the file id
+   * @return the file id referencing the newly created file
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */

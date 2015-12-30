@@ -170,7 +170,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        // TODO(calvin): Update this to work
         masterClient.completeFile(mUri, builder.build());
       } catch (TachyonException e) {
         throw new IOException(e);
