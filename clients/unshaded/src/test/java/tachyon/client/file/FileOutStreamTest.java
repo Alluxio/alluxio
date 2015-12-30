@@ -380,6 +380,17 @@ public class FileOutStreamTest {
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
 
+  @Test
+  public void missingLocationPolicyTest() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
+
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).setLocationPolicy(null).build();
+    mTestStream = createTestStream(FILE_ID, options);
+  }
+
   private void verifyIncreasingBytesWritten(int len) {
     verifyIncreasingBytesWritten(0, len);
   }
