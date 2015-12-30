@@ -29,6 +29,13 @@ import tachyon.conf.TachyonConf;
  */
 public final class SetTTLCommand extends AbstractTfsShellCommand {
 
+  /**
+   * Constructs a new instance to set a new TTL value for the file at path both of the TTL value and
+   * the path are specified by args.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public SetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
