@@ -202,7 +202,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void mount(TachyonURI src, TachyonURI dst, MountOptions options)
       throws IOException, TachyonException {
-
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      masterClient.mount(src, dst);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
@@ -226,7 +231,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void rename(TachyonURI src, TachyonURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      masterClient.rename(src, dst);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override

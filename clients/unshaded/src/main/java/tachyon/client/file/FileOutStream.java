@@ -263,7 +263,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private long getNextBlockId() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getNextBlockId(mPath);
+      return masterClient.getNewBlockIdForFile(mPath);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
