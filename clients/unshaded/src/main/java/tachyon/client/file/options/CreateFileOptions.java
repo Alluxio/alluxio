@@ -103,6 +103,13 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @return whether or not the recursive flag is set
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
    * @param blockSizeBytes the block size to use
    * @return the builder
    */
