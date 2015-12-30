@@ -28,6 +28,9 @@ import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.FreeOptions;
+import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
@@ -139,6 +142,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public List<FileInfo> call() throws TachyonTException, TException {
         return mClient.getFileInfoList(fileId);
+      }
+    });
+  }
+
+  /**
+   * @param path the path to list
+   * @return the list of file information for the given path
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized List<FileInfo> getFileInfoList(final TachyonURI path)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<List<FileInfo>>() {
+      @Override
+      public List<FileInfo> call() throws TachyonTException, TException {
+        return mClient.getFileInfoList(mClient.getFileId(path.getPath()));
       }
     });
   }
@@ -362,6 +381,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
+   * Frees a file.
+   *
+   * @param path the path to free
+   * @param options method options
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void free(final TachyonURI path, final FreeOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        // TODO(calvin): Look into changing the master side implementation
+        return mClient.free(mClient.getFileId(path.getPath()), options.isRecursive());
+      }
+    });
+  }
+
+  /**
    * Loads a file from the under file system.
    *
    * @param path the Tachyon path of the file
@@ -378,6 +416,27 @@ public final class FileSystemMasterClient extends MasterClientBase {
         return mClient.loadMetadata(path, recursive);
       }
     });
+  }
+
+  /**
+   * Loads a file from the under file system.
+   *
+   * @param path the path of file
+   * @param options method options
+   * @return the path of the loaded file
+   * @throws TachyonException if a tachyon error occurs
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized TachyonURI loadMetadata(final TachyonURI path,
+      final LoadMetadataOptions options) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
+        return mClient.loadMetadata(path.toString(), options.isRecursive());
+      }
+    });
+    // TODO(calvin): Look into changing the master side implementation
+    return path;
   }
 
   /**
@@ -457,6 +516,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mClient.create(path.getPath(), options.toThrift());
         // TODO(calvin): Look into changing the master side implementation
         return path;
+      }
+    });
+  }
+
+  /**
+   * Deletes a file or a directory.
+   *
+   * @param path the path to delete
+   * @param options method options
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void delete(final TachyonURI path, final DeleteOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        // TODO(calvin): Look into changing the master side implementation
+        return mClient.remove(mClient.getFileId(path.getPath()), options.isRecursive());
       }
     });
   }
