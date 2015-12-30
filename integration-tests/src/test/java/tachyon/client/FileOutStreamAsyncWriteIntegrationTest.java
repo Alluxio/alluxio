@@ -18,14 +18,12 @@ package tachyon.client;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.options.OutStreamOptions;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.file.meta.PersistenceState;
@@ -38,22 +36,12 @@ import tachyon.util.io.PathUtils;
  * persist.
  *
  */
-public final class FileOutStreamAsyncWriteIntegrationTest extends FileOutStreamIntegrationTest {
-
-  private OutStreamOptions mWriteAsync;
+public final class FileOutStreamAsyncWriteIntegrationTest extends AbstractFileOutStreamIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() {
     HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
         HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
-
-  @Override
-  @Before
-  public void before() throws Exception {
-    super.before();
-    mWriteAsync = new OutStreamOptions.Builder().setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.ASYNC_PERSIST).build();
   }
 
   @Test
