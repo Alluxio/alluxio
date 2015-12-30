@@ -29,6 +29,12 @@ import tachyon.exception.TachyonException;
  */
 public final class TouchCommand extends AbstractTfsShellCommand {
 
+  /**
+   * Constructs a new instance to create a 0 byte file specified by argv.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public TouchCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
