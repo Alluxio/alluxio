@@ -50,4 +50,9 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
       System.out.println(info);
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "listLineages";
+  }
 }

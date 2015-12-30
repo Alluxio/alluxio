@@ -40,4 +40,9 @@ public final class LsrCommand extends AbstractLsCommand {
   void runCommand(TachyonURI path) throws IOException {
     ls(path, true);
   }
+
+  @Override
+  public String getUsage() {
+    return "lsr <path>";
+  }
 }

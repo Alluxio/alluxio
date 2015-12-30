@@ -62,6 +62,7 @@ public class RPCMessageIntegrationTest {
   private static final long BLOCK_ID = 11;
   private static final long OFFSET = 22;
   private static final long LENGTH = 33;
+  private static final long LOCK_ID = 44;
 
   // This channel initializer sets up a simple pipeline with the encoder and decoder.
   private static class PipelineInitializer extends ChannelInitializer<SocketChannel> {
@@ -147,6 +148,8 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getBlockId(), actual.getBlockId());
     Assert.assertEquals(expected.getOffset(), actual.getOffset());
     Assert.assertEquals(expected.getLength(), actual.getLength());
+    Assert.assertEquals(expected.getLockId(), actual.getLockId());
+    Assert.assertEquals(expected.getSessionId(), actual.getSessionId());
   }
 
   private void assertValid(RPCBlockReadResponse expected, RPCBlockReadResponse actual) {
@@ -219,7 +222,8 @@ public class RPCMessageIntegrationTest {
 
   @Test
   public void RPCBlockReadRequestTest() {
-    RPCBlockReadRequest msg = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH);
+    RPCBlockReadRequest msg = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
+        SESSION_ID);
     RPCBlockReadRequest decoded = (RPCBlockReadRequest) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
@@ -245,7 +249,8 @@ public class RPCMessageIntegrationTest {
   @Test
   public void RPCBlockReadResponseErrorTest() {
     RPCBlockReadResponse msg =
-        RPCBlockReadResponse.createErrorResponse(new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH),
+        RPCBlockReadResponse.createErrorResponse(
+            new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID),
             RPCResponse.Status.FILE_DNE);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);

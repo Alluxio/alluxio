@@ -37,7 +37,7 @@ import tachyon.heartbeat.HeartbeatThread;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -54,7 +54,7 @@ import tachyon.worker.file.FileSystemMasterClient;
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
  *
- * Servers: {@link BlockServiceHandler} (RPC Server), BlockDataServer (Data Server)
+ * Servers: {@link BlockWorkerClientServiceHandler} (RPC Server), BlockDataServer (Data Server)
  *
  * Periodic Threads: {@link BlockMasterSync} (Worker to Master continuous communication)
  *
@@ -70,7 +70,7 @@ public final class BlockWorker extends WorkerBase {
   /** Runnable responsible for clean up potential zombie sessions. */
   private final SessionCleaner mSessionCleanerThread;
   /** Logic for handling RPC requests. */
-  private final BlockServiceHandler mServiceHandler;
+  private final BlockWorkerClientServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
   private final BlockDataManager mBlockDataManager;
   /** Server for data requests and responses. */
@@ -108,7 +108,7 @@ public final class BlockWorker extends WorkerBase {
   /**
    * @return the worker service handler
    */
-  public BlockServiceHandler getWorkerServiceHandler() {
+  public BlockWorkerClientServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
   }
 
@@ -194,7 +194,7 @@ public final class BlockWorker extends WorkerBase {
     mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
-    mServiceHandler = new BlockServiceHandler(mBlockDataManager);
+    mServiceHandler = new BlockWorkerClientServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
     // Reset worker RPC port
@@ -254,7 +254,9 @@ public final class BlockWorker extends WorkerBase {
             WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
-    getExecutorService().submit(mPinListSync);
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
+            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleanerThread);
@@ -276,7 +278,6 @@ public final class BlockWorker extends WorkerBase {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mPinListSync.stop();
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
@@ -310,8 +311,8 @@ public final class BlockWorker extends WorkerBase {
   private TThreadPoolServer createThriftServer() {
     int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
     int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
-    WorkerService.Processor<BlockServiceHandler> processor =
-        new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
+    BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler> processor =
+        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(mServiceHandler);
     TTransportFactory tTransportFactory;
     try {
       tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);
@@ -321,7 +322,11 @@ public final class BlockWorker extends WorkerBase {
     Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
         .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    args.stopTimeoutVal = WorkerContext.getConf().getInt(Constants.THRIFT_STOP_TIMEOUT_SECONDS);
+    if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+      args.stopTimeoutVal = 0;
+    } else {
+      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
+    }
     return new TThreadPoolServer(args);
   }
 

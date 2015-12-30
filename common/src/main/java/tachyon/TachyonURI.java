@@ -432,6 +432,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   /**
    * Illegal characters unescaped in the string, for glob processing, etc.
+   *
+   * @return the String representation of the URI
    */
   @Override
   public String toString() {

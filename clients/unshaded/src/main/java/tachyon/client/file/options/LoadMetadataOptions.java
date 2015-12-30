@@ -19,8 +19,15 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for loading the metadata.
+ */
 @PublicApi
 public final class LoadMetadataOptions {
+
+  /**
+   * Builder for {@link LoadMetadataOptions}.
+   */
   public static class Builder implements OptionsBuilder<LoadMetadataOptions> {
     private boolean mRecursive;
 
@@ -41,6 +48,8 @@ public final class LoadMetadataOptions {
     }
 
     /**
+     * Sets the recursive flag.
+     *
      * @param recursive the recursive flag value to use; it specifies whether parent directories
      *        should be created if they do not already exist
      * @return the builder

@@ -87,7 +87,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
   /**
-   * Keeps track of block which are no longer in tachyon storage. Access must be synchronized on
+   * Keeps track of block which are no longer in Tachyon storage. Access must be synchronized on
    * mBlocks.
    */
   private final Set<Long> mLostBlocks = new HashSet<Long>();

@@ -277,7 +277,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
           new InodeDirectory.Builder().setName(pathComponents[k])
               .setId(mDirectoryIdGenerator.getNewDirectoryId())
               .setParentId(currentInodeDirectory.getId())
-              .setPersisted(options.isPersisted())
+              .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
+                  : PersistenceState.NOT_PERSISTED)
               .setCreationTimeMs(options.getOperationTimeMs())
               .setPermissionStatus(options.getPermissionStatus())
               .build();
@@ -324,7 +325,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
             new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
                 .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL())
                 .setName(name).setParentId(currentInodeDirectory.getId())
-                .setPersisted(options.isPersisted()).setCreationTimeMs(options.getOperationTimeMs())
+                .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
+                    : PersistenceState.NOT_PERSISTED)
+                .setCreationTimeMs(options.getOperationTimeMs())
                 .setPermissionStatus(options.getPermissionStatus())
                 .build();
         if (currentInodeDirectory.isPinned()) {
@@ -348,7 +351,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       // if the directory already exists in the ufs, we mark it as persisted.
       if (ufs.exists(ufsPath) || ufs.mkdirs(ufsPath, true)) {
         for (Inode inode : toPersistDirectories) {
-          inode.setPersisted(true);
+          inode.setPersistenceState(PersistenceState.PERSISTED);
         }
       }
     }
