@@ -48,7 +48,7 @@ public final class RmrCommand extends WithWildCardPathCommand {
       mTfs.delete(fd, options);
       System.out.println(path + " has been removed");
     } catch (InvalidPathException e) {
-      System.out.println(path + " does not exists");
+      System.out.println(path + " does not exist");
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
