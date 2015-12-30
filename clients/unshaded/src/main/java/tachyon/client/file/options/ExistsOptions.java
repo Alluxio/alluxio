@@ -19,11 +19,19 @@ import tachyon.annotation.PublicApi;
 
 @PublicApi
 public final class ExistsOptions {
+  /** Whether or not to check the ufs if the path does not exist in Tachyon */
+  private boolean mCheckUfs;
+
   public static ExistsOptions defaults() {
     return new ExistsOptions();
   }
 
   private ExistsOptions() {
+    // TODO(calvin): Make this configurable
+    mCheckUfs = false;
+  }
 
+  public boolean isCheckUfs() {
+    return mCheckUfs;
   }
 }
