@@ -38,13 +38,13 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -77,7 +77,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param conf Tachyon configuration
    * @param clientMetrics metrics of the client
    */
-  public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
+  public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
@@ -234,6 +234,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * @return the address of the worker
    */
+  @Override
   public synchronized InetSocketAddress getAddress() {
     return mAddress;
   }

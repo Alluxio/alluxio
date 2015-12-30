@@ -32,7 +32,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -43,6 +42,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the

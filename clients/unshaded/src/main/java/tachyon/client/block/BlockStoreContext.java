@@ -23,7 +23,6 @@ import com.google.common.base.Throwables;
 
 import tachyon.client.ClientContext;
 import tachyon.client.Utils;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -31,6 +30,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * A shared context in each client JVM for common block master client functionality such as a pool
@@ -57,7 +57,7 @@ public enum BlockStoreContext {
    * manner.
    */
   private synchronized void initializeLocalBlockWorkerClientPool() {
-    NetAddress localWorkerAddress =
+    WorkerNetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // If the local worker is not available, do not initialize the local worker client pool.
@@ -75,17 +75,17 @@ public enum BlockStoreContext {
    * @param hostname hostname of the worker to query, empty string denotes any worker
    * @return {@link NetAddress} of hostname, or null if no worker found
    */
-  private synchronized NetAddress getWorkerAddress(String hostname) {
+  private synchronized WorkerNetAddress getWorkerAddress(String hostname) {
     BlockMasterClient masterClient = acquireMasterClient();
     try {
       List<WorkerInfo> workers = masterClient.getWorkerInfoList();
       if (hostname.isEmpty() && !workers.isEmpty()) {
         // TODO(calvin): Do this in a more defined way.
-        return workers.get(0).getAddress();
+        return new WorkerNetAddress(workers.get(0).getAddress());
       }
       for (WorkerInfo worker : workers) {
         if (worker.getAddress().getHost().equals(hostname)) {
-          return worker.getAddress();
+          return new WorkerNetAddress(worker.getAddress());
         }
       }
     } catch (Exception e) {
@@ -205,7 +205,7 @@ public enum BlockStoreContext {
    * @return a worker client with a connection to the specified hostname
    */
   private synchronized BlockWorkerClient acquireRemoteWorkerClient(String hostname) {
-    NetAddress workerAddress = getWorkerAddress(hostname);
+    WorkerNetAddress workerAddress = getWorkerAddress(hostname);
     return acquireRemoteWorkerClient(workerAddress);
   }
 
@@ -227,7 +227,7 @@ public enum BlockStoreContext {
         !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = Utils.getRandomNonNegativeLong();
-    return new BlockWorkerClient(workerAddress, ClientContext.getExecutorService(),
+    return new BlockWorkerClient(address, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
   }
 

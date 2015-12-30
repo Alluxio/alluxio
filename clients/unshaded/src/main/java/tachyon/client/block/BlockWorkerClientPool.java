@@ -23,7 +23,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.Utils;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.resource.ResourcePool;
-import tachyon.thrift.NetAddress;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with
@@ -36,14 +36,14 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.
    */
-  private final NetAddress mWorkerNetAddress;
+  private final WorkerNetAddress mWorkerNetAddress;
 
   /**
    * Creates a new block worker client pool.
    *
    * @param workerAddress the worker address
    */
-  public BlockWorkerClientPool(NetAddress workerAddress) {
+  public BlockWorkerClientPool(WorkerNetAddress workerAddress) {
     super(ClientContext.getConf().getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS));
     mWorkerNetAddress = workerAddress;
   }

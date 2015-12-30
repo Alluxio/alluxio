@@ -19,8 +19,8 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.WorkerNetAddress;
 
 /**
  * A policy that returns the worker with the most available bytes. The policy returns null if no
