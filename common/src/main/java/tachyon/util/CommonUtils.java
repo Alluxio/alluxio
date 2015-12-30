@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.security.group.GroupMappingService;
 import tachyon.util.ShellUtils.ExitCodeException;
 
 /**
@@ -178,4 +180,18 @@ public final class CommonUtils {
     return groups;
   }
 
+  /**
+   * Using {@link GroupMappingService} to get the primary group name.
+   *
+   * @param conf the runtime configuration of Tachyon
+   * @param userName Tachyon user name
+   * @return primary group name
+   * @throws IOException if getting group failed
+   */
+  public static String getPrimaryGroupName(TachyonConf conf, String userName) throws IOException {
+    GroupMappingService groupMappingService =
+        GroupMappingService.Factory.getUserToGroupsMappingService(conf);
+    List<String> groups = groupMappingService.getGroups(userName);
+    return (groups != null && groups.size() > 0) ? groups.get(0) : "";
+  }
 }
