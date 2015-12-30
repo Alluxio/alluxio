@@ -51,10 +51,10 @@ import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.block.BlockServiceHandler;
+import tachyon.worker.block.BlockWorkerClientServiceHandler;
 
 /**
- * Integration tests for {@link BlockServiceHandler}
+ * Integration tests for {@link BlockWorkerClientServiceHandler}
  */
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
@@ -65,7 +65,7 @@ public class BlockServiceHandlerIntegrationTest {
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-  private BlockServiceHandler mWorkerServiceHandler = null;
+  private BlockWorkerClientServiceHandler mWorkerServiceHandler = null;
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;

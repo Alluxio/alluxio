@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -89,7 +90,7 @@ public final class UIFileInfo {
   private final String mUserName;
   private final String mGroupName;
   private final int mPermission;
-  private final boolean mPersisted;
+  private final String mPersistenceState;
   private List<String> mFileLocations;
 
   private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier =
@@ -116,7 +117,7 @@ public final class UIFileInfo {
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();
-    mPersisted = fileInfo.isPersisted;
+    mPersistenceState = fileInfo.persistenceState;
     mFileLocations = new ArrayList<String>();
   }
 
@@ -140,7 +141,7 @@ public final class UIFileInfo {
     mUserName = "";
     mGroupName = "";
     mPermission = FileSystemPermission.getNoneFsPermission().toShort();
-    mPersisted = false;
+    mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<String>();
   }
 
@@ -251,10 +252,10 @@ public final class UIFileInfo {
   }
 
   /**
-   * @return whether the file is persisted
+   * @return the {@link PersistenceState} of the file
    */
-  public boolean isPersisted() {
-    return mPersisted;
+  public String getPersistenceState() {
+    return mPersistenceState;
   }
 
   /**

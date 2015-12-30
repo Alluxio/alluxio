@@ -36,7 +36,7 @@
             <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
               <th>Owner</th>
             <% } %>
-            <th>Persisted</th>
+            <th>Persistence State</th>
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
@@ -119,8 +119,8 @@
                   <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
                     <th><%= fileInfo.getUserName() %></th>
                   <% } %>
-                  <th><%= (fileInfo.isPersisted() ? "YES" : "NO") %></th>
-                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
+                  <th><%= (fileInfo.getPersistenceState()) %></th>
+                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
