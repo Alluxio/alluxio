@@ -25,6 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 
 /**
@@ -170,7 +171,7 @@ public final class PathUtils {
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || path.isEmpty() || !path.startsWith(TachyonURI.SEPARATOR)
         || path.contains(" ")) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
     }
   }
 

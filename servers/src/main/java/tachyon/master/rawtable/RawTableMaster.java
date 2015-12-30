@@ -31,6 +31,7 @@ import com.google.protobuf.Message;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -134,10 +135,11 @@ public class RawTableMaster extends MasterBase {
    * @throws InvalidPathException when path is invalid
    * @throws TableColumnException when number of columns is out of range
    * @throws TableMetadataException when metadata size is too large
+   * @throws AccessControlException if permission checking fails
    */
   public long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistsException, InvalidPathException, TableColumnException,
-      TableMetadataException, IOException {
+      TableMetadataException, IOException, AccessControlException {
     LOG.info("createRawTable with {} columns at {}", columns, path);
 
     validateColumnSize(columns);
