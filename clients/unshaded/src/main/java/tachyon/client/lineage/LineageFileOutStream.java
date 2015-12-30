@@ -51,7 +51,7 @@ public class LineageFileOutStream extends FileOutStream {
     // change the under storage type to async
     OutStreamOptions.Builder builder = new OutStreamOptions.Builder(ClientContext.getConf());
     builder.setBlockSizeBytes(options.getBlockSizeBytes());
-    builder.setHostname(options.getHostname());
+    builder.setLocationPolicy(options.getLocationPolicy());
     builder.setTachyonStorageType(options.getTachyonStorageType());
     builder.setTTL(options.getTTL());
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);

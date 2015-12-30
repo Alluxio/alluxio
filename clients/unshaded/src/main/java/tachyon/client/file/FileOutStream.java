@@ -33,9 +33,11 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
@@ -61,10 +63,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
   private String mUfsPath;
+  private FileWriteLocationPolicy mLocationPolicy;
 
   protected boolean mCanceled;
   protected boolean mClosed;
-  private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
@@ -98,8 +100,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
     mClosed = false;
     mCanceled = false;
-    mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
+        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
   }
 
   @Override
@@ -254,9 +257,17 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
-      mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
-      mShouldCacheCurrentBlock = true;
+      try {
+        WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
+            mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
+        String hostname = address == null ? null : address.getHost();
+        // TODO(yupeng) use the returned address directly for constructing the out stream
+        mCurrentBlockOutStream =
+            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
+        mShouldCacheCurrentBlock = true;
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
   }
 

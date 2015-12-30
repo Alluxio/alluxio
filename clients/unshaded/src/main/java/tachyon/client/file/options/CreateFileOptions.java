@@ -15,19 +15,23 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.thrift.CreateTOptions;
+import tachyon.util.CommonUtils;
 
 @PublicApi
 public final class CreateFileOptions {
   private boolean mRecursive;
   private long mBlockSizeBytes;
-  private String mHostname;
+  private FileWriteLocationPolicy mLocationPolicy;
   private TachyonStorageType mTachyonStorageType;
   private long mTTL;
   private UnderStorageType mUnderStorageType;
@@ -45,7 +49,16 @@ public final class CreateFileOptions {
   private CreateFileOptions() {
     mRecursive = false;
     mBlockSizeBytes = ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mHostname = null;
+    try {
+      mLocationPolicy =
+          CommonUtils
+              .createNewClassInstance(
+                  ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+                      Constants.USER_FILE_WRITE_LOCATION_POLICY),
+                  new Class[]{}, new Object[]{});
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
+    }
     WriteType defaultWriteType =
         ClientContext.getConf().getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTachyonStorageType = defaultWriteType.getTachyonStorageType();
@@ -63,8 +76,8 @@ public final class CreateFileOptions {
   /**
    * @return the hostname
    */
-  public String getHostname() {
-    return mHostname;
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
   }
 
   /**
@@ -99,11 +112,11 @@ public final class CreateFileOptions {
   }
 
   /**
-   * @param hostname the hostname to use
+   * @param locationPolicy the location policy to use
    * @return the builder
    */
-  public CreateFileOptions setHostname(String hostname) {
-    mHostname = hostname;
+  public CreateFileOptions setHostname(FileWriteLocationPolicy locationPolicy) {
+    mLocationPolicy = locationPolicy;
     return this;
   }
 
@@ -140,7 +153,7 @@ public final class CreateFileOptions {
 
   public OutStreamOptions toOutStreamOptions() {
     OutStreamOptions.Builder builder = new OutStreamOptions.Builder();
-    builder.setBlockSizeBytes(mBlockSizeBytes).setHostname(mHostname)
+    builder.setBlockSizeBytes(mBlockSizeBytes).setLocationPolicy(mLocationPolicy)
         .setTachyonStorageType(mTachyonStorageType).setTTL(mTTL)
         .setUnderStorageType(mUnderStorageType);
     return builder.build();
@@ -153,7 +166,7 @@ public final class CreateFileOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("CreateFileOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", Hostname: ").append(mHostname);
+    sb.append(", Location Policy: ").append(mLocationPolicy);
     sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTTL);
