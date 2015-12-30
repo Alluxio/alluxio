@@ -15,13 +15,17 @@
 
 package tachyon.client.file.options;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
 
 /**
  * Method option for writing a file.
@@ -34,10 +38,10 @@ public final class OutStreamOptions {
    */
   public static class Builder implements OptionsBuilder<OutStreamOptions> {
     private long mBlockSizeBytes;
-    private String mHostname;
     private TachyonStorageType mTachyonStorageType;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
+    private FileWriteLocationPolicy mLocationPolicy;
 
     /**
      * Creates a new builder for {@link OutStreamOptions}.
@@ -53,12 +57,21 @@ public final class OutStreamOptions {
      */
     public Builder(TachyonConf conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-      mHostname = null;
       WriteType defaultWriteType =
           conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
       mTachyonStorageType = defaultWriteType.getTachyonStorageType();
       mUnderStorageType = defaultWriteType.getUnderStorageType();
       mTTL = Constants.NO_TTL;
+      try {
+        mLocationPolicy =
+            CommonUtils
+                .createNewClassInstance(
+                    ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+                        Constants.USER_FILE_WRITE_LOCATION_POLICY),
+                    new Class[] {}, new Object[] {});
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
     }
 
     /**
@@ -69,17 +82,6 @@ public final class OutStreamOptions {
      */
     public Builder setBlockSizeBytes(long blockSizeBytes) {
       mBlockSizeBytes = blockSizeBytes;
-      return this;
-    }
-
-    /**
-     * Sets the name of the host.
-     *
-     * @param hostname the hostname to use
-     * @return the builder
-     */
-    public Builder setHostname(String hostname) {
-      mHostname = hostname;
       return this;
     }
 
@@ -132,6 +134,15 @@ public final class OutStreamOptions {
     }
 
     /**
+     * @param locationPolicy the location policy for file write
+     * @return the builder
+     */
+    public Builder setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
+      mLocationPolicy = locationPolicy;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link OutStreamOptions}.
      *
      * @return a {@link OutStreamOptions} instance
@@ -143,10 +154,10 @@ public final class OutStreamOptions {
   }
 
   private final long mBlockSizeBytes;
-  private final String mHostname;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final long mTTL;
+  private FileWriteLocationPolicy mLocationPolicy;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -157,10 +168,10 @@ public final class OutStreamOptions {
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
-    mHostname = builder.mHostname;
     mTachyonStorageType = builder.mTachyonStorageType;
     mTTL = builder.mTTL;
     mUnderStorageType = builder.mUnderStorageType;
+    mLocationPolicy = builder.mLocationPolicy;
   }
 
   /**
@@ -168,13 +179,6 @@ public final class OutStreamOptions {
    */
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
-  }
-
-  /**
-   * @return the hostname
-   */
-  public String getHostname() {
-    return mHostname;
   }
 
   /**
@@ -200,16 +204,23 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the location policy
+   */
+  public FileWriteLocationPolicy getLocationPolicy() {
+    return mLocationPolicy;
+  }
+
+  /**
    * @return the name : value pairs for all the fields
    */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("OutStreamOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", Hostname: ").append(mHostname);
     sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTTL);
+    sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();
   }
