@@ -35,6 +35,7 @@
             <th>In-Memory</th>
             <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
               <th>Owner</th>
+              <th>Group</th>
             <% } %>
             <th>Persistence State</th>
             <th>Pin</th>
@@ -118,6 +119,7 @@
                   </th>
                   <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
                     <th><%= fileInfo.getUserName() %></th>
+                    <th><%= fileInfo.getGroupName() %></th>
                   <% } %>
                   <th><%= (fileInfo.getPersistenceState()) %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
