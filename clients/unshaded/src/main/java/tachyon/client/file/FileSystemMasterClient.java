@@ -32,6 +32,7 @@ import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -417,6 +418,26 @@ public final class FileSystemMasterClient extends MasterClientBase {
       public Boolean call() throws TachyonTException, TException {
         // TODO(calvin): Look into changing the master side implementation
         return mClient.rename(mClient.getFileId(src.getPath()), dst.getPath());
+      }
+    });
+  }
+
+  /**
+   * Sets the file state.
+   *
+   * @param path the file path
+   * @param options the file state options to be set
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void setAttribute(final TachyonURI path, final SetAttributeOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        // TODO(calvin): Look into changing the master side implementation
+        mClient.setState(mClient.getFileId(path.getPath()), options.toThrift());
+        return null;
       }
     });
   }
