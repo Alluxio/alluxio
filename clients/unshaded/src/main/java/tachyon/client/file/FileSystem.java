@@ -48,14 +48,15 @@ import tachyon.exception.TachyonException;
 @PublicApi
 interface FileSystem {
   /**
-   * Convenience method for creating a directory with default options.
+   * Convenience method for {@link #createDirectory(TachyonURI, CreateDirectoryOptions)} with
+   * default options.
    *
    * @param path the path of the directory to create in Tachyon space
    * @return the {@link TachyonURI} referencing the newly created directory
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws TachyonException if an unexpected  exception is thrown
+   * @throws TachyonException if an unexpected exception is thrown
    */
   TachyonURI createDirectory(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
@@ -75,7 +76,7 @@ interface FileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
   /**
-   * Convenience method for creating a file with default options.
+   * Convenience method for {@link #createFile(TachyonURI, CreateFileOptions)} with default options.
    *
    * @param path the path of the file to create in Tachyon space
    * @return a {@link FileOutStream} which will write data to the newly created file
@@ -102,7 +103,7 @@ interface FileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
   /**
-   * Convenience method for delete with default options.
+   * Convenience method for {@link #delete(TachyonURI, DeleteOptions)} with default options.
    *
    * @param path the path to delete in Tachyon space
    * @throws IOException if a non-Tachyon exception occurs
@@ -127,7 +128,7 @@ interface FileSystem {
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for exists with default options.
+   * Convenience method for {@link #exists(TachyonURI, ExistsOptions)} with default options.
    *
    * @param path the path in question
    * @return true if the path exists, false otherwise
@@ -151,7 +152,7 @@ interface FileSystem {
       throws InvalidPathException, IOException, TachyonException;
 
   /**
-   * Convenience method to free a path with default options.
+   * Convenience method for {@link #free(TachyonURI, FreeOptions)} with default options.
    *
    * @param path the path to free in Tachyon space
    * @throws IOException if a non-Tachyon exception occurs
@@ -174,7 +175,7 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for getting a path's status with default options.
+   * Convenience method for {@link #getStatus(TachyonURI, GetStatusOptions)} with default options.
    *
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
@@ -197,7 +198,7 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for list status with default options.
+   * Convenience method for {@link #listStatus(TachyonURI, ListStatusOptions)} with default options.
    *
    * @param path the path to list information about
    * @return a list of {@link URIStatus}s containing information about the files and directories
@@ -225,7 +226,8 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method to load metadata with default options.
+   * Convenience method for {@link #loadMetadata(TachyonURI, LoadMetadataOptions)} with default
+   * options.
    *
    * @param path the path for which to load metadata from UFS
    * @return the {@link TachyonURI} referencing the new path available in Tachyon
@@ -250,7 +252,8 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method to mount with default options.
+   * Convenience method for {@link #mount(TachyonURI, TachyonURI, MountOptions)} with default
+   * options.
    *
    * @param src a Tachyon path to mount the data to
    * @param dst a UFS path to mount the data from
@@ -274,7 +277,7 @@ interface FileSystem {
       throws IOException, TachyonException;
 
   /**
-   * Convenience method to open a file for reading with default options.
+   * Convenience method for {@link #openFile(TachyonURI, OpenFileOptions)} with default options.
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
@@ -299,7 +302,8 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for rename with default options.
+   * Convenience method for {@link #rename(TachyonURI, TachyonURI, RenameOptions)} with default
+   * options.
    *
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
@@ -325,7 +329,8 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for setAttribute with default parameters.
+   * Convenience method for {@link #setAttribute(TachyonURI, SetAttributeOptions)} with default
+   * options.
    *
    * @param path the path to set attributes for
    * @throws IOException if a non-Tachyon exception occurs
@@ -348,7 +353,7 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for unmount with default parameters.
+   * Convenience method for {@link #unmount(TachyonURI, UnmountOptions)} with default options.
    *
    * @param path a Tachyon path, this must be a mount point
    * @throws IOException if a non-Tachyon exception occurs
