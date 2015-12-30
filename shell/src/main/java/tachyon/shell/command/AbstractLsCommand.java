@@ -42,7 +42,7 @@ public abstract class AbstractLsCommand extends WithWildCardPathCommand {
    *
    * @param path The {@link TachyonURI} path as the input of the command
    * @param recursive Whether list the path recursively
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   protected void ls(TachyonURI path, boolean recursive) throws IOException {
     List<FileInfo> files = listStatusSortedByIncreasingCreationTime(path);
