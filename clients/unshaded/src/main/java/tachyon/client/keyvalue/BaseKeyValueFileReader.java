@@ -47,16 +47,12 @@ public final class BaseKeyValueFileReader implements KeyValueFileReader {
   /**
    * Constructs a new instance of {@link BaseKeyValueFileReader}.
    *
-   * @param uri URI of the key-value file
+   * @param blockId blockId of the key-value file
    * @throws TachyonException if an unexpected tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
-  public BaseKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
-    Preconditions.checkArgument(uri != null);
-    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
-    TachyonFile tFile = tfs.open(uri);
-    List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
-    mBlockId = blockIds.get(0);
+  public BaseKeyValueFileReader(long blockId) throws TachyonException, IOException {
+    mBlockId = blockId;
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());

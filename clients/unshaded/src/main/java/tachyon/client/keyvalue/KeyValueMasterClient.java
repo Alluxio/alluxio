@@ -23,6 +23,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueMasterClientService;
@@ -69,43 +70,44 @@ public final class KeyValueMasterClient extends MasterClientBase {
     mClient = new KeyValueMasterClientService.Client(mProtocol);
   }
 
-  public synchronized void completePartition(final String path, final PartitionInfo info)
+  public synchronized void completePartition(final TachyonURI path, final PartitionInfo info)
       throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.completePartition(path, info);
+        mClient.completePartition(path.toString(), info);
         return null;
       }
     });
   }
 
-  public synchronized void completeStore(final String path) throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.completeStore(path);
-        return null;
-      }
-    });
-  }
-
-  public synchronized void createStore(final String path) throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.createStore(path);
-        return null;
-      }
-    });
-  }
-
-  public synchronized List<PartitionInfo> getPartitionInfo(final String path) throws IOException,
+  public synchronized void completeStore(final TachyonURI path) throws IOException,
       TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.completeStore(path.toString());
+        return null;
+      }
+    });
+  }
+
+  public synchronized void createStore(final TachyonURI path) throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.createStore(path.toString());
+        return null;
+      }
+    });
+  }
+
+  public synchronized List<PartitionInfo> getPartitionInfo(final TachyonURI path)
+      throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<PartitionInfo>>() {
       @Override
       public List<PartitionInfo> call() throws TachyonTException, TException {
-        return mClient.getPartitionInfo(path);
+        return mClient.getPartitionInfo(path.toString());
       }
     });
   }

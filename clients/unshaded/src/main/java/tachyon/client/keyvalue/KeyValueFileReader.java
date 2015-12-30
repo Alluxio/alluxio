@@ -18,10 +18,13 @@ package tachyon.client.keyvalue;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
 /**
@@ -40,7 +43,15 @@ public interface KeyValueFileReader extends Closeable {
      */
     public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
-      return new BaseKeyValueFileReader(uri);
+      TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
+      TachyonFile tFile = tfs.open(uri);
+      List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
+      long blockId = blockIds.get(0);
+      return new BaseKeyValueFileReader(blockId);
+    }
+
+    public static KeyValueFileReader create(long blockId) throws TachyonException, IOException {
+      return new BaseKeyValueFileReader(blockId);
     }
   }
 
