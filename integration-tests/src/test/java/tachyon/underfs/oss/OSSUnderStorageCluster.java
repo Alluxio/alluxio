@@ -18,10 +18,10 @@ package tachyon.underfs.oss;
 import java.io.IOException;
 import java.util.UUID;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.util.io.PathUtils;
 
 public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
@@ -31,22 +31,15 @@ public class OSSUnderStorageCluster extends UnderFileSystemCluster {
 
   public OSSUnderStorageCluster(String baseDir, TachyonConf tachyonConf) {
     super(baseDir, tachyonConf);
-    String ossAccessId = System.getProperty(Constants.OSS_ACCESS_KEY);
-    String ossAccessKey = System.getProperty(Constants.OSS_SECRET_KEY);
-    String ossEndpoint = System.getProperty(Constants.OSS_ENDPOINT_KEY);
-    tachyonConf.set(Constants.OSS_ACCESS_KEY, ossAccessId);
-    tachyonConf.set(Constants.OSS_SECRET_KEY, ossAccessKey);
-    tachyonConf.set(Constants.OSS_ENDPOINT_KEY, ossEndpoint);
     mOSSBucket = System.getProperty(INTEGRATION_OSS_BUCKET);
-    mBaseDir = mOSSBucket + UUID.randomUUID();
+    mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }
 
   @Override
   public void cleanup() throws IOException {
-    String oldTestDir = mBaseDir;
-    mBaseDir = mOSSBucket + UUID.randomUUID();
     UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mTachyonConf);
-    ufs.delete(oldTestDir, true);
+    ufs.delete(mBaseDir, true);
+    mBaseDir = PathUtils.concatPath(mOSSBucket, UUID.randomUUID());
   }
 
   @Override

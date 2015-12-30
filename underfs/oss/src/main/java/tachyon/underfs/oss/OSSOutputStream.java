@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ import tachyon.util.io.PathUtils;
  * to a temporary directory on local disk and copied as a complete file when the {@link #close()}
  * method is called.
  */
-public class OSSOutputStream extends OutputStream {
+public final class OSSOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Bucket name of the Tachyon OSS bucket */
@@ -125,7 +126,7 @@ public class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Closing the OSSOutputStream is the place that do the real
+   * Closing the {@ OSSOutputStream} is the place that does the real
    * upload from local temp file to OSS Service
    * After closed, the file will uploaded to OSS and the local
    * temp file will be deleted
@@ -144,8 +145,7 @@ public class OSSOutputStream extends OutputStream {
       objMeta.setContentLength(mFile.length());
       if (mHash != null) {
         byte[] hashBytes = mHash.digest();
-        objMeta.setContentMD5(new String(
-            org.apache.commons.codec.binary.Base64.encodeBase64(hashBytes)));
+        objMeta.setContentMD5(new String(Base64.encodeBase64(hashBytes)));
       }
       mOssClient.putObject(mBucketName, mKey, in, objMeta);
       mFile.delete();
