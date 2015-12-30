@@ -247,7 +247,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAttribute(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      masterClient.setAttribute(path, options);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
@@ -258,6 +263,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void unmount(TachyonURI path, UnmountOptions options)
       throws IOException, TachyonException {
-
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      masterClient.unmount(path);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 }
