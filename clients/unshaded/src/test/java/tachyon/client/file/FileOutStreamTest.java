@@ -140,7 +140,7 @@ public class FileOutStreamTest {
         });
     BlockWorkerInfo workerInfo =
         new BlockWorkerInfo(new WorkerNetAddress("localhost", 1, 2, 3), Constants.GB, 0);
-    Mockito.when(mBlockStore.getBlockWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
+    Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
