@@ -22,6 +22,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 
 /**
@@ -46,6 +47,8 @@ public final class RmrCommand extends WithWildCardPathCommand {
       TachyonFile fd = mTfs.open(path);
       mTfs.delete(fd, options);
       System.out.println(path + " has been removed");
+    } catch (InvalidPathException e) {
+      System.out.println(path + " does not exists");
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
