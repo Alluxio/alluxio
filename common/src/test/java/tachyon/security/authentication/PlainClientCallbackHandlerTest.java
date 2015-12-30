@@ -28,14 +28,25 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+/**
+ * Tests the {@link tachyon.security.authentication.PlainSaslUtils.PlainClientCallbackHandler}
+ * class.
+ */
 public class PlainClientCallbackHandlerTest {
 
+  /**
+   * The exception expected to be thrown.
+   */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Tests that the callback is handled correctly.
+   *
+   * @throws Exception thrown when the callback fails
+   */
   @Test
   public void clientCallbackHandlerTest() throws Exception {
-
     Callback[] callbacks = new Callback[2];
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
@@ -50,9 +61,13 @@ public class PlainClientCallbackHandlerTest {
     validateCallbacks(user, password, callbacks);
   }
 
+  /**
+   * Tests that an exception is thrown in case an unsupported callback is used.
+   *
+   * @throws Exception thrown when the callback fails
+   */
   @Test
   public void unsupportCallbackTest() throws Exception {
-
     mThrown.expect(UnsupportedCallbackException.class);
     mThrown.expectMessage(RealmCallback.class + " is unsupported.");
 
@@ -68,9 +83,13 @@ public class PlainClientCallbackHandlerTest {
     clientCBHandler.handle(callbacks);
   }
 
+  /**
+   * Tests that the callback can handle a non-existent user.
+   *
+   * @throws Exception thrown when the callback fails
+   */
   @Test
   public void nullNameCallbackTest() throws Exception {
-
     Callback[] callbacks = new Callback[2];
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
@@ -84,9 +103,13 @@ public class PlainClientCallbackHandlerTest {
     validateCallbacks(user, password, callbacks);
   }
 
+  /**
+   * Tests that the callback can handle a non-existent password.
+   *
+   * @throws Exception thrown when the callback fails
+   */
   @Test
   public void nullPasswordCallbackTest() throws Exception {
-
     Callback[] callbacks = new Callback[2];
     callbacks[0] = new NameCallback("Username:");
     callbacks[1] = new PasswordCallback("Password:", true);
@@ -100,9 +123,13 @@ public class PlainClientCallbackHandlerTest {
     validateCallbacks(user, password, callbacks);
   }
 
+  /**
+   * Tests that an exception is thrown when a callback is {@code null}.
+   *
+   * @throws Exception thrown when the callback fails
+   */
   @Test
   public void nullCallbackTest() throws Exception {
-
     mThrown.expect(UnsupportedCallbackException.class);
     mThrown.expectMessage(null + " is unsupported.");
 

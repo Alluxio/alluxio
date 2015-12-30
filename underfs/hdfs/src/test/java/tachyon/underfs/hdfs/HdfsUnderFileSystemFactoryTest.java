@@ -22,8 +22,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemFactory;
 import tachyon.underfs.UnderFileSystemRegistry;
 
+/**
+ * Tests for the {@link HdfsUnderFileSystemFactory} class.
+ */
 public class HdfsUnderFileSystemFactoryTest {
 
+  /**
+   * This test ensures the HDFS ufs module correctly accepts paths that begin with hdfs://.
+   */
   @Test
   public void factoryTest() {
     TachyonConf conf = new TachyonConf();

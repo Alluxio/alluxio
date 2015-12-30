@@ -54,4 +54,9 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "loadMetadata <path>";
+  }
 }

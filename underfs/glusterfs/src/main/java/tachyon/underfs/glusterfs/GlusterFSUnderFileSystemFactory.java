@@ -21,6 +21,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
 
+/**
+ * Factory for creating Gluster FS under file systems.
+ */
 public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override

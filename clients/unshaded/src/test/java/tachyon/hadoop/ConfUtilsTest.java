@@ -22,11 +22,18 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Tests for the {@link ConfUtils} class.
+ */
 public final class ConfUtilsTest {
   private static final String TEST_S3_ACCCES_KEY = "TEST ACCESS KEY";
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
   private static final String TEST_WORKER_MEMORY_SIZE = Integer.toString(654321);
 
+  /**
+   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(Configuration)} method for an empty
+   * configuration.
+   */
   @Test
   public void loadFromEmptyHadoopConfigurationTest() {
     Configuration hadoopConfig = new Configuration();
@@ -34,6 +41,9 @@ public final class ConfUtilsTest {
     Assert.assertEquals(0, tachyonConf.toMap().size());
   }
 
+  /**
+   * Test for the {@link ConfUtils#loadFromHadoopConfiguration(Configuration)} method.
+   */
   @Test
   public void loadFromHadoopConfigurationTest() {
     Configuration hadoopConfig = new Configuration();

@@ -15,37 +15,64 @@
 
 package tachyon.exception;
 
+/**
+ * The exception thrown when a lineage does not exist in Tachyon.
+ */
 public class LineageDoesNotExistException extends TachyonException {
   private static final long serialVersionUID = 6099440428939973308L;
 
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.LINEAGE_DOES_NOT_EXIST;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public LineageDoesNotExistException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public LineageDoesNotExistException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public LineageDoesNotExistException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public LineageDoesNotExistException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 
   /**
-   * Ensures the truth of an expression involving the state of the calling
-   * instance, but not involving any parameters to the calling method.
+   * Ensures the truth of an expression involving the state of the calling instance, but not
+   * involving any parameters to the calling method.
    *
    * @param expression a boolean expression
    * @param message {@link ExceptionMessage} template should the check fail
-   * @param params the arguments to be substituted into the message
-   *     template. Arguments are converted to strings using
-   *     {@link ExceptionMessage#getMessage(Object...)}.
+   * @param params the arguments to be substituted into the message template. Arguments are
+   *               converted to strings using {@link ExceptionMessage#getMessage(Object...)}.
    * @throws LineageDoesNotExistException if {@code expression} is false
    */
   public static void check(boolean expression, ExceptionMessage message, Object... params)

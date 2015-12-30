@@ -36,8 +36,9 @@ public final class DataServerMessage {
 
   // The size of the prefix of the header: frame length (long), messageType (int)
   private static final int HEADER_PREFIX_LENGTH = 12;
-  // The request header is: HEADER_PREFIX, blockId (long), offset (long), length (long)
-  private static final int REQUEST_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 24;
+  // The request header is: HEADER_PREFIX, blockId (long), offset (long), length (long),
+  // lockId (long), sessionId (long)
+  private static final int REQUEST_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 40;
   // The response header is: HEADER_PREFIX, blockId (long), offset (long), length (long),
   // status (short)
   private static final int RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 26;
@@ -57,17 +58,6 @@ public final class DataServerMessage {
   }
 
   /**
-   * Creates a block request message for an entire block by the block id, and the message is ready
-   * to be sent.
-   *
-   * @param blockId The id of the block
-   * @return The created block request message
-   */
-  public static DataServerMessage createBlockRequestMessage(long blockId) {
-    return createBlockRequestMessage(blockId, 0, -1);
-  }
-
-  /**
    * Creates a block request message for a part of the block by the block id, the offset and the
    * length. The message is ready to be sent. If {@code len} is -1, it means requesting the data
    * from offset to the end of the block.
@@ -76,15 +66,20 @@ public final class DataServerMessage {
    * @param offset The requested data's offset in the block
    * @param len The length of the requested data. If it's -1, it means request the data from offset
    *        to the block's end.
+   * @param lockId The lockId of the locked block
+   * @param sessionId The id of requester's session
    * @return The created block request message
    */
-  public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
+  public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len,
+      long lockId, long sessionId) {
     DataServerMessage ret = new DataServerMessage(true, RPCMessage.Type.RPC_BLOCK_READ_REQUEST);
 
     ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     ret.mBlockId = blockId;
     ret.mOffset = offset;
     ret.mLength = len;
+    ret.mLockId = lockId;
+    ret.mSessionId = sessionId;
     ret.generateHeader();
     ret.mData = ByteBuffer.allocate(0);
     ret.mIsMessageReady = true;
@@ -166,8 +161,9 @@ public final class DataServerMessage {
 
   private RPCResponse.Status mStatus;
 
-  // TODO(calvin): Investigate how to remove this since it is not transferred over the wire.
   private long mLockId = -1L;
+
+  private long mSessionId;
 
   private ByteBuffer mData = null;
 
@@ -224,7 +220,11 @@ public final class DataServerMessage {
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
 
-    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
+    if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_REQUEST) {
+      // The request message has a lockId and a sessionId
+      mHeader.putLong(mLockId);
+      mHeader.putLong(mSessionId);
+    } else if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
       // The response message has a status.
       mHeader.putShort(mStatus.getId());
     }
@@ -273,6 +273,17 @@ public final class DataServerMessage {
   }
 
   /**
+   * Gets the sessionId of the worker making the request. Make sure the message is ready before
+   * calling this method.
+   *
+   * @return The session id of the requester
+   */
+  public long getSessionId() {
+    checkReady();
+    return mSessionId;
+  }
+
+  /**
    * Gets the status of the response. Make sure the message is ready before calling this method.
    *
    * @return The {@link tachyon.network.protocol.RPCResponse.Status} of the response
@@ -318,7 +329,7 @@ public final class DataServerMessage {
    *
    * @param socketChannel The socket channel to receive from
    * @return The number of bytes read, possibly zero, or -1 if the channel has reached end-of-stream
-   * @throws IOException
+   * @throws IOException when a non-Tachyon related exception occurs
    */
   public int recv(SocketChannel socketChannel) throws IOException {
     isSend(false);
@@ -354,6 +365,11 @@ public final class DataServerMessage {
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
+        if (mMessageType.getId() == RPCMessage.Type.RPC_BLOCK_READ_REQUEST.getId()) {
+          // Additional fields for block read request
+          mLockId = mHeader.getLong();
+          mSessionId = mHeader.getLong();
+        }
         // TODO(hy): Make this better to truncate the file.
         Preconditions.checkState(mLength < Integer.MAX_VALUE,
             "received length is too large: " + mLength);
@@ -389,7 +405,7 @@ public final class DataServerMessage {
    * Sends this message to the specified socket channel. Make sure this is a send message.
    *
    * @param socketChannel The socket channel to send to
-   * @throws IOException
+   * @throws IOException when a non-Tachyon related exception occurs
    */
   public void send(SocketChannel socketChannel) throws IOException {
     Preconditions.checkNotNull(socketChannel);

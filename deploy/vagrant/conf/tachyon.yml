@@ -7,10 +7,10 @@ Type: Local
 # github repo and version(can be branch, commit hash)
 Github:
   Repo: https://github.com/amplab/tachyon
-  Version: branch-0.6
+  Version: branch-0.8
 
 Release:
-  Version: 0.7.1 # name of release version
+  Version: 0.8.2 # name of release version
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here

@@ -21,31 +21,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerContext;
+import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,  and saves the new pinned
- * inodes to the {@link BlockDataManager}. The syncing parameters (intervals, timeouts) adopt
- * directly from worker-to-master heartbeat configurations.
+ * inodes to the {@link BlockDataManager}.
  *
  */
-public final class PinListSync implements Runnable {
+public final class PinListSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** Milliseconds between each sync */
-  private final int mSyncIntervalMs;
-  /** Milliseconds between syncs before a timeout */
-  private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
   private FileSystemMasterClient mMasterClient;
-  /** Flag to indicate if the syncing should continue */
-  private volatile boolean mRunning;
 
   /**
    * Constructor for PinListSync
@@ -55,53 +46,21 @@ public final class PinListSync implements Runnable {
    */
   public PinListSync(BlockDataManager blockDataManager, FileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
-    TachyonConf conf = WorkerContext.getConf();
 
     mMasterClient = masterClient;
-    mSyncIntervalMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mSyncTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
-
-    mRunning = true;
   }
 
-  /**
-   * Main loop for the sync, continuously sync pinlist from master
-   */
   @Override
-  public void run() {
-    long lastSyncMs = System.currentTimeMillis();
-    while (mRunning) {
-      // Check the time since last sync, and wait until it is within sync interval
-      long lastIntervalMs = System.currentTimeMillis() - lastSyncMs;
-      long toSleepMs = mSyncIntervalMs - lastIntervalMs;
-      if (toSleepMs > 0) {
-        CommonUtils.sleepMs(LOG, toSleepMs);
-      } else {
-        LOG.warn("Sync took: {}, expected: {}", lastIntervalMs, mSyncIntervalMs);
-      }
-
-      // Send the sync
-      try {
-        Set<Long> pinList = mMasterClient.getPinList();
-        mBlockDataManager.updatePinList(pinList);
-        lastSyncMs = System.currentTimeMillis();
-      } catch (Exception e) {
-        // An error occurred, retry after 1 second or error if sync timeout is reached
-        LOG.error("Failed to receive pinlist.", e);
-        // TODO(gene): Add this method to MasterClientBase.
-        // mMasterClient.resetConnection();
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-        if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {
-          throw new RuntimeException("Master sync timeout exceeded: " + mSyncTimeoutMs);
-        }
-      }
+  public void heartbeat() {
+    // Send the sync
+    try {
+      Set<Long> pinList = mMasterClient.getPinList();
+      mBlockDataManager.updatePinList(pinList);
+    } catch (Exception e) {
+      // An error occurred, retry after 1 second or error if sync timeout is reached
+      LOG.error("Failed to receive pinlist.", e);
+      // TODO(gene): Add this method to MasterClientBase.
+      // mMasterClient.resetConnection();
     }
-  }
-
-  /**
-   * Stops the syncing, once this method is called, the object should be discarded
-   */
-  public void stop() {
-    mRunning = false;
   }
 }

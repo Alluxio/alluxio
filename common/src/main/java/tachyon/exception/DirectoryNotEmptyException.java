@@ -25,18 +25,43 @@ public class DirectoryNotEmptyException extends TachyonException {
   private static final TachyonExceptionType EXCEPTION_TYPE =
       TachyonExceptionType.DIRECTORY_NOT_EMPTY_EXCEPTION;
 
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
   public DirectoryNotEmptyException(String message) {
     super(EXCEPTION_TYPE, message);
   }
 
+  /**
+   * Constructs a new exception with the specified detail message and cause
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
   public DirectoryNotEmptyException(String message, Throwable cause) {
     super(EXCEPTION_TYPE, message, cause);
   }
 
+  /**
+   * Constructs a new exception with the specified exception message and multiple parameters.
+   *
+   * @param message the exception message
+   * @param params the parameters
+   */
   public DirectoryNotEmptyException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
+  /**
+   * Constructs a new exception with the specified exception message, the cause and multiple
+   * parameters.
+   *
+   * @param message the exception message
+   * @param cause the cause
+   * @param params the parameters
+   */
   public DirectoryNotEmptyException(ExceptionMessage message, Throwable cause,
       Object... params) {
     this(message.getMessage(params), cause);
