@@ -75,6 +75,14 @@ public class URIStatus {
   }
 
   /**
+   * @return the backing {@link FileInfo} object
+   */
+  // TODO(calvin): Remove this method
+  public FileInfo getInfo() {
+    return mInfo;
+  }
+
+  /**
    * @return the percentage of blocks in Tachyon memory tier storage, mutable
    */
   public int getInMemoryPercentage() {

@@ -218,7 +218,8 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(TachyonURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
-    return null;
+    URIStatus status = getStatus(path);
+    return new FileInStream(status.getInfo(), options.toInStreamOptions());
   }
 
   @Override
