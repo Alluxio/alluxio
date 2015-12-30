@@ -120,7 +120,7 @@
                     <th><%= fileInfo.getUserName() %></th>
                   <% } %>
                   <th><%= (fileInfo.getPersistenceState()) %></th>
-                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
+                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
