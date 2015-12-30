@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -40,7 +42,6 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
-import tachyon.worker.file.FileDataManager;
 
 /**
  * Tests {@link FileDataManager}.
@@ -87,8 +88,8 @@ public final class FileDataManagerTest {
     manager.persistFile(fileId, blockIds);
 
     // verify file persisted
-    List<Long> persistedFiles = (List<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
-    Assert.assertEquals(Lists.newArrayList(fileId), persistedFiles);
+    Set<Long> persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
+    Assert.assertEquals(Sets.newHashSet(fileId), persistedFiles);
 
     // verify fastCopy called twice, once per block
     PowerMockito.verifyStatic(Mockito.times(2));
@@ -101,13 +102,13 @@ public final class FileDataManagerTest {
   public void popPersistedFilesTest() {
     BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
     FileDataManager manager = new FileDataManager(blockDataManager);
-    List<Long> persistedFiles = Lists.newArrayList(1L, 2L);
+    Set<Long> persistedFiles = Sets.newHashSet(1L, 2L);
 
-    Whitebox.setInternalState(manager, "mPersistedFiles", Lists.newArrayList(persistedFiles));
+    Whitebox.setInternalState(manager, "mPersistedFiles", Sets.newHashSet(persistedFiles));
     List<Long> poppedList = manager.popPersistedFiles();
-    Assert.assertEquals(persistedFiles, poppedList);
+    Assert.assertEquals(persistedFiles, Sets.newHashSet(poppedList));
     // verify persisted files cleared in the manager
-    persistedFiles = (List<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
+    persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
     Assert.assertTrue(persistedFiles.isEmpty());
   }
 
