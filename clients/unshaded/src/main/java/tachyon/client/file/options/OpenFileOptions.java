@@ -59,6 +59,14 @@ public final class OpenFileOptions {
   }
 
   /**
+   * @return the {@link OutStreamOptions} representation of this object
+   */
+  public InStreamOptions toInStreamOptions() {
+    InStreamOptions.Builder builder = new InStreamOptions.Builder();
+    return builder.setTachyonStorageType(mTachyonStorageType).build();
+  }
+
+  /**
    * @return the name : value pairs for all the fields
    */
   @Override
