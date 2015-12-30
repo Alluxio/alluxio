@@ -160,12 +160,13 @@ public final class TachyonBlockStore {
    * @param blockId the block to write
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
    *        stream is just storing the block in Tachyon again)
-   * @param location the worker to write the block to, fails if the worker cannot serve the request
+   * @param address the address of the worker to write the block to, fails if the worker cannot
+   *        serve the request
    * @return a {@link BufferedBlockOutStream} which can be used to write data to the block in a
    *         streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, String location)
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address)
       throws IOException {
     if (blockSize == -1) {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -178,16 +179,11 @@ public final class TachyonBlockStore {
       }
     }
     // No specified location to write to.
-    if (location == null) {
-      // Local client, attempt to do direct write to local storage.
-      if (mContext.hasLocalWorker()) {
-        return new LocalBlockOutStream(blockId, blockSize);
-      }
-      // Client is not local or the data is not available on the local worker, use remote stream.
-      return new RemoteBlockOutStream(blockId, blockSize);
+    if (address == null) {
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage());
     }
     // Location is local.
-    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(address.getHost())) {
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
       } else {
@@ -195,7 +191,7 @@ public final class TachyonBlockStore {
       }
     }
     // Location is specified and it is remote.
-    return new RemoteBlockOutStream(blockId, blockSize, location);
+    return new RemoteBlockOutStream(blockId, blockSize, address);
   }
 
   /**

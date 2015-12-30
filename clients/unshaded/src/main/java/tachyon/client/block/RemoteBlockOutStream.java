@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.TachyonException;
 
@@ -53,17 +54,17 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   }
 
   /**
-   * Creates a new block output stream on a specific host.
+   * Creates a new block output stream on a specific address.
    *
    * @param blockId the block id
    * @param blockSize the block size
    * @param hostname the hostname of the preferred worker
    * @throws IOException if I/O error occurs
    */
-  public RemoteBlockOutStream(long blockId, long blockSize, String hostname) throws IOException {
+  public RemoteBlockOutStream(long blockId, long blockSize, WorkerNetAddress address) throws IOException {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
-    mBlockWorkerClient = mContext.acquireWorkerClient(hostname);
+    mBlockWorkerClient = mContext.acquireWorkerClient(address);
     try {
       mBlockWorkerClient.connect();
       mRemoteWriter.open(mBlockWorkerClient.getDataServerAddress(), mBlockId,
