@@ -131,14 +131,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
     mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+        (int) (mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
     mWorkerCpu = mTachyonConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+        (int) (mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+    mRamdiskMemInMB = (int) (mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
     mOneWorkerPerHost = mTachyonConf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
