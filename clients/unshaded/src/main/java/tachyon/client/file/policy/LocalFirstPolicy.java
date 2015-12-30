@@ -43,7 +43,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
-          && workerInfo.getCapacityBytes() > blockSizeBytes) {
+          && workerInfo.getCapacityBytes() >= blockSizeBytes) {
         return workerInfo.getNetAddress();
       }
     }

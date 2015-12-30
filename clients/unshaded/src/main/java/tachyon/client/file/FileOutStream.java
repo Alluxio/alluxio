@@ -101,7 +101,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
-        "The location policy is not specified");
+        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
   }
 
   @Override
@@ -257,7 +257,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (mTachyonStorageType.isStore()) {
       try {
         WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-            mContext.getTachyonBlockStore().getBlockWorkerInfoList(), mBlockSize);
+            mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
         String hostname = address == null ? null : address.getHost();
         // TODO(yupeng) use the returned address directly for constructing the out stream
         mCurrentBlockOutStream =

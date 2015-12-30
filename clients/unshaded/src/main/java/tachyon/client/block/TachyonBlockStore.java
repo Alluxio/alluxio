@@ -89,7 +89,7 @@ public final class TachyonBlockStore {
    * @throws IOException when work info list cannot be obtained from master
    * @throws TachyonException if network connection failed
    */
-  public List<BlockWorkerInfo> getBlockWorkerInfoList() throws IOException, TachyonException {
+  public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, TachyonException {
     List<BlockWorkerInfo> infoList = Lists.newArrayList();
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
