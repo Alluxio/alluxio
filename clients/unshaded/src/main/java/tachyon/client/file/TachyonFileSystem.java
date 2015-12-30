@@ -216,7 +216,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
             .build();
     TachyonFile tFile = create(path, createOptions);
     try {
-      return new FileOutStream(tFile.getFileId(), options);
+      return new FileOutStream(path, options);
     } catch (IOException e) {
       // Delete the file if it still exists
       TachyonFile file = openIfExists(path);
@@ -242,7 +242,12 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   // TODO(calvin): We should remove this when the TachyonFS code is fully deprecated.
   @Deprecated
   public FileOutStream getOutStream(long fileId, OutStreamOptions options) throws IOException {
-    return new FileOutStream(fileId, options);
+    try {
+      FileInfo info = getInfo(new TachyonFile(fileId));
+      return new FileOutStream(new TachyonURI(info.getPath()), options);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
