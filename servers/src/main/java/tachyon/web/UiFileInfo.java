@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.TachyonURI;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -79,7 +80,7 @@ public final class UiFileInfo {
   private final String mUserName;
   private final String mGroupName;
   private final int mPermission;
-  private final boolean mIsPersisted;
+  private final String mPersistenceState;
   private List<String> mFileLocations;
 
   private final Map<String, List<UiBlockInfo>> mBlocksOnTier =
@@ -101,7 +102,7 @@ public final class UiFileInfo {
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();
-    mIsPersisted = fileInfo.isPersisted;
+    mPersistenceState = fileInfo.persistenceState;
     mFileLocations = new ArrayList<String>();
   }
 
@@ -120,7 +121,7 @@ public final class UiFileInfo {
     mUserName = "";
     mGroupName = "";
     mPermission = FileSystemPermission.getNoneFsPermission().toShort();
-    mIsPersisted = false;
+    mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<String>();
   }
 
@@ -188,8 +189,8 @@ public final class UiFileInfo {
     return mIsPinned;
   }
 
-  public boolean getPersisted() {
-    return mIsPersisted;
+  public String getPersistenceState() {
+    return mPersistenceState;
   }
 
   public int getOnTierPercentage(String tierAlias) {
