@@ -77,8 +77,7 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
-    // TODO(calvin): Make file stream work with TachyonURI
-    return new FileOutStream(-1, new OutStreamOptions.Builder().build());
+    return new FileOutStream(path, new OutStreamOptions.Builder().build());
   }
 
   @Override
