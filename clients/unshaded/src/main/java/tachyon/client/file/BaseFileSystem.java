@@ -15,6 +15,10 @@
 
 package tachyon.client.file;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
@@ -26,7 +30,6 @@ import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenFileOptions;
-import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
@@ -36,10 +39,6 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class

@@ -83,9 +83,9 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
       return super.getOutStream(path, options);
     }
     if (fileId == -1) {
-      return new DummyFileOutputStream(fileId, options);
+      return new DummyFileOutputStream(path, options);
     }
-    return new LineageFileOutStream(fileId, options);
+    return new LineageFileOutStream(path, options);
   }
 
   public void reportLostFile(TachyonURI path)

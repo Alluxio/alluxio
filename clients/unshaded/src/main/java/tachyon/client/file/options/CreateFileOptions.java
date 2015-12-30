@@ -140,8 +140,9 @@ public final class CreateFileOptions {
 
   public OutStreamOptions toOutStreamOptions() {
     OutStreamOptions.Builder builder = new OutStreamOptions.Builder();
-    builder.setBlockSizeBytes(mBlockSizeBytes).setHostname(mHostname).setTachyonStorageType
-        (mTachyonStorageType).setTTL(mTTL).setUnderStorageType(mUnderStorageType);
+    builder.setBlockSizeBytes(mBlockSizeBytes).setHostname(mHostname)
+        .setTachyonStorageType(mTachyonStorageType).setTTL(mTTL)
+        .setUnderStorageType(mUnderStorageType);
     return builder.build();
   }
 

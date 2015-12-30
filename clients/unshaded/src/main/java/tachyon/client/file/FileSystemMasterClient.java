@@ -82,6 +82,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
+   * Creates a new file.
+   *
+   * @param path the file path
+   * @param options method options
+   * @return the file id
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized long create(final String path, final CreateOptions options)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+      @Override
+      public Long call() throws TachyonTException, TException {
+        return mClient.create(path, options.toThrift());
+      }
+    });
+  }
+
+  /**
    * Creates a new directory.
    *
    * @param path the directory path
@@ -91,7 +110,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized TachyonURI createDirectory(final TachyonURI path,
-                                                 final CreateDirectoryOptions options) throws IOException, TachyonException {
+      final CreateDirectoryOptions options) throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<TachyonURI>() {
       @Override
       public TachyonURI call() throws TachyonTException, TException {
@@ -119,6 +138,64 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mClient.create(path.getPath(), options.toThrift());
         // TODO(calvin): Look into changing the master side implementation
         return path;
+      }
+    });
+  }
+
+  /**
+   * Marks a file as completed.
+   *
+   * @param fileId the file id
+   * @param options the method options
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void completeFile(final long fileId, final CompleteFileOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        mClient.completeFile(fileId, options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Marks a file as completed.
+   *
+   * @param path the file path
+   * @param options the method options
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void completeFile(final TachyonURI path, final CompleteFileOptions options)
+      throws IOException, TachyonException {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+      @Override
+      public Void call() throws TachyonTException, TException {
+        // TODO(calvin): Look into changing the master side implementation
+        mClient.completeFile(mClient.getFileId(path.getPath()), options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Deletes a file or a directory.
+   *
+   * @param id the id
+   * @param recursive whether to delete the file recursively (when it is a directory)
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized boolean delete(final long id, final boolean recursive)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.remove(id, recursive);
       }
     });
   }
@@ -301,83 +378,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public String call() throws TException {
         return mClient.getUfsAddress();
-      }
-    });
-  }
-
-  /**
-   * Creates a new file.
-   *
-   * @param path the file path
-   * @param options method options
-   * @return the file id
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized long create(final String path, final CreateOptions options)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
-      @Override
-      public Long call() throws TachyonTException, TException {
-        return mClient.create(path, options.toThrift());
-      }
-    });
-  }
-
-  /**
-   * Marks a file as completed.
-   *
-   * @param fileId the file id
-   * @param options the method options
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void completeFile(final long fileId, final CompleteFileOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        mClient.completeFile(fileId, options.toThrift());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Marks a file as completed.
-   *
-   * @param path the file path
-   * @param options the method options
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized void completeFile(final TachyonURI path, final CompleteFileOptions options)
-      throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
-      @Override
-      public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
-        mClient.completeFile(mClient.getFileId(path.getPath()), options.toThrift());
-        return null;
-      }
-    });
-  }
-
-  /**
-   * Deletes a file or a directory.
-   *
-   * @param id the id
-   * @param recursive whether to delete the file recursively (when it is a directory)
-   * @return whether operation succeeded or not
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  public synchronized boolean delete(final long id, final boolean recursive)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-      @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.remove(id, recursive);
       }
     });
   }
