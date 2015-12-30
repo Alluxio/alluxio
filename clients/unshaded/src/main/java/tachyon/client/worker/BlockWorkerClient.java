@@ -42,22 +42,24 @@ import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 
 /**
- * The client talks to a worker server. It keeps sending keep alive message to the worker server.
+ * The client talks to a block worker server. It keeps sending keep alive message to the worker
+ * server.
  *
- * Since {@link WorkerService.Client} is not thread safe, this class has to guarantee thread safety.
+ * Since {@link BlockWorkerClientService.Client} is not thread safe, this class has to guarantee
+ * thread safety.
  */
-public final class WorkerClient extends ClientBase {
+public final class BlockWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
   private final boolean mIsLocal;
 
-  private WorkerService.Client mClient;
+  private BlockWorkerClientService.Client mClient;
   private long mSessionId;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
@@ -68,7 +70,7 @@ public final class WorkerClient extends ClientBase {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a WorkerClient.
+   * Creates a {@link BlockWorkerClient}.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
@@ -77,9 +79,9 @@ public final class WorkerClient extends ClientBase {
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
+  public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "worker");
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
@@ -180,7 +182,7 @@ public final class WorkerClient extends ClientBase {
 
   @Override
   protected String getServiceName() {
-    return Constants.WORKER_CLIENT_SERVICE_NAME;
+    return Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME;
   }
 
   @Override
@@ -199,7 +201,7 @@ public final class WorkerClient extends ClientBase {
 
       mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
           mTachyonConf, mAddress));
-      mClient = new WorkerService.Client(mProtocol);
+      mClient = new BlockWorkerClientService.Client(mProtocol);
 
       try {
         mProtocol.getTransport().open();

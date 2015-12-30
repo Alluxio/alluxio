@@ -380,6 +380,21 @@ public class ApplicationMasterTest {
   }
 
   /**
+   * Tests that large container request sizes are handled correctly
+   */
+  @Test
+  public void bigContainerRequestTest() {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
+    conf.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
+    conf.set(Constants.WORKER_MEMORY_SIZE, "256gb");
+    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath", conf);
+    Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
+    Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
+    Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
+  }
+
+  /**
    * Returns an argument matcher which matches the expected worker container request for the
    * specified hosts.
    *
