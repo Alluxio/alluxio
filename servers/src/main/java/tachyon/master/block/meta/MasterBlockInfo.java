@@ -38,7 +38,7 @@ public final class MasterBlockInfo {
    * Creates a new instance of {@link MasterBlockInfo}.
    *
    * @param blockId the block id to use
-   * @param length the block length to use
+   * @param length the block length in bytes to use
    */
   public MasterBlockInfo(long blockId, long length) {
     // TODO(gene): Check valid length?

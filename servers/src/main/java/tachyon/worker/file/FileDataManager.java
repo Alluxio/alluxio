@@ -142,7 +142,7 @@ public final class FileDataManager {
   }
 
   /**
-   * Returns a a list of file to persist, removing them from the internal queue.
+   * Returns a list of file to persist, removing them from the internal queue.
    *
    * @return a list to files to persist
    */

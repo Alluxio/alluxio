@@ -60,12 +60,13 @@ public class BlockMetadataManagerView {
 
   /**
    * Creates a new instance of {@link BlockMetadataManagerView}. Now we always create a new view
-   * before freespace. TODO(qifan): Incrementally update the view.
+   * before freespace.
    *
    * @param manager which the view should be constructed from
    * @param pinnedInodes a set of pinned inodes
    * @param lockedBlocks a set of locked blocks
    */
+  // TODO(qifan): Incrementally update the view.
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
     mMetadataManager = Preconditions.checkNotNull(manager);

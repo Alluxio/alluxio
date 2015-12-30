@@ -95,7 +95,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     }
 
     /**
-     * @param persistenceState the persistence state to use
+     * @param persistenceState the {@link PersistenceState} to use
      * @return the builder
      */
     public T setPersistenceState(PersistenceState persistenceState) {
@@ -104,7 +104,7 @@ public abstract class Inode implements JournalEntryRepresentable {
     }
 
     /**
-     * @param ps the permission status to use
+     * @param ps the {@link PermissionStatus} to use
      * @return the builder
      */
     public T setPermissionStatus(PermissionStatus ps) {
@@ -232,7 +232,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the persistence state of the inode
+   * @return the {@link PersistenceState} of the inode
    */
   public synchronized PersistenceState getPersistenceState() {
     return mPersistenceState;
@@ -322,10 +322,12 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the persistence state of the file.
+   * Sets the {@link PersistenceState} of the file.
+   *
+   * @param persistenceState the {@link PersistenceState} to use
    */
-  public synchronized void setPersistenceState(PersistenceState filePersistenceState) {
-    mPersistenceState = filePersistenceState;
+  public synchronized void setPersistenceState(PersistenceState persistenceState) {
+    mPersistenceState = persistenceState;
   }
 
   /**

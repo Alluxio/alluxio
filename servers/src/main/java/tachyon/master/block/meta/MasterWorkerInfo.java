@@ -68,7 +68,7 @@ public final class MasterWorkerInfo {
   private Set<Long> mToRemoveBlocks;
 
   /**
-   * Creates a new isntance of {@link MasterWorkerInfo}.
+   * Creates a new instance of {@link MasterWorkerInfo}.
    *
    * @param id the worker id to use
    * @param address the worker address to use
