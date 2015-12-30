@@ -174,7 +174,7 @@ public final class TieredBlockStore implements BlockStore {
     mMetadataReadLock.lock();
     try {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      return new LocalFileBlockReader(blockMeta);
+      return new LocalFileBlockReader(blockMeta.getPath());
     } finally {
       mMetadataReadLock.unlock();
     }
