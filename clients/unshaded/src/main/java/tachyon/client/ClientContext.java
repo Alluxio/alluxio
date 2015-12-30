@@ -58,6 +58,8 @@ public final class ClientContext {
 
   /**
    * Initializes the client context singleton with a given conf.
+   *
+   * @param conf the configuration of Tachyon
    */
   public static synchronized void reset(TachyonConf conf) {
     sTachyonConf = conf;
@@ -108,6 +110,9 @@ public final class ClientContext {
     return sMasterAddress;
   }
 
+  /**
+   * @return the executor service
+   */
   public static synchronized ExecutorService getExecutorService() {
     checkContextInitialized();
     return sExecutorService;

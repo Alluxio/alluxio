@@ -19,8 +19,15 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Method option for freeing space.
+ */
 @PublicApi
 public final class FreeOptions {
+
+  /**
+   * Builder for {@link FreeOptions}.
+   */
   public static class Builder implements OptionsBuilder<FreeOptions> {
     private boolean mRecursive;
 
@@ -41,6 +48,8 @@ public final class FreeOptions {
     }
 
     /**
+     * Sets the recursive flag.
+     *
      * @param recursive the recursive flag value to use; if the object to be freed is a directory,
      *        the flag specifies whether the directory content should be recursively freed as well
      * @return the builder

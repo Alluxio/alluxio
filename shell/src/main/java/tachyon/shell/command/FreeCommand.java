@@ -50,4 +50,9 @@ public final class FreeCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
   }
+
+  @Override
+  public String getUsage() {
+    return "free <file path|folder path>";
+  }
 }

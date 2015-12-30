@@ -24,6 +24,7 @@ import tachyon.security.LoginUser;
 import tachyon.security.User;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.PlainSaslServer;
+import tachyon.util.CommonUtils;
 
 /**
  * The permission status for a file or directory.
@@ -128,16 +129,15 @@ public final class PermissionStatus {
       if (user == null) {
         throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
       }
-      return new PermissionStatus(user.getName(),
-          "", // TODO(dong) group permission binding into Inode
-          FileSystemPermission.getDefault().applyUMask(conf));
+      return new PermissionStatus(user.getName(), CommonUtils.getPrimaryGroupName(conf,
+          user.getName()), FileSystemPermission.getDefault().applyUMask(conf));
     }
 
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
     return new PermissionStatus(loginUserName,
-        "", // TODO(dong) group permission binding into Inode
-        FileSystemPermission.getDefault().applyUMask(conf));
+        CommonUtils.getPrimaryGroupName(conf, loginUserName), FileSystemPermission.getDefault()
+            .applyUMask(conf));
   }
 
   @Override

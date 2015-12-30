@@ -410,16 +410,16 @@ the port number.
   LFU; and larger value makes LRFU closer to LRU.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.filesystem.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The heartbeat interval (in milliseconds) between the worker and file system master.
+  </td>
+</tr>
+<tr>
   <td>tachyon.worker.hostname</td>
   <td>localhost</td>
   <td>The hostname of Tachyon worker.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
-  <td>1000</td>
-  <td>
-  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
-  </td>
 </tr>
 <tr>
   <td>tachyon.worker.memory.size</td>
@@ -561,7 +561,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.block.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for block master client to talk to block master.</td>
+  <td>The number of threads used by a block master client to talk to the block master.</td>
 </tr>
 <tr>
   <td>tachyon.user.block.worker.client.threads</td>
@@ -602,12 +602,17 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for file system master client to talk to block master.</td>
+  <td>The number of threads used by a file master client to talk to the file master.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.waitcompleted.poll.ms</td>
   <td>1000</td>
   <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.write.location.policy.class</td>
+  <td>tachyon.client.file.policy.LocalFirstPolicy</td>
+  <td>The default location policy for choosing workers for writing a file's blocks</td>
 </tr>
 <tr>
   <td>tachyon.user.file.readtype.default</td>
@@ -638,6 +643,11 @@ The user configuration specifies values regarding file system access.
   <td>Flag to enable lineage feature.</td>
 </tr>
 <tr>
+  <td>tachyon.user.lineage.master.client.threads</td>
+  <td>10</td>
+  <td>The number of threads used by a lineage master client to talk to the lineage master.</td>
+</tr>
+<tr>
   <td>tachyon.user.network.netty.timeout.ms</td>
   <td>3000</td>
   <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to
@@ -652,6 +662,11 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.quota.unit.bytes</td>
   <td>8 MB</td>
   <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
+</tr>
+<tr>
+  <td>tachyon.user.raw.table.master.client.threads</td>
+  <td>10</td>
+  <td>The number of threads used by a raw table master client to talk to the raw table master.</td>
 </tr>
 </table>
 
@@ -696,6 +711,26 @@ configuration options.
   <td>tachyon.integration.mesos.master.node.count</td>
   <td>1</td>
   <td>The number of Tachyon master processes to start.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.principal</td>
+  <td>tachyon</td>
+  <td>Tachyon framework’s identity.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.role</td>
+  <td>*</td>
+  <td>Role that Tachyon framework in Mesos cluster may belong to.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.secret</td>
+  <td></td>
+  <td>Tachyon framework’s secret.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.user</td>
+  <td>root</td>
+  <td>Account used by the Mesos executor to run Tachyon workers.</td>
 </tr>
 <tr>
   <td>tachyon.integration.mesos.worker.name</td>
