@@ -16,6 +16,7 @@
 package tachyon.master.keyvalue;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
@@ -68,7 +70,11 @@ public class KeyValueMaster extends MasterBase {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    return null;
+    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
+        new KeyValueMasterClientService.Processor<KeyValueMasterClientServicehandler>(
+            new KeyValueMasterClientServicehandler(this)));
+    return services;
   }
 
   @Override
