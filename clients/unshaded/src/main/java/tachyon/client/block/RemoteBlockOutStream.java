@@ -61,7 +61,8 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * @param hostname the hostname of the preferred worker
    * @throws IOException if I/O error occurs
    */
-  public RemoteBlockOutStream(long blockId, long blockSize, WorkerNetAddress address) throws IOException {
+  public RemoteBlockOutStream(long blockId, long blockSize, WorkerNetAddress address)
+      throws IOException {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     mBlockWorkerClient = mContext.acquireWorkerClient(address);

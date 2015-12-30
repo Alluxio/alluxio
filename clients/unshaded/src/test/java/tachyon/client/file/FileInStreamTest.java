@@ -15,6 +15,8 @@
 
 package tachyon.client.file;
 
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -22,9 +24,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -74,12 +74,6 @@ public class FileInStreamTest {
   private List<TestBufferedBlockOutStream> mCacheStreams;
 
   private FileInStream mTestStream;
-
-  /**
-   * The exception expected to be thrown.
-   */
-  @Rule
-  public final ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Sets up the context and streams before a test runs.
@@ -325,9 +319,12 @@ public class FileInStreamTest {
   public void failGetInStreamTest() throws IOException {
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
 
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("test IOException");
-    mTestStream.seek(BLOCK_LENGTH);
+    try {
+      mTestStream.seek(BLOCK_LENGTH);
+      fail();
+    } catch (IOException e) {
+      Assert.assertEquals("test IOException", e.getMessage());
+    }
   }
 
   /**
@@ -386,9 +383,13 @@ public class FileInStreamTest {
    */
   @Test
   public void readBadBufferTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6));
-    mTestStream.read(new byte[10], 5, 6);
+    try {
+      mTestStream.read(new byte[10], 5, 6);
+      fail();
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
+          e.getMessage());
+    }
   }
 
   /**
@@ -398,9 +399,12 @@ public class FileInStreamTest {
    */
   @Test
   public void seekNegativeTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
-    mTestStream.seek(-1);
+    try {
+      mTestStream.seek(-1);
+      fail();
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1), e.getMessage());
+    }
   }
 
   /**
@@ -410,10 +414,14 @@ public class FileInStreamTest {
    */
   @Test
   public void seekPastEndTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(
-        String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, FILE_LENGTH + 1));
-    mTestStream.seek(FILE_LENGTH + 1);
+    try {
+      mTestStream.seek(FILE_LENGTH + 1);
+      fail();
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals(
+          String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, FILE_LENGTH + 1),
+          e.getMessage());
+    }
   }
 
   /**
@@ -440,9 +448,13 @@ public class FileInStreamTest {
     Mockito.when(blockInStream.skip(skipSize)).thenReturn(0L);
     Mockito.when(blockInStream.remaining()).thenReturn(BLOCK_LENGTH);
 
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.INSTREAM_CANNOT_SKIP.getMessage(skipSize));
-    mTestStream.skip(skipSize);
+    try {
+      mTestStream.skip(skipSize);
+      fail();
+    } catch (IOException e) {
+      Assert.assertEquals(ExceptionMessage.INSTREAM_CANNOT_SKIP.getMessage(skipSize),
+          e.getMessage());
+    }
   }
 
   /**
@@ -468,11 +480,13 @@ public class FileInStreamTest {
 
   @Test
   public void missingLocationPolicyTest() throws IOException {
-    mThrown.expect(NullPointerException.class);
-    mThrown.expectMessage(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-
-    mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.STORE).setLocationPolicy(null).build());
+    try {
+      mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
+          .setTachyonStorageType(TachyonStorageType.STORE).setLocationPolicy(null).build());
+    } catch (NullPointerException e) {
+      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
+          e.getMessage());
+    }
   }
 
   /**

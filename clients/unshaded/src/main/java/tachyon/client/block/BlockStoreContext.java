@@ -167,12 +167,13 @@ public enum BlockStoreContext {
       throws IOException {
     BlockWorkerClient client;
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(""));
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
     if (address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       client = acquireLocalWorkerClient();
       if (client == null) {
-        throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(address.getHost()));
+        throw new IOException(
+            ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(address.getHost()));
       }
     } else {
       client = acquireRemoteWorkerClient(address);
