@@ -127,7 +127,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the file path
    * @param options method options
-   * @return the file id
+   * @return the uri referencing the newly created file
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
@@ -386,7 +386,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * Renames a file or a directory.
    *
-   * @param id the id
+   * @param id the id of the file to rename
    * @param dstPath new file path
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
@@ -524,7 +524,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the Tachyon path of the file
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
-   * @throws TachyonException if a tachyon error occurs
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized long loadMetadata(final String path, final boolean recursive)
@@ -538,12 +538,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Loads a file from the under file system.
+   * Loads the metadata of a file from the under file system.
    *
-   * @param path the path of file
+   * @param path the path of the file to load metadata
    * @param options method options
    * @return the path of the loaded file
-   * @throws TachyonException if a tachyon error occurs
+   * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized TachyonURI loadMetadata(final TachyonURI path,

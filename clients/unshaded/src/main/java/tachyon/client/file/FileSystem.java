@@ -52,6 +52,10 @@ interface FileSystem {
    *
    * @param path the path of the directory to create in Tachyon space
    * @return the {@link TachyonURI} referencing the newly created directory
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected  exception is thrown
    */
   TachyonURI createDirectory(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
@@ -65,7 +69,7 @@ interface FileSystem {
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   TachyonURI createDirectory(TachyonURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
@@ -78,7 +82,7 @@ interface FileSystem {
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   FileOutStream createFile(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
@@ -92,7 +96,7 @@ interface FileSystem {
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   FileOutStream createFile(TachyonURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
@@ -143,8 +147,8 @@ interface FileSystem {
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
-  boolean exists(TachyonURI path, ExistsOptions options) throws InvalidPathException, IOException,
-      TachyonException;
+  boolean exists(TachyonURI path, ExistsOptions options)
+      throws InvalidPathException, IOException, TachyonException;
 
   /**
    * Convenience method to free a path with default options.
@@ -152,7 +156,7 @@ interface FileSystem {
    * @param path the path to free in Tachyon space
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   void free(TachyonURI path) throws FileDoesNotExistException, IOException, TachyonException;
 
@@ -164,13 +168,13 @@ interface FileSystem {
    * @param options options to associate with this operation
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   void free(TachyonURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Convenience method for get status with default options.
+   * Convenience method for getting a path's status with default options.
    *
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
@@ -196,11 +200,11 @@ interface FileSystem {
    * Convenience method for list status with default options.
    *
    * @param path the path to list information about
-   * @return a list of {@link URIStatus}s representing the paths which are children of the given
-   * path
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   List<URIStatus> listStatus(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -211,11 +215,11 @@ interface FileSystem {
    *
    * @param path the path to list information about
    * @param options options to associate with this operation
-   * @return a list of {@link URIStatus}s representing the paths which are children of the given
-   * path
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   List<URIStatus> listStatus(TachyonURI path, ListStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -227,7 +231,7 @@ interface FileSystem {
    * @return the {@link TachyonURI} referencing the new path available in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   TachyonURI loadMetadata(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -240,7 +244,7 @@ interface FileSystem {
    * @return the {@link TachyonURI} referencing the new path available in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -276,7 +280,7 @@ interface FileSystem {
    * @return a {@link FileInStream} for the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   FileInStream openFile(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -289,7 +293,7 @@ interface FileSystem {
    * @return a {@link FileInStream} for the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   FileInStream openFile(TachyonURI path, OpenFileOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -301,20 +305,21 @@ interface FileSystem {
    * @param dst the path of the destination, this path should not exist
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   void rename(TachyonURI src, TachyonURI dst)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Renames an existing Tachyon path to another Tachyon path in Tachyon.
+   * Renames an existing Tachyon path to another Tachyon path in Tachyon. This operation will be
+   * reflected in the underlying storage if the path is persisted.
    *
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
    * @param options options to associate with this operation
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   void rename(TachyonURI src, TachyonURI dst, RenameOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -322,10 +327,10 @@ interface FileSystem {
   /**
    * Convenience method for setAttribute with default parameters.
    *
-   * @param path the file handler for the file
+   * @param path the path to set attributes for
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   void setAttribute(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
@@ -333,11 +338,11 @@ interface FileSystem {
   /**
    * Sets any number of a path's attributes.
    *
-   * @param path the file handler for the file
+   * @param path the path to set attributes for
    * @param options options to associate with this operation
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   void setAttribute(TachyonURI path, SetAttributeOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;

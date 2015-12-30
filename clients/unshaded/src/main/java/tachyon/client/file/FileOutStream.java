@@ -71,7 +71,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
-  protected final TachyonURI mPath;
+  protected final TachyonURI mUri;
 
   /**
    * Creates a new file output stream.
@@ -81,7 +81,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
    * @throws IOException if an I/O error occurs
    */
   public FileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
-    mPath = path;
+    mUri = path;
     mNonce = Utils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
@@ -171,7 +171,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         // TODO(calvin): Update this to work
-        masterClient.completeFile(mPath, builder.build());
+        masterClient.completeFile(mUri, builder.build());
       } catch (TachyonException e) {
         throw new IOException(e);
       } finally {
@@ -274,7 +274,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private long getNextBlockId() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getNewBlockIdForFile(mPath);
+      return masterClient.getNewBlockIdForFile(mUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
@@ -297,7 +297,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      FileInfo fileInfo = client.getFileInfo(mPath);
+      FileInfo fileInfo = client.getFileInfo(mUri);
       mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
