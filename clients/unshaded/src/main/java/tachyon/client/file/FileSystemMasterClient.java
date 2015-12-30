@@ -25,6 +25,8 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
+import tachyon.client.file.options.CreateDirectoryOptions;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.SetStateOptions;
@@ -374,6 +376,50 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public Boolean call() throws TachyonTException, TException {
         return mClient.unmount(tachyonPath.toString());
+      }
+    });
+  }
+
+  // TachyonURI APIs below
+
+  /**
+   * Creates a new directory.
+   *
+   * @param path the directory path
+   * @param options method options
+   * @return the uri referencing the newly created directory
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized TachyonURI createDirectory(final TachyonURI path,
+      final CreateDirectoryOptions options) throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<TachyonURI>() {
+      @Override
+      public TachyonURI call() throws TachyonTException, TException {
+        mClient.mkdir(path.getPath(), options.toThrift());
+        // TODO(calvin): Look into changing the master side implementation
+        return path;
+      }
+    });
+  }
+
+  /**
+   * Creates a new file.
+   *
+   * @param path the file path
+   * @param options method options
+   * @return the file id
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized TachyonURI createFile(final TachyonURI path, final CreateFileOptions options)
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<TachyonURI>() {
+      @Override
+      public TachyonURI call() throws TachyonTException, TException {
+        mClient.create(path.getPath(), options.toThrift());
+        // TODO(calvin): Look into changing the master side implementation
+        return path;
       }
     });
   }

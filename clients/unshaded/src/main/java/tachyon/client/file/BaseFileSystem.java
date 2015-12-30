@@ -26,6 +26,7 @@ import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
@@ -53,7 +54,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public TachyonURI createDirectory(TachyonURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
-    return null;
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      return masterClient.createDirectory(path, options);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   @Override
@@ -65,7 +71,14 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(TachyonURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
-    return null;
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      path = masterClient.createFile(path, options);
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
+    // TODO(calvin): Make file stream work with TachyonURI
+    return new FileOutStream(-1, new OutStreamOptions.Builder().build());
   }
 
   @Override
