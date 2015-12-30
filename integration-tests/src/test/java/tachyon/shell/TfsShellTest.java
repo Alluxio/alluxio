@@ -527,23 +527,18 @@ public class TfsShellTest {
     files[3] = mTfs.getInfo(fileC);
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
-    String format = "%-10s%-25s%-15s%-15s%-15s%-5s\n";
     expected +=
-        String.format(format, FormatUtils.getSizeFromBytes(10),
-            CommandUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory", testUser,
-            testUser, "/testRoot/testFileA");
+        getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
+            testUser, testUser);
     expected +=
-        String.format(format, FormatUtils.getSizeFromBytes(0),
-            CommandUtils.convertMsToDate(files[1].getCreationTimeMs()), "", testUser, testUser,
-            "/testRoot/testDir");
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
+            testUser);
     expected +=
-        String.format(format, FormatUtils.getSizeFromBytes(20),
-            CommandUtils.convertMsToDate(files[2].getCreationTimeMs()), "In Memory", testUser,
-            testUser, "/testRoot/testDir/testFileB");
+        getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
+            "In Memory", testUser, testUser);
     expected +=
-        String.format(format, FormatUtils.getSizeFromBytes(30),
-            CommandUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory", testUser,
-            testUser, "/testRoot/testFileC");
+        getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
+            testUser, testUser);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
@@ -571,16 +566,15 @@ public class TfsShellTest {
     files[2] = mTfs.getInfo(fileC);
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    String format = "%-10s%-25s%-15s%-15s%-15s%-5s\n";
-    expected += String.format(format, FormatUtils.getSizeFromBytes(10),
-        CommandUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory", testUser,
-        testUser, "/testRoot/testFileA");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(0),
-        CommandUtils.convertMsToDate(files[1].getCreationTimeMs()), "", testUser,
-        testUser, "/testRoot/testDir");
-    expected += String.format(format, FormatUtils.getSizeFromBytes(30),
-        CommandUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory", testUser,
-        testUser, "/testRoot/testFileC");
+    expected +=
+        getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10, "In Memory",
+            testUser, testUser);
+    expected +=
+        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
+            testUser);
+    expected +=
+        getLsResultStr("/testRoot/testFileC", files[2].getCreationTimeMs(), 30, "Not In Memory",
+            testUser, testUser);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
@@ -912,10 +906,14 @@ public class TfsShellTest {
 
   private String getLsResultStr(TachyonURI tUri, int size, String testUser, String testGroup)
       throws IOException, TachyonException {
-    String format = "%-10s%-25s%-15s%-15s%-15s%-5s\n";
-    return String.format(format, FormatUtils.getSizeFromBytes(size),
-        CommandUtils.convertMsToDate(mTfs.getInfo(mTfs.open(tUri)).getCreationTimeMs()),
-        "In Memory", testUser, testGroup, tUri.getPath());
+    return getLsResultStr(tUri.getPath(), mTfs.getInfo(mTfs.open(tUri)).getCreationTimeMs(), size,
+        "In Memory", testUser, testGroup);
+  }
+
+  private String getLsResultStr(String path, long createTime, int size, String fileType,
+      String testUser, String testGroup) throws IOException, TachyonException {
+    return String.format(Constants.COMMAND_FORMAT_LS, FormatUtils.getSizeFromBytes(size),
+        CommandUtils.convertMsToDate(createTime), fileType, testUser, testGroup, path);
   }
 
   @Test
