@@ -24,7 +24,7 @@ import tachyon.thrift.SetStateTOptions;
 @PublicApi
 public final class SetAttributeOptions {
   /**
-   * @return the default {@link SetStateOptions}
+   * @return the default {@link SetAttributeOptions}
    */
   public static SetAttributeOptions defaults() {
     return new SetAttributeOptions();

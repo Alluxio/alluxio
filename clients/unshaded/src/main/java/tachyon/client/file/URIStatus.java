@@ -22,9 +22,9 @@ import tachyon.thrift.FileInfo;
 
 /**
  * Wrapper around {@link FileInfo}. Represents the metadata about a file or directory in Tachyon.
- * This is a snapshot of information about the file or directory and not all fields are guaranteed
- * to be up to date. Fields documented as immutable will always be accurate, and fields
- * documented as mutable may be out of date.
+ * This is a snapshot of information about the file or directory and not all attributes are
+ * guaranteed to be up to date. Attributes documented as immutable will always be accurate, and
+ * attributes documented as mutable may be out of date.
  */
 @PublicApi
 public class URIStatus {
@@ -75,9 +75,12 @@ public class URIStatus {
   }
 
   /**
+   * @deprecated This method is temporary
+   *
    * @return the backing {@link FileInfo} object
    */
   // TODO(calvin): Remove this method
+  @Deprecated
   public FileInfo getInfo() {
     return mInfo;
   }
