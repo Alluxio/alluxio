@@ -124,9 +124,8 @@ public class FileOutStreamTest {
 
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = Maps.newHashMap();
-    Mockito.when(
-        mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH), Mockito.anyString()))
-        .thenAnswer(new Answer<BufferedBlockOutStream>() {
+    Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
+        Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
