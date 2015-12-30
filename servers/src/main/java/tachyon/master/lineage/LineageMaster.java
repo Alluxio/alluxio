@@ -32,6 +32,7 @@ import com.google.protobuf.Message;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
@@ -186,8 +187,8 @@ public final class LineageMaster extends MasterBase {
    * @throws BlockInfoException if fails to create the output file
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job)
-          throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
+      IOException, AccessControlException {
     List<Long> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
