@@ -540,7 +540,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * Loads the metadata of a file from the under file system.
    *
-   * @param path the path of the file to load metadata
+   * @param path the path of the file to load metadata for
    * @param options method options
    * @return the path of the loaded file
    * @throws TachyonException if a Tachyon error occurs
