@@ -258,10 +258,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
       try {
         WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
             mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
-        String hostname = address == null ? null : address.getHost();
-        // TODO(yupeng) use the returned address directly for constructing the out stream
         mCurrentBlockOutStream =
-            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
+            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
         mShouldCacheCurrentBlock = true;
       } catch (TachyonException e) {
         throw new IOException(e);

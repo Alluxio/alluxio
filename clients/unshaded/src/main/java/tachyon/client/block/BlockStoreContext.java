@@ -23,6 +23,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.client.ClientContext;
 import tachyon.client.Utils;
+import tachyon.client.WorkerNetAddress;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
@@ -147,10 +148,34 @@ public enum BlockStoreContext {
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       client = acquireLocalWorkerClient();
       if (client == null) {
-        throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
+        throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(hostname));
       }
     } else {
       client = acquireRemoteWorkerClient(hostname);
+    }
+    return client;
+  }
+
+  /**
+   * Obtains a worker client to the worker with the given address.
+   *
+   * @param address the address of the worker to get a client to
+   * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
+   * @throws IOException if no Tachyon worker is available for the given hostname
+   */
+  public synchronized BlockWorkerClient acquireWorkerClient(WorkerNetAddress address)
+      throws IOException {
+    BlockWorkerClient client;
+    if (address == null) {
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(""));
+    }
+    if (address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+      client = acquireLocalWorkerClient();
+      if (client == null) {
+        throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(address.getHost()));
+      }
+    } else {
+      client = acquireRemoteWorkerClient(address);
     }
     return client;
   }
@@ -180,16 +205,27 @@ public enum BlockStoreContext {
    * @return a worker client with a connection to the specified hostname
    */
   private synchronized BlockWorkerClient acquireRemoteWorkerClient(String hostname) {
-    Preconditions.checkArgument(
-        !hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
-        PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     NetAddress workerAddress = getWorkerAddress(hostname);
+    return acquireRemoteWorkerClient(workerAddress);
+  }
 
+  /**
+   * Obtains a non local worker client based on the given network address. Illegal argument
+   * exception is thrown if the hostname is the local hostname. Runtime exception is thrown if the
+   * client cannot be created with a connection to the hostname.
+   *
+   * @param address the address of the worker
+   * @return a worker client with a connection to the specified hostname
+   */
+  private synchronized BlockWorkerClient acquireRemoteWorkerClient(WorkerNetAddress address) {
     // If we couldn't find a worker, crash.
-    if (workerAddress == null) {
+    if (address == null) {
       // TODO(calvin): Better exception usage.
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage(hostname));
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(""));
     }
+    Preconditions.checkArgument(
+        !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
+        PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = Utils.getRandomNonNegativeLong();
     return new BlockWorkerClient(workerAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
