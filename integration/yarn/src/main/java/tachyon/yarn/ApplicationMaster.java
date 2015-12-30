@@ -54,6 +54,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.util.FormatUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.yarn.YarnUtils.YarnContainerType;
 
@@ -432,8 +433,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
       for (String resourceName : LOCAL_RESOURCE_NAMES) {
-        localResources.put(resourceName, YarnUtils
-            .createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
+        localResources.put(resourceName, YarnUtils.createLocalResourceOfFile(
+            new YarnConfiguration(), PathUtils.concatPath(resourcePath, resourceName)));
       }
       return localResources;
     } catch (IOException e) {
