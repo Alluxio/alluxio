@@ -82,7 +82,6 @@ public interface KeyValueFileReader extends Closeable {
    */
   ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 
-
   /**
    * Closes this reader.
    */
