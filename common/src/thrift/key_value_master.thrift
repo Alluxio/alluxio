@@ -3,6 +3,9 @@ namespace java tachyon.thrift
 include "common.thrift"
 include "exception.thrift"
 
+/**
+ * Information of each key-value partition.
+ */
 struct PartitionInfo {
   1: binary keyStart
   2: binary keyLimit
@@ -15,7 +18,7 @@ struct PartitionInfo {
 service KeyValueMasterClientService extends common.TachyonService {
 
   /**
-   * Marks a partition complete and add it to the store.
+   * Marks a partition complete and adds it to the store.
    */
   void completePartition( /** the path of the store */  1: string path,
       /** the path of the store */ 2: PartitionInfo info)
