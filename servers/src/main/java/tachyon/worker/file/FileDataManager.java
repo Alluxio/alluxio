@@ -54,6 +54,11 @@ public final class FileDataManager {
   private final List<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link FileDataManager}.
+   *
+   * @param blockDataManager a block data manager handle
+   */
   public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistedFiles = Lists.newArrayList();
@@ -136,6 +141,11 @@ public final class FileDataManager {
     return dstPath;
   }
 
+  /**
+   * Returns a list of file to persist, removing them from the internal queue.
+   *
+   * @return a list to files to persist
+   */
   public synchronized List<Long> popPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
     toReturn.addAll(mPersistedFiles);

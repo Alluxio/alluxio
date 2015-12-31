@@ -59,13 +59,14 @@ public class BlockMetadataManagerView {
   private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
 
   /**
-   * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
-   * TODO(qifan): Incrementally update the view.
+   * Creates a new instance of {@link BlockMetadataManagerView}. Now we always create a new view
+   * before freespace.
    *
    * @param manager which the view should be constructed from
    * @param pinnedInodes a set of pinned inodes
    * @param lockedBlocks a set of locked blocks
    */
+  // TODO(qifan): Incrementally update the view.
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
     mMetadataManager = Preconditions.checkNotNull(manager);
@@ -131,9 +132,9 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is marked to move out of its current dir in this view.
+   * Tests if the block is marked to move out of its current dir in this view.
    *
-   * @param blockId the Id of the block
+   * @param blockId the id of the block
    * @return boolean, true if the block is marked to move out
    */
   public boolean isBlockMarked(long blockId) {
@@ -186,7 +187,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get the next storage tier view.
+   * Gets the next storage tier view.
    *
    * @param tierView the storage tier view
    * @return the next storage tier view, null if this is the last tier view
@@ -200,7 +201,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get available bytes given certain location
+   * Gets available bytes given certain location
    * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
    *
    * @param location location the check available bytes
@@ -215,7 +216,7 @@ public class BlockMetadataManagerView {
    * Returns null if block is pinned or currently being locked, otherwise returns
    * {@link BlockMetadataManager#getBlockMeta(long)}.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return metadata of the block or null
    * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
    */

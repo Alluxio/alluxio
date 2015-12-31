@@ -26,10 +26,18 @@ import tachyon.master.TachyonMaster;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * A master's UI web server
+ * A master's UI web server.
  */
 public final class MasterUIWebServer extends UIWebServer {
 
+  /**
+   * Creates a new instance of {@link MasterUIWebServer}.
+   *
+   * @param service the service type
+   * @param address the service address
+   * @param master the Tachyon master
+   * @param conf the Tachyon configuration
+   */
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, TachyonMaster master,
       TachyonConf conf) {
     super(service, address, conf);

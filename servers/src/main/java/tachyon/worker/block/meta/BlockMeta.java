@@ -24,6 +24,8 @@ public final class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
 
   /**
+   * Creates a new instance of {@link BlockMeta}.
+   *
    * @param blockId the block id
    * @param blockSize the block size
    * @param dir the parent directory
@@ -34,6 +36,8 @@ public final class BlockMeta extends BlockMetaBase {
   }
 
   /**
+   * Creates a new instance of {@link BlockMeta} from {@link TempBlockMeta}.
+   *
    * @param tempBlock uncommitted block metadata
    */
   public BlockMeta(TempBlockMeta tempBlock) {
