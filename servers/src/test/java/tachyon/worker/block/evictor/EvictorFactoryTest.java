@@ -61,8 +61,8 @@ public class EvictorFactoryTest {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
+    Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
   }
 
@@ -71,8 +71,8 @@ public class EvictorFactoryTest {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
+    Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 
@@ -80,8 +80,8 @@ public class EvictorFactoryTest {
   public void createDefaultEvictorTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
-    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
+    Allocator allocator = Allocator.Factory.create(conf, sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.create(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 }

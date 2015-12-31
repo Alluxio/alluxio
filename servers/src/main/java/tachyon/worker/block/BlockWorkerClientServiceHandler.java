@@ -44,6 +44,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   /** Association between storage tier aliases and ordinals ond this worker */
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /**
+   * Creates a new instance of {@link BlockWorkerClientServiceHandler}.
+   *
+   * @param worker block data manager handler
+   */
   public BlockWorkerClientServiceHandler(BlockDataManager worker) {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
@@ -119,7 +124,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Lock the file in Tachyon's space while the session is reading it, and the path of the block
+   * Locks the file in Tachyon's space while the session is reading it, and the path of the block
    * file locked will be returned.
    *
    * @param blockId the id of the block to be locked
