@@ -28,7 +28,7 @@ public final class LineageIdGenerator implements JournalEntryRepresentable {
   private AtomicLong mSequenceNumber;
 
   /**
-   * Default constructor.
+   * Creates a new instance of {@link LineageIdGenerator}.
    */
   public LineageIdGenerator() {
     mSequenceNumber = new AtomicLong(0);

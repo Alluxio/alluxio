@@ -35,7 +35,8 @@ public final class CheckpointLatestPlanner implements CheckpointPlanner {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * {@link CheckpointLatestPlanner} does not use the lineage store view.
+   * Creates a new instance of {@link CheckpointLatestPlanner}, which does not use the lineage store
+   * view.
    *
    * @param lineageStoreView a view of a lineage store
    * @param fileSystemMasterView a view of the file system master

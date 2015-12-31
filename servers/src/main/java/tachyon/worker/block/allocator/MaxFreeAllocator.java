@@ -29,6 +29,11 @@ import tachyon.worker.block.meta.StorageTierView;
 public final class MaxFreeAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
+  /**
+   * Creates a new instance of {@link MaxFreeAllocator}.
+   *
+   * @param view {@link BlockMetadataManagerView} to pass to the allocator
+   */
   public MaxFreeAllocator(BlockMetadataManagerView view) {
     mManagerView = Preconditions.checkNotNull(view);
   }
@@ -41,13 +46,10 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   /**
-   * Should only be accessed by
-   * {@link #allocateBlockWithView(long, long, BlockStoreLocation, BlockMetadataManagerView)} inside
-   * class. Allocates a block from the given block store location. The location can be a specific
-   * location, or {@link BlockStoreLocation#anyTier()} or
-   * {@link BlockStoreLocation#anyDirInTier(String)}.
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
    *
-   * @param sessionId the ID of session to apply for the block allocation
+   * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a {@link StorageDirView} in which to create the temp block meta if success, null
@@ -81,7 +83,7 @@ public final class MaxFreeAllocator implements Allocator {
   }
 
   /**
-   * Find a directory view in a tier view that has max free space and is able to store the block.
+   * Finds a directory view in a tier view that has max free space and is able to store the block.
    *
    * @param tierView the storage tier view
    * @param blockSize the size of block in bytes

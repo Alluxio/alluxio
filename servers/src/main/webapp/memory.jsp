@@ -31,14 +31,14 @@
           </thead>
           <tbody>
             <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
                   <th><%= fileInfo.getUserName() %></th>
                   <th><%= fileInfo.getGroupName() %></th>
-                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
+                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
                 </tr>

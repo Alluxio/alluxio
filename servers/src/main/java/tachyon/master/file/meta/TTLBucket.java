@@ -41,19 +41,34 @@ public final class TTLBucket implements Comparable<TTLBucket> {
   /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */
   private Set<InodeFile> mFiles;
 
+  /**
+   * Creates a new instance of {@link TTLBucket}.
+   *
+   * @param startTimeMs the start time to use
+   */
   public TTLBucket(long startTimeMs) {
     mTTLIntervalStartTimeMs = startTimeMs;
     mFiles = new HashSet<InodeFile>();
   }
 
+  /**
+   * @return the ttl interval start time in milliseconds
+   */
   public long getTTLIntervalStartTimeMs() {
     return mTTLIntervalStartTimeMs;
   }
 
+  /**
+   *
+   * @return the ttl interval end time in milliseconds
+   */
   public long getTTLIntervalEndTimeMs() {
     return mTTLIntervalStartTimeMs + sTTLIntervalMs;
   }
 
+  /**
+   * @return the ttl interval in milliseconds
+   */
   public static long getTTLIntervalMs() {
     return sTTLIntervalMs;
   }
