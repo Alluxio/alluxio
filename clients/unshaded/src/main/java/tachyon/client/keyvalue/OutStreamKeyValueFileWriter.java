@@ -83,6 +83,15 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
     mClosed = true;
   }
 
+  @Override
+  public boolean isFull() {
+    // TODO(binfan): make this configurable.
+    if (byteCount() > Constants.GB) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * @return number of keys
    */

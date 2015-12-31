@@ -17,6 +17,7 @@ package tachyon.client.keyvalue;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
 
@@ -57,6 +58,11 @@ public interface KeyValueFileWriter extends Closeable {
    * @throws IOException
    */
   void put(byte[] key, byte[] value) throws IOException;
+
+  /**
+   * @return whether this writer can take more key-value pairs.
+   */
+  boolean isFull();
 
   /**
    * Closes the writer.
