@@ -186,7 +186,6 @@ public class TachyonMaster {
       mKeyValueMasterJournal =
           new ReadWriteJournal(KeyValueMaster.getJournalDirectory(journalDirectory));
 
-
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
@@ -369,7 +368,6 @@ public class TachyonMaster {
     }
     registerServices(processor, mRawTableMaster.getServices());
     registerServices(processor, mKeyValueMaster.getServices());
-
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
