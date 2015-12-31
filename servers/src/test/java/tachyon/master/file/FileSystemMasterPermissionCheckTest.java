@@ -296,7 +296,8 @@ public class FileSystemMasterPermissionCheckTest {
     mThrown.expect(InvalidPathException.class);
 
     // rename "/testDir/file" to "/testDir/notExistDir/fileRenamed" for user1
-    // This is permitted by permission checking model.
+    // This is permitted by permission checking model, but failed during renaming procedure,
+    // since the impl cannot rename a file to a dst path whose parent does not exist.
     verifyRename(TEST_USER_1, TEST_DIR_FILE_URI, "/testDir/notExistDir/fileRenamed");
   }
 
