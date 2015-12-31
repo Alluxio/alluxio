@@ -109,6 +109,7 @@ service FileSystemMasterClientService extends common.TachyonService {
    * Returns the file id for the given path.
    */
   i64 getFileId( /** the path of the file */ 1: string path)
+    throws (1: exception.TachyonTException e)
 
   /**
    * Returns the file information.
