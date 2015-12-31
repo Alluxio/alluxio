@@ -21,6 +21,9 @@ import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
 
+/**
+ * Method options for opening a file for reading.
+ */
 @PublicApi
 public final class OpenFileOptions {
   private TachyonStorageType mTachyonStorageType;

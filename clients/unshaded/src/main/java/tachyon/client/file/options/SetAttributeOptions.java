@@ -21,6 +21,9 @@ import tachyon.annotation.PublicApi;
 import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
+/**
+ * Method options for setting any number of a path's attributes.
+ */
 @PublicApi
 public final class SetAttributeOptions {
   /**
