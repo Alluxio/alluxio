@@ -58,7 +58,7 @@ import tachyon.util.io.BufferUtils;
  */
 @RunWith(Parameterized.class)
 public class DataServerIntegrationTest {
-  private static final int WORKER_CAPACITY_BYTES = 1000;
+  private static final int WORKER_CAPACITY_BYTES = Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Parameterized.Parameters
@@ -93,7 +93,7 @@ public class DataServerIntegrationTest {
     mBlockReader = blockReader;
 
     mLocalTachyonClusterResource = new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES,
-        USER_QUOTA_UNIT_BYTES, Constants.GB, Constants.WORKER_DATA_SERVER, mDataServerClass,
+        USER_QUOTA_UNIT_BYTES, Constants.MB, Constants.WORKER_DATA_SERVER, mDataServerClass,
         Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType,
         Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
         mBlockReader);

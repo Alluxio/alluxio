@@ -180,7 +180,7 @@ public final class TachyonBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage());
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
     // Location is local.
     if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(address.getHost())) {
