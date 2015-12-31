@@ -27,7 +27,7 @@ public interface Source {
    *
    * @return the name of the Source
    */
-  public String getName();
+  String getName();
 
   /**
    * Gets the instance of the {@link MetricRegistry}. A MetricRegistry is used to register the
@@ -35,5 +35,5 @@ public interface Source {
    *
    * @return the instance of the MetricRegistry
    */
-  public MetricRegistry getMetricRegistry();
+  MetricRegistry getMetricRegistry();
 }

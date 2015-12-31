@@ -13,25 +13,39 @@
  * the License.
  */
 
-package tachyon.worker.block;
+package tachyon.retry;
+
+import com.google.common.base.Preconditions;
 
 /**
- * A ReadWrite Lock to guard one block. There should be only one lock per block.
+ * An option which allows retrying based on maximum count.
  */
-public enum BlockLockType {
-  READ(0), // A read lock
-  WRITE(1); // A write lock
+public class CountingRetry implements RetryPolicy {
 
-  private final int mValue;
-
-  BlockLockType(int value) {
-    mValue = value;
-  }
+  private final int mMaxRetries;
+  private int mCount = 0;
 
   /**
-   * @return the value
+   * Constructs a retry facility which allows max number of retries.
+   *
+   * @param maxRetries max number of retries
    */
-  public int getValue() {
-    return mValue;
+  public CountingRetry(int maxRetries) {
+    Preconditions.checkArgument(maxRetries > 0, "Max retries must be a positive number");
+    mMaxRetries = maxRetries;
+  }
+
+  @Override
+  public int getRetryCount() {
+    return mCount;
+  }
+
+  @Override
+  public boolean attemptRetry() {
+    if (mMaxRetries > mCount) {
+      mCount ++;
+      return true;
+    }
+    return false;
   }
 }

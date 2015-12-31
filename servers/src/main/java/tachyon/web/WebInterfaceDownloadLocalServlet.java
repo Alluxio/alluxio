@@ -41,6 +41,9 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
 
   private final transient TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceDownloadLocalServlet}.
+   */
   public WebInterfaceDownloadLocalServlet() {
     mTachyonConf = new TachyonConf();
   }
@@ -48,10 +51,10 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   /**
    * Prepares for downloading a file
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -82,10 +85,10 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   /**
    * This function prepares for downloading a log file on the local filesystem.
    *
-   * @param file The local log file to download
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws IOException
+   * @param file the local log file to download
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws IOException if an I/O error occurs
    */
   private void downloadLogFile(File file, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {

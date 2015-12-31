@@ -31,15 +31,15 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
-public final class UiFileInfo {
+public final class UIFileInfo {
   /**
-   * Provides ordering of {@link tachyon.web.UiFileInfo} based off a string comparison of the
+   * Provides ordering of {@link UIFileInfo} based off a string comparison of the
    * absolute paths.
    */
-  public static final Ordering<UiFileInfo> PATH_STRING_COMPARE =
-      Ordering.natural().onResultOf(new Function<UiFileInfo, Comparable<String>>() {
+  public static final Ordering<UIFileInfo> PATH_STRING_COMPARE =
+      Ordering.natural().onResultOf(new Function<UIFileInfo, Comparable<String>>() {
         @Override
-        public Comparable<String> apply(UiFileInfo input) {
+        public Comparable<String> apply(UIFileInfo input) {
           return input.mAbsolutePath;
         }
       });
@@ -55,6 +55,16 @@ public final class UiFileInfo {
     private final long mLastModificationTimeMs;
     private final boolean mIsDirectory;
 
+    /**
+     * Creates a new instance of {@link LocalFileInfo}.
+     *
+     * @param name name
+     * @param absolutePath absolute path
+     * @param size size
+     * @param creationTimeMs creation time in milliseconds
+     * @param lastModificationTimeMs last modification time in milliseconds
+     * @param isDirectory whether the object represents a directory
+     */
     public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
         long lastModificationTimeMs, boolean isDirectory) {
       mName = Preconditions.checkNotNull(name);
@@ -76,18 +86,23 @@ public final class UiFileInfo {
   private final boolean mInMemory;
   private final int mInMemoryPercent;
   private final boolean mIsDirectory;
-  private final boolean mIsPinned;
+  private final boolean mPinned;
   private final String mUserName;
   private final String mGroupName;
   private final int mPermission;
   private final String mPersistenceState;
   private List<String> mFileLocations;
 
-  private final Map<String, List<UiBlockInfo>> mBlocksOnTier =
-      new HashMap<String, List<UiBlockInfo>>();
+  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier =
+      new HashMap<String, List<UIFileBlockInfo>>();
   private final Map<String, Long> mSizeOnTier = new HashMap<String, Long>();
 
-  public UiFileInfo(FileInfo fileInfo) {
+  /**
+   * Creates a new instance of {@link UIFileInfo}.
+   *
+   * @param fileInfo underlying {@link FileInfo}
+   */
+  public UIFileInfo(FileInfo fileInfo) {
     mId = fileInfo.getFileId();
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
@@ -98,7 +113,7 @@ public final class UiFileInfo {
     mInMemory = (100 == fileInfo.inMemoryPercentage);
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
     mIsDirectory = fileInfo.isFolder;
-    mIsPinned = fileInfo.isPinned;
+    mPinned = fileInfo.isPinned;
     mUserName = fileInfo.getUserName();
     mGroupName = fileInfo.getGroupName();
     mPermission = fileInfo.getPermission();
@@ -106,7 +121,12 @@ public final class UiFileInfo {
     mFileLocations = new ArrayList<String>();
   }
 
-  public UiFileInfo(LocalFileInfo fileInfo) {
+  /**
+   * Creates a new instance of {@link UIFileInfo}.
+   *
+   * @param fileInfo underlying {@link LocalFileInfo}
+   */
+  public UIFileInfo(LocalFileInfo fileInfo) {
     mId = -1;
     mName = fileInfo.mName;
     mAbsolutePath = fileInfo.mAbsolutePath;
@@ -117,7 +137,7 @@ public final class UiFileInfo {
     mInMemory = false;
     mInMemoryPercent = 0;
     mIsDirectory = fileInfo.mIsDirectory;
-    mIsPinned = false;
+    mPinned = false;
     mUserName = "";
     mGroupName = "";
     mPermission = FileSystemPermission.getNoneFsPermission().toShort();
@@ -125,11 +145,20 @@ public final class UiFileInfo {
     mFileLocations = new ArrayList<String>();
   }
 
+  /**
+   * Adds a block to the file information.
+   *
+   * @param tierAlias the tier alias
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param blockLastAccessTimeMs the last access time (in milliseconds)
+   */
   public void addBlock(String tierAlias, long blockId, long blockSize, long blockLastAccessTimeMs) {
-    UiBlockInfo block = new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
-    List<UiBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
+    UIFileBlockInfo block =
+        new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
+    List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
     if (blocksOnTier == null) {
-      blocksOnTier = new ArrayList<UiBlockInfo>();
+      blocksOnTier = new ArrayList<UIFileBlockInfo>();
       mBlocksOnTier.put(tierAlias, blocksOnTier);
     }
     blocksOnTier.add(block);
@@ -138,10 +167,16 @@ public final class UiFileInfo {
     mSizeOnTier.put(tierAlias, (sizeOnTier == null ? 0L : sizeOnTier) + blockSize);
   }
 
+  /**
+   * @return the absolute path
+   */
   public String getAbsolutePath() {
     return mAbsolutePath;
   }
 
+  /**
+   * @return the block size (in bytes)
+   */
   public String getBlockSizeBytes() {
     if (mIsDirectory) {
       return "";
@@ -150,10 +185,16 @@ public final class UiFileInfo {
     }
   }
 
-  public Map<String, List<UiBlockInfo>> getBlocksOnTier() {
+  /**
+   * @return a mapping from tiers to file blocks
+   */
+  public Map<String, List<UIFileBlockInfo>> getBlocksOnTier() {
     return mBlocksOnTier;
   }
 
+  /**
+   * @return the creation time (in milliseconds)
+   */
   public String getCreationTime() {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
@@ -161,42 +202,73 @@ public final class UiFileInfo {
     return Utils.convertMsToDate(mCreationTimeMs);
   }
 
+  /**
+   * @return the modification time (in milliseconds)
+   */
   public String getModificationTime() {
     return Utils.convertMsToDate(mLastModificationTimeMs);
   }
 
+  /**
+   * @return the file locations
+   */
   public List<String> getFileLocations() {
     return mFileLocations;
   }
 
+  /**
+   * @return the file id
+   */
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return whether the file is present in memory
+   */
   public boolean getInMemory() {
     return mInMemory;
   }
 
+  /**
+   * @return the percentage of the file present in memory
+   */
   public int getInMemoryPercentage() {
     return mInMemoryPercent;
   }
 
+  /**
+   * @return whether the object represents a directory
+   */
   public boolean getIsDirectory() {
     return mIsDirectory;
   }
 
-  public boolean getNeedPin() {
-    return mIsPinned;
+  /**
+   * @return whether the file is pinned
+   */
+  public boolean isPinned() {
+    return mPinned;
   }
 
+  /**
+   * @return the {@link PersistenceState} of the file
+   */
   public String getPersistenceState() {
     return mPersistenceState;
   }
 
+  /**
+   * @param tierAlias a tier alias
+   * @return the percentage of the file stored in the given tier
+   */
   public int getOnTierPercentage(String tierAlias) {
     return (int) (100 * mSizeOnTier.get(tierAlias) / mSize);
   }
 
+  /**
+   * @return the file name
+   */
   public String getName() {
     if (TachyonURI.SEPARATOR.equals(mAbsolutePath)) {
       return "root";
@@ -205,6 +277,9 @@ public final class UiFileInfo {
     }
   }
 
+  /**
+   * @return the file size
+   */
   public String getSize() {
     if (mIsDirectory) {
       return "";
@@ -213,6 +288,9 @@ public final class UiFileInfo {
     }
   }
 
+  /**
+   * @param fileLocations the file locations to use
+   */
   public void setFileLocations(List<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
       mFileLocations.add(addr.getHost() + ":" + addr.getRpcPort());

@@ -13,25 +13,23 @@
  * the License.
  */
 
-package tachyon.worker.block;
+package tachyon.retry;
 
-/**
- * A ReadWrite Lock to guard one block. There should be only one lock per block.
- */
-public enum BlockLockType {
-  READ(0), // A read lock
-  WRITE(1); // A write lock
+import org.junit.Assert;
+import org.junit.Test;
 
-  private final int mValue;
+public class CountingRetryTest {
 
-  BlockLockType(int value) {
-    mValue = value;
-  }
-
-  /**
-   * @return the value
-   */
-  public int getValue() {
-    return mValue;
+  @Test
+  public void testNumRetries() {
+    int numTries = 10;
+    CountingRetry countingRetry = new CountingRetry(numTries);
+    Assert.assertEquals(0, countingRetry.getRetryCount());
+    int retryAttempts = 0;
+    while (countingRetry.attemptRetry()) {
+      retryAttempts++;
+    }
+    Assert.assertEquals(numTries, retryAttempts);
+    Assert.assertEquals(numTries, countingRetry.getRetryCount());
   }
 }
