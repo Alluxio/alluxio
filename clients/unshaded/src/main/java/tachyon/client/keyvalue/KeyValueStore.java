@@ -15,20 +15,25 @@
 
 package tachyon.client.keyvalue;
 
+import java.io.IOException;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.exception.TachyonException;
 
 /**
  * KeyValue client to access key-value data stored in Tachyon.
  */
 @PublicApi
-public class KeyValueStore {
+public final class KeyValueStore {
 
-  KeyValueStoreReader creatReader(TachyonURI uri) {
-    return null;
+  public static KeyValueStoreReader creatReader(TachyonURI uri)
+      throws IOException, TachyonException {
+    return new KeyValueStoreReader(uri);
   }
 
-  KeyValueStoreWriter createWriter(TachyonURI uri) {
-    return null;
+  public static KeyValueStoreWriter createWriter(TachyonURI uri)
+      throws IOException, TachyonException {
+    return new KeyValueStoreWriter(uri);
   }
 }
