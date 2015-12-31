@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
@@ -45,6 +46,7 @@ import tachyon.thrift.FileInfo;
 * instead of implementing the interface. This implementation reads and writes data through
 * {@link FileOutStream} and {@link FileInStream}.
 */
+@PublicApi
 public class BaseFileSystem implements FileSystem {
   @Override
   public TachyonURI createDirectory(TachyonURI path)

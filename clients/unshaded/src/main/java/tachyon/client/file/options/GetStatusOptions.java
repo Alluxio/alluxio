@@ -17,6 +17,9 @@ package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 
+/**
+ * Method options for getting the status of a path
+ */
 @PublicApi
 public final class GetStatusOptions {
   /** Whether or not to check the ufs if the path does not exist in Tachyon */
