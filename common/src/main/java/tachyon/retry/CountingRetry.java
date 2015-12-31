@@ -37,11 +37,15 @@ public class CountingRetry implements RetryPolicy {
 
   @Override
   public int getRetryCount() {
-    return mCount == 0 ? 0 : mCount - 1;
+    return mCount;
   }
 
   @Override
   public boolean attemptRetry() {
-    return mCount ++ < mMaxRetries;
+    if (mMaxRetries > mCount) {
+      mCount ++;
+      return true;
+    }
+    return false;
   }
 }
