@@ -81,12 +81,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file id for the given path, or -1 if the path does not point to a file
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized long getFileId(final String path)
-      throws IOException, ConnectionFailedException {
-    return retryRPC(new RpcCallable<Long>() {
+      throws IOException, TachyonException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
-      public Long call() throws TException {
+      public Long call() throws TachyonTException, TException {
         return mClient.getFileId(path);
       }
     });
