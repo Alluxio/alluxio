@@ -30,7 +30,7 @@ public final class KeyValueStore {
   /**
    * Gets a reader to access the key-value store.
    *
-   * @param uri {@link TachyonURI} to the store.
+   * @param uri {@link TachyonURI} to the store
    * @return {@link KeyValueStoreReader} instance
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
@@ -43,7 +43,7 @@ public final class KeyValueStore {
   /**
    * Gets a writer to create a new key-value store.
    *
-   * @param uri {@link TachyonURI} to the store.
+   * @param uri {@link TachyonURI} to the store
    * @return {@link KeyValueStoreWriter} instance
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
