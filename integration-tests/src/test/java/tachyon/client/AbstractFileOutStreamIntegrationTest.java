@@ -86,7 +86,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
    * @param underStorageType type of understorage write
    * @param fileLen length of the file
    * @param increasingByteArrayLen expected length of increasing bytes written in the file
-   * @throws IOException
+   * @throws IOException if an I/O exception occurs
    */
   protected void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen,
       int increasingByteArrayLen) throws IOException, TachyonException {

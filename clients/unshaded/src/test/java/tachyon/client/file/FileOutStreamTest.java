@@ -354,7 +354,7 @@ public class FileOutStreamTest {
    * Tests that the async write invokes the expected client APIs.
    *
    * @throws IOException when the write fails
-   * @throws TachyonException
+   * @throws TachyonException when a Tachyon exception occurs
    */
   @Test
   public void asyncWriteTest() throws Exception {

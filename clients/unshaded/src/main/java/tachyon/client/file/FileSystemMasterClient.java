@@ -365,7 +365,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param fileId the file id
    * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
+   * @throws IOException if an I/O error occurs
    */
   public synchronized Void scheduleAsyncPersist(final long fileId)
       throws TachyonException, IOException {
