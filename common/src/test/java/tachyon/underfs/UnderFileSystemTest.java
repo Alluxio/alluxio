@@ -80,6 +80,18 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
+    result = UnderFileSystem.parse(new TachyonURI("oss://localhost:19998"), mTachyonConf);
+    Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/");
+
+    result = UnderFileSystem.parse(new TachyonURI("oss://localhost:19998/"), mTachyonConf);
+    Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/");
+
+    result = UnderFileSystem.parse(new TachyonURI("oss://localhost:19998/path"), mTachyonConf);
+    Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/path");
+
     Assert.assertEquals(UnderFileSystem.parse(TachyonURI.EMPTY_URI, mTachyonConf), null);
     Assert.assertEquals(UnderFileSystem.parse(new TachyonURI("anythingElse"), mTachyonConf), null);
   }
@@ -116,6 +128,11 @@ public final class UnderFileSystemTest {
         UnderFileSystemRegistry.find("hdfs://localhost/test/path", mTachyonConf);
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for HDFS paths as it requires a separate module",
+        factory);
+
+    factory = UnderFileSystemRegistry.find("oss://localhost/test/path", mTachyonConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for OSS paths as it requires a separate module",
         factory);
 
     factory = UnderFileSystemRegistry.find("s3://localhost/test/path", mTachyonConf);
