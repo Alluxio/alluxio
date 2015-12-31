@@ -391,4 +391,52 @@ public class FileSystemMasterPermissionCheckTest {
 
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(new TachyonURI(path)));
   }
+
+  @Test
+  public void getFileIdSuccessTest() throws Exception {
+    verifyGetFileId(TEST_USER_1, TEST_DIR_FILE_URI);
+    verifyGetFileId(TEST_USER_1, TEST_DIR_URI);
+    verifyGetFileId(TEST_USER_1, TEST_FILE_URI);
+
+    verifyGetFileId(TEST_USER_2, TEST_DIR_FILE_URI);
+  }
+
+  @Test
+  public void readFileFailTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    MasterContext.reset(conf);
+
+    // read file "/onlyReadByUser1" [user1, group1, -rw-------]
+    String file = "/onlyReadByUser1";
+    verifyCreate(TEST_USER_1, file, false);
+    verifyGetFileId(TEST_USER_1, file);
+
+    mThrown.expect(AccessControlException.class);
+    verifyGetFileId(TEST_USER_2, file);
+  }
+
+  @Test
+  public void readDirFailTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    MasterContext.reset(conf);
+
+    // read dir "/testDir/testSubDir" [user1, group1, drwx--x--x]
+    String file = TEST_DIR_URI + "/testSubDir";
+    verifyMkdir(TEST_USER_1, file, false);
+    verifyGetFileId(TEST_USER_1, file);
+
+    mThrown.expect(AccessControlException.class);
+    verifyGetFileId(TEST_USER_2, file);
+  }
+
+  private void verifyGetFileId(TestUser user, String path) throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+
+    Assert.assertNotEquals(-1, fileId);
+  }
 }

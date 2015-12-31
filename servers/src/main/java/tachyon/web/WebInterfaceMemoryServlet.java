@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.FileInfo;
@@ -71,6 +72,11 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
       } catch (FileDoesNotExistException fee) {
         request.setAttribute("fatalError",
             "Error: File does not exist " + fee.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (AccessControlException ace) {
+        request.setAttribute("permissionError",
+            "Error: File " + file + " cannot be accessed " + ace.getMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }

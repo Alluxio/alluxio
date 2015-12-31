@@ -85,8 +85,12 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public long getFileId(String path) {
-    return mFileSystemMaster.getFileId(new TachyonURI(path));
+  public long getFileId(String path) throws TachyonTException {
+    try {
+      return mFileSystemMaster.getFileId(new TachyonURI(path));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override

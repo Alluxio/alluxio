@@ -44,6 +44,7 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.table.TachyonRawTables;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.file.FileSystemMaster;
@@ -104,7 +105,7 @@ public class JournalIntegrationTest {
   }
 
   private void addBlockTestUtil(FileInfo fileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -138,7 +139,7 @@ public class JournalIntegrationTest {
   }
 
   private void loadMetadataTestUtil(FileInfo fileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
@@ -225,7 +226,7 @@ public class JournalIntegrationTest {
   }
 
   private void deleteTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -272,7 +273,7 @@ public class JournalIntegrationTest {
   }
 
   private void fileDirectoryTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -305,7 +306,7 @@ public class JournalIntegrationTest {
   }
 
   private void fileTestUtil(FileInfo fileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -351,7 +352,7 @@ public class JournalIntegrationTest {
   }
 
   private void pinTestUtil(FileInfo directory, FileInfo file0, FileInfo file1)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/myFolder")));
@@ -386,7 +387,7 @@ public class JournalIntegrationTest {
   }
 
   private void directoryTestUtil(FileInfo fileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -452,7 +453,7 @@ public class JournalIntegrationTest {
   }
 
   private void manyFileTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -483,7 +484,7 @@ public class JournalIntegrationTest {
   }
 
   private void multiEditLogTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -574,7 +575,7 @@ public class JournalIntegrationTest {
   }
 
   private void renameTestUtil()
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+      throws IOException, InvalidPathException, FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -614,7 +615,7 @@ public class JournalIntegrationTest {
   }
 
   private void rawTableTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, AccessControlException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long fileId = fsMaster.getFileId(mRootUri);
