@@ -110,6 +110,7 @@ import tachyon.thrift.PersistCommandOptions;
 import tachyon.thrift.PersistFile;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
+import tachyon.util.SecurityUtils;
 import tachyon.util.io.PathUtils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -647,7 +648,7 @@ public final class FileSystemMaster extends MasterBase {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
       } catch (InvalidPathException e) {
-        // no-op
+        LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
       }
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
@@ -1784,16 +1785,14 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
-   * @param checkParent indicates whether to check the path or its parent
+   * @param checkParent indicates whether to check its parent
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
   private void checkPermission(FileSystemAction action, TachyonURI path,
       boolean checkParent) throws AccessControlException, InvalidPathException {
     // bypasses permission checking if security is not enabled.
-    if (MasterContext.getConf().get(Constants.SECURITY_AUTHENTICATION_TYPE).equals("NOSASL")
-        || MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
-        .equals("false")) {
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       return;
     }
 
@@ -1824,9 +1823,10 @@ public final class FileSystemMaster extends MasterBase {
       if ((fileInfos.size() == 1 && pathComponents.length > 1)
           || (fileInfos.size() == 2 && pathComponents.length == 2)
           && action.equals(FileSystemAction.WRITE)) {
-        // When checking Write permission on the parent or ancestor of a path, which is root "/",
-        // we simply assume user has Write permission on the parent/ancestor (root "/" in this
-        // case), but a limitation must be added, which is that the user is the owner of the path.
+        // Handle a special case where the path is a level under root "/" and checking write
+        // permission on it.
+        // we simply assume user has write permission on the root "/",
+        // with a limitation that the user must be the owner of the path.
         FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
       } else {
         FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
