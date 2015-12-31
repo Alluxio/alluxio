@@ -54,6 +54,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.util.FormatUtils;
+import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.yarn.YarnUtils.YarnContainerType;
 
@@ -106,7 +107,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /** Set of hostnames for launched workers. The implementation must be thread safe */
   private final Multiset<String> mWorkerHosts;
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
-  private final TachyonConf mTachyonConf = new TachyonConf();
   /** The count starts at 1, then becomes 0 when we allocate a container for the Tachyon master */
   private final CountDownLatch mMasterContainerAllocatedLatch;
   /** The count starts at 1, then becomes 0 when the application is done */
@@ -128,17 +128,22 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    mMasterCpu = mTachyonConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+    this(numWorkers, masterAddress, resourcePath, new TachyonConf());
+  }
+
+  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
+      TachyonConf conf) {
+    mMasterCpu = conf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-    mWorkerCpu = mTachyonConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+        (int) (conf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    mWorkerCpu = conf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) mTachyonConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+        (int) (conf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
-    mOneWorkerPerHost = mTachyonConf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
+    mRamdiskMemInMB = (int) (conf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
+    mOneWorkerPerHost = conf.getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;
@@ -432,8 +437,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     try {
       Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
       for (String resourceName : LOCAL_RESOURCE_NAMES) {
-        localResources.put(resourceName, YarnUtils
-            .createLocalResourceOfFile(new YarnConfiguration(), resourcePath + resourceName));
+        localResources.put(resourceName, YarnUtils.createLocalResourceOfFile(
+            new YarnConfiguration(), PathUtils.concatPath(resourcePath, resourceName)));
       }
       return localResources;
     } catch (IOException e) {
