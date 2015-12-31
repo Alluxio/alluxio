@@ -32,7 +32,6 @@ import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
-import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
@@ -185,8 +184,7 @@ public class ApplicationMasterTest {
       nodeReports.add(report);
       nodeHosts.add(host);
     }
-    Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
-        .thenReturn(nodeReports);
+    Mockito.when(YarnUtils.getNodeHosts(mYarnClient)).thenReturn(Sets.newHashSet(nodeHosts));
 
     // Mock the Resource Manager to "allocate" containers when they are requested and update
     // ApplicationMaster internal state
@@ -248,9 +246,7 @@ public class ApplicationMasterTest {
       Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
       nodeReports.add(report);
     }
-
-    Mockito.when(mYarnClient.getNodeReports(Mockito.<NodeState>anyVararg()))
-        .thenReturn(nodeReports);
+    Mockito.when(YarnUtils.getNodeHosts(mYarnClient)).thenReturn(Sets.newHashSet(hosts));
 
     // Pretend to be the Resource Manager, allocating containers when they are requested.
     Mockito.doAnswer(new Answer<Void>() {
@@ -384,6 +380,21 @@ public class ApplicationMasterTest {
   }
 
   /**
+   * Tests that large container request sizes are handled correctly
+   */
+  @Test
+  public void bigContainerRequestTest() {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
+    conf.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
+    conf.set(Constants.WORKER_MEMORY_SIZE, "256gb");
+    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath", conf);
+    Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
+    Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
+    Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
+  }
+
+  /**
    * Returns an argument matcher which matches the expected worker container request for the
    * specified hosts.
    *
@@ -393,10 +404,15 @@ public class ApplicationMasterTest {
   private ArgumentMatcher<ContainerRequest> getWorkerContainerMatcher(final List<String> hosts) {
     return new ArgumentMatcher<ContainerRequest>() {
       public boolean matches(Object arg) {
-        ContainerRequest expectedWorkerContainerRequest = new ContainerRequest(
-            Resource.newInstance(WORKER_MEM_MB + RAMDISK_MEM_MB, WORKER_CPU),
-            hosts.toArray(new String[] {}), null, Priority.newInstance(1), false);
-        return EqualsBuilder.reflectionEquals(arg, expectedWorkerContainerRequest);
+        Assert.assertTrue(arg instanceof ContainerRequest);
+        ContainerRequest argContainer = (ContainerRequest) arg;
+        // Wrap hosts with Sets to ignore ordering
+        return argContainer.getCapability()
+            .equals(Resource.newInstance(WORKER_MEM_MB + RAMDISK_MEM_MB, WORKER_CPU))
+            && Sets.newHashSet(argContainer.getNodes()).equals(Sets.newHashSet(hosts))
+            && argContainer.getRacks() == null
+            && argContainer.getPriority().equals(Priority.newInstance(1))
+            && !argContainer.getRelaxLocality();
       }
     };
   }

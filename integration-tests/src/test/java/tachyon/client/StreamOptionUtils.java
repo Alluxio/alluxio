@@ -17,8 +17,8 @@ package tachyon.client;
 
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.conf.TachyonConf;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * A util class to obtain common In/OutStreamOptions for tests
@@ -70,8 +70,8 @@ public final class StreamOptionUtils {
    */
   public static OutStreamOptions getOutStreamOptionsWriteLocal(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
-               .setUnderStorageType(UnderStorageType.SYNC_PERSIST)
-               .setHostname(NetworkAddressUtils.getLocalHostName(conf)).build();
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST)
+        .setLocationPolicy(new LocalFirstPolicy()).build();
   }
 
   /**

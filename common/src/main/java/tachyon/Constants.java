@@ -35,6 +35,16 @@ public final class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
+  public static final String LS_FORMAT_FILE_SIZE = "%-10s";
+  public static final String LS_FORMAT_CREATE_TIME = "%-25s";
+  public static final String LS_FORMAT_FILE_TYPE = "%-15s";
+  public static final String LS_FORMAT_USER_NAME = "%-15s";
+  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
+  public static final String LS_FORMAT_FILE_PATH = "%-5s";
+  public static final String COMMAND_FORMAT_LS = LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME
+      + LS_FORMAT_FILE_TYPE + LS_FORMAT_USER_NAME + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_PATH
+      + "%n";
+
   public static final String MESOS_RESOURCE_CPUS = "cpus";
   public static final String MESOS_RESOURCE_MEM = "mem";
   public static final String MESOS_RESOURCE_DISK = "disk";
@@ -87,7 +97,7 @@ public final class Constants {
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String RAW_TABLE_MASTER_CLIENT_SERVICE_NAME = "RawTableMasterClient";
   public static final String RAW_TABLE_MASTER_WORKER_SERVICE_NAME = "RawTableMasterWorker";
-  public static final String WORKER_CLIENT_SERVICE_NAME = "Worker";
+  public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -310,6 +320,8 @@ public final class Constants {
       "tachyon.user.block.remote.read.buffer.size.bytes";
   public static final String USER_FILE_WRITE_TYPE_DEFAULT = "tachyon.user.file.writetype.default";
   public static final String USER_FILE_READ_TYPE_DEFAULT = "tachyon.user.file.readtype.default";
+  public static final String USER_FILE_WRITE_LOCATION_POLICY =
+      "tachyon.user.file.write.location.policy.class";
   public static final String USER_BLOCK_REMOTE_READER =
       "tachyon.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =

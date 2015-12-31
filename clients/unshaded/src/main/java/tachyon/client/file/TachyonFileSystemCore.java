@@ -90,7 +90,7 @@ interface TachyonFileSystemCore {
    *
    * @param file the handler for the file
    * @param options method options
-   * @return the FileInfo of the file
+   * @return the {@link FileInfo} of the file
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the file does not exist
    */
