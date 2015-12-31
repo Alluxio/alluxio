@@ -75,6 +75,7 @@ public class KeyValueStoreWriter implements Closeable {
   @Override
   public void close() throws IOException {
     try {
+      completePartition();
       mMasterClient.completeStore(mStoreUri);
       mMasterClient.close();
     } catch (TachyonException e) {
@@ -91,11 +92,15 @@ public class KeyValueStoreWriter implements Closeable {
    * @throws TachyonException if Tachyon error occurs
    */
   public void put(byte[] key, byte[] value) throws IOException, TachyonException {
+    Preconditions.checkNotNull(key);
+    Preconditions.checkNotNull(value);
     if (mWriter == null || mWriter.isFull()) { // Need to switch to the next partition.
       if (mWriter != null) {
         completePartition();
       }
       mWriter = KeyValueFileWriter.Factory.create(getPartitionName());
+      mKeyStart = null;
+      mKeyLimit = null;
     }
     mWriter.put(key, value);
     ByteBuffer keyBuf = ByteBuffer.wrap(key);

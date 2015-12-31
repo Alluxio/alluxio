@@ -27,12 +27,28 @@ import tachyon.exception.TachyonException;
 @PublicApi
 public final class KeyValueStore {
 
-  public static KeyValueStoreReader creatReader(TachyonURI uri)
+  /**
+   * Gets a reader to access the key-value store.
+   *
+   * @param uri {@link TachyonURI} to the store.
+   * @return {@link KeyValueStoreReader} instance
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
+   */
+  public static KeyValueStoreReader open(TachyonURI uri)
       throws IOException, TachyonException {
     return new KeyValueStoreReader(uri);
   }
 
-  public static KeyValueStoreWriter createWriter(TachyonURI uri)
+  /**
+   * Gets a writer to create a new key-value store.
+   *
+   * @param uri {@link TachyonURI} to the store.
+   * @return {@link KeyValueStoreWriter} instance
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
+   */
+  public static KeyValueStoreWriter create(TachyonURI uri)
       throws IOException, TachyonException {
     return new KeyValueStoreWriter(uri);
   }

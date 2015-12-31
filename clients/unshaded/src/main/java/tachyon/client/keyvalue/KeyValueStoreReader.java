@@ -67,8 +67,17 @@ public class KeyValueStoreReader implements Closeable {
     // cleanup any opened clients.
   }
 
+  /**
+   * Gets the value associated with {@code key}, return null if not found.
+   *
+   * @param key key to put, cannot be null
+   * @return value associated with the given key, or null if not found
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
+   */
   public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
     Preconditions.checkNotNull(key);
+    // TODO(binfan): improve the inefficient for-loop to binary search.
     for (PartitionInfo partition : mPartitions) {
       if (key.compareTo(partition.keyStart) >= 0 && key.compareTo(partition.keyLimit) < 0) {
         long blockId = partition.blockId;
