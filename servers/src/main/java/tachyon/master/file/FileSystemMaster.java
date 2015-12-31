@@ -309,11 +309,13 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
+   * @throws AccessControlException if permission checking fails
    */
-  public long getFileId(TachyonURI path) {
+  public long getFileId(TachyonURI path) throws AccessControlException {
     synchronized (mInodeTree) {
       Inode inode;
       try {
+        checkPermission(FileSystemAction.READ, path, false);
         inode = mInodeTree.getInodeByPath(path);
       } catch (InvalidPathException e) {
         try {
@@ -825,9 +827,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
+   * @throws AccessControlException if permission checking fails
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     long fileId = getFileId(path);
     return getFileBlockInfoList(fileId);
   }
