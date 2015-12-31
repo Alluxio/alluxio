@@ -36,7 +36,8 @@ import tachyon.util.io.PathUtils;
  * persist.
  *
  */
-public final class FileOutStreamAsyncWriteIntegrationTest extends AbstractFileOutStreamIntegrationTest {
+public final class FileOutStreamAsyncWriteIntegrationTest
+    extends AbstractFileOutStreamIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() {
@@ -69,7 +70,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest extends AbstractFileOu
         TimeUnit.SECONDS));
 
     // sleep and wait for worker to persist the file
-    CommonUtils.sleepMs(5);
+    CommonUtils.sleepMs(200);
 
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
