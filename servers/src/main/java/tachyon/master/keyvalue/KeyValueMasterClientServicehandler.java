@@ -15,14 +15,14 @@
 
 package tachyon.master.keyvalue;
 
+import java.util.List;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.TachyonTException;
-
-import java.util.List;
 
 /**
  * This class is a Thrift handler for key-value master RPCs invoked by a Tachyon client.
