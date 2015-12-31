@@ -38,6 +38,9 @@ import tachyon.thrift.PartitionInfo;
 
 /**
  * Writer to create a Tachyon key-value store.
+ *
+ * <p>
+ * This class is not thread-safe.
  */
 @PublicApi
 public class KeyValueStoreWriter implements Closeable {
@@ -55,12 +58,12 @@ public class KeyValueStoreWriter implements Closeable {
   private ByteBuffer mKeyLimit = null;
 
   /**
-   * Factory method to create a {@link KeyValueStoreReader}.
+   * Factory method to create a {@link KeyValueStoreWriter}.
    *
    * @param uri URI of the store
    */
   public KeyValueStoreWriter(TachyonURI uri) throws IOException, TachyonException {
-    LOG.debug("Create KeyValueStoreReader for {}", uri);
+    LOG.info("Create KeyValueStoreWriter for {}", uri);
     mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
 
     mStoreUri = Preconditions.checkNotNull(uri);
@@ -79,6 +82,14 @@ public class KeyValueStoreWriter implements Closeable {
     }
   }
 
+  /**
+   * Adds a key and its associated value to this store.
+   *
+   * @param key key to put, cannot be null
+   * @param value value to put, cannot be null
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
+   */
   public void put(byte[] key, byte[] value) throws IOException, TachyonException {
     if (mWriter == null || mWriter.isFull()) { // Need to switch to the next partition.
       if (mWriter != null) {
@@ -98,10 +109,16 @@ public class KeyValueStoreWriter implements Closeable {
     }
   }
 
+  /**
+   * @return {@link TachyonURI} to the current partition file
+   */
   private TachyonURI getPartitionName() {
     return new TachyonURI(String.format("%s/part-%d", mStoreUri, mPartitionIndex));
   }
 
+  /**
+   * Completes the current partition.
+   */
   private void completePartition() throws IOException, TachyonException {
     mWriter.close();
     TachyonFile tFile = mTfs.open(getPartitionName());
