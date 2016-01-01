@@ -203,7 +203,6 @@ public final class FileDataManager {
     return dstPath;
   }
 
-<<<<<<< HEAD
   /**
    * Populates the persisted files. This method clears the persisted files stored in
    * {@link #mPersistedFiles} and returns those files as the value of this function.
@@ -211,16 +210,6 @@ public final class FileDataManager {
    * @return the persisted files
    */
   public List<Long> popPersistedFiles() {
-||||||| merged common ancestors
-  public synchronized List<Long> popPersistedFiles() {
-=======
-  /**
-   * Returns a list of file to persist, removing them from the internal queue.
-   *
-   * @return a list to files to persist
-   */
-  public synchronized List<Long> popPersistedFiles() {
->>>>>>> upstream/master
     List<Long> toReturn = Lists.newArrayList();
     synchronized (mPersistedFiles) {
       toReturn.addAll(mPersistedFiles);
