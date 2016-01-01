@@ -36,7 +36,7 @@ public interface BlockWriter extends Closeable {
   long append(ByteBuffer inputBuf) throws IOException;
 
   /**
-   * Returns writable byte channel to write to this block
+   * Returns writable byte channel to write to this block.
    *
    * @return channel
    */

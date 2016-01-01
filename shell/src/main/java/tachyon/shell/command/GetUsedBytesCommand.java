@@ -22,10 +22,16 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Gets number of bytes used in the {@link TachyonFileSystem}
+ * Gets number of bytes used in the {@link TachyonFileSystem}.
  */
 public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
 
+  /**
+   * Constructs a new instance to get the number of bytes used in the {@link TachyonFileSystem}.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public GetUsedBytesCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

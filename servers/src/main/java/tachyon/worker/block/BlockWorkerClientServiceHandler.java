@@ -29,14 +29,14 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.LockBlockResult;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
-import tachyon.thrift.WorkerService;
+import tachyon.thrift.BlockWorkerClientService;
 import tachyon.worker.WorkerContext;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-public final class BlockServiceHandler implements WorkerService.Iface {
+public final class BlockWorkerClientServiceHandler implements BlockWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager that carries out most of the operations **/
@@ -44,7 +44,12 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   /** Association between storage tier aliases and ordinals ond this worker */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  public BlockServiceHandler(BlockDataManager worker) {
+  /**
+   * Creates a new instance of {@link BlockWorkerClientServiceHandler}.
+   *
+   * @param worker block data manager handler
+   */
+  public BlockWorkerClientServiceHandler(BlockDataManager worker) {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
   }
@@ -119,7 +124,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   }
 
   /**
-   * Lock the file in Tachyon's space while the session is reading it, and the path of the block
+   * Locks the file in Tachyon's space while the session is reading it, and the path of the block
    * file locked will be returned.
    *
    * @param blockId the id of the block to be locked

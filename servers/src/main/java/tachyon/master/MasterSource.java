@@ -26,6 +26,8 @@ import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
 import tachyon.metrics.source.Source;
+import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -89,6 +91,11 @@ public class MasterSource implements Source {
   private final Counter mUnmountOps =
       mMetricRegistry.counter(MetricRegistry.name("UnmountOps"));
 
+  /**
+   * Registers metric gauges.
+   *
+   * @param tachyonMaster a Tachyon master handle
+   */
   public void registerGauges(final TachyonMaster tachyonMaster) {
     if (mGaugesRegistered) {
       return;
@@ -194,98 +201,218 @@ public class MasterSource implements Source {
     return mMetricRegistry;
   }
 
+  /**
+   * Increments the counter of created directories.
+   *
+   * @param n the increment
+   */
   public void incDirectoriesCreated(long n) {
     mDirectoriesCreated.inc(n);
   }
 
+  /**
+   * Increments the counter of {@link FileBlockInfo}s requests.
+   *
+   * @param n the increment
+   */
   public void incFileBlockInfosGot(long n) {
     mFileBlockInfosGot.inc(n);
   }
 
+  /**
+   * Increments the counter of {@link FileInfo}s requests.
+   *
+   * @param n the increment
+   */
   public void incFileInfosGot(long n) {
     mFileInfosGot.inc(n);
   }
 
+  /**
+   * Increments the counter of completed files.
+   *
+   * @param n the increment
+   */
   public void incFilesCompleted(long n) {
     mFilesCompleted.inc(n);
   }
 
+  /**
+   * Increments the counter of created files.
+   *
+   * @param n the increment
+   */
   public void incFilesCreated(long n) {
     mFilesCreated.inc(n);
   }
 
+  /**
+   * Increments the counter of freed files.
+   *
+   * @param n the increment
+   */
   public void incFilesFreed(long n) {
     mFilesFreed.inc(n);
   }
 
+  /**
+   * Increments the counter of persisted files.
+   *
+   * @param n the increment
+   */
   public void incFilesPersisted(long n) {
     mFilesPersisted.inc(n);
   }
 
+  /**
+   * Increments the counter of new blocks requests.
+   *
+   * @param n the increment
+   */
   public void incNewBlocksGot(long n) {
     mNewBlocksGot.inc(n);
   }
 
+  /**
+   * Increments the counter of deleted paths.
+   *
+   * @param n the increment
+   */
   public void incPathsDeleted(long n) {
     mPathsDeleted.inc(n);
   }
 
+  /**
+   * Increments the counter of mounted paths.
+   *
+   * @param n the increment
+   */
   public void incPathsMounted(long n) {
     mPathsMounted.inc(n);
   }
 
+  /**
+   * Increments the counter of renamed paths.
+   *
+   * @param n the increment
+   */
   public void incPathsRenamed(long n) {
     mPathsRenamed.inc(n);
   }
 
+  /**
+   * Increments the counter of unmounted paths.
+   *
+   * @param n the increment
+   */
   public void incPathsUnmounted(long n) {
     mPathsUnmounted.inc(n);
   }
 
+  /**
+   * Increments the counter of complete file RPCs.
+   *
+   * @param n the increment
+   */
   public void incCompleteFileOps(long n) {
     mCompleteFileOps.inc(n);
   }
 
+  /**
+   * Increments the counter of create directory RPCs.
+   *
+   * @param n the increment
+   */
   public void incCreateDirectoriesOps(long n) {
     mCreateDirectoryOps.inc();
   }
 
+  /**
+   * Increments the counter of create file RPCs.
+   *
+   * @param n the increment
+   */
   public void incCreateFileOps(long n) {
     mCreateFileOps.inc(n);
   }
 
+  /**
+   * Increments the counter of delete path RPCs.
+   *
+   * @param n the increment
+   */
   public void incDeletePathOps(long n) {
     mDeletePathOps.inc(n);
   }
 
+  /**
+   * Increments the counter of free file RPCs.
+   *
+   * @param n the increment
+   */
   public void incFreeFileOps(long n) {
     mFreeFileOps.inc(n);
   }
 
+  /**
+   * Increments the counter of get file block info RPCs.
+   *
+   * @param n the increment
+   */
   public void incGetFileBlockInfoOps(long n) {
     mGetFileBlockInfoOps.inc(n);
   }
 
+  /**
+   * Increments the counter of get file info RPCs.
+   *
+   * @param n the increment
+   */
   public void incGetFileInfoOps(long n) {
     mGetFileInfoOps.inc(n);
   }
 
+  /**
+   * Increments the counter of get new block RPCs.
+   *
+   * @param n the increment
+   */
   public void incGetNewBlockOps(long n) {
     mGetNewBlockOps.inc(n);
   }
 
+  /**
+   * Increments the counter of mount RPCs.
+   *
+   * @param n the increment
+   */
   public void incMountOps(long n) {
     mMountOps.inc(n);
   }
 
+  /**
+   * Increments the counter of rename path RPCs.
+   *
+   * @param n the increment
+   */
   public void incRenamePathOps(long n) {
     mRenamePathOps.inc(n);
   }
 
+  /**
+   * Increments the counter of set state RPCs.
+   *
+   * @param n the increment
+   */
   public void incSetStateOps(long n) {
     mSetStateOps.inc(n);
   }
 
+  /**
+   * Increments the counter of unmount RPCs.
+   *
+   * @param n the increment
+   */
   public void incUnmountOps(long n) {
     mUnmountOps.inc(n);
   }

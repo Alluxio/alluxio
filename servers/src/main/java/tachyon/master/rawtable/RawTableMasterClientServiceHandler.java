@@ -38,6 +38,11 @@ public class RawTableMasterClientServiceHandler implements RawTableMasterClientS
   /** We use Object so that we can have one cache per master, not one per type of return value */
   private final ReplayCache<Object> mReplayCache = ReplayCache.newInstance();
 
+  /**
+   * Creates a new instance of {@link RawTableMasterClientServiceHandler}.
+   *
+   * @param rawTableMaster the {@link RawTableMaster} the handler uses internally
+   */
   public RawTableMasterClientServiceHandler(RawTableMaster rawTableMaster) {
     Preconditions.checkNotNull(rawTableMaster);
     mRawTableMaster = rawTableMaster;

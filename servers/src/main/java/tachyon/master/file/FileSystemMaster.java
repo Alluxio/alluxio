@@ -128,8 +128,8 @@ public final class FileSystemMaster extends MasterBase {
   private final PrefixList mWhitelist;
 
   /**
-   * The service that tries to check inodefiles with ttl set.
-   * We store it here so that it can be accessed from tests.
+   * The service that tries to check inodefiles with ttl set. We store it here so that it can be
+   * accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTTLCheckerService;
@@ -149,6 +149,12 @@ public final class FileSystemMaster extends MasterBase {
     return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
   }
 
+  /**
+   * Creates a new instance of {@link FileSystemMaster}.
+   *
+   * @param blockMaster the {@link BlockMaster} to use
+   * @param journal the journal to use for tracking master operations
+   */
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
     super(journal, 2);
     mBlockMaster = blockMaster;
@@ -506,9 +512,9 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the file to create
    * @param options method options
    * @return the file id of the create file
-   * @throws InvalidPathException
-   * @throws FileAlreadyExistsException
-   * @throws BlockInfoException
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws FileAlreadyExistsException if the file already exists
+   * @throws BlockInfoException if an invalid block information in encountered
    */
   public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
@@ -661,6 +667,13 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Convenience method for avoiding {@link DirectoryNotEmptyException} when calling
    * {@link #deleteFileInternal(long, boolean, boolean, long)}.
+   *
+   * @param fileId the file id
+   * @param replayed whether the operation is a result of replaying the journal
+   * @param opTimeMs the time of the operation
+   * @return if the file is successfully deleted
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws IOException if an I/O error is encountered
    */
   boolean deleteFileRecursiveInternal(long fileId, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException {
@@ -1256,7 +1269,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   *
    * @return the set of inode ids which are pinned. Called via RPC
    */
   public Set<Long> getPinIdList() {
@@ -1397,6 +1409,16 @@ public final class FileSystemMaster extends MasterBase {
     return inodes.get(inodes.size() - 1).getId();
   }
 
+  /**
+   * Mounts a UFS path onto a Tachyon path.
+   *
+   * @param tachyonPath the URI of the Tachyon path
+   * @param ufsPath the URI of the UFS path
+   * @return true if the UFS path was successfully mounted, false otherwise
+   * @throws FileAlreadyExistsException if the path to be mounted already exists
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O error occurs
+   */
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incMountOps(1);
@@ -1455,6 +1477,15 @@ public final class FileSystemMaster extends MasterBase {
     return mMountTable.add(tachyonPath, ufsPath);
   }
 
+  /**
+   * Unmounts a UFS path previously mounted path onto a Tachyon path.
+   *
+   * @param tachyonPath the URI of the Tachyon path
+   * @return true if the UFS path was successfully unmounted, false otherwise
+   * @throws FileDoesNotExistException if the path to be mounted does not exist
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O error occurs
+   */
   public boolean unmount(TachyonURI tachyonPath)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incUnmountOps(1);
@@ -1499,7 +1530,7 @@ public final class FileSystemMaster extends MasterBase {
    * Resets a file. It first free the whole file, and then reinitializes it.
    *
    * @param fileId the id of the file
-   * @throws FileDoesNotExistException if the file doesn't exist
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public void resetFile(long fileId) throws FileDoesNotExistException {
     // TODO(yupeng) check the file is not persisted
@@ -1516,7 +1547,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the id of the file
    * @param options state options to be set, see {@link SetStateOptions}
-   * @throws FileDoesNotExistException if the file doesn't exist
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
     MasterContext.getMasterSource().incSetStateOps(1);

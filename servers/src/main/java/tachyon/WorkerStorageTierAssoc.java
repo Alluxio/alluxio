@@ -23,11 +23,21 @@ import tachyon.conf.TachyonConf;
  * {@link StorageTierAssoc} for workers
  */
 public class WorkerStorageTierAssoc extends StorageTierAssoc {
+  /**
+   * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link TachyonConf}.
+   *
+   * @param conf Tachyon configuration
+   */
   public WorkerStorageTierAssoc(TachyonConf conf) {
     super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
         Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
+  /**
+   * Creates a new instance of {@link WorkerStorageTierAssoc} using a list of storage tier aliases.
+   *
+   * @param storageTierAliases a list of storage tier aliases
+   */
   public WorkerStorageTierAssoc(List<String> storageTierAliases) {
     super(storageTierAliases);
   }
