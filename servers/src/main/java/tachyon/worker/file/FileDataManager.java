@@ -54,16 +54,17 @@ public final class FileDataManager {
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
 
-  private final Set<Long> mPersistingFiles;
+  private final Set<Long> mPersistingInProgressFiles;
   private final Set<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
   /**
    * Constructs {@link FileDataManager}.
+   * @param blockDataManager the {@link BlockDataManager}
    */
   public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mPersistingFiles = Sets.newHashSet();
+    mPersistingInProgressFiles = Sets.newHashSet();
     mPersistedFiles = Sets.newHashSet();
     mTachyonConf = WorkerContext.getConf();
     // Create Under FileSystem Client
@@ -78,7 +79,7 @@ public final class FileDataManager {
    * @return true if the file is being persisted, false otherwise
    */
   public boolean isFilePersisting(long fileId) {
-    synchronized (mPersistingFiles) {
+    synchronized (mPersistingInProgressFiles) {
       return mPersistedFiles.contains(fileId);
     }
   }
@@ -129,8 +130,8 @@ public final class FileDataManager {
    * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    synchronized (mPersistingFiles) {
-      mPersistingFiles.add(fileId);
+    synchronized (mPersistingInProgressFiles) {
+      mPersistingInProgressFiles.add(fileId);
     }
 
     String dstPath = prepareUfsFilePath(fileId);
@@ -173,11 +174,9 @@ public final class FileDataManager {
     outputStream.flush();
     outputChannel.close();
     outputStream.close();
-    synchronized (mPersistingFiles) {
-      synchronized (mPersistedFiles) {
-        mPersistingFiles.remove(fileId);
-        mPersistedFiles.add(fileId);
-      }
+    synchronized (this) {
+      mPersistingInProgressFiles.remove(fileId);
+      mPersistedFiles.add(fileId);
     }
   }
 
@@ -204,7 +203,8 @@ public final class FileDataManager {
   }
 
   /**
-   * Populates the persisted files.
+   * Populates the persisted files. This method clears the persisted files stored in
+   * {@link #mPersistedFiles} and returns those files as the value of this function.
    *
    * @return the persisted files
    */
