@@ -1,7 +1,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="tachyon.util.*" %>
-<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiStorageDir" %>
-<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UiWorkerInfo" %>
+<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UIStorageDir" %>
+<%@ page import="tachyon.web.WebInterfaceWorkerGeneralServlet.UIWorkerInfo" %>
 
 <html>
 <head>
@@ -15,7 +15,7 @@
 <script src="../js/bootstrap.min.js"></script>
 <div class="container-fluid">
   <% request.setAttribute("useWorkerHeader", "1"); %>
-  <% UiWorkerInfo workerInfo = (UiWorkerInfo) request.getAttribute("workerInfo"); %>
+  <% UIWorkerInfo workerInfo = (UIWorkerInfo) request.getAttribute("workerInfo"); %>
   <jsp:include page="/header" />
   <div class="row-fluid">
     <div class="accordion span6" id="accordion1">
@@ -43,7 +43,7 @@
                 </tr>
                 <tr>
                   <th>Version:</th>
-                  <th><%= UiWorkerInfo.VERSION %></th>
+                  <th><%= UIWorkerInfo.VERSION %></th>
                 </tr>
               </tbody>
             </table>
@@ -106,7 +106,7 @@
                 <th>Space Usage</th>
               </thead>
               <tbody>
-                <% for (UiStorageDir dir : ((List<UiStorageDir>) request.getAttribute("storageDirs"))) { %>
+                <% for (UIStorageDir dir : ((List<UIStorageDir>) request.getAttribute("storageDirs"))) { %>
                   <tr>
                     <th><%= dir.getTierAlias() %></th>
                     <th><%= dir.getDirPath() %></th>

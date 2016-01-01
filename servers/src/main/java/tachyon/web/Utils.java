@@ -25,6 +25,14 @@ import tachyon.Constants;
 
 final class Utils {
 
+  /**
+   * Converts a byte array to string.
+   *
+   * @param data byte array
+   * @param offset offset
+   * @param length number of bytes to encode
+   * @return string representation of the encoded byte sub-array
+   */
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
     StringBuilder sb = new StringBuilder(length);
     for (int i = offset; i < length && i < data.length; i ++) {
@@ -33,35 +41,51 @@ final class Utils {
     return sb.toString();
   }
 
-  public static String convertMsToClockTime(long Millis) {
-    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+  /**
+   * Converts milliseconds to clock time.
+   *
+   * @param millis milliseconds
+   * @return input encoded as clock time
+   */
+  public static String convertMsToClockTime(long millis) {
+    Preconditions.checkArgument(millis >= 0, "Negative values are not supported");
 
-    long days = Millis / Constants.DAY_MS;
-    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+    long days = millis / Constants.DAY_MS;
+    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
     return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
         mins, secs);
   }
 
-  public static String convertMsToDate(long Millis) {
+  /**
+   * Converts milliseconds to date.
+   *
+   * @param millis milliseconds
+   * @return input encoded as date
+   */
+  public static String convertMsToDate(long millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(Millis));
+    return formatter.format(new Date(millis));
   }
 
-  public static String convertMsToShortClockTime(long Millis) {
-    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+  /**
+   * Converts milliseconds to short clock time.
+   *
+   * @param millis milliseconds
+   * @return input encoded as short clock time
+   */
+  public static String convertMsToShortClockTime(long millis) {
+    Preconditions.checkArgument(millis >= 0, "Negative values are not supported");
 
-    long days = Millis / Constants.DAY_MS;
-    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+    long days = millis / Constants.DAY_MS;
+    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 
-  private Utils() {
-    // util class
-  }
+  private Utils() {} // prevent instantiation
 }

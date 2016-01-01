@@ -46,7 +46,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
-  private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
+  private static final long CLUSTER_READY_TIMEOUT_MS = 60000;
   private static final String ELLIPSIS = "…";
   private static final Random RANDOM_GENERATOR = new Random();
 
@@ -254,12 +254,13 @@ public abstract class AbstractLocalTachyonCluster {
     UnderFileSystemUtils
         .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()), conf);
 
-    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
-    // the cluster's current address. This must happen after UFS is started with
-    // UnderFileSystemCluster.get().
+    // If we are using the LocalMiniDFSCluster or S3UnderStorageCluster, we need to update the
+    // UNDERFS_ADDRESS to point to the cluster's current address. This must happen after UFS is
+    // started with UnderFileSystemCluster.get().
     // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
     // instead of comparing classnames.
-    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")
+        || mUfsCluster.getClass().getSimpleName().equals("S3UnderStorageCluster")) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mTachyonHome;
       conf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }

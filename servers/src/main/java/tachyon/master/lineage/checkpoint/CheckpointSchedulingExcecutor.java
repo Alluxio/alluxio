@@ -44,8 +44,9 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mTachyonConf = MasterContext.getConf();
-    mPlanner = CheckpointPlanner.Factory.createPlanner(mTachyonConf,
-        mLineageMaster.getLineageStoreView(), mFileSystemMaster.getFileSystemMasterView());
+    mPlanner =
+        CheckpointPlanner.Factory.create(mTachyonConf, mLineageMaster.getLineageStoreView(),
+            mFileSystemMaster.getFileSystemMasterView());
   }
 
   @Override

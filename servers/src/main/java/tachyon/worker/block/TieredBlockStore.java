@@ -106,6 +106,9 @@ public final class TieredBlockStore implements BlockStore {
   /** Association between storage tier aliases and ordinals */
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /**
+   * Creates a new instance of {@link TieredBlockStore}.
+   */
   public TieredBlockStore() {
     mTachyonConf = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
@@ -113,14 +116,14 @@ public final class TieredBlockStore implements BlockStore {
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
-    mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
+    mAllocator = Allocator.Factory.create(mTachyonConf, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
+    mEvictor = Evictor.Factory.create(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
@@ -174,7 +177,7 @@ public final class TieredBlockStore implements BlockStore {
     mMetadataReadLock.lock();
     try {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
-      return new LocalFileBlockReader(blockMeta);
+      return new LocalFileBlockReader(blockMeta.getPath());
     } finally {
       mMetadataReadLock.unlock();
     }
@@ -279,17 +282,17 @@ public final class TieredBlockStore implements BlockStore {
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-      if (moveResult.success()) {
+      if (moveResult.getSuccess()) {
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByClient(sessionId, blockId, moveResult.srcLocation(),
-                moveResult.dstLocation());
+            listener.onMoveBlockByClient(sessionId, blockId, moveResult.getSrcLocation(),
+                moveResult.getDstLocation());
           }
         }
         return;
       }
       if (i < MAX_RETRIES) {
-        freeSpaceInternal(sessionId, moveResult.blockSize(), newLocation);
+        freeSpaceInternal(sessionId, moveResult.getBlockSize(), newLocation);
       }
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
@@ -405,7 +408,7 @@ public final class TieredBlockStore implements BlockStore {
    * Checks if a blockId is available for a new temp block. This method must be enclosed by
    * {@link #mMetadataLock}.
    *
-   * @param blockId the ID of block
+   * @param blockId the id of block
    * @throws BlockAlreadyExistsException if blockId already exists
    */
   private void checkTempBlockIdAvailable(long blockId) throws BlockAlreadyExistsException {
@@ -421,8 +424,8 @@ public final class TieredBlockStore implements BlockStore {
    * Checks if blockId is a temporary block and owned by sessionId. This method must be enclosed by
    * {@link #mMetadataLock}.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the id of session
+   * @param blockId the id of block
    * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidWorkerStateException if blockId is not owned by sessionId
@@ -443,8 +446,8 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Aborts a temp block.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the id of session
+   * @param blockId the id of block
    * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidWorkerStateException if blockId is not owned by sessionId
@@ -484,8 +487,8 @@ public final class TieredBlockStore implements BlockStore {
   /**
    * Commits a temp block.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the id of session
+   * @param blockId the id of block
    * @throws BlockDoesNotExistException if blockId can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidWorkerStateException if blockId is not owned by sessionId
@@ -699,10 +702,10 @@ public final class TieredBlockStore implements BlockStore {
           LOG.info("Failed to move blockId {}, it could be already deleted", blockId);
           continue;
         }
-        if (moveResult.success()) {
+        if (moveResult.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
             for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-              listener.onMoveBlockByWorker(sessionId, blockId, moveResult.srcLocation(),
+              listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
                   newLocation);
             }
           }
@@ -712,7 +715,7 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * Get the most updated view with most recent information on pinned inodes, and currently locked
+   * Gets the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
    * @return {@link BlockMetadataManagerView}, an updated view with most recent information
@@ -862,9 +865,9 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   /**
-   * updates the pinned blocks
+   * Updates the pinned blocks.
    *
-   * @param inodes a set of IDs inodes that are pinned
+   * @param inodes a set of ids inodes that are pinned
    */
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
@@ -887,6 +890,14 @@ public final class TieredBlockStore implements BlockStore {
     /** Destination location of this block to move */
     private final BlockStoreLocation mDstLocation;
 
+    /**
+     * Creates a new instance of {@link MoveBlockResult}.
+     *
+     * @param success success indication
+     * @param blockSize block size
+     * @param srcLocation source location
+     * @param dstLocation destination location
+     */
     MoveBlockResult(boolean success, long blockSize, BlockStoreLocation srcLocation,
         BlockStoreLocation dstLocation) {
       mSuccess = success;
@@ -895,19 +906,31 @@ public final class TieredBlockStore implements BlockStore {
       mDstLocation = dstLocation;
     }
 
-    boolean success() {
+    /**
+     * @return the success indicator
+     */
+    boolean getSuccess() {
       return mSuccess;
     }
 
-    long blockSize() {
+    /**
+     * @return the block size
+     */
+    long getBlockSize() {
       return mBlockSize;
     }
 
-    BlockStoreLocation srcLocation() {
+    /**
+     * @return the source location
+     */
+    BlockStoreLocation getSrcLocation() {
       return mSrcLocation;
     }
 
-    BlockStoreLocation dstLocation() {
+    /**
+     * @return the destination location
+     */
+    BlockStoreLocation getDstLocation() {
       return mDstLocation;
     }
   }

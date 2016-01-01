@@ -33,6 +33,11 @@ import tachyon.thrift.TachyonTException;
 public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 
+  /**
+   * Creates a new instance of {@link BlockMasterWorkerServiceHandler}.
+   *
+   * @param blockMaster the {@link BlockMaster} the handler uses internally
+   */
   public BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);
     mBlockMaster = blockMaster;

@@ -109,6 +109,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     mMountTable = mountTable;
   }
 
+  /**
+   * Initializes the root of the inode tree.
+   *
+   * @param rootPermissionStatus the root {@link PermissionStatus}
+   */
   public void initializeRoot(PermissionStatus rootPermissionStatus) {
     if (mRoot == null) {
       mRoot =
@@ -121,8 +126,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Return the number of total inodes.
-   *
    * @return the number of total inodes
    */
   public int getSize() {
@@ -130,8 +133,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Return the number of pinned inodes.
-   *
    * @return the number of pinned inodes
    */
   public int getPinnedSize() {
@@ -351,7 +352,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
    * @return the file id
-   * @throws InvalidPathException if the paht is invalid
+   * @throws InvalidPathException if the path is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
@@ -366,7 +367,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * precedes its descendants in the list.
    *
    * @param inodeDirectory the root {@link InodeDirectory} to retrieve all descendants from
-   * @return A list of all descendants
+   * @return a list of all descendants
    */
   public List<Inode> getInodeChildrenRecursive(InodeDirectory inodeDirectory) {
     List<Inode> ret = new ArrayList<Inode>();
