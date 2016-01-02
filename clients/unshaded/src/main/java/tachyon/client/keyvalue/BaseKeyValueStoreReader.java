@@ -31,6 +31,7 @@ import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Implementation of {@link KeyValueStoreReader} to access a Tachyon key-value store.
@@ -64,6 +65,15 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   public void close() {
     // cleanup any opened clients.
+  }
+
+  @Override
+  public byte[] get(byte[] key) throws IOException, TachyonException {
+    ByteBuffer value = get(ByteBuffer.wrap(key));
+    if (value == null) {
+      return null;
+    }
+    return BufferUtils.newByteArrayFromByteBuffer(value);
   }
 
   @Override
