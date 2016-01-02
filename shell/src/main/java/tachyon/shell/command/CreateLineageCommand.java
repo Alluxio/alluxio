@@ -31,7 +31,7 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 
 /**
- * Creates a new lineage for given input and output file names with optional exclusion parameters.
+ * Creates a lineage for the given input files, output files, and command line job.
  */
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
