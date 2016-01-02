@@ -6,27 +6,27 @@ group: Home
 
 Tachyon is an open source memory-centric distributed storage system enabling reliable data sharing
 at memory-speed across cluster jobs, possibly written in different computation frameworks, such as
-Apache Spark, Apache MapReduce, and Apache Flink. In the big data ecosystem, Tachyon lies between computation
-frameworks or jobs, such as Apache Spark, Apache MapReduce, or Apache Flink, and various kinds of
-storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, or Ceph. Tachyon brings
-significant performance improvement to the stack; for example, [Baidu](https://www.baidu.com) uses
-Tachyon to improve their data analytics performance by 30 times. Beyond performance, Tachyon bridges
-new workloads with data stored in traditional storage systems. Users can run Tachyon using its
-standalone cluster mode, for example on Amazon EC2, or launch Tachyon with Apache Mesos or Apache
-Yarn.
+Apache Spark, Apache MapReduce, and Apache Flink. In the big data ecosystem, Tachyon lies between
+computation frameworks or jobs, such as Apache Spark, Apache MapReduce, or Apache Flink, and various
+kinds of storage systems, such as Amazon S3, OpenStack Swift, GlusterFS, HDFS, or Ceph. Tachyon
+brings significant performance improvement to the stack; for example, [Baidu](https://www.baidu.com)
+uses Tachyon to improve their data analytics performance by 30 times. Beyond performance, Tachyon
+bridges new workloads with data stored in traditional storage systems. Users can run Tachyon using
+its standalone cluster mode, for example on Amazon EC2, or launch Tachyon with Apache Mesos or
+Apache Yarn.
 
-Tachyon is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top of 
-Tachyon without any code changes. The project is open source
+Tachyon is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
+of Tachyon without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
-multiple companies. It is one of the fastest growing open source projects. With less than three years
-open source history, Tachyon has attracted more than
+multiple companies. It is one of the fastest growing open source projects. With less than three
+years open source history, Tachyon has attracted more than
 [150 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
-including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
-[IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [Red Hat](https://www.redhat.com/),
-[Tachyon Nexus](http://www.tachyonnexus.com/),
+including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com),
+[CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com), [Intel](http://www.intel.com/),
+[Red Hat](https://www.redhat.com/), [Tachyon Nexus](http://www.tachyonnexus.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
-The project is the storage layer of the Berkeley Data Analytics
-Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
+The project is the storage layer of the Berkeley Data Analytics Stack
+([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
 [Github Repository](https://github.com/amplab/tachyon/) |
