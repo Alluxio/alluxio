@@ -179,10 +179,10 @@ public final class TachyonConf {
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
     checkUserFileBufferBytes();
 
-    // Make sure the user hasn't set worker ports when ONE_WORKER_PER_HOST is false
-    if (!getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST)) {
+    // Make sure the user hasn't set worker ports when there may be multiple workers per host
+    if (getInt(Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST) > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
-          + Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST + "=false";
+          + Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST + " > 1";
       Preconditions.checkState(System.getProperty(Constants.WORKER_DATA_PORT) == null,
           String.format(message, Constants.WORKER_DATA_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_RPC_PORT) == null,
