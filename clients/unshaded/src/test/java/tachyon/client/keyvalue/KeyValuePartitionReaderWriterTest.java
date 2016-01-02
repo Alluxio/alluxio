@@ -23,9 +23,9 @@ import org.junit.Test;
 import tachyon.client.file.ByteArrayCountingOutStream;
 
 /**
- * unit tests of {@link OutStreamKeyValueFileWriter} and {@link RandomAccessKeyValueFileReader}
+ * unit tests of {@link OutStreamKeyValueFileWriter} and {@link RandomAccessKeyValuePartitionReader}
  */
-public class KeyValueFileReaderWriterTest {
+public class KeyValuePartitionReaderWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
@@ -33,7 +33,7 @@ public class KeyValueFileReaderWriterTest {
 
   private ByteArrayCountingOutStream mOutStream = new ByteArrayCountingOutStream();
   private OutStreamKeyValueFileWriter mWriter = new OutStreamKeyValueFileWriter(mOutStream);
-  private RandomAccessKeyValueFileReader mReader;
+  private RandomAccessKeyValuePartitionReader mReader;
 
   @Test
   public void putTest() throws Exception {
@@ -51,7 +51,7 @@ public class KeyValueFileReaderWriterTest {
     mWriter.put(KEY2, VALUE2);
     mWriter.close();
     byte[] fileData = mOutStream.toByteArray();
-    mReader = new RandomAccessKeyValueFileReader(ByteBuffer.wrap(fileData));
+    mReader = new RandomAccessKeyValuePartitionReader(ByteBuffer.wrap(fileData));
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
 

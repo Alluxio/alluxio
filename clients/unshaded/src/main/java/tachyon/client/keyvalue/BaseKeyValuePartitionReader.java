@@ -31,26 +31,26 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Default implementation of {@link KeyValueFileReader} to talk to remote key-value worker to get
- * the value given a key.
+ * Default implementation of {@link KeyValuePartitionReader} to talk to remote key-value worker to
+ * get the value given a key.
  * <p>
  * This class is not thread-safe.
  */
 @PublicApi
-public final class BaseKeyValueFileReader implements KeyValueFileReader {
+public final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private KeyValueWorkerClient mClient;
   private long mBlockId;
 
   /**
-   * Constructs a new instance of {@link BaseKeyValueFileReader}.
+   * Constructs a new instance of {@link BaseKeyValuePartitionReader}.
    *
    * @param blockId blockId of the key-value file to read from
    * @throws TachyonException if an unexpected tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
-  protected BaseKeyValueFileReader(long blockId) throws TachyonException, IOException {
+  protected BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
     mBlockId = blockId;
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();

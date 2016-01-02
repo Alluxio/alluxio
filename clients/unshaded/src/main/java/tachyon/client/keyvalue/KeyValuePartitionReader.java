@@ -30,36 +30,38 @@ import tachyon.exception.TachyonException;
 /**
  * Interface of the reader class to access a Tachyon key-value file.
  */
-public interface KeyValueFileReader extends Closeable {
+public interface KeyValuePartitionReader extends Closeable {
 
   class Factory {
     /**
-     * Factory method to create a {@link KeyValueFileReader} given the {@link TachyonURI}.
+     * Factory method to create a {@link KeyValuePartitionReader} given the {@link TachyonURI}.
      *
      * @param uri Tachyon URI of the key-value file to use as input
-     * @return an instance of a {@link KeyValueFileReader}
+     * @return an instance of a {@link KeyValuePartitionReader}
      * @throws IOException if a non-Tachyon exception occurs
      * @throws TachyonException if an unexpected Tachyon exception is thrown
      */
-    public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
+    public static KeyValuePartitionReader create(TachyonURI uri)
+        throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
       TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
       TachyonFile tFile = tfs.open(uri);
       List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
       long blockId = blockIds.get(0);
-      return new BaseKeyValueFileReader(blockId);
+      return new BaseKeyValuePartitionReader(blockId);
     }
 
     /**
-     * Factory method to create a {@link KeyValueFileReader} given a block Id.
+     * Factory method to create a {@link KeyValuePartitionReader} given a block Id.
      *
      * @param blockId blockId the key-value file to use as input
-     * @return an instance of a {@link KeyValueFileReader}
+     * @return an instance of a {@link KeyValuePartitionReader}
      * @throws IOException if a non-Tachyon exception occurs
      * @throws TachyonException if an unexpected Tachyon exception is thrown
      */
-    public static KeyValueFileReader create(long blockId) throws TachyonException, IOException {
-      return new BaseKeyValueFileReader(blockId);
+    public static KeyValuePartitionReader create(long blockId)
+        throws TachyonException, IOException {
+      return new BaseKeyValuePartitionReader(blockId);
     }
   }
 
