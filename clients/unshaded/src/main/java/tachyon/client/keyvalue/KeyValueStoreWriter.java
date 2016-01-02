@@ -38,7 +38,6 @@ import tachyon.thrift.PartitionInfo;
 
 /**
  * Writer to create a Tachyon key-value store.
- *
  * <p>
  * This class is not thread-safe.
  */
@@ -54,11 +53,14 @@ public class KeyValueStoreWriter implements Closeable {
 
   private long mPartitionIndex;
   private KeyValueFileWriter mWriter = null;
+  /** min key in the current partition */
   private ByteBuffer mKeyStart = null;
+  /** max key in the current partition */
   private ByteBuffer mKeyLimit = null;
 
   /**
-   * Factory method to create a {@link KeyValueStoreWriter}.
+   * Constructs a {@link KeyValueStoreWriter}. This constructor will create a new key-value store
+   * at the given {@link TachyonURI}.
    *
    * @param uri URI of the store
    */
@@ -92,9 +94,10 @@ public class KeyValueStoreWriter implements Closeable {
    * @throws TachyonException if Tachyon error occurs
    */
   public void put(byte[] key, byte[] value) throws IOException, TachyonException {
-    Preconditions.checkNotNull(key);
-    Preconditions.checkNotNull(value);
-    if (mWriter == null || mWriter.isFull()) { // Need to switch to the next partition.
+    Preconditions.checkNotNull(key, "Cannot put a null key");
+    Preconditions.checkNotNull(value, "Cannot put a null value");
+    if (mWriter == null || mWriter.isFull()) {
+      // Need to create a new or switch to the next partition.
       if (mWriter != null) {
         completePartition();
       }
@@ -104,10 +107,12 @@ public class KeyValueStoreWriter implements Closeable {
     }
     mWriter.put(key, value);
     ByteBuffer keyBuf = ByteBuffer.wrap(key);
+    // Update the min key in the current partition.
     if (mKeyStart == null || keyBuf.compareTo(mKeyStart) < 0) {
       mKeyStart = ByteBuffer.allocate(key.length);
       mKeyStart.put(key);
     }
+    // Update the max key in the current partition.
     if (mKeyLimit == null || keyBuf.compareTo(mKeyLimit) > 0) {
       mKeyLimit = ByteBuffer.allocate(key.length);
       mKeyLimit.put(key);
@@ -118,13 +123,19 @@ public class KeyValueStoreWriter implements Closeable {
    * @return {@link TachyonURI} to the current partition file
    */
   private TachyonURI getPartitionName() {
-    return new TachyonURI(String.format("%s/part-%d", mStoreUri, mPartitionIndex));
+    return new TachyonURI(String.format("%s/part-%05d", mStoreUri, mPartitionIndex));
   }
 
   /**
    * Completes the current partition.
+   *
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
    */
   private void completePartition() throws IOException, TachyonException {
+    if (mWriter == null) {
+      return;
+    }
     mWriter.close();
     TachyonFile tFile = mTfs.open(getPartitionName());
     List<Long> blockIds = mTfs.getInfo(tFile).getBlockIds();

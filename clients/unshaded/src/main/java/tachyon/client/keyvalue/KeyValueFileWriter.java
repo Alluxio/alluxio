@@ -37,8 +37,8 @@ public interface KeyValueFileWriter extends Closeable {
      *
      * @param uri URI of the key-value file to write to
      * @return an instance of a {@link KeyValueFileWriter}
-     * @throws TachyonException if error occurs
-     * @throws IOException if error occurs
+     * @throws IOException if a non-Tachyon exception occurs
+     * @throws TachyonException if an unexpected Tachyon exception is thrown
      */
     public static KeyValueFileWriter create(TachyonURI uri) throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
@@ -54,7 +54,7 @@ public interface KeyValueFileWriter extends Closeable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   void put(byte[] key, byte[] value) throws IOException;
 
@@ -66,7 +66,7 @@ public interface KeyValueFileWriter extends Closeable {
   /**
    * Closes the writer.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   void close() throws IOException;
 }

@@ -28,7 +28,7 @@ import tachyon.exception.TachyonException;
 public final class KeyValueStore {
 
   /**
-   * Gets a reader to access the key-value store.
+   * Gets a reader to access a key-value store.
    *
    * @param uri {@link TachyonURI} to the store
    * @return {@link KeyValueStoreReader} instance

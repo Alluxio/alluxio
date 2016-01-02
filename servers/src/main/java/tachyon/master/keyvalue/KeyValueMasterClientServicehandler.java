@@ -27,10 +27,15 @@ import tachyon.thrift.TachyonTException;
 /**
  * This class is a Thrift handler for key-value master RPCs invoked by a Tachyon client.
  */
-public class KeyValueMasterClientServicehandler implements KeyValueMasterClientService.Iface {
+public final class KeyValueMasterClientServiceHandler implements KeyValueMasterClientService.Iface {
   private final KeyValueMaster mKeyValueMaster;
 
-  public KeyValueMasterClientServicehandler(KeyValueMaster keyValueMaster) {
+  /**
+   * Constructs the service handler to process incoming RPC calls for key-value master.
+   *
+   * @param keyValueMaster handler to the real {@link KeyValueMaster} instance
+   */
+  public KeyValueMasterClientServiceHandler(KeyValueMaster keyValueMaster) {
     mKeyValueMaster = keyValueMaster;
   }
 

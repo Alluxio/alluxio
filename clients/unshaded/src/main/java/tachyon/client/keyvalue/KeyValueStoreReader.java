@@ -35,7 +35,6 @@ import tachyon.thrift.PartitionInfo;
 
 /**
  * Reader to access a Tachyon key-value store.
- *
  * <p>
  * This class is not thread-safe.
  */
@@ -52,6 +51,7 @@ public class KeyValueStoreReader implements Closeable {
 
   /**
    * Constructs a {@link KeyValueStoreReader} instance.
+   * TODO(binfan): use a thread pool to manage the client.
    *
    * @param uri URI of the key-value store
    */
@@ -68,7 +68,7 @@ public class KeyValueStoreReader implements Closeable {
   }
 
   /**
-   * Gets the value associated with {@code key}, return null if not found.
+   * Gets the value associated with {@code key}, returns null if not found.
    *
    * @param key key to put, cannot be null
    * @return value associated with the given key, or null if not found
@@ -82,9 +82,12 @@ public class KeyValueStoreReader implements Closeable {
       if (key.compareTo(partition.keyStart) >= 0 && key.compareTo(partition.keyLimit) < 0) {
         long blockId = partition.blockId;
         KeyValueFileReader reader = KeyValueFileReader.Factory.create(blockId);
-        ByteBuffer value = reader.get(key);
-        reader.close();
-        return value;
+        try {
+          ByteBuffer value = reader.get(key);
+          return value;
+        } finally {
+          reader.close();
+        }
       }
     }
     return null;

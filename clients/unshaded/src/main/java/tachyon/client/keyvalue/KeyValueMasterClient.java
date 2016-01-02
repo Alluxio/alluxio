@@ -32,7 +32,7 @@ import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 
 /**
- * A wrapper for the thrift client to interact with the key-value master, used by tachyon clients.
+ * A wrapper for the thrift client to interact with the key-value master, used by Tachyon clients.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
@@ -41,7 +41,7 @@ public final class KeyValueMasterClient extends MasterClientBase {
   private KeyValueMasterClientService.Client mClient = null;
 
   /**
-   * Creates a new lineage master client.
+   * Creates a new key-value master client.
    *
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
@@ -70,6 +70,14 @@ public final class KeyValueMasterClient extends MasterClientBase {
     mClient = new KeyValueMasterClientService.Client(mProtocol);
   }
 
+  /**
+   * Marks a partition complete and adds it to an incomplete key-value store.
+   *
+   * @param path URI of the key-value store
+   * @param info information of this completed parition
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void completePartition(final TachyonURI path, final PartitionInfo info)
       throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
@@ -81,6 +89,13 @@ public final class KeyValueMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Marks a key-value store complete.
+   *
+   * @param path URI of the key-value store
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void completeStore(final TachyonURI path) throws IOException,
       TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
@@ -92,6 +107,13 @@ public final class KeyValueMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Creates a new key-value store.
+   *
+   * @param path URI of the key-value store
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void createStore(final TachyonURI path) throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
@@ -102,6 +124,14 @@ public final class KeyValueMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Gets a list of partitions of a given key-value store.
+   *
+   * @param path URI of the key-value store
+   * @return a list of partition information
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized List<PartitionInfo> getPartitionInfo(final TachyonURI path)
       throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<List<PartitionInfo>>() {

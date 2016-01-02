@@ -41,11 +41,11 @@ public final class BaseKeyValueFileReader implements KeyValueFileReader {
   /**
    * Constructs a new instance of {@link BaseKeyValueFileReader}.
    *
-   * @param blockId blockId of the key-value file
+   * @param blockId blockId of the key-value file to read from
    * @throws TachyonException if an unexpected tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
-  public BaseKeyValueFileReader(long blockId) throws TachyonException, IOException {
+  protected BaseKeyValueFileReader(long blockId) throws TachyonException, IOException {
     mBlockId = blockId;
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
