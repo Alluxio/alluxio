@@ -23,10 +23,16 @@ import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 
 /**
- * TODO(yupeng): add javadoc
+ * Deletes a lineage by its id. If the cascade flag is set to true it performs a cascading delete.
  */
 public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
+  /**
+   * Constructs a new instance to delete a lineage.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public DeleteLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
