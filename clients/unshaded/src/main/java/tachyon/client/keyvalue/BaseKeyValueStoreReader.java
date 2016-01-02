@@ -84,7 +84,7 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
     for (PartitionInfo partition : mPartitions) {
       if (key.compareTo(partition.keyStart) >= 0 && key.compareTo(partition.keyLimit) < 0) {
         long blockId = partition.blockId;
-        KeyValueFileReader reader = KeyValueFileReader.Factory.create(blockId);
+        KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);
         try {
           ByteBuffer value = reader.get(key);
           return value;

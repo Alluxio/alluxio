@@ -30,7 +30,7 @@ import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for {@link KeyValueFileReader} and {@link KeyValueFileWriter}.
+ * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValueFileWriter}.
  */
 public final class KeyValueFileIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
@@ -40,7 +40,7 @@ public final class KeyValueFileIntegrationTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
   private static TachyonFileSystem sTfs;
   private KeyValueFileWriter mKeyValueFileWriter;
-  private KeyValueFileReader mKeyValueFileReader;
+  private KeyValuePartitionReader mKeyValuePartitionReader;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
@@ -61,9 +61,9 @@ public final class KeyValueFileIntegrationTest {
     mKeyValueFileWriter.close();
     // Expect the key-value file exists
     Assert.assertNotNull(sTfs.openIfExists(uri));
-    mKeyValueFileReader = KeyValueFileReader.Factory.create(uri);
-    Assert.assertArrayEquals(VALUE1, mKeyValueFileReader.get(KEY1));
-    Assert.assertArrayEquals(VALUE2, mKeyValueFileReader.get(KEY2));
-    Assert.assertNull(mKeyValueFileReader.get("NoSuchKey".getBytes()));
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);
+    Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
+    Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
+    Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
   }
 }
