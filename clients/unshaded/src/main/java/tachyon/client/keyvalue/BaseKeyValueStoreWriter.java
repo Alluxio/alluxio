@@ -34,6 +34,7 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Implementation of {@link KeyValueStoreWriter} to create a Tachyon key-value store.
@@ -111,9 +112,19 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     }
   }
 
-  /**
-   * @return {@link TachyonURI} to the current partition file
-   */
+  @Override
+  public void put(ByteBuffer key, ByteBuffer value) throws IOException, TachyonException {
+    Preconditions.checkNotNull(key, "Cannot put a null key");
+    Preconditions.checkNotNull(value, "Cannot put a null value");
+    // TODO(binfan): make efficient implementation
+    byte[] keyArray = BufferUtils.newByteArrayFromByteBuffer(key);
+    byte[] valueArray = BufferUtils.newByteArrayFromByteBuffer(value);
+    put(keyArray, valueArray);
+  }
+
+    /**
+     * @return {@link TachyonURI} to the current partition file
+     */
   private TachyonURI getPartitionName() {
     return new TachyonURI(String.format("%s/part-%05d", mStoreUri, mPartitionIndex));
   }
