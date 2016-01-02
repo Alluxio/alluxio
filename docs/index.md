@@ -55,6 +55,11 @@ and HDDs in addition to memory, allowing for larger datasets to be stored in Tac
 automatically be managed between the different tiers, keeping hot data in faster tiers. Custom
 policies are easily pluggable, and a pin concept allows for direct user control.
 
+* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Tachyon enables effective
+data management across different storage systems through the mount feature. Furthermore, 
+transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
+is preserved when persisting these objects to the underlying storage system.
+
 * **[Lineage](Lineage-API.html)** Tachyon can achieve high throughput writes without compromising
 fault-tolerance by using lineage, where lost output is recovered by re-executing the jobs that
 created the output. With lineage, applications write output into memory, and Tachyon periodically
@@ -65,11 +70,6 @@ Tachyon launches job recomputation to restore the lost files.
 the file system easily through the web UI. Under debug mode, administrators can view detailed
 information of each file, including locations, checkpoint path, etc. Users can also use
 ``./bin/tachyon tfs`` to interact with Tachyon, e.g. copy data in and out of the file system.
-
-* **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Tachyon enables effective
-data management across different storage systems through the mount feature. Furthermore, 
-transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
-is preserved when persisting these objects to the underlying storage system.
 
 # Getting Started
 
