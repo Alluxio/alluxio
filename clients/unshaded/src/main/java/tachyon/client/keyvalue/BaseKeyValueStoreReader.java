@@ -20,9 +20,10 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -34,7 +35,7 @@ import tachyon.thrift.PartitionInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Implementation of {@link KeyValueStoreReader} to access a Tachyon key-value store.
+ * Default implementation of {@link KeyValueStoreReader} to access a Tachyon key-value store.
  * <p>
  * This class is not thread-safe.
  */

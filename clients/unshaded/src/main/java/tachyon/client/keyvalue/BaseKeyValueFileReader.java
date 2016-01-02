@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.exception.TachyonException;
@@ -30,8 +31,12 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 
 /**
- * A client to talk to remote key-value worker to access a key.
+ * Default implementation of {@link KeyValueFileReader} to talk to remote key-value worker to get
+ * the value given a key.
+ * <p>
+ * This class is not thread-safe.
  */
+@PublicApi
 public final class BaseKeyValueFileReader implements KeyValueFileReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 

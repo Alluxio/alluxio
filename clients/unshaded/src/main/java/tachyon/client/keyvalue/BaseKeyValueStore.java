@@ -17,6 +17,8 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
@@ -31,11 +33,13 @@ public class BaseKeyValueStore implements KeyValueStore {
 
   @Override
   public KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException {
+    Preconditions.checkNotNull(uri, "can not open a key-value store with a null URI");
     return new BaseKeyValueStoreReader(uri);
   }
 
   @Override
   public KeyValueStoreWriter create(TachyonURI uri) throws IOException, TachyonException {
+    Preconditions.checkNotNull(uri, "can not create a key-value store with a null URI");
     return new BaseKeyValueStoreWriter(uri);
   }
 }

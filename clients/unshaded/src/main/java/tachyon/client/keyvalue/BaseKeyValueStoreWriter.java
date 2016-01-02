@@ -37,7 +37,7 @@ import tachyon.thrift.PartitionInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
- * Implementation of {@link KeyValueStoreWriter} to create a Tachyon key-value store.
+ * Default implementation of {@link KeyValueStoreWriter} to create a Tachyon key-value store.
  * <p>
  * This class is not thread-safe.
  */
