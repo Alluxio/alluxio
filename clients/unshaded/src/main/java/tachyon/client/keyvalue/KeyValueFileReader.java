@@ -34,12 +34,12 @@ public interface KeyValueFileReader extends Closeable {
 
   class Factory {
     /**
-     * Factory method to create a {@link KeyValueFileReader} given TachyonURI.
+     * Factory method to create a {@link KeyValueFileReader} given the {@link TachyonURI}.
      *
      * @param uri Tachyon URI of the key-value file to use as input
      * @return an instance of a {@link KeyValueFileReader}
      * @throws IOException if a non-Tachyon exception occurs
-     * @throws TachyonException if an unexpected tachyon exception is thrown
+     * @throws TachyonException if an unexpected Tachyon exception is thrown
      */
     public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
@@ -51,12 +51,12 @@ public interface KeyValueFileReader extends Closeable {
     }
 
     /**
-     * Factory method to create a {@link KeyValueFileReader} given blockId.
+     * Factory method to create a {@link KeyValueFileReader} given a block Id.
      *
      * @param blockId blockId the key-value file to use as input
      * @return an instance of a {@link KeyValueFileReader}
      * @throws IOException if a non-Tachyon exception occurs
-     * @throws TachyonException if an unexpected tachyon exception is thrown
+     * @throws TachyonException if an unexpected Tachyon exception is thrown
      */
     public static KeyValueFileReader create(long blockId) throws TachyonException, IOException {
       return new BaseKeyValueFileReader(blockId);
@@ -84,6 +84,8 @@ public interface KeyValueFileReader extends Closeable {
 
   /**
    * Closes this reader.
+   *
+   * @throws IOException if a non-Tachyon exception occurs
    */
   void close() throws IOException;
 }
