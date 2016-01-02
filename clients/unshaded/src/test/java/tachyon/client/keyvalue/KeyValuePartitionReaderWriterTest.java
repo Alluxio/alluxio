@@ -23,7 +23,8 @@ import org.junit.Test;
 import tachyon.client.file.ByteArrayCountingOutStream;
 
 /**
- * unit tests of {@link OutStreamKeyValueFileWriter} and {@link RandomAccessKeyValuePartitionReader}
+ * unit tests of {@link OutStreamKeyValuePartitionWriter} and
+ * {@link RandomAccessKeyValuePartitionReader}
  */
 public class KeyValuePartitionReaderWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
@@ -32,7 +33,8 @@ public class KeyValuePartitionReaderWriterTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayCountingOutStream mOutStream = new ByteArrayCountingOutStream();
-  private OutStreamKeyValueFileWriter mWriter = new OutStreamKeyValueFileWriter(mOutStream);
+  private OutStreamKeyValuePartitionWriter mWriter =
+      new OutStreamKeyValuePartitionWriter(mOutStream);
   private RandomAccessKeyValuePartitionReader mReader;
 
   @Test

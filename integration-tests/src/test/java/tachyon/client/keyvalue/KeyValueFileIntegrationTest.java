@@ -30,7 +30,7 @@ import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValueFileWriter}.
+ * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValuePartitionWriter}.
  */
 public final class KeyValueFileIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
@@ -39,7 +39,7 @@ public final class KeyValueFileIntegrationTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
   private static TachyonFileSystem sTfs;
-  private KeyValueFileWriter mKeyValueFileWriter;
+  private KeyValuePartitionWriter mKeyValuePartitionWriter;
   private KeyValuePartitionReader mKeyValuePartitionReader;
 
   @ClassRule
@@ -55,10 +55,10 @@ public final class KeyValueFileIntegrationTest {
   public void readerWriterTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonURI uri = new TachyonURI(uniqPath);
-    mKeyValueFileWriter = KeyValueFileWriter.Factory.create(uri);
-    mKeyValueFileWriter.put(KEY1, VALUE1);
-    mKeyValueFileWriter.put(KEY2, VALUE2);
-    mKeyValueFileWriter.close();
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(uri);
+    mKeyValuePartitionWriter.put(KEY1, VALUE1);
+    mKeyValuePartitionWriter.put(KEY2, VALUE2);
+    mKeyValuePartitionWriter.close();
     // Expect the key-value file exists
     Assert.assertNotNull(sTfs.openIfExists(uri));
     mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);

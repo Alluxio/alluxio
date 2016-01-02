@@ -52,7 +52,7 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private final TachyonURI mStoreUri;
 
   private long mPartitionIndex;
-  private KeyValueFileWriter mWriter = null;
+  private KeyValuePartitionWriter mWriter = null;
   /** min key in the current partition */
   private ByteBuffer mKeyStart = null;
   /** max key in the current partition */
@@ -94,7 +94,7 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
       if (mWriter != null) {
         completePartition();
       }
-      mWriter = KeyValueFileWriter.Factory.create(getPartitionName());
+      mWriter = KeyValuePartitionWriter.Factory.create(getPartitionName());
       mKeyStart = null;
       mKeyLimit = null;
     }
