@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
-import tachyon.client.AbstractCountingOutStream;
+import tachyon.client.AbstractOutStream;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
@@ -53,7 +53,7 @@ import tachyon.util.io.PathUtils;
  * data to the under storage system.
  */
 @PublicApi
-public class FileOutStream extends AbstractCountingOutStream implements Cancelable {
+public class FileOutStream extends AbstractOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
