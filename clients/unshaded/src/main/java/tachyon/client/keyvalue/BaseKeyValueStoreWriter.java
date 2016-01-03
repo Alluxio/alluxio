@@ -59,8 +59,8 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private ByteBuffer mKeyLimit = null;
 
   /**
-   * Constructs a {@link BaseKeyValueStoreWriter}. This constructor will create a new key-value store
-   * at the given {@link TachyonURI}.
+   * Constructs a {@link BaseKeyValueStoreWriter}. This constructor will create a new key-value
+   * store at the given {@link TachyonURI}.
    *
    * @param uri URI of the store
    */
