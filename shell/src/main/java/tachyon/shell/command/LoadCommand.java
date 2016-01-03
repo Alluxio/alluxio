@@ -38,8 +38,6 @@ import tachyon.thrift.FileInfo;
 public final class LoadCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to load a file or directory in Tachyon space.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
