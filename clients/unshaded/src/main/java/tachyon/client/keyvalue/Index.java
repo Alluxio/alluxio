@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.keyvalue;
+package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

@@ -25,10 +25,6 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.client.file.AbstractCountingOutStream;
 import tachyon.util.io.ByteIOUtils;
-import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.LinearProbingIndex;
-import tachyon.worker.keyvalue.OutStreamPayloadWriter;
-import tachyon.worker.keyvalue.PayloadWriter;
 
 /**
  * Writer that implements {@link KeyValuePartitionWriter} using Tachyon file stream interface to

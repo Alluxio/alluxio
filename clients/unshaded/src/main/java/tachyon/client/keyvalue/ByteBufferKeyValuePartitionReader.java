@@ -27,10 +27,6 @@ import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
-import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.LinearProbingIndex;
-import tachyon.worker.keyvalue.PayloadReader;
-import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
 /**
  * Reader that implements {@link KeyValuePartitionReader} to access a key-value file using random
