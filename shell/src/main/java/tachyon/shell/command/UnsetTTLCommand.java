@@ -28,8 +28,6 @@ import tachyon.conf.TachyonConf;
 public final class UnsetTTLCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to unset the TTL value for the given path.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

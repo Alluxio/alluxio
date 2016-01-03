@@ -28,8 +28,6 @@ import tachyon.exception.TachyonException;
 public final class UnmountCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to unmount a Tachyon path.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
