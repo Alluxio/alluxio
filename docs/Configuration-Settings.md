@@ -610,6 +610,11 @@ The user configuration specifies values regarding file system access.
   <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
 </tr>
 <tr>
+  <td>tachyon.user.file.write.location.policy.class</td>
+  <td>tachyon.client.file.policy.LocalFirstPolicy</td>
+  <td>The default location policy for choosing workers for writing a file's blocks</td>
+</tr>
+<tr>
   <td>tachyon.user.file.readtype.default</td>
   <td>CACHE_PROMOTE</td>
   <td>Default write type when creating Tachyon files.

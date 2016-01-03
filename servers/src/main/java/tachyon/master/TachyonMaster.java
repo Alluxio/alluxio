@@ -65,7 +65,7 @@ public class TachyonMaster {
     }
 
     try {
-      Factory.createMaster().start();
+      Factory.create().start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -128,7 +128,7 @@ public class TachyonMaster {
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
      */
-    public static TachyonMaster createMaster() {
+    public static TachyonMaster create() {
       if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return new TachyonMasterFaultTolerant();
       }
@@ -412,7 +412,7 @@ public class TachyonMaster {
    *
    * @param journalDirectory The journal directory to check
    * @return true if the journal directory was formatted previously, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     TachyonConf conf = MasterContext.getConf();

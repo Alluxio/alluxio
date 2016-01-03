@@ -51,10 +51,11 @@ public abstract class UIWebServer {
   private InetSocketAddress mAddress;
 
   /**
-   * Constructor that pairs urls with servlets and sets the webapp folder.
+   * Creates a new instance of {@link UIWebServer}. It pairs URLs with servlets and sets the webapp
+   * folder.
    *
-   * @param service Name of the web service
-   * @param address Address of the server
+   * @param service name of the web service
+   * @param address address of the server
    * @param conf Tachyon configuration
    */
   public UIWebServer(ServiceType service, InetSocketAddress address, TachyonConf conf) {
@@ -132,6 +133,11 @@ public abstract class UIWebServer {
     return mServer.getServer().getConnectors()[0].getLocalPort();
   }
 
+  /**
+   * Shuts down the web server.
+   *
+   * @throws Exception if the underlying jetty server throws an exception
+   */
   public void shutdownWebServer() throws Exception {
     // close all connectors and release all binding ports
     for (Connector connector : mServer.getConnectors()) {

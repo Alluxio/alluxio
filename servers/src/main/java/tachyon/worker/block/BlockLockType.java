@@ -28,6 +28,9 @@ public enum BlockLockType {
     mValue = value;
   }
 
+  /**
+   * @return the value
+   */
   public int getValue() {
     return mValue;
   }

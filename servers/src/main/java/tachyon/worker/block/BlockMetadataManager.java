@@ -63,7 +63,7 @@ public final class BlockMetadataManager {
   /**
    * Factory method to create {@link BlockMetadataManager}.
    *
-   * @return the new created BlockMetadataManager
+   * @return the new created {@link BlockMetadataManager}
    */
   public static BlockMetadataManager newBlockMetadataManager() {
     BlockMetadataManager ret = new BlockMetadataManager();
@@ -143,7 +143,7 @@ public final class BlockMetadataManager {
   /**
    * Cleans up the meta data of the given temp block ids
    *
-   * @param sessionId the ID of the client associated with the temp blocks
+   * @param sessionId the id of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids
    *        will be ignored.
    * @deprecated As of version 0.8.
@@ -191,7 +191,7 @@ public final class BlockMetadataManager {
   /**
    * Gets the metadata of a block given its blockId.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return metadata of the block
    * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
    */
@@ -210,7 +210,7 @@ public final class BlockMetadataManager {
    * Returns the path of a block given its location, or null if the location is not a specific
    * {@link StorageDir}.
    *
-   * @param blockId the ID of the block
+   * @param blockId the id of the block
    * @param location location of a particular {@link StorageDir} to store this block
    * @return the path of this block in this location
    * @throws IllegalArgumentException if location is not a specific {@link StorageDir}
@@ -247,7 +247,7 @@ public final class BlockMetadataManager {
   /**
    * Gets the metadata of a temp block.
    *
-   * @param blockId the ID of the temp block
+   * @param blockId the id of the temp block
    * @return metadata of the block or null
    * @throws BlockDoesNotExistException when blockId can not be found
    */
@@ -303,7 +303,7 @@ public final class BlockMetadataManager {
    * Gets all the temporary blocks associated with a session, empty list is returned if the session
    * has no temporary blocks.
    *
-   * @param sessionId the ID of the session
+   * @param sessionId the id of the session
    * @return A list of temp blocks associated with the session
    */
   public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
@@ -319,7 +319,7 @@ public final class BlockMetadataManager {
   /**
    * Checks if the storage has a given block.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return true if the block is contained, false otherwise
    */
   public boolean hasBlockMeta(long blockId) {
@@ -336,7 +336,7 @@ public final class BlockMetadataManager {
   /**
    * Checks if the storage has a given temp block.
    *
-   * @param blockId the temp block ID
+   * @param blockId the temp block id
    * @return true if the block is contained, false otherwise
    */
   public boolean hasTempBlockMeta(long blockId) {
@@ -437,7 +437,7 @@ public final class BlockMetadataManager {
   }
 
   /**
-   * Modifies the size of a temp block
+   * Modifies the size of a temp block.
    *
    * @param tempBlockMeta the temp block to modify
    * @param newSize new size in bytes

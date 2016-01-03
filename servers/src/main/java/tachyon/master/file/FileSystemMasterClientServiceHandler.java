@@ -44,6 +44,11 @@ public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
+  /**
+   * Creates a new instance of {@link FileSystemMasterClientServiceHandler}.
+   *
+   * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
+   */
   public FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster);
     mFileSystemMaster = fileSystemMaster;

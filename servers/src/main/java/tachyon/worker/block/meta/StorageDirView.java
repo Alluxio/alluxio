@@ -151,7 +151,7 @@ public final class StorageDirView {
   }
 
   /**
-   * @return parent tierview
+   * @return parent tier view
    */
   public StorageTierView getParentTierView() {
     return mTierView;

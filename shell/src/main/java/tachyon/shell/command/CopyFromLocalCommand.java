@@ -46,6 +46,12 @@ import tachyon.util.io.PathUtils;
  */
 public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
+  /**
+   * Constructs a new instance to copy a local path to a remote path.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public CopyFromLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -83,7 +89,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    *
    * @param srcFiles The list of files in the local filesystem
    * @param dstPath The {@link TachyonURI} of the destination
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   private void copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
     try {
@@ -126,7 +132,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    *
    * @param srcFile The source file in the local filesystem
    * @param dstPath The {@link TachyonURI} of the destination
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   private void copyFromLocal(File srcFile, TachyonURI dstPath)
       throws IOException {
