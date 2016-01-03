@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
 
@@ -44,7 +43,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
 
   public ByteBufferKeyValuePartitionReader(ByteBuffer fileBytes) {
     mBuf = Preconditions.checkNotNull(fileBytes);
-    mBufferLength = mBuf.limit();
+    mBufferLength = mBuf.remaining();
     mIndex = createIndex();
     mPayloadReader = createPayloadReader();
     mClosed = false;
@@ -68,7 +67,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
    * which may avoid copying data.
    */
   @Override
-  public byte[] get(byte[] key) throws IOException, TachyonException {
+  public byte[] get(byte[] key) throws IOException {
     ByteBuffer valueBuffer = get(ByteBuffer.wrap(key));
     if (valueBuffer == null) {
       return null;
@@ -85,7 +84,9 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
 
   @Override
   public void close() {
-    Preconditions.checkState(!mClosed);
+    if (mClosed) {
+      return;
+    }
     mClosed = true;
   }
 }

@@ -21,6 +21,8 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
@@ -42,6 +44,7 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
 
   private KeyValueWorkerClient mClient;
   private long mBlockId;
+  private boolean mClosed;
 
   /**
    * Constructs a new instance of {@link BaseKeyValuePartitionReader}.
@@ -55,13 +58,14 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
+    mClosed = false;
   }
 
   // This could be slow when value size is large, use in cautious.
   @Override
   public byte[] get(byte[] key) throws IOException, TachyonException {
     ByteBuffer keyBuffer = ByteBuffer.wrap(key);
-    ByteBuffer value = get(keyBuffer);
+    ByteBuffer value = getInternal(keyBuffer);
     if (value == null) {
       return null;
     }
@@ -70,16 +74,24 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
 
   @Override
   public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
-    LOG.debug("get key of length: {}", key.limit());
+    return getInternal(key);
+  }
+
+  @Override
+  public void close() {
+    if (mClosed) {
+      return;
+    }
+    mClient.close();
+    mClosed = true;
+  }
+
+  private ByteBuffer getInternal(ByteBuffer key) throws IOException, TachyonException {
+    Preconditions.checkState(!mClosed, "Can not query a reader closed");
     ByteBuffer value = mClient.get(mBlockId, key);
     if (value.remaining() == 0) {
       return null;
     }
     return value;
-  }
-
-  @Override
-  public void close() {
-    mClient.close();
   }
 }
