@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.client.ByteArrayCountingOutStream;
+import tachyon.client.ByteArrayOutStream;
 
 /**
  * Unit tests of {@link LinearProbingIndex}.
@@ -31,12 +31,12 @@ public class LinearProbingIndexTest {
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
-  private ByteArrayCountingOutStream mOutStream;
+  private ByteArrayOutStream mOutStream;
   private OutStreamPayloadWriter mOutStreamPayloadWriter;
 
   @Before
   public void before() {
-    mOutStream = new ByteArrayCountingOutStream();
+    mOutStream = new ByteArrayOutStream();
     mOutStreamPayloadWriter = new OutStreamPayloadWriter(mOutStream);
   }
 

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.ByteArrayCountingOutStream;
+import tachyon.client.ByteArrayOutStream;
 
 /**
  * unit tests of {@link BaseKeyValuePartitionWriter} and
@@ -32,7 +32,7 @@ public class KeyValuePartitionReaderWriterTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
-  private ByteArrayCountingOutStream mOutStream = new ByteArrayCountingOutStream();
+  private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
   private BaseKeyValuePartitionWriter mWriter =
       new BaseKeyValuePartitionWriter(mOutStream);
   private ByteBufferKeyValuePartitionReader mReader;

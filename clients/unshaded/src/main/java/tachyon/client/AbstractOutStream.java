@@ -15,14 +15,19 @@
 
 package tachyon.client;
 
+import java.io.IOException;
 import java.io.OutputStream;
+
+import tachyon.annotation.PublicApi;
 
 /**
  * An abstraction of the output stream API in Tachyon to write data to a file or a block. In
- * addition to extending abstract class {@link OutputStream} as the basics, it also keeps
- * counting the number of bytes written to the output stream.
+ * addition to extending abstract class {@link OutputStream} as the basics, it also keeps counting
+ * the number of bytes written to the output stream, and extends {@link Cancelable} to abort the
+ * writes.
  */
-public abstract class AbstractCountingOutStream extends OutputStream {
+@PublicApi
+public abstract class AbstractOutStream extends OutputStream implements Cancelable {
   // TODO(binfan): make mBytesWritten long.
   /** The number of bytes written */
   protected int mBytesWritten = 0;
@@ -33,4 +38,11 @@ public abstract class AbstractCountingOutStream extends OutputStream {
   public int getBytesWritten() {
     return mBytesWritten;
   }
+
+  /**
+   * Aborts the output stream.
+   *
+   * @throws IOException if there is a failure to abort this output stream
+   */
+  public void cancel() throws IOException {}
 }

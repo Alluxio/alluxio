@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.AbstractCountingOutStream;
+import tachyon.client.AbstractOutStream;
 import tachyon.util.io.ByteIOUtils;
 
 /**
@@ -38,7 +38,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handle to write to the underlying file */
-  private final AbstractCountingOutStream mFileOutStream;
+  private final AbstractOutStream mFileOutStream;
   /** number of key-value pairs added */
   private long mKeyCount = 0;
   /** key-value index */
@@ -47,11 +47,12 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   private PayloadWriter mPayloadWriter;
   /** whether this writer is closed */
   private boolean mClosed;
-
+  /** whether this writer is canceled */
+  private boolean mCanceled;
   /**
    * @param fileOutStream output stream to store the key-value file
    */
-  public BaseKeyValuePartitionWriter(AbstractCountingOutStream fileOutStream) {
+  public BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
@@ -62,20 +63,32 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   }
 
   @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    if (mCanceled) {
+      mFileOutStream.cancel();
+    } else {
+      build();
+      mFileOutStream.close();
+    }
+    mClosed = true;
+  }
+
+  @Override
+  public void cancel() throws IOException {
+    mCanceled = true;
+    close();
+  }
+
+  @Override
   public void put(byte[] key, byte[] value) throws IOException {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
     Preconditions.checkState(!mClosed);
     mIndex.put(key, value, mPayloadWriter);
     mKeyCount ++;
-  }
-
-  @Override
-  public void close() throws IOException {
-    Preconditions.checkState(!mClosed);
-    build();
-    mFileOutStream.close();
-    mClosed = true;
   }
 
   @Override

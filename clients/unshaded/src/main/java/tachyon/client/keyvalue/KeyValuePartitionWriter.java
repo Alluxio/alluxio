@@ -21,6 +21,7 @@ import java.io.IOException;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.client.Cancelable;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
@@ -28,7 +29,7 @@ import tachyon.exception.TachyonException;
 /**
  * Interface of the writer to create a Tachyon key-value partition.
  */
-public interface KeyValuePartitionWriter extends Closeable {
+public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 
   class Factory {
     /**
