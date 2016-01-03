@@ -31,10 +31,16 @@ import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 
 /**
- * TODO(yupeng): add javadoc
+ * Creates a lineage for the given input files, output files, and command line job.
  */
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
+  /**
+   * Constructs a new instance to create a new lineage.
+   *
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public CreateLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

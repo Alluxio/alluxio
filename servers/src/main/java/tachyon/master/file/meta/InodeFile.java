@@ -46,6 +46,9 @@ public final class InodeFile extends Inode {
     private boolean mCacheable;
     private long mTTL;
 
+    /**
+     * Creates a new builder for {@link InodeFile}.
+     */
     public Builder() {
       super();
       mBlockContainerId = 0;
@@ -55,17 +58,29 @@ public final class InodeFile extends Inode {
       mTTL = Constants.NO_TTL;
     }
 
+    /**
+     * @param blockContainerId the block container id to use
+     * @return the builder
+     */
     public Builder setBlockContainerId(long blockContainerId) {
       mBlockContainerId = blockContainerId;
       mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
       return this;
     }
 
+    /**
+     * @param blockSizeBytes the block size in bytes to use
+     * @return the builder
+     */
     public Builder setBlockSizeBytes(long blockSizeBytes) {
       mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
+    /**
+     * @param cacheable the cacheable flag value to use
+     * @return the builder
+     */
     public Builder setCacheable(boolean cacheable) {
       mCacheable = cacheable;
       return this;
@@ -79,7 +94,8 @@ public final class InodeFile extends Inode {
     }
 
     /**
-     * Sets the ttl in milliseconds.
+     * @param ttl the ttl value to use
+     * @return the builder
      */
     public Builder setTTL(long ttl) {
       mTTL = ttl;
@@ -246,9 +262,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets whether the file is cacheable or not.
-   *
-   * @param cacheable If true, the file is cacheable
+   * @param cacheable the cacheable flag value to use
    */
   public synchronized void setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
@@ -275,6 +289,7 @@ public final class InodeFile extends Inode {
    *
    * @param length The new length of the file, cannot be negative
    * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
    */
   public synchronized void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
@@ -364,8 +379,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the ttl of the inode file
-   *
    * @return the ttl of the file
    */
   public synchronized long getTTL() {

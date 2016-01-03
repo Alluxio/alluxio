@@ -59,6 +59,8 @@ public abstract class BlockMetaBase {
   protected final StorageDir mDir;
 
   /**
+   * Creates a new instance of {@link BlockMetaBase}.
+   *
    * @param blockId the block id
    * @param dir the parent directory
    */

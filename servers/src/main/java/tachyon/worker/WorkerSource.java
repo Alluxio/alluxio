@@ -72,66 +72,146 @@ public class WorkerSource implements Source {
     return mMetricRegistry;
   }
 
-  public void incBlocksAccessed() {
-    mBlocksAccessed.inc();
+  /**
+   * Increments the counter of accessed blocks.
+   *
+   * @param n the increment
+   */
+  public void incBlocksAccessed(long n) {
+    mBlocksAccessed.inc(n);
   }
 
-  public void incBlocksCanceled() {
-    mBlocksCanceled.inc();
+  /**
+   * Increments the counter of canceled blocks.
+   *
+   * @param n the increment
+   */
+  public void incBlocksCanceled(long n) {
+    mBlocksCanceled.inc(n);
   }
 
-  public void incBlocksDeleted() {
-    mBlocksDeleted.inc();
+  /**
+   * Increments the counter of deleted blocks.
+   *
+   * @param n the increment
+   */
+  public void incBlocksDeleted(long n) {
+    mBlocksDeleted.inc(n);
   }
 
-  public void incBlocksEvicted() {
-    mBlocksEvicted.inc();
+  /**
+   * Increments the counter of evicted blocks.
+   *
+   * @param n the increment
+   */
+  public void incBlocksEvicted(long n) {
+    mBlocksEvicted.inc(n);
   }
 
-  public void incBlocksPromoted() {
-    mBlocksPromoted.inc();
+  /**
+   * Increments the counter of promoted blocks.
+   *
+   * @param n the increment
+   */
+  public void incBlocksPromoted(long n) {
+    mBlocksPromoted.inc(n);
   }
 
+  /**
+   * Increments the counter of blocks read locally.
+   *
+   * @param n the increment
+   */
   public void incBlocksReadLocal(long n) {
     mBlocksReadLocal.inc(n);
   }
 
+  /**
+   * Increments the counter of blocks read remotely.
+   *
+   * @param n the increment
+   */
   public void incBlocksReadRemote(long n) {
     mBlocksReadRemote.inc(n);
   }
 
+  /**
+   * Increments the counter of blocks written locally.
+   *
+   * @param n the increment
+   */
   public void incBlocksWrittenLocal(long n) {
     mBlocksWrittenLocal.inc(n);
   }
 
+  /**
+   * Increments the counter of blocks written remotely.
+   *
+   * @param n the increment
+   */
   public void incBlocksWrittenRemote(long n) {
     mBlocksWrittenRemote.inc(n);
   }
 
+  /**
+   * Increments the counter of bytes read locally.
+   *
+   * @param n the increment
+   */
   public void incBytesReadLocal(long n) {
     mBytesReadLocal.inc(n);
   }
 
+  /**
+   * Increments the counter of bytes read remotelly.
+   *
+   * @param n the increment
+   */
   public void incBytesReadRemote(long n) {
     mBytesReadRemote.inc(n);
   }
 
+  /**
+   * Increments the counter of bytes read from UFS.
+   *
+   * @param n the increment
+   */
   public void incBytesReadUfs(long n) {
     mBytesReadUfs.inc(n);
   }
 
+  /**
+   * Increments the counter of bytes written locally.
+   *
+   * @param n the increment
+   */
   public void incBytesWrittenLocal(long n) {
     mBytesWrittenLocal.inc(n);
   }
 
+  /**
+   * Increments the counter of bytes written remotely.
+   *
+   * @param n the increment
+   */
   public void incBytesWrittenRemote(long n) {
     mBytesWrittenRemote.inc(n);
   }
 
+  /**
+   * Increments the counter of bytes written to UFS.
+   *
+   * @param n the increment
+   */
   public void incBytesWrittenUfs(long n) {
     mBytesWrittenUfs.inc(n);
   }
 
+  /**
+   * Registers metric gauges.
+   *
+    * @param blockDataManager a block data manager handle
+   */
   public void registerGauges(final BlockDataManager blockDataManager) {
     if (mGaugesRegistered) {
       return;
