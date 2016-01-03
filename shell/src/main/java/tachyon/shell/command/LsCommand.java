@@ -27,9 +27,6 @@ import tachyon.conf.TachyonConf;
 public final class LsCommand extends AbstractLsCommand {
 
   /**
-   * Constructs a new instance to display information for all directories and files directly under
-   * the path specified in args.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
