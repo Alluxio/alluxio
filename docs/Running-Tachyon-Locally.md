@@ -64,6 +64,7 @@ For the first sample program, you should be able to see something similar to the
 2015-11-20 08:32:22,759 INFO   (FileUtils.java:createStorageDirPath) - Folder /Volumes/ramdisk/tachyonworker/7226211928567857329 was created!
 2015-11-20 08:32:22,809 INFO   (LocalBlockOutStream.java:<init>) - LocalBlockOutStream created new file block, block path: /Volumes/ramdisk/tachyonworker/7226211928567857329/16777216
 2015-11-20 08:32:22,886 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_CACHE_THROUGH took 187 ms.
+Passed the test!
 ```
 
 And you can visit Tachyon web UI at **[http://localhost:19999](http://localhost:19999)** again.
