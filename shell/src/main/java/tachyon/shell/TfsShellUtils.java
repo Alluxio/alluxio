@@ -94,7 +94,8 @@ public class TfsShellUtils {
    * @param tachyonClient the client used to fetch information of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
    * @return a list of {@link TachyonURI}s that matches the inputURI
-   * @throws IOException if the client cannot open the directory or list its status
+   * @throws IOException if any filesystem errors are encountered when expanding paths with
+   *                     wildcards
    */
   public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
       TachyonURI inputURI) throws IOException {
@@ -120,7 +121,8 @@ public class TfsShellUtils {
    * @param parentDir the {@link TachyonURI} of the directory in which we are searching matched
    *                  files
    * @return a list of {@link TachyonURI}s of the files that match the inputURI in parentDir
-   * @throws IOException if the client cannot open the directory or list its status
+   * @throws IOException if any filesystem errors are encountered when expanding paths with
+   *                     wildcards
    */
   private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
       TachyonURI inputURI, TachyonURI parentDir) throws IOException {
