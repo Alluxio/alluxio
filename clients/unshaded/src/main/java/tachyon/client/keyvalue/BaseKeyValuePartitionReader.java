@@ -53,7 +53,7 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
    * @throws TachyonException if an unexpected tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
-  protected BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
+  BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
     mBlockId = blockId;
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
