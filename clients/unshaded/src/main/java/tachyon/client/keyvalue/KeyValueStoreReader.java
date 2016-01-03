@@ -32,7 +32,7 @@ public interface KeyValueStoreReader extends Closeable {
    * values (e.g., larger than 10KB), {@link #get(ByteBuffer)} might be more efficient by taking
    * advantage from zero-copy.
    *
-   * @param key key to put, cannot be null
+   * @param key key to get, cannot be null
    * @return value associated with the given key, or null if not found
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs
@@ -42,7 +42,7 @@ public interface KeyValueStoreReader extends Closeable {
   /**
    * Gets the value associated with {@code key}, returns null if not found.
    *
-   * @param key key to put, cannot be null
+   * @param key key to get, cannot be null
    * @return value associated with the given key, or null if not found
    * @throws IOException if non-Tachyon error occurs
    * @throws TachyonException if Tachyon error occurs

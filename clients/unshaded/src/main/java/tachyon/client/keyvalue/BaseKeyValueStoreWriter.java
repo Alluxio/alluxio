@@ -87,14 +87,16 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     }
     try {
       if (mCanceled) {
-        // TODO(binfan): cancel all written partitions
+        mWriter.cancel();
+        // TODO(binfan): cancel all other written partitions
       } else {
         completePartition();
         mMasterClient.completeStore(mStoreUri);
       }
-      mMasterClient.close();
     } catch (TachyonException e) {
       throw new IOException(e);
+    } finally {
+      mMasterClient.close();
     }
     mClosed = true;
   }

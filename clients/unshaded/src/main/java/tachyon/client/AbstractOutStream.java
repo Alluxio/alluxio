@@ -44,5 +44,6 @@ public abstract class AbstractOutStream extends OutputStream implements Cancelab
    *
    * @throws IOException if there is a failure to abort this output stream
    */
+  @Override
   public void cancel() throws IOException {}
 }

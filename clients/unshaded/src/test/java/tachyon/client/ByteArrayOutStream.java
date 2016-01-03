@@ -55,10 +55,16 @@ public final class ByteArrayOutStream extends AbstractOutStream {
     close();
   }
 
+  /**
+   * @return whether this output stream is closed
+   */
   public boolean isClosed() {
     return mClosed;
   }
 
+  /**
+   * @return whether this output stream is canceled
+   */
   public boolean isCanceled() {
     return mCanceled;
   }

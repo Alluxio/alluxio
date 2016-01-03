@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 
 /**
@@ -33,13 +34,13 @@ public class BaseKeyValueStore implements KeyValueStore {
 
   @Override
   public KeyValueStoreReader open(TachyonURI uri) throws IOException, TachyonException {
-    Preconditions.checkNotNull(uri, "can not open a key-value store with a null URI");
+    Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreReader(uri);
   }
 
   @Override
   public KeyValueStoreWriter create(TachyonURI uri) throws IOException, TachyonException {
-    Preconditions.checkNotNull(uri, "can not create a key-value store with a null URI");
+    Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
     return new BaseKeyValueStoreWriter(uri);
   }
 }
