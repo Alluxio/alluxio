@@ -23,13 +23,13 @@ Tachyon can be integrated with any under storage, provided an under storage conn
 Currently, [Amazon S3](Configuring-Tachyon-with-S3.html),
 [OpenStack Swift](Configuring-Tachyon-with-Swift.html),
 [GlusterFS](Configuring-Tachyon-with-GlusterFS.html), and
-[HDFS](Configuring-Tachyon-with-HDFS.html), are supported.
+[Apache HDFS](Configuring-Tachyon-with-HDFS.html), are supported.
 
 ### Configuring an Application
 
 Tachyon provides a [file system interface](File-System-API.html) to applications to let them
-interact with data stored in Tachyon. If you want to directly write an application on top of 
-Tachyon, simply add the `tachyon-client` dependency to your program. For example, if the 
+interact with data stored in Tachyon. If you want to directly write an application on top of
+Tachyon, simply add the `tachyon-client` dependency to your program. For example, if the
 application is built using Maven:
 
 ```xml
@@ -42,7 +42,7 @@ application is built using Maven:
 
 A special set of applications leveraging Tachyon are computation frameworks. Transitioning these
 frameworks to use Tachyon is almost effortless, especially if the framework is already integrated
-with the HDFS FileSystem interface. Since Tachyon also provides an implementation of the
+with the Hadoop FileSystem interface. Since Tachyon also provides an implementation of the
 interface, the only modification required is to change the data path scheme from
 `hdfs://master-hostname:port` to `tachyon://master-hostname:port`. See the tutorials for
 [Apache Spark](Running-Spark-on-Tachyon.html),
@@ -71,14 +71,15 @@ but provides a read-only view.
 
 ### Advanced Features
 
-While Tachyon can provide significant performance gains simply through accelerating data
-input/output, Tachyon also provides advanced features tailored to specific use cases.
+Beyond providing significant performance gains simply through accelerating data input/output,
+Tachyon also provides following advanced features.
 
 * [Tiered storage](Tiered-Storage-on-Tachyon.html) provides additional resources for Tachyon to
 manage (such as SSD or HHD), allowing for data sets that cannot fit into memory to still take 
 advantage of the Tachyon architecture.
-* [Lineage](Lineage-API.html) provides an alternative to costly disk replication for fault tolerance and
-data durability, greatly improving write performance.
 * [Unified and Transparent Namespace](Unified-and-Transparent-Namespace.html) provides the ability
 for users to manage data from existing storage systems and easily handle deployments where not all
 systems are Tachyon-aware.
+* [Lineage](Lineage-API.html) provides an alternative to costly disk replication for fault tolerance
+and data durability, greatly improving write performance.
+
