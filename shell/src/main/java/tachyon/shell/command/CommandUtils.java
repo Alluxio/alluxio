@@ -72,7 +72,7 @@ public final class CommandUtils {
    * @param tfs The {@link TachyonFileSystem} client
    * @param path The {@link TachyonURI} path as the input of the command
    * @param pinned the state to be set
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   public static void setPinned(TachyonFileSystem tfs, TachyonURI path, boolean pinned)
       throws IOException {

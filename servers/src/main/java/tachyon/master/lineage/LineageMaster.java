@@ -102,7 +102,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Creates the lineage master.
+   * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
    * @param journal the journal
@@ -347,7 +347,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * Reports a file as lost.
+   * Polls the files to send to the given worker for checkpoint.
    *
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
