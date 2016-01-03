@@ -56,6 +56,7 @@ public final class KeyValueMaster extends MasterBase {
    * list of partitions in this store.
    */
   private final Map<Long, List<PartitionInfo>> mIncompleteStoreToPartitions;
+  /** A lock to synchronize operations to the partition maps */
   private final Object mLock = new Object();
 
   /**

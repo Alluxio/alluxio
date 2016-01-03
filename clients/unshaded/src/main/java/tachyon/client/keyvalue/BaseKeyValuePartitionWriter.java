@@ -96,10 +96,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   @Override
   public boolean isFull() {
     // TODO(binfan): make this configurable.
-    if (byteCount() > Constants.GB) {
-      return true;
-    }
-    return false;
+    return byteCount() >= Constants.GB;
   }
 
   /**
