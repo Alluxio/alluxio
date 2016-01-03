@@ -180,9 +180,10 @@ public final class TachyonConf {
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
-    if (getInt(Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST) > 1) {
+    int maxWorkersPerHost = getInt(Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST);
+    if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
-          + Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST + " > 1";
+          + Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST + "=" + maxWorkersPerHost;
       Preconditions.checkState(System.getProperty(Constants.WORKER_DATA_PORT) == null,
           String.format(message, Constants.WORKER_DATA_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_RPC_PORT) == null,
