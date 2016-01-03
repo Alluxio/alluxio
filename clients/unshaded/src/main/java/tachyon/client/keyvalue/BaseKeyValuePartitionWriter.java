@@ -28,9 +28,9 @@ import tachyon.util.io.ByteIOUtils;
 
 /**
  * Writer that implements {@link KeyValuePartitionWriter} using Tachyon file stream interface to
- * generate a key-value file.
+ * generate a single-block key-value file.
  *
- * TODO(binfan): describe the key-value file format
+ * TODO(binfan): describe the key-value partition file format
  * <p>
  * This class is not thread-safe.
  */
@@ -49,6 +49,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   private boolean mClosed;
   /** whether this writer is canceled */
   private boolean mCanceled;
+
   /**
    * @param fileOutStream output stream to store the key-value file
    */
@@ -60,6 +61,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
     // Use linear probing impl of index for now
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
+    mCanceled = false;
   }
 
   @Override

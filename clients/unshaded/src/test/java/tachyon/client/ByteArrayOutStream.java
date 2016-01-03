@@ -23,10 +23,14 @@ import java.io.ByteArrayOutputStream;
  */
 public final class ByteArrayOutStream extends AbstractOutStream {
   private ByteArrayOutputStream mOut;
+  private boolean mClosed;
+  private boolean mCanceled;
 
   public ByteArrayOutStream() {
     /** set an initial size of underlying ByteArray, which will grow automatically */
     mOut = new ByteArrayOutputStream(1000);
+    mClosed = false;
+    mCanceled = false;
   }
 
   @Override
@@ -38,6 +42,25 @@ public final class ByteArrayOutStream extends AbstractOutStream {
   @Override
   public int getBytesWritten() {
     return mBytesWritten;
+  }
+
+  @Override
+  public void close() {
+    mClosed = true;
+  }
+
+  @Override
+  public void cancel() {
+    mCanceled = true;
+    close();
+  }
+
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  public boolean isCanceled() {
+    return mCanceled;
   }
 
   /**

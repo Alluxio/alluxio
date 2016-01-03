@@ -18,24 +18,26 @@ package tachyon.client.keyvalue;
 import java.nio.ByteBuffer;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.client.ByteArrayOutStream;
 
 /**
- * unit tests of {@link BaseKeyValuePartitionWriter} and
- * {@link ByteBufferKeyValuePartitionReader}
+ * unit tests of {@link BaseKeyValuePartitionWriter}
  */
-public final class BaseKeyValuePartitionReaderWriterTest {
+public final class BaseKeyValuePartitionWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
-  private BaseKeyValuePartitionWriter mWriter =
-      new BaseKeyValuePartitionWriter(mOutStream);
-  private ByteBufferKeyValuePartitionReader mReader;
+  private BaseKeyValuePartitionWriter mWriter = new BaseKeyValuePartitionWriter(mOutStream);
+
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void putTest() throws Exception {
@@ -43,21 +45,56 @@ public final class BaseKeyValuePartitionReaderWriterTest {
   }
 
   @Test
-  public void closeTest() throws Exception {
+  public void putAfterCloseTest() throws Exception {
     mWriter.close();
+    mThrown.expect(IllegalStateException.class);
+    mWriter.put(KEY1, VALUE1);
   }
 
   @Test
-  public void buildAndLoadTest() throws Exception {
+  public void putAfterCancelTest() throws Exception {
+    mWriter.cancel();
+    mThrown.expect(IllegalStateException.class);
+    mWriter.put(KEY1, VALUE1);
+  }
+
+  @Test
+  public void closeAfterCancelTest() throws Exception {
+    mWriter.cancel();
+    Assert.assertTrue(mOutStream.isClosed());
+    Assert.assertTrue(mOutStream.isCanceled());
+
+    // Expect close to be a no-op
+    mWriter.close();
+    Assert.assertTrue(mOutStream.isClosed());
+    Assert.assertTrue(mOutStream.isCanceled());
+  }
+
+  @Test
+  public void closeAfterCloseTest() throws Exception {
+    // Expect the underline stream to be closed
+    mWriter.close();
+    Assert.assertTrue(mOutStream.isClosed());
+    Assert.assertFalse(mOutStream.isCanceled());
+
+    // Expect close to be a no-op
+    mWriter.close();
+    Assert.assertTrue(mOutStream.isClosed());
+    Assert.assertFalse(mOutStream.isCanceled());
+  }
+
+  @Test
+  public void putAndGetTest() throws Exception {
     mWriter.put(KEY1, VALUE1);
     mWriter.put(KEY2, VALUE2);
     mWriter.close();
     byte[] fileData = mOutStream.toByteArray();
-    mReader = new ByteBufferKeyValuePartitionReader(ByteBuffer.wrap(fileData));
-    Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
-    Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
+    ByteBufferKeyValuePartitionReader reader =
+        new ByteBufferKeyValuePartitionReader(ByteBuffer.wrap(fileData));
+    Assert.assertArrayEquals(VALUE1, reader.get(KEY1));
+    Assert.assertArrayEquals(VALUE2, reader.get(KEY2));
 
-    Assert.assertNull(mReader.get("NoSuchKey".getBytes()));
+    Assert.assertNull(reader.get("NoSuchKey".getBytes()));
   }
 
   @Test
