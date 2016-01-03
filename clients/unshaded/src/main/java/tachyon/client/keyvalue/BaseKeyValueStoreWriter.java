@@ -20,9 +20,10 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -57,6 +58,10 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
   private ByteBuffer mKeyStart = null;
   /** max key in the current partition */
   private ByteBuffer mKeyLimit = null;
+  /** whether this writer is closed */
+  private boolean mClosed;
+  /** whether this writer is canceled */
+  private boolean mCanceled;
 
   /**
    * Constructs a {@link BaseKeyValueStoreWriter}. This constructor will create a new key-value
@@ -72,17 +77,32 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     mTfs.mkdir(mStoreUri);
     mMasterClient.createStore(mStoreUri);
     mPartitionIndex = 0;
+    mClosed = false;
   }
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     try {
-      completePartition();
-      mMasterClient.completeStore(mStoreUri);
+      if (mCanceled) {
+        // TODO(binfan): cancel all written partitions
+      } else {
+        completePartition();
+        mMasterClient.completeStore(mStoreUri);
+      }
       mMasterClient.close();
     } catch (TachyonException e) {
       throw new IOException(e);
     }
+    mClosed = true;
+  }
+
+  @Override
+  public void cancel() throws IOException {
+    mCanceled = true;
+    close();
   }
 
   @Override
@@ -122,9 +142,9 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     put(keyArray, valueArray);
   }
 
-    /**
-     * @return {@link TachyonURI} to the current partition file
-     */
+  /**
+   * @return {@link TachyonURI} to the current partition file
+   */
   private TachyonURI getPartitionName() {
     return new TachyonURI(String.format("%s/part-%05d", mStoreUri, mPartitionIndex));
   }

@@ -20,13 +20,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.Cancelable;
 import tachyon.exception.TachyonException;
 
 /**
  * Interface for readers to create a new key-value store in Tachyon.
  */
 @PublicApi
-public interface KeyValueStoreWriter extends Closeable {
+public interface KeyValueStoreWriter extends Closeable, Cancelable {
   /**
    * Adds a key and its associated value to this store.
    *
