@@ -32,7 +32,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValuePartitionWriter}.
  */
-public final class KeyValueFileIntegrationTest {
+public final class KeyValuePartitionIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
