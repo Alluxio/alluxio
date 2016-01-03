@@ -28,8 +28,6 @@ import tachyon.exception.TachyonException;
 public final class MountCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to mount a UFS path onto a Tachyon path.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
