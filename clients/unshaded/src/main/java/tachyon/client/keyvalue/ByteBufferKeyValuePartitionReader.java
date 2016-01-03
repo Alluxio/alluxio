@@ -36,7 +36,7 @@ import tachyon.worker.keyvalue.RandomAccessPayloadReader;
  * Reader that implements {@link KeyValuePartitionReader} to access a key-value file using random
  * access API.
  */
-public final class RandomAccessKeyValuePartitionReader implements KeyValuePartitionReader {
+public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitionReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Index mIndex;
@@ -46,7 +46,7 @@ public final class RandomAccessKeyValuePartitionReader implements KeyValuePartit
   /** whether this writer is closed */
   private boolean mClosed;
 
-  public RandomAccessKeyValuePartitionReader(ByteBuffer fileBytes) {
+  public ByteBufferKeyValuePartitionReader(ByteBuffer fileBytes) {
     mBuf = Preconditions.checkNotNull(fileBytes);
     mBufferLength = mBuf.limit();
     mIndex = createIndex();

@@ -26,16 +26,16 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface of the writer to create a Tachyon key-value file.
+ * Interface of the writer to create a Tachyon key-value partition.
  */
 public interface KeyValuePartitionWriter extends Closeable {
 
   class Factory {
     /**
      * Factory method to create a {@link KeyValuePartitionWriter} instance that writes to a new the
-     * key-value data in a new file in Tachyon.
+     * key-value data in a new partition file in Tachyon.
      *
-     * @param uri URI of the key-value file to write to
+     * @param uri URI of the key-value partition file to write to
      * @return an instance of a {@link KeyValuePartitionWriter}
      * @throws IOException if a non-Tachyon exception occurs
      * @throws TachyonException if an unexpected Tachyon exception is thrown
@@ -45,7 +45,7 @@ public interface KeyValuePartitionWriter extends Closeable {
       Preconditions.checkNotNull(uri);
       TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
       FileOutStream fileOutStream = tfs.getOutStream(uri);
-      return new OutStreamKeyValuePartitionWriter(fileOutStream);
+      return new BaseKeyValuePartitionWriter(fileOutStream);
     }
   }
 

@@ -23,8 +23,8 @@ import org.junit.Test;
 import tachyon.client.file.ByteArrayCountingOutStream;
 
 /**
- * unit tests of {@link OutStreamKeyValuePartitionWriter} and
- * {@link RandomAccessKeyValuePartitionReader}
+ * unit tests of {@link BaseKeyValuePartitionWriter} and
+ * {@link ByteBufferKeyValuePartitionReader}
  */
 public class KeyValuePartitionReaderWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
@@ -33,9 +33,9 @@ public class KeyValuePartitionReaderWriterTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayCountingOutStream mOutStream = new ByteArrayCountingOutStream();
-  private OutStreamKeyValuePartitionWriter mWriter =
-      new OutStreamKeyValuePartitionWriter(mOutStream);
-  private RandomAccessKeyValuePartitionReader mReader;
+  private BaseKeyValuePartitionWriter mWriter =
+      new BaseKeyValuePartitionWriter(mOutStream);
+  private ByteBufferKeyValuePartitionReader mReader;
 
   @Test
   public void putTest() throws Exception {
@@ -53,7 +53,7 @@ public class KeyValuePartitionReaderWriterTest {
     mWriter.put(KEY2, VALUE2);
     mWriter.close();
     byte[] fileData = mOutStream.toByteArray();
-    mReader = new RandomAccessKeyValuePartitionReader(ByteBuffer.wrap(fileData));
+    mReader = new ByteBufferKeyValuePartitionReader(ByteBuffer.wrap(fileData));
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
 

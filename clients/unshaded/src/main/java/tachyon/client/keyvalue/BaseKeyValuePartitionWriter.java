@@ -35,11 +35,10 @@ import tachyon.worker.keyvalue.PayloadWriter;
  * generate a key-value file.
  *
  * TODO(binfan): describe the key-value file format
- *
  * <p>
  * This class is not thread-safe.
  */
-public final class OutStreamKeyValuePartitionWriter implements KeyValuePartitionWriter {
+public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handle to write to the underlying file */
@@ -56,7 +55,7 @@ public final class OutStreamKeyValuePartitionWriter implements KeyValuePartition
   /**
    * @param fileOutStream output stream to store the key-value file
    */
-  public OutStreamKeyValuePartitionWriter(AbstractCountingOutStream fileOutStream) {
+  public BaseKeyValuePartitionWriter(AbstractCountingOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 

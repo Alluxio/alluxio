@@ -28,15 +28,16 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface of the reader class to access a Tachyon key-value file.
+ * Interface of the reader to access a Tachyon key-value partition.
  */
 public interface KeyValuePartitionReader extends Closeable {
 
   class Factory {
     /**
-     * Factory method to create a {@link KeyValuePartitionReader} given the {@link TachyonURI}.
+     * Factory method to create a {@link KeyValuePartitionReader} given the {@link TachyonURI} of a
+     * key-value partition.
      *
-     * @param uri Tachyon URI of the key-value file to use as input
+     * @param uri Tachyon URI of the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
      * @throws IOException if a non-Tachyon exception occurs
      * @throws TachyonException if an unexpected Tachyon exception is thrown
@@ -52,9 +53,10 @@ public interface KeyValuePartitionReader extends Closeable {
     }
 
     /**
-     * Factory method to create a {@link KeyValuePartitionReader} given a block Id.
+     * Factory method to create a {@link KeyValuePartitionReader} given the block Id of a key-value
+     * partition.
      *
-     * @param blockId blockId the key-value file to use as input
+     * @param blockId blockId the key-value partition to use as input
      * @return an instance of a {@link KeyValuePartitionReader}
      * @throws IOException if a non-Tachyon exception occurs
      * @throws TachyonException if an unexpected Tachyon exception is thrown
@@ -66,8 +68,8 @@ public interface KeyValuePartitionReader extends Closeable {
   }
 
   /**
-   * Gets the value associated with the given key in the key-value file, returning null if the key
-   * is not found.
+   * Gets the value associated with the given key in the key-value partition, returning null if the
+   * key is not found.
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
@@ -75,8 +77,8 @@ public interface KeyValuePartitionReader extends Closeable {
   byte[] get(byte[] key) throws IOException, TachyonException;
 
   /**
-   * Gets the value associated with the given key in the key-value file, returning null if the key
-   * is not found. Both key and value are in ByteBuffer to make zero-copy possible for better
+   * Gets the value associated with the given key in the key-value partition, returning null if the
+   * key is not found. Both key and value are in ByteBuffer to make zero-copy possible for better
    * performance.
    *
    * @param key key to get, cannot be null
