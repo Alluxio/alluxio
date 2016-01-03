@@ -12,7 +12,8 @@ priority: 0
 
 Tachyon can be configured in a variety of modes. The simplest setup for new users is to
 [run Tachyon locally](Running-Tachyon-Locally.html). To experiment with a cluster setup, see the
-[virtual box](Running-Tachyon-on-Virtual-Box.html) or [AWS](Running-Tachyon-on-EC2.html) tutorials.
+[virtual box](Running-Tachyon-on-Virtual-Box.html) or [Amazon AWS](Running-Tachyon-on-EC2.html)
+tutorials.
 
 ### Configuring the Under Storage
 
@@ -20,8 +21,9 @@ Tachyon can be seen as a data exchange layer and benefits from having reliable p
 backing it. Depending on the production environment, different under storage will be preferred.
 Tachyon can be integrated with any under storage, provided an under storage connector is implemented.
 Currently, [Amazon S3](Configuring-Tachyon-with-S3.html),
-[HDFS](Configuring-Tachyon-with-HDFS.html), [Swift](Configuring-Tachyon-with-Swift.html), and
-[GlusterFS](Configuring-Tachyon-with-GlusterFS.html) are supported.
+[OpenStack Swift](Configuring-Tachyon-with-Swift.html),
+[GlusterFS](Configuring-Tachyon-with-GlusterFS.html), and
+[HDFS](Configuring-Tachyon-with-HDFS.html), are supported.
 
 ### Configuring an Application
 
