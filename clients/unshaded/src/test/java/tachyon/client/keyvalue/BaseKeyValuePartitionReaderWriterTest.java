@@ -26,7 +26,7 @@ import tachyon.client.ByteArrayOutStream;
  * unit tests of {@link BaseKeyValuePartitionWriter} and
  * {@link ByteBufferKeyValuePartitionReader}
  */
-public class KeyValuePartitionReaderWriterTest {
+public final class BaseKeyValuePartitionReaderWriterTest {
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();

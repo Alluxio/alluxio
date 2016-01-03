@@ -52,7 +52,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   /**
    * @param fileOutStream output stream to store the key-value file
    */
-  public BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
+  BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
