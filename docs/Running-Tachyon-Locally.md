@@ -8,7 +8,7 @@ priority: 1
 
 # Run Tachyon Standalone on a Single Machine.
 
-The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 6 or above).
+The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above).
 
 Download the binary distribution of Tachyon {{site.TACHYON_RELEASED_VERSION}}:
 
