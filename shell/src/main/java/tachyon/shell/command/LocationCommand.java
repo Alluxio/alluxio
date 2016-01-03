@@ -32,9 +32,6 @@ import tachyon.thrift.FileInfo;
 public final class LocationCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to display a list of hosts that have the file specified in args
-   * stored.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
