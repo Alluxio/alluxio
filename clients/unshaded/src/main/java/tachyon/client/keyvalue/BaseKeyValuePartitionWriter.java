@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.file.AbstractCountingOutStream;
+import tachyon.client.AbstractCountingOutStream;
 import tachyon.util.io.ByteIOUtils;
 
 /**

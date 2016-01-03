@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
+import tachyon.client.AbstractCountingOutStream;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;

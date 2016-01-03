@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.client.file.ByteArrayCountingOutStream;
+import tachyon.client.ByteArrayCountingOutStream;
 
 /**
  * Unit tests of {@link LinearProbingIndex}.

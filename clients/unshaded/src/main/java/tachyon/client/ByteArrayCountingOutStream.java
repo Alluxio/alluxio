@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.client;
 
 import java.io.ByteArrayOutputStream;
 

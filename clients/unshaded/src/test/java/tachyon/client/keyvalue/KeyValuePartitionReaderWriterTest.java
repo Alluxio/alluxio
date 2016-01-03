@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.client.file.ByteArrayCountingOutStream;
+import tachyon.client.ByteArrayCountingOutStream;
 
 /**
  * unit tests of {@link BaseKeyValuePartitionWriter} and

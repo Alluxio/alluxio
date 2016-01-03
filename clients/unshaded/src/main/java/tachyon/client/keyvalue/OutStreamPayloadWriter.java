@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.client.file.AbstractCountingOutStream;
+import tachyon.client.AbstractCountingOutStream;
 import tachyon.util.io.ByteIOUtils;
 
 /**
