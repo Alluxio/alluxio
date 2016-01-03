@@ -35,9 +35,6 @@ import tachyon.thrift.FileInfo;
 public final class PersistCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to persist a file or directory currently stored only in Tachyon to
-   * the UFS.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

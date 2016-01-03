@@ -28,8 +28,6 @@ import tachyon.conf.TachyonConf;
 public final class PinCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to pin the given file or folder.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

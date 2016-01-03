@@ -29,8 +29,6 @@ import tachyon.exception.TachyonException;
 public final class ReportCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to report to the master that a file is lost.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

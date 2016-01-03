@@ -31,8 +31,6 @@ import tachyon.exception.TachyonException;
 public final class RmrCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to remove the file or directory specified by args.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

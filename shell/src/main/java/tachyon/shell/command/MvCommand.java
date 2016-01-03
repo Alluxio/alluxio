@@ -29,8 +29,6 @@ import tachyon.exception.TachyonException;
 public final class MvCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to rename a file or directory specified by args.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
