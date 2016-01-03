@@ -59,7 +59,7 @@ public final class LocalTachyonMaster {
 
     mJournalFolder = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
 
-    mTachyonMaster = TachyonMaster.Factory.createMaster();
+    mTachyonMaster = TachyonMaster.Factory.create();
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));

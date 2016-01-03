@@ -54,6 +54,8 @@ public class JournalReader {
   private long mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /**
+   * Creates a new instance of {@link JournalReader}.
+   *
    * @param journal the handle to the journal
    */
   JournalReader(Journal journal) {

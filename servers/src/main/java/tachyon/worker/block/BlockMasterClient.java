@@ -46,7 +46,7 @@ public final class BlockMasterClient extends MasterClientBase {
   private BlockMasterWorkerService.Client mClient = null;
 
   /**
-   * Creates a new block master client for the worker.
+   * Creates a new instance of {@link BlockMasterClient} for the worker.
    *
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration

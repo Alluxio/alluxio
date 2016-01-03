@@ -28,6 +28,11 @@ public class MasterStorageTierAssoc extends StorageTierAssoc {
         Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
   }
 
+  /**
+   * Creates a new instance of {@link MasterStorageTierAssoc}.
+   *
+   * @param storageTierAliases a list of storage tier aliases
+   */
   public MasterStorageTierAssoc(List<String> storageTierAliases) {
     super(storageTierAliases);
   }

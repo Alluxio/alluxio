@@ -32,10 +32,12 @@ import tachyon.util.CommonUtils;
 public interface JournalFormatter {
   class Factory {
     /**
+     * Factory method for {@link JournalFormatter}.
+     *
      * @param conf TachyonConf to get the type of {@link JournalFormatter}
      * @return the created formatter
      */
-    public static JournalFormatter createJournalFormatter(TachyonConf conf) {
+    public static JournalFormatter create(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<JournalFormatter>getClass(Constants.MASTER_JOURNAL_FORMATTER_CLASS), null, null);
