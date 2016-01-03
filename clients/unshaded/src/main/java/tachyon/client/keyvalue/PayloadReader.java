@@ -13,23 +13,28 @@
  * the License.
  */
 
-package tachyon.worker.keyvalue;
+package tachyon.client.keyvalue;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
- * Interface to add key and value to payload storage.
+ * Interface to access key and value from payload storage.
  */
-public interface PayloadWriter {
+public interface PayloadReader {
 
   /**
-   * Inserts key and value into payload, returns an offset indicating where the key and value
-   * data is stored in payload storage.
+   * Gets the key given the position of payload storage.
    *
-   * @param key bytes of key
-   * @param value offset of this key in payload
-   * @return the offset of this key-value pair in payload storage
-   * @throws IOException if error occurs writing the key and value to output stream
+   * @param pos position in the payload storage in bytes
+   * @return key in ByteBuffer
    */
-  int insert(byte[] key, byte[] value) throws IOException;
+  ByteBuffer getKey(int pos);
+
+  /**
+   * Gets the value given the position of payload storage.
+   *
+   * @param pos position in the payload storage in bytes
+   * @return value in ByteBuffer
+   */
+  ByteBuffer getValue(int pos);
 }
