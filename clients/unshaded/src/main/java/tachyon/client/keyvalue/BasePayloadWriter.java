@@ -31,10 +31,10 @@ import tachyon.util.io.ByteIOUtils;
  * keyLength (4 bytes) (2) valueLength (4 bytes) (3) keyData (keyLength bytes) (4) valueData
  * (valueLength bytes)
  */
-public final class OutStreamPayloadWriter implements Closeable, Flushable, PayloadWriter {
+public final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
   private AbstractOutStream mOutStream;
 
-  public OutStreamPayloadWriter(AbstractOutStream out) {
+  public BasePayloadWriter(AbstractOutStream out) {
     mOutStream = Preconditions.checkNotNull(out);
   }
 

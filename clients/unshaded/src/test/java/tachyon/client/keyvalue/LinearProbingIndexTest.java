@@ -32,21 +32,21 @@ public class LinearProbingIndexTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
   private ByteArrayOutStream mOutStream;
-  private OutStreamPayloadWriter mOutStreamPayloadWriter;
+  private BasePayloadWriter mPayloadWriter;
 
   @Before
   public void before() {
     mOutStream = new ByteArrayOutStream();
-    mOutStreamPayloadWriter = new OutStreamPayloadWriter(mOutStream);
+    mPayloadWriter = new BasePayloadWriter(mOutStream);
   }
 
   @Test
   public void putBasicTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
     Assert.assertEquals(0, index.keyCount());
-    Assert.assertTrue(index.put(KEY1, VALUE1, mOutStreamPayloadWriter));
+    Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
     Assert.assertEquals(1, index.keyCount());
-    Assert.assertTrue(index.put(KEY2, VALUE2, mOutStreamPayloadWriter));
+    Assert.assertTrue(index.put(KEY2, VALUE2, mPayloadWriter));
     Assert.assertEquals(2, index.keyCount());
   }
 
@@ -56,9 +56,9 @@ public class LinearProbingIndexTest {
     // TODO(binfan): change constant 50 to be LinearProbingIndex.MAX_PROBES
     for (int i = 0; i < 50; i ++) {
       Assert.assertEquals(i, index.keyCount());
-      Assert.assertTrue(index.put(KEY1, VALUE1, mOutStreamPayloadWriter));
+      Assert.assertTrue(index.put(KEY1, VALUE1, mPayloadWriter));
     }
-    Assert.assertFalse(index.put(KEY1, VALUE1, mOutStreamPayloadWriter));
+    Assert.assertFalse(index.put(KEY1, VALUE1, mPayloadWriter));
   }
 
   @Test
@@ -77,14 +77,14 @@ public class LinearProbingIndexTest {
     // Insert this batch of key-value pairs
 
     for (int i = 0; i < testKeys; i ++) {
-      Assert.assertTrue(index.put(keys[i], values[i], mOutStreamPayloadWriter));
+      Assert.assertTrue(index.put(keys[i], values[i], mPayloadWriter));
       Assert.assertEquals(i + 1, index.keyCount());
     }
-    mOutStreamPayloadWriter.close();
+    mPayloadWriter.close();
 
     // Read all keys back, expect same value as inserted
-    RandomAccessPayloadReader payloadReader =
-        new RandomAccessPayloadReader(ByteBuffer.wrap(mOutStream.toByteArray()));
+    BasePayloadReader payloadReader =
+        new BasePayloadReader(ByteBuffer.wrap(mOutStream.toByteArray()));
     for (int i = 0; i < testKeys; i ++) {
       ByteBuffer value = index.get(ByteBuffer.wrap(keys[i]), payloadReader);
       Assert.assertEquals(ByteBuffer.wrap(values[i]), value);
@@ -94,8 +94,8 @@ public class LinearProbingIndexTest {
   @Test
   public void getNonExistentKeyTest() throws Exception {
     LinearProbingIndex index = LinearProbingIndex.createEmptyIndex();
-    RandomAccessPayloadReader payloadReaderNotUsed =
-        new RandomAccessPayloadReader(ByteBuffer.allocate(1));
+    BasePayloadReader payloadReaderNotUsed =
+        new BasePayloadReader(ByteBuffer.allocate(1));
     ByteBuffer nonExistentKey = ByteBuffer.allocate(10);
     nonExistentKey.put("NoSuchKey".getBytes());
     Assert.assertNull(index.get(nonExistentKey, payloadReaderNotUsed));

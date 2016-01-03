@@ -57,8 +57,8 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
     return LinearProbingIndex.loadFromByteArray(indexBytes);
   }
 
-  private RandomAccessPayloadReader createPayloadReader() {
-    return new RandomAccessPayloadReader(mBuf);
+  private PayloadReader createPayloadReader() {
+    return new BasePayloadReader(mBuf);
   }
 
   /**

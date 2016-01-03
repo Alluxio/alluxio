@@ -23,7 +23,7 @@ import org.junit.Test;
 import tachyon.client.ByteArrayOutStream;
 
 /**
- * Unit test of {@link OutStreamPayloadWriter}.
+ * Unit test of {@link BasePayloadWriter}.
  */
 public class PayloadReaderWriterTest {
 
@@ -33,8 +33,8 @@ public class PayloadReaderWriterTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
   private ByteArrayOutStream mTestOutStream = new ByteArrayOutStream();
-  private OutStreamPayloadWriter mTestWriter = new OutStreamPayloadWriter(mTestOutStream);
-  private RandomAccessPayloadReader mTestReader;
+  private BasePayloadWriter mTestWriter = new BasePayloadWriter(mTestOutStream);
+  private BasePayloadReader mTestReader;
 
   @Test
   public void addZeroLengthKeyOrValueTest() throws Exception {
@@ -91,7 +91,7 @@ public class PayloadReaderWriterTest {
     mTestWriter.close();
 
     ByteBuffer buf = ByteBuffer.wrap(mTestOutStream.toByteArray());
-    mTestReader = new RandomAccessPayloadReader(buf);
+    mTestReader = new BasePayloadReader(buf);
     Assert.assertEquals(ByteBuffer.wrap(KEY1), mTestReader.getKey(0));
     Assert.assertEquals(ByteBuffer.wrap(VALUE1), mTestReader.getValue(0));
   }
@@ -103,7 +103,7 @@ public class PayloadReaderWriterTest {
     mTestWriter.close();
 
     ByteBuffer buf = ByteBuffer.wrap(mTestOutStream.toByteArray());
-    mTestReader = new RandomAccessPayloadReader(buf);
+    mTestReader = new BasePayloadReader(buf);
     Assert.assertEquals(ByteBuffer.wrap(KEY1), mTestReader.getKey(offset));
     Assert.assertEquals(ByteBuffer.wrap(VALUE1), mTestReader.getValue(offset));
   }

@@ -56,7 +56,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
-    mPayloadWriter = new OutStreamPayloadWriter(mFileOutStream);
+    mPayloadWriter = new BasePayloadWriter(mFileOutStream);
     // Use linear probing impl of index for now
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
