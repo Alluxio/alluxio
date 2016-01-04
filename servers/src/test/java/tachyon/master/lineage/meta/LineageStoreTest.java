@@ -34,6 +34,9 @@ import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.journal.JournalOutputStream;
 
+/**
+ * Unit tests for {@link LineageStore}.
+ */
 public final class LineageStoreTest {
   private LineageStore mLineageStore;
   private Job mJob;
@@ -60,7 +63,7 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void deleteLineageTest() throws LineageDoesNotExistException {
+  public void deleteLineageTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     // delete the root
@@ -71,7 +74,7 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void deleteNonexistingLineageTest() throws LineageDoesNotExistException {
+  public void deleteNonexistingLineageTest() throws Exception {
     long id = 1;
     mThrown.expect(LineageDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LINEAGE_DOES_NOT_EXIST.getMessage(id));
@@ -80,7 +83,7 @@ public final class LineageStoreTest {
   }
 
   @Test
-  public void journalEntrySerializationTest() throws IOException {
+  public void journalEntrySerializationTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
     long l2 =
         mLineageStore.createLineage(Lists.<Long>newArrayList(1L), Lists.newArrayList(2L), mJob);
