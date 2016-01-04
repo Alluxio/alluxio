@@ -46,4 +46,9 @@ public final class UnpinCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "unpin <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Unpins the given file or folder (recursively unpinning all children if a folder).";
+  }
 }
