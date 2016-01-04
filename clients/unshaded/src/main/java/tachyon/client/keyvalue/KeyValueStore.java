@@ -26,6 +26,26 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public interface KeyValueStore {
+
+  /**
+   * Factory for the {@link KeyValueStore}.
+   */
+  final class KeyValueStoreFactory {
+    private static KeyValueStore sKeyValueStore = null;
+
+    private KeyValueStoreFactory() {} // to prevent initialization
+
+    /**
+     * @return a {@link KeyValueStore} instance
+     */
+    public static synchronized KeyValueStore create() {
+      if (sKeyValueStore == null) {
+        sKeyValueStore = new BaseKeyValueStore();
+      }
+      return sKeyValueStore;
+    }
+  }
+
   /**
    * Gets a reader to access a key-value store.
    *
