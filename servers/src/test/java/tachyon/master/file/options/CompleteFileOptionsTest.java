@@ -22,6 +22,9 @@ import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link CompleteFileOptions}.
+ */
 public class CompleteFileOptionsTest {
   @Test
   public void builderTest() {
