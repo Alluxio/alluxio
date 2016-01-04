@@ -24,19 +24,14 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.exception.TachyonException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.ByteIOUtils;
-import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.LinearProbingIndex;
-import tachyon.worker.keyvalue.PayloadReader;
-import tachyon.worker.keyvalue.RandomAccessPayloadReader;
 
 /**
- * Reader that implements {@link KeyValueFileReader} to access a key-value file using random access
- * API.
+ * Reader that implements {@link KeyValuePartitionReader} to access a key-value file using random
+ * access API.
  */
-public final class RandomAccessKeyValueFileReader implements KeyValueFileReader {
+public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitionReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Index mIndex;
@@ -46,9 +41,14 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
   /** whether this writer is closed */
   private boolean mClosed;
 
-  public RandomAccessKeyValueFileReader(ByteBuffer fileBytes) {
+  /**
+   * Constructs {@link ByteBufferKeyValuePartitionReader}
+   *
+   * @param fileBytes the byte buffer as underline storage to read from
+   */
+  public ByteBufferKeyValuePartitionReader(ByteBuffer fileBytes) {
     mBuf = Preconditions.checkNotNull(fileBytes);
-    mBufferLength = mBuf.limit();
+    mBufferLength = mBuf.remaining();
     mIndex = createIndex();
     mPayloadReader = createPayloadReader();
     mClosed = false;
@@ -61,8 +61,8 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
     return LinearProbingIndex.loadFromByteArray(indexBytes);
   }
 
-  private RandomAccessPayloadReader createPayloadReader() {
-    return new RandomAccessPayloadReader(mBuf);
+  private PayloadReader createPayloadReader() {
+    return new BasePayloadReader(mBuf);
   }
 
   /**
@@ -72,7 +72,7 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
    * which may avoid copying data.
    */
   @Override
-  public byte[] get(byte[] key) throws IOException, TachyonException {
+  public byte[] get(byte[] key) throws IOException {
     ByteBuffer valueBuffer = get(ByteBuffer.wrap(key));
     if (valueBuffer == null) {
       return null;
@@ -89,7 +89,9 @@ public final class RandomAccessKeyValueFileReader implements KeyValueFileReader 
 
   @Override
   public void close() {
-    Preconditions.checkState(!mClosed);
+    if (mClosed) {
+      return;
+    }
     mClosed = true;
   }
 }

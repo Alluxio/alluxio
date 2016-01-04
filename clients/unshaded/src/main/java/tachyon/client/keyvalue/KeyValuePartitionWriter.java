@@ -21,30 +21,32 @@ import java.io.IOException;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.client.Cancelable;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface of the writer to create a Tachyon key-value file.
+ * Interface of the writer to create a Tachyon key-value partition.
  */
-public interface KeyValueFileWriter extends Closeable {
+public interface KeyValuePartitionWriter extends Closeable, Cancelable {
 
   class Factory {
     /**
-     * Factory method to create a {@link KeyValueFileWriter} instance that writes to a new the
-     * key-value data in a new file in Tachyon.
+     * Factory method to create a {@link KeyValuePartitionWriter} instance that writes to a new the
+     * key-value data in a new partition file in Tachyon.
      *
-     * @param uri URI of the key-value file to write to
-     * @return an instance of a {@link KeyValueFileWriter}
-     * @throws TachyonException if error occurs
-     * @throws IOException if error occurs
+     * @param uri URI of the key-value partition file to write to
+     * @return an instance of a {@link KeyValuePartitionWriter}
+     * @throws IOException if a non-Tachyon exception occurs
+     * @throws TachyonException if an unexpected Tachyon exception is thrown
      */
-    public static KeyValueFileWriter create(TachyonURI uri) throws TachyonException, IOException {
+    public static KeyValuePartitionWriter create(TachyonURI uri)
+        throws TachyonException, IOException {
       Preconditions.checkNotNull(uri);
       TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
       FileOutStream fileOutStream = tfs.getOutStream(uri);
-      return new OutStreamKeyValueFileWriter(fileOutStream);
+      return new BaseKeyValuePartitionWriter(fileOutStream);
     }
   }
 
@@ -54,14 +56,13 @@ public interface KeyValueFileWriter extends Closeable {
    *
    * @param key key to put, cannot be null
    * @param value value to put, cannot be null
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   void put(byte[] key, byte[] value) throws IOException;
 
   /**
-   * Closes the writer.
-   *
-   * @throws IOException
+   * @return whether this writer can take more key-value pairs
    */
-  void close() throws IOException;
+  boolean isFull();
+
 }

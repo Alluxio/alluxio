@@ -40,6 +40,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.master.keyvalue.KeyValueMaster;
 import tachyon.master.lineage.LineageMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
@@ -93,6 +94,8 @@ public class TachyonMaster {
   protected RawTableMaster mRawTableMaster;
   /** The master managing all lineage related metadata */
   protected LineageMaster mLineageMaster;
+  /** The master managing all key-value related metadata */
+  protected KeyValueMaster mKeyValueMaster;
 
   // The read-write journals for the masters
   /** The journal for the block master */
@@ -103,6 +106,8 @@ public class TachyonMaster {
   protected final ReadWriteJournal mRawTableMasterJournal;
   /** The journal for the lineage master */
   protected final ReadWriteJournal mLineageMasterJournal;
+  /** The journal for the key-value master */
+  protected final ReadWriteJournal mKeyValueMasterJournal;
 
   /** The web ui server */
   private UIWebServer mWebServer = null;
@@ -178,6 +183,8 @@ public class TachyonMaster {
           new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
+      mKeyValueMasterJournal =
+          new ReadWriteJournal(KeyValueMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
@@ -185,6 +192,7 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
+      mKeyValueMaster = new KeyValueMaster(mFileSystemMaster, mKeyValueMasterJournal);
 
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
@@ -300,6 +308,7 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
       }
+      mKeyValueMaster.start(isLeader);
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -312,6 +321,7 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.stop();
       }
+      mKeyValueMaster.stop();
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -357,6 +367,7 @@ public class TachyonMaster {
       registerServices(processor, mLineageMaster.getServices());
     }
     registerServices(processor, mRawTableMaster.getServices());
+    registerServices(processor, mKeyValueMaster.getServices());
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;

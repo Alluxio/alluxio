@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.keyvalue;
+package tachyon.client.keyvalue;
 
 import java.io.Closeable;
 import java.io.Flushable;
@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.client.file.AbstractCountingOutStream;
+import tachyon.client.AbstractOutStream;
 import tachyon.util.io.ByteIOUtils;
 
 /**
@@ -31,10 +31,15 @@ import tachyon.util.io.ByteIOUtils;
  * keyLength (4 bytes) (2) valueLength (4 bytes) (3) keyData (keyLength bytes) (4) valueData
  * (valueLength bytes)
  */
-public final class OutStreamPayloadWriter implements Closeable, Flushable, PayloadWriter {
-  private AbstractCountingOutStream mOutStream;
+public final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
+  private AbstractOutStream mOutStream;
 
-  public OutStreamPayloadWriter(AbstractCountingOutStream out) {
+  /**
+   * Constructs a {@link BasePayloadWriter} instance.
+   *
+   * @param out the stream to output payload
+   */
+  BasePayloadWriter(AbstractOutStream out) {
     mOutStream = Preconditions.checkNotNull(out);
   }
 

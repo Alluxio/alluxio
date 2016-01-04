@@ -30,17 +30,17 @@ import tachyon.exception.TachyonException;
 import tachyon.util.io.PathUtils;
 
 /**
- * Integration tests for {@link KeyValueFileReader} and {@link KeyValueFileWriter}.
+ * Integration tests for {@link KeyValuePartitionReader} and {@link KeyValuePartitionWriter}.
  */
-public final class KeyValueFileIntegrationTest {
+public final class KeyValuePartitionIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
   private static TachyonFileSystem sTfs;
-  private KeyValueFileWriter mKeyValueFileWriter;
-  private KeyValueFileReader mKeyValueFileReader;
+  private KeyValuePartitionWriter mKeyValuePartitionWriter;
+  private KeyValuePartitionReader mKeyValuePartitionReader;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
@@ -55,15 +55,15 @@ public final class KeyValueFileIntegrationTest {
   public void readerWriterTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonURI uri = new TachyonURI(uniqPath);
-    mKeyValueFileWriter = KeyValueFileWriter.Factory.create(uri);
-    mKeyValueFileWriter.put(KEY1, VALUE1);
-    mKeyValueFileWriter.put(KEY2, VALUE2);
-    mKeyValueFileWriter.close();
+    mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(uri);
+    mKeyValuePartitionWriter.put(KEY1, VALUE1);
+    mKeyValuePartitionWriter.put(KEY2, VALUE2);
+    mKeyValuePartitionWriter.close();
     // Expect the key-value file exists
     Assert.assertNotNull(sTfs.openIfExists(uri));
-    mKeyValueFileReader = KeyValueFileReader.Factory.create(uri);
-    Assert.assertArrayEquals(VALUE1, mKeyValueFileReader.get(KEY1));
-    Assert.assertArrayEquals(VALUE2, mKeyValueFileReader.get(KEY2));
-    Assert.assertNull(mKeyValueFileReader.get("NoSuchKey".getBytes()));
+    mKeyValuePartitionReader = KeyValuePartitionReader.Factory.create(uri);
+    Assert.assertArrayEquals(VALUE1, mKeyValuePartitionReader.get(KEY1));
+    Assert.assertArrayEquals(VALUE2, mKeyValuePartitionReader.get(KEY2));
+    Assert.assertNull(mKeyValuePartitionReader.get("NoSuchKey".getBytes()));
   }
 }

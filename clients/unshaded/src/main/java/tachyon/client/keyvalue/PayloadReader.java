@@ -13,24 +13,28 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.client.keyvalue;
 
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
- * An abstraction of the output stream API in Tachyon to write data to a file or a block. In
- * addition to extending abstract class {@link OutputStream} as the basics, it also keeps
- * counting the number of bytes written to the output stream.
+ * Interface to access key and value from payload storage.
  */
-public abstract class AbstractCountingOutStream extends OutputStream {
-  // TODO(binfan): make mBytesWritten long.
-  /** The number of bytes written */
-  protected int mBytesWritten = 0;
+public interface PayloadReader {
 
   /**
-   * @return the number of bytes written to this stream
+   * Gets the key given the position of payload storage.
+   *
+   * @param pos position in the payload storage in bytes
+   * @return key in ByteBuffer
    */
-  public int getBytesWritten() {
-    return mBytesWritten;
-  }
+  ByteBuffer getKey(int pos);
+
+  /**
+   * Gets the value given the position of payload storage.
+   *
+   * @param pos position in the payload storage in bytes
+   * @return value in ByteBuffer
+   */
+  ByteBuffer getValue(int pos);
 }

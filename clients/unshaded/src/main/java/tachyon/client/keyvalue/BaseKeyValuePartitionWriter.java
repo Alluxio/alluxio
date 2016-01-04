@@ -23,27 +23,21 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.file.AbstractCountingOutStream;
+import tachyon.client.AbstractOutStream;
 import tachyon.util.io.ByteIOUtils;
-import tachyon.worker.keyvalue.Index;
-import tachyon.worker.keyvalue.LinearProbingIndex;
-import tachyon.worker.keyvalue.OutStreamPayloadWriter;
-import tachyon.worker.keyvalue.PayloadWriter;
 
 /**
- * Writer that implements {@link KeyValueFileWriter} using Tachyon file stream interface to
- * generate a key-value file.
- *
- * TODO(binfan): describe the key-value file format
- *
+ * Writer that implements {@link KeyValuePartitionWriter} using Tachyon file stream interface to
+ * generate a single-block key-value file.
  * <p>
  * This class is not thread-safe.
  */
-public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
+// TODO(binfan): describe the key-value partition file format in javadoc
+public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handle to write to the underlying file */
-  private final AbstractCountingOutStream mFileOutStream;
+  private final AbstractOutStream mFileOutStream;
   /** number of key-value pairs added */
   private long mKeyCount = 0;
   /** key-value index */
@@ -52,18 +46,44 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   private PayloadWriter mPayloadWriter;
   /** whether this writer is closed */
   private boolean mClosed;
+  /** whether this writer is canceled */
+  private boolean mCanceled;
 
   /**
+   * Constructs a {@link BaseKeyValuePartitionWriter} given an output stream.
+   * NOTE: this is not a public API
+
    * @param fileOutStream output stream to store the key-value file
    */
-  public OutStreamKeyValueFileWriter(AbstractCountingOutStream fileOutStream) {
+  BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 
-    mPayloadWriter = new OutStreamPayloadWriter(mFileOutStream);
+    mPayloadWriter = new BasePayloadWriter(mFileOutStream);
     // Use linear probing impl of index for now
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
+    mCanceled = false;
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    if (mCanceled) {
+      mFileOutStream.cancel();
+    } else {
+      build();
+      mFileOutStream.close();
+    }
+    mClosed = true;
+  }
+
+  @Override
+  public void cancel() throws IOException {
+    mCanceled = true;
+    close();
   }
 
   @Override
@@ -76,11 +96,9 @@ public final class OutStreamKeyValueFileWriter implements KeyValueFileWriter {
   }
 
   @Override
-  public void close() throws IOException {
-    Preconditions.checkState(!mClosed);
-    build();
-    mFileOutStream.close();
-    mClosed = true;
+  public boolean isFull() {
+    // TODO(binfan): make this configurable.
+    return byteCount() >= Constants.GB;
   }
 
   /**

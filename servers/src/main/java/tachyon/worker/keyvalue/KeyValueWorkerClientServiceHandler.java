@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.client.keyvalue.RandomAccessKeyValueFileReader;
+import tachyon.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
@@ -98,7 +98,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
     try {
       blockReader = mBlockDataManager.readBlockRemote(sessionId, blockId, lockId);
       ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
-      RandomAccessKeyValueFileReader reader = new RandomAccessKeyValueFileReader(fileBuffer);
+      ByteBufferKeyValuePartitionReader reader = new ByteBufferKeyValuePartitionReader(fileBuffer);
       // TODO(binfan): clean fileBuffer which is a direct byte buffer
       return reader.get(keyBuffer);
     } catch (InvalidWorkerStateException e) {
