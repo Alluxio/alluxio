@@ -49,6 +49,7 @@ import tachyon.thrift.TachyonTException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
+// TODO(calvin): Only use uris for rpcs.
 public final class FileSystemMasterClient extends MasterClientBase {
   private FileSystemMasterClientService.Client mClient = null;
 

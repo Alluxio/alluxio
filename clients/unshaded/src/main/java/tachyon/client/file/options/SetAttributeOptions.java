@@ -22,7 +22,8 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.SetStateTOptions;
 
 /**
- * Method options for setting any number of a path's attributes.
+ * Method options for setting any number of a path's attributes. If a value is set as null, it
+ * will be interpreted as an unset value and the current value will be unchanged.
  */
 @PublicApi
 public final class SetAttributeOptions {
@@ -33,6 +34,10 @@ public final class SetAttributeOptions {
     return new SetAttributeOptions();
   }
 
+  /**
+   * @param options the thrift options to convert from
+   * @return a {@link SetAttributeOptions} logically equivalent to the given thrift options
+   */
   public static SetAttributeOptions fromThriftOptions(SetStateTOptions options) {
     return new SetAttributeOptions(options);
   }

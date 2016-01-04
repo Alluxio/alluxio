@@ -25,6 +25,9 @@ public final class ExistsOptions {
   /** Whether or not to check the ufs if the path does not exist in Tachyon */
   private boolean mCheckUfs;
 
+  /**
+   * @return the default {@link ExistsOptions} based on the client's configuration
+   */
   public static ExistsOptions defaults() {
     return new ExistsOptions();
   }
@@ -34,6 +37,10 @@ public final class ExistsOptions {
     mCheckUfs = false;
   }
 
+  /**
+   * @return whether we should check the under file system for the file if it is not found in
+   *         Tachyon space
+   */
   public boolean isCheckUfs() {
     return mCheckUfs;
   }

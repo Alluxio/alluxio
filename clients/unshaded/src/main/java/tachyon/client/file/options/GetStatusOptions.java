@@ -25,6 +25,9 @@ public final class GetStatusOptions {
   /** Whether or not to check the ufs if the path does not exist in Tachyon */
   private boolean mCheckUfs;
 
+  /**
+   * @return a default {@link GetStatusOptions} based on the client's configuration
+   */
   public static GetStatusOptions defaults() {
     return new GetStatusOptions();
   }
@@ -34,6 +37,10 @@ public final class GetStatusOptions {
     mCheckUfs = false;
   }
 
+  /**
+   * @return whether we should sync the under file system for the file if it is not found in
+   *         Tachyon space
+   */
   public boolean isCheckUfs() {
     return mCheckUfs;
   }

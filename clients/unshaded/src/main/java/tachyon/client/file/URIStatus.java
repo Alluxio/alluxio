@@ -17,6 +17,8 @@ package tachyon.client.file;
 
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.annotation.PublicApi;
 import tachyon.thrift.FileInfo;
 
@@ -35,7 +37,7 @@ public class URIStatus {
    * @param info an object containing the information about a particular uri
    */
   public URIStatus(FileInfo info) {
-    mInfo = info;
+    mInfo = Preconditions.checkNotNull(info, "Cannot create a URIStatus from a null FileInfo");
   }
 
   /**
@@ -129,6 +131,14 @@ public class URIStatus {
   }
 
   /**
+   * @return the string representation of the persistence status, mutable
+   */
+  // TODO(calvin): Consider returning the enum if it is moved to common
+  public String getPersistenceState() {
+    return mInfo.getPersistenceState();
+  }
+
+  /**
    * @return the time-to-live in milliseconds since the creation time of the entity referenced by
    *         this uri, mutable
    */
@@ -148,5 +158,35 @@ public class URIStatus {
    */
   public String getUsername() {
     return mInfo.getUserName();
+  }
+
+  /**
+   * @return whether the entity referenced by this uri can be stored in Tachyon space, mutable
+   */
+  public boolean isCacheable() {
+    return mInfo.isIsCacheable();
+  }
+
+  /**
+   * @return whether the entity referenced by this uri has been marked as completed, immutable
+   */
+  public boolean isCompleted() {
+    return mInfo.isIsCompleted();
+  }
+
+  /**
+   * @return whether the entity referenced by this uri is a directory, immutable
+   */
+  // TODO(calvin): Consider consolidating the terms directory and folder
+  public boolean isFolder() {
+    return mInfo.isIsFolder();
+  }
+
+  /**
+   * @return whether the entity referenced by this uri is persisted to an underlying storage,
+   *         mutable
+   */
+  public boolean isPersisted() {
+    return mInfo.isIsPersisted();
   }
 }
