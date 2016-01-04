@@ -32,6 +32,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
@@ -74,7 +75,6 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
 
     mStoreUri = Preconditions.checkNotNull(uri);
-    mTfs.mkdir(mStoreUri);
     mMasterClient.createStore(mStoreUri);
     mPartitionIndex = 0;
     mClosed = false;

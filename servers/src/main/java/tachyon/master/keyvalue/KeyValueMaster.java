@@ -24,6 +24,7 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -31,8 +32,11 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.proto.journal.Journal.JournalEntry;
@@ -44,6 +48,8 @@ import tachyon.util.io.PathUtils;
 /**
  * The key-value master stores key-value store information in Tachyon, including the partitions of
  * each key-value store.
+ *
+ * This class is thread-safe
  */
 public final class KeyValueMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -56,8 +62,6 @@ public final class KeyValueMaster extends MasterBase {
    * list of partitions in this store.
    */
   private final Map<Long, List<PartitionInfo>> mIncompleteStoreToPartitions;
-  /** A lock to synchronize operations to the partition maps */
-  private final Object mLock = new Object();
 
   /**
    * @param baseDirectory the base journal directory
@@ -114,21 +118,18 @@ public final class KeyValueMaster extends MasterBase {
    * @param info information of this completed parition
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    */
-  public void completePartition(TachyonURI path, PartitionInfo info)
+  public synchronized void completePartition(TachyonURI path, PartitionInfo info)
       throws FileDoesNotExistException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
           String.format("Failed to completePartition: path %s does not exist", path));
     }
-
-    synchronized (mLock) {
-      if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
-        // TODO(binfan): throw a better exception
-        throw new FileDoesNotExistException("fill me");
-      }
-      mIncompleteStoreToPartitions.get(fileId).add(info);
+    if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
+      // TODO(binfan): throw a better exception
+      throw new FileDoesNotExistException("fill me");
     }
+    mIncompleteStoreToPartitions.get(fileId).add(info);
   }
 
   /**
@@ -137,7 +138,7 @@ public final class KeyValueMaster extends MasterBase {
    * @param path URI of the key-value store
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    */
-  public void completeStore(TachyonURI path) throws FileDoesNotExistException {
+  public synchronized void completeStore(TachyonURI path) throws FileDoesNotExistException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -145,15 +146,13 @@ public final class KeyValueMaster extends MasterBase {
     }
 
     List<PartitionInfo> partitions;
-    synchronized (mLock) {
-      if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
-        // TODO(binfan): throw a better exception
-        throw new FileDoesNotExistException(
-            String.format("Failed to completeStore: KeyValueStore %s does not exist", path));
-      }
-      partitions = mIncompleteStoreToPartitions.remove(fileId);
-      mCompleteStoreToPartitions.put(fileId, partitions);
+    if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
+      // TODO(binfan): throw a better exception
+      throw new FileDoesNotExistException(
+          String.format("Failed to completeStore: KeyValueStore %s does not exist", path));
     }
+    partitions = mIncompleteStoreToPartitions.remove(fileId);
+    mCompleteStoreToPartitions.put(fileId, partitions);
   }
 
   /**
@@ -162,21 +161,26 @@ public final class KeyValueMaster extends MasterBase {
    * @param path URI of the key-value store
    * @throws FileAlreadyExistsException if a key-value store URI exists
    */
-  public void createStore(TachyonURI path) throws FileAlreadyExistsException {
+  public synchronized void createStore(TachyonURI path)
+      throws FileAlreadyExistsException, InvalidPathException {
+    try {
+      // Create this dir
+      mFileSystemMaster.mkdir(path,
+          new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build());
+    } catch (IOException e) {
+      // TODO(binfan): Investigate why mFileSystemMaster.mkdir throws IOException
+      throw new InvalidPathException(
+          String.format("Failed to createStore: can not create path %s", path), e);
+    }
     final long fileId = mFileSystemMaster.getFileId(path);
-    if (fileId != IdUtils.INVALID_FILE_ID) {
-      throw new FileAlreadyExistsException(
-          String.format("Failed to createStore: path %s already exists", path));
-    }
+    Preconditions.checkState(fileId != IdUtils.INVALID_FILE_ID);
 
-    synchronized (mLock) {
-      if (mIncompleteStoreToPartitions.containsKey(fileId)) {
-        // TODO(binfan): throw a better exception
-        throw new FileAlreadyExistsException(
-            String.format("Failed to createStore: KeyValueStore %s is already created", path));
-      }
-      mIncompleteStoreToPartitions.put(fileId, Lists.<PartitionInfo>newArrayList());
+    if (mIncompleteStoreToPartitions.containsKey(fileId)) {
+      // TODO(binfan): throw a better exception
+      throw new FileAlreadyExistsException(
+          String.format("Failed to createStore: KeyValueStore %s is already created", path));
     }
+    mIncompleteStoreToPartitions.put(fileId, Lists.<PartitionInfo>newArrayList());
   }
 
   /**
@@ -186,17 +190,15 @@ public final class KeyValueMaster extends MasterBase {
    * @return a list of partition information
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    */
-  public List<PartitionInfo> getPartitionInfo(TachyonURI path) throws FileDoesNotExistException {
+  public synchronized List<PartitionInfo> getPartitionInfo(TachyonURI path) throws
+      FileDoesNotExistException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
           String.format("Failed to getPartitionInfo: path %s does not exist", path));
     }
 
-    List<PartitionInfo> partitions;
-    synchronized (mLock) {
-      partitions = mCompleteStoreToPartitions.get(fileId);
-    }
+    List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);
     if (partitions == null) {
       return Lists.newArrayList();
     }

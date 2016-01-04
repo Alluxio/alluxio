@@ -1,12 +1,15 @@
 package tachyon.client.keyvalue;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.keyvalue.KeyValueStore.KeyValueStoreFactory;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -20,13 +23,15 @@ public final class KeyValueStoreIntegrationTest {
   private static final byte[] VALUE2 = "value2_bar".getBytes();
   private static TachyonFileSystem sTfs;
 
-  private KeyValueStore mKVStore;
+  private KeyValueStore mStore;
   private KeyValueStoreWriter mWriter;
   private KeyValueStoreReader mReader;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
+      new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
+          /* ensure key-value service is turned on */
+          Constants.KEYVALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -34,9 +39,16 @@ public final class KeyValueStoreIntegrationTest {
   }
 
   @Test
-  public void aTest() throws Exception {
+  public void createAndOpenEmptyStoreTest() throws Exception {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
-    mKVStore = KeyValueStore.get();
-    mWriter = mKVStore.create(uri);
+    mStore = KeyValueStoreFactory.create();
+    mWriter = mStore.create(uri);
+    Assert.assertNotNull(mWriter);
+    mWriter.close();
+
+    mReader = mStore.open(uri);
+    Assert.assertNotNull(mReader);
+    mReader.close();
   }
+
 }
