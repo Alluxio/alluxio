@@ -27,19 +27,27 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.exception.TachyonException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
+import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
+import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.thrift.KeyValueMasterClientService;
 import tachyon.thrift.PartitionInfo;
 import tachyon.util.IdUtils;
@@ -98,12 +106,41 @@ public final class KeyValueMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO(binfan): process journal
+    Message innerEntry = JournalProtoUtils.unwrap(entry);
+    try {
+      if (innerEntry instanceof CreateStoreEntry) {
+        createStoreFromEntry((CreateStoreEntry) innerEntry);
+      } else if (innerEntry instanceof CompletePartitionEntry) {
+        completePartitionFromEntry((CompletePartitionEntry) innerEntry);
+      } else if (innerEntry instanceof CompleteStoreEntry) {
+        completeStoreFromEntry((CompleteStoreEntry) innerEntry);
+      } else {
+        throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
+      }
+    } catch (TachyonException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    // TODO(binfan): output journal
+    for (Map.Entry<Long, List<PartitionInfo>> entry : mCompleteStoreToPartitions.entrySet()) {
+      long fileId = entry.getKey();
+      List<PartitionInfo> partitions = entry.getValue();
+      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      for (PartitionInfo info : partitions) {
+        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+      }
+      outputStream.writeEntry(newCompleteStoreEntry(fileId));
+    }
+    for (Map.Entry<Long, List<PartitionInfo>> entry : mIncompleteStoreToPartitions.entrySet()) {
+      long fileId = entry.getKey();
+      List<PartitionInfo> partitions = entry.getValue();
+      outputStream.writeEntry(newCreateStoreEntry(fileId));
+      for (PartitionInfo info : partitions) {
+        outputStream.writeEntry(newCompletePartitionEntry(fileId, info));
+      }
+    }
   }
 
   @Override
@@ -125,9 +162,26 @@ public final class KeyValueMaster extends MasterBase {
       throw new FileDoesNotExistException(
           String.format("Failed to completePartition: path %s does not exist", path));
     }
+
+    completePartitionInternal(fileId, info);
+
+    writeJournalEntry(newCompletePartitionEntry(fileId, info));
+    flushJournal();
+  }
+
+  private void completePartitionFromEntry(CompletePartitionEntry entry)
+      throws FileDoesNotExistException {
+    PartitionInfo info = new PartitionInfo(entry.getKeyStartBytes().asReadOnlyByteBuffer(),
+        entry.getKeyLimitBytes().asReadOnlyByteBuffer(), entry.getBlockId());
+    completePartitionInternal(entry.getStoreId(), info);
+  }
+
+  private void completePartitionInternal(long fileId, PartitionInfo info)
+      throws FileDoesNotExistException {
     if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
       // TODO(binfan): throw a better exception
-      throw new FileDoesNotExistException("fill me");
+      throw new FileDoesNotExistException(String.format(
+          "Failed to completeStore: KeyValueStore (fileId=%d) was not created before", fileId));
     }
     mIncompleteStoreToPartitions.get(fileId).add(info);
   }
@@ -144,14 +198,22 @@ public final class KeyValueMaster extends MasterBase {
       throw new FileDoesNotExistException(
           String.format("Failed to completeStore: path %s does not exist", path));
     }
+    completeStoreInternal(fileId);
+    writeJournalEntry(newCompleteStoreEntry(fileId));
+    flushJournal();
+  }
 
-    List<PartitionInfo> partitions;
+  private void completeStoreFromEntry(CompleteStoreEntry entry) throws FileDoesNotExistException {
+    completeStoreInternal(entry.getStoreId());
+  }
+
+  private void completeStoreInternal(long fileId) throws FileDoesNotExistException {
     if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
       // TODO(binfan): throw a better exception
-      throw new FileDoesNotExistException(
-          String.format("Failed to completeStore: KeyValueStore %s does not exist", path));
+      throw new FileDoesNotExistException(String.format(
+          "Failed to completeStore: KeyValueStore (fileId=%d) was not created before", fileId));
     }
-    partitions = mIncompleteStoreToPartitions.remove(fileId);
+    List<PartitionInfo> partitions = mIncompleteStoreToPartitions.remove(fileId);
     mCompleteStoreToPartitions.put(fileId, partitions);
   }
 
@@ -175,10 +237,20 @@ public final class KeyValueMaster extends MasterBase {
     final long fileId = mFileSystemMaster.getFileId(path);
     Preconditions.checkState(fileId != IdUtils.INVALID_FILE_ID);
 
+    createStoreInternal(fileId);
+    writeJournalEntry(newCreateStoreEntry(fileId));
+    flushJournal();
+  }
+
+  private void createStoreFromEntry(CreateStoreEntry entry) throws FileAlreadyExistsException {
+    createStoreInternal(entry.getStoreId());
+  }
+
+  private void createStoreInternal(long fileId) throws FileAlreadyExistsException {
     if (mIncompleteStoreToPartitions.containsKey(fileId)) {
       // TODO(binfan): throw a better exception
-      throw new FileAlreadyExistsException(
-          String.format("Failed to createStore: KeyValueStore %s is already created", path));
+      throw new FileAlreadyExistsException(String
+          .format("Failed to createStore: KeyValueStore (fileId=%d) is already created", fileId));
     }
     mIncompleteStoreToPartitions.put(fileId, Lists.<PartitionInfo>newArrayList());
   }
@@ -190,8 +262,8 @@ public final class KeyValueMaster extends MasterBase {
    * @return a list of partition information
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    */
-  public synchronized List<PartitionInfo> getPartitionInfo(TachyonURI path) throws
-      FileDoesNotExistException {
+  public synchronized List<PartitionInfo> getPartitionInfo(TachyonURI path)
+      throws FileDoesNotExistException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -203,5 +275,23 @@ public final class KeyValueMaster extends MasterBase {
       return Lists.newArrayList();
     }
     return partitions;
+  }
+
+  private JournalEntry newCreateStoreEntry(long fileId) {
+    CreateStoreEntry createStore = CreateStoreEntry.newBuilder().setStoreId(fileId).build();
+    return JournalEntry.newBuilder().setCreateStore(createStore).build();
+  }
+
+  private JournalEntry newCompletePartitionEntry(long fileId, PartitionInfo info) {
+    CompletePartitionEntry completePartition =
+        CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.blockId)
+            .setKeyStartBytes(ByteString.copyFrom(info.keyStart))
+            .setKeyLimitBytes(ByteString.copyFrom(info.keyLimit)).build();
+    return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
+  }
+
+  private JournalEntry newCompleteStoreEntry(long fileId) {
+    CompleteStoreEntry completeStore = CompleteStoreEntry.newBuilder().setStoreId(fileId).build();
+    return JournalEntry.newBuilder().setCompleteStore(completeStore).build();
   }
 }
