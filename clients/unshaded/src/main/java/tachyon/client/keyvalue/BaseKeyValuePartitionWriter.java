@@ -29,11 +29,10 @@ import tachyon.util.io.ByteIOUtils;
 /**
  * Writer that implements {@link KeyValuePartitionWriter} using Tachyon file stream interface to
  * generate a single-block key-value file.
- *
- * TODO(binfan): describe the key-value partition file format
  * <p>
  * This class is not thread-safe.
  */
+// TODO(binfan): describe the key-value partition file format in javadoc
 public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -51,6 +50,9 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   private boolean mCanceled;
 
   /**
+   * Constructs a {@link BaseKeyValuePartitionWriter} given an output stream.
+   * NOTE: this is not a public API
+
    * @param fileOutStream output stream to store the key-value file
    */
   BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {

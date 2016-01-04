@@ -34,7 +34,12 @@ import tachyon.util.io.ByteIOUtils;
 public final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
   private AbstractOutStream mOutStream;
 
-  public BasePayloadWriter(AbstractOutStream out) {
+  /**
+   * Constructs a {@link PayloadWriter} instance.
+   *
+   * @param out the stream to output payload
+   */
+  BasePayloadWriter(AbstractOutStream out) {
     mOutStream = Preconditions.checkNotNull(out);
   }
 

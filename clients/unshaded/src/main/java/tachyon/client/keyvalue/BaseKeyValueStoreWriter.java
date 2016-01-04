@@ -68,8 +68,10 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    * store at the given {@link TachyonURI}.
    *
    * @param uri URI of the store
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
-  public BaseKeyValueStoreWriter(TachyonURI uri) throws IOException, TachyonException {
+  BaseKeyValueStoreWriter(TachyonURI uri) throws IOException, TachyonException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
     mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
 
