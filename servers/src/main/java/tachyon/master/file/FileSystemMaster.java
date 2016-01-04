@@ -647,11 +647,7 @@ public final class FileSystemMaster extends MasterBase {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
       TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
-      try {
-        checkPermission(FileSystemAction.WRITE, path, true);
-      } catch (InvalidPathException e) {
-        LOG.warn("Invalid path {} for checking permission: " + e.getMessage(), path);
-      }
+      checkPermission(FileSystemAction.WRITE, path, true);
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
       DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
@@ -1783,65 +1779,69 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Checks user's permission on a path.
+   * Checks user's permission on a path. If the path is invalid, it should bypass the
+   * {@link InvalidPathException} and the logic at operation will handle it.
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
    * @param checkParent indicates whether to check its parent
    * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
    */
-  private void checkPermission(FileSystemAction action, TachyonURI path,
-      boolean checkParent) throws AccessControlException, InvalidPathException {
+  private void checkPermission(FileSystemAction action, TachyonURI path, boolean checkParent)
+      throws AccessControlException {
     // bypasses permission checking if security is not enabled.
     if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       return;
     }
 
-    // collects inodes info on the path
-    List<Inode> inodes = mInodeTree.collectInodes(path);
-    List<FileInfo> fileInfos = new ArrayList<FileInfo>();
-    for (Inode inode : inodes) {
-      fileInfos.add(inode.generateClientFileInfo(mInodeTree.getPath(inode).toString()));
-    }
-
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-    if (pathComponents.length < fileInfos.size()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path.getPath()));
-    }
-
-    // collects user and groups
-    User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
-    if (authorizedUser == null) {
-      throw new AccessControlException(
-          ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
-    }
-    String user = authorizedUser.getName();
-    List<String> groups;
     try {
-      groups = mGroupMappingService.getGroups(user);
-    } catch (IOException e) {
-      throw new AccessControlException(
-          ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
-    }
-
-    // perform permission check
-    if (checkParent) {
-      if (// involved methods: create, mkdir, rename, deleteFile
-          action.equals(FileSystemAction.WRITE)
-          // create or mkdir under root "/", then assumes to have write permission.
-          && (fileInfos.size() == 1 && pathComponents.length > 1)
-          // rename or deleteFile under root "/", then must be the owner.
-          || (fileInfos.size() == 2 && pathComponents.length == 2)) {
-        // Handle a special case where the path is a level under root "/" and checking write
-        // permission on it. We simply assume user has write permission on the root "/",
-        // with a limitation that the user must be the owner of the path.
-        FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
-      } else {
-        FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
+      // collects inodes info on the path
+      List<Inode> inodes = mInodeTree.collectInodes(path);
+      List<FileInfo> fileInfos = new ArrayList<FileInfo>();
+      for (Inode inode : inodes) {
+        fileInfos.add(inode.generateClientFileInfo(mInodeTree.getPath(inode).toString()));
       }
-    } else {
-      FileSystemPermissionChecker.checkPermission(user, groups, action, path, fileInfos);
+
+      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+      if (pathComponents.length < fileInfos.size()) {
+        throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path.getPath()));
+      }
+
+      // collects user and groups
+      User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
+      if (authorizedUser == null) {
+        throw new AccessControlException(
+            ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+      }
+      String user = authorizedUser.getName();
+      List<String> groups;
+      try {
+        groups = mGroupMappingService.getGroups(user);
+      } catch (IOException e) {
+        throw new AccessControlException(
+            ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
+      }
+
+      // perform permission check
+      if (checkParent) {
+        if (// involved methods: create, mkdir, rename, deleteFile
+            action.equals(FileSystemAction.WRITE)
+            // create or mkdir under root "/", then assumes to have write permission.
+            && (fileInfos.size() == 1 && pathComponents.length > 1)
+            // rename or deleteFile under root "/", then must be the owner.
+            || (fileInfos.size() == 2 && pathComponents.length == 2)) {
+          // Handle a special case where the path is a level under root "/" and checking write
+          // permission on it. We simply assume user has write permission on the root "/",
+          // with a limitation that the user must be the owner of the path.
+          FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+        } else {
+          FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
+        }
+      } else {
+        FileSystemPermissionChecker.checkPermission(user, groups, action, path, fileInfos);
+      }
+    } catch (InvalidPathException e) {
+      LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
     }
   }
 
