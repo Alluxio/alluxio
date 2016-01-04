@@ -19,6 +19,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link TTLBucket}.
+ */
 public class TTLBucketTest {
   private TTLBucket mBucket;
 
