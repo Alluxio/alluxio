@@ -41,6 +41,11 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
   /** whether this writer is closed */
   private boolean mClosed;
 
+  /**
+   * Constructs {@link ByteBufferKeyValuePartitionReader}
+   *
+   * @param fileBytes the byte buffer as underline storage to read from
+   */
   public ByteBufferKeyValuePartitionReader(ByteBuffer fileBytes) {
     mBuf = Preconditions.checkNotNull(fileBytes);
     mBufferLength = mBuf.remaining();

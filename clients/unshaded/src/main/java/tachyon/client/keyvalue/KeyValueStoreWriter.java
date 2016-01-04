@@ -24,7 +24,7 @@ import tachyon.client.Cancelable;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface for readers to create a new key-value store in Tachyon.
+ * Interface for writers to create a new key-value store in Tachyon.
  */
 @PublicApi
 public interface KeyValueStoreWriter extends Closeable, Cancelable {

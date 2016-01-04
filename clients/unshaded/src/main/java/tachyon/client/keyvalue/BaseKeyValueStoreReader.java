@@ -52,11 +52,13 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
 
   /**
    * Constructs a {@link BaseKeyValueStoreReader} instance.
-   * TODO(binfan): use a thread pool to manage the client.
    *
    * @param uri URI of the key-value store
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
    */
-  protected BaseKeyValueStoreReader(TachyonURI uri) throws IOException, TachyonException {
+  BaseKeyValueStoreReader(TachyonURI uri) throws IOException, TachyonException {
+    // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
     mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
     mPartitions = mMasterClient.getPartitionInfo(uri);

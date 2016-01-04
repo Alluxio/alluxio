@@ -46,8 +46,10 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
   private long mBlockId;
   private boolean mClosed;
 
+  // TODO(binfan): take parition id as input
   /**
-   * Constructs a new instance of {@link BaseKeyValuePartitionReader}.
+   * Constructs {@link BaseKeyValuePartitionReader} given a block id.
+   * NOTE: this is not a public API
    *
    * @param blockId blockId of the key-value file to read from
    * @throws TachyonException if an unexpected tachyon exception is thrown
