@@ -192,8 +192,9 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
-      mKeyValueMaster = new KeyValueMaster(mFileSystemMaster, mKeyValueMasterJournal);
-
+      if (conf.getBoolean(Constants.KEYVALUE_ENABLED)) {
+        mKeyValueMaster = new KeyValueMaster(mFileSystemMaster, mKeyValueMasterJournal);
+      }
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
       mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
@@ -308,7 +309,9 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
       }
-      mKeyValueMaster.start(isLeader);
+      if (MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
+        mKeyValueMaster.start(isLeader);
+      }
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -321,7 +324,9 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.stop();
       }
-      mKeyValueMaster.stop();
+      if (MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
+        mKeyValueMaster.stop();
+      }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -367,7 +372,9 @@ public class TachyonMaster {
       registerServices(processor, mLineageMaster.getServices());
     }
     registerServices(processor, mRawTableMaster.getServices());
-    registerServices(processor, mKeyValueMaster.getServices());
+    if (MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
+      registerServices(processor, mKeyValueMaster.getServices());
+    }
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
