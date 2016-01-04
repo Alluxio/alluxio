@@ -31,8 +31,6 @@ import tachyon.thrift.FileInfo;
 public final class DuCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to display the size of a file or a directory.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

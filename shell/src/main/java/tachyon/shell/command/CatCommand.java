@@ -34,8 +34,6 @@ import tachyon.thrift.FileInfo;
 public final class CatCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to print the content of a file to the console.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
