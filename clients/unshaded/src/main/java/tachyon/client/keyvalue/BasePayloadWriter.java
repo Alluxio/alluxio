@@ -35,7 +35,7 @@ public final class BasePayloadWriter implements Closeable, Flushable, PayloadWri
   private AbstractOutStream mOutStream;
 
   /**
-   * Constructs a {@link PayloadWriter} instance.
+   * Constructs a {@link BasePayloadWriter} instance.
    *
    * @param out the stream to output payload
    */
