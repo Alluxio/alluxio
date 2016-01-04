@@ -41,6 +41,8 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -131,6 +133,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
+    }
     request.setAttribute("debug", Constants.DEBUG);
     request.setAttribute("viewLog", false);
 

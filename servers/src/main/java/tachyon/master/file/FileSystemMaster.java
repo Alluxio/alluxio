@@ -92,6 +92,7 @@ import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
+import tachyon.security.User;
 import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.authorization.PermissionStatus;
@@ -1810,7 +1811,12 @@ public final class FileSystemMaster extends MasterBase {
     }
 
     // collects user and groups
-    String user = PlainSaslServer.AuthorizedClientUser.get().getName();
+    User authorizedUser = PlainSaslServer.AuthorizedClientUser.get();
+    if (authorizedUser == null) {
+      throw new AccessControlException(
+          ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+    }
+    String user = authorizedUser.getName();
     List<String> groups;
     try {
       groups = mGroupMappingService.getGroups(user);
