@@ -22,7 +22,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
- * KeyValue client to access key-value data stored in Tachyon.
+ * Client to access key-value stores in Tachyon.
  */
 @PublicApi
 public interface KeyValueStore {
@@ -30,10 +30,10 @@ public interface KeyValueStore {
   /**
    * Factory for the {@link KeyValueStore}.
    */
-  final class KeyValueStoreFactory {
+  final class Factory {
     private static KeyValueStore sKeyValueStore = null;
 
-    private KeyValueStoreFactory() {} // to prevent initialization
+    private Factory() {} // to prevent initialization
 
     /**
      * @return a {@link KeyValueStore} instance

@@ -64,4 +64,5 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * @return whether this writer can take more key-value pairs
    */
   boolean isFull();
+
 }

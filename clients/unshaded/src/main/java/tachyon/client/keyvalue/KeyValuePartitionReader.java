@@ -53,7 +53,7 @@ public interface KeyValuePartitionReader extends Closeable {
     }
 
     /**
-     * Factory method to create a {@link KeyValuePartitionReader} given the block Id of a key-value
+     * Factory method to create a {@link KeyValuePartitionReader} given the block id of a key-value
      * partition.
      *
      * @param blockId blockId the key-value partition to use as input
@@ -73,6 +73,8 @@ public interface KeyValuePartitionReader extends Closeable {
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   byte[] get(byte[] key) throws IOException, TachyonException;
 
@@ -83,13 +85,9 @@ public interface KeyValuePartitionReader extends Closeable {
    *
    * @param key key to get, cannot be null
    * @return bytes of the value if found, null otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 
-  /**
-   * Closes this reader.
-   *
-   * @throws IOException if a non-Tachyon exception occurs
-   */
-  void close() throws IOException;
 }
