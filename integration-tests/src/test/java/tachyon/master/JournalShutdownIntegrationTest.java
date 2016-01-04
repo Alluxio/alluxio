@@ -30,10 +30,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.AccessControlException;
-import tachyon.exception.FileDoesNotExistException;
-import tachyon.exception.InvalidPathException;
-import tachyon.exception.TableDoesNotExistException;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.util.CommonUtils;
@@ -129,9 +125,7 @@ public class JournalShutdownIntegrationTest {
   /**
    * Reproduce the journal and check if the state is correct.
    */
-  private void reproduceAndCheckState(int successFiles, int successTables) throws IOException,
-      InvalidPathException, FileDoesNotExistException, TableDoesNotExistException,
-      AccessControlException {
+  private void reproduceAndCheckState(int successFiles, int successTables) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     int actualFiles =

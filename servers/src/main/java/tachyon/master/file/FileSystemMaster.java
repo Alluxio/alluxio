@@ -512,6 +512,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException
    * @throws FileAlreadyExistsException
    * @throws BlockInfoException
+   * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    */
   public long create(TachyonURI path, CreateOptions options)
@@ -648,7 +649,7 @@ public final class FileSystemMaster extends MasterBase {
       try {
         checkPermission(FileSystemAction.WRITE, path, true);
       } catch (InvalidPathException e) {
-        LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
+        LOG.warn("Invalid path {} for checking permission: " + e.getMessage(), path);
       }
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
@@ -1781,7 +1782,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Checks user's permission on a path
+   * Checks user's permission on a path.
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
@@ -1824,8 +1825,7 @@ public final class FileSystemMaster extends MasterBase {
           || (fileInfos.size() == 2 && pathComponents.length == 2)
           && action.equals(FileSystemAction.WRITE)) {
         // Handle a special case where the path is a level under root "/" and checking write
-        // permission on it.
-        // we simply assume user has write permission on the root "/",
+        // permission on it. We simply assume user has write permission on the root "/",
         // with a limitation that the user must be the owner of the path.
         FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
       } else {
