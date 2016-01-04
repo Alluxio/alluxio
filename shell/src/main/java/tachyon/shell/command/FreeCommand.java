@@ -31,8 +31,6 @@ import tachyon.exception.TachyonException;
 public final class FreeCommand extends WithWildCardPathCommand {
 
   /**
-   * Constructs a new instance to free the given file or folder from Tachyon.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

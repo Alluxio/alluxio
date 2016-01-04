@@ -47,8 +47,6 @@ import tachyon.util.io.PathUtils;
 public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to copy a local path to a remote path.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */

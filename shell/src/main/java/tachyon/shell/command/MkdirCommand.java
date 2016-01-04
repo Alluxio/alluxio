@@ -30,8 +30,6 @@ import tachyon.exception.TachyonException;
 public final class MkdirCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to create a new directory.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
