@@ -19,49 +19,34 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.google.common.base.Preconditions;
-
-import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
- * Interface of the reader class to access a Tachyon key-value file.
+ * Interface for readers to access a key-value store in Tachyon.
  */
-public interface KeyValueFileReader extends Closeable {
-
-  class Factory {
-    /**
-     * Factory method to create a {@link KeyValueFileReader}.
-     *
-     * @param uri Tachyon URI of the key-value file to use as input
-     * @return an instance of a {@link KeyValueFileReader}
-     * @throws TachyonException
-     * @throws IOException
-     */
-    public static KeyValueFileReader create(TachyonURI uri) throws TachyonException, IOException {
-      Preconditions.checkNotNull(uri);
-      return new BaseKeyValueFileReader(uri);
-    }
-  }
-
+@PublicApi
+public interface KeyValueStoreReader extends Closeable {
   /**
-   * Gets the value associated with the given key in the key-value file, returning null if the key
-   * is not found.
+   * Gets the value associated with {@code key}, returns null if not found. When getting large
+   * values (e.g., larger than 10KB), {@link #get(ByteBuffer)} might be more efficient by taking
+   * advantage from zero-copy.
    *
    * @param key key to get, cannot be null
-   * @return bytes of the value if found, null otherwise
+   * @return value associated with the given key, or null if not found
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
    */
   byte[] get(byte[] key) throws IOException, TachyonException;
 
   /**
-   * Gets the value associated with the given key in the key-value file, returning null if the key
-   * is not found. Both key and value are in ByteBuffer to make zero-copy possible for better
-   * performance.
+   * Gets the value associated with {@code key}, returns null if not found.
    *
    * @param key key to get, cannot be null
-   * @return bytes of the value if found, null otherwise
+   * @return value associated with the given key, or null if not found
+   * @throws IOException if non-Tachyon error occurs
+   * @throws TachyonException if Tachyon error occurs
    */
   ByteBuffer get(ByteBuffer key) throws IOException, TachyonException;
 
-  void close() throws IOException;
 }

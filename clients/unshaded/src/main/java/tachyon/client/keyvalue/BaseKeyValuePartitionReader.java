@@ -17,7 +17,6 @@ package tachyon.client.keyvalue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,48 +24,50 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 
 /**
- * A client to talk to remote key-value worker to access a key.
+ * Default implementation of {@link KeyValuePartitionReader} to talk to remote key-value worker to
+ * get the value given a key.
+ * <p>
+ * This class is not thread-safe.
  */
-public final class BaseKeyValueFileReader implements KeyValueFileReader {
+@PublicApi
+public final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private KeyValueWorkerClient mClient;
   private long mBlockId;
+  private boolean mClosed;
 
+  // TODO(binfan): take parition id as input
   /**
-   * Constructs a new instance of {@link BaseKeyValueFileReader}.
+   * Constructs {@link BaseKeyValuePartitionReader} given a block id.
+   * NOTE: this is not a public API
    *
-   * @param uri URI of the key-value file
+   * @param blockId blockId of the key-value file to read from
    * @throws TachyonException if an unexpected tachyon exception is thrown
    * @throws IOException if a non-Tachyon exception occurs
    */
-  public BaseKeyValueFileReader(TachyonURI uri) throws TachyonException, IOException {
-    Preconditions.checkArgument(uri != null);
-    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
-    TachyonFile tFile = tfs.open(uri);
-    List<Long> blockIds = tfs.getInfo(tFile).getBlockIds();
-    mBlockId = blockIds.get(0);
+  BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
+    mBlockId = blockId;
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
     NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
+    mClosed = false;
   }
 
   // This could be slow when value size is large, use in cautious.
   @Override
   public byte[] get(byte[] key) throws IOException, TachyonException {
     ByteBuffer keyBuffer = ByteBuffer.wrap(key);
-    ByteBuffer value = get(keyBuffer);
+    ByteBuffer value = getInternal(keyBuffer);
     if (value == null) {
       return null;
     }
@@ -75,16 +76,24 @@ public final class BaseKeyValueFileReader implements KeyValueFileReader {
 
   @Override
   public ByteBuffer get(ByteBuffer key) throws IOException, TachyonException {
-    LOG.debug("get key of length: {}", key.limit());
+    return getInternal(key);
+  }
+
+  @Override
+  public void close() {
+    if (mClosed) {
+      return;
+    }
+    mClient.close();
+    mClosed = true;
+  }
+
+  private ByteBuffer getInternal(ByteBuffer key) throws IOException, TachyonException {
+    Preconditions.checkState(!mClosed, "Can not query a reader closed");
     ByteBuffer value = mClient.get(mBlockId, key);
     if (value.remaining() == 0) {
       return null;
     }
     return value;
-  }
-
-  @Override
-  public void close() {
-    mClient.close();
   }
 }

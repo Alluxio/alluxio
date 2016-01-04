@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.worker.keyvalue;
+package tachyon.client.keyvalue;
 
 import java.nio.ByteBuffer;
 
@@ -26,11 +26,11 @@ import tachyon.util.io.ByteIOUtils;
 /**
  * An implementation of {@link PayloadReader} with ability to random access the underline storage.
  */
-public final class RandomAccessPayloadReader implements PayloadReader {
+public final class BasePayloadReader implements PayloadReader {
   private static final int KEY_DATA_OFFSET = 2 * Constants.BYTES_IN_INTEGER;
   private ByteBuffer mBuf;
 
-  public RandomAccessPayloadReader(ByteBuffer buf) {
+  public BasePayloadReader(ByteBuffer buf) {
     mBuf = Preconditions.checkNotNull(buf).duplicate();
   }
 

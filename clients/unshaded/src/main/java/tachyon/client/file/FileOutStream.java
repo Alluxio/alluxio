@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
-import tachyon.client.Cancelable;
+import tachyon.client.AbstractOutStream;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -47,12 +47,12 @@ import tachyon.util.io.PathUtils;
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
- * Tachyon space in the local machine or remote machines. If the
- * {@link UnderStorageType} is {@link UnderStorageType#SYNC_PERSIST}, another stream will write the
- * data to the under storage system.
+ * Tachyon space in the local machine or remote machines. If the {@link UnderStorageType} is
+ * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
+ * system.
  */
 @PublicApi
-public class FileOutStream extends AbstractCountingOutStream implements Cancelable {
+public class FileOutStream extends AbstractOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;

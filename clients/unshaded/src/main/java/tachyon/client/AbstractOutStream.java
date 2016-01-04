@@ -13,40 +13,37 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.client;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import tachyon.annotation.PublicApi;
 
 /**
- * A mock implementation of {@link AbstractCountingOutStream} backed by a byte stream. Supposed to
- * be only used for tests.
- *
- * TODO(binfan): move this to test jar if it turns out only used in test.
+ * An abstraction of the output stream API in Tachyon to write data to a file or a block. In
+ * addition to extending abstract class {@link OutputStream} as the basics, it also keeps counting
+ * the number of bytes written to the output stream, and extends {@link Cancelable} to abort the
+ * writes.
  */
-public final class ByteArrayCountingOutStream extends AbstractCountingOutStream {
-  private ByteArrayOutputStream mOut;
-
-  public ByteArrayCountingOutStream() {
-    /** set an initial size of underlying ByteArray, which will grow automatically */
-    mOut = new ByteArrayOutputStream(1000);
-  }
-
-  public void write(int b) {
-    mOut.write(b);
-    mBytesWritten ++;
-  }
+@PublicApi
+public abstract class AbstractOutStream extends OutputStream implements Cancelable {
+  // TODO(binfan): make mBytesWritten long.
+  /** The number of bytes written */
+  protected int mBytesWritten = 0;
 
   /**
-   * @return the number of bytes written to this output stream
+   * @return the number of bytes written to this stream
    */
   public int getBytesWritten() {
     return mBytesWritten;
   }
 
   /**
-   * @return a newly created byte array for the output stream
+   * Aborts the output stream.
+   *
+   * @throws IOException if there is a failure to abort this output stream
    */
-  public byte[] toByteArray() {
-    return mOut.toByteArray();
-  }
+  @Override
+  public void cancel() throws IOException {}
 }
