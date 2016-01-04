@@ -30,7 +30,10 @@ import com.google.common.base.Preconditions;
 import tachyon.TachyonURI;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
+import tachyon.master.MasterContext;
 import tachyon.master.TachyonMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -55,6 +58,9 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+    }
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
 
