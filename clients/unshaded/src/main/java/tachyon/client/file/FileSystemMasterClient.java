@@ -118,7 +118,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public TachyonURI call() throws TachyonTException, TException {
         mClient.mkdir(path.getPath(), options.toThrift());
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to return a uri
         return path;
       }
     });
@@ -365,7 +365,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to take a uri
         return mClient.getNewBlockIdForFile(mClient.getFileId(path.getPath()));
       }
     });
@@ -418,7 +418,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to take a uri
         return mClient.rename(mClient.getFileId(src.getPath()), dst.getPath());
       }
     });
@@ -437,7 +437,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to take a uri
         mClient.setState(mClient.getFileId(path.getPath()), options.toThrift());
         return null;
       }
@@ -514,7 +514,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to take a uri
         return mClient.free(mClient.getFileId(path.getPath()), options.isRecursive());
       }
     });
@@ -556,7 +556,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         return mClient.loadMetadata(path.toString(), options.isRecursive());
       }
     });
-    // TODO(calvin): Look into changing the master side implementation
+    // TODO(calvin): Look into changing the master side implementation to return a uri
     return path;
   }
 
