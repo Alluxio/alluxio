@@ -61,7 +61,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   /**
    * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
    *
-   * @param lineageDataManager a lineage data manager handle
+   * @param fileDataManager a {@link FileDataManager} handle
    * @param masterClient a lineage master client
    */
   public FileWorkerMasterSyncExecutor(FileDataManager fileDataManager,
