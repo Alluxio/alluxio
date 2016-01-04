@@ -9,10 +9,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.keyvalue.KeyValueStore.KeyValueStoreFactory;
-import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -34,13 +31,13 @@ public final class KeyValueStoreIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
-          /* ensure key-value service is turned on */
-          Constants.KEYVALUE_ENABLED, "true");
+      /* ensure key-value service is turned on */
+      Constants.KEYVALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
-    sKVStore = KeyValueStoreFactory.create();
+    sKVStore = KeyValueStore.Factory.create();
   }
 
   @Before
