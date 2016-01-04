@@ -32,7 +32,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
-import tachyon.client.file.options.MkdirOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.PartitionInfo;
@@ -126,11 +125,13 @@ public class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     if (mKeyStart == null || keyBuf.compareTo(mKeyStart) < 0) {
       mKeyStart = ByteBuffer.allocate(key.length);
       mKeyStart.put(key);
+      mKeyStart.flip();
     }
     // Update the max key in the current partition.
     if (mKeyLimit == null || keyBuf.compareTo(mKeyLimit) > 0) {
       mKeyLimit = ByteBuffer.allocate(key.length);
       mKeyLimit.put(key);
+      mKeyLimit.flip();
     }
   }
 
