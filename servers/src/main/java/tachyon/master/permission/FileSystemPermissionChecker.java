@@ -137,12 +137,12 @@ public final class FileSystemPermissionChecker {
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
    * @param fileInfoList file info list of all the inodes retrieved by traversing the path
-   * @param isCheckOwner indicates whether to check the user is the owner of the path
+   * @param checkIsOwner indicates whether to check the user is the owner of the path
    * @throws AccessControlException if permission checking fails
    */
   private static void checkByFileInfoList(String user, List<String> groups, FileSystemAction
       action, String path, List<FileInfo> fileInfoList,
-      boolean isCheckOwner) throws AccessControlException {
+      boolean checkIsOwner) throws AccessControlException {
     int size = fileInfoList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
@@ -161,7 +161,7 @@ public final class FileSystemPermissionChecker {
       check(user, groups, fileInfoList.get(i), FileSystemAction.EXECUTE, path);
     }
 
-    if (isCheckOwner) {
+    if (checkIsOwner) {
       FileInfo fileInfo = fileInfoList.get(fileInfoList.size() - 1);
       if (fileInfo == null || user.equals(fileInfo.getUserName())) {
         return;

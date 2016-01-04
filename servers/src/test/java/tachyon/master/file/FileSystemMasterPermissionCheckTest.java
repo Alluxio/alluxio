@@ -31,6 +31,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
@@ -39,11 +40,12 @@ import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.security.authentication.PlainSaslServer;
+import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.FileInfo;
 
 /**
- * Unit test for {@link tachyon.master.file.FileSystemMaster} when permission check is enabled by
+ * Unit test for {@link FileSystemMaster} when permission check is enabled by
  * configure tachyon.security.authorization.permission.enabled=true.
  */
 public class FileSystemMasterPermissionCheckTest {
@@ -51,10 +53,12 @@ public class FileSystemMasterPermissionCheckTest {
 
   /**
    * The file structure for testing is:
+   * <pre>{@code
    *    /               admin     admin       755
    *    /testDir        user1     group1      755
    *    /testDir/file   user1     group1      644
    *    /testFile       user2     group2      644
+   * }</pre>
    */
 
   private static final String TEST_DIR_URI = "/testDir";
@@ -71,11 +75,13 @@ public class FileSystemMasterPermissionCheckTest {
 
   /**
    * The user and group mappings for testing are:
+   * <pre>{@code
    *    admin -> admin
    *    user1 -> group1
    *    user2 -> group2
    *    user3 -> group1
    *    user4 -> test-supergroup
+   * }</pre>
    */
   private static final TestUser TEST_USER_ADMIN = new TestUser("admin", "admin");
   private static final TestUser TEST_USER_1 = new TestUser("user1", "group1");
@@ -193,6 +199,9 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void createFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/file1",
+            "testDir")));
 
     // create "/testDir/file1" for user2
     verifyCreate(TEST_USER_2, TEST_DIR_URI + "/file1", false);
@@ -243,6 +252,9 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void mkdirFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/dir1",
+            "testDir")));
 
     // mkdir "/testDir/dir1" for user2
     verifyMkdir(TEST_USER_2, TEST_DIR_URI + "/dir1", false);
@@ -280,6 +292,8 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void renameUnderRootFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
 
     // rename "/testFile" to "/testFileRenamed" for user1
     verifyRename(TEST_USER_1, TEST_FILE_URI, "/testFileRenamed");
@@ -294,6 +308,7 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void renameFailNotByPermissionTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testDir/notExistDir"));
 
     // rename "/testDir/file" to "/testDir/notExistDir/fileRenamed" for user1
     // This is permitted by permission checking model, but failed during renaming procedure,
@@ -304,6 +319,9 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void renameFailBySrcTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+            "testDir")));
 
     // rename "/testDir/file" to "/file" for user2
     verifyRename(TEST_USER_2, TEST_DIR_FILE_URI, "/file");
@@ -312,6 +330,9 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void renameFailByDstTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE,
+            TEST_DIR_URI + "/fileRenamed", "testDir")));
 
     // rename "/testFile" to "/testDir/fileRenamed" for user2
     verifyRename(TEST_USER_2, TEST_FILE_URI, TEST_DIR_URI + "/fileRenamed");
@@ -359,6 +380,8 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void deleteUnderRootFailOnDirTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        "user=" + TEST_USER_2.getUser() + " is not the owner of path=" + TEST_DIR_URI));
 
     // user2 cannot delete "/testDir" under root
     verifyDelete(TEST_USER_2, TEST_DIR_URI, true);
@@ -367,6 +390,8 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void deleteUnderRootFailOnFileTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
 
     // user2 cannot delete "/testFile" under root
     verifyDelete(TEST_USER_1, TEST_FILE_URI, true);
@@ -381,6 +406,9 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void deleteFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+            "testDir")));
 
     // user 2 cannot delete "/testDir/file"
     verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
@@ -415,6 +443,9 @@ public class FileSystemMasterPermissionCheckTest {
     verifyGetFileId(TEST_USER_1, file);
 
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
+            "onlyReadByUser1")));
     verifyGetFileId(TEST_USER_2, file);
   }
 
@@ -431,6 +462,9 @@ public class FileSystemMasterPermissionCheckTest {
     verifyGetFileId(TEST_USER_1, file);
 
     mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
+            "testSubDir")));
     verifyGetFileId(TEST_USER_2, file);
   }
 
@@ -439,5 +473,16 @@ public class FileSystemMasterPermissionCheckTest {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
 
     Assert.assertNotEquals(-1, fileId);
+  }
+
+  private String toExceptionMessage(String user, FileSystemAction action, String path,
+      String inodeName) {
+    StringBuilder stringBuilder = new StringBuilder()
+        .append("user=").append(user).append(", ")
+        .append("access=").append(action).append(", ")
+        .append("path=").append(path).append(": ")
+        .append("failed at ")
+        .append(inodeName);
+    return stringBuilder.toString();
   }
 }
