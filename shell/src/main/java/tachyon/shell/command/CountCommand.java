@@ -31,10 +31,6 @@ import tachyon.thrift.FileInfo;
  */
 public final class CountCommand extends AbstractTfsShellCommand {
 
-  /**
-   * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
-   */
   public CountCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -94,10 +90,5 @@ public final class CountCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "count <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Displays the number of folders and files matching the specified prefix in args.";
   }
 }
