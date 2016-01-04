@@ -36,8 +36,6 @@ import tachyon.job.JobConf;
 public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to create a new lineage.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
