@@ -1,10 +1,12 @@
+syntax = "proto2";
+
 package tachyon.proto.journal;
 option java_package = "tachyon.proto.journal";
 
-import "journal/block.proto";
-import "journal/file.proto";
-import "journal/lineage.proto";
-import "journal/raw_table.proto";
+import "block.proto";
+import "file.proto";
+import "lineage.proto";
+import "raw_table.proto";
 
 // Wraps around all types of Tachyon journal messages.
 // next available id: 23
