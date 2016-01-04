@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Futures;
 
 import tachyon.Constants;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.master.file.FileSystemMaster;
@@ -93,6 +94,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
               mFileSystemMaster.resetFile(fileId);
             } catch (FileDoesNotExistException e) {
               LOG.error("the lost file {} is invalid", fileId, e);
+            } catch (AccessControlException e) {
+              LOG.error("the file {} is unauthorized", fileId, e);
             }
           }
         } catch (FileDoesNotExistException e) {

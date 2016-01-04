@@ -423,12 +423,15 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws AccessControlException if permission checking fails
    */
-  public void completeFile(long fileId, CompleteFileOptions options)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException {
+  public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
+      FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+      FileAlreadyCompletedException, AccessControlException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
+      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+      checkPermission(FileSystemAction.WRITE, path, false);
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
       if (!inode.isFile()) {
@@ -1228,8 +1231,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
-  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
+  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException,
+      AccessControlException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -1240,6 +1245,8 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
+      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+      checkPermission(FileSystemAction.WRITE, path, false);
       List<Inode> freeInodes = new ArrayList<Inode>();
       freeInodes.add(inode);
       if (inode.isDirectory()) {
@@ -1362,6 +1369,7 @@ public final class FileSystemMaster extends MasterBase {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
+      checkPermission(FileSystemAction.READ, path, false);
       if (ufs.isFile(ufsPath.getPath())) {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long ufsLength = ufs.getFileSize(ufsPath.toString());
@@ -1422,6 +1430,7 @@ public final class FileSystemMaster extends MasterBase {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
       if (mountInternal(tachyonPath, ufsPath)) {
         boolean loadMetadataSuceeded = false;
         try {
@@ -1476,10 +1485,11 @@ public final class FileSystemMaster extends MasterBase {
     return mMountTable.add(tachyonPath, ufsPath);
   }
 
-  public boolean unmount(TachyonURI tachyonPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+  public boolean unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
+      InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
         // Use the internal delete API, setting {@code replayed} to false to prevent the delete
@@ -1521,8 +1531,9 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file doesn't exist
+   * @throws AccessControlException if permission checking fails
    */
-  public void resetFile(long fileId) throws FileDoesNotExistException {
+  public void resetFile(long fileId) throws FileDoesNotExistException, AccessControlException {
     // TODO(yupeng) check the file is not persisted
     synchronized (mInodeTree) {
       // free the file first
@@ -1538,10 +1549,14 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the id of the file
    * @param options state options to be set, see {@link SetStateOptions}
    * @throws FileDoesNotExistException if the file doesn't exist
+   * @throws AccessControlException if permission checking fails
    */
-  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException,
+      AccessControlException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
+      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+      checkPermission(FileSystemAction.WRITE, path, false);
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
       SetStateEntry.Builder setState =
@@ -1711,9 +1726,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
       SetStateOptions.Builder builder = new SetStateOptions.Builder().setPersisted(true);
       setState(fileId, builder.build());
