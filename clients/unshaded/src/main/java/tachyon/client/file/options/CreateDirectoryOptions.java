@@ -111,7 +111,7 @@ public final class CreateDirectoryOptions {
   /**
    * @return Thrift representation of the options
    */
-  // TODO(calvin): Rename the mkdir options to CreateDirectoryOptions
+  // TODO(calvin): Rename the mkdir options to CreateDirectoryTOptions
   public MkdirTOptions toThrift() {
     MkdirTOptions options = new MkdirTOptions();
     options.setAllowExists(mAllowExists);

@@ -109,6 +109,8 @@ public class URIStatus {
   }
 
   /**
+   * For example for the uri: tachyon://host:1000/foo/bar/baz, baz is the name
+   *
    * @return the last path component of the entity referenced by this uri, mutable
    */
   public String getName() {
@@ -116,6 +118,8 @@ public class URIStatus {
   }
 
   /**
+   * For example, for the uri: tachyon://host:1000/foo/bar/baz, the path is /foo/bar/baz
+   *
    * @return the entire path component of the entity referenced by this uri, mutable
    */
   public String getPath() {

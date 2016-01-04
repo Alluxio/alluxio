@@ -54,7 +54,7 @@ interface FileSystem {
    * @param path the path of the directory to create in Tachyon space
    * @return the {@link TachyonURI} referencing the newly created directory
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected exception is thrown
    */
@@ -68,7 +68,7 @@ interface FileSystem {
    * @param options options to associate with this operation
    * @return the {@link TachyonURI} referencing the newly created directory
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
@@ -163,7 +163,7 @@ interface FileSystem {
 
   /**
    * Evicts any data under the given path from Tachyon space, but does not delete the data from the
-   * UFS.
+   * UFS. The metadata will still be present in Tachyon space after this operation.
    *
    * @param path the path to free in Tachyon space
    * @param options options to associate with this operation
@@ -212,7 +212,7 @@ interface FileSystem {
 
   /**
    * If the path is a directory, returns the {@link URIStatus} of all the direct entries in it.
-   * Otherwise returns the {@link URIStatus} for the file.
+   * Otherwise returns a list with a single {@link URIStatus} element for the file.
    *
    * @param path the path to list information about
    * @param options options to associate with this operation
@@ -255,25 +255,26 @@ interface FileSystem {
    * Convenience method for {@link #mount(TachyonURI, TachyonURI, MountOptions)} with default
    * options.
    *
-   * @param src a Tachyon path to mount the data to
-   * @param dst a UFS path to mount the data from
+   * @param tachyonPath a Tachyon path to mount the data to
+   * @param ufsPath a UFS path to mount the data from
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if a Tachyon exception occurs
    */
-  void mount(TachyonURI src, TachyonURI dst) throws IOException, TachyonException;
+  void mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException, TachyonException;
 
   /**
    * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
-   * the method creates it. This method does not transfer any data or metadata from the UFS. It
-   * simply establishes the connection between the given Tachyon path and UFS path.
+   * the method creates it. If the path already exists, a {@link TachyonException} will be thrown.
+   * This method does not transfer any data or metadata from the UFS. It simply establishes the
+   * connection between the given Tachyon path and UFS path.
    *
-   * @param src a Tachyon path to mount the data to
-   * @param dst a UFS path to mount the data from
+   * @param tachyonPath a Tachyon path to mount the data to
+   * @param ufsPath a UFS path to mount the data from
    * @param options options to associate with this operation
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if a Tachyon exception occurs
    */
-  void mount(TachyonURI src, TachyonURI dst, MountOptions options)
+  void mount(TachyonURI tachyonPath, TachyonURI ufsPath, MountOptions options)
       throws IOException, TachyonException;
 
   /**
@@ -316,7 +317,7 @@ interface FileSystem {
 
   /**
    * Renames an existing Tachyon path to another Tachyon path in Tachyon. This operation will be
-   * reflected in the underlying storage if the path is persisted.
+   * propagated in the underlying storage if the path is persisted.
    *
    * @param src the path of the source, this must already exist
    * @param dst the path of the destination, this path should not exist
@@ -341,7 +342,7 @@ interface FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
-   * Sets any number of a path's attributes.
+   * Sets any number of a path's attributes, such as TTL and pin status.
    *
    * @param path the path to set attributes for
    * @param options options to associate with this operation

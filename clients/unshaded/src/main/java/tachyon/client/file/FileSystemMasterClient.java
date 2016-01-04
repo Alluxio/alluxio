@@ -92,6 +92,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
+  // TODO(calvin): Remove this
   public synchronized long create(final String path, final CreateOptions options)
       throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
@@ -215,7 +216,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
       public Boolean call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to take a uri
         return mClient.remove(mClient.getFileId(path.getPath()), options.isRecursive());
       }
     });
@@ -264,7 +265,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<FileInfo>() {
       @Override
       public FileInfo call() throws TachyonTException, TException {
-        // TODO(calvin): Look into changing the master side implementation
+        // TODO(calvin): Look into changing the master side implementation to take a uri
         return mClient.getFileInfo(mClient.getFileId(path.getPath()));
       }
     });
