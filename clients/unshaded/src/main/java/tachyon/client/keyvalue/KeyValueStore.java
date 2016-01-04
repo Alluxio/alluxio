@@ -22,7 +22,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.exception.TachyonException;
 
 /**
- * Client to access key-value stores in Tachyon.
+ * Client to access a key-value store in Tachyon.
  */
 @PublicApi
 public interface KeyValueStore {
