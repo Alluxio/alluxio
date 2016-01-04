@@ -5,9 +5,10 @@ import "journal/block.proto";
 import "journal/file.proto";
 import "journal/lineage.proto";
 import "journal/raw_table.proto";
+import "journal/key_value.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 23
+// next available id: 26
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -32,5 +33,8 @@ message JournalEntry {
     RenameEntry rename = 20;
     SetStateEntry set_state = 21;
     UpdateMetadataEntry update_metadata = 22;
+    CompletePartitionEntry complete_partition = 23;
+    CompleteStoreEntry complete_store = 24;
+    CreateStoreEntry create_store = 25;
   }
 }
