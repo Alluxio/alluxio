@@ -298,7 +298,7 @@ elif [[ ${COMMAND} == "thriftGen" ]]; then
 elif [[ ${COMMAND} == "protoGen" ]]; then
   rm -rf ${bin}/../servers/src/main/java/tachyon/proto
   for src_file in $(find ${bin}/../servers/src/proto -type f); do
-    protoc --java_out=${bin}/../servers/src/main/java --proto_path=${bin}/../servers/src/proto ${src_file}
+    protoc --java_out=${bin}/../servers/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
   done
   exit 0
 elif [[ ${COMMAND} == "clearCache" ]]; then
