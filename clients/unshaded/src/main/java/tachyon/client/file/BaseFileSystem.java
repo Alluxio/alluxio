@@ -44,7 +44,7 @@ import tachyon.thrift.FileInfo;
 /**
 * Default implementation of the {@link FileSystem} interface. Developers can extend this class
 * instead of implementing the interface. This implementation reads and writes data through
-* {@link FileOutStream} and {@link FileInStream}.
+* {@link FileOutStream} and {@link FileInStream}. This class is thread safe.
 */
 @PublicApi
 public class BaseFileSystem implements FileSystem {

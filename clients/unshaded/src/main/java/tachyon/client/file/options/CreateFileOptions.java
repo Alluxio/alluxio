@@ -122,7 +122,7 @@ public final class CreateFileOptions {
    * @param locationPolicy the location policy to use
    * @return the builder
    */
-  public CreateFileOptions setHostname(FileWriteLocationPolicy locationPolicy) {
+  public CreateFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
     mLocationPolicy = locationPolicy;
     return this;
   }
@@ -140,7 +140,7 @@ public final class CreateFileOptions {
    * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, no matter whether
    *        the file is pinned
-   * @return the builder
+   * @return this object
    */
   public CreateFileOptions setTTL(long ttl) {
     mTTL = ttl;
@@ -150,7 +150,7 @@ public final class CreateFileOptions {
   /**
    * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
    *        override both the TachyonStorageType and UnderStorageType.
-   * @return the builder
+   * @return this object
    */
   public CreateFileOptions setWriteType(WriteType writeType) {
     mTachyonStorageType = writeType.getTachyonStorageType();
@@ -184,6 +184,7 @@ public final class CreateFileOptions {
   /**
    * @return Thrift representation of the options
    */
+  // TODO(calvin): Rename CreateTOptions to CreateFileTOptions
   public CreateTOptions toThrift() {
     CreateTOptions options = new CreateTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
