@@ -28,8 +28,6 @@ import tachyon.conf.TachyonConf;
 public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
   /**
-   * Constructs a new instance to delete a lineage.
-   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
