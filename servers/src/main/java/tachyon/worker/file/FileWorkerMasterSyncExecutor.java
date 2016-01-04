@@ -113,7 +113,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     /**
      * Creates a new instance of {@link FilePersister}.
      *
-     * @param fileDataManager a lineage data manager handle
+     * @param fileDataManager a {@link FileDataManager} handle
      * @param fileId a file id
      * @param blockIds a list of block ids
      */
