@@ -319,7 +319,7 @@ public class FileInStreamTest {
 
     try {
       mTestStream.seek(BLOCK_LENGTH);
-      Assert.fail();
+      Assert.fail("block store should throw exception");
     } catch (IOException e) {
       Assert.assertEquals("test IOException", e.getMessage());
     }
@@ -383,7 +383,7 @@ public class FileInStreamTest {
   public void readBadBufferTest() throws IOException {
     try {
       mTestStream.read(new byte[10], 5, 6);
-      Assert.fail();
+      Assert.fail("the buffer read of invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
           e.getMessage());
@@ -399,7 +399,7 @@ public class FileInStreamTest {
   public void seekNegativeTest() throws IOException {
     try {
       mTestStream.seek(-1);
-      Assert.fail();
+      Assert.fail("seeking negative position should fail");
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1), e.getMessage());
     }
@@ -414,7 +414,7 @@ public class FileInStreamTest {
   public void seekPastEndTest() throws IOException {
     try {
       mTestStream.seek(FILE_LENGTH + 1);
-      Assert.fail();
+      Assert.fail("seeking past the end of the stream should fail");
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(
           String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, FILE_LENGTH + 1),
@@ -448,7 +448,7 @@ public class FileInStreamTest {
 
     try {
       mTestStream.skip(skipSize);
-      Assert.fail();
+      Assert.fail("skip in instream should fail");
     } catch (IOException e) {
       Assert.assertEquals(ExceptionMessage.INSTREAM_CANNOT_SKIP.getMessage(skipSize),
           e.getMessage());
