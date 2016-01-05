@@ -67,11 +67,7 @@ check_mount_mode() {
 do_mount() {
   MOUNT_FAILED=0
   case "${1}" in
-    Mount)
-      $LAUNCHER $bin/tachyon-mount.sh $1
-      MOUNT_FAILED=$?
-      ;;
-    SudoMount)
+    Mount|SudoMount)
       $LAUNCHER $bin/tachyon-mount.sh $1
       MOUNT_FAILED=$?
       ;;
