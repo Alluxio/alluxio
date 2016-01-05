@@ -64,7 +64,7 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Deletes a lineage. If cascade is specified as true, " 
+    return "Deletes a lineage. If cascade is specified as true, "
       + "dependent lineages will also be deleted.";
   }
 }
