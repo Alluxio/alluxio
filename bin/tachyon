@@ -29,7 +29,7 @@ function printUsage {
   echo "Commands print help when invoked without parameters."
 }
 
-if [[ $# == 0 ]] || [[ $# > 2 ]]; then
+if [[ $# == 0 ]]; then
   printUsage
   exit 1
 fi
