@@ -1,4 +1,10 @@
-# Configuring Tachyon with OSS
+---
+layout: global
+title: Configuring Tachyon with OSS
+nickname: Tachyon with OSS
+group: Under Stores
+priority: 4
+---
 
 This guide describes how to configure Tachyon with [Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en) as the under storage system. Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
 
