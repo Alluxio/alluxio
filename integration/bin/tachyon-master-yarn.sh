@@ -15,7 +15,7 @@ echo "Formatting Tachyon Master"
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="MASTER_LOGGER" \
   -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  tachyon.Format master
+  tachyon.Format master > "${YARN_LOG_DIR}"/master.out 2>&1
 
 echo "Starting Tachyon Master"
 
@@ -25,4 +25,4 @@ echo "Starting Tachyon Master"
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="MASTER_LOGGER" \
   -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  tachyon.master.TachyonMaster
+  tachyon.master.TachyonMaster >> "${YARN_LOG_DIR}"/master.out 2>&1
