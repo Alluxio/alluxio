@@ -55,6 +55,7 @@ public final class LsrCommand extends AbstractLsCommand {
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories under the specified path recursively.";
+    return "Displays information for all files and directories under the specified "
+      + "path recursively.";
   }
 }
