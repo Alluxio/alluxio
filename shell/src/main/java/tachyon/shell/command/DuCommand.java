@@ -81,6 +81,6 @@ public final class DuCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Displays the size of a file or a directory specified by argv.";
+    return "Displays the size of the specified file or directory.";
   }
 }
