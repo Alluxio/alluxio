@@ -65,4 +65,9 @@ public class OSSInputStream extends InputStream {
     int ret = mInputStream.read(b, off, len);
     return ret;
   }
+
+  @Override
+  public long skip(long n) throws IOException {
+    throw new IOException("unsupported skip in OSSInputStream currently.");
+  }
 }
