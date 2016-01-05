@@ -42,12 +42,15 @@ public class Sessions {
   /** Map from SessionId to {@link tachyon.SessionInfo} object **/
   private final Map<Long, SessionInfo> mSessions;
 
+  /**
+   * Creates a new instance of {@link Sessions}.
+   */
   public Sessions() {
     mSessions = new HashMap<Long, SessionInfo>();
   }
 
   /**
-   * Get the sessions that timed out.
+   * Gets the sessions that timed out.
    *
    * @return the list of session ids of sessions that timed out
    */
@@ -65,9 +68,9 @@ public class Sessions {
   }
 
   /**
-   * Remove {@code sessionId} from session pool.
+   * Removes the given session from the session pool.
    *
-   * @param sessionId the session to be removed
+   * @param sessionId the id of the session to be removed
    */
   public synchronized void removeSession(long sessionId) {
     LOG.info("Cleaning up session {}", sessionId);
@@ -77,7 +80,7 @@ public class Sessions {
   }
 
   /**
-   * Updates session's heartbeat.
+   * Performs session heartbeat.
    *
    * @param sessionId the id of the session
    */

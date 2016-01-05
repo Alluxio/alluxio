@@ -64,7 +64,7 @@ public class TachyonMaster {
     }
 
     try {
-      Factory.createMaster().start();
+      Factory.create().start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -123,7 +123,7 @@ public class TachyonMaster {
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
      */
-    public static TachyonMaster createMaster() {
+    public static TachyonMaster create() {
       if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return new TachyonMasterFaultTolerant();
       }
@@ -189,10 +189,6 @@ public class TachyonMaster {
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
       mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
-
-      mWebServer =
-          new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-              ServiceType.MASTER_WEB, conf), this, conf);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -224,14 +220,20 @@ public class TachyonMaster {
    * @return the actual bind hostname on web service (used by unit test only)
    */
   public String getWebBindHost() {
-    return mWebServer.getBindHost();
+    if (mWebServer != null) {
+      return mWebServer.getBindHost();
+    }
+    return "";
   }
 
   /**
    * @return the actual port that the web service is listening on (used by unit test only)
    */
   public int getWebLocalPort() {
-    return mWebServer.getLocalPort();
+    if (mWebServer != null) {
+      return mWebServer.getLocalPort();
+    }
+    return -1;
   }
 
   /**
@@ -282,11 +284,13 @@ public class TachyonMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping Tachyon Master @ {}", mMasterAddress);
+      LOG.info("Stopping RPC server on Tachyon Master @ {}", mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
       mIsServing = false;
+    } else {
+      LOG.info("Stopping Tachyon Master @ {}", mMasterAddress);
     }
   }
 
@@ -336,6 +340,11 @@ public class TachyonMaster {
   }
 
   protected void startServingWebServer() {
+    TachyonConf conf = MasterContext.getConf();
+    mWebServer =
+        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+            ServiceType.MASTER_WEB, conf), this, conf);
+
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     // start web ui
@@ -401,7 +410,7 @@ public class TachyonMaster {
    *
    * @param journalDirectory The journal directory to check
    * @return true if the journal directory was formatted previously, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     TachyonConf conf = MasterContext.getConf();

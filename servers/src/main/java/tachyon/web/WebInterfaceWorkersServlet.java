@@ -70,46 +70,74 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
           Utils.convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStartTimeMs());
     }
 
+    /**
+     * @return the worker capacity in bytes
+     */
     public String getCapacity() {
       return FormatUtils.getSizeFromBytes(mCapacityBytes);
     }
 
+    /**
+     * @return the worker free space as a percentage
+     */
     public int getFreeSpacePercent() {
       return mFreePercent;
     }
 
+    /**
+     * @return the time of the last worker heartbeat
+     */
     public String getLastHeartbeat() {
       return mLastContactSec;
     }
 
+    /**
+     * @return the worker host
+     */
     public String getHost() {
       return mHost;
     }
 
+    /**
+     * @return the worker port
+     */
     public int getWebPort() {
       return mWebPort;
     }
 
+    /**
+     * @return the worker state
+     */
     public String getState() {
       return mWorkerState;
     }
 
+    /**
+     * @return the worker uptime
+     */
     public String getUptimeClockTime() {
       return mUptimeClockTime;
     }
 
+    /**
+     * @return the worker used capacity in bytes
+     */
     public String getUsedMemory() {
       return FormatUtils.getSizeFromBytes(mUsedBytes);
     }
 
+    /**
+     * @return the worker used space as a percentage
+     */
     public int getUsedSpacePercent() {
       return mUsedPercent;
     }
 
     /**
      * Compare {@link NodeInfo} by lexicographical order of their associated host
+     *
      * @param o the comparison term
-     * @return a positive value if {@code this.getHost} is lexcographically "bigger" than
+     * @return a positive value if {@code this.getHost} is lexicographically "bigger" than
      *         {@code o.getHost}, 0 if the hosts are equal, a negative value otherwise.
      */
     @Override
@@ -143,6 +171,11 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   private final transient BlockMaster mBlockMaster;
   private final transient TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceWorkersServlet}
+   *
+   * @param blockMaster block master
+   */
   public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
     mTachyonConf = new TachyonConf();
@@ -151,10 +184,10 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -164,10 +197,10 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   }
 
   /**
-   * Order the nodes by hostName and generate {@link NodeInfo} list for UI display
+   * Order the nodes by hostName and generate {@link NodeInfo} list for UI display.
    *
-   * @param workerInfos The list of {@link WorkerInfo} objects
-   * @return The list of NodeInfo objects
+   * @param workerInfos the list of {@link WorkerInfo} objects
+   * @return the list of {@link NodeInfo} objects
    */
   private NodeInfo[] generateOrderedNodeInfos(Collection<WorkerInfo> workerInfos) {
     NodeInfo[] ret = new NodeInfo[workerInfos.size()];
@@ -181,10 +214,10 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   }
 
   /**
-   * Populates key, value pairs for UI display
+   * Populates key, value pairs for UI display.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);

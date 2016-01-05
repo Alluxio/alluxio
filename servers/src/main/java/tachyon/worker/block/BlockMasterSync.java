@@ -69,7 +69,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private long mLastSuccessfulHeartbeatMs;
 
   /**
-   * Constructor for BlockMasterSync
+   * Creates a new instance of {@link BlockMasterSync}.
    *
    * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
    * @param workerAddress the net address of the worker
@@ -190,13 +190,20 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Thread to remove block from master
+   * Thread to remove block from master.
    */
   private class BlockRemover implements Runnable {
     private BlockDataManager mBlockDataManager;
     private long mSessionId;
     private long mBlockId;
 
+    /**
+     * Creates a new instance of {@link BlockRemover}.
+     *
+     * @param blockDataManager a block data manager handle
+     * @param sessionId the session id
+     * @param blockId the block id
+     */
     public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
       mBlockDataManager = blockDataManager;
       mSessionId = sessionId;

@@ -28,7 +28,10 @@ import tachyon.worker.block.meta.StorageDirView;
  * selected StorageDir by LRU
  */
 public class PartialLRUEvictor extends LRUEvictor {
+
   /**
+   * Creates a new instance of {@link PartialLRUEvictor}.
+   *
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */

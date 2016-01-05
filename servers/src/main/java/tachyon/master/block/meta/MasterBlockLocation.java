@@ -24,13 +24,19 @@ public final class MasterBlockLocation {
   /** The tier alias that the block is on in this worker. */
   private final String mTierAlias;
 
+  /**
+   * Creates a new instance of {@link MasterBlockLocation}.
+   *
+   * @param workerId the worker id to use
+   * @param tierAlias the tier alias to use
+   */
   MasterBlockLocation(long workerId, String tierAlias) {
     mWorkerId = workerId;
     mTierAlias = tierAlias;
   }
 
   /**
-   * @return the Tachyon worker id
+   * @return the worker id
    */
   public long getWorkerId() {
     return mWorkerId;

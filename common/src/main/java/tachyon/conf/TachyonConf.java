@@ -115,7 +115,10 @@ public final class TachyonConf {
   }
 
   /**
-   * Test constructor for TachyonConfTest class.
+   * Constructor with a flag to indicate whether system properties should be included. When the flag
+   * is set to false, it is used for TachyonConfTest class.
+   *
+   * @param includeSystemProperties whether to include the system properties
    */
   TachyonConf(boolean includeSystemProperties) {
     // Load default
