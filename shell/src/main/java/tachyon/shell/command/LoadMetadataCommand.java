@@ -68,6 +68,6 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Constructs a new instance to load metadata for the given Tachyon path from UFS.";
+    return "Loads metadata for the given Tachyon path from the under file system.";
   }
 }

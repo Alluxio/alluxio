@@ -64,6 +64,6 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Constructs a new instance to list all the lineages.";
+    return "Lists all lineages.";
   }
 }
