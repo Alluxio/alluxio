@@ -22,6 +22,11 @@ import java.io.InputStream;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.OSSObject;
 
+/**
+ * This class is a buffered wrapper around the input stream returned by
+ * {@link OSSObject#getObjectContent()}.
+ * This input stream return 0 when calling read with an empty buffer.
+ */
 public class OSSInputStream extends InputStream {
 
   /** Bucket name of the Tachyon OSS bucket */
