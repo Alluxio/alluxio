@@ -21,13 +21,14 @@ import org.junit.Test;
 
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Sanity check on specific behavior of {@link PartialLRUEvictor} such as evicting/moving least
- * recently used blocks in {@link tachyon.worker.block.meta.StorageDir} with max free space and
- * cascading {@link PartialLRUEvictor} eviction.
+ * Unit tests for specific behavior of {@link PartialLRUEvictor} such as evicting/moving least
+ * recently used blocks in {@link StorageDir} with max free space and cascading
+ * {@link PartialLRUEvictor} eviction.
  */
-public class PartialLRUEvictorTestBase extends EvictorTestBase {
+public class PartialLRUEvictorTest extends EvictorTestBase {
   @Before
   public final void before() throws Exception {
     init(PartialLRUEvictor.class.getName());
