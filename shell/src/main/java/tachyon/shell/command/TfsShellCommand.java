@@ -49,7 +49,7 @@ public interface TfsShellCommand {
    * @return the usage information of the command
    */
   String getUsage();
-  
+
   /**
    * @return the description information of the command
    */

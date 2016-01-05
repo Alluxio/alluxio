@@ -23,7 +23,7 @@ import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 
 /**
- * Deletes a lineage specified by args. If cascade is specified as true, it deletes dependents lineages.
+ * Deletes a lineage. If cascade is specified as true, dependent lineages will also be deleted.
  */
 public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
@@ -64,6 +64,7 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Deletes a lineage specified by args. If cascade is specified as true, it deletes dependents lineages.";
+    return "Deletes a lineage. If cascade is specified as true, "
+      + "dependent lineages will also be deleted.";
   }
 }

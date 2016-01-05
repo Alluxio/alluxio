@@ -60,6 +60,6 @@ public final class SetTTLCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Sets a new TTL value for the file at path both of the TTL value and the path are specified by args.";
+    return "Sets a new TTL value for the file at path.";
   }
 }
