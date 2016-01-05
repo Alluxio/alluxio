@@ -286,7 +286,7 @@ public abstract class AbstractLocalTachyonCluster {
   public abstract void stopTFS() throws Exception;
 
   /**
-   * Cleanups the underfs cluster test folder only.
+   * Cleans up the underfs cluster test folder only.
    *
    * @throws Exception when the operation fails
    */
@@ -358,7 +358,7 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
-    // Setups tiered store
+    // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
@@ -429,7 +429,7 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Resets context when stops the local tachyon cluster.
+   * Resets contexts. This is called when the cluster is stopped.
    */
   protected void resetContext() {}
 
