@@ -43,7 +43,6 @@ import tachyon.worker.file.FileSystemWorker;
  * </pre>
  */
 public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
-
   private LocalTachyonMaster mMaster;
   private TachyonConf mClientConf;
 
