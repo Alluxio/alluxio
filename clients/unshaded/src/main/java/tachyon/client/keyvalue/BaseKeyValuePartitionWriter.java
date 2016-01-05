@@ -102,8 +102,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
 
   @Override
   public boolean isFull() {
-    long size = byteCount();
-    return size >= mMaxSizeBytes;
+    return byteCount() >= mMaxSizeBytes;
   }
 
   /**

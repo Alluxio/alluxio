@@ -169,6 +169,7 @@ public final class KeyValueMaster extends MasterBase {
     flushJournal();
   }
 
+  // Marks a partition complete, called when replaying journals
   private void completePartitionFromEntry(CompletePartitionEntry entry)
       throws FileDoesNotExistException {
     PartitionInfo info = new PartitionInfo(entry.getKeyStartBytes().asReadOnlyByteBuffer(),
@@ -176,6 +177,7 @@ public final class KeyValueMaster extends MasterBase {
     completePartitionInternal(entry.getStoreId(), info);
   }
 
+  // Internal implementation to mark a partition complete
   private void completePartitionInternal(long fileId, PartitionInfo info)
       throws FileDoesNotExistException {
     if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
@@ -203,10 +205,12 @@ public final class KeyValueMaster extends MasterBase {
     flushJournal();
   }
 
+  // Marks a store complete, called when replaying journals
   private void completeStoreFromEntry(CompleteStoreEntry entry) throws FileDoesNotExistException {
     completeStoreInternal(entry.getStoreId());
   }
 
+  // Internal implementation to mark a store complete
   private void completeStoreInternal(long fileId) throws FileDoesNotExistException {
     if (!mIncompleteStoreToPartitions.containsKey(fileId)) {
       // TODO(binfan): throw a better exception
@@ -242,10 +246,12 @@ public final class KeyValueMaster extends MasterBase {
     flushJournal();
   }
 
+  // Creates a store, called when replaying journals
   private void createStoreFromEntry(CreateStoreEntry entry) throws FileAlreadyExistsException {
     createStoreInternal(entry.getStoreId());
   }
 
+  // Internal implementation to create a store
   private void createStoreInternal(long fileId) throws FileAlreadyExistsException {
     if (mIncompleteStoreToPartitions.containsKey(fileId)) {
       // TODO(binfan): throw a better exception
