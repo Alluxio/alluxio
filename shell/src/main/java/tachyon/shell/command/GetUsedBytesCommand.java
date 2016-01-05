@@ -59,6 +59,6 @@ public final class GetUsedBytesCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Gets number of bytes used in the {@link TachyonFileSystem}.";
+    return "Gets number of bytes used in the Tachyon file system.";
   }
 }
