@@ -19,7 +19,7 @@ echo "Formatting Tachyon Worker"
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
   -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
-  tachyon.Format WORKER > "${TACHYON_LOGS_DIR}"/worker.out 2>&1
+  tachyon.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
 
 echo "Starting Tachyon Worker"
 
@@ -30,4 +30,4 @@ echo "Starting Tachyon Worker"
   -Dtachyon.logger.type="WORKER_LOGGER" \
   -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
   -Dtachyon.master.hostname="${TACHYON_MASTER_ADDRESS}" \
-  tachyon.worker.TachyonWorker >> "${TACHYON_LOGS_DIR}"/worker.out 2>&1
+  tachyon.worker.TachyonWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1
