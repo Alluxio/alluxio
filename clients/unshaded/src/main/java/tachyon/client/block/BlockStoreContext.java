@@ -157,7 +157,7 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Obtains a worker client to the worker with the given address.
+   * Obtains a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
@@ -211,9 +211,9 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Obtains a non local worker client based on the given network address. Illegal argument
-   * exception is thrown if the hostname is the local hostname. Runtime exception is thrown if the
-   * client cannot be created with a connection to the hostname.
+   * Obtains a client for a remote based on the given network address. Illegal argument exception is
+   * thrown if the hostname is the local hostname. Runtime exception is thrown if the client cannot
+   * be created with a connection to the hostname.
    *
    * @param address the address of the worker
    * @return a worker client with a connection to the specified hostname
