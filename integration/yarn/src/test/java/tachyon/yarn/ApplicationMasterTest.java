@@ -241,15 +241,7 @@ public class ApplicationMasterTest {
     mockResourceManager(NUM_WORKERS);
 
     // Wait for all workers to be allocated, then shut down mMaster
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (mPrivateAccess.getWorkerHostsSize() < NUM_WORKERS) {
-          CommonUtils.sleepMs(30);
-        }
-        mMaster.onShutdownRequest();
-      }
-    }).start();
+    getWaitForShutdownThread().start();
 
     mMaster.requestContainers();
     Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
@@ -271,7 +263,21 @@ public class ApplicationMasterTest {
     mockResourceManager(NUM_WORKERS / workersPerHost);
 
     // Wait for all workers to be allocated, then shut down mMaster
-    new Thread(new Runnable() {
+    getWaitForShutdownThread().start();
+
+    mMaster.requestContainers();
+    for (String host : mPrivateAccess.getWorkerHosts()) {
+      Assert.assertEquals(workersPerHost, mPrivateAccess.getWorkerHosts().count(host));
+    }
+    Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
+  }
+
+  /**
+   * @return a {@link Thread} which will wait until mMaster has NUM_WORKERS workers launched, then
+   *         call mMaster.onShutdownRequest()
+   */
+  private Thread getWaitForShutdownThread() {
+    return new Thread(new Runnable() {
       @Override
       public void run() {
         while (mPrivateAccess.getWorkerHostsSize() < NUM_WORKERS) {
@@ -279,13 +285,7 @@ public class ApplicationMasterTest {
         }
         mMaster.onShutdownRequest();
       }
-    }).start();
-
-    mMaster.requestContainers();
-    for (String host : mPrivateAccess.getWorkerHosts()) {
-      Assert.assertEquals(workersPerHost, mPrivateAccess.getWorkerHosts().count(host));
-    }
-    Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
+    });
   }
 
   /**
