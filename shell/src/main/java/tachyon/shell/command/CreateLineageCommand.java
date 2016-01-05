@@ -99,6 +99,6 @@ public final class CreateLineageCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "To be defined.";
+    return "Creates a lineage.";
   }
 }
