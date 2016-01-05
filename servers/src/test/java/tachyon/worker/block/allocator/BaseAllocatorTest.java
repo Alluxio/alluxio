@@ -33,6 +33,9 @@ import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
+/**
+ * Base class for allocator tests.
+ */
 public class BaseAllocatorTest {
 
   protected static final long SESSION_ID = 1;
@@ -81,8 +84,8 @@ public class BaseAllocatorTest {
   }
 
   /**
-   * Given an allocator with the location and blockSize,
-   * we assert whether the block can be allocated
+   * Given an allocator with the location and blockSize, we assert whether the block can be
+   * allocated
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
       long blockSize, boolean avail) throws IOException {
@@ -108,10 +111,8 @@ public class BaseAllocatorTest {
    * 2. @param tierAlias: the block should be allocated at this tier
    * 3. @param dirIndex : the block should be allocated at this dir
    */
-  protected void assertTempBlockMeta(Allocator allocator,
-      BlockStoreLocation location, int blockSize,
-      boolean avail, String tierAlias, int dirIndex)
-      throws Exception {
+  protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
+      int blockSize, boolean avail, String tierAlias, int dirIndex) throws Exception {
 
     mTestBlockId ++;
 
