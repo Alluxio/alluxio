@@ -94,6 +94,6 @@ public final class CountCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Displays the number of folders and files matching the specified prefix in args.";
+    return "Displays the number of files and directories matching the specified prefix.";
   }
 }
