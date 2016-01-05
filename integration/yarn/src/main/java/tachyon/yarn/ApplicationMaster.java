@@ -143,7 +143,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         (int) (conf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
     mRamdiskMemInMB = (int) (conf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
-    mMaxWorkersPerHost = conf.getInt(Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST);
+    mMaxWorkersPerHost = conf.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;

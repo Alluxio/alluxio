@@ -258,7 +258,7 @@ public class ApplicationMasterTest {
     Assert.assertEquals("NUM_WORKERS should be a multiple of workersPerHost", 0,
         NUM_WORKERS % workersPerHost);
     setupApplicationMaster(ImmutableMap.of(
-        Constants.INTEGRATION_YARN_MAX_WORKERS_PER_HOST, Integer.toString(workersPerHost)));
+        Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, Integer.toString(workersPerHost)));
 
     mockResourceManager(NUM_WORKERS / workersPerHost);
 
