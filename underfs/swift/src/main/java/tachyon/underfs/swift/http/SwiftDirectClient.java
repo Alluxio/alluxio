@@ -39,11 +39,13 @@ public class SwiftDirectClient {
   private static final int HTTP_CHUNK_STREAMING = 8 * 1024 * 1024;
 
   /**
+   * Swift HTTP PUT request.
+   *
    * @param access JOSS access object
    * @param objectName name of the object to create
    * @return SwiftOutputStream that will be used to upload data to Swift
    */
-  public static SwiftOutputStream PUT(Access access, String objectName) {
+  public static SwiftOutputStream Put(Access access, String objectName) {
     LOG.debug("PUT method, object : {}", objectName);
     URL url;
     try {
