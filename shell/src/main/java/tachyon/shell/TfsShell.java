@@ -101,13 +101,8 @@ public class TfsShell implements Closeable {
     System.out.println("Usage: java TfsShell");
     SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
     for (String cmd : sortedCmds) {
-<<<<<<< HEAD
       System.out.format("%-45s%100s%n", "       [" + mCommands.get(cmd).getUsage() + "]    ",
                       mCommands.get(cmd).getDescription());
-=======
-      System.out.println("       [" + mCommands.get(cmd).getUsage() + "]    "
-                      + mCommands.get(cmd).getDescription());
->>>>>>> origin/master
     }
   }
 
