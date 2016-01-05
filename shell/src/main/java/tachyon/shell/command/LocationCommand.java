@@ -70,4 +70,9 @@ public final class LocationCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "location <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Constructs a new instance to display a list of hosts that have the file specified in args stored.";
+  }
 }

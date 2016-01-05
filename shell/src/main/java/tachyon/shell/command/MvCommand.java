@@ -62,4 +62,9 @@ public final class MvCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "mv <src> <dst>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Renames a file or directory specified by args.";
+  }
 }

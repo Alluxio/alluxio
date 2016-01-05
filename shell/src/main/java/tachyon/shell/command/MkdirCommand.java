@@ -66,4 +66,9 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "mkdir <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Creates a new directory specified by the path in args, including any parent folders that are required.";
+  }
 }

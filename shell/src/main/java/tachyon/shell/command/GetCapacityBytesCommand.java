@@ -56,4 +56,9 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "getCapacityBytes";
   }
+
+  @Override
+  public String getDescription() {
+    return "Gets the capacity of the {@link TachyonFileSystem}.";
+  }
 }

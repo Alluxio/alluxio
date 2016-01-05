@@ -51,4 +51,9 @@ public final class LsCommand extends AbstractLsCommand {
   public String getUsage() {
     return "ls <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Displays information for all directories and files directly under the path specified in args.";
+  }
 }

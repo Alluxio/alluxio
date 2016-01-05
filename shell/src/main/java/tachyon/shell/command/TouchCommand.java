@@ -60,4 +60,9 @@ public final class TouchCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "touch <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Creates a 0 byte file specified by argv. The file will be written to UnderFileSystem.";
+  }
 }

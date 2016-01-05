@@ -52,4 +52,9 @@ public final class LsrCommand extends AbstractLsCommand {
   public String getUsage() {
     return "lsr <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Displays information for all directories and files under the path specified in args recursively";
+  }
 }

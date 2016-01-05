@@ -35,3 +35,5 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+
+common/src/main/java/tachyon/util/FormatUtils.java

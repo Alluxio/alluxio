@@ -65,4 +65,9 @@ public final class RmCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "rm <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Removes the file specified by argv.";
+  }
 }

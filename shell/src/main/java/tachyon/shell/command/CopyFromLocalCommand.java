@@ -205,4 +205,9 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "copyFromLocal <src> <remoteDst>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Copies the specified file specified by \"source path\" to the path specified by \"remote path\".";
+  }
 }

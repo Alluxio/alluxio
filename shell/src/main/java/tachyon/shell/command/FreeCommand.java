@@ -61,4 +61,9 @@ public final class FreeCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "free <file path|folder path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Constructs a new instance to free the given file or folder from Tachyon.";
+  }
 }
