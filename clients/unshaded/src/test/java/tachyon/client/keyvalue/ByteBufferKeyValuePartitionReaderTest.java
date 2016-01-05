@@ -27,7 +27,7 @@ import org.junit.rules.ExpectedException;
 import tachyon.client.ByteArrayOutStream;
 
 /**
- * unit tests of {@link ByteBufferKeyValuePartitionReader}
+ * Unit tests of {@link ByteBufferKeyValuePartitionReader}.
  */
 public final class ByteBufferKeyValuePartitionReaderTest {
   private static final byte[] KEY1 = "key1".getBytes();

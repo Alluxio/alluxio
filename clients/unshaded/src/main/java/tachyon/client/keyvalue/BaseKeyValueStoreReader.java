@@ -84,6 +84,7 @@ public class BaseKeyValueStoreReader implements KeyValueStoreReader {
     Preconditions.checkNotNull(key);
     // TODO(binfan): improve the inefficient for-loop to binary search.
     for (PartitionInfo partition : mPartitions) {
+      // NOTE, keyStart and keyLimit are both inclusive
       if (key.compareTo(partition.keyStart) >= 0 && key.compareTo(partition.keyLimit) <= 0) {
         long blockId = partition.blockId;
         KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);
