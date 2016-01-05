@@ -15,7 +15,6 @@ echo "Formatting Tachyon Worker"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_WORKER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="WORKER_LOGGER" \
   -Dtachyon.logs.dir="${YARN_LOG_DIR}" \

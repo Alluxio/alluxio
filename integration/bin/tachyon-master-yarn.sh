@@ -11,7 +11,6 @@ echo "Formatting Tachyon Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${TACHYON_MASTER_JAVA_OPTS} \
-  -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
   -Dtachyon.logger.type="MASTER_LOGGER" \
   -Dtachyon.logs.dir="${YARN_LOG_DIR}" \
