@@ -31,7 +31,6 @@ import com.aliyun.oss.ClientConfiguration;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ListObjectsRequest;
-import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
@@ -260,8 +259,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   public InputStream open(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      OSSObject obj = mOssClient.getObject(mBucketName, path);
-      return obj.getObjectContent();
+      return new OSSInputStream(mBucketName, path, mOssClient);
     } catch (ServiceException e) {
       LOG.error("Failed to open file: {}", path, e);
       return null;
