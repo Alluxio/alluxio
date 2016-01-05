@@ -30,6 +30,7 @@ public enum ExceptionMessage {
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
   PATH_MUST_BE_FILE("Path {0} must be a file"),
   PATH_MUST_BE_DIRECTORY("Path {0} must be a directory"),
+  PATH_INVALID("Path {0} is invalid"),
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
