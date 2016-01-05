@@ -94,7 +94,7 @@ public class TachyonFileSystemIntegrationTest {
   @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Path root/testFile1 is invalid.");
+    mThrown.expectMessage(ExceptionMessage.PATH_INVALID.getMessage("root/testFile1"));
     mTfs.getOutStream(new TachyonURI("root/testFile1"), mWriteBoth);
   }
 

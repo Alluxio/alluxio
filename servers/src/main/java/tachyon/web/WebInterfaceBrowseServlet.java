@@ -36,10 +36,13 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AccessControlException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.PlainSaslServer;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -130,6 +133,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    if (PlainSaslServer.AuthorizedClientUser.get() == null) {
+      PlainSaslServer.AuthorizedClientUser.set(LoginUser.get(mTachyonConf).getName());
+    }
     request.setAttribute("debug", Constants.DEBUG);
     request.setAttribute("viewLog", false);
 
@@ -203,6 +209,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           "Error: File " + currentPath + " is not available " + ie.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
+    } catch (AccessControlException ace) {
+      request.setAttribute("invalidPathError",
+          "Error: File " + currentPath + " cannot be accessed " + ace.getMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
     }
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(filesInfo.size());
@@ -274,9 +285,10 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param request the {@link HttpServletRequest} object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
+   * @throws AccessControlException if permission checking fails
    */
   private void setPathDirectories(TachyonURI path, HttpServletRequest request)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     if (path.isRoot()) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;

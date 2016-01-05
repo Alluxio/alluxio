@@ -78,7 +78,7 @@ public final class FileSystemPermissionChecker {
     if (pathComponents.length == fileInfoList.size()) {
       fileInfoList.remove(fileInfoList.size() - 1);
     }
-    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList);
+    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList, false);
   }
 
   /**
@@ -100,7 +100,28 @@ public final class FileSystemPermissionChecker {
     for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {
       fileInfoList.add(null);
     }
-    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList);
+    checkByFileInfoList(user, groups, action, path.getPath(), fileInfoList, false);
+  }
+
+  /**
+   * Checks whether the user is the owner of the path.
+   *
+   * @param user who is verified to be the owner of the path
+   * @param groups in which user belongs to
+   * @param path the path to check its owner
+   * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static void checkOwner(String user, List<String> groups, TachyonURI path,
+      List<FileInfo> fileInfoList) throws
+      AccessControlException, InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+
+    for (int i = fileInfoList.size(); i < pathComponents.length; i ++) {
+      fileInfoList.add(null);
+    }
+    checkByFileInfoList(user, groups, null, path.getPath(), fileInfoList, true);
   }
 
   /**
@@ -116,10 +137,12 @@ public final class FileSystemPermissionChecker {
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
    * @param fileInfoList file info list of all the inodes retrieved by traversing the path
+   * @param checkIsOwner indicates whether to check the user is the owner of the path
    * @throws AccessControlException if permission checking fails
    */
   private static void checkByFileInfoList(String user, List<String> groups, FileSystemAction
-      action, String path, List<FileInfo> fileInfoList) throws AccessControlException {
+      action, String path, List<FileInfo> fileInfoList,
+      boolean checkIsOwner) throws AccessControlException {
     int size = fileInfoList.size();
     Preconditions.checkArgument(size > 0,
         PreconditionMessage.EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK);
@@ -138,7 +161,16 @@ public final class FileSystemPermissionChecker {
       check(user, groups, fileInfoList.get(i), FileSystemAction.EXECUTE, path);
     }
 
-    check(user, groups, fileInfoList.get(size - 1), action, path);
+    if (checkIsOwner) {
+      FileInfo fileInfo = fileInfoList.get(fileInfoList.size() - 1);
+      if (fileInfo == null || user.equals(fileInfo.getUserName())) {
+        return;
+      }
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED.getMessage(
+          "user=" + user + " is not the owner of path=" + path));
+    } else {
+      check(user, groups, fileInfoList.get(fileInfoList.size() - 1), action, path);
+    }
   }
 
   /**
@@ -188,7 +220,7 @@ public final class FileSystemPermissionChecker {
         .append("access=").append(action).append(", ")
         .append("path=").append(path).append(": ")
         .append("failed at ")
-        .append(fileInfo.getName());
+        .append(fileInfo.getName().equals("") ? "/" : fileInfo.getName());
     return stringBuilder.toString();
   }
 }
