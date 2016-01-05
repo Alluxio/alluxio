@@ -49,6 +49,6 @@ public final class PinCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Pins the given file or folder in memory (works recursively for a directory). Pinned files are never evicted from memory";
+    return "Pins the given file or directory in memory (works recursively for directories). Pinned files are never evicted from memory.";
   }
 }
