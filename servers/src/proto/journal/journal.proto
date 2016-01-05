@@ -18,6 +18,9 @@ message JournalEntry {
     BlockContainerIdGeneratorEntry block_container_id_generator = 3;
     BlockInfoEntry block_info = 4;
     CompleteFileEntry complete_file = 5;
+    CompletePartitionEntry complete_partition = 23;
+    CompleteStoreEntry complete_store = 24;
+    CreateStoreEntry create_store = 25;
     DeleteFileEntry delete_file = 6;
     DeleteLineageEntry delete_lineage = 7;
     DeleteMountPointEntry delete_mount_point = 8;
@@ -35,8 +38,5 @@ message JournalEntry {
     RenameEntry rename = 20;
     SetStateEntry set_state = 21;
     UpdateMetadataEntry update_metadata = 22;
-    CompletePartitionEntry complete_partition = 23;
-    CompleteStoreEntry complete_store = 24;
-    CreateStoreEntry create_store = 25;
   }
 }
