@@ -57,6 +57,16 @@ The common configuration contains constants shared by different components.
   <td>The path to store log files.</td>
 </tr>
 <tr>
+  <td>tachyon.keyvalue.enabled</td>
+  <td>false</td>
+  <td>Whether the key-value service is enabled.</td>
+</tr>
+<tr>
+  <td>tachyon.keyvalue.partition.size.bytes.max</td>
+  <td>1GB</td>
+  <td>Maximum allowable size (in bytes) of a single key-value parition in a store.</td>
+</tr>
+<tr>
   <td>tachyon.max.columns</td>
   <td>1000</td>
   <td>Maximum number of columns allowed in RawTable, must be set on the client and server side.</td>
