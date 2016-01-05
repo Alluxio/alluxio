@@ -46,13 +46,11 @@ public interface TfsShellCommand {
   void run(String... args) throws IOException;
 
   /**
-   *  
    * @return the usage information of the command
    */
   String getUsage();
-  
+
   /**
-   * 
    * @return the description information of the command
    */
   String getDescription();
