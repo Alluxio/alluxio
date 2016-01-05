@@ -27,6 +27,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class LsrCommand extends AbstractLsCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public LsrCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

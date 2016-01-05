@@ -86,8 +86,8 @@
               <th>Tier</th>
               <th>Size (Byte)</th>
             </tr>
-            <% for (Map.Entry<String, List<UiBlockInfo>> entry : ((Map<String, List<UiBlockInfo>>) request.getAttribute("fileBlocksOnTier")).entrySet()) { %>
-              <% for (UiBlockInfo masterBlockInfo : entry.getValue()) { %>
+            <% for (Map.Entry<String, List<UIFileBlockInfo>> entry : ((Map<String, List<UIFileBlockInfo>>) request.getAttribute("fileBlocksOnTier")).entrySet()) { %>
+              <% for (UIFileBlockInfo masterBlockInfo : entry.getValue()) { %>
                 <tr>
                   <td><%= masterBlockInfo.getID() %></td>
                   <td><%= entry.getKey() %></td>

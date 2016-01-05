@@ -51,15 +51,18 @@ public final class BlockLockManager {
   /** A hashing function to map blockId to one of the locks */
   private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
-  /** A map from a block ID to its lock */
+  /** A map from a block id to its lock */
   private final ClientRWLock[] mLockArray = new ClientRWLock[sNumLocks];
-  /** A map from a session ID to all the locks hold by this session */
+  /** A map from a session id to all the locks hold by this session */
   private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<Long, Set<Long>>();
-  /** A map from a lock ID to the lock record of it */
+  /** A map from a lock id to the lock record of it */
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
   /** To guard access on {@link #mLockIdToRecordMap} and {@link #mSessionIdToLockIdsMap} */
   private final Object mSharedMapsLock = new Object();
 
+  /**
+   * Creates a new instance of {@link BlockLockManager}.
+   */
   public BlockLockManager() {
     for (int i = 0; i < sNumLocks; i ++) {
       mLockArray[i] = new ClientRWLock();
@@ -67,7 +70,7 @@ public final class BlockLockManager {
   }
 
   /**
-   * Gets index of the lock that will be used to lock the block
+   * Gets index of the lock that will be used to lock the block.
    *
    * @param blockId the id of the block
    * @return hash index of the lock
@@ -80,10 +83,10 @@ public final class BlockLockManager {
    * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id is
    * still returned.
    *
-   * @param sessionId the ID of session
-   * @param blockId the ID of block
+   * @param sessionId the session id
+   * @param blockId the block id
    * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
-   * @return lock ID
+   * @return lock id
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
     // hashing blockId into the range of [0, sNumLocks - 1]
@@ -110,10 +113,10 @@ public final class BlockLockManager {
   }
 
   /**
-   * Releases a lock by its lockId or throws {@link BlockDoesNotExistException}.
+   * Releases the lock with the specified lock id.
    *
-   * @param lockId the ID of the lock
-   * @throws BlockDoesNotExistException if no lock is associated with this lock id
+   * @param lockId the id of the lock to release
+   * @throws BlockDoesNotExistException if lock id cannot be found
    */
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     Lock lock;
@@ -135,6 +138,13 @@ public final class BlockLockManager {
     lock.unlock();
   }
 
+  /**
+   * Releases the lock with the specified session and block id.
+   *
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @throws BlockDoesNotExistException if the block id cannot be found
+   */
   // TODO(bin): Temporary, remove me later.
   public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     synchronized (mSharedMapsLock) {
@@ -164,9 +174,9 @@ public final class BlockLockManager {
   /**
    * Validates the lock is hold by the given session for the given block.
    *
-   * @param sessionId The ID of the session
-   * @param blockId The ID of the block
-   * @param lockId The ID of the lock
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @param lockId the lock id
    * @throws BlockDoesNotExistException when no lock record can be found for lockId
    * @throws InvalidWorkerStateException when sessionId or blockId is not consistent with that in
    *         the lock record for lockId
@@ -191,9 +201,9 @@ public final class BlockLockManager {
   }
 
   /**
-   * Cleans up the locks currently hold by a specific session
+   * Cleans up the locks currently hold by a specific session.
    *
-   * @param sessionId the ID of the session to cleanup
+   * @param sessionId the id of the session to cleanup
    */
   public void cleanupSession(long sessionId) {
     synchronized (mSharedMapsLock) {
@@ -216,7 +226,7 @@ public final class BlockLockManager {
   }
 
   /**
-   * Get a set of currently locked blocks.
+   * Gets a set of currently locked blocks.
    *
    * @return a set of locked blocks
    */
@@ -238,20 +248,35 @@ public final class BlockLockManager {
     private final long mBlockId;
     private final Lock mLock;
 
+    /** Creates a new instance of {@link LockRecord}.
+     *
+     * @param sessionId the session id
+     * @param blockId the block id
+     * @param lock the lock
+     */
     LockRecord(long sessionId, long blockId, Lock lock) {
       mSessionId = sessionId;
       mBlockId = blockId;
       mLock = lock;
     }
 
+    /**
+     * @return the session id
+     */
     long sessionId() {
       return mSessionId;
     }
 
+    /**
+     * @return the block id
+     */
     long blockId() {
       return mBlockId;
     }
 
+    /**
+     * @return the lock
+     */
     Lock lock() {
       return mLock;
     }

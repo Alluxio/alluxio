@@ -49,11 +49,11 @@ import tachyon.worker.block.BlockStoreLocation;
 public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
-  /** A map from block ID to block meta data */
+  /** A map from block id to block meta data */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
-  /** A map from block ID to temp block meta data */
+  /** A map from block id to temp block meta data */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
-  /** A map from session ID to the set of temp blocks created by this session */
+  /** A map from session id to the set of temp blocks created by this session */
   private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
   private AtomicLong mAvailableBytes;
   private AtomicLong mCommittedBytes;
@@ -197,9 +197,9 @@ public final class StorageDir {
   }
 
   /**
-   * Returns the list of block IDs in this dir.
+   * Returns the list of block ids in this dir.
    *
-   * @return a list of block IDs
+   * @return a list of block ids
    */
   public List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlockIdToBlockMap.keySet());
@@ -217,7 +217,7 @@ public final class StorageDir {
   /**
    * Checks if a block is in this storage dir.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return true if the block is in this storage dir, false otherwise
    */
   public boolean hasBlockMeta(long blockId) {
@@ -227,7 +227,7 @@ public final class StorageDir {
   /**
    * Checks if a temp block is in this storage dir.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return true if the block is in this storage dir, false otherwise
    */
   public boolean hasTempBlockMeta(long blockId) {
@@ -235,9 +235,9 @@ public final class StorageDir {
   }
 
   /**
-   * Gets the {@link BlockMeta} from this storage dir by its block ID.
+   * Gets the {@link BlockMeta} from this storage dir by its block id.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return {@link BlockMeta} of the given block or null
    * @throws BlockDoesNotExistException if no block is found
    */
@@ -250,9 +250,9 @@ public final class StorageDir {
   }
 
   /**
-   * Gets the {@link BlockMeta} from this storage dir by its block ID.
+   * Gets the {@link BlockMeta} from this storage dir by its block id.
    *
-   * @param blockId the block ID
+   * @param blockId the block id
    * @return {@link TempBlockMeta} of the given block or null
    * @throws BlockDoesNotExistException if no temp block is found
    */
@@ -385,7 +385,7 @@ public final class StorageDir {
   /**
    * Cleans up the temp block meta data for each block id passed in.
    *
-   * @param sessionId the ID of the client associated with the temporary blocks
+   * @param sessionId the id of the client associated with the temporary blocks
    * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
    *        nonexistent blocks will be ignored
    */
@@ -422,7 +422,7 @@ public final class StorageDir {
    * Gets the temporary blocks associated with a session in this {@link StorageDir}, an empty list
    * is returned if the session has no temporary blocks in this {@link StorageDir}.
    *
-   * @param sessionId the ID of the session
+   * @param sessionId the id of the session
    * @return A list of temporary blocks the session is associated with in this {@link StorageDir}
    */
   public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {

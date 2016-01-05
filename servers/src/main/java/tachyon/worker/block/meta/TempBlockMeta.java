@@ -23,10 +23,10 @@ public class TempBlockMeta extends BlockMetaBase {
   private long mTempBlockSize;
 
   /**
-   * Constructs the metadata of a temp block.
+   * Creates a new instance of {@link TempBlockMeta}.
    *
-   * @param sessionId the session ID
-   * @param blockId the block ID
+   * @param sessionId the session id
+   * @param blockId the block id
    * @param initialBlockSize initial size of this block in bytes
    * @param dir {@link StorageDir} of this temp block belonging to
    */

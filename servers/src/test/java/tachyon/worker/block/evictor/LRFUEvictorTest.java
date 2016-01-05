@@ -71,11 +71,11 @@ public class LRFUEvictorTest {
     TachyonConf conf = WorkerContext.getConf();
     conf.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+    mAllocator = Allocator.Factory.create(conf, mManagerView);
     mStepFactor = conf.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
         conf.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView, mAllocator);
+    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
   }
 
   private void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIdx)
