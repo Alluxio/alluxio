@@ -115,7 +115,7 @@ public final class FileDataManager {
 
       if (!errors.isEmpty()) {
         StringBuilder errorStr = new StringBuilder();
-        errorStr.append("the blocks of file").append(fileId).append(" are failed persist\n");
+        errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
         for (Throwable e : errors) {
           errorStr.append(e).append('\n');
         }
