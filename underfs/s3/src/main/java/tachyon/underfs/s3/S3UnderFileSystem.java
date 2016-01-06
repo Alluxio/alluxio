@@ -243,6 +243,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
+    // if the path not exists, then should return null
+    if (!exists(path)) {
+      return null;
+    }
+    // if is a File, should return null
+    if (isFile(path)) {
+      return null;
+    }
     // Non recursive list
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
@@ -402,6 +410,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private StorageObject getObjectDetails(String key) {
     try {
       if (isFolder(key)) {
+        key = stripSlashIfPresent(key);
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
         return mClient.getObjectDetails(mBucketName, keyAsFolder);
       } else {
@@ -436,7 +445,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return {@link S3Object} containing metadata
    */
   private boolean isFolder(String key) {
-    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
+    key = stripSlashIfPresent(key);
     // Root is always a folder
     if (isRoot(key)) {
       return true;
@@ -572,6 +581,17 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (key.startsWith(PATH_SEPARATOR)) {
       return key.substring(PATH_SEPARATOR.length());
     }
+    return key;
+  }
+
+  /**
+   * Strips the slash if it is the end of the key string. This is because in the slash at
+   * the end of the string is not part of the Object key in S3.
+   * @param key the key to strip
+   * @return the key without the slash at the end
+   */
+  private String stripSlashIfPresent(String key) {
+    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
     return key;
   }
 }
