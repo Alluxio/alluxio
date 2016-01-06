@@ -32,6 +32,11 @@ import tachyon.thrift.WorkerInfo;
 public class BlockMasterClientServiceHandler implements BlockMasterClientService.Iface {
   private final BlockMaster mBlockMaster;
 
+  /**
+   * Creates a new instance of {@link BlockMasterClientServiceHandler}.
+   *
+   * @param blockMaster the {@BlockMaster} the handler uses internally
+   */
   public BlockMasterClientServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);
     mBlockMaster = blockMaster;

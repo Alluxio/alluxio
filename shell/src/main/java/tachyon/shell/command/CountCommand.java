@@ -31,6 +31,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class CountCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public CountCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

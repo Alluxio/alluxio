@@ -37,6 +37,11 @@ public final class RoundRobinAllocator implements Allocator {
   // We need to remember the last dir index for every storage tier
   private Map<StorageTierView, Integer> mTierToLastDirMap = new HashMap<StorageTierView, Integer>();
 
+  /**
+   * Creates a new instance of {@link RoundRobinAllocator}.
+   *
+   * @param view {@link BlockMetadataManagerView} to pass to the allocator
+   */
   public RoundRobinAllocator(BlockMetadataManagerView view) {
     mManagerView = Preconditions.checkNotNull(view);
     for (StorageTierView tierView : mManagerView.getTierViews()) {
@@ -52,13 +57,10 @@ public final class RoundRobinAllocator implements Allocator {
   }
 
   /**
-   * Should only be accessed by
-   * {@link #allocateBlockWithView(long, long, BlockStoreLocation, BlockMetadataManagerView)} inside
-   * class. Allocates a block from the given block store location. The location can be a specific
-   * location, or {@link BlockStoreLocation#anyTier()} or
-   * {@link BlockStoreLocation#anyDirInTier(String)}.
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
    *
-   * @param sessionId the ID of session to apply for the block allocation
+   * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a {@link StorageDirView} in which to create the temp block meta if success, null
@@ -99,11 +101,11 @@ public final class RoundRobinAllocator implements Allocator {
   }
 
   /**
-   * Find an available dir in a given tier for a block with blockSize
+   * Finds an available dir in a given tier for a block with blockSize
    *
-   * @param tierView: the tier to find a dir
-   * @param blockSize: the requested block size
-   * @return the index of the dir if nonnegative; -1 if fail to find a dir
+   * @param tierView the tier to find a dir
+   * @param blockSize the requested block size
+   * @return the index of the dir if non-negative; -1 if fail to find a dir
    */
   private int getNextAvailDirInTier(StorageTierView tierView, long blockSize) {
     int dirViewIndex = mTierToLastDirMap.get(tierView);

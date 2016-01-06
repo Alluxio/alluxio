@@ -28,6 +28,10 @@ import tachyon.exception.TachyonException;
  */
 public final class LoadMetadataCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public LoadMetadataCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
