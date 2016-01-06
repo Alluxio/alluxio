@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+package tachyon.proto.journal;
+
+// Journal entry messages for the key-value master.
+
+// next available id: 5
+message CompletePartitionEntry {
+  optional int64 store_id = 1;
+  optional string key_start = 2; // inclusive
+  optional string key_limit = 3; // inclusive
+  optional int64 block_id = 4;
+}
+
+// next available id: 2
+message CompleteStoreEntry {
+  optional int64 store_id = 1;
+}
+
+// next available id: 2
+message CreateStoreEntry {
+  optional int64 store_id = 1;
+}

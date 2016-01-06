@@ -22,7 +22,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import tachyon.Constants;
 import tachyon.client.ByteArrayOutStream;
+import tachyon.client.ClientContext;
+import tachyon.conf.TachyonConf;
 
 /**
  * unit tests of {@link BaseKeyValuePartitionWriter}
@@ -95,6 +98,19 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertArrayEquals(VALUE2, reader.get(KEY2));
 
     Assert.assertNull(reader.get("NoSuchKey".getBytes()));
+  }
+
+  @Test
+  public void isFullTest() throws Exception {
+    long size = mWriter.byteCount() + KEY1.length + VALUE1.length;
+    TachyonConf originalConf = ClientContext.getConf();
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.KEYVALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
+    ClientContext.reset(conf);
+    mWriter = new BaseKeyValuePartitionWriter(mOutStream);
+    mWriter.put(KEY1, VALUE1);
+    Assert.assertTrue(mWriter.isFull());
+    ClientContext.reset(originalConf);
   }
 
   @Test
