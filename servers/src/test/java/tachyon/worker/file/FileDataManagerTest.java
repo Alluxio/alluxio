@@ -95,21 +95,26 @@ public final class FileDataManagerTest {
     PowerMockito.verifyStatic(Mockito.times(2));
     BufferUtils.fastCopy(Mockito.any(ReadableByteChannel.class),
         Mockito.any(WritableByteChannel.class));
+
+    // verify the file is not needed for another persistence
+    Assert.assertFalse(manager.needPersistence(fileId));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void popPersistedFilesTest() {
+  public void clearPersistedFilesTest() {
     BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
     FileDataManager manager = new FileDataManager(blockDataManager);
     Set<Long> persistedFiles = Sets.newHashSet(1L, 2L);
 
     Whitebox.setInternalState(manager, "mPersistedFiles", Sets.newHashSet(persistedFiles));
-    List<Long> poppedList = manager.popPersistedFiles();
+    List<Long> poppedList = manager.getPersistedFiles();
     Assert.assertEquals(persistedFiles, Sets.newHashSet(poppedList));
-    // verify persisted files cleared in the manager
-    persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
-    Assert.assertTrue(persistedFiles.isEmpty());
-  }
 
+    // verify persisted files cleared in the manager
+    poppedList.remove(2L);
+    manager.clearPersistedFiles(poppedList);
+    persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
+    Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
+  }
 }
