@@ -15,7 +15,6 @@
 
 package tachyon.master.lineage.meta;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
