@@ -24,6 +24,9 @@ import org.junit.rules.TemporaryFolder;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Unit tests for {@link TempBlockMeta}.
+ */
 public class TempBlockMetaTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
