@@ -29,6 +29,10 @@ import tachyon.exception.TachyonException;
  */
 public final class MkdirCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public MkdirCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

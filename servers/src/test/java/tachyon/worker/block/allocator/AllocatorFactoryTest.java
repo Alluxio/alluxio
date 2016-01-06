@@ -48,21 +48,21 @@ public class AllocatorFactoryTest {
   @Test
   public void createGreedyAllocatorTest() {
     mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    Allocator allocator = Allocator.Factory.create(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
   @Test
   public void createMaxFreeAllocatorTest() {
     mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    Allocator allocator = Allocator.Factory.create(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   @Test
   public void createRoundRobinAllocatorTest() {
     mTachyonConf.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    Allocator allocator = Allocator.Factory.create(mTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
 
@@ -70,10 +70,10 @@ public class AllocatorFactoryTest {
   public void createDefaultAllocatorTest() {
     /*
      * create a new instance of TachyonConf with original
-     * properties to test the default behavior of createAllocator
+     * properties to test the default behavior of create
      */
     TachyonConf conf = new TachyonConf();
-    Allocator allocator = Allocator.Factory.createAllocator(conf, mManagerView);
+    Allocator allocator = Allocator.Factory.create(conf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 }

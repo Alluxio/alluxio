@@ -50,6 +50,8 @@ public final class JournalTailerThread extends Thread {
   private boolean mStopped = false;
 
   /**
+   * Creates a new instance of {@link JournalTailerThread}.
+   *
    * @param master the master to apply the journal entries to
    * @param journal the journal to tail
    */
@@ -63,7 +65,7 @@ public final class JournalTailerThread extends Thread {
   }
 
   /**
-   * Initiate the shutdown of this tailer thread.
+   * Initiates the shutdown of this tailer thread.
    */
   public void shutdown() {
     LOG.info("{}: Journal tailer shutdown has been initiated.", mMaster.getName());
@@ -71,7 +73,7 @@ public final class JournalTailerThread extends Thread {
   }
 
   /**
-   * Initiate the shutdown of this tailer thread, and also wait for it to finish.
+   * Initiates the shutdown of this tailer thread, and also waits for it to finish.
    */
   public void shutdownAndJoin() {
     shutdown();

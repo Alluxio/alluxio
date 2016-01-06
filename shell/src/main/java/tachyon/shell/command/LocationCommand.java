@@ -31,6 +31,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class LocationCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public LocationCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

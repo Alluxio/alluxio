@@ -33,6 +33,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class CatCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public CatCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

@@ -46,7 +46,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   private FileSystemMasterWorkerService.Client mClient = null;
 
   /**
-   * Creates a new file system master client for the worker.
+   * Creates a instance of {@link FileSystemMasterClient}.
    *
    * @param masterAddress the master address
    * @param tachyonConf the Tachyon configuration
@@ -76,7 +76,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * @param fileId the file id
+   * @param fileId the id of the file for which to get the {@link FileInfo}
    * @return the file info for the given file id
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs

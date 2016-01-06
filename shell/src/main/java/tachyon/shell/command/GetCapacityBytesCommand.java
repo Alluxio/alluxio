@@ -26,6 +26,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public GetCapacityBytesCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

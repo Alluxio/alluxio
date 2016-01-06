@@ -2,7 +2,7 @@
  * Set of evictors for evicting or moving blocks to other locations.
  *
  * The main entry point is {@link tachyon.worker.block.evictor.Evictor} which returns an evictor by
- * calling tachyon.worker.block.Evictor.Factory#createEvictor.
+ * calling tachyon.worker.block.Evictor.Factory#create.
  *
  * <h2>Evictor</h2>
  *
