@@ -229,18 +229,16 @@ public class PathUtilsTest {
   }
 
   /**
-   * Tests the {@link PathUtils#temporaryFileName(long, long, String)} method.
+   * Tests the {@link PathUtils#temporaryFileName(long, String)} method.
    */
   @Test
   public void temporaryFileNameTest() {
-    Assert.assertEquals(PathUtils.temporaryFileName(1, 1, "/"),
-        PathUtils.temporaryFileName(1, 1, "/"));
-    Assert.assertNotEquals(PathUtils.temporaryFileName(1, 1, "/"),
-        PathUtils.temporaryFileName(1, 2, "/"));
-    Assert.assertNotEquals(PathUtils.temporaryFileName(2, 1, "/"),
-        PathUtils.temporaryFileName(1, 1, "/"));
-    Assert.assertNotEquals(PathUtils.temporaryFileName(1, 1, "/"),
-        PathUtils.temporaryFileName(1, 1, "/a"));
+    Assert.assertEquals(PathUtils.temporaryFileName(1, "/"),
+        PathUtils.temporaryFileName(1, "/"));
+    Assert.assertNotEquals(PathUtils.temporaryFileName(1, "/"),
+        PathUtils.temporaryFileName(2, "/"));
+    Assert.assertNotEquals(PathUtils.temporaryFileName(1, "/"),
+        PathUtils.temporaryFileName(1, "/a"));
   }
 
   /**

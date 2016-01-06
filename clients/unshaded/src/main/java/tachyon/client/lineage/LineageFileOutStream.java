@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
@@ -38,12 +39,12 @@ public class LineageFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream when lineage is enabled.
    *
-   * @param fileId the id of the file
+   * @param path the path of the file
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public LineageFileOutStream(long fileId, OutStreamOptions options) throws IOException {
-    super(fileId, updateOutStreamOptions(options));
+  public LineageFileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
+    super(path, updateOutStreamOptions(options));
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
