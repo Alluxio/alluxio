@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -78,52 +79,48 @@ public final class FileDataManager {
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     Map<Long, Long> blockIdToLockId = Maps.newHashMap();
-    // lock all the blocks to prevent any eviction
-    for (long blockId : blockIds) {
-      long lockId;
-      try {
-        lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+    List<Throwable> errors = new ArrayList<Throwable>();
+    try {
+      // lock all the blocks to prevent any eviction
+      for (long blockId : blockIds) {
+        long lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
         blockIdToLockId.put(blockId, lockId);
-      } catch (BlockDoesNotExistException e) {
-        throw new IOException(e);
       }
-    }
 
-    for (int i = 0; i < blockIds.size(); i ++) {
-      long blockId = blockIds.get(i);
-      long lockId = blockIdToLockId.get(blockId);
+      for (long blockId : blockIds) {
+        long lockId = blockIdToLockId.get(blockId);
 
-      // obtain block reader
-      try {
+        // obtain block reader
         BlockReader reader;
-        try {
-          reader =
-              mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-        } catch (BlockDoesNotExistException e) {
-          throw new IOException(e);
-        } catch (InvalidWorkerStateException e) {
-          throw new IOException(e);
-        }
+        reader = mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
 
         // write content out
         ReadableByteChannel inputChannel = reader.getChannel();
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
-      } catch (Exception e) {
-        // release all the other locks
-        for (int j = i + 1; j < blockIds.size(); j ++) {
-          try {
-            mBlockDataManager.unlockBlock(lockId);
-          } catch (BlockDoesNotExistException bdnee) {
-            throw new IOException(bdnee);
-          }
-        }
-      } finally {
+      }
+    } catch (BlockDoesNotExistException e) {
+      errors.add(e);
+    } catch (InvalidWorkerStateException e) {
+      errors.add(e);
+    } finally {
+      // make sure all the locks are released
+      for (long lockId : blockIdToLockId.values()) {
         try {
           mBlockDataManager.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException e) {
-          throw new IOException(e);
+        } catch (BlockDoesNotExistException bdnee) {
+          errors.add(bdnee);
         }
+      }
+
+      // there're errors on releasing locks
+      if (!errors.isEmpty()) {
+        StringBuilder errorStr = new StringBuilder();
+        errorStr.append("the blocks of file").append(fileId).append(" are failed persist\n");
+        for (Throwable e : errors) {
+          errorStr.append(e).append('\n');
+        }
+        throw new IOException(errorStr.toString());
       }
     }
 
