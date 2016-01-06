@@ -54,7 +54,9 @@ public final class FileDataManager {
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
 
+  // the file being persisted
   private final Set<Long> mPersistingInProgressFiles;
+  // the file are persisted, but not sent back to master for confirmation yet
   private final Set<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
@@ -79,10 +81,33 @@ public final class FileDataManager {
    * @param fileId the file id
    * @return true if the file is being persisted, false otherwise
    */
-  public boolean isFilePersisting(long fileId) {
+  private boolean isFilePersisting(long fileId) {
     synchronized (mPersistingInProgressFiles) {
       return mPersistedFiles.contains(fileId);
     }
+  }
+
+  /**
+   * Checks if the given file needs persistence.
+   *
+   * @param fileId the file id
+   * @return false if the file is being persisted, or is already persisted; otherwise true
+   */
+  public boolean needPersistence(long fileId) {
+    if (isFilePersisting(fileId) || isFilePersisted(fileId)) {
+      return false;
+    }
+
+    try {
+      if (fileExistsInUfs(fileId)) {
+        // mark as persisted
+        addPersistedFile(fileId);
+        return false;
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to check if file {} exists in under storage system", fileId, e);
+    }
+    return true;
   }
 
   /**
@@ -102,7 +127,7 @@ public final class FileDataManager {
    *
    * @param fileId the file id
    */
-  public synchronized void addPersistedFile(long fileId) {
+  private void addPersistedFile(long fileId) {
     synchronized (mPersistedFiles) {
       mPersistedFiles.add(fileId);
     }
@@ -204,17 +229,22 @@ public final class FileDataManager {
   }
 
   /**
-   * Populates the persisted files. This method clears the persisted files stored in
-   * {@link #mPersistedFiles} and returns those files as the value of this function.
-   *
-   * @return the persisted files
+   * @return the persisted file
    */
-  public List<Long> popPersistedFiles() {
+  public List<Long> getPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
     synchronized (mPersistedFiles) {
       toReturn.addAll(mPersistedFiles);
-      mPersistedFiles.clear();
       return toReturn;
+    }
+  }
+
+  /**
+   * Clears the given persisted files stored in {@link #mPersistedFiles}.
+   */
+  public void clearPersistedFiles(List<Long> persistedFiles) {
+    synchronized (mPersistedFiles) {
+      mPersistedFiles.removeAll(mPersistedFiles);
     }
   }
 }
