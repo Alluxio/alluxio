@@ -63,6 +63,8 @@ public final class Constants {
   public static final String SCHEME_FT = "tachyon-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
+  public static final String HEADER_OSS = "oss://";
+
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
 
@@ -142,6 +144,11 @@ public final class Constants {
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
   public static final String UNDERFS_GLUSTERFS_MR_DIR =
       "tachyon.underfs.glusterfs.mapred.system.dir";
+  public static final String UNDERFS_OSS_CONNECT_MAX = "tachyon.underfs.oss.connection.max";
+  public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
+      "tachyon.underfs.oss.connection.timeout.ms";
+  public static final String UNDERFS_OSS_CONNECT_TTL = "tachyon.underfs.oss.connection.ttl";
+  public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "tachyon.underfs.oss.socket.timeout.ms";
   public static final String UNDERFS_S3_PROXY_HOST = "tachyon.underfs.s3.proxy.host";
   public static final String UNDERFS_S3_PROXY_PORT = "tachyon.underfs.s3.proxy.port";
   public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "tachyon.underfs.s3.proxy.https.only";
@@ -366,6 +373,10 @@ public final class Constants {
   public static final String FUSE_FS_ROOT = "tachyon.fuse.fs.root";
   /** FUSE file system name */
   public static final String FUSE_FS_NAME = "tachyon.fuse.fs.name";
+
+  public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
+  public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
+  public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
