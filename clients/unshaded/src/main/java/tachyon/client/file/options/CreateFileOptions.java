@@ -158,6 +158,9 @@ public final class CreateFileOptions {
     return this;
   }
 
+  /**
+   * @return representation of this object in the form of {@link OutStreamOptions}
+   */
   public OutStreamOptions toOutStreamOptions() {
     OutStreamOptions.Builder builder = new OutStreamOptions.Builder();
     builder.setBlockSizeBytes(mBlockSizeBytes).setLocationPolicy(mLocationPolicy)

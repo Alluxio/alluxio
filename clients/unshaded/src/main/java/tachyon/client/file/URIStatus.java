@@ -160,7 +160,7 @@ public class URIStatus {
   /**
    * @return the user which owns the entity referenced by this uri, mutable
    */
-  public String getUsername() {
+  public String getUserName() {
     return mInfo.getUserName();
   }
 
