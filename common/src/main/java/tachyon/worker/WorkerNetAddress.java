@@ -18,7 +18,6 @@ package tachyon.worker;
 import com.google.common.base.Objects;
 
 import tachyon.annotation.PublicApi;
-import tachyon.thrift.NetAddress;
 
 /**
  * The network address of a worker.
@@ -45,7 +44,7 @@ public final class WorkerNetAddress {
    *
    * @param netAddress the thrift net address
    */
-  public WorkerNetAddress(NetAddress netAddress) {
+  public WorkerNetAddress(tachyon.thrift.WorkerNetAddress netAddress) {
     mHost = netAddress.host;
     mRpcPort = netAddress.rpcPort;
     mDataPort = netAddress.dataPort;
@@ -83,8 +82,8 @@ public final class WorkerNetAddress {
   /**
    * @return a net address of thrift construct
    */
-  public NetAddress toThriftNetAddress() {
-    return new NetAddress(mHost, mRpcPort, mDataPort, mWebPort);
+  public tachyon.thrift.WorkerNetAddress toThrift() {
+    return new tachyon.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
   }
 
   @Override
