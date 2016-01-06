@@ -26,7 +26,6 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
@@ -43,8 +42,8 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -61,13 +60,13 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
 /**
- * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
- * to {@link TachyonFileSystem} for most operations.
+ * Base class for Apache Hadoop based Tachyon {@link org.apache.hadoop.fs.FileSystem}. This class really just delegates
+ * to {@link tachyon.client.file.FileSystem} for most operations.
  *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
-abstract class AbstractTFS extends FileSystem {
+abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
@@ -80,7 +79,7 @@ abstract class AbstractTFS extends FileSystem {
   private URI mUri = null;
   private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
   private Statistics mStatistics = null;
-  private TachyonFileSystem mTFS = null;
+  private FileSystem mTFS = null;
   private String mTachyonHeader = null;
   private final TachyonConf mTachyonConf = ClientContext.getConf();
 
@@ -323,13 +322,13 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Gets the URI schema that maps to the {@link FileSystem}. This was introduced in Hadoop 2.x as
-   * a means to make loading new {@link FileSystem}s simpler. This doesn't exist in Hadoop 1.x, so
+   * Gets the URI schema that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was introduced in Hadoop 2.x as
+   * a means to make loading new {@link org.apache.hadoop.fs.FileSystem}s simpler. This doesn't exist in Hadoop 1.x, so
    * cannot put {@literal @Override}.
    *
    * @return schema hadoop should map to
    *
-   * @see FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
+   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
    */
   public abstract String getScheme();
 
@@ -379,7 +378,7 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Determines if zookeeper should be used for the {@link FileSystem}. This method should only be
+   * Determines if zookeeper should be used for the {@link org.apache.hadoop.fs.FileSystem}. This method should only be
    * used for {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used

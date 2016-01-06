@@ -29,7 +29,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -40,14 +40,14 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests on TachyonClient (Do not reuse the LocalTachyonCluster).
  */
-public class IsolatedTachyonFileSystemIntegrationTest {
+public class IsolatedFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
       WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB,
       Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private OutStreamOptions mWriteBoth;
 

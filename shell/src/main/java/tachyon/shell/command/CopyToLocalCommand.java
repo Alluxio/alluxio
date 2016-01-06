@@ -29,7 +29,7 @@ import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -46,7 +46,7 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CopyToLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public CopyToLocalCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

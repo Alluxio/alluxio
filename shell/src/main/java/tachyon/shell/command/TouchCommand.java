@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -29,7 +29,7 @@ import tachyon.exception.TachyonException;
  */
 public final class TouchCommand extends AbstractTfsShellCommand {
 
-  public TouchCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public TouchCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

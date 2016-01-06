@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
@@ -35,7 +35,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LocationCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public LocationCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

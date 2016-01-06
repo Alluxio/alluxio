@@ -41,7 +41,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * Collection of utility methods to handle with {@link TachyonFileSystem} related objects
+ * Collection of utility methods to handle with {@link FileSystem} related objects
  */
 public final class TachyonFileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -148,7 +148,7 @@ public final class TachyonFileSystemUtils {
   /**
    * Persist the given file to the under file system.
    *
-   * @param tfs {@link TachyonFileSystem} to carry out Tachyon operations
+   * @param tfs {@link FileSystem} to carry out Tachyon operations
    * @param file the file to persist
    * @param fileInfo the file info of the file
    * @param tachyonConf TachyonConf object
@@ -157,7 +157,7 @@ public final class TachyonFileSystemUtils {
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected Tachyon error occurs
    */
-  public static long persistFile(TachyonFileSystem tfs, TachyonFile file, FileInfo fileInfo,
+  public static long persistFile(FileSystem tfs, TachyonFile file, FileInfo fileInfo,
       TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();

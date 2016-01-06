@@ -37,7 +37,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -65,7 +65,7 @@ public class JournalIntegrationTest {
           Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
   private TachyonRawTables mTachyonRawTables = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);

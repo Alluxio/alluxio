@@ -30,7 +30,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.TachyonFileSystemUtils;
 import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -42,7 +42,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Tests for {@link tachyon.client.file.TachyonFileSystemUtils}.
  */
-public class TachyonFileSystemUtilsIntegrationTest {
+public class FileSystemUtilsIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @ClassRule
@@ -50,7 +50,7 @@ public class TachyonFileSystemUtilsIntegrationTest {
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private static OutStreamOptions sWriteBoth;
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

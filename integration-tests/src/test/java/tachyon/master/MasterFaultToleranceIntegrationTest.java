@@ -34,7 +34,7 @@ import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.collections.Pair;
@@ -52,7 +52,7 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {

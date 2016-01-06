@@ -27,7 +27,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -44,14 +44,14 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests on TachyonClient (Reuse the LocalTachyonCluster).
  */
-public class TachyonFileSystemIntegrationTest {
+public class FileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
           Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
   private OutStreamOptions mWriteBoth;
 
   @Rule

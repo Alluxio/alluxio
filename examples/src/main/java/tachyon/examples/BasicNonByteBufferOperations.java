@@ -28,7 +28,7 @@ import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -36,7 +36,7 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 
 /**
- * Basic example of using the {@link TachyonFileSystem} for writing to and reading from files.
+ * Basic example of using the {@link tachyon.client.file.FileSystem} for writing to and reading from files.
  * <p>
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
@@ -72,12 +72,12 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    TachyonFileSystem tachyonClient = TachyonFileSystem.TachyonFileSystemFactory.get();
+    FileSystem tachyonClient = FileSystem.TachyonFileSystemFactory.get();
     write(tachyonClient);
     return read(tachyonClient);
   }
 
-  private void write(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+  private void write(FileSystem tachyonClient) throws IOException, TachyonException {
     OutStreamOptions clientOptions =
         new OutStreamOptions.Builder(ClientContext.getConf()).setWriteType(mWriteType).build();
     FileOutStream fileOutStream =
@@ -93,28 +93,28 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
   }
 
-  private FileOutStream getOrCreate(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
+  private FileOutStream getOrCreate(FileSystem fileSystem, TachyonURI filePath,
       boolean deleteIfExists, OutStreamOptions clientOptions) throws IOException, TachyonException {
     TachyonFile file;
 
     try {
-      file = tachyonFileSystem.open(filePath);
+      file = fileSystem.open(filePath);
     } catch (Exception e) {
       file = null;
     }
     if (file == null) {
       // file doesn't exist yet, so create it
-      return tachyonFileSystem.getOutStream(filePath, clientOptions);
+      return fileSystem.getOutStream(filePath, clientOptions);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
-      tachyonFileSystem.delete(file);
-      return tachyonFileSystem.getOutStream(filePath, clientOptions);
+      fileSystem.delete(file);
+      return fileSystem.getOutStream(filePath, clientOptions);
     }
     // file exists and deleteIfExists is false
     throw new FileAlreadyExistsException("File exists and deleteIfExists is false");
   }
 
-  private boolean read(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+  private boolean read(FileSystem tachyonClient) throws IOException, TachyonException {
     InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
           .setReadType(mReadType).build();
 

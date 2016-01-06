@@ -31,7 +31,7 @@ import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
@@ -61,7 +61,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   @Override
   public Boolean call() throws Exception {
     TachyonRawTables tachyonRawTableClient = TachyonRawTables.TachyonRawTablesFactory.get();
-    TachyonFileSystem tachyonClient = TachyonFileSystem.TachyonFileSystemFactory.get();
+    FileSystem tachyonClient = FileSystem.TachyonFileSystemFactory.get();
     createRawTable(tachyonRawTableClient);
     write(tachyonRawTableClient);
     return read(tachyonRawTableClient, tachyonClient);
@@ -78,7 +78,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     tachyonRawTableClient.create(mTablePath, 3, data);
   }
 
-  private boolean read(TachyonRawTables tachyonRawTableClient, TachyonFileSystem tachyonClient)
+  private boolean read(TachyonRawTables tachyonRawTableClient, FileSystem tachyonClient)
       throws IOException, TachyonException {
     boolean pass = true;
 

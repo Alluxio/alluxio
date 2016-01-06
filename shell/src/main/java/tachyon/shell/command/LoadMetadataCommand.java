@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -32,7 +32,7 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LoadMetadataCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public LoadMetadataCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

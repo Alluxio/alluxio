@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -52,9 +52,9 @@ public class JournalShutdownIntegrationTest {
     private int mSuccessNum = 0;
 
     private final int mOpType; // 0:create file; 1:create raw table.
-    private final TachyonFileSystem mTfs;
+    private final FileSystem mTfs;
 
-    public ClientThread(int opType, TachyonFileSystem tfs) {
+    public ClientThread(int opType, FileSystem tfs) {
       mOpType = opType;
       mTfs = tfs;
     }

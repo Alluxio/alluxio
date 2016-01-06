@@ -21,7 +21,7 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
@@ -35,7 +35,7 @@ public final class CountCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CountCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public CountCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

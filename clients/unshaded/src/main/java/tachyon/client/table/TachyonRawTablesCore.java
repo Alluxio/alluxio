@@ -49,7 +49,7 @@ interface TachyonRawTablesCore {
   /**
    * Creates a new partition in a column of a raw table. The partition is represented as a file,
    * and the user may interact with it through the FileSystem API. See
-   * {@link tachyon.client.file.TachyonFileSystem}.
+   * {@link tachyon.client.file.FileSystem}.
    *
    * @param column the raw column under which to create the partition
    * @param partitionId the index of the partition to create
@@ -93,7 +93,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Gets the file handle for a partition of a column. A partition should be accessed through
-   * a file API. See {@link tachyon.client.file.TachyonFileSystem}.
+   * a file API. See {@link tachyon.client.file.FileSystem}.
    *
    * @param column the raw column which contains the partition
    * @param partitionId the index of the partition, which starts from 0

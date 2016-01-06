@@ -23,7 +23,7 @@ import com.google.common.base.Joiner;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.TachyonFileSystemUtils;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -38,7 +38,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public PersistCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public PersistCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
@@ -33,7 +33,7 @@ public final class RmCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public RmCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public RmCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

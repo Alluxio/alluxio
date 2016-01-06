@@ -33,7 +33,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
@@ -51,7 +51,7 @@ public class TieredStoreIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   private TachyonConf mWorkerConf;
-  private TachyonFileSystem mTFS;
+  private FileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private SetStateOptions mSetPinned;
   private SetStateOptions mSetUnpinned;

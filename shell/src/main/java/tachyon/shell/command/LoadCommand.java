@@ -26,7 +26,7 @@ import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -41,7 +41,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LoadCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public LoadCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

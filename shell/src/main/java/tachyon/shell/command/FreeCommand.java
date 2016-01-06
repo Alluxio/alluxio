@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -34,7 +34,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public FreeCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public FreeCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

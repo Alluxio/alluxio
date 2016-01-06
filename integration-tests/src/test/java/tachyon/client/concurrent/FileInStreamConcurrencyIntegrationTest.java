@@ -31,7 +31,7 @@ import tachyon.client.StreamOptionUtils;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
@@ -47,7 +47,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteTachyon;
 

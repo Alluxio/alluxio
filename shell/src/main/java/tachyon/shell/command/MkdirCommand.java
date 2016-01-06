@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -33,7 +33,7 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public MkdirCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public MkdirCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
@@ -50,7 +50,7 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public CopyFromLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public CopyFromLocalCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

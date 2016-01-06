@@ -35,7 +35,7 @@ import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
@@ -52,7 +52,7 @@ public class TfsShellUtilsTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(SIZE_BYTES, 1000, Constants.GB);
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
 
   @Before
   public final void before() throws Exception {
@@ -79,7 +79,7 @@ public class TfsShellUtilsTest {
     return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs)
+  public static String resetTachyonFileHierarchy(FileSystem tfs)
       throws IOException, TachyonException {
     /**
      * Generate such local structure /testWildCards

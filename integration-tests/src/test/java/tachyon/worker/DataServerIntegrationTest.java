@@ -42,7 +42,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -82,7 +82,7 @@ public class DataServerIntegrationTest {
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource;
-  private TachyonFileSystem mTFS = null;
+  private FileSystem mTFS = null;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
   private BlockWorkerClient mBlockWorkerClient;

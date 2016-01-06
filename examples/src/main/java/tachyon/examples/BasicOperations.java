@@ -32,7 +32,7 @@ import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -64,12 +64,12 @@ public class BasicOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+    FileSystem tFS = FileSystem.TachyonFileSystemFactory.get();
     writeFile(tFS);
     return readFile(tFS);
   }
 
-  private void writeFile(TachyonFileSystem tachyonFileSystem)
+  private void writeFile(FileSystem fileSystem)
     throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
@@ -78,20 +78,20 @@ public class BasicOperations implements Callable<Boolean> {
     }
     LOG.debug("Writing data...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    FileOutStream os = tachyonFileSystem.getOutStream(mFilePath, mWriteOptions);
+    FileOutStream os = fileSystem.getOutStream(mFilePath, mWriteOptions);
     os.write(buf.array());
     os.close();
 
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
-  private boolean readFile(TachyonFileSystem tachyonFileSystem)
+  private boolean readFile(FileSystem fileSystem)
       throws IOException, TachyonException {
     boolean pass = true;
     LOG.debug("Reading data...");
-    TachyonFile file = tachyonFileSystem.open(mFilePath);
+    TachyonFile file = fileSystem.open(mFilePath);
     final long startTimeMs = CommonUtils.getCurrentMs();
-    FileInStream is = tachyonFileSystem.getInStream(file, mReadOptions);
+    FileInStream is = fileSystem.getInStream(file, mReadOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
