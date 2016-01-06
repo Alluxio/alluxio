@@ -16,6 +16,7 @@
 package tachyon.master;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -48,6 +49,8 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.security.authentication.PlainSaslServer;
+import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
@@ -615,5 +618,69 @@ public class JournalIntegrationTest {
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
 
     fsMaster.stop();
+  }
+
+  @Test
+  @LocalTachyonClusterResource.Config(tachyonConfParams = {
+      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME})
+  public void setAclTest() throws Exception {
+    TachyonURI filePath = new TachyonURI("/file");
+
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
+    OutStreamOptions op =
+        new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSizeBytes(64).build();
+    mTfs.getOutStream(filePath, op).close();
+
+    mTfs.setOwner(filePath, "user1", false);
+    mTfs.setGroup(filePath, "group1", false);
+    mTfs.setPermission(filePath, (short) 0400, false);
+
+    FileInfo fileInfo = mTfs.getInfo(mTfs.open(filePath));
+
+    mLocalTachyonCluster.stopTFS();
+
+    aclTestUtil(fileInfo);
+    deleteFsMasterJournalLogs();
+    aclTestUtil(fileInfo);
+  }
+
+  private void aclTestUtil(FileInfo fileInfo) throws Exception {
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+
+    PlainSaslServer.AuthorizedClientUser.set("user1");
+    FileInfo info = fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/file")));
+    Assert.assertEquals(fileInfo, info);
+
+    fsMaster.stop();
+  }
+
+  public static class FakeUserGroupsMapping implements GroupMappingService {
+    // The fullly qualified class name of this group mapping service. This is needed to configure
+    // the tachyon cluster
+    public static final String FULL_CLASS_NAME =
+        "tachyon.master.JournalIntegrationTest$FakeUserGroupsMapping";
+
+    private HashMap<String, String> mUserGroups = new HashMap<String, String>();
+
+    public FakeUserGroupsMapping() {
+      mUserGroups.put("tachyon", "supergroup");
+      mUserGroups.put("user1", "group1");
+      mUserGroups.put("others", "anygroup");
+    }
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      if (mUserGroups.containsKey(user)) {
+        return Lists.newArrayList(mUserGroups.get(user).split(","));
+      }
+      return Lists.newArrayList(mUserGroups.get("others").split(","));
+    }
+
+    @Override
+    public void setConf(TachyonConf conf) throws IOException {
+      // no-op
+    }
   }
 }

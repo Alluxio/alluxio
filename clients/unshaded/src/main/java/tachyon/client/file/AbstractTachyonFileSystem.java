@@ -258,4 +258,37 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       mContext.releaseMasterClient(masterClient);
     }
   }
+
+  @Override
+  public boolean setOwner(TachyonURI path, String user, boolean recursive) throws TachyonException,
+      IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.setOwner(path.getPath(), user, recursive);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public boolean setGroup(TachyonURI path, String group, boolean recursive) throws TachyonException,
+      IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.setGroup(path.getPath(), group, recursive);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public boolean setPermission(TachyonURI path, short permission, boolean recursive)
+      throws TachyonException, IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.setPermission(path.getPath(), permission, recursive);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
 }
