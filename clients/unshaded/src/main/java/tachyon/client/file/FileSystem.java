@@ -46,7 +46,7 @@ import tachyon.exception.TachyonException;
  * by the default implementation.
  */
 @PublicApi
-interface FileSystem {
+public interface FileSystem {
   /**
    * Convenience method for {@link #createDirectory(TachyonURI, CreateDirectoryOptions)} with
    * default options.
