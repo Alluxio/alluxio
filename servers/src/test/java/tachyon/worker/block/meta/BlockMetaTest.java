@@ -27,6 +27,9 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Unit tests for {@link BlockMeta}.
+ */
 public class BlockMetaTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;

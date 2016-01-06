@@ -19,8 +19,15 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * The method option for retrieving a list of lineage information.
+ */
 @PublicApi
 public final class GetLineageInfoListOptions {
+
+  /**
+   * The builder for the {@link GetLineageInfoListOptions} class.
+   */
   public static class Builder {
     /**
      * Creates a new builder for {@link GetLineageInfoListOptions}.
@@ -45,5 +52,4 @@ public final class GetLineageInfoListOptions {
   }
 
   private GetLineageInfoListOptions(GetLineageInfoListOptions.Builder buidler) {}
-
 }

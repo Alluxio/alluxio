@@ -28,6 +28,10 @@ import tachyon.exception.TachyonException;
  */
 public final class MvCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public MvCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

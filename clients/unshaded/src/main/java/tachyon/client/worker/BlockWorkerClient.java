@@ -75,6 +75,8 @@ public final class BlockWorkerClient extends ClientBase {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
+   * @param sessionId the id of the session
+   * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
@@ -191,7 +193,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * Opens the connection to the worker. And start the heartbeat thread.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   private synchronized void connectOperation() throws IOException {
     if (!mConnected) {
@@ -262,7 +264,7 @@ public final class BlockWorkerClient extends ClientBase {
    *
    * @param blockId The id of the block
    * @return the path of the block file locked
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   public synchronized LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
@@ -285,7 +287,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * Connects to the worker.
    *
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   // TODO(jiezhou): Consider merging the connect logic in this method into the super class.
   @Override
@@ -324,7 +326,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
    * @return the temporary path of the block
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
@@ -350,7 +352,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if a non-Tachyon exception occurs
    */
   public synchronized boolean requestSpace(final long blockId, final long requestBytes) throws
           IOException {

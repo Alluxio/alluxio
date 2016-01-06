@@ -27,6 +27,9 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+/**
+ * Unit tests for {@link TTLBucketList}.
+ */
 public class TTLBucketListTest {
   private static final long BUCKET_INTERVAL = 10;
   private static final long BUCKET1_START = 0;

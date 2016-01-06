@@ -20,6 +20,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link MaxFreeAllocator}.
+ */
 public class MaxFreeAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
