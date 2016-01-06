@@ -39,7 +39,6 @@ import com.google.common.collect.Range;
 import com.google.protobuf.ByteString;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
 import tachyon.proto.journal.File.AddMountPointEntry;
@@ -56,6 +55,9 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
+import tachyon.proto.journal.KeyValue.CompletePartitionEntry;
+import tachyon.proto.journal.KeyValue.CompleteStoreEntry;
+import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -63,6 +65,7 @@ import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
+import tachyon.TachyonURI;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -93,6 +96,8 @@ public abstract class JournalFormatterTestBase {
   protected static final PermissionStatus TEST_PERMISSION_STATUS =
       new PermissionStatus("user1", "group1", (short)0777);
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
+  protected static final String TEST_KEY1 = "test_key1";
+  protected static final String TEST_KEY2 = "test_key2";
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -249,6 +254,23 @@ public abstract class JournalFormatterTestBase {
                 .setPersisted(true)
                 .setTtl(TEST_TTL))
             .build())
+        .add(
+            JournalEntry.newBuilder()
+            .setCompletePartition(CompletePartitionEntry.newBuilder()
+                .setBlockId(TEST_BLOCK_ID)
+                .setKeyLimit(TEST_KEY1)
+                .setKeyStart(TEST_KEY2))
+            .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCreateStore(CreateStoreEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setCompleteStore(CompleteStoreEntry.newBuilder()
+                    .setStoreId(TEST_FILE_ID))
+                .build())
         .build();
     // Add the test sequence number to every journal entry
     ENTRIES_LIST = Lists.transform(entries, new Function<JournalEntry, JournalEntry>() {
