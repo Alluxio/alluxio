@@ -13,29 +13,27 @@
  * the License.
  */
 
-package tachyon.underfs.swift;
+package tachyon.underfs.oss;
 
-import org.apache.hadoop.conf.Configuration;
+import org.junit.Assert;
+import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Utility methods for the Swift implementation of the {@link tachyon.underfs.UnderFileSystem}.
+ * This test ensures the OSS ufs module correctly accepts paths that begin with oss://
  */
-public class SwiftUnderFileSystemUtils {
+public class OSSUnderFileSystemFactoryTest {
+  @Test
+  public void factoryTest() {
+    TachyonConf conf = new TachyonConf();
 
-  /**
-   * Replaces default key with user provided key.
-   *
-   * @param conf the Hadoop configuration
-   * @param tachyonConf the Tachyon configuration
-   * @param key the key to add
-   */
-  public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
-    if (System.getProperty(key) != null && conf.get(key) == null) {
-      conf.set(key, System.getProperty(key));
-    } else if (tachyonConf.containsKey(key)) {
-      conf.set(key, tachyonConf.get(key));
-    }
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path", conf);
+
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for oss paths when using this module", factory);
   }
+
 }

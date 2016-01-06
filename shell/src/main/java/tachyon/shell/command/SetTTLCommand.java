@@ -29,6 +29,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class SetTTLCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public SetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }

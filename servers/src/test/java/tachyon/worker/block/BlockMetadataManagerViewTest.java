@@ -37,6 +37,9 @@ import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
+/**
+ * Unit tests for {@link BlockMetadataManagerView}.
+ */
 public final class BlockMetadataManagerViewTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final int TEST_DIR = 0;
