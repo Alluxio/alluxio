@@ -91,8 +91,8 @@ public final class FileDataManager {
         long lockId = blockIdToLockId.get(blockId);
 
         // obtain block reader
-        BlockReader reader;
-        reader = mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+        BlockReader reader =
+            mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
 
         // write content out
         ReadableByteChannel inputChannel = reader.getChannel();
@@ -113,7 +113,6 @@ public final class FileDataManager {
         }
       }
 
-      // there're errors on releasing locks
       if (!errors.isEmpty()) {
         StringBuilder errorStr = new StringBuilder();
         errorStr.append("the blocks of file").append(fileId).append(" are failed persist\n");
