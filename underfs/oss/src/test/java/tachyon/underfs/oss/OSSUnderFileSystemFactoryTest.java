@@ -13,41 +13,27 @@
  * the License.
  */
 
-package tachyon.shell.command;
+package tachyon.underfs.oss;
 
-import java.io.IOException;
+import org.junit.Assert;
+import org.junit.Test;
 
-import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
- * never evicted from memory.
+ * This test ensures the OSS ufs module correctly accepts paths that begin with oss://
  */
-public final class PinCommand extends WithWildCardPathCommand {
+public class OSSUnderFileSystemFactoryTest {
+  @Test
+  public void factoryTest() {
+    TachyonConf conf = new TachyonConf();
 
-  /**
-   * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
-   */
-  public PinCommand(TachyonConf conf, TachyonFileSystem tfs) {
-    super(conf, tfs);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path", conf);
+
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for oss paths when using this module", factory);
   }
 
-  @Override
-  public String getCommandName() {
-    return "pin";
-  }
-
-  @Override
-  void runCommand(TachyonURI path) throws IOException {
-    CommandUtils.setPinned(mTfs, path, true);
-    System.out.println("File '" + path + "' was successfully pinned.");
-  }
-
-  @Override
-  public String getUsage() {
-    return "pin <path>";
-  }
 }

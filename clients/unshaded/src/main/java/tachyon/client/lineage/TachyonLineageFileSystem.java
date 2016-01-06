@@ -35,6 +35,9 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   private static TachyonLineageFileSystem sTachyonFileSystem;
   private LineageContext mContext;
 
+  /**
+   * @return the current lineage file system for Tachyon
+   */
   public static synchronized TachyonLineageFileSystem get() {
     if (sTachyonFileSystem == null) {
       sTachyonFileSystem = new TachyonLineageFileSystem();
@@ -51,6 +54,8 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * A file is created when its lineage is added. This method reinitializes the created file. But
    * it's no-op if the file is already completed.
    *
+   * @param path the path to the file
+   * @param options the set of options specific to this operation
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws IOException if the recreation fails
@@ -71,6 +76,12 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   /**
    * Gets the output stream for lineage job. If the file already exists on master, returns a dummy
    * output stream.
+   *
+   * @param path the Tachyon path of the file
+   * @param options the set of options specific to this operation
+   * @return an output stream to write the file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
   @Override
   public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
@@ -88,6 +99,14 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     return new LineageFileOutStream(fileId, options);
   }
 
+  /**
+   * Reports a file as lost.
+   *
+   * @param path the path to the lost file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   public void reportLostFile(TachyonURI path)
       throws IOException, FileDoesNotExistException, TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
