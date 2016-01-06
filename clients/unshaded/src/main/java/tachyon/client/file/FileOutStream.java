@@ -302,7 +302,7 @@ public class FileOutStream extends AbstractOutStream {
       FileInfo fileInfo = client.getFileInfo(mFileId);
       mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(client);
     }
