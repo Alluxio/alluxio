@@ -46,7 +46,7 @@ import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -94,7 +94,7 @@ public final class MetricsCountersTest {
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
+    mWorkerId = mBlockMaster.getWorkerId(new WorkerNetAddress("localhost", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),

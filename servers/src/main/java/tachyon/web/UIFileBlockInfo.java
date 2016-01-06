@@ -25,7 +25,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 
 public final class UIFileBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
@@ -73,7 +73,7 @@ public final class UIFileBlockInfo {
       locations.add(location.getWorkerAddress().getHost());
     }
     // add underFS locations
-    for (NetAddress address : fileBlockInfo.getUfsLocations()) {
+    for (WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
       locations.add(address.getHost());
     }
     mLocations.addAll(locations);

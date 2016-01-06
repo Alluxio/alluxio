@@ -26,7 +26,6 @@ import tachyon.client.Utils;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
