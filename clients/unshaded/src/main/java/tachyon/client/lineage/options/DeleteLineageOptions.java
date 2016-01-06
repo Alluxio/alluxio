@@ -19,8 +19,15 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
+/**
+ * The method option for deleting a lineage.
+ */
 @PublicApi
 public final class DeleteLineageOptions {
+
+  /**
+   * Builder for the {@link DeleteLineageOptions} class.
+   */
   public static class Builder {
     private boolean mCascade;
 
