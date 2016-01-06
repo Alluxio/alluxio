@@ -244,7 +244,7 @@ public final class FileDataManager {
    */
   public void clearPersistedFiles(List<Long> persistedFiles) {
     synchronized (mPersistedFiles) {
-      mPersistedFiles.removeAll(mPersistedFiles);
+      mPersistedFiles.removeAll(persistedFiles);
     }
   }
 }
