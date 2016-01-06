@@ -188,6 +188,30 @@ service FileSystemMasterClientService extends common.TachyonService {
    */
   bool unmount( /** the path of the tachyon mount point */ 1: string tachyonPath)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
+
+  /**
+   * Sets the owner of a path.
+   */
+  bool setOwner( /** the path of file or directory */ 1: string path,
+       /** the user to be set as owner */ 2: string user,
+       /** whether to set owner recursively under a directory */ 3: bool recursive)
+    throws (1: exception.TachyonTException e)
+
+  /**
+   * Sets the group of a path.
+   */
+  bool setGroup( /** the path of file or directory */ 1: string path,
+       /** the group to be set */ 2: string group,
+       /** whether to set group recursively under a directory */ 3: bool recursive)
+    throws (1: exception.TachyonTException e)
+
+  /**
+   * Sets the permission of a path.
+   */
+  bool setPermission( /** the path of file or directory */ 1: string path,
+       /** the permission to be set */ 2: i32 permission,
+       /** whether to set permission recursively under a directory */ 3: bool recursive)
+    throws (1: exception.TachyonTException e)
 }
 
 /**

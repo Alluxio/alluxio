@@ -222,4 +222,32 @@ public final class FileSystemMasterClientServiceHandler implements
       throw new ThriftIOException(e.getMessage());
     }
   }
+
+  @Override
+  public boolean setOwner(String path, String user, boolean recursive) throws TachyonTException {
+    try {
+      return mFileSystemMaster.setOwner(new TachyonURI(path), user, recursive);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
+  public boolean setGroup(String path, String group, boolean recursive) throws TachyonTException {
+    try {
+      return mFileSystemMaster.setGroup(new TachyonURI(path), group, recursive);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
+  public boolean setPermission(String path, int permission, boolean recursive) throws
+      TachyonTException {
+    try {
+      return mFileSystemMaster.setPermission(new TachyonURI(path), (short) permission, recursive);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
 }
