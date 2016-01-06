@@ -25,8 +25,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
-import tachyon.master.MasterContext;
-import tachyon.master.TachyonMaster;
 import tachyon.metrics.source.Source;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
