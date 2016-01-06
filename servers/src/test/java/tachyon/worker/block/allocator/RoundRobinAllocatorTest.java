@@ -20,6 +20,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link RoundRobinAllocator}.
+ */
 public class RoundRobinAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
