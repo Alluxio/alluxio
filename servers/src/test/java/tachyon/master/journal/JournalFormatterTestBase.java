@@ -42,6 +42,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
+import tachyon.proto.journal.File;
 import tachyon.proto.journal.File.AddMountPointEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
 import tachyon.proto.journal.File.DeleteFileEntry;
@@ -248,6 +249,15 @@ public abstract class JournalFormatterTestBase {
                 .setPinned(true)
                 .setPersisted(true)
                 .setTtl(TEST_TTL))
+            .build())
+        .add(
+            JournalEntry.newBuilder()
+            .setSetAcl(File.SetAclEntry.newBuilder()
+                .setId(TEST_FILE_ID)
+                .setOpTimeMs(TEST_OP_TIME_MS)
+                .setUserName(TEST_PERMISSION_STATUS.getUserName())
+                .setGroupName(TEST_PERMISSION_STATUS.getGroupName())
+                .setPermission(TEST_PERMISSION_STATUS.getPermission().toShort()))
             .build())
         .build();
     // Add the test sequence number to every journal entry

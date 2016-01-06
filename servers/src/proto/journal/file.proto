@@ -101,6 +101,15 @@ message RenameEntry {
 }
 
 // next available id: 6
+message SetAclEntry {
+  optional int64 id = 1;
+  optional int64 op_time_ms = 2;
+  optional string user_name = 3;
+  optional string group_name = 4;
+  optional int32 permission = 5;
+}
+
+// next available id: 6
 message SetStateEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;

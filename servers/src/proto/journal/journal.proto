@@ -7,7 +7,7 @@ import "journal/lineage.proto";
 import "journal/raw_table.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 23
+// next available id: 24
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -30,6 +30,7 @@ message JournalEntry {
     RawTableEntry raw_table = 18;
     ReinitializeFileEntry reinitialize_file = 19;
     RenameEntry rename = 20;
+    SetAclEntry set_acl = 23;
     SetStateEntry set_state = 21;
     UpdateMetadataEntry update_metadata = 22;
   }
