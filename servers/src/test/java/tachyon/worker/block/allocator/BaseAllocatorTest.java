@@ -58,7 +58,7 @@ public class BaseAllocatorTest {
   public static final int DEFAULT_SSD_NUM  = TIER_PATH[1].length;
   public static final int DEFAULT_HDD_NUM  = TIER_PATH[2].length;
 
-  protected BlockMetadataManagerView mManagerView = null;
+  protected BlockMetadataManager mManager = null;
   protected Allocator mAllocator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
@@ -78,9 +78,7 @@ public class BaseAllocatorTest {
     String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
-    BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
-    mManagerView = new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
-        new HashSet<Long>());
+    mManager = BlockMetadataManager.newBlockMetadataManager();
   }
 
   /**
@@ -91,9 +89,8 @@ public class BaseAllocatorTest {
       long blockSize, boolean avail) throws IOException {
 
     mTestBlockId ++;
-
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -117,7 +114,7 @@ public class BaseAllocatorTest {
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, getManagerView());
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -135,5 +132,9 @@ public class BaseAllocatorTest {
       //update the dir meta info
       pDir.addBlockMeta(new BlockMeta(mTestBlockId, blockSize, pDir));
     }
+  }
+
+  protected BlockMetadataManagerView getManagerView() {
+    return new BlockMetadataManagerView(mManager, new HashSet<Long>(), new HashSet<Long>());
   }
 }
