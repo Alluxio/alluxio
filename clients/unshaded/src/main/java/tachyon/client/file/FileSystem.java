@@ -47,6 +47,12 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public interface FileSystem {
+  class Factory {
+    public static FileSystem create() {
+      return new BaseFileSystem();
+    }
+  }
+
   /**
    * Convenience method for {@link #createDirectory(TachyonURI, CreateDirectoryOptions)} with
    * default options.

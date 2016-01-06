@@ -48,6 +48,10 @@ import tachyon.thrift.FileInfo;
 */
 @PublicApi
 public class BaseFileSystem implements FileSystem {
+  protected BaseFileSystem() {
+    // BaseFileSystem currently has no state
+  }
+
   @Override
   public void createDirectory(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {

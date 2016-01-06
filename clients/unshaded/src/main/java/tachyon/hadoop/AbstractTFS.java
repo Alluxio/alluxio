@@ -355,7 +355,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
     ClientContext.reset(mTachyonConf);
 
-    mTFS = TachyonFileSystemFactory.get();
+    mTFS = FileSystem.Factory.create();
     mUri = URI.create(mTachyonHeader);
     mUnderFSAddress = getUfsAddress();
     LOG.info("{} {} {}", mTachyonHeader, mUri, mUnderFSAddress);
