@@ -40,6 +40,9 @@ import tachyon.thrift.LineageInfo;
 public final class TachyonLineage extends AbstractLineageClient {
   private static TachyonLineage sTachyonLineage;
 
+  /**
+   * @return the current lineage for Tachyon
+   */
   public static synchronized TachyonLineage get() {
     if (sTachyonLineage == null) {
       if (!ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
@@ -57,6 +60,15 @@ public final class TachyonLineage extends AbstractLineageClient {
   /**
    * Convenience method for {@link #createLineage(List, List, Job, CreateLineageOptions)} with
    * default options.
+   *
+   * @param inputFiles the files that the job depends on
+   * @param outputFiles the files that the job outputs
+   * @param job the job that takes the listed input file and computes the output file
+   * @return the lineage id
+   * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
+   *         as an output file of an existing lineage
+   * @throws TachyonException if an unexpected tachyon error occurs
+   * @throws IOException if the master cannot create the lineage
    */
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
       throws FileDoesNotExistException, TachyonException, IOException {
@@ -65,6 +77,13 @@ public final class TachyonLineage extends AbstractLineageClient {
 
   /**
    * Convenience method for {@link #deleteLineage(long, DeleteLineageOptions)} with default options.
+   *
+   * @param lineageId the id of the lineage
+   * @return true if the lineage deletion is successful, false otherwise
+   * @throws IOException if the master cannot delete the lineage
+   * @throws LineageDoesNotExistException if the lineage does not exist
+   * @throws LineageDeletionException if the deletion is cascade but the lineage has children
+   * @throws TachyonException if an unexpected tachyon error occurs
    */
   public boolean deleteLineage(long lineageId)
       throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException {
@@ -74,6 +93,9 @@ public final class TachyonLineage extends AbstractLineageClient {
   /**
    * Convenience method for {@link #getLineageInfoList(GetLineageInfoListOptions)} with default
    * options.
+   *
+   * @return the information about lineages
+   * @throws IOException if the master cannot list the lineage info
    */
   public List<LineageInfo> getLineageInfoList() throws IOException {
     return getLineageInfoList(GetLineageInfoListOptions.defaults());

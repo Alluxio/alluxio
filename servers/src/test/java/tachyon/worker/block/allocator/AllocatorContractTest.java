@@ -33,14 +33,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
 
 /**
- * This is the class to test the "contact" of different kinds of allocators,
- * i.e., the general properties the allocators need to follow
+ * This is the class to test the "contract" of different kinds of allocators,
+ * i.e., the general properties the allocators need to follow.
  */
 public class AllocatorContractTest extends BaseAllocatorTest {
   protected List<String> mStrategies;
 
   /**
-   *  Try to find all implementation classes of {@link Allocator} in the same package
+   *  Try to find all implementation classes of {@link Allocator} in the same package.
    */
   @Before
   @Override

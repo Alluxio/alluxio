@@ -38,7 +38,10 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
-public final class TieredBlockStoreTests {
+/**
+ * Unit tests for {@link TieredBlockStore}.
+ */
+public final class TieredBlockStoreTest {
   private static final long SESSION_ID1 = 2;
   private static final long SESSION_ID2 = 3;
   private static final long BLOCK_ID1 = 1000;

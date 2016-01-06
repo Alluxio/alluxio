@@ -70,6 +70,9 @@ public final class TachyonBlockStoreTest {
   private static final BlockInfo BLOCK_INFO = new BlockInfo(BLOCK_ID, BLOCK_LENGTH,
       Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
 
+  /**
+   * The rule for a temporary folder.
+   */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
@@ -88,6 +91,8 @@ public final class TachyonBlockStoreTest {
    * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
    * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should
    *    return the path to {@link #mTestFile}.
+   *
+   * @throws Exception when acquiring a worker client fails
    */
   @Before
   public void before() throws Exception {
@@ -112,6 +117,8 @@ public final class TachyonBlockStoreTest {
   /**
    * Tests {@link TachyonBlockStore#getInStream(long)} when a local block exists, making sure that
    * the local block is preferred.
+   *
+   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
@@ -132,6 +139,8 @@ public final class TachyonBlockStoreTest {
   /**
    * Tests {@link TachyonBlockStore#getInStream(long)} when no local block exists, making sure that
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
+   *
+   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {

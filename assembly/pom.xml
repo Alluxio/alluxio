@@ -41,6 +41,11 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-oss</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-s3</artifactId>
       <version>${project.version}</version>
     </dependency>
