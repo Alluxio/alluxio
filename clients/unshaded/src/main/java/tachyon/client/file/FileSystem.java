@@ -52,13 +52,12 @@ interface FileSystem {
    * default options.
    *
    * @param path the path of the directory to create in Tachyon space
-   * @return the {@link TachyonURI} referencing the newly created directory
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected exception is thrown
    */
-  TachyonURI createDirectory(TachyonURI path)
+  void createDirectory(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
   /**
@@ -66,13 +65,12 @@ interface FileSystem {
    *
    * @param path the path of the directory to create in Tachyon space
    * @param options options to associate with this operation
-   * @return the {@link TachyonURI} referencing the newly created directory
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
-  TachyonURI createDirectory(TachyonURI path, CreateDirectoryOptions options)
+  void createDirectory(TachyonURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException;
 
   /**
@@ -230,12 +228,11 @@ interface FileSystem {
    * options.
    *
    * @param path the path for which to load metadata from UFS
-   * @return the {@link TachyonURI} referencing the new path available in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
-  TachyonURI loadMetadata(TachyonURI path)
+  void loadMetadata(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
@@ -243,12 +240,11 @@ interface FileSystem {
    *
    * @param path the path for which to load metadata from UFS
    * @param options options to associate with this operation
-   * @return the {@link TachyonURI} referencing the new path available in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws TachyonException if an unexpected Tachyon exception is thrown
    */
-  TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options)
+  void loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, TachyonException;
 
   /**

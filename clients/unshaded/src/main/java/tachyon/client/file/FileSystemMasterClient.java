@@ -108,18 +108,15 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the directory path
    * @param options method options
-   * @return the uri referencing the newly created directory
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized TachyonURI createDirectory(final TachyonURI path,
+  public synchronized void createDirectory(final TachyonURI path,
       final CreateDirectoryOptions options) throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<TachyonURI>() {
+    retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
       @Override
-      public TachyonURI call() throws TachyonTException, TException {
-        mClient.mkdir(path.getPath(), options.toThrift());
-        // TODO(calvin): Look into changing the master side implementation to return a uri
-        return path;
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.mkdir(path.getPath(), options.toThrift());
       }
     });
   }
@@ -544,11 +541,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the path of the file to load metadata for
    * @param options method options
-   * @return the path of the loaded file
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized TachyonURI loadMetadata(final TachyonURI path,
+  public synchronized void loadMetadata(final TachyonURI path,
       final LoadMetadataOptions options) throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
@@ -556,8 +552,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
         return mClient.loadMetadata(path.toString(), options.isRecursive());
       }
     });
-    // TODO(calvin): Look into changing the master side implementation to return a uri
-    return path;
   }
 
   /**
