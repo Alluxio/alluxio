@@ -148,7 +148,8 @@ public final class TachyonBlockStore {
       }
     }
     // No local worker/block, get the first location since it's nearest to memory tier.
-    tachyon.thrift.WorkerNetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+    tachyon.thrift.WorkerNetAddress workerNetAddress =
+        blockInfo.locations.get(0).getWorkerAddress();
     return new RemoteBlockInStream(blockId, blockInfo.getLength(),
         new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort()));
   }
