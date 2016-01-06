@@ -22,6 +22,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link MetricsConfig}.
+ */
 public class MetricsConfigTest {
   private Properties mMetricsProps;
 

@@ -20,6 +20,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link GreedyAllocator}.
+ */
 public class GreedyAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {

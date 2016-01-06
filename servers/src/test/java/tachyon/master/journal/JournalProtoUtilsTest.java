@@ -26,7 +26,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.proto.journal.File.AddMountPointEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
 /**
- * Tests for {@link JournalProtoUtils}.
+ * Unit tests for {@link JournalProtoUtils}.
  */
 public final class JournalProtoUtilsTest {
 

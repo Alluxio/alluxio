@@ -26,6 +26,9 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Unit tests for {@link StorageTier}.
+ */
 public class StorageTierTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_TEMP_BLOCK_ID = 10;

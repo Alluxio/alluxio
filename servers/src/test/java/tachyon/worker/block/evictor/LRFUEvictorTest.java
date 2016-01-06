@@ -43,8 +43,8 @@ import tachyon.worker.block.allocator.MaxFreeAllocator;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Sanity check on specific behavior of {@link LRFUEvictor} such as evicting/moving least blocks
- * with minimum CRF value and cascading LRFU eviction.
+ * Unit tests for specific behavior of {@link LRFUEvictor} such as evicting/moving blocks with
+ * minimum CRF value and cascading LRFU eviction.
  */
 public class LRFUEvictorTest {
   private static final long SESSION_ID = 2;
