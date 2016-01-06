@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.AbstractOutStream;
+import tachyon.client.ClientContext;
 import tachyon.util.io.ByteIOUtils;
 
 /**
@@ -48,6 +49,8 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   private boolean mClosed;
   /** whether this writer is canceled */
   private boolean mCanceled;
+  /** maximum size of this partition in bytes */
+  private long mMaxSizeBytes;
 
   /**
    * Constructs a {@link BaseKeyValuePartitionWriter} given an output stream.
@@ -64,6 +67,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
     mCanceled = false;
+    mMaxSizeBytes = ClientContext.getConf().getBytes(Constants.KEYVALUE_PARTITION_SIZE_BYTES_MAX);
   }
 
   @Override
@@ -91,14 +95,14 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(value);
     Preconditions.checkState(!mClosed);
+    Preconditions.checkState(!isFull());
     mIndex.put(key, value, mPayloadWriter);
     mKeyCount ++;
   }
 
   @Override
   public boolean isFull() {
-    // TODO(binfan): make this configurable.
-    return byteCount() >= Constants.GB;
+    return byteCount() >= mMaxSizeBytes;
   }
 
   /**
