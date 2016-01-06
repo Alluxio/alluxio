@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -50,7 +50,7 @@ public class LocalBlockInStreamIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.GB);
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
   private static OutStreamOptions sWriteBoth;
   private static OutStreamOptions sWriteTachyon;
   private static InStreamOptions sReadNoCache;

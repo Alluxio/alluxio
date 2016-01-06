@@ -23,7 +23,7 @@ import java.util.List;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
@@ -34,7 +34,7 @@ import tachyon.util.FormatUtils;
  */
 public abstract class AbstractLsCommand extends WithWildCardPathCommand {
 
-  protected AbstractLsCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  protected AbstractLsCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

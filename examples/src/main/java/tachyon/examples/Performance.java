@@ -24,7 +24,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,7 @@ import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
@@ -50,7 +49,7 @@ public class Performance {
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
-  private static TachyonFileSystem sTFS = null;
+  private static FileSystem sTFS = null;
   private static TachyonURI sMasterAddress = null;
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
@@ -181,11 +180,11 @@ public class Performance {
   }
 
   public static class TachyonWriterWorker extends Worker {
-    private TachyonFileSystem mTFS;
+    private FileSystem mTFS;
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      mTFS = FileSystem.TachyonFileSystemFactory.get();
     }
 
     public void writePartition()
@@ -220,11 +219,11 @@ public class Performance {
   }
 
   public static class TachyonReadWorker extends Worker {
-    private TachyonFileSystem mTFS;
+    private FileSystem mTFS;
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      mTFS = FileSystem.TachyonFileSystemFactory.get();
     }
 
     public void readPartition()
@@ -305,7 +304,7 @@ public class Performance {
   public static class HdfsWorker extends Worker {
     private boolean mWrite;
     private String mMsg;
-    private FileSystem mHdfsFs;
+    private org.apache.hadoop.fs.FileSystem mHdfsFs;
 
     public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg)
         throws IOException {
@@ -327,7 +326,7 @@ public class Performance {
       // System.loadLibrary("hdfs");
       // System.loadLibrary("hadoop");
 
-      mHdfsFs = FileSystem.get(tConf);
+      mHdfsFs = org.apache.hadoop.fs.FileSystem.get(tConf);
     }
 
     public void io() throws IOException {
@@ -542,13 +541,13 @@ public class Performance {
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      sTFS = FileSystem.TachyonFileSystemFactory.get();
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+      sTFS = FileSystem.TachyonFileSystemFactory.get();
       sTachyonStreamingRead = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {

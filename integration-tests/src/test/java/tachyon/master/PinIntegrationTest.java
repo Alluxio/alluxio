@@ -33,7 +33,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.worker.file.FileSystemMasterClient;
@@ -44,7 +44,7 @@ public class PinIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(1000, 1000, Constants.GB);
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
   private FileSystemMasterClient mFSMasterClient;
   private SetStateOptions mSetPinned;
   private SetStateOptions mUnsetPinned;

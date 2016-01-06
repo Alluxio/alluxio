@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -49,7 +49,7 @@ public class FileInStreamIntegrationTest {
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE);
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static OutStreamOptions sWriteBoth;
   private static OutStreamOptions sWriteTachyon;

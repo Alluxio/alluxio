@@ -29,7 +29,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.thrift.RawTableInfo;
 import tachyon.util.io.BufferUtils;
 
@@ -41,13 +41,13 @@ public class RawTableIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
       10000, 1000, Constants.GB, Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-  private TachyonFileSystem mTachyonFileSystem = null;
+  private FileSystem mFileSystem = null;
   private TachyonRawTables mTachyonRawTables = null;
   private int mMaxCols = 1000;
 
   @Before
   public final void before() throws Exception {
-    mTachyonFileSystem = TachyonFileSystem.TachyonFileSystemFactory.get();
+    mFileSystem = FileSystem.TachyonFileSystemFactory.get();
     mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
     mMaxCols =
         mLocalTachyonClusterResource.get().getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);
@@ -152,7 +152,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getColumn(k);
       TachyonFile file = mTachyonRawTables.openPartition(rawCol, 0);
-      FileInStream is = mTachyonFileSystem.getInStream(file);
+      FileInStream is = mFileSystem.getInStream(file);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -162,7 +162,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getColumn(k);
       TachyonFile file = mTachyonRawTables.openPartition(rawCol, 0);
-      FileInStream is = mTachyonFileSystem.getInStream(file);
+      FileInStream is = mFileSystem.getInStream(file);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);

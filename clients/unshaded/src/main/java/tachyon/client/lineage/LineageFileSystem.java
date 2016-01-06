@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDoesNotExistException;
@@ -31,21 +31,21 @@ import tachyon.exception.TachyonException;
  * operations.
  */
 @PublicApi
-public class TachyonLineageFileSystem extends TachyonFileSystem {
-  private static TachyonLineageFileSystem sTachyonFileSystem;
+public class LineageFileSystem extends FileSystem {
+  private static LineageFileSystem sTachyonFileSystem;
   private LineageContext mContext;
 
   /**
    * @return the current lineage file system for Tachyon
    */
-  public static synchronized TachyonLineageFileSystem get() {
+  public static synchronized LineageFileSystem get() {
     if (sTachyonFileSystem == null) {
-      sTachyonFileSystem = new TachyonLineageFileSystem();
+      sTachyonFileSystem = new LineageFileSystem();
     }
     return sTachyonFileSystem;
   }
 
-  protected TachyonLineageFileSystem() {
+  protected LineageFileSystem() {
     super();
     mContext = LineageContext.INSTANCE;
   }

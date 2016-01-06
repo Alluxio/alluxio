@@ -25,7 +25,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -39,13 +39,13 @@ public class UfsUtilsIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(10000, 1000, 128);
-  private TachyonFileSystem mTachyonFileSystem = null;
+  private FileSystem mFileSystem = null;
   private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
 
   @Before
   public final void before() throws Exception {
-    mTachyonFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
 
     TachyonConf masterConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
@@ -72,17 +72,17 @@ public class UfsUtilsIntegrationTest {
           mLocalTachyonClusterResource.get().getMasterTachyonConf());
     }
 
-    UfsUtils.loadUfs(mTachyonFileSystem, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(
+    UfsUtils.loadUfs(mFileSystem, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(
         mUfsRoot + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
         mLocalTachyonClusterResource.get().getMasterTachyonConf());
 
     List<String> paths;
     for (String exclusion : exclusions) {
-      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, exclusion);
+      paths = TachyonFSTestUtils.listFiles(mFileSystem, exclusion);
       Assert.assertEquals(0, paths.size());
     }
     for (String inclusion : inclusions) {
-      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, inclusion);
+      paths = TachyonFSTestUtils.listFiles(mFileSystem, inclusion);
       Assert.assertNotEquals(0, paths.size());
     }
   }

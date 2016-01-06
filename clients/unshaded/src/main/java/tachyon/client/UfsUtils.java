@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
@@ -76,7 +76,7 @@ public final class UfsUtils {
    */
   private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
       String excludePaths, TachyonConf tachyonConf) throws IOException, TachyonException {
-    TachyonFileSystem tfs = TachyonFileSystem.TachyonFileSystemFactory.get();
+    FileSystem tfs = FileSystem.TachyonFileSystemFactory.get();
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
@@ -99,7 +99,7 @@ public final class UfsUtils {
    *             Use {@link #loadUfs(TachyonURI, TachyonURI, String, TachyonConf)} instead.
    */
   @Deprecated
-  public static void loadUfs(TachyonFileSystem tfs, TachyonURI tachyonPath, TachyonURI
+  public static void loadUfs(FileSystem tfs, TachyonURI tachyonPath, TachyonURI
       ufsAddrRootPath, PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException,
       TachyonException {
     LOG.info("Loading to {} {} {}", tachyonPath, ufsAddrRootPath, excludePathPrefix);

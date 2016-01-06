@@ -39,7 +39,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidPathException;
@@ -66,7 +66,7 @@ public class BlockServiceHandlerIntegrationTest {
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mWorkerServiceHandler = null;
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;

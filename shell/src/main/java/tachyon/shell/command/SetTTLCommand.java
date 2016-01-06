@@ -20,7 +20,7 @@ import java.io.IOException;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -33,7 +33,7 @@ public final class SetTTLCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public SetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public SetTTLCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

@@ -29,8 +29,8 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -50,12 +50,12 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFileSystem tachyonClient = TachyonFileSystemFactory.get();
+    FileSystem tachyonClient = TachyonFileSystemFactory.get();
     writeFile(tachyonClient);
     return readFile(tachyonClient);
   }
 
-  private boolean readFile(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+  private boolean readFile(FileSystem tachyonClient) throws IOException, TachyonException {
     boolean pass = true;
     for (int i = 0; i < mNumFiles; i ++) {
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
@@ -74,7 +74,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return pass;
   }
 
-  private void writeFile(TachyonFileSystem tachyonClient) throws IOException, TachyonException {
+  private void writeFile(FileSystem tachyonClient) throws IOException, TachyonException {
     for (int i = 0; i < mNumFiles; i ++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());

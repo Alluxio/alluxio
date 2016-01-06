@@ -32,8 +32,8 @@ import com.google.common.base.Preconditions;
 import tachyon.TachyonURI;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -73,7 +73,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("fatalError", "");
-    TachyonFileSystem tFS = TachyonFileSystemFactory.get();
+    FileSystem tFS = TachyonFileSystemFactory.get();
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
@@ -184,54 +184,54 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   /***
    * Gets the {@link UIFileInfo} object based on file id.
    *
-   * @param tachyonFileSystem the {@link TachyonFileSystem} client
+   * @param fileSystem the {@link tachyon.client.file.FileSystem} client
    * @param fileId the file id of the file
    * @return the {@link UIFileInfo} object of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId)
+  private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
-    return getUiFileInfo(tachyonFileSystem, fileId, TachyonURI.EMPTY_URI);
+    return getUiFileInfo(fileSystem, fileId, TachyonURI.EMPTY_URI);
   }
 
   /***
    * Gets the {@link UIFileInfo} object based on file path.
    *
-   * @param tachyonFileSystem the {@link TachyonFileSystem} client
+   * @param fileSystem the {@link tachyon.client.file.FileSystem} client
    * @param filePath the path of the file
    * @return the {@link UIFileInfo} object of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
+  private UIFileInfo getUiFileInfo(FileSystem fileSystem, TachyonURI filePath)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
-    return getUiFileInfo(tachyonFileSystem, -1, filePath);
+    return getUiFileInfo(fileSystem, -1, filePath);
   }
 
   /**
    * Gets the {@link UIFileInfo} object that represents the file id, or the file path if file id is
    * -1.
    *
-   * @param tachyonFileSystem the {@link TachyonFileSystem} client
+   * @param fileSystem the {@link tachyon.client.file.FileSystem} client
    * @param fileId the file id of the file
    * @param filePath the path of the file. valid iff fileId is -1
    * @return the {@link UIFileInfo} object of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
+  private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId,
       TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
       InvalidPathException, IOException, TachyonException {
     TachyonFile file = null;
     if (fileId != -1) {
       file = new TachyonFile(fileId);
     } else {
-      file = tachyonFileSystem.open(filePath);
+      file = fileSystem.open(filePath);
     }
     FileInfo fileInfo;
     try {
-      fileInfo = tachyonFileSystem.getInfo(file);
+      fileInfo = fileSystem.getInfo(file);
       if (fileInfo == null) {
         throw new FileDoesNotExistException(
             fileId != -1 ? Long.toString(fileId) : filePath.toString());

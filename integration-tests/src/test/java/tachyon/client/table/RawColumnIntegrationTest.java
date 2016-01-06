@@ -24,7 +24,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
 
@@ -37,12 +37,12 @@ public class RawColumnIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(10000, 1000, Constants.GB);
-  private TachyonFileSystem mTachyonFileSystem = null;
+  private FileSystem mFileSystem = null;
   private TachyonRawTables mTachyonRawTables = null;
 
   @Before
   public final void before() throws Exception {
-    mTachyonFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
     mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
   }
 
@@ -59,7 +59,7 @@ public class RawColumnIntegrationTest {
         // Create an empty partition
         mTachyonRawTables.createPartition(column, pid).close();
         TachyonFile file = mTachyonRawTables.openPartition(column, pid);
-        FileInfo partitionInfo = mTachyonFileSystem.getInfo(file);
+        FileInfo partitionInfo = mFileSystem.getInfo(file);
         Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.MASTER_COLUMN_FILE_PREFIX
             + col + TachyonURI.SEPARATOR + pid, partitionInfo.getPath());
       }

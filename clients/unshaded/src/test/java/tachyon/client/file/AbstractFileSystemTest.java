@@ -53,7 +53,7 @@ import tachyon.thrift.FileInfo;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, ClientContext.class})
-public final class AbstractTachyonFileSystemTest {
+public final class AbstractFileSystemTest {
 
   private static final long FILE_ID = 3L;
   private static final long NO_FILE_CODE = -1L;

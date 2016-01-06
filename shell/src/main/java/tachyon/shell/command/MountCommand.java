@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -31,7 +31,7 @@ public final class MountCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public MountCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public MountCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

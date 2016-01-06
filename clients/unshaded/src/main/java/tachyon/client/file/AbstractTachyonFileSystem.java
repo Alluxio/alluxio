@@ -58,7 +58,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   protected FileSystemContext mContext;
 
   /**
-   * Constructor, currently {@link TachyonFileSystem} does not retain any state
+   * Constructor, currently {@link FileSystem} does not retain any state
    */
   protected AbstractTachyonFileSystem() {
     mContext = FileSystemContext.INSTANCE;

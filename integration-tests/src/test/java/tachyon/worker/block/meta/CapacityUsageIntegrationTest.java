@@ -30,7 +30,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -52,7 +52,7 @@ public class CapacityUsageIntegrationTest {
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 1),
           String.valueOf(DISK_CAPACITY_BYTES), Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
           String.valueOf(HEARTBEAT_INTERVAL_MS));
-  private TachyonFileSystem mTFS = null;
+  private FileSystem mTFS = null;
 
   @Before
   public final void before() throws Exception {

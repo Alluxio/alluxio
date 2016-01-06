@@ -32,7 +32,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -67,7 +67,7 @@ public final class FileOutStreamIntegrationTest {
   private OutStreamOptions mWriteUnderStore;
   private OutStreamOptions mWriteLocal;
   private TachyonConf mTestConf;
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
 
   @Before
   public final void before() throws Exception {

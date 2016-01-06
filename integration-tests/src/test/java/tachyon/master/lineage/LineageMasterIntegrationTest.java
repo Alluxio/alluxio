@@ -35,7 +35,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystemMasterClient;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.lineage.LineageMasterClient;
-import tachyon.client.lineage.TachyonLineageFileSystem;
+import tachyon.client.lineage.LineageFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
@@ -115,8 +115,8 @@ public final class LineageMasterIntegrationTest {
 
       OutStreamOptions options = new OutStreamOptions.Builder(mTestConf)
           .setWriteType(WriteType.MUST_CACHE).setBlockSizeBytes(BLOCK_SIZE_BYTES).build();
-      TachyonLineageFileSystem tfs =
-          (TachyonLineageFileSystem) mLocalTachyonClusterResource.get().getClient();
+      LineageFileSystem tfs =
+          (LineageFileSystem) mLocalTachyonClusterResource.get().getClient();
       FileOutStream outputStream = tfs.getOutStream(new TachyonURI(OUT_FILE), options);
       outputStream.write(1);
       outputStream.close();

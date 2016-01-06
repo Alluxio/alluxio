@@ -32,8 +32,8 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.table.TachyonRawTables;
 import tachyon.client.table.TachyonRawTables.TachyonRawTablesFactory;
@@ -178,7 +178,7 @@ public class JournalCrashTest {
   private static long sMaxAliveTimeMs;
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
   /** Old Tachyon client, only be used for raw table functionality */
   private static TachyonRawTables sTachyonRawTables = null;
   /** The total time to run this test. */

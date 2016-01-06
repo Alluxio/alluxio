@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -32,7 +32,7 @@ public final class MvCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public MvCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public MvCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
