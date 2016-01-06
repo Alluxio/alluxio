@@ -18,6 +18,7 @@ package tachyon.yarn;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -126,7 +127,15 @@ public class ApplicationMasterTest {
 
   @Before
   public void before() throws Exception {
-    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS);
+    setupApplicationMaster(ImmutableMap.<String, String>of());
+  }
+
+  private void setupApplicationMaster(Map<String, String> properties) throws Exception {
+    TachyonConf conf = new TachyonConf();
+    for (Entry<String, String> entry : properties.entrySet()) {
+      conf.set(entry.getKey(), entry.getValue());
+    }
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS, conf);
     mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     // Mock Node Manager client
@@ -198,9 +207,9 @@ public class ApplicationMasterTest {
     Mockito.doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        Multiset<NodeId> workerNodes = mPrivateAccess.getWorkerHosts();
+        Multiset<String> workerNodes = mPrivateAccess.getWorkerHosts();
         synchronized (workerNodes) {
-          workerNodes.add(NodeId.newInstance("host-" + UUID.randomUUID(), 0));
+          workerNodes.add("host-" + UUID.randomUUID());
           mPrivateAccess.getOutstandingWorkerContainerReqeustsLatch().countDown();
           workerNodes.notify();
           if (workerNodes.size() == NUM_WORKERS) {
@@ -229,11 +238,73 @@ public class ApplicationMasterTest {
    */
   @Test(timeout = 10000)
   public void negotiateUniqueWorkerHostsTest() throws Exception {
+    mockResourceManager(NUM_WORKERS);
+
+    // Wait for all workers to be allocated, then shut down mMaster
+    getWaitForShutdownThread().start();
+
+    mMaster.requestContainers();
+    Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
+  }
+
+  /**
+   * Tests that the application master will reject and re-request worker containers whose hosts are
+   * already used by other workers. This tests {@link ApplicationMaster} as a whole, only mocking
+   * its clients.
+   */
+  @Test(timeout = 100000)
+  public void spreadWorkersEvenlyOverHostsTest() throws Exception {
+    int workersPerHost = 5;
+    Assert.assertEquals("NUM_WORKERS should be a multiple of workersPerHost", 0,
+        NUM_WORKERS % workersPerHost);
+    setupApplicationMaster(ImmutableMap.of(
+        Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, Integer.toString(workersPerHost)));
+
+    mockResourceManager(NUM_WORKERS / workersPerHost);
+
+    // Wait for all workers to be allocated, then shut down mMaster
+    getWaitForShutdownThread().start();
+
+    mMaster.requestContainers();
+    for (String host : mPrivateAccess.getWorkerHosts()) {
+      Assert.assertEquals(workersPerHost, mPrivateAccess.getWorkerHosts().count(host));
+    }
+    Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
+  }
+
+  /**
+   * @return a {@link Thread} which will wait until mMaster has NUM_WORKERS workers launched, then
+   *         call mMaster.onShutdownRequest()
+   */
+  private Thread getWaitForShutdownThread() {
+    return new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (mPrivateAccess.getWorkerHostsSize() < NUM_WORKERS) {
+          CommonUtils.sleepMs(30);
+        }
+        mMaster.onShutdownRequest();
+      }
+    });
+  }
+
+  /**
+   * Mocks mRMClient to randomly allocated one of the requested hosts.
+   *
+   * This involves
+   * 1) Creating NUM_WORKERS mock containers, each with a different mock host
+   * 2) Mocking mYarnClient to return the mock hosts of the mock containers
+   * 3) Mocking mRMClient.addContainerRequest to asynchronously call mMaster.onContainersAllocated
+   * with a random container on a requested host
+   *
+   * @param numContainers the number of mock container hosts
+   */
+  private void mockResourceManager(int numContainers) throws Exception {
     final Random random = new Random();
     final List<Container> mockContainers = Lists.newArrayList();
     List<NodeReport> nodeReports = Lists.newArrayList();
     List<String> hosts = Lists.newArrayList(MASTER_ADDRESS);
-    for (int i = 0; i < NUM_WORKERS; i ++) {
+    for (int i = 0; i < numContainers - 1; i ++) {
       String host = "host" + i;
       hosts.add(host);
     }
@@ -273,20 +344,6 @@ public class ApplicationMasterTest {
         return null;
       }
     }).when(mRMClient).addContainerRequest(Mockito.<ContainerRequest>any());
-
-    // Wait for all workers to be allocated, then shut down mMaster
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (mPrivateAccess.getWorkerHostsSize() < NUM_WORKERS) {
-          CommonUtils.sleepMs(30);
-        }
-        mMaster.onShutdownRequest();
-      }
-    }).start();
-
-    mMaster.requestContainers();
-    Assert.assertEquals(NUM_WORKERS, mPrivateAccess.getWorkerHosts().size());
   }
 
   /**
@@ -476,12 +533,12 @@ public class ApplicationMasterTest {
       return Whitebox.getInternalState(mMaster, "mMasterContainerAllocatedLatch");
     }
 
-    public Multiset<NodeId> getWorkerHosts() {
+    public Multiset<String> getWorkerHosts() {
       return Whitebox.getInternalState(mMaster, "mWorkerHosts");
     }
 
     public int getWorkerHostsSize() {
-      Multiset<NodeId> workerHosts = getWorkerHosts();
+      Multiset<String> workerHosts = getWorkerHosts();
       synchronized (workerHosts) {
         return workerHosts.size();
       }
