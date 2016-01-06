@@ -208,6 +208,6 @@ public final class CopyFromLocalCommand extends AbstractTfsShellCommand {
 
   @Override
   public String getDescription() {
-    return "Copies the file specified by <src> to the path specified by <remoteDst>.";
+    return "Copies a file or a directory from local filesystem to Tachyon filesystem.";
   }
 }
