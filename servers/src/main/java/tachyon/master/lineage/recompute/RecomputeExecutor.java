@@ -95,7 +95,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
             } catch (FileDoesNotExistException e) {
               LOG.error("the lost file {} is invalid", fileId, e);
             } catch (AccessControlException e) {
-              LOG.error("the file {} is unauthorized", fileId, e);
+              LOG.error("the lost file {} cannot be accessed", fileId, e);
             }
           }
         } catch (FileDoesNotExistException e) {

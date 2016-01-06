@@ -18,7 +18,6 @@ package tachyon.master.file;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -46,6 +45,7 @@ import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.FileInfo;
+import tachyon.util.io.PathUtils;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by
@@ -478,9 +478,9 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testState1";
+    String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreate(TEST_USER_1, file, false);
-    SetStateOptions expect = getRamdomSetState();
+    SetStateOptions expect = getNonDefaultSetState();
     SetStateOptions result = verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
 
     Assert.assertEquals(expect.getTTL(), result.getTTL());
@@ -494,9 +494,9 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testState1";
+    String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreate(TEST_USER_1, file, false);
-    SetStateOptions expect = getRamdomSetState();
+    SetStateOptions expect = getNonDefaultSetState();
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
@@ -504,10 +504,9 @@ public class FileSystemMasterPermissionCheckTest {
     verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
   }
 
-  private SetStateOptions getRamdomSetState() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
-    long ttl = random.nextLong();
+  private SetStateOptions getNonDefaultSetState() {
+    boolean recursive = true;
+    long ttl = 11;
 
     return new SetStateOptions.Builder().setPinned(recursive).setTTL(ttl).build();
   }
@@ -538,9 +537,9 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testState1";
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
     verifyCreate(TEST_USER_1, file, false);
-    CompleteFileOptions expect = getRamdomCompleteFileOptions();
+    CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
     verifyCompleteFile(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
   }
 
@@ -551,9 +550,9 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testComplete1";
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
     verifyCreate(TEST_USER_1, file, false);
-    CompleteFileOptions expect = getRamdomCompleteFileOptions();
+    CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
@@ -561,10 +560,9 @@ public class FileSystemMasterPermissionCheckTest {
     verifyCompleteFile(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
   }
 
-  private CompleteFileOptions getRamdomCompleteFileOptions() {
-    Random random = new Random();
-    long ufsLength = random.nextLong();
-    long operationTimeMs = random.nextLong();
+  private CompleteFileOptions getNonDefaultCompleteFileOptions() {
+    long ufsLength = 12;
+    long operationTimeMs = 21;
 
     return new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
         .setOperationTimeMs(operationTimeMs).build();
@@ -583,19 +581,19 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testState1";
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
     verifyCreate(TEST_USER_1, file, false);
     verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
   }
 
   @Test
-  public void freeNonNullFolderSuccessTest() throws Exception {
+  public void freeNonNullDirectorySuccessTest() throws Exception {
     // set unmask
     TachyonConf conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
-    String subFolder = TEST_DIR_URI + "/testState";
+    String subFolder = PathUtils.concatPath(TEST_DIR_URI, "/testState");
     verifyMkdir(TEST_USER_1, subFolder, false);
     String file = subFolder + "/testState1";
     verifyCreate(TEST_USER_1, file, false);
@@ -609,7 +607,7 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testComplete1";
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
     verifyCreate(TEST_USER_1, file, false);
 
     mThrown.expect(AccessControlException.class);
@@ -619,13 +617,13 @@ public class FileSystemMasterPermissionCheckTest {
   }
 
   @Test
-  public void freeNonNullFolderFailTest() throws Exception {
+  public void freeNonNullDirectoryFailTest() throws Exception {
     // set unmask
     TachyonConf conf = MasterContext.getConf();
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
     MasterContext.reset(conf);
 
-    String file = TEST_DIR_URI + "/testComplete1";
+    String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
     verifyCreate(TEST_USER_1, file, false);
 
     mThrown.expect(AccessControlException.class);

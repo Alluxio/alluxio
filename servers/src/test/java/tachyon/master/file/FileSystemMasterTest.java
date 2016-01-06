@@ -21,6 +21,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,10 +33,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.internal.util.reflection.Whitebox;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;

@@ -1361,6 +1361,7 @@ public final class FileSystemMaster extends MasterBase {
       AccessControlException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.READ, path, false);
       ufsPath = mMountTable.resolve(path);
     }
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1369,7 +1370,6 @@ public final class FileSystemMaster extends MasterBase {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
-      checkPermission(FileSystemAction.READ, path, false);
       if (ufs.isFile(ufsPath.getPath())) {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long ufsLength = ufs.getFileSize(ufsPath.toString());
@@ -1820,7 +1820,10 @@ public final class FileSystemMaster extends MasterBase {
 
       String[] pathComponents = PathUtils.getPathComponents(path.getPath());
       if (pathComponents.length < fileInfos.size()) {
-        throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path.getPath()));
+        LOG.warn(
+            "Invalid Path {} for checking permission: "
+                + ExceptionMessage.PATH_INVALID.getMessage(path.getPath()), path);
+        return;
       }
 
       // collects user and groups
