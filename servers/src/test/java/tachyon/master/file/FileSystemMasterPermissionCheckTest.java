@@ -475,6 +475,111 @@ public class FileSystemMasterPermissionCheckTest {
     Assert.assertNotEquals(-1, fileId);
   }
 
+  @Test
+  public void setOwnerSuccessTest() throws Exception {
+    verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
+
+    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1,
+        true);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(TEST_DIR_FILE_URI)));
+    Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getUserName());
+  }
+
+  @Test
+  public void setOwnerFailTest() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
+    verifySetAcl(TEST_USER_2, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
+  }
+
+  @Test
+  public void setGroupSuccessTest() throws Exception {
+    // super user
+    verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, TEST_USER_1.getGroups(), (short) -1, false);
+
+    // super group
+    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) -1,
+        true);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(TEST_DIR_FILE_URI)));
+    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
+
+    // owner
+    verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) -1, true);
+    fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(TEST_DIR_FILE_URI)));
+    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
+  }
+
+  @Test
+  public void setGroupFailTest() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
+
+    verifySetAcl(TEST_USER_1, TEST_FILE_URI, null, TEST_USER_1.getGroups(), (short) -1, false);
+  }
+
+  @Test
+  public void setPermissionSuccessTest() throws Exception {
+    // super user
+    verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, null, (short) 0600, false);
+
+    // super group
+    verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, null, null, (short) 0700, true);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(TEST_DIR_FILE_URI)));
+    Assert.assertEquals((short) 0700, fileInfo.getPermission());
+
+    // owner enlarge the permission
+    verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, null, (short) 0777, true);
+    fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(TEST_DIR_FILE_URI)));
+    Assert.assertEquals((short) 0777, fileInfo.getPermission());
+    // other user can operate under this enlarged permission
+    verifyCreate(TEST_USER_2, TEST_DIR_URI + "/newFile", false);
+    verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
+  }
+
+  @Test
+  public void setPermissionFailTest() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
+
+    verifySetAcl(TEST_USER_1, TEST_FILE_URI, null, null, (short) 0777, false);
+  }
+
+  private void verifySetAcl(TestUser owner, String path, String user, String group,
+      short permission, boolean recursive) throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(owner.getUser());
+    boolean success = false;
+    if (user != null) {
+      success = mFileSystemMaster.setOwner(new TachyonURI(path), user, recursive);
+    }
+    if (group != null) {
+      success = mFileSystemMaster.setGroup(new TachyonURI(path), group, recursive);
+    }
+    if (permission != -1) {
+      success = mFileSystemMaster.setPermission(new TachyonURI(path), permission, recursive);
+    }
+
+    PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(path)));
+    Assert.assertEquals(true, success);
+    if (user != null) {
+      Assert.assertEquals(user, fileInfo.getUserName());
+    }
+    if (group != null) {
+      Assert.assertEquals(group, fileInfo.getGroupName());
+    }
+    if (permission != -1) {
+      Assert.assertEquals(permission, fileInfo.getPermission());
+    }
+  }
+
   private String toExceptionMessage(String user, FileSystemAction action, String path,
       String inodeName) {
     StringBuilder stringBuilder = new StringBuilder()

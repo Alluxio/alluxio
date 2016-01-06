@@ -137,6 +137,7 @@ public enum ExceptionMessage {
   PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   PERMISSION_DENIED("Permission denied: {0}"),
+  SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(
