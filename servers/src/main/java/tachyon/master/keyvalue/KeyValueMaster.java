@@ -186,7 +186,8 @@ public final class KeyValueMaster extends MasterBase {
       throw new FileDoesNotExistException(String.format(
           "Failed to completeStore: KeyValueStore (fileId=%d) was not created before", fileId));
     }
-    mIncompleteStoreToPartitions.get(fileId).add(info);
+    // NOTE: deep copy the partition info object
+    mIncompleteStoreToPartitions.get(fileId).add(new PartitionInfo(info));
   }
 
   /**
