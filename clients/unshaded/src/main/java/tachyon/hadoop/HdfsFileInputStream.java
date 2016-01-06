@@ -45,6 +45,9 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 
+/**
+ * An input stream for reading a file from HDFS.
+ */
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -70,6 +73,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private final TachyonConf mTachyonConf;
 
   /**
+   * Constructs a new stream for reading a file from HDFS.
+   *
    * @param fileId the file id
    * @param hdfsPath the HDFS path
    * @param conf Hadoop configuration

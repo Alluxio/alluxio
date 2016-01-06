@@ -22,6 +22,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link BlockHeartbeatReporter}.
+ */
 public class BlockHeartbeatReporterTest {
   private static final int SESSION_ID = 1;
   private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation("MEM", 0);
