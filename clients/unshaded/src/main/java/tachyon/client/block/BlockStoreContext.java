@@ -222,7 +222,7 @@ public enum BlockStoreContext {
     // If we couldn't find a worker, crash.
     if (address == null) {
       // TODO(calvin): Better exception usage.
-      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE_ON_HOST.getMessage(""));
+      throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
     Preconditions.checkArgument(
         !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),

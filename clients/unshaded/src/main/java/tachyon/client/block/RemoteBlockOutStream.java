@@ -58,7 +58,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    *
    * @param blockId the block id
    * @param blockSize the block size
-   * @param hostname the hostname of the preferred worker
+   * @param address the address of the preferred worker
    * @throws IOException if I/O error occurs
    */
   public RemoteBlockOutStream(long blockId, long blockSize, WorkerNetAddress address)
