@@ -233,10 +233,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       updateBlockInStream(currentBlockId);
       if (mShouldCacheCurrentBlock) {
         try {
+          long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
+              mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, mBlockSize, address);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException ioe) {
           LOG.warn("Failed to get TachyonStore stream, the block {} will not be in TachyonStorage. "
               + "Exception: {}", currentBlockId, ioe.getMessage());
@@ -284,6 +285,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
+   * @return the size of the current block being written
+   */
+  private long getCurrentBlockSize() {
+    long remaining = mFileLength - mPos;
+    return remaining < mBlockSize ? remaining : mBlockSize;
+  }
+
+  /**
    * Similar to {@link #checkAndAdvanceBlockInStream()}, but a specific position can be specified
    * and the stream pointer will be at that offset after this method completes.
    *
@@ -301,10 +310,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
+          long blockSize = getCurrentBlockSize();
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
-              mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
+              mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, mBlockSize, address);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException ioe) {
           LOG.warn("Failed to write to TachyonStore stream, block {} will not be in "
               + "TachyonStorage. Exception: {}", getCurrentBlockId(), ioe.getMessage());
