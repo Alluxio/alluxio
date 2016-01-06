@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
@@ -70,17 +71,17 @@ public class FileOutStream extends OutputStream implements Cancelable {
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
-  protected final long mFileId;
+  protected final TachyonURI mUri;
 
   /**
    * Creates a new file output stream.
    *
-   * @param fileId the file id
+   * @param path the file path
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
-    mFileId = fileId;
+  public FileOutStream(TachyonURI path, OutStreamOptions options) throws IOException {
+    mUri = path;
     mNonce = Utils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
@@ -89,7 +90,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isSyncPersist()) {
       updateUfsPath();
-      String tmpPath = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
+      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
@@ -122,7 +123,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     Boolean canComplete = false;
     CompleteFileOptions.Builder builder = new CompleteFileOptions.Builder(ClientContext.getConf());
     if (mUnderStorageType.isSyncPersist()) {
-      String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
@@ -130,7 +131,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
           updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         }
         ufs.delete(tmpPath, false);
       } else {
@@ -139,7 +140,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
         if (!ufs.exists(tmpPath)) {
           // Location of the temporary file has changed, recompute it.
           updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         }
         if (!ufs.rename(tmpPath, mUfsPath)) {
           throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
@@ -169,7 +170,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.completeFile(mFileId, builder.build());
+        masterClient.completeFile(mUri, builder.build());
       } catch (TachyonException e) {
         throw new IOException(e);
       } finally {
@@ -272,7 +273,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private long getNextBlockId() throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getNewBlockIdForFile(mFileId);
+      return masterClient.getNewBlockIdForFile(mUri);
     } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
@@ -295,7 +296,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private void updateUfsPath() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      FileInfo fileInfo = client.getFileInfo(mFileId);
+      FileInfo fileInfo = client.getFileInfo(mUri);
       mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

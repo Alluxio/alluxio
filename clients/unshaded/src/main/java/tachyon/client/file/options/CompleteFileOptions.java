@@ -15,6 +15,7 @@
 
 package tachyon.client.file.options;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.CompleteFileTOptions;
@@ -22,6 +23,7 @@ import tachyon.thrift.CompleteFileTOptions;
 /**
  * The method option for completing a file.
  */
+@PublicApi
 public final class CompleteFileOptions {
 
   /**

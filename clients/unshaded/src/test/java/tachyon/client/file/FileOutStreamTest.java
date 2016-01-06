@@ -38,6 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerNetAddress;
@@ -69,7 +70,7 @@ import tachyon.util.io.BufferUtils;
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
-  private static final long FILE_ID = 20L;
+  private static final TachyonURI FILE_NAME = new TachyonURI("/file");
 
   private TachyonBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
@@ -109,10 +110,11 @@ public class FileOutStreamTest {
     Mockito.when(mFileSystemContext.getTachyonBlockStore()).thenReturn(mBlockStore);
     Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Mockito.when(mFileSystemMasterClient.getFileInfo(Mockito.anyLong())).thenReturn(new FileInfo());
+    Mockito.when(mFileSystemMasterClient.getFileInfo(Mockito.any(TachyonURI.class))).thenReturn(
+        new FileInfo());
 
     // Return sequentially increasing numbers for new block ids
-    Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_ID))
+    Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
         .thenAnswer(new Answer<Long>() {
           private long mCount = 0;
 
@@ -160,7 +162,7 @@ public class FileOutStreamTest {
 
     OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
         .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    mTestStream = createTestStream(FILE_NAME, options);
   }
 
   /**
@@ -230,7 +232,7 @@ public class FileOutStreamTest {
       Assert.assertFalse(mTachyonOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_ID),
+    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
         Mockito.any(CompleteFileOptions.class));
   }
 
@@ -250,7 +252,7 @@ public class FileOutStreamTest {
       Assert.assertTrue(mTachyonOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_ID,
+    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
 
     Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
@@ -279,7 +281,7 @@ public class FileOutStreamTest {
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
     OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
         .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    mTestStream = createTestStream(FILE_NAME, options);
 
     BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
     Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
@@ -366,7 +368,7 @@ public class FileOutStreamTest {
   public void locationPolicyTest() throws IOException {
     OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
         .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    mTestStream = createTestStream(FILE_NAME, options);
 
     // by default local first policy used
     FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
@@ -376,7 +378,7 @@ public class FileOutStreamTest {
     options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
         .setUnderStorageType(UnderStorageType.NO_PERSIST)
         .setLocationPolicy(new RoundRobinPolicy()).build();
-    mTestStream = createTestStream(FILE_ID, options);
+    mTestStream = createTestStream(FILE_NAME, options);
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
@@ -409,10 +411,11 @@ public class FileOutStreamTest {
         mUnderStorageOutputStream.toByteArray());
   }
 
-  private FileOutStream createTestStream(long fileId, OutStreamOptions options) throws IOException {
+  private FileOutStream createTestStream(TachyonURI path, OutStreamOptions options)
+      throws IOException {
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    FileOutStream stream = new FileOutStream(FILE_ID, options);
+    FileOutStream stream = new FileOutStream(path, options);
     return stream;
   }
 }
