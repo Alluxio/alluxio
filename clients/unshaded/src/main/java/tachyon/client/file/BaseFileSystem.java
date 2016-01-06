@@ -49,17 +49,17 @@ import tachyon.thrift.FileInfo;
 @PublicApi
 public class BaseFileSystem implements FileSystem {
   @Override
-  public TachyonURI createDirectory(TachyonURI path)
+  public void createDirectory(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
-    return createDirectory(path, CreateDirectoryOptions.defaults());
+    createDirectory(path, CreateDirectoryOptions.defaults());
   }
 
   @Override
-  public TachyonURI createDirectory(TachyonURI path, CreateDirectoryOptions options)
+  public void createDirectory(TachyonURI path, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return masterClient.createDirectory(path, options);
+      masterClient.createDirectory(path, options);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
@@ -179,17 +179,17 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public TachyonURI loadMetadata(TachyonURI path)
+  public void loadMetadata(TachyonURI path)
       throws FileDoesNotExistException, IOException, TachyonException {
-    return loadMetadata(path, LoadMetadataOptions.defaults());
+    loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
   @Override
-  public TachyonURI loadMetadata(TachyonURI path, LoadMetadataOptions options)
+  public void loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return masterClient.loadMetadata(path, options);
+      masterClient.loadMetadata(path, options);
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
