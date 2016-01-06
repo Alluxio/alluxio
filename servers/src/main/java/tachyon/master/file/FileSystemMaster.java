@@ -1580,13 +1580,15 @@ public final class FileSystemMaster extends MasterBase {
   public long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
     long workerId = scheduleAsyncPersistenceInternal(fileId);
 
-    // write to journal
-    AsyncPersistRequestEntry asyncPersistRequestEntry =
-        AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
-    writeJournalEntry(
-        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
-    flushJournal();
-    return workerId;
+    synchronized (mInodeTree) {
+      // write to journal
+      AsyncPersistRequestEntry asyncPersistRequestEntry =
+          AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
+      writeJournalEntry(
+          JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+      flushJournal();
+      return workerId;
+    }
   }
 
   private long scheduleAsyncPersistenceInternal(long fileId) throws FileDoesNotExistException {
