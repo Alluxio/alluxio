@@ -275,6 +275,11 @@ public class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void testMkdirs() throws IOException {
+    // make sure the underfs address dir exists already
+    mUfs.mkdirs(mUnderfsAddress, true);
+    // Empty lsr should be empty
+    Assert.assertEquals(0, mUfs.listRecursive(mUnderfsAddress).length);
+
     String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
     String testDir1 = PathUtils.concatPath(mUnderfsAddress, "1");
     String testDir2 = PathUtils.concatPath(testDir1, "2");
