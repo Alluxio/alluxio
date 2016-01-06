@@ -206,4 +206,43 @@ interface TachyonFileSystemCore {
    */
   boolean unmount(TachyonURI tachyonPath, UnmountOptions options) throws IOException,
       TachyonException;
+
+  /**
+   * Sets the owner of a path.
+   *
+   * @param path the path of file or directory
+   * @param user the user to be set as owner
+   * @param recursive whether to set owner recursively under a directory
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  boolean setOwner(TachyonURI path, String user, boolean recursive) throws TachyonException,
+      IOException;
+
+  /**
+   * Sets the group of a path.
+   *
+   * @param path the path of file or directory
+   * @param group the group to be set
+   * @param recursive whether to set group recursively under a directory
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  boolean setGroup(TachyonURI path, String group, boolean recursive) throws TachyonException,
+      IOException;
+
+  /**
+   * Sets the permission of a path.
+   *
+   * @param path the path of file or directory
+   * @param permission the permission to be set
+   * @param recursive whether to set permission recursively under a directory
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  boolean setPermission(TachyonURI path, short permission, boolean recursive)
+      throws TachyonException, IOException;
 }
