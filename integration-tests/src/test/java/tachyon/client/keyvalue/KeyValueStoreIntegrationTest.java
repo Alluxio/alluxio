@@ -28,6 +28,7 @@ public final class KeyValueStoreIntegrationTest {
   private KeyValueStoreWriter mWriter;
   private KeyValueStoreReader mReader;
   private TachyonURI mStoreUri;
+
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
       new LocalTachyonClusterResource(Constants.GB, Constants.KB, BLOCK_SIZE,
@@ -65,6 +66,7 @@ public final class KeyValueStoreIntegrationTest {
     mReader = sKVStore.open(mStoreUri);
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertNull(mReader.get(KEY2));
+    mReader.close();
   }
 
   @Test
@@ -86,5 +88,8 @@ public final class KeyValueStoreIntegrationTest {
       byte[] value = mReader.get(key);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(i, valueLength, value));
     }
+    Assert.assertNull(mReader.get(KEY1));
+    Assert.assertNull(mReader.get(KEY2));
+    mReader.close();
   }
 }
