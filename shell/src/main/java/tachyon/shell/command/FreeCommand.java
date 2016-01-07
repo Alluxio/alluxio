@@ -64,6 +64,6 @@ public final class FreeCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Frees the given file or directory.";
+    return "Removes the file or directory(recursively) from Tachyon memory space.";
   }
 }
