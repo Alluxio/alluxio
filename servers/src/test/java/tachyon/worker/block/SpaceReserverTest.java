@@ -30,9 +30,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.file.FileSystemMasterClient;
 
 /**
  * Unit tests for {@link SpaceReserver}.
@@ -57,6 +57,7 @@ public class SpaceReserverTest {
   @After
   public void after() {
     mSpaceReserver.stop();
+    WorkerContext.reset();
   }
 
   @Before
