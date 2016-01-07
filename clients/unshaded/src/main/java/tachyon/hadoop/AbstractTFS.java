@@ -439,14 +439,8 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    try {
-      long fileId = mTFS.getStatus(path).getFileId();
-
-      return new FSDataInputStream(new HdfsFileInputStream(fileId,
-          Utils.getHDFSPath(path, mUnderFSAddress), getConf(), bufferSize, mStatistics));
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+    return new FSDataInputStream(new HdfsFileInputStream(path, Utils.getHDFSPath(path,
+        mUnderFSAddress), getConf(), bufferSize, mStatistics));
   }
 
   @Override
