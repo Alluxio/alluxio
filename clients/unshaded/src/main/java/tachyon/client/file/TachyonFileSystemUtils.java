@@ -36,9 +36,9 @@ import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+
 /**
  * Collection of utility methods to handle with {@link FileSystem} related objects
  */
@@ -149,14 +149,14 @@ public final class TachyonFileSystemUtils {
    *
    * @param fs {@link FileSystem} to carry out Tachyon operations
    * @param uri the uri of the file to persist
-   * @param fileInfo the file info of the file
+   * @param status the status info of the file
    * @param tachyonConf TachyonConf object
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected Tachyon error occurs
    */
-  public static long persistFile(FileSystem fs, TachyonURI uri, FileInfo fileInfo,
+  public static long persistFile(FileSystem fs, TachyonURI uri, URIStatus status,
       TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
@@ -164,7 +164,7 @@ public final class TachyonFileSystemUtils {
     try {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
-      TachyonURI dstPath = new TachyonURI(fileInfo.getUfsPath());
+      TachyonURI dstPath = new TachyonURI(status.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), tachyonConf);
       String parentPath = dstPath.getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {

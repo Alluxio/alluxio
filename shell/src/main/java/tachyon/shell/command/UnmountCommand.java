@@ -46,11 +46,8 @@ public final class UnmountCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      if (mTfs.unmount(inputPath)) {
-        System.out.println("Unmounted " + inputPath);
-      } else {
-        throw new IOException("unmount: Failed to unmount" + inputPath);
-      }
+      mTfs.unmount(inputPath);
+      System.out.println("Unmounted " + inputPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
