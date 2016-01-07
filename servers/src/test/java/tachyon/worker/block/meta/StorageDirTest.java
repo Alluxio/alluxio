@@ -40,6 +40,9 @@ import tachyon.util.io.BufferUtils;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Unit tests for {@link StorageDir}.
+ */
 public final class StorageDirTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;

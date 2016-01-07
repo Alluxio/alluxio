@@ -16,7 +16,7 @@
 package tachyon.master.journal;
 
 /**
- * Tests for {@link ProtoBufJournalFormatter}.
+ * Unit tests for {@link ProtoBufJournalFormatter}.
  */
 public class ProtoBufJournalFormatterTest extends JournalFormatterTestBase {
   @Override

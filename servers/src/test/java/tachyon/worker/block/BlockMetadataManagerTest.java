@@ -38,6 +38,9 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
+/**
+ * Unit tests for {@link BlockMetadataManager}.
+ */
 public final class BlockMetadataManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;

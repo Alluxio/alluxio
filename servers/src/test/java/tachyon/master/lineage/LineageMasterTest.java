@@ -47,6 +47,9 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 
+/**
+ * Unit tests for {@link LineageMaster}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
 public final class LineageMasterTest {
