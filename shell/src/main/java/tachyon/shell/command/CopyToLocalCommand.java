@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Joiner;
+import com.google.common.io.Closer;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
@@ -33,9 +36,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.shell.TfsShellUtils;
-
-import com.google.common.base.Joiner;
-import com.google.common.io.Closer;
 
 /**
  * Copies a file or a directory from the Tachyon filesystem to the local filesystem.

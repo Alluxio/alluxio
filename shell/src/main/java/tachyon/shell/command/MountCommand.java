@@ -50,11 +50,8 @@ public final class MountCommand extends AbstractTfsShellCommand {
     TachyonURI tachyonPath = new TachyonURI(args[0]);
     TachyonURI ufsPath = new TachyonURI(args[1]);
     try {
-      if (mTfs.mount(tachyonPath, ufsPath)) {
-        System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
-      } else {
-        throw new IOException("mount: Failed to mount" + ufsPath + " to " + tachyonPath);
-      }
+      mTfs.mount(tachyonPath, ufsPath);
+      System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
