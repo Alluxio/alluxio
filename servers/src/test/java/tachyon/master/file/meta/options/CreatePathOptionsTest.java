@@ -24,6 +24,9 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 
+/**
+ * Unit tests for {@link CreatePathOptions}.
+ */
 public class CreatePathOptionsTest {
   @Test
   public void builderTest() {

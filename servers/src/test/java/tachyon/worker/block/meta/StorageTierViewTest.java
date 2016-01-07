@@ -30,6 +30,9 @@ import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Unit tests for {@link StorageTierView}.
+ */
 public class StorageTierViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private StorageTier mTestTier;

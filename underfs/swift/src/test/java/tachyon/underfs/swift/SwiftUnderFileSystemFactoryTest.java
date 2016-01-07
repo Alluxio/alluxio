@@ -13,39 +13,35 @@
  * the License.
  */
 
-package tachyon.master.file.options;
-
-import java.util.Random;
+package tachyon.underfs.swift;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Unit tests for {@link CompleteFileOptions}.
+ * Tests for the {@link SwiftUnderFileSystem} class.
  */
-public class CompleteFileOptionsTest {
+public class SwiftUnderFileSystemFactoryTest {
+
+  /**
+   * This test ensures the HDFS ufs module correctly accepts paths that begin with swift://.
+   */
   @Test
-  public void builderTest() {
-    Random random = new Random();
-    long ufsLength = random.nextLong();
-    long operationTimeMs = random.nextLong();
+  public void factoryTest() {
+    TachyonConf conf = new TachyonConf();
 
-    CompleteFileOptions options =
-        new CompleteFileOptions.Builder(new TachyonConf())
-            .setUfsLength(ufsLength)
-            .setOperationTimeMs(operationTimeMs)
-            .build();
+    UnderFileSystemFactory factory =
+        UnderFileSystemRegistry.find("swift://localhost/test/path", conf);
+    UnderFileSystemFactory factory2 =
+        UnderFileSystemRegistry.find("file://localhost/test/path", conf);
 
-    Assert.assertEquals(ufsLength, options.getUfsLength());
-    Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-  }
-
-  @Test
-  public void defaultsTest() {
-    CompleteFileOptions options = CompleteFileOptions.defaults();
-
-    Assert.assertEquals(0, options.getUfsLength());
+    Assert.assertNotNull("A UnderFileSystemFactory should exist for swift paths when using this "
+        + "module", factory);
+    Assert.assertNull("A UnderFileSystemFactory should not exist for non supported paths when "
+        + "using this module", factory2);
   }
 }

@@ -38,14 +38,14 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * This is a parameterized unit test for Evictor classes that implement {@link Evictor}
+ * This is a parametrized unit test for classes that implement the {@link Evictor} interface.
  *
- * It performs sanity check on Evictors regardless of their types, in cases like not evicting any
+ * It performs sanity check on evictors regardless of their types, in cases such as not evicting any
  * blocks when the required space is already available, proposed eviction ensuring enough space, and
  * returning null eviction plan when the requests can not be achieved.
  *
- * Behavior for a specific type of evictor will be tested in other classes, e.x. tests to ensure
- * that blocks evicted by {@link LRUEvictor} are in the right order should be in LRUEvictorTest.
+ * Behavior for a specific type of evictor is tested in other classes, e.g. tests to ensure that
+ * blocks evicted by {@link LRUEvictor} are in the right order should be in {@link LRUEvictorTest}.
  */
 @RunWith(Parameterized.class)
 public class EvictorContractTestBase extends EvictorTestBase {
