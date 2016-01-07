@@ -79,6 +79,8 @@ public final class TachyonLineageFileSystemTest {
         new OutStreamOptions.Builder().setBlockSizeBytes(DEFAULT_BLOCK_SIZE).setTTL(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
+    // verify client is released
+    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   @Test
@@ -90,6 +92,8 @@ public final class TachyonLineageFileSystemTest {
         new OutStreamOptions.Builder().setBlockSizeBytes(DEFAULT_BLOCK_SIZE).setTTL(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
+    // verify client is released
+    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
   @Test
@@ -104,6 +108,15 @@ public final class TachyonLineageFileSystemTest {
     Assert.assertTrue(outStream instanceof FileOutStream);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
     Assert.assertFalse(outStream instanceof DummyFileOutputStream);
+    // verify client is released
+    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+  }
+
+  @Test
+  public void reportLostFileTest() throws Exception {
+    TachyonURI path = new TachyonURI("test");
+    mTachyonLineageFileSystem.reportLostFile(path);
+    Mockito.verify(mLineageMasterClient).reportLostFile("test");
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
