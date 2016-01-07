@@ -193,4 +193,11 @@ public class URIStatus {
   public boolean isPersisted() {
     return mInfo.isIsPersisted();
   }
+
+  /**
+   * @return whether the entity referenced by this uri is pinned, mutable
+   */
+  public boolean isPinned() {
+    return mInfo.isIsPinned();
+  }
 }
