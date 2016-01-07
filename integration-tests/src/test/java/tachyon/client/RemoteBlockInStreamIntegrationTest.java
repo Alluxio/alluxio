@@ -108,10 +108,10 @@ public class RemoteBlockInStreamIntegrationTest {
   public final void before() throws Exception {
     mTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     mTfs = mLocalTachyonClusterResource.get().getClient();
-    mWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(mTachyonConf);
-    mWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(mTachyonConf);
-    mReadCache = StreamOptionUtils.getInStreamOptionsReadCache(mTachyonConf);
-    mReadNoCache = StreamOptionUtils.getInStreamOptionsReadNoCache(mTachyonConf);
+    mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mTachyonConf);
+    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTachyonConf);
+    mReadCache = StreamOptionUtils.getOpenFileOptionsCache(mTachyonConf);
+    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(mTachyonConf);
     mWorkerToMasterHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
   }

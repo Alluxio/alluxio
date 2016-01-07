@@ -59,7 +59,7 @@ public class FileSystemUtilsIntegrationTest {
   public static void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
     TachyonConf conf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteBoth =  StreamOptionUtils.getOutStreamOptionsWriteBoth(conf);
+    sWriteBoth =  StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 
   @Test

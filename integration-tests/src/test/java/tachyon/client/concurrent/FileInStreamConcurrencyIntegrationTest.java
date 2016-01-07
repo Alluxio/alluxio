@@ -55,7 +55,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
   public static final void beforeClass() throws Exception {
     sTfs = sLocalTachyonClusterResource.get().getClient();
     sTachyonConf = sLocalTachyonClusterResource.get().getMasterTachyonConf();
-    sWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(sTachyonConf);
+    sWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(sTachyonConf);
   }
 
   /**

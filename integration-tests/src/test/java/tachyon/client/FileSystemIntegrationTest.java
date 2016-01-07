@@ -61,7 +61,7 @@ public class FileSystemIntegrationTest {
   public void before() throws Exception {
     mTfs = mLocalTachyonClusterResource.get().getClient();
     TachyonConf conf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
-    mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(conf);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
   }
 
   @Test
