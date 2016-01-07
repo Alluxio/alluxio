@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,6 +38,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
@@ -79,6 +81,11 @@ public final class StorageDirTest {
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   private StorageDir newStorageDir(File testDir) throws Exception {

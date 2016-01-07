@@ -17,6 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
@@ -64,6 +66,11 @@ public class StorageTierTest {
     mTier = StorageTier.newStorageTier("MEM");
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test
