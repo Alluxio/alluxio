@@ -15,6 +15,7 @@
 
 package tachyon.worker.file;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -34,13 +35,13 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidWorkerStateException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
-import tachyon.worker.file.FileDataManager;
 
 /**
  * Tests {@link FileDataManager}.
@@ -111,4 +112,46 @@ public final class FileDataManagerTest {
     Assert.assertTrue(persistedFiles.isEmpty());
   }
 
+  @Test
+  public void errorHandlingTest() throws Exception {
+    long fileId = 1;
+    List<Long> blockIds = Lists.newArrayList(1L, 2L);
+
+    // mock block data manager
+    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.path = "test";
+    Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
+    for (long blockId : blockIds) {
+      Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
+          .thenReturn(blockId);
+      Mockito.doThrow(new InvalidWorkerStateException("invalid worker")).when(blockDataManager)
+          .readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId);
+    }
+
+    FileDataManager manager = new FileDataManager(blockDataManager);
+
+    // mock ufs
+    UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
+    String ufsRoot = new TachyonConf().get(Constants.UNDERFS_ADDRESS);
+    Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
+    Whitebox.setInternalState(manager, "mUfs", ufs);
+    OutputStream outputStream = Mockito.mock(OutputStream.class);
+
+    // mock BufferUtils
+    PowerMockito.mockStatic(BufferUtils.class);
+    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+
+    try {
+      manager.persistFile(fileId, blockIds);
+      Assert.fail("the persist should fail");
+    } catch (IOException e) {
+      Assert.assertEquals("the blocks of file1 are failed to persist\n"
+          + "tachyon.exception.InvalidWorkerStateException: invalid worker\n", e.getMessage());
+      // verify the locks are all unlocked
+      Mockito.verify(blockDataManager).unlockBlock(1L);
+      Mockito.verify(blockDataManager).unlockBlock(2L);
+    }
+  }
 }
