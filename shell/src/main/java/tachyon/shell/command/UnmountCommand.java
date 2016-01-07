@@ -60,4 +60,9 @@ public final class UnmountCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "unmount <tachyonPath>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Unmounts a Tachyon path.";
+  }
 }
