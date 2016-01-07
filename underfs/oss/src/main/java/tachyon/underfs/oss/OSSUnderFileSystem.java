@@ -315,7 +315,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    */
   private String convertToFolderName(String key) {
     // Strips the slash if it is the end of the key string. This is because the slash at
-    // the end of the string is not part of the Object key in S3.
+    // the end of the string is not part of the Object key in OSS.
     if (key.endsWith(PATH_SEPARATOR)) {
       key = key.substring(0, key.length() - PATH_SEPARATOR.length());
     }
