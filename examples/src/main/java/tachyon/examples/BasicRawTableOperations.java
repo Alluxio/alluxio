@@ -30,9 +30,8 @@ import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.client.table.TachyonRawTables;
@@ -92,10 +91,10 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     }
 
     for (int column = 0; column < COLS; column ++) {
-      InStreamOptions readOptions = new InStreamOptions.Builder().setReadType(mReadType).build();
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
       RawColumn rawColumn = rawTable.getColumn(column);
-      TachyonFile tFile = tachyonRawTableClient.openPartition(rawColumn, 0);
-      FileInStream is = tachyonClient.getInStream(tFile, readOptions);
+      FileInStream is =
+          tachyonClient.openFile(tachyonRawTableClient.getPartitionUri(rawColumn, 0), options);
       ByteBuffer buf = ByteBuffer.allocate(mDataLength * 4);
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());

@@ -36,7 +36,6 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -67,10 +66,9 @@ public class Performance {
   public static void createFiles() throws TachyonException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
-      TachyonFile file = sTFS.create(new TachyonURI(sFileName + (k + sBaseFileNumber)));
-      long fileId = file.getFileId();
+      sTFS.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber))).close();
       LOG.info(
-          FormatUtils.formatTimeTakenMs(startTimeMs, "user_createFiles with fileId " + fileId));
+          FormatUtils.formatTimeTakenMs(startTimeMs, "createFile"));
     }
   }
 
@@ -184,7 +182,7 @@ public class Performance {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = FileSystem.TachyonFileSystemFactory.get();
+      mTFS = FileSystem.Factory.create();
     }
 
     public void writePartition()
@@ -197,7 +195,7 @@ public class Performance {
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
         final long startTimeMs = System.currentTimeMillis();
-        FileOutStream os = mTFS.getOutStream(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
+        FileOutStream os = mTFS.createFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
         for (int k = 0; k < sBlocksPerFile; k ++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
@@ -223,7 +221,7 @@ public class Performance {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = FileSystem.TachyonFileSystemFactory.get();
+      mTFS = FileSystem.Factory.create();
     }
 
     public void readPartition()
@@ -233,8 +231,7 @@ public class Performance {
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
-          TachyonFile file = mTFS.open(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          InputStream is = mTFS.getInStream(file);
+          InputStream is = mTFS.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           is.read(buf.array());
           buf.order(ByteOrder.nativeOrder());
           for (int i = 0; i < sBlocksPerFile; i ++) {
@@ -255,8 +252,7 @@ public class Performance {
       if (sTachyonStreamingRead) {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
-          TachyonFile file = mTFS.open(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          InputStream is = mTFS.getInStream(file);
+          InputStream is = mTFS.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           long len = sBlocksPerFile * sBlockSizeBytes;
 
           while (len > 0) {
@@ -270,8 +266,7 @@ public class Performance {
       } else {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
-          TachyonFile file = mTFS.open(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          InputStream is = mTFS.getInStream(file);
+          InputStream is = mTFS.openFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           for (int i = 0; i < sBlocksPerFile; i ++) {
             is.read(mBuf.array());
           }
@@ -541,13 +536,13 @@ public class Performance {
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = FileSystem.TachyonFileSystemFactory.get();
+      sTFS = FileSystem.Factory.create();
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = FileSystem.TachyonFileSystemFactory.get();
+      sTFS = FileSystem.Factory.create();
       sTachyonStreamingRead = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {
