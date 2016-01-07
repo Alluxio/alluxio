@@ -52,4 +52,9 @@ public final class UnsetTTLCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "unsetTTL <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Unsets the TTL value for the given path.";
+  }
 }
