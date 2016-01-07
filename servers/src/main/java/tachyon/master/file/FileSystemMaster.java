@@ -1827,9 +1827,12 @@ public final class FileSystemMaster extends MasterBase {
 
     // perform permission check
     if (checkParent) {
-      if ((fileInfos.size() == 1 && pathComponents.length > 1)
-          || (fileInfos.size() == 2 && pathComponents.length == 2)
-          && action.equals(FileSystemAction.WRITE)) {
+      if (// involved methods: create, mkdir, rename, deleteFile
+          action.equals(FileSystemAction.WRITE)
+          // create or mkdir under root "/", then assumes to have write permission.
+          && (fileInfos.size() == 1 && pathComponents.length > 1)
+          // rename or deleteFile under root "/", then must be the owner.
+          || (fileInfos.size() == 2 && pathComponents.length == 2)) {
         // Handle a special case where the path is a level under root "/" and checking write
         // permission on it. We simply assume user has write permission on the root "/",
         // with a limitation that the user must be the owner of the path.
