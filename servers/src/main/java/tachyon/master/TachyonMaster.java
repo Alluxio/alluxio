@@ -17,8 +17,11 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
+import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -40,7 +43,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.master.keyvalue.KeyValueMaster;
 import tachyon.master.lineage.LineageMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
@@ -94,8 +96,8 @@ public class TachyonMaster {
   protected RawTableMaster mRawTableMaster;
   /** The master managing all lineage related metadata */
   protected LineageMaster mLineageMaster;
-  /** The master managing all key-value related metadata */
-  protected KeyValueMaster mKeyValueMaster;
+  /** A list of extra masters to launch based on service loader */
+  protected List<Master> mAdditionalMasters;
 
   // The read-write journals for the masters
   /** The journal for the block master */
@@ -106,8 +108,6 @@ public class TachyonMaster {
   protected final ReadWriteJournal mRawTableMasterJournal;
   /** The journal for the lineage master */
   protected final ReadWriteJournal mLineageMasterJournal;
-  /** The journal for the key-value master */
-  protected final ReadWriteJournal mKeyValueMasterJournal;
 
   /** The web ui server */
   private UIWebServer mWebServer = null;
@@ -183,8 +183,6 @@ public class TachyonMaster {
           new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
-      mKeyValueMasterJournal =
-          new ReadWriteJournal(KeyValueMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
@@ -192,9 +190,18 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
-      if (conf.getBoolean(Constants.KEYVALUE_ENABLED)) {
-        mKeyValueMaster = new KeyValueMaster(mFileSystemMaster, mKeyValueMasterJournal);
+
+      List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+      // Discover and register the available factories
+      ServiceLoader<MasterFactory> discoveredMasterFactories =
+          ServiceLoader.load(MasterFactory.class);
+      for (MasterFactory factory : discoveredMasterFactories) {
+        Master master = factory.create(masters, journalDirectory);
+        if (master != null) {
+          mAdditionalMasters.add(master);
+        }
       }
+
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
       mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
@@ -313,8 +320,9 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.start(isLeader);
       }
-      if (MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
-        mKeyValueMaster.start(isLeader);
+      // start additional masters
+      for (Master master : mAdditionalMasters) {
+        master.start(isLeader);
       }
 
     } catch (IOException e) {
@@ -328,8 +336,9 @@ public class TachyonMaster {
       if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
         mLineageMaster.stop();
       }
-      if (MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
-        mKeyValueMaster.stop();
+      // stop additional masters
+      for (Master master : mAdditionalMasters) {
+        master.stop();
       }
       mBlockMaster.stop();
       mFileSystemMaster.stop();
@@ -381,8 +390,9 @@ public class TachyonMaster {
       registerServices(processor, mLineageMaster.getServices());
     }
     registerServices(processor, mRawTableMaster.getServices());
-    if (MasterContext.getConf().getBoolean(Constants.KEYVALUE_ENABLED)) {
-      registerServices(processor, mKeyValueMaster.getServices());
+    // register additional masters for RPC service
+    for (Master master : mAdditionalMasters) {
+      registerServices(processor, master.getServices());
     }
 
     // Return a TTransportFactory based on the authentication type
