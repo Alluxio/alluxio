@@ -33,8 +33,7 @@ When setting up a Tachyon cluster, we need the ability to manipulate target mach
 
 ## Extension
 
-You can extend deploy module by adding
-new under layer filesystems or new computation frameworks on top of Tachyon.
+You can extend deploy module by adding new under layer filesystems or new computation frameworks on top of Tachyon.
 
 It's enough for you to be able to write bash and know [what is ansible playbook](http://docs.ansible.com/playbooks.html). Then read `deploy/vagrant/provision` directory to make sure you understand existing code base.
 
