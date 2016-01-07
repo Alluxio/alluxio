@@ -18,7 +18,6 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.conf.TachyonConf;
@@ -47,8 +46,7 @@ public final class RmrCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     try {
       DeleteOptions options = new DeleteOptions.Builder().setRecursive(true).build();
-      TachyonFile fd = mTfs.open(path);
-      mTfs.delete(fd, options);
+      mTfs.delete(path, options);
       System.out.println(path + " has been removed");
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
