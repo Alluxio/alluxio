@@ -28,7 +28,7 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
+    mAllocator = Allocator.Factory.create(conf, getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

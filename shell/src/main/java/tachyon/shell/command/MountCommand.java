@@ -64,4 +64,9 @@ public final class MountCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "mount <tachyonPath> <ufsURI>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Mounts a UFS path onto a Tachyon path.";
+  }
 }
