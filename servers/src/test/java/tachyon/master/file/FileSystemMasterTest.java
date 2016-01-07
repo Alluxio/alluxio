@@ -60,7 +60,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.IdUtils;
 
 /**
- * Unit tests for {@link tachyon.master.file.FileSystemMaster}.
+ * Unit tests for {@link FileSystemMaster}.
  */
 public final class FileSystemMasterTest {
   private static final long TTLCHECKER_INTERVAL_MS = 0;

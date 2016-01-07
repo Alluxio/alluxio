@@ -176,6 +176,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
         mContext.releaseMasterClient(masterClient);
       }
     }
+
+    if (mUnderStorageType.isAsyncPersist()) {
+      scheduleAsyncPersist();
+    }
     mClosed = true;
   }
 
@@ -298,9 +302,25 @@ public class FileOutStream extends OutputStream implements Cancelable {
       FileInfo fileInfo = client.getFileInfo(mFileId);
       mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(client);
+    }
+  }
+
+  /**
+   * Schedules the async persistence of the current file.
+   *
+   * @throws IOException an I/O error occurs
+   */
+  protected void scheduleAsyncPersist() throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.scheduleAsyncPersist(mFileId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
     }
   }
 }

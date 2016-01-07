@@ -24,6 +24,9 @@ import org.junit.rules.TemporaryFolder;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Unit tests for {@link BlockMetaBase}.
+ */
 public class BlockMetaBaseTest {
   // This class extending BlockMetaBase is only for test purpose
   private class BlockMetaBaseForTest extends BlockMetaBase {

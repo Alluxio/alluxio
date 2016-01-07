@@ -29,6 +29,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class SetTTLCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public SetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -56,5 +60,10 @@ public final class SetTTLCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "setTTL <path> <time to live(in milliseconds)>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Sets a new TTL value for the file at path.";
   }
 }

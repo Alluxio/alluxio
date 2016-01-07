@@ -34,6 +34,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class PersistCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public PersistCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -55,7 +59,7 @@ public final class PersistCommand extends AbstractTfsShellCommand {
   }
 
   /**
-   * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem
+   * Persists a file or directory currently stored only in Tachyon to the UnderFileSystem.
    *
    * @param filePath the {@link TachyonURI} path to persist to the UnderFileSystem
    * @throws IOException when a Tachyon or I/O error occurs
@@ -92,5 +96,10 @@ public final class PersistCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "persist <tachyonPath>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Persists a file or directory currently stored only in Tachyon to the UnderFileSystem.";
   }
 }

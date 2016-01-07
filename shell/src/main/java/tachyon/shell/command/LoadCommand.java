@@ -103,4 +103,9 @@ public final class LoadCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "load <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Loads a file or directory in Tachyon space, makes it resident in memory.";
+  }
 }

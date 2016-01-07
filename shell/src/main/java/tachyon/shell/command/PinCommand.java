@@ -27,6 +27,10 @@ import tachyon.conf.TachyonConf;
  */
 public final class PinCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public PinCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -45,5 +49,11 @@ public final class PinCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "pin <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Pins the given file or directory in memory (works recursively for directories). "
+      + "Pinned files are never evicted from memory, unless TTL is set.";
   }
 }

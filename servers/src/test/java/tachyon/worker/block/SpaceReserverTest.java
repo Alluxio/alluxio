@@ -34,6 +34,9 @@ import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
+/**
+ * Unit tests for {@link SpaceReserver}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMasterClient.class, BlockMasterClient.class})
 public class SpaceReserverTest {

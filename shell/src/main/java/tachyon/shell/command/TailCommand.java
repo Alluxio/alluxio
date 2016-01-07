@@ -34,6 +34,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class TailCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public TailCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -85,5 +89,10 @@ public final class TailCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "tail <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Prints the file's last 1KB of contents to the console.";
   }
 }

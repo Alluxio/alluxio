@@ -30,6 +30,9 @@ import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidWorkerStateException;
 
+/**
+ * Unit tests for {@link BlockLockManager}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMetadataManager.class)
 public class BlockLockManagerTest {

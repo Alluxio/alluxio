@@ -31,6 +31,9 @@ import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 
+/**
+ * Unit tests for {@link BlockMasterClient}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMasterClient.class)
 public class BlockMasterClientTest {
