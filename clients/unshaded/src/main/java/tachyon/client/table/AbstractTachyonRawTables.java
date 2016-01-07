@@ -79,6 +79,14 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
+  public TachyonURI getPartitionUri(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    RawTableInfo info = getInfo(column.getRawTable());
+    return new TachyonURI(PathUtils.concatPath(info.getPath(), Constants.MASTER_COLUMN_FILE_PREFIX
+        + column.getColumnIndex(), partitionId));
+  }
+
+  @Override
   public RawTable open(TachyonURI path) throws IOException, TachyonException {
     RawTableMasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -98,12 +106,5 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
-  }
-
-  private TachyonURI getPartitionUri(RawColumn column, int partitionId)
-      throws IOException, TachyonException {
-    RawTableInfo info = getInfo(column.getRawTable());
-    return new TachyonURI(PathUtils.concatPath(info.getPath(), Constants.MASTER_COLUMN_FILE_PREFIX
-        + column.getColumnIndex(), partitionId));
   }
 }

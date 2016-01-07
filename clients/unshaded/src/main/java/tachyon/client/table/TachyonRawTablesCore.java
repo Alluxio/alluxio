@@ -81,6 +81,19 @@ interface TachyonRawTablesCore {
    */
   int getPartitionCount(RawColumn column) throws IOException, TachyonException;
 
+
+  /**
+   * Gets the partition uri which can be used to access the partition data directly as a {@link
+   * TachyonFile}
+   * @param column the column to get the partition from
+   * @param partitionId the id of the partition
+   * @return the uri referencing the partition
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
+  TachyonURI getPartitionUri(RawColumn column, int partitionId)
+      throws IOException, TachyonException;
+
   /**
    * Gets a handle for the given raw table, if it exists.
    *
