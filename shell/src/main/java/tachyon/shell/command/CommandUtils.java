@@ -67,10 +67,11 @@ public final class CommandUtils {
   }
 
   /**
-   * Converts a millisecond number to a formatted date String.
+   * Converts an int permission value to a formatted String.
    *
-   * @param millis a long millisecond number
-   * @return formatted date String
+   * @param permission value of permission for the path
+   * @param isDir whether the path is a directory
+   * @return formatted permission String
    */
   public static String convertPermission(int permission, boolean isDir) {
     StringBuilder permString = new StringBuilder();
