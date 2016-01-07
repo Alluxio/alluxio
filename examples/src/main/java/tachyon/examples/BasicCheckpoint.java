@@ -28,11 +28,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * An example to show to how use Tachyon's API
@@ -50,7 +48,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem tachyonClient = TachyonFileSystemFactory.get();
+    FileSystem tachyonClient = FileSystem.Factory.create();
     writeFile(tachyonClient);
     return readFile(tachyonClient);
   }
@@ -60,10 +58,9 @@ public class BasicCheckpoint implements Callable<Boolean> {
     for (int i = 0; i < mNumFiles; i ++) {
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
-      TachyonFile file = tachyonClient.open(filePath);
-      FileInStream is = tachyonClient.getInStream(file);
-      FileInfo info = tachyonClient.getInfo(file);
-      ByteBuffer buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
+      FileInStream is = tachyonClient.openFile(filePath);
+      URIStatus status = tachyonClient.getStatus(filePath);
+      ByteBuffer buf = ByteBuffer.allocate((int) status.getBlockSizeBytes());
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mNumFiles; k ++) {
@@ -84,7 +81,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = tachyonClient.getOutStream(filePath);
+      OutputStream os = tachyonClient.createFile(filePath);
       os.write(buf.array());
       os.close();
     }

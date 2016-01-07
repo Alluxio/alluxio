@@ -31,10 +31,9 @@ import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.options.InStreamOptions;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.CreateFileOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
@@ -44,18 +43,16 @@ public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final InStreamOptions mReadOptions;
-  private final OutStreamOptions mWriteOptions;
+  private final OpenFileOptions mReadOptions;
+  private final CreateFileOptions mWriteOptions;
   private final int mNumbers = 20;
 
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, ReadType readType,
       WriteType writeType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
-    mReadOptions =
-        new InStreamOptions.Builder(ClientContext.getConf()).setReadType(readType).build();
-    mWriteOptions =
-        new OutStreamOptions.Builder(ClientContext.getConf()).setWriteType(writeType).build();
+    mReadOptions = OpenFileOptions.defaults().setReadType(readType);
+    mWriteOptions = CreateFileOptions.defaults().setWriteType(writeType);
   }
 
   @Override
@@ -64,7 +61,7 @@ public class BasicOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    FileSystem tFS = FileSystem.TachyonFileSystemFactory.get();
+    FileSystem tFS = FileSystem.Factory.create();
     writeFile(tFS);
     return readFile(tFS);
   }
@@ -78,7 +75,7 @@ public class BasicOperations implements Callable<Boolean> {
     }
     LOG.debug("Writing data...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    FileOutStream os = fileSystem.getOutStream(mFilePath, mWriteOptions);
+    FileOutStream os = fileSystem.createFile(mFilePath, mWriteOptions);
     os.write(buf.array());
     os.close();
 
@@ -89,9 +86,8 @@ public class BasicOperations implements Callable<Boolean> {
       throws IOException, TachyonException {
     boolean pass = true;
     LOG.debug("Reading data...");
-    TachyonFile file = fileSystem.open(mFilePath);
     final long startTimeMs = CommonUtils.getCurrentMs();
-    FileInStream is = fileSystem.getInStream(file, mReadOptions);
+    FileInStream is = fileSystem.openFile(mFilePath, mReadOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());

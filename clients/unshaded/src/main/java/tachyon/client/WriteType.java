@@ -58,7 +58,12 @@ public enum WriteType {
    *             persistence.
    */
   @Deprecated
-  ASYNC_THROUGH(5);
+  ASYNC_THROUGH(5),
+  /**
+   * Do not store the data in Tachyon or Under Storage. This write type should only be used for
+   * testing.
+   */
+  NONE(6);
 
   private final int mValue;
 
