@@ -92,18 +92,6 @@ interface TachyonRawTablesCore {
   RawTable open(TachyonURI path) throws IOException, TachyonException;
 
   /**
-   * Gets the file handle for a partition of a column. A partition should be accessed through
-   * a file API. See {@link tachyon.client.file.FileSystem}.
-   *
-   * @param column the raw column which contains the partition
-   * @param partitionId the index of the partition, which starts from 0
-   * @return the {@link TachyonFile} which may be used to interact with the partition
-   * @throws IOException if a non Tachyon related I/O error occurs
-   * @throws TachyonException if an internal Tachyon error occurs
-   */
-  TachyonFile openPartition(RawColumn column, int partitionId) throws IOException, TachyonException;
-
-  /**
    * Updates the user defined metadata for the raw table. This will overwrite the previous
    * metadata if it existed.
    *

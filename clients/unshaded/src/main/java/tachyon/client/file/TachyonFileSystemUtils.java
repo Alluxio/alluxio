@@ -28,18 +28,17 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.options.GetInfoOptions;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.OpenOptions;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-
 /**
  * Collection of utility methods to handle with {@link FileSystem} related objects
  */
@@ -148,8 +147,8 @@ public final class TachyonFileSystemUtils {
   /**
    * Persist the given file to the under file system.
    *
-   * @param tfs {@link FileSystem} to carry out Tachyon operations
-   * @param file the file to persist
+   * @param fs {@link FileSystem} to carry out Tachyon operations
+   * @param uri the uri of the file to persist
    * @param fileInfo the file info of the file
    * @param tachyonConf TachyonConf object
    * @return the size of the file persisted
@@ -157,15 +156,14 @@ public final class TachyonFileSystemUtils {
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected Tachyon error occurs
    */
-  public static long persistFile(FileSystem tfs, TachyonFile file, FileInfo fileInfo,
+  public static long persistFile(FileSystem fs, TachyonURI uri, FileInfo fileInfo,
       TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
     try {
-      InStreamOptions inStreamOptions = new InStreamOptions.Builder(tachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
-      FileInStream in = closer.register(tfs.getInStream(file, inStreamOptions));
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      FileInStream in = closer.register(fs.openFile(uri, options));
       TachyonURI dstPath = new TachyonURI(fileInfo.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), tachyonConf);
       String parentPath = dstPath.getParent().toString();
@@ -180,7 +178,7 @@ public final class TachyonFileSystemUtils {
       closer.close();
     }
     // Tell the master to mark the file as persisted
-    tfs.setState(file, (new SetStateOptions.Builder()).setPersisted(true).build());
+    fs.setAttribute(uri, SetAttributeOptions.defaults().setPersisted(true));
     return ret;
   }
 }
