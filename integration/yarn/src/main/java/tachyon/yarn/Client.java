@@ -103,8 +103,8 @@ public final class Client {
   private int mNumWorkers;
   /** Address to run Tachyon master. */
   private String mMasterAddress;
-  /** Whether to allow multiple workers on a single host */
-  private boolean mOneWorkerPerHost;
+  /** Maximum number of workers to allow on a single host */
+  private int mMaxWorkersPerHost;
   /** Id of the application */
   private ApplicationId mAppId;
   /** Command line options */
@@ -203,8 +203,8 @@ public final class Client {
     mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-    mOneWorkerPerHost =
-        new TachyonConf().getBoolean(Constants.INTEGRATION_YARN_ONE_WORKER_PER_HOST);
+    mMaxWorkersPerHost =
+        new TachyonConf().getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
@@ -237,9 +237,8 @@ public final class Client {
     // Check if the cluster has enough resource to launch the ApplicationMaster
     checkClusterResource(appResponse);
 
-    if (mOneWorkerPerHost) {
-      checkNodesAvailable();
-    }
+    // Check that there are enough hosts in the cluster to support the desired number of workers
+    checkNodesAvailable();
 
     // Set up the container launch context for the application master
     mAmContainer = Records.newRecord(ContainerLaunchContext.class);
@@ -273,10 +272,10 @@ public final class Client {
   // Checks that there are enough nodes in the cluster to run the desired number of workers
   private void checkNodesAvailable() throws YarnException, IOException {
     Set<String> hosts = YarnUtils.getNodeHosts(mYarnClient);
-    Preconditions.checkArgument(mNumWorkers <= hosts.size(),
-        "Number of workers specified above number of usable hosts in the cluster, "
-            + String.format("specified=%s, but there are only %d usable hosts: %s", mNumWorkers,
-                hosts.size(), hosts));
+    Preconditions.checkArgument(mNumWorkers <= hosts.size() * mMaxWorkersPerHost,
+        "Not enough nodes in cluster to support specified number of workers, " + String.format(
+            "specified=%s, but there are only %d usable hosts and %d workers allowed per host: %s",
+            mNumWorkers, hosts.size(), mMaxWorkersPerHost, hosts));
   }
 
   private void setupContainerLaunchContext() throws IOException {

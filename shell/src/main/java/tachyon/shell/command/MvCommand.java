@@ -28,6 +28,10 @@ import tachyon.exception.TachyonException;
  */
 public final class MvCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public MvCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -61,5 +65,10 @@ public final class MvCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "mv <src> <dst>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Renames a file or directory.";
   }
 }

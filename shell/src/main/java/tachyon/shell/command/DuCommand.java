@@ -30,6 +30,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class DuCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public DuCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -51,7 +55,7 @@ public final class DuCommand extends WithWildCardPathCommand {
    * @param tachyonFS A {@link TachyonFileSystem}
    * @param path A {@link TachyonURI} denoting the path
    * @return total size of the specified path in byte
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
       throws IOException {
@@ -77,5 +81,10 @@ public final class DuCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "du <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Displays the size of the specified file or directory.";
   }
 }

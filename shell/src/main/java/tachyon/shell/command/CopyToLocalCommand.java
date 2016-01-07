@@ -42,6 +42,10 @@ import tachyon.thrift.FileInfo;
  */
 public final class CopyToLocalCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public CopyToLocalCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -201,5 +205,10 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "copyToLocal <src> <localDst>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Copies a file or a directory from the Tachyon filesystem to the local filesystem.";
   }
 }

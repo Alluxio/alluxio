@@ -42,6 +42,9 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 import tachyon.worker.file.FileSystemMasterClient;
 
+/**
+ * Unit tests for {@link BlockDataManager}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,

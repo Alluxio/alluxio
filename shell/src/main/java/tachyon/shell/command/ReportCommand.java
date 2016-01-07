@@ -28,6 +28,10 @@ import tachyon.exception.TachyonException;
  */
 public final class ReportCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public ReportCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -50,5 +54,10 @@ public final class ReportCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "report <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Reports to the master that a file is lost.";
   }
 }

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.metrics;
+package tachyon.master;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +37,6 @@ import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.heartbeat.HeartbeatContext;
-import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
@@ -50,9 +49,9 @@ import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * Unit tests for {@link tachyon.master.MasterSource}.
+ * Unit tests for {@link MasterSource}.
  */
-public final class MetricsCountersTest {
+public final class MasterSourceTest {
   private static final long TTLCHECKER_INTERVAL_MS = 0;
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private static final TachyonURI ROOT_URI = new TachyonURI("/");

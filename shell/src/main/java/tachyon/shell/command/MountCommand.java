@@ -27,6 +27,10 @@ import tachyon.exception.TachyonException;
  */
 public final class MountCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public MountCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -59,5 +63,10 @@ public final class MountCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "mount <tachyonPath> <ufsURI>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Mounts a UFS path onto a Tachyon path.";
   }
 }
