@@ -71,6 +71,28 @@ public final class TachyonLineageFileSystemTest {
   }
 
   @Test
+  public void getLineageOutStreamTest() throws Exception {
+    TachyonURI path = new TachyonURI("test");
+    Mockito.when(mLineageMasterClient.reinitializeFile("test", DEFAULT_BLOCK_SIZE, 0))
+        .thenReturn(1L);
+    OutStreamOptions options =
+        new OutStreamOptions.Builder().setBlockSizeBytes(DEFAULT_BLOCK_SIZE).setTTL(0).build();
+    FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
+    Assert.assertTrue(outStream instanceof LineageFileOutStream);
+  }
+
+  @Test
+  public void getDummyOutStreamTest() throws Exception {
+    TachyonURI path = new TachyonURI("test");
+    Mockito.when(mLineageMasterClient.reinitializeFile("test", DEFAULT_BLOCK_SIZE, 0))
+        .thenReturn(-1L);
+    OutStreamOptions options =
+        new OutStreamOptions.Builder().setBlockSizeBytes(DEFAULT_BLOCK_SIZE).setTTL(0).build();
+    FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
+    Assert.assertTrue(outStream instanceof DummyFileOutputStream);
+  }
+
+  @Test
   public void getNonLineageStreamTest() throws Exception {
     TachyonURI path = new TachyonURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", DEFAULT_BLOCK_SIZE, 0))
