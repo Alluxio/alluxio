@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Tiered Storage on Tachyon (Beta)
+title: Tiered Storage on Tachyon
 nickname: Tiered Storage
 group: Features
 priority: 4
