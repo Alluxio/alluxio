@@ -24,8 +24,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.FileSystem;
 import tachyon.client.file.URIStatus;
 import tachyon.client.file.options.CreateFileOptions;
-import tachyon.client.file.options.InStreamOptions;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.exception.TachyonException;
 
 public final class TachyonFSTestUtils {
@@ -139,15 +138,17 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Converts an {@link OutStreamOptions} object to an {@link InStreamOptions} object with a
+   * Converts an {@link CreateFileOptions} object to an {@link OpenFileOptions} object with a
    * matching Tachyon storage type.
    *
-   * @param op an {@link OutStreamOptions} object
-   * @return an {@link InStreamOptions} object with a matching Tachyon storage type
+   * @param op an {@link CreateFileOptions} object
+   * @return an {@link OpenFileOptions} object with a matching Tachyon storage type
    */
-  public static InStreamOptions toInStreamOptions(OutStreamOptions op) {
-    return new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(op.getTachyonStorageType()).build();
+  public static OpenFileOptions toOpenFileOptions(CreateFileOptions op) {
+    if (op.getTachyonStorageType().isStore()) {
+      return OpenFileOptions.defaults().setReadType(ReadType.CACHE);
+    }
+    return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
   }
 
   private TachyonFSTestUtils() {} // prevent instantiation

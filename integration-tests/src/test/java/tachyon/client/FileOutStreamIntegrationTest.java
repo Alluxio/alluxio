@@ -72,10 +72,10 @@ public final class FileOutStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mTestConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
-    mWriteBoth = StreamOptionUtils.getOutStreamOptionsWriteBoth(mTestConf);
-    mWriteTachyon = StreamOptionUtils.getOutStreamOptionsWriteTachyon(mTestConf);
-    mWriteUnderStore = StreamOptionUtils.getOutStreamOptionsWriteUnderStore(mTestConf);
-    mWriteLocal = StreamOptionUtils.getOutStreamOptionsWriteLocal(mTestConf);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(mTestConf);
+    mWriteTachyon = StreamOptionUtils.getCreateFileOptionsMustCache(mTestConf);
+    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(mTestConf);
+    mWriteLocal = StreamOptionUtils.getCreateFileOptionsWriteLocal(mTestConf);
     mTfs = mLocalTachyonClusterResource.get().getClient();
   }
 
