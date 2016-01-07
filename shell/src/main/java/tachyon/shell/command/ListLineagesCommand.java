@@ -29,6 +29,8 @@ import tachyon.thrift.LineageInfo;
 public final class ListLineagesCommand extends AbstractTfsShellCommand {
 
   /**
+   * Constructs a new instance to list all the lineages.
+   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
@@ -58,5 +60,10 @@ public final class ListLineagesCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "listLineages";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Lists all lineages.";
   }
 }

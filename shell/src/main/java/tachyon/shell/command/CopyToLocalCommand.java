@@ -206,4 +206,9 @@ public final class CopyToLocalCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "copyToLocal <src> <localDst>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Copies a file or a directory from the Tachyon filesystem to the local filesystem.";
+  }
 }
