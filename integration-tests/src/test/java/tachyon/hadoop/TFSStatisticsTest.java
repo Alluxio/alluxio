@@ -29,8 +29,7 @@ import org.junit.Test;
 
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 
 /**
@@ -52,8 +51,8 @@ public class TFSStatisticsTest {
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
     FileSystem tachyonFS = sLocalTachyonClusterResource.get().getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", TachyonStorageType.STORE,
-        UnderStorageType.SYNC_PERSIST, FILE_LEN);
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", WriteType.CACHE_THROUGH,
+        FILE_LEN);
 
     URI uri = URI.create(sLocalTachyonClusterResource.get().getMasterUri());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
