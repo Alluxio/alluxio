@@ -19,11 +19,10 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays the size of a file or a directory specified by argv.
@@ -60,19 +59,18 @@ public final class DuCommand extends WithWildCardPathCommand {
   private long getFileOrFolderSize(FileSystem tachyonFS, TachyonURI path)
       throws IOException {
     long sizeInBytes = 0;
-    List<FileInfo> files;
+    List<URIStatus> statuses;
     try {
-      TachyonFile inputFile = tachyonFS.open(path);
-      files = tachyonFS.listStatus(inputFile);
+      statuses = tachyonFS.listStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
-    for (FileInfo file : files) {
-      if (file.isFolder) {
-        TachyonURI subFolder = new TachyonURI(file.getPath());
+    for (URIStatus status : statuses) {
+      if (status.isFolder()) {
+        TachyonURI subFolder = new TachyonURI(status.getPath());
         sizeInBytes += getFileOrFolderSize(tachyonFS, subFolder);
       } else {
-        sizeInBytes += file.getLength();
+        sizeInBytes += status.getLength();
       }
     }
     return sizeInBytes;

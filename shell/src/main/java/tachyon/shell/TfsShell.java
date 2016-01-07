@@ -30,7 +30,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 import tachyon.shell.command.TfsShellCommand;
 import tachyon.util.CommonUtils;
@@ -63,7 +62,7 @@ public class TfsShell implements Closeable {
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTfs = TachyonFileSystemFactory.get();
+    mTfs = FileSystem.Factory.create();
     loadCommands();
   }
 
