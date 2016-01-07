@@ -22,8 +22,8 @@ import tachyon.conf.TachyonConf;
 
 /**
  * A util class to obtain common In/OutStreamOptions for tests
- *
  */
+// TODO(calvin): We can make these methods into constants
 public final class StreamOptionUtils {
   private StreamOptionUtils() {
     // not intended for instantiation
@@ -47,7 +47,6 @@ public final class StreamOptionUtils {
    */
   public static CreateFileOptions getCreateFileOptionsMustCache(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
-
   }
 
   /**
@@ -58,7 +57,6 @@ public final class StreamOptionUtils {
    */
   public static CreateFileOptions getCreateFileOptionsThrough(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
-
   }
 
   /**
@@ -70,7 +68,6 @@ public final class StreamOptionUtils {
   public static CreateFileOptions getCreateFileOptionsWriteLocal(TachyonConf conf) {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
         .setLocationPolicy(new LocalFirstPolicy());
-
   }
 
   /**
@@ -91,6 +88,5 @@ public final class StreamOptionUtils {
    */
   public static OpenFileOptions getOpenFileOptionsNoCache(TachyonConf conf) {
     return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-
   }
 }

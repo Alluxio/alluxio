@@ -32,9 +32,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -90,27 +88,17 @@ public class TfsShellUtilsTest {
      *                                        └── foobar3
      *                                └── foobar4
      */
-    TachyonFile fd;
-    try {
-      fd = tfs.openIfExists(new TachyonURI("/testWildCards"));
-    } catch (IOException ioe) {
-      fd = null;
+    if (tfs.exists(new TachyonURI("/testWildCards"))) {
+      tfs.delete(new TachyonURI("/testWildCards"));
     }
-    if (fd != null) {
-      tfs.delete(fd);
-    }
-    tfs.mkdir(new TachyonURI("/testWildCards"));
-    tfs.mkdir(new TachyonURI("/testWildCards/foo"));
-    tfs.mkdir(new TachyonURI("/testWildCards/bar"));
+    tfs.createDirectory(new TachyonURI("/testWildCards"));
+    tfs.createDirectory(new TachyonURI("/testWildCards/foo"));
+    tfs.createDirectory(new TachyonURI("/testWildCards/bar"));
 
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 10);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 20);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 30);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, 40);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
     return "/testWildCards";
   }
 
