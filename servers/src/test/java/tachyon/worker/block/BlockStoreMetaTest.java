@@ -20,14 +20,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.ImmutableMap;
+
 import tachyon.collections.Pair;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
@@ -59,6 +62,11 @@ public class BlockStoreMetaTest {
           mMetadataManager, null);
     }
     mBlockStoreMeta = new BlockStoreMeta(mMetadataManager);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test
