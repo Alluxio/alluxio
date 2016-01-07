@@ -25,10 +25,11 @@ import tachyon.conf.TachyonConf;
  */
 public interface AuthenticationProvider {
 
+  /**
+   * Factory for {@link AuthenticationProvider}.
+   */
   class Factory {
     /**
-     * Factory for {@link AuthenticationProvider}.
-     *
      * @param authType authentication type to use
      * @param conf Tachyon configuration
      * @return the generated {@link AuthenticationProvider}
