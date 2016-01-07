@@ -194,8 +194,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param options method options
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation
-   * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
-   *         directory there
+   * @throws FileAlreadyExistsException when there is already a file at path, or there is already
+   *         a directory at path and allowExists in CreatePathOptions is false
    * @throws BlockInfoException when blockSizeBytes is invalid
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
@@ -291,6 +291,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
         traversalResult.getNonPersisted().add(lastInode);
         toPersistDirectories.add(lastInode);
       } else if (!(lastInode.isDirectory() && options.isAllowExists())) {
+        // A file already exists at path, or a directory exists at path and isAllowExists is false.
+        LOG.info("isDirectory: {}, isAllowExists: {}", lastInode.isDirectory(), options.isAllowExists());
         LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
         throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
       }
