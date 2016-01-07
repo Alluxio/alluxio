@@ -24,6 +24,10 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.FileSystemMasterClient;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
@@ -40,7 +44,8 @@ import tachyon.util.IdUtils;
  * to provide retries.
  */
 public final class RawTableMasterClient extends MasterClientBase {
-  private RawTableMasterClientService.Client mClient = null;
+  private RawTableMasterClientService.Client mRawTableMasterClient = null;
+  private FileSystemMasterClient mFileSystemMasterClient = null;
 
   /**
    * Creates a new raw table master client.
@@ -50,11 +55,12 @@ public final class RawTableMasterClient extends MasterClientBase {
    */
   public RawTableMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf);
+    mFileSystemMasterClient = new FileSystemMasterClient(masterAddress, tachyonConf);
   }
 
   @Override
   protected TachyonService.Client getClient() {
-    return mClient;
+    return mRawTableMasterClient;
   }
 
   @Override
@@ -69,7 +75,18 @@ public final class RawTableMasterClient extends MasterClientBase {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = new RawTableMasterClientService.Client(mProtocol);
+    mRawTableMasterClient = new RawTableMasterClientService.Client(mProtocol);
+  }
+
+  /**
+   * Returns the path for the column in the table.
+   *
+   * @param tablePath the path of the table
+   * @param column column number
+   * @return the column path
+   */
+  private TachyonURI columnPath(TachyonURI tablePath, int column) {
+    return tablePath.join(Constants.MASTER_COLUMN_FILE_PREFIX + column);
   }
 
   /**
@@ -84,13 +101,27 @@ public final class RawTableMasterClient extends MasterClientBase {
    */
   public synchronized long createRawTable(final TachyonURI path, final int columns,
       final ByteBuffer metadata) throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
+    long tableId = retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
       @Override
       public Long call() throws TachyonTException, TException {
         RpcOptions rpcOptions = new RpcOptions().setKey(IdUtils.createRpcId());
-        return mClient.createRawTable(rpcOptions, path.getPath(), columns, metadata);
+        return mRawTableMasterClient.createRawTable(rpcOptions, path.getPath(), columns, metadata);
       }
     });
+
+    // Column directories are created here in RawTableMasterClient instead of RawTableMaster.
+    // If they are created in RawTableMaster, the time used to create these directories may be
+    // very long, then RPC connection timeout may always be encountered.
+    MkdirOptions options =
+      new MkdirOptions.Builder(ClientContext.getConf())
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST)
+        .setRecursive(true)
+        .build();
+    for (int i = 0; i < columns; i ++) {
+        mFileSystemMasterClient.mkdir(columnPath(path, i).getPath(), options);
+    }
+
+    return tableId;
   }
 
   /**
@@ -106,7 +137,7 @@ public final class RawTableMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<RawTableInfo>() {
       @Override
       public RawTableInfo call() throws TachyonTException, TException {
-        return mClient.getClientRawTableInfoById(id);
+        return mRawTableMasterClient.getClientRawTableInfoById(id);
       }
     });
   }
@@ -124,7 +155,7 @@ public final class RawTableMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<RawTableInfo>() {
       @Override
       public RawTableInfo call() throws TachyonTException, TException {
-        return mClient.getClientRawTableInfoByPath(path.getPath());
+        return mRawTableMasterClient.getClientRawTableInfoByPath(path.getPath());
       }
     });
   }
@@ -142,7 +173,7 @@ public final class RawTableMasterClient extends MasterClientBase {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
-        mClient.updateRawTableMetadata(tableId, metadata);
+        mRawTableMasterClient.updateRawTableMetadata(tableId, metadata);
         return null;
       }
     });

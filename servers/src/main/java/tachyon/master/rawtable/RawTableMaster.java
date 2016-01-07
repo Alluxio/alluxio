@@ -170,11 +170,6 @@ public class RawTableMaster extends MasterBase {
       throw new RuntimeException(ExceptionMessage.RAW_TABLE_ID_DUPLICATED.getMessage(id));
     }
 
-    // Create directories in the table directory as columns
-    for (int k = 0; k < columns; k ++) {
-      mFileSystemMaster.mkdir(columnPath(path, k), options);
-    }
-
     LOG.debug("writing journal entry for createRawTable {}", path);
     RawTableEntry rawTable = RawTableEntry.newBuilder()
         .setId(id)
@@ -211,17 +206,6 @@ public class RawTableMaster extends MasterBase {
         .build();
     writeJournalEntry(JournalEntry.newBuilder().setUpdateMetadata(updateMetadata).build());
     flushJournal();
-  }
-
-  /**
-   * Returns the path for the column in the table.
-   *
-   * @param tablePath the path of the table
-   * @param column column number
-   * @return the column path
-   */
-  public TachyonURI columnPath(TachyonURI tablePath, int column) {
-    return tablePath.join(Constants.MASTER_COLUMN_FILE_PREFIX + column);
   }
 
   /**
