@@ -31,15 +31,13 @@ import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
-import tachyon.client.file.FileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileInfo;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
@@ -73,7 +71,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("fatalError", "");
-    FileSystem tFS = TachyonFileSystemFactory.get();
+    FileSystem tFS = FileSystem.Factory.create();
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
@@ -223,25 +221,15 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId,
       TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
       InvalidPathException, IOException, TachyonException {
-    TachyonFile file = null;
-    if (fileId != -1) {
-      file = new TachyonFile(fileId);
-    } else {
-      file = fileSystem.open(filePath);
-    }
-    FileInfo fileInfo;
+    URIStatus status;
     try {
-      fileInfo = fileSystem.getInfo(file);
-      if (fileInfo == null) {
-        throw new FileDoesNotExistException(
-            fileId != -1 ? Long.toString(fileId) : filePath.toString());
-      }
+      status = fileSystem.getStatus(filePath);
     } catch (TachyonException e) {
       throw new FileDoesNotExistException(filePath.toString());
     }
-    UIFileInfo uiFileInfo = new UIFileInfo(fileInfo);
+    UIFileInfo uiFileInfo = new UIFileInfo(status.getInfo());
     boolean blockExistOnWorker = false;
-    for (long blockId : fileInfo.getBlockIds()) {
+    for (long blockId : status.getBlockIds()) {
       if (mBlockDataManager.hasBlockMeta(blockId)) {
         blockExistOnWorker = true;
         BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
