@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
@@ -193,6 +194,7 @@ public final class FileSystemMasterClientServiceHandler implements
     }
   }
 
+  @Override
   public boolean rename(long fileId, String dstPath)
       throws TachyonTException, ThriftIOException {
     try {
@@ -221,6 +223,15 @@ public final class FileSystemMasterClientServiceHandler implements
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
+    }
+  }
+
+  @Override
+  public void scheduleAsyncPersist(long fileId) throws TachyonTException {
+    try {
+      mFileSystemMaster.scheduleAsyncPersistence(fileId);
+    } catch (FileDoesNotExistException e) {
+      throw e.toTachyonTException();
     }
   }
 }
