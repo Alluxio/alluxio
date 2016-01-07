@@ -61,4 +61,9 @@ public final class SetTTLCommand extends AbstractTfsShellCommand {
   public String getUsage() {
     return "setTTL <path> <time to live(in milliseconds)>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Sets a new TTL value for the file at path.";
+  }
 }
