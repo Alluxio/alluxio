@@ -29,9 +29,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
-import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.OpenFileOptions;
-import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
@@ -62,9 +60,9 @@ public final class TachyonFileSystemUtils {
    * @throws TachyonException if a Tachyon Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
-   * @see #waitCompleted(TachyonFileSystemCore, TachyonURI, long, TimeUnit)
+   * @see #waitCompleted(FileSystem, TachyonURI, long, TimeUnit)
    */
-  public static boolean waitCompleted(TachyonFileSystemCore tfs, TachyonURI uri)
+  public static boolean waitCompleted(FileSystem tfs, TachyonURI uri)
       throws IOException, TachyonException, InterruptedException {
     return TachyonFileSystemUtils.waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS);
   }
@@ -101,30 +99,23 @@ public final class TachyonFileSystemUtils {
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */
-  public static boolean waitCompleted(final TachyonFileSystemCore tfs, final TachyonURI uri,
+  public static boolean waitCompleted(final FileSystem tfs, final TachyonURI uri,
       final long timeout, final TimeUnit tunit)
           throws IOException, TachyonException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
     final long pollPeriod =
         ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
-    TachyonFile file = null;
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
     long toSleep = 0;
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
-
-      if (file == null) {
-        file = tfs.openIfExists(uri, OpenOptions.defaults());
-        if (file == null) {
-          LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
-              + "created.", uri);
-        }
-      }
-
-      if (file != null) {
-        completed = tfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+      if (!tfs.exists(uri)) {
+        LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
+            + "created.", uri);
+      } else {
+        completed = tfs.getStatus(uri).isCompleted();
       }
 
       if (timeout == 0) {
