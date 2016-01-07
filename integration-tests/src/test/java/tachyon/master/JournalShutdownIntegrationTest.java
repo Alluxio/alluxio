@@ -75,7 +75,7 @@ public class JournalShutdownIntegrationTest {
         while (true) {
           if (mOpType == 0) {
             try {
-              mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
+              mTfs.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
             } catch (IOException ioe) {
               break;
             }
