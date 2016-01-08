@@ -67,7 +67,7 @@ public final class CommandUtils {
   /**
    * Sets pin state for the input path
    *
-   * @param tfs The {@link tachyon.client.file.FileSystem} client
+   * @param tfs The {@link FileSystem} client
    * @param path The {@link TachyonURI} path as the input of the command
    * @param pinned the state to be set
    * @throws IOException if a non-Tachyon related exception occurs

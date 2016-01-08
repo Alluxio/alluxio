@@ -31,7 +31,7 @@ public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a {@link tachyon.client.file.FileSystem} handler
+   * @param tfs a {@link FileSystem} handler
    * @param fileName the name of the file to be created
    * @param len file size in bytes
    * @param options options to create the file with
@@ -45,7 +45,7 @@ public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a {@link tachyon.client.file.FileSystem} handler
+   * @param tfs a {@link FileSystem} handler
    * @param fileName the name of the file to be created
    * @param writeType {@link WriteType} used to create the file
    * @param len file size
@@ -59,7 +59,7 @@ public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a {@link tachyon.client.file.FileSystem} handler
+   * @param tfs a {@link FileSystem} handler
    * @param fileURI URI of the file
    * @param writeType {@link WriteType} used to create the file
    * @param len file size
@@ -74,7 +74,7 @@ public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a {@link tachyon.client.file.FileSystem} handler
+   * @param tfs a {@link FileSystem} handler
    * @param fileURI URI of the file
    * @param options client options to create the file with
    * @param len file size
@@ -99,7 +99,7 @@ public final class TachyonFSTestUtils {
   /**
    * Creates a simple file with {@code len} bytes.
    *
-   * @param tfs a {@link tachyon.client.file.FileSystem} handler
+   * @param tfs a {@link FileSystem} handler
    * @param fileName the name of the file to be created
    * @param writeType {@link WriteType} used to create the file
    * @param len file size
@@ -116,7 +116,7 @@ public final class TachyonFSTestUtils {
   /**
    * Returns a list of files at a given {@code path}.
    *
-   * @param tfs a {@link tachyon.client.file.FileSystem} handler
+   * @param tfs a {@link FileSystem} handler
    * @param path a path in tachyon file system
    * @return a list of strings representing the file names under the given path
    * @throws IOException if {@code path} does not exist or is invalid

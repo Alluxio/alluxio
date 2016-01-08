@@ -27,8 +27,8 @@ import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Keeps a collection of all clients ({@link tachyon.client.file.FileSystem}) returned. The
- * main reason for this is to build cleanup clients.
+ * Keeps a collection of all clients ({@link FileSystem}) returned. The main reason for this is
+ * to build cleanup clients.
  */
 public final class ClientPool implements Closeable {
   private final List<FileSystem> mClients =
@@ -37,7 +37,7 @@ public final class ClientPool implements Closeable {
   ClientPool(Supplier<String> uriSupplier) {}
 
   /**
-   * Returns a {@link tachyon.client.file.FileSystem} client. This client does not need to be
+   * Returns a {@link FileSystem} client. This client does not need to be
    * closed directly, but can be closed by calling {@link #close()} on this object.
    *
    * @param tachyonConf Tachyon configuration
