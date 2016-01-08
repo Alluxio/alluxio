@@ -28,17 +28,27 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.util.io.BufferUtils;
 
+/**
+ * Tests for the {@link LocalFileBlockReader} class.
+ */
 public class LocalFileBlockReaderTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private LocalFileBlockReader mReader;
   private String mTestFilePath;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up the file path and file block reader before a test runs.
+   *
+   * @throws Exception if one of the file operations fails
+   */
   @Before
   public void before() throws Exception {
     mTestFilePath = mFolder.newFile().getAbsolutePath();
@@ -47,6 +57,11 @@ public class LocalFileBlockReaderTest {
     mReader = new LocalFileBlockReader(mTestFilePath);
   }
 
+  /**
+   * Test for the {@link LocalFileBlockReader#getChannel()} method.
+   *
+   * @throws Exception if bytes cannot be read from the channel
+   */
   @Test
   public void getChannelTest() throws Exception {
     ReadableByteChannel channel = mReader.getChannel();
@@ -57,19 +72,31 @@ public class LocalFileBlockReaderTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
+  /**
+   * Test for the {@link LocalFileBlockReader#getLength()} method.
+   */
   @Test
-  public void getLengthTest() throws Exception {
+  public void getLengthTest() {
     Assert.assertEquals(TEST_BLOCK_SIZE, mReader.getLength());
   }
 
+  /**
+   * Tests that an exception is thrown if the read exceeds the file length limit.
+   *
+   * @throws Exception if the data from the block cannot be read
+   */
   @Test
   public void readWithInvalidArgumentTest() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("exceeding fileSize");
-    // Read crosses the file length limit
     mReader.read(TEST_BLOCK_SIZE - 1, 2);
   }
 
+  /**
+   * Test for the {@link LocalFileBlockReader#read(long, long)} method.
+   *
+   * @throws Exception if the buffer cannot be read from the reader
+   */
   @Test
   public void readTest() throws Exception {
     ByteBuffer buffer;
@@ -88,11 +115,17 @@ public class LocalFileBlockReaderTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, (int) TEST_BLOCK_SIZE, buffer));
   }
 
+  /**
+   * Tests that a {@link ClosedChannelException} is thrown when trying to read from a reader after
+   * closing it.
+   *
+   * @throws Exception if either the block cannot be read from the reader or closing the reader
+   *                   fails
+   */
   @Test
   public void closeTest() throws Exception {
     mThrown.expect(ClosedChannelException.class);
     mReader.close();
-    // Read after close, expect read to fail and throw ClosedChannelException
     mReader.read(0, TEST_BLOCK_SIZE);
   }
 }
