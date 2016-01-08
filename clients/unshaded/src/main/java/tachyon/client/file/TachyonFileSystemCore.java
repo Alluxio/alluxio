@@ -30,6 +30,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.FileAlreadyExistsException;
@@ -182,6 +183,18 @@ interface TachyonFileSystemCore {
       FileDoesNotExistException, TachyonException;
 
   /**
+   * Sets the acl of a file or directory.
+   *
+   * @param path to be set acl on
+   * @param options the acl option to be set
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public boolean setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+      IOException;
+
+  /**
    * Sets the file state.
    *
    * @param file the file handler for the file
@@ -206,43 +219,4 @@ interface TachyonFileSystemCore {
    */
   boolean unmount(TachyonURI tachyonPath, UnmountOptions options) throws IOException,
       TachyonException;
-
-  /**
-   * Sets the owner of a path.
-   *
-   * @param path the path of file or directory
-   * @param user the user to be set as owner
-   * @param recursive whether to set owner recursively under a directory
-   * @return true if set successfully, false otherwise
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  boolean setOwner(TachyonURI path, String user, boolean recursive) throws TachyonException,
-      IOException;
-
-  /**
-   * Sets the group of a path.
-   *
-   * @param path the path of file or directory
-   * @param group the group to be set
-   * @param recursive whether to set group recursively under a directory
-   * @return true if set successfully, false otherwise
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  boolean setGroup(TachyonURI path, String group, boolean recursive) throws TachyonException,
-      IOException;
-
-  /**
-   * Sets the permission of a path.
-   *
-   * @param path the path of file or directory
-   * @param permission the permission to be set
-   * @param recursive whether to set permission recursively under a directory
-   * @return true if set successfully, false otherwise
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  boolean setPermission(TachyonURI path, short permission, boolean recursive)
-      throws TachyonException, IOException;
 }

@@ -56,6 +56,13 @@ struct PersistFile {
   2: list<i64> blockIds
 }
 
+struct SetAclTOptions {
+  1: optional string owner
+  2: optional string group
+  3: optional i32 permission
+  4: optional bool recursive
+}
+
 struct SetStateTOptions {
   1: optional bool pinned
   2: optional i64 ttl
@@ -176,6 +183,13 @@ service FileSystemMasterClientService extends common.TachyonService {
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
 
   /**
+   * Sets the acl of a path.
+   */
+  bool setAcl( /** the path of a file or directory */ 1: string path,
+       /** the method options */ 2: SetAclTOptions options)
+    throws (1: exception.TachyonTException e)
+
+  /**
    * Sets file state.
    */
   void setState( /** the id of the file */ 1: i64 fileId,
@@ -188,30 +202,6 @@ service FileSystemMasterClientService extends common.TachyonService {
    */
   bool unmount( /** the path of the tachyon mount point */ 1: string tachyonPath)
     throws (1: exception.TachyonTException e, 2: exception.ThriftIOException ioe)
-
-  /**
-   * Sets the owner of a path.
-   */
-  bool setOwner( /** the path of file or directory */ 1: string path,
-       /** the user to be set as owner */ 2: string user,
-       /** whether to set owner recursively under a directory */ 3: bool recursive)
-    throws (1: exception.TachyonTException e)
-
-  /**
-   * Sets the group of a path.
-   */
-  bool setGroup( /** the path of file or directory */ 1: string path,
-       /** the group to be set */ 2: string group,
-       /** whether to set group recursively under a directory */ 3: bool recursive)
-    throws (1: exception.TachyonTException e)
-
-  /**
-   * Sets the permission of a path.
-   */
-  bool setPermission( /** the path of file or directory */ 1: string path,
-       /** the permission to be set */ 2: i32 permission,
-       /** whether to set permission recursively under a directory */ 3: bool recursive)
-    throws (1: exception.TachyonTException e)
 }
 
 /**
