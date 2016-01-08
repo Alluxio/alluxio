@@ -127,6 +127,7 @@ public class PinIntegrationTest {
 
     // Grandchild file also pinned
     TachyonURI file1 = new TachyonURI("/folder/file1");
+    createEmptyFile(file1);
     URIStatus status1 = mTfs.getStatus(file1);
     Assert.assertTrue(status1.isPinned());
     Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),

@@ -44,7 +44,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   void runCommand(TachyonURI path) throws IOException {
     try {
       if (!mTfs.exists(path)) {
-        throw new IOException("rm: path " + path + " to remove does not exist.");
+        throw new IOException("rm: Path " + path + " does not exist");
       }
       if (mTfs.getStatus(path).isFolder()) {
         throw new IOException("rm: cannot remove a directory, please try rmr <path>");

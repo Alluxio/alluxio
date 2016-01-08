@@ -290,6 +290,8 @@ public class FileSystemIntegrationTest {
       // Cannot mount to path that shadows a file in the primary UFS
       mTfs.mount(new TachyonURI("/dir1"), new TachyonURI(subdirPath));
       Assert.fail("Cannot mount to path that shadows a file in the primary UFS");
+    } catch (IOException e) {
+      // Exception expected, continue
     } finally {
       destroyAlternateUfs(alternateUfsRoot);
     }

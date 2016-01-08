@@ -544,7 +544,7 @@ public class TfsShellTest {
     MasterContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
-    URIStatus[] files = new URIStatus[3];
+    URIStatus[] files = new URIStatus[4];
     String testUser = "test_user_ls";
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, testUser);
 
@@ -554,6 +554,8 @@ public class TfsShellTest {
         20);
     files[1] = mTfs.getStatus(new TachyonURI("/testRoot/testDir"));
     files[2] = mTfs.getStatus(new TachyonURI("/testRoot/testDir/testFileB"));
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
+    files[3] = mTfs.getStatus(new TachyonURI("/testRoot/testFileC"));
     mFsShell.run("ls", "/testRoot");
     String expected = "";
     expected +=
@@ -563,7 +565,7 @@ public class TfsShellTest {
         getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 0, "", testUser,
             testUser);
     expected +=
-        getLsResultStr("/testRoot/testFileC", files[2].getCreationTimeMs(), 30, "Not In Memory",
+        getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30, "Not In Memory",
             testUser, testUser);
     Assert.assertEquals(expected, mOutput.toString());
     // clear testing username
@@ -808,7 +810,7 @@ public class TfsShellTest {
     // du a folder
     mFsShell.run("du", "/testRoot/testDir");
     expected += "/testRoot/testDir is 50 bytes\n";
-    Assert.assertEquals(expected.toString(), mOutput.toString());
+    Assert.assertEquals(expected, mOutput.toString());
   }
 
   @Test
