@@ -139,10 +139,7 @@ public final class BlockWorker extends WorkerBase {
   public void start() throws IOException {
     NetAddress workerNetAddress;
     try {
-      workerNetAddress =
-          new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-              mTachyonConf.getInt(Constants.WORKER_RPC_PORT),
-              getDataLocalPort(), mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+      workerNetAddress = WorkerContext.getWorkerNetAddress();
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, workerNetAddress);
     } catch (ConnectionFailedException e) {
       LOG.error("Failed to get a worker id from block master", e);

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
@@ -68,8 +69,6 @@ public final class TachyonWorker {
   private TServerSocket mThriftServerSocket;
   /** RPC local port for thrift */
   private int mRPCPort;
-  /** Web local port for worker */
-  private int mWebPort;
   /** The address for the rpc server */
   private InetSocketAddress mWorkerAddress;
   /** Net address of this worker */
@@ -198,13 +197,36 @@ public final class TachyonWorker {
    * Starts the Tachyon worker server.
    */
   public void start() throws Exception {
-    startServing();
+    // NOTE: the order to start different services is sensitive. Make sure you change it cautiously.
 
-    // Get the worker id
+    // Start serving metrics system, this will not block
+    mWorkerMetricsSystem.start();
+
+    // Start serving the web server, this will not block
+    // Requirement: metrics system started so we could add the metrics servlet to the web server
+    // Consequence: when starting webserver, the webport will be updated.
+    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
+    mWebServer.startWebServer();
+
+    // Set updated net address for this worker in context
+    // Requirement: RPC, web, and dataserver ports are updated
+    // Consequence: create a NetAddress object and set it into WorkerContext
+    mWorkerNetAddress =
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+            mTachyonConf.getInt(Constants.WORKER_RPC_PORT),
+            getDataLocalPort(), mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
     WorkerContext.setWorkerNetAddress(mWorkerNetAddress);
 
+    // Start each worker
+    // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
+    // Consequence: worker id is granted
     startWorkers();
     LOG.info("Started worker with id {}", WorkerIdRegistry.getWorkerId());
+
+    // Start serving RPC, this will block
+    LOG.info("Tachyon Worker version {} started @ {} {}", Version.VERSION, mWorkerAddress);
+    mThriftServer.serve();
+    LOG.info("Tachyon Worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
   }
 
   /**
@@ -229,15 +251,6 @@ public final class TachyonWorker {
   private void stopWorkers() throws Exception {
     mFileSystemWorker.stop();
     mBlockWorker.stop();
-  }
-
-  private void startServing() {
-    mThriftServer.serve();
-    mWorkerMetricsSystem.start();
-    // Add the metrics servlet to the web server, this must be done after the metrics system starts
-    mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
-    mWebServer.startWebServer();
-    mWebPort = mWebServer.getLocalPort();
   }
 
   private void stopServing() {

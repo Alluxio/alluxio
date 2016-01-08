@@ -25,8 +25,6 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
 import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster for integration tests.

@@ -37,8 +37,6 @@ import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerIdRegistry;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster.
