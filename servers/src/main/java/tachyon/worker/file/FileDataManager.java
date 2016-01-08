@@ -85,7 +85,7 @@ public final class FileDataManager {
    * @return true if the file is being persisted, false otherwise
    */
   private boolean isFilePersisting(long fileId) {
-    synchronized (mPersistingInProgressFiles) {
+    synchronized (this) {
       return mPersistedFiles.contains(fileId);
     }
   }
@@ -120,7 +120,7 @@ public final class FileDataManager {
    * @return true if the file is being persisted, false otherwise
    */
   public boolean isFilePersisted(long fileId) {
-    synchronized (mPersistedFiles) {
+    synchronized (this) {
       return mPersistedFiles.contains(fileId);
     }
   }
@@ -131,7 +131,7 @@ public final class FileDataManager {
    * @param fileId the file id
    */
   private void addPersistedFile(long fileId) {
-    synchronized (mPersistedFiles) {
+    synchronized (this) {
       mPersistedFiles.add(fileId);
     }
   }
@@ -159,7 +159,7 @@ public final class FileDataManager {
    * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    synchronized (mPersistingInProgressFiles) {
+    synchronized (this) {
       mPersistingInProgressFiles.add(fileId);
     }
 
@@ -248,7 +248,7 @@ public final class FileDataManager {
    */
   public List<Long> getPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
-    synchronized (mPersistedFiles) {
+    synchronized (this) {
       toReturn.addAll(mPersistedFiles);
       return toReturn;
     }
@@ -258,7 +258,7 @@ public final class FileDataManager {
    * Clears the given persisted files stored in {@link #mPersistedFiles}.
    */
   public void clearPersistedFiles(List<Long> persistedFiles) {
-    synchronized (mPersistedFiles) {
+    synchronized (this) {
       mPersistedFiles.removeAll(persistedFiles);
     }
   }

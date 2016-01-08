@@ -142,6 +142,8 @@ public final class LineageMasterIntegrationTest {
           fileInfo.getPersistenceState());
 
       // sleep and wait for worker to persist the file
+      // TODO(yupeng) use a deterministic way of control the completion of the task, to avoid flaky
+      // tests
       CommonUtils.sleepMs(200);
 
       // worker notifies the master
