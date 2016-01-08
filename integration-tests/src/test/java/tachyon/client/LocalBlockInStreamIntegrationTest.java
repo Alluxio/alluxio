@@ -49,7 +49,7 @@ public class LocalBlockInStreamIntegrationTest {
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.GB);
+      new LocalTachyonClusterResource(Constants.MB, Constants.KB, Constants.MB);
   private static TachyonFileSystem sTfs = null;
   private static OutStreamOptions sWriteBoth;
   private static OutStreamOptions sWriteTachyon;

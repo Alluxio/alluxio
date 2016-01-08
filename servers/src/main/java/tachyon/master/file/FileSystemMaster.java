@@ -100,9 +100,9 @@ import tachyon.thrift.FileSystemCommand;
 import tachyon.thrift.FileSystemCommandOptions;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.FileSystemMasterWorkerService;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.PersistCommandOptions;
 import tachyon.thrift.PersistFile;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
@@ -839,7 +839,7 @@ public final class FileSystemMaster extends MasterBase {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.blockInfo = blockInfo;
-    fileBlockInfo.ufsLocations = new ArrayList<NetAddress>();
+    fileBlockInfo.ufsLocations = new ArrayList<WorkerNetAddress>();
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
@@ -869,7 +869,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.ufsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort, -1));
+          fileBlockInfo.ufsLocations.add(new WorkerNetAddress(resolvedHost, -1, resolvedPort, -1));
         }
       }
     }
