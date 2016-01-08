@@ -364,13 +364,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Schedules the async persistence of the given file.
    *
    * @param fileId the file id
-   * @return RPC result of the scheduling
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Void scheduleAsyncPersist(final long fileId)
+  public synchronized void scheduleAsyncPersist(final long fileId)
       throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
       public Void call() throws TachyonTException, TException {
         mClient.scheduleAsyncPersist(fileId);
