@@ -32,17 +32,13 @@ import tachyon.exception.TachyonException;
  */
 @PublicApi
 public class LineageFileSystem extends BaseFileSystem {
-  private static LineageFileSystem sTachyonFileSystem;
   private LineageContext mContext;
 
   /**
    * @return the current lineage file system for Tachyon
    */
   public static synchronized LineageFileSystem get() {
-    if (sTachyonFileSystem == null) {
-      sTachyonFileSystem = new LineageFileSystem();
-    }
-    return sTachyonFileSystem;
+    return new LineageFileSystem();
   }
 
   protected LineageFileSystem() {

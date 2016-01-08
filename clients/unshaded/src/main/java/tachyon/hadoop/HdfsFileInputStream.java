@@ -85,7 +85,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     long bufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
-    FileSystem fs = FileSystem.Factory.create();
+    FileSystem fs = FileSystem.Factory.get();
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;

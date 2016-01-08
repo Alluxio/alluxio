@@ -62,7 +62,7 @@ public class TfsShell implements Closeable {
   public TfsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTfs = FileSystem.Factory.create();
+    mTfs = FileSystem.Factory.get();
     loadCommands();
   }
 

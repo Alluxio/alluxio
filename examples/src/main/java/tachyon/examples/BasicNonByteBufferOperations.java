@@ -72,7 +72,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.reset(tachyonConf);
-    FileSystem tachyonClient = FileSystem.Factory.create();
+    FileSystem tachyonClient = FileSystem.Factory.get();
     write(tachyonClient);
     return read(tachyonClient);
   }

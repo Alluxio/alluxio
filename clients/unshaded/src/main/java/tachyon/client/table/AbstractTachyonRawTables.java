@@ -38,7 +38,7 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
 
   protected AbstractTachyonRawTables() {
     mContext = RawTableContext.INSTANCE;
-    mFileSystem = FileSystem.Factory.create();
+    mFileSystem = FileSystem.Factory.get();
   }
 
   // TODO(calvin): Consider different client options

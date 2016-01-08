@@ -60,7 +60,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   @Override
   public Boolean call() throws Exception {
     TachyonRawTables tachyonRawTableClient = TachyonRawTables.TachyonRawTablesFactory.get();
-    FileSystem tachyonClient = FileSystem.Factory.create();
+    FileSystem tachyonClient = FileSystem.Factory.get();
     createRawTable(tachyonRawTableClient);
     write(tachyonRawTableClient);
     return read(tachyonRawTableClient, tachyonClient);

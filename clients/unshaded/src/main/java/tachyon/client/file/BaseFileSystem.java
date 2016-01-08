@@ -49,6 +49,10 @@ import tachyon.thrift.FileInfo;
 */
 @PublicApi
 public class BaseFileSystem implements FileSystem {
+  public static BaseFileSystem get() {
+    return new BaseFileSystem();
+  }
+
   protected BaseFileSystem() {
     // BaseFileSystem currently has no state
   }

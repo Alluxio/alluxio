@@ -77,7 +77,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
-    FileSystem tFS = FileSystem.Factory.create();
+    FileSystem tFS = FileSystem.Factory.get();
     String fileData = null;
     URIStatus status = tFS.getStatus(path);
     if (status.isCompleted()) {

@@ -46,7 +46,7 @@ public class RawTableIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFileSystem = FileSystem.Factory.create();
+    mFileSystem = FileSystem.Factory.get();
     mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
     mMaxCols =
         mLocalTachyonClusterResource.get().getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);

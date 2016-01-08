@@ -116,7 +116,7 @@ public class TFSTest {
     Assert.assertTrue(fs instanceof TFSFT);
 
     PowerMockito.verifyStatic();
-    FileSystem.Factory.create();
+    FileSystem.Factory.get();
   }
 
   /**
@@ -145,7 +145,7 @@ public class TFSTest {
     Assert.assertTrue(fs instanceof TFS);
 
     PowerMockito.verifyStatic();
-    FileSystem.Factory.create();
+    FileSystem.Factory.get();
   }
 
   private boolean isHadoop1x() {

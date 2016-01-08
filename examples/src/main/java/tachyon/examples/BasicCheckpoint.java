@@ -48,7 +48,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    FileSystem tachyonClient = FileSystem.Factory.create();
+    FileSystem tachyonClient = FileSystem.Factory.get();
     writeFile(tachyonClient);
     return readFile(tachyonClient);
   }

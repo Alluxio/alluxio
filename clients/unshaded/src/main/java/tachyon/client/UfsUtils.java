@@ -76,7 +76,7 @@ public final class UfsUtils {
    */
   private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
       String excludePaths, TachyonConf tachyonConf) throws IOException, TachyonException {
-    FileSystem tfs = FileSystem.Factory.create();
+    FileSystem tfs = FileSystem.Factory.get();
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
