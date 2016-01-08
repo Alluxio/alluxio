@@ -16,7 +16,7 @@
 package tachyon.worker;
 
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 
 /**
  * A {@link WorkerContext} object stores {@link TachyonConf}.
@@ -36,7 +36,7 @@ public final class WorkerContext {
   private static WorkerSource sWorkerSource = new WorkerSource();
 
   /** Net address of this worker */
-  private static NetAddress sWorkerNetAddress;
+  private static WorkerNetAddress sWorkerNetAddress;
 
   /**
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
@@ -59,18 +59,18 @@ public final class WorkerContext {
   }
 
   /**
-   * @return {@link NetAddress} object of this worker
+   * @return {@link WorkerNetAddress} object of this worker
    */
-  public static NetAddress getWorkerNetAddress() {
+  public static WorkerNetAddress getWorkerNetAddress() {
     return sWorkerNetAddress;
   }
 
   /**
    * Sets {@link NetAddress} object of this worker.
    *
-   * @param workerNetAddress {@link NetAddress} object of this worker
+   * @param workerNetAddress {@link WorkerNetAddress} object of this worker
    */
-  public static void setWorkerNetAddress(NetAddress workerNetAddress) {
+  public static void setWorkerNetAddress(WorkerNetAddress workerNetAddress) {
     sWorkerNetAddress = workerNetAddress;
   }
 

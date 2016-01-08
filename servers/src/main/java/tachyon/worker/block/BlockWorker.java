@@ -27,7 +27,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -137,7 +137,7 @@ public final class BlockWorker extends WorkerBase {
    */
   @Override
   public void start() throws IOException {
-    NetAddress workerNetAddress;
+    WorkerNetAddress workerNetAddress;
     try {
       workerNetAddress = WorkerContext.getWorkerNetAddress();
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, workerNetAddress);
