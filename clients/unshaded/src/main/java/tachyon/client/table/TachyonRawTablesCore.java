@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.file.FileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
@@ -48,8 +48,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Creates a new partition in a column of a raw table. The partition is represented as a file,
-   * and the user may interact with it through the FileSystem API. See
-   * {@link tachyon.client.file.FileSystem}.
+   * and the user may interact with it through the FileSystem API. See {@link FileSystem}.
    *
    * @param column the raw column under which to create the partition
    * @param partitionId the index of the partition to create
@@ -72,7 +71,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Gets the number of partitions currently in the {@link RawColumn}. Each partition is a
-   * separate {@link TachyonFile}.
+   * separate file.
    *
    * @param column the raw column containing the partitions
    * @return the number of partitions currently in the column
@@ -82,8 +81,8 @@ interface TachyonRawTablesCore {
   int getPartitionCount(RawColumn column) throws IOException, TachyonException;
 
   /**
-   * Gets the partition uri which can be used to access the partition data directly as a {@link
-   * TachyonFile}
+   * Gets the partition {@link TachyonURI} which can be used to access the partition data directly.
+   *
    * @param column the column to get the partition from
    * @param partitionId the id of the partition
    * @return the uri referencing the partition

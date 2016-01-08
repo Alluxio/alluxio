@@ -410,7 +410,7 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Returns a {@link tachyon.client.file.FileSystem} client.
+   * Returns a {@link FileSystem} client.
    *
    * @return a TachyonFS client
    * @throws IOException when the operation fails

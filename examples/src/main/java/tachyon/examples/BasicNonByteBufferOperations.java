@@ -35,8 +35,7 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 
 /**
- * Basic example of using the {@link tachyon.client.file.FileSystem} for writing to and reading from
- * files.
+ * Basic example of using the {@link FileSystem} for writing to and reading from files.
  * <p>
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
