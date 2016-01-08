@@ -26,7 +26,7 @@ public final class CreateOptions {
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
-    private long mTTL;
+    private long mTtl;
 
     /**
      * Creates a new builder for {@link CreateOptions}.
@@ -38,7 +38,7 @@ public final class CreateOptions {
       mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
-      mTTL = Constants.NO_TTL;
+      mTtl = Constants.NO_TTL;
     }
 
     /**
@@ -84,8 +84,8 @@ public final class CreateOptions {
      *        created file should be kept around before it is automatically deleted
      * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -103,7 +103,7 @@ public final class CreateOptions {
   private long mOperationTimeMs;
   private boolean mPersisted;
   private boolean mRecursive;
-  private long mTTL;
+  private long mTtl;
 
   /**
    * @return the default {@link CreateOptions}
@@ -117,7 +117,7 @@ public final class CreateOptions {
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
   }
 
   /**
@@ -130,7 +130,7 @@ public final class CreateOptions {
     mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
-    mTTL = options.getTtl();
+    mTtl = options.getTtl();
   }
 
   /**
@@ -166,7 +166,7 @@ public final class CreateOptions {
    * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
    * should be kept around before it is automatically deleted
    */
-  public long getTTL() {
-    return mTTL;
+  public long getTtl() {
+    return mTtl;
   }
 }
