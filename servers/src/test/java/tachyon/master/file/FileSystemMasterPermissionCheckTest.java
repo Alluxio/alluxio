@@ -593,11 +593,11 @@ public class FileSystemMasterPermissionCheckTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
     MasterContext.reset(conf);
 
-    String subFolder = PathUtils.concatPath(TEST_DIR_URI, "/testState");
-    verifyMkdir(TEST_USER_1, subFolder, false);
-    String file = subFolder + "/testState1";
+    String subDir = PathUtils.concatPath(TEST_DIR_URI, "/testState");
+    verifyMkdir(TEST_USER_1, subDir, false);
+    String file = subDir + "/testState1";
     verifyCreate(TEST_USER_1, file, false);
-    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, subFolder), true);
+    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, subDir), true);
   }
 
   @Test
