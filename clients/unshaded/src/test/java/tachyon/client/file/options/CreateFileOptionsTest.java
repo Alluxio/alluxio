@@ -36,7 +36,7 @@ public class CreateFileOptionsTest {
   @Test
   public void defaultsTest() {
     CreateFileOptions options = CreateFileOptions.defaults();
-    Assert.assertFalse(options.isRecursive());
+    Assert.assertTrue(options.isRecursive());
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
     Assert.assertEquals(mDefaultWriteType.getTachyonStorageType(), options.getTachyonStorageType());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
@@ -47,7 +47,7 @@ public class CreateFileOptionsTest {
   public void toThriftTest() {
     CreateFileOptions options = CreateFileOptions.defaults();
     CreateTOptions thriftOptions = options.toThrift();
-    Assert.assertFalse(thriftOptions.isRecursive());
+    Assert.assertTrue(thriftOptions.isRecursive());
     Assert.assertTrue(thriftOptions.isSetPersisted());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType().isSyncPersist(), thriftOptions
         .isPersisted());
