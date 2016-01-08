@@ -70,12 +70,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
+   * @param containerName the name of the container
    * @param tachyonConf the configuration for Tachyon
-   * @param conf the configuration
    */
   public SwiftUnderFileSystem(String containerName,
-      TachyonConf tachyonConf) throws Exception {
+      TachyonConf tachyonConf) {
     super(tachyonConf);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
@@ -141,7 +140,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return create(path);
   }
 
-  /* @inheritDoc
+  /**
+   * @inheritDoc
+   *
    * @see UnderFileSystem#delete(java.lang.String, boolean).
    * recursive will delete all objects with given prefix.
    * parent will not be deleted.
@@ -287,7 +288,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return path;
   }
 
-  /* @inheritDoc
+  /**
+   * @inheritDoc
+   *
    * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
    * The rename works as follows:
    * If src path exists: src renamed to dst. src is deleted on the success.
