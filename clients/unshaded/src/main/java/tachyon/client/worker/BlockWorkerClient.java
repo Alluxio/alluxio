@@ -44,7 +44,7 @@ import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -79,7 +79,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
+  public BlockWorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);

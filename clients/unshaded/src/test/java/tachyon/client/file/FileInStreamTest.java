@@ -52,7 +52,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests for the {@link FileInStream} class.
@@ -103,7 +103,7 @@ public class FileInStreamTest {
       });
 
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
-          Mockito.any(WorkerNetAddress.class))).thenReturn(mCacheStreams.get(i));
+          Mockito.any(NetAddress.class))).thenReturn(mCacheStreams.get(i));
     }
     mInfo.setBlockIds(blockIds);
 

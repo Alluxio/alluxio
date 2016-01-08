@@ -29,7 +29,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * A shared context in each client JVM for common block master client functionality such as a pool
@@ -56,7 +56,7 @@ public enum BlockStoreContext {
    * manner.
    */
   private synchronized void initializeLocalBlockWorkerClientPool() {
-    WorkerNetAddress localWorkerAddress =
+    NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // If the local worker is not available, do not initialize the local worker client pool.
@@ -74,17 +74,17 @@ public enum BlockStoreContext {
    * @param hostname hostname of the worker to query, empty string denotes any worker
    * @return {@link NetAddress} of hostname, or null if no worker found
    */
-  private synchronized WorkerNetAddress getWorkerAddress(String hostname) {
+  private synchronized NetAddress getWorkerAddress(String hostname) {
     BlockMasterClient masterClient = acquireMasterClient();
     try {
       List<WorkerInfo> workers = masterClient.getWorkerInfoList();
       if (hostname.isEmpty() && !workers.isEmpty()) {
         // TODO(calvin): Do this in a more defined way.
-        return new WorkerNetAddress(workers.get(0).getAddress());
+        return new NetAddress(workers.get(0).getAddress());
       }
       for (WorkerInfo worker : workers) {
         if (worker.getAddress().getHost().equals(hostname)) {
-          return new WorkerNetAddress(worker.getAddress());
+          return new NetAddress(worker.getAddress());
         }
       }
     } catch (Exception e) {
@@ -162,7 +162,7 @@ public enum BlockStoreContext {
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
    * @throws IOException if no Tachyon worker is available for the given hostname
    */
-  public synchronized BlockWorkerClient acquireWorkerClient(WorkerNetAddress address)
+  public synchronized BlockWorkerClient acquireWorkerClient(NetAddress address)
       throws IOException {
     BlockWorkerClient client;
     if (address == null) {
@@ -205,7 +205,7 @@ public enum BlockStoreContext {
    * @return a worker client with a connection to the specified hostname
    */
   private synchronized BlockWorkerClient acquireRemoteWorkerClient(String hostname) {
-    WorkerNetAddress workerAddress = getWorkerAddress(hostname);
+    NetAddress workerAddress = getWorkerAddress(hostname);
     return acquireRemoteWorkerClient(workerAddress);
   }
 
@@ -217,7 +217,7 @@ public enum BlockStoreContext {
    * @param address the address of the worker
    * @return a worker client with a connection to the specified hostname
    */
-  private synchronized BlockWorkerClient acquireRemoteWorkerClient(WorkerNetAddress address) {
+  private synchronized BlockWorkerClient acquireRemoteWorkerClient(NetAddress address) {
     // If we couldn't find a worker, crash.
     if (address == null) {
       // TODO(calvin): Better exception usage.

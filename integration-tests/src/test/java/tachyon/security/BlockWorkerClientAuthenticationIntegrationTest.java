@@ -32,7 +32,7 @@ import tachyon.LocalTachyonClusterResource;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
@@ -109,7 +109,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expectMessage("Failed to connect to the worker");
 
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        new WorkerNetAddress(mLocalTachyonClusterResource.get().getWorkerAddress()),
+        new NetAddress(mLocalTachyonClusterResource.get().getWorkerAddress()),
         mExecutorService, mLocalTachyonClusterResource.get().getWorkerTachyonConf(),
         1 /* fake session id */, true, new ClientMetrics());
     try {
@@ -127,7 +127,7 @@ public class BlockWorkerClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        new WorkerNetAddress(mLocalTachyonClusterResource.get().getWorkerAddress()),
+        new NetAddress(mLocalTachyonClusterResource.get().getWorkerAddress()),
         mExecutorService, mLocalTachyonClusterResource.get().getWorkerTachyonConf(),
         1 /* fake session id */, true, new ClientMetrics());
 

@@ -42,7 +42,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -260,7 +260,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
     if (mTachyonStorageType.isStore()) {
       try {
-        WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
+        NetAddress address = mLocationPolicy.getWorkerForNextBlock(
             mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
         mCurrentBlockOutStream =
             mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);

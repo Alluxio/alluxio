@@ -21,7 +21,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.TachyonException;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
@@ -61,7 +61,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
    * @param address the address of the preferred worker
    * @throws IOException if I/O error occurs
    */
-  public RemoteBlockOutStream(long blockId, long blockSize, WorkerNetAddress address)
+  public RemoteBlockOutStream(long blockId, long blockSize, NetAddress address)
       throws IOException {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.create(ClientContext.getConf());

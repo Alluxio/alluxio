@@ -25,7 +25,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests for the {@link NetworkAddressUtils} class.
@@ -252,7 +252,7 @@ public class NetworkAddressUtilsTest {
   public void getFqdnHostTest() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
-    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new WorkerNetAddress("localhost", 0, 0, 0)),
+    Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new NetAddress("localhost", 0, 0, 0)),
         "localhost");
   }
 }
