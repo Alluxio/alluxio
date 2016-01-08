@@ -47,7 +47,7 @@ public final class CreateFileOptions {
    * Creates a new instance with defaults from the configuration.
    */
   private CreateFileOptions() {
-    mRecursive = false;
+    mRecursive = true;
     mBlockSizeBytes = ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
       mLocationPolicy =
