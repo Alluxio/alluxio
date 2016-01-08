@@ -543,7 +543,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test remote read stream lock in <code>RemoteBlockInStream</code>.
+   * Tests remote read stream lock in {@link RemoteBlockInStream}.
    */
   @Test
   public void remoteReadLockTest() throws Exception {

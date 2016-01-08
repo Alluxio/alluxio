@@ -42,10 +42,9 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   * Gets the opened input stream for this open file entry.
+   * Gets the opened input stream for this open file entry. The value returned can be {@code null}
+   * if the file is not open for reading.
    *
-   * The value returned can be <code>null</code> if the file is not
-   * open for reading
    * @return an opened input stream for the open tachyon file, or null
    */
   public FileInStream getIn() {
@@ -53,10 +52,9 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   * Gets the opened output stream for this open file entry.
+   * Gets the opened output stream for this open file entry. The value returned can be {@code null}
+   * if the file is not open for writing.
    *
-   * The value returned can be <code>null</code> if the file is
-   * not open for writing.
    * @return an opened input stream for the open tachyon file, or null
    */
   public FileOutStream getOut() {
@@ -64,7 +62,8 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   *  Closes the underlying open streams
+   * Closes the underlying open streams.
+   *
    * @throws IOException
    */
   @Override
