@@ -15,8 +15,6 @@
 
 package tachyon.client.file.options;
 
-import java.util.Random;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,44 +23,13 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
-import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
-import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
  */
 public class OutStreamOptionsTest {
-
-  /**
-   * Tests that building an {@link OutStreamOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    long blockSize = random.nextLong();
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
-    long ttl = random.nextLong();
-    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
-    FileWriteLocationPolicy policy = new RoundRobinPolicy();
-
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf())
-            .setBlockSizeBytes(blockSize)
-            .setTachyonStorageType(tachyonType)
-            .setTTL(ttl)
-            .setUnderStorageType(ufsType)
-            .setLocationPolicy(policy)
-            .build();
-
-    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(ttl, options.getTTL());
-    Assert.assertEquals(ufsType, options.getUnderStorageType());
-    Assert.assertEquals(policy, options.getLocationPolicy());
-  }
-
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
    */

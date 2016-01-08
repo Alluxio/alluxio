@@ -24,6 +24,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.CreateTOptions;
 import tachyon.util.CommonUtils;
 
@@ -32,9 +33,8 @@ public final class CreateFileOptions {
   private boolean mRecursive;
   private long mBlockSizeBytes;
   private FileWriteLocationPolicy mLocationPolicy;
-  private TachyonStorageType mTachyonStorageType;
   private long mTTL;
-  private UnderStorageType mUnderStorageType;
+  private WriteType mWriteType;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -47,22 +47,18 @@ public final class CreateFileOptions {
    * Creates a new instance with defaults from the configuration.
    */
   private CreateFileOptions() {
+    TachyonConf conf = ClientContext.getConf();
     mRecursive = true;
-    mBlockSizeBytes = ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
       mLocationPolicy =
-          CommonUtils
-              .createNewClassInstance(
-                  ClientContext.getConf().<FileWriteLocationPolicy>getClass(
-                      Constants.USER_FILE_WRITE_LOCATION_POLICY),
-                  new Class[]{}, new Object[]{});
+          CommonUtils.createNewClassInstance(
+              conf.<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
+              new Class[]{}, new Object[]{});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    WriteType defaultWriteType =
-        ClientContext.getConf().getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mTachyonStorageType = defaultWriteType.getTachyonStorageType();
-    mUnderStorageType = defaultWriteType.getUnderStorageType();
+    mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTTL = Constants.NO_TTL;
   }
 
@@ -84,7 +80,7 @@ public final class CreateFileOptions {
    * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
-    return mTachyonStorageType;
+    return mWriteType.getTachyonStorageType();
   }
 
   /**
@@ -99,7 +95,7 @@ public final class CreateFileOptions {
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
-    return mUnderStorageType;
+    return mWriteType.getUnderStorageType();
   }
 
   /**
@@ -153,8 +149,7 @@ public final class CreateFileOptions {
    * @return this object
    */
   public CreateFileOptions setWriteType(WriteType writeType) {
-    mTachyonStorageType = writeType.getTachyonStorageType();
-    mUnderStorageType = writeType.getUnderStorageType();
+    mWriteType = writeType;
     return this;
   }
 
@@ -162,11 +157,8 @@ public final class CreateFileOptions {
    * @return representation of this object in the form of {@link OutStreamOptions}
    */
   public OutStreamOptions toOutStreamOptions() {
-    OutStreamOptions.Builder builder = new OutStreamOptions.Builder();
-    builder.setBlockSizeBytes(mBlockSizeBytes).setLocationPolicy(mLocationPolicy)
-        .setTachyonStorageType(mTachyonStorageType).setTTL(mTTL)
-        .setUnderStorageType(mUnderStorageType);
-    return builder.build();
+    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
+        .setLocationPolicy(mLocationPolicy).setTTL(mTTL).setWriteType(mWriteType);
   }
 
   /**
@@ -176,10 +168,9 @@ public final class CreateFileOptions {
   public String toString() {
     StringBuilder sb = new StringBuilder("CreateFileOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
-    sb.append(", Location Policy: ").append(mLocationPolicy);
-    sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
-    sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(", TTL: ").append(mTTL);
+    sb.append(", Location Policy: ").append(mLocationPolicy);
+    sb.append(", WriteType: ").append(mWriteType.toString());
     sb.append(")");
     return sb.toString();
   }
@@ -191,7 +182,7 @@ public final class CreateFileOptions {
   public CreateTOptions toThrift() {
     CreateTOptions options = new CreateTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
-    options.setPersisted(mUnderStorageType.isSyncPersist());
+    options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTTL);
     return options;
