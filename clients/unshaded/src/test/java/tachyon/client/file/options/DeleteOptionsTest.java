@@ -32,11 +32,7 @@ public class DeleteOptionsTest {
   public void builderTest() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
-
-    DeleteOptions options =
-        new DeleteOptions.Builder()
-            .setRecursive(recursive)
-            .build();
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
 
     Assert.assertEquals(recursive, options.isRecursive());
   }

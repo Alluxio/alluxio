@@ -131,7 +131,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void deleteTest() throws Exception {
-    DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
+    DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     mFileSystem.delete(new TachyonFile(FILE_ID), deleteOptions);
     Mockito.verify(mFileSystemMasterClient).delete(FILE_ID, true);
   }
@@ -143,7 +143,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void deleteExceptionTest() throws Exception {
-    DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
+    DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     Mockito.when(mFileSystemMasterClient.delete(FILE_ID, true)).thenThrow(EXCEPTION);
     try {
       mFileSystem.delete(new TachyonFile(FILE_ID), deleteOptions);
