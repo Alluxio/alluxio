@@ -16,36 +16,20 @@
 package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for creating lineage.
  */
 @PublicApi
 public final class CreateLineageOptions {
-  private static class Builder {
-    /**
-     * Creates a new builder for {@link CreateLineageOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * @return builds a new instance of {@link CreateLineageOptions}
-     */
-    public CreateLineageOptions build() {
-      return new CreateLineageOptions(this);
-    }
-  }
-
   /**
    * @return the default options
    */
   public static CreateLineageOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new CreateLineageOptions();
   }
 
-  private CreateLineageOptions(CreateLineageOptions.Builder buidler) {}
+  private CreateLineageOptions() {
+
+  }
 }
