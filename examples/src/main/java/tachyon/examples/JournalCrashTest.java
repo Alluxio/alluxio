@@ -265,7 +265,7 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = FileSystem.Factory.create();
+      sTfs = FileSystem.Factory.get();
       sTachyonRawTables = TachyonRawTablesFactory.get();
       try {
         sTfs.delete(new TachyonURI(sTestDir));

@@ -45,7 +45,7 @@ public final class ClientPool implements Closeable {
    * @throws IOException when the operation fails
    */
   public FileSystem getClient(TachyonConf tachyonConf) throws IOException {
-    final FileSystem fs = FileSystem.Factory.create();
+    final FileSystem fs = FileSystem.Factory.get();
     mClients.add(fs);
     return fs;
   }

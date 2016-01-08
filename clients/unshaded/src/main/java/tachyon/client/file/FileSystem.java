@@ -51,11 +51,11 @@ import tachyon.exception.TachyonException;
 @PublicApi
 public interface FileSystem {
   class Factory {
-    public static FileSystem create() {
+    public static FileSystem get() {
       if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
         return LineageFileSystem.get();
       }
-      return new BaseFileSystem();
+      return BaseFileSystem.get();
     }
   }
 
