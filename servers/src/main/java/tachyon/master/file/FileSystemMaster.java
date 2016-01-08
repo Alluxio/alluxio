@@ -39,6 +39,7 @@ import com.google.protobuf.Message;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.collections.Pair;
 import tachyon.collections.PrefixList;
@@ -1805,6 +1806,29 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Sets the acl of a file or directory.
+   *
+   * @param path to be set acl on
+   * @param options acl option to be set
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException
+   */
+  public boolean setAcl(TachyonURI path, SetAclOptions options) throws TachyonException {
+    if (options.getOwner() != null) {
+      return setOwner(path, options.getOwner(), options.isRecursive());
+    }
+
+    if (options.getGroup() != null) {
+      return setGroup(path, options.getGroup(), options.isRecursive());
+    }
+
+    if (options.getPermission() != -1) {
+      return setPermission(path, options.getPermission(), options.isRecursive());
+    }
+    return false;
+  }
+
+  /**
    * Sets the user to be the owner of the path. Only a super user can change the owner of a path.
    *
    * @param path to be set owner on
@@ -1813,7 +1837,8 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if set successfully, false otherwise
    * @throws TachyonException
    */
-  public boolean setOwner(TachyonURI path, String user, boolean recursive) throws TachyonException {
+  private boolean setOwner(TachyonURI path, String user, boolean recursive)
+      throws TachyonException {
     FileSystemPermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -1822,10 +1847,10 @@ public final class FileSystemMaster extends MasterBase {
         List<Inode> inodeChildren =
             mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
         for (Inode inode : inodeChildren) {
-          setAcl(inode, opTimeMs, user, null, (short) -1);
+          setAclInternal(inode, opTimeMs, user, null, (short) -1);
         }
       }
-      setAcl(targetInode, opTimeMs, user, null, (short) -1);
+      setAclInternal(targetInode, opTimeMs, user, null, (short) -1);
     }
     return true;
   }
@@ -1839,7 +1864,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if set successfully, false otherwise
    * @throws TachyonException
    */
-  public boolean setGroup(TachyonURI path, String group, boolean recursive) throws
+  private boolean setGroup(TachyonURI path, String group, boolean recursive) throws
       TachyonException {
     synchronized (mInodeTree) {
       checkOwner(path);
@@ -1852,10 +1877,10 @@ public final class FileSystemMaster extends MasterBase {
           checkOwner(mInodeTree.getPath(inode));
         }
         for (Inode inode : inodeChildren) {
-          setAcl(inode, opTimeMs, null, group, (short) -1);
+          setAclInternal(inode, opTimeMs, null, group, (short) -1);
         }
       }
-      setAcl(targetInode, opTimeMs, null, group, (short) -1);
+      setAclInternal(targetInode, opTimeMs, null, group, (short) -1);
     }
     return true;
   }
@@ -1869,7 +1894,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if set successfully, false otherwise
    * @throws TachyonException
    */
-  public boolean setPermission(TachyonURI path, short permission, boolean recursive) throws
+  private boolean setPermission(TachyonURI path, short permission, boolean recursive) throws
       TachyonException {
     synchronized (mInodeTree) {
       checkOwner(path);
@@ -1882,16 +1907,16 @@ public final class FileSystemMaster extends MasterBase {
           checkOwner(mInodeTree.getPath(inode));
         }
         for (Inode inode : inodeChildren) {
-          setAcl(inode, opTimeMs, null, null, permission);
+          setAclInternal(inode, opTimeMs, null, null, permission);
         }
       }
-      setAcl(targetInode, opTimeMs, null, null, permission);
+      setAclInternal(targetInode, opTimeMs, null, null, permission);
     }
     return true;
   }
 
-  private void setAcl(Inode inode, long opTimeMs, String user,
-      String group, short permission) throws TachyonException {
+  private void setAclInternal(Inode inode, long opTimeMs, String user, String group,
+      short permission) throws TachyonException {
     // throws exception if security is not enabled.
     if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
@@ -1924,6 +1949,11 @@ public final class FileSystemMaster extends MasterBase {
    * @throws TachyonException
    */
   private void checkOwner(TachyonURI path) throws TachyonException {
+    // throws exception if security is not enabled.
+    if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
+      throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
+    }
+
     // collects inodes info on the path
     List<FileInfo> fileInfos = collectFileInfoList(path);
 

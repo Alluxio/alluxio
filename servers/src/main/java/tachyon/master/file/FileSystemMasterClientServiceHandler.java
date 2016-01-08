@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
@@ -33,6 +34,7 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterClientService;
 import tachyon.thrift.MkdirTOptions;
+import tachyon.thrift.SetAclTOptions;
 import tachyon.thrift.SetStateTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
@@ -204,6 +206,15 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
+  public boolean setAcl(String path, SetAclTOptions options) throws TachyonTException {
+    try {
+      return mFileSystemMaster.setAcl(new TachyonURI(path), new SetAclOptions(options));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
   public void setState(long fileId, SetStateTOptions options) throws TachyonTException {
     try {
       mFileSystemMaster.setState(fileId, new SetStateOptions(options));
@@ -220,34 +231,6 @@ public final class FileSystemMasterClientServiceHandler implements
       throw e.toTachyonTException();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public boolean setOwner(String path, String user, boolean recursive) throws TachyonTException {
-    try {
-      return mFileSystemMaster.setOwner(new TachyonURI(path), user, recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
-  public boolean setGroup(String path, String group, boolean recursive) throws TachyonTException {
-    try {
-      return mFileSystemMaster.setGroup(new TachyonURI(path), group, recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
-  public boolean setPermission(String path, int permission, boolean recursive) throws
-      TachyonTException {
-    try {
-      return mFileSystemMaster.setPermission(new TachyonURI(path), (short) permission, recursive);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
     }
   }
 }

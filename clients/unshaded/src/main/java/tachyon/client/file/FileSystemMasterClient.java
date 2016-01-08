@@ -27,6 +27,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
@@ -362,6 +363,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
+   * Sets the acl of a path.
+   *
+   * @param path the path of file or directory
+   * @param options the acl option to be set
+   * @return true if set successfully, false otherwise
+   * @throws TachyonException if a Tachyon error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public synchronized boolean setAcl(final String path, final SetAclOptions options) throws
+      TachyonException, IOException {
+    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+      @Override
+      public Boolean call() throws TachyonTException, TException {
+        return mClient.setAcl(path, options.toThrift());
+      }
+    });
+  }
+
+  /**
    * Unmounts the given Tachyon path.
    *
    * @param tachyonPath the Tachyon path
@@ -375,66 +395,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
       @Override
       public Boolean call() throws TachyonTException, TException {
         return mClient.unmount(tachyonPath.toString());
-      }
-    });
-  }
-
-  /**
-   * Sets the owner of a path.
-   *
-   * @param path the path of file or directory
-   * @param user the user to be set as owner
-   * @param recursive whether to set owner recursively under a directory
-   * @return true if set successfully, false otherwise
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  public synchronized boolean setOwner(final String path, final String user,
-      final boolean recursive) throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-      @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.setOwner(path, user, recursive);
-      }
-    });
-  }
-
-  /**
-   * Sets the group of a path.
-   *
-   * @param path the path of file or directory
-   * @param group the group to be set
-   * @param recursive whether to set group recursively under a directory
-   * @return true if set successfully, false otherwise
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  public synchronized boolean setGroup(final String path, final String group,
-      final boolean recursive) throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-      @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.setGroup(path, group, recursive);
-      }
-    });
-  }
-
-  /**
-   * Sets the permission of a path.
-   *
-   * @param path the path of file or directory
-   * @param permission the permission to be set
-   * @param recursive whether to set permission recursively under a directory
-   * @return true if set successfully, false otherwise
-   * @throws TachyonException if a Tachyon error occurs
-   * @throws IOException an I/O error occurs
-   */
-  public synchronized boolean setPermission(final String path, final short permission,
-      final boolean recursive) throws TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
-      @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.setPermission(path, permission, recursive);
       }
     });
   }

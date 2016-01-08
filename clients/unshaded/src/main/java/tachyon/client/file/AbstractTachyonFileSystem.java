@@ -34,6 +34,7 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.ExceptionMessage;
@@ -238,6 +239,17 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   }
 
   @Override
+  public boolean setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+      IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.setAcl(path.getPath(), options);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
   public void setState(TachyonFile file, SetStateOptions options)
       throws IOException, FileDoesNotExistException, InvalidPathException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -254,39 +266,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.unmount(tachyonPath);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
-  }
-
-  @Override
-  public boolean setOwner(TachyonURI path, String user, boolean recursive) throws TachyonException,
-      IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      return masterClient.setOwner(path.getPath(), user, recursive);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
-  }
-
-  @Override
-  public boolean setGroup(TachyonURI path, String group, boolean recursive) throws TachyonException,
-      IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      return masterClient.setGroup(path.getPath(), group, recursive);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
-  }
-
-  @Override
-  public boolean setPermission(TachyonURI path, short permission, boolean recursive)
-      throws TachyonException, IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      return masterClient.setPermission(path.getPath(), permission, recursive);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

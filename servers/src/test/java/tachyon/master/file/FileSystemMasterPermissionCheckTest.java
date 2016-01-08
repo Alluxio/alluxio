@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
@@ -554,16 +555,9 @@ public class FileSystemMasterPermissionCheckTest {
   private void verifySetAcl(TestUser owner, String path, String user, String group,
       short permission, boolean recursive) throws Exception {
     PlainSaslServer.AuthorizedClientUser.set(owner.getUser());
-    boolean success = false;
-    if (user != null) {
-      success = mFileSystemMaster.setOwner(new TachyonURI(path), user, recursive);
-    }
-    if (group != null) {
-      success = mFileSystemMaster.setGroup(new TachyonURI(path), group, recursive);
-    }
-    if (permission != -1) {
-      success = mFileSystemMaster.setPermission(new TachyonURI(path), permission, recursive);
-    }
+    SetAclOptions options = new SetAclOptions.Builder().setOwner(user).setGroup(group)
+        .setPermission(permission).setRecursive(recursive).build();
+    boolean success = mFileSystemMaster.setAcl(new TachyonURI(path), options);
 
     PlainSaslServer.AuthorizedClientUser.set(TEST_USER_ADMIN.getUser());
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(

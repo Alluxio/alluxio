@@ -42,6 +42,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.SetAclOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.table.TachyonRawTables;
 import tachyon.conf.TachyonConf;
@@ -633,9 +634,12 @@ public class JournalIntegrationTest {
         new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSizeBytes(64).build();
     mTfs.getOutStream(filePath, op).close();
 
-    mTfs.setOwner(filePath, "user1", false);
-    mTfs.setGroup(filePath, "group1", false);
-    mTfs.setPermission(filePath, (short) 0400, false);
+    mTfs.setAcl(filePath,
+        new SetAclOptions.Builder().setOwner("user1").setRecursive(false).build());
+    mTfs.setAcl(filePath,
+        new SetAclOptions.Builder().setGroup("group1").setRecursive(false).build());
+    mTfs.setAcl(filePath,
+        new SetAclOptions.Builder().setPermission((short) 0400).setRecursive(false).build());
 
     FileInfo fileInfo = mTfs.getInfo(mTfs.open(filePath));
 
