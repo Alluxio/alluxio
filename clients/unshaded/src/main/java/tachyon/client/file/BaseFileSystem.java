@@ -209,7 +209,10 @@ public class BaseFileSystem implements FileSystem {
       throws IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      masterClient.mount(src, dst);
+      // TODO(calvin): Make this fail on the master side
+      if (!masterClient.mount(src, dst)) {
+        throw new IOException("Unable to mount");
+      }
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }

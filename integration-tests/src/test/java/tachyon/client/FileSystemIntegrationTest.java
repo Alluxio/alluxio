@@ -247,7 +247,7 @@ public class FileSystemIntegrationTest {
     try {
       mTfs.mount(new TachyonURI("/dir"), new TachyonURI(ufsSubdir));
       Assert.fail("Cannot remount primary ufs.");
-    } catch (TachyonException e) {
+    } catch (IOException e) {
       // Exception expected, continue
     }
 
@@ -261,14 +261,14 @@ public class FileSystemIntegrationTest {
       try {
         mTfs.mount(new TachyonURI("/inner"), new TachyonURI(innerDirPath));
         Assert.fail("Cannot mount suffix of already-mounted directory");
-      } catch (TachyonException e) {
+      } catch (IOException e) {
         // Exception expected, continue
       }
       // Cannot mount prefix of already-mounted directory
       try {
         mTfs.mount(new TachyonURI("/root"), new TachyonURI(alternateUfsRoot));
         Assert.fail("Cannot mount prefix of already-mounted directory");
-      } catch (TachyonException e) {
+      } catch (IOException e) {
         // Exception expected, continue
       }
     } finally {
