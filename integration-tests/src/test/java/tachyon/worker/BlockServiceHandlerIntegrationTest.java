@@ -113,7 +113,8 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId0 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
     final long blockId1 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 1);
 
-    String filename = mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0, blockSize);
+    String filename =
+        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0, blockSize);
     createBlockFile(filename, blockSize);
     mBlockWorkerServiceHandler.cacheBlock(SESSION_ID, blockId0);
 
@@ -139,7 +140,8 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
-    String filename = mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize);
+    String filename =
+        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize);
     createBlockFile(filename, blockSize);
     mBlockWorkerServiceHandler.cancelBlock(SESSION_ID, blockId);
 
@@ -260,7 +262,8 @@ public class BlockServiceHandlerIntegrationTest {
     // Request for impossible initial space should fail
     Exception exception = null;
     try {
-      mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
+      mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2,
+          WORKER_CAPACITY_BYTES + 1);
     } catch (TachyonTException e) {
       exception = e;
     }
@@ -276,8 +279,10 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId1 = 12345L;
     final long blockId2 = 23456L;
 
-    String filePath1 = mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize);
-    String filePath2 = mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize);
+    String filePath1 =
+        mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize);
+    String filePath2 =
+        mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize);
 
     // Initial requests should succeed
     Assert.assertTrue(filePath1 != null);
