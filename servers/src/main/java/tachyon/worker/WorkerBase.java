@@ -27,7 +27,7 @@ import tachyon.Constants;
 /**
  * This is the base class for all workers, and contains common functionality.
  */
-public abstract class WorkerBase {
+public abstract class WorkerBase implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The executor service for the master sync */
   private final ExecutorService mExecutorService;
