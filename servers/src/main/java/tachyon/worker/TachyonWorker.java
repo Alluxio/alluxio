@@ -110,14 +110,6 @@ public final class TachyonWorker {
           NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC,
               mTachyonConf);
 
-      mWebPort = mWebServer.getLocalPort();
-
-      // Get the worker id
-      mWorkerNetAddress =
-          new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-              mRPCPort, mBlockWorker.getDataLocalPort(), mWebPort);
-      WorkerContext.setWorkerNetAddress(mWorkerNetAddress);
-      LOG.info("Started worker with id {}", WorkerIdRegistry.getWorkerId());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       System.exit(-1);
@@ -206,8 +198,13 @@ public final class TachyonWorker {
    * Starts the Tachyon worker server.
    */
   public void start() throws Exception {
-    startWorkers();
     startServing();
+
+    // Get the worker id
+    WorkerContext.setWorkerNetAddress(mWorkerNetAddress);
+
+    startWorkers();
+    LOG.info("Started worker with id {}", WorkerIdRegistry.getWorkerId());
   }
 
   /**
@@ -225,7 +222,6 @@ public final class TachyonWorker {
   }
 
   private void startWorkers() throws Exception {
-    // Start the file system worker
     mBlockWorker.start();
     mFileSystemWorker.start();
   }
@@ -241,6 +237,7 @@ public final class TachyonWorker {
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
+    mWebPort = mWebServer.getLocalPort();
   }
 
   private void stopServing() {

@@ -65,7 +65,7 @@ public final class FileSystemWorker extends WorkerBase {
   }
 
   /**
-   * Starts the lineage worker service.
+   * Starts the filesystem worker service.
    */
   @Override
   public void start() {
@@ -76,7 +76,7 @@ public final class FileSystemWorker extends WorkerBase {
   }
 
   /**
-   * Stops the lineage worker service.
+   * Stops the filesystem worker service.
    */
   @Override
   public void stop() {
