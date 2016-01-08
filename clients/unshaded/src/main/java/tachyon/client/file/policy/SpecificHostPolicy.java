@@ -20,7 +20,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
@@ -37,7 +37,7 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : workerInfoList) {

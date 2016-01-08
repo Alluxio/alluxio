@@ -24,7 +24,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.block.BlockWorkerInfo;
-import tachyon.worker.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests {@link SpecificHostPolicy}.
@@ -37,9 +37,9 @@ public final class SpecificHostPolicyTest {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
     Assert.assertEquals("worker2",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
@@ -49,9 +49,9 @@ public final class SpecificHostPolicyTest {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
     Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
   }
 }
