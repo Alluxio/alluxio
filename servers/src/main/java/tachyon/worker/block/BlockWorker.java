@@ -132,14 +132,17 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * Runs the block worker. The thread calling this will be blocked until the thrift server shuts
-   * down.
+   * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
+   * started.
    */
   @Override
   public void start() throws IOException {
     NetAddress workerNetAddress;
     try {
-      workerNetAddress = WorkerContext.getWorkerNetAddress();
+      workerNetAddress =
+          new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+              mTachyonConf.getInt(Constants.WORKER_RPC_PORT),
+              getDataLocalPort(), mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, workerNetAddress);
     } catch (ConnectionFailedException e) {
       LOG.error("Failed to get a worker id from block master", e);
@@ -177,7 +180,6 @@ public final class BlockWorker extends WorkerBase {
     if (mSpaceReserver != null) {
       getExecutorService().submit(mSpaceReserver);
     }
-
   }
 
   /**

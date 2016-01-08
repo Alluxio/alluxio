@@ -59,7 +59,6 @@ public abstract class AbstractLocalTachyonCluster {
   protected TachyonConf mWorkerConf;
 
   protected TachyonWorker mWorker;
-  protected FileSystemWorker mFileSystemWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mTachyonHome;

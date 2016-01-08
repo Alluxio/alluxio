@@ -130,7 +130,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
 
     // Stopping Worker before stopping master speeds up tests
     mWorker.stop();
-    mFileSystemWorker.stop();
     mMaster.stop();
   }
 
@@ -142,7 +141,6 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   public void stopWorker() throws Exception {
     mMaster.clearClients();
     mWorker.stop();
-    mFileSystemWorker.stop();
   }
 
   @Override

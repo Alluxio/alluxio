@@ -203,7 +203,6 @@ public class LocalTachyonClusterMultiMaster extends AbstractLocalTachyonCluster 
   @Override
   public void stopTFS() throws Exception {
     mWorker.stop();
-    mFileSystemWorker.stop();
     for (int k = 0; k < mNumOfMasters; k ++) {
       // Use kill() instead of stop(), because stop() does not work well in multi-master mode.
       mMasters.get(k).kill();
