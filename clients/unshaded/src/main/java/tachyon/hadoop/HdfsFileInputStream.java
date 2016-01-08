@@ -298,6 +298,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in {@link HdfsFileInputStream}.
    *
+   * @param position N/A
+   * @param buffer N/A
    * @throws IOException always
    */
   @Override
@@ -308,6 +310,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in {@link HdfsFileInputStream}.
    *
+   * @param position N/A
+   * @param buffer N/A
+   * @param offset N/A
+   * @param length N/A
    * @throws IOException always
    */
   @Override
@@ -343,6 +349,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in {@link HdfsFileInputStream}.
    *
+   * @param targetPos N/A
    * @return N/A
    * @throws IOException always
    */
