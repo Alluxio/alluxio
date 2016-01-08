@@ -44,7 +44,7 @@ public final class InodeFile extends Inode {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
     private boolean mCacheable;
-    private long mTTL;
+    private long mTtl;
 
     /**
      * Creates a new builder for {@link InodeFile}.
@@ -55,7 +55,7 @@ public final class InodeFile extends Inode {
       mBlockSizeBytes = 0;
       mCacheable = false;
       mDirectory = false;
-      mTTL = Constants.NO_TTL;
+      mTtl = Constants.NO_TTL;
     }
 
     /**
@@ -97,8 +97,8 @@ public final class InodeFile extends Inode {
      * @param ttl the ttl value to use
      * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -137,7 +137,7 @@ public final class InodeFile extends Inode {
   // length of inode file in bytes.
   private long mLength;
 
-  private long mTTL;
+  private long mTtl;
 
   private InodeFile(InodeFile.Builder builder) {
     super(builder);
@@ -147,7 +147,7 @@ public final class InodeFile extends Inode {
     mCacheable = builder.mCacheable;
     mCompleted = false;
     mLength = 0;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
   }
 
   @Override
@@ -168,7 +168,7 @@ public final class InodeFile extends Inode {
     ret.isPersisted = isPersisted();
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
-    ret.ttl = mTTL;
+    ret.ttl = mTtl;
     ret.userName = getUserName();
     ret.groupName = getGroupName();
     ret.permission = getPermission();
@@ -197,8 +197,8 @@ public final class InodeFile extends Inode {
   /**
    * @param ttl the TTL to use, in milliseconds
    */
-  public void setTTL(long ttl) {
-    mTTL = ttl;
+  public void setTtl(long ttl) {
+    mTtl = ttl;
   }
 
   /**
@@ -317,7 +317,7 @@ public final class InodeFile extends Inode {
     sb.append(", Completed: ").append(mCompleted);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
-    sb.append(", mTTL: ").append(mTTL);
+    sb.append(", mTtl: ").append(mTtl);
     sb.append(")");
     return sb.toString();
   }
@@ -341,7 +341,7 @@ public final class InodeFile extends Inode {
             .setParentId(entry.getParentId())
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
-            .setTTL(entry.getTtl())
+            .setTtl(entry.getTtl())
             .setPermissionStatus(permissionStatus)
             .build();
 
@@ -370,7 +370,7 @@ public final class InodeFile extends Inode {
         .setCompleted(isCompleted())
         .setCacheable(isCacheable())
         .addAllBlocks(mBlocks)
-        .setTtl(mTTL)
+        .setTtl(mTtl)
         .setUserName(getUserName())
         .setGroupName(getGroupName())
         .setPermission(getPermission())
@@ -381,7 +381,7 @@ public final class InodeFile extends Inode {
   /**
    * @return the ttl of the file
    */
-  public synchronized long getTTL() {
-    return mTTL;
+  public synchronized long getTtl() {
+    return mTtl;
   }
 }
