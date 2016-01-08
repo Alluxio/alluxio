@@ -188,7 +188,7 @@ public class DataServerIntegrationTest {
         .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2
             + 10);
 
-    Assert.assertEquals(0, mTFS.getStatus(new TachyonURI("/readFile1")).getInMemoryPercentage());
+    Assert.assertEquals(0, mTFS.getStatus(new TachyonURI("/file1")).getInMemoryPercentage());
   }
 
   @Test

@@ -419,8 +419,10 @@ public class JournalIntegrationTest {
       throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     for (Map.Entry<String, URIStatus> directoryStatus : directoryStatuses.entrySet()) {
-      Assert.assertEquals(directoryStatus.getValue(), fsMaster.getFileInfo(fsMaster.getFileId(
-          new TachyonURI(directoryStatus.getKey()))));
+      Assert.assertEquals(
+          directoryStatus.getValue(),
+          new URIStatus(fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI(directoryStatus
+              .getKey())))));
     }
   }
 
