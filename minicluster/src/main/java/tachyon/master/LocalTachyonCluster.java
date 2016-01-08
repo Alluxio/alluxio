@@ -23,6 +23,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
+import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockWorker;
 import tachyon.worker.file.FileSystemWorker;
@@ -77,12 +78,8 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mTachyonHome;
   }
 
-  public BlockWorker getWorker() {
+  public TachyonWorker getWorker() {
     return mWorker;
-  }
-
-  public FileSystemWorker getFileSystemWorker() {
-    return mFileSystemWorker;
   }
 
   public TachyonConf getWorkerTachyonConf() {

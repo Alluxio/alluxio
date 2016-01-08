@@ -15,12 +15,28 @@
 
 package tachyon.worker;
 
+import com.google.common.base.Throwables;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.BlockWorkerClientService;
+import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.block.BlockWorker;
+import tachyon.worker.block.BlockWorkerClientServiceHandler;
 import tachyon.worker.file.FileSystemWorker;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
@@ -28,6 +44,48 @@ import tachyon.worker.file.FileSystemWorker;
  */
 public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private TachyonConf mTachyonConf;
+  // The workers
+  /** The worker serving blocks */
+  private BlockWorker mBlockWorker;
+  /** The worker serving file system operations */
+  private FileSystemWorker mFileSystemWorker;
+
+  /** is true if the worker is serving the RPC server */
+  private boolean mIsServing = false;
+  /** Thread pool for thrift */
+  private TThreadPoolServer mThriftServer;
+  /** Server socket for thrift */
+  private TServerSocket mThriftServerSocket;
+  /** RPC local port for thrift */
+  private int mRPCPort;
+  /** The address for the rpc server */
+  private InetSocketAddress mWorkerAddress;
+
+  public TachyonWorker() {
+    try {
+      mTachyonConf = WorkerContext.getConf();
+
+      mBlockWorker = new BlockWorker();
+      // Setup the file worker
+      LOG.info("Started file system worker at worker with id {}", WorkerIdRegistry.getWorkerId());
+      mFileSystemWorker = new FileSystemWorker(mBlockWorker.getBlockDataManager());
+
+      mThriftServerSocket = createThriftServerSocket();
+      mRPCPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
+      // Reset worker RPC port based on assigned port number
+      mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mRPCPort));
+
+      mWorkerAddress = NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType
+          .WORKER_RPC, mTachyonConf);
+
+      mThriftServer = createThriftServer();
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+      System.exit(-1);
+    }
+  }
 
   /**
    * Main method for Tachyon Worker. A Block Worker will be started and the Tachyon Worker will
@@ -37,37 +95,158 @@ public final class TachyonWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
-    BlockWorker worker = null;
-    FileSystemWorker fileWorker = null;
-
+    TachyonWorker worker;
     try {
-      worker = new BlockWorker();
-       // Setup the file worker
-      LOG.info("Started file system worker at worker with id {}", WorkerIdRegistry.getWorkerId());
-      fileWorker = new FileSystemWorker(worker.getBlockDataManager());
-
-    } catch (Exception e) {
-      LOG.error("Failed to initialize the block worker, exiting.", e);
-      System.exit(-1);
-    }
-
-    try {
-      // Start the file system worker
-      fileWorker.start();
-      worker.process();
-
+      worker = new TachyonWorker();
+      worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
-      try {
-        worker.stop();
-        fileWorker.stop();
-      } catch (Exception ex) {
-        LOG.error("Failed to stop block worker. Exiting.", ex);
-      }
       System.exit(-1);
     }
+  }
 
-    System.exit(0);
+  /**
+   * @return the worker RPC service bind host
+   */
+  public String getRPCBindHost() {
+    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
+        .getHostAddress();
+  }
+
+  /**
+   * @return the worker RPC service port
+   */
+  public int getRPCLocalPort() {
+    return mRPCPort;
+  }
+
+  /**
+   * @return the worker data service bind host (used by unit test only)
+   */
+  public String getDataBindHost() {
+    return mBlockWorker.getDataBindHost();
+  }
+
+  /**
+   * @return the worker data service port (used by unit test only)
+   */
+  public int getDataLocalPort() {
+    return mBlockWorker.getDataLocalPort();
+  }
+
+  /**
+   * @return the worker web service bind host (used by unit test only)
+   */
+  public String getWebBindHost() {
+    return mBlockWorker.getWebBindHost();
+  }
+
+  /**
+   * @return the worker web service port (used by unit test only)
+   */
+  public int getWebLocalPort() {
+    return mBlockWorker.getWebLocalPort();
+  }
+
+  /**
+   * @return the worker service handler (used by unit test only)
+   */
+  public BlockWorkerClientServiceHandler getBlockWorkerServiceHandler() {
+    return mBlockWorker.getWorkerServiceHandler();
+  }
+  /**
+   * Gets this worker's {@link tachyon.thrift.NetAddress}, which is the worker's hostname, rpc
+   * server port, data server port, and web server port.
+   *
+   * @return the worker's net address
+   */
+  public NetAddress getWorkerNetAddress() {
+    return mBlockWorker.getWorkerNetAddress();
+  }
+
+  /**
+   * Starts the Tachyon worker server.
+   */
+  public void start() throws Exception {
+    startWorkers();
+    startServing();
+  }
+
+  /**
+   * Stops the Tachyon worker server. Should only be called by tests.
+   */
+  public void stop() throws Exception {
+    if (mIsServing) {
+      LOG.info("Stopping RPC server on Tachyon Worker @ {}", mWorkerAddress);
+      stopServing();
+      stopWorkers();
+      mIsServing = false;
+    } else {
+      LOG.info("Stopping Tachyon Master @ {}", mWorkerAddress);
+    }
+  }
+
+  private void startWorkers() throws Exception {
+    // Start the file system worker
+    mBlockWorker.start();
+    mFileSystemWorker.start();
+  }
+
+  private void stopWorkers() throws Exception {
+    mFileSystemWorker.stop();
+    mBlockWorker.stop();
+  }
+
+  private void startServing() {
+    mThriftServer.serve();
+  }
+
+  private void stopServing() {
+    mThriftServer.stop();
+    mThriftServerSocket.close();
+  }
+
+  /**
+   * Helper method to create a {@link org.apache.thrift.server.TThreadPoolServer} for handling
+   * incoming RPC requests.
+   *
+   * @return a thrift server
+   */
+  private TThreadPoolServer createThriftServer() {
+    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
+    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
+    BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler> processor =
+        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(mBlockWorker.getWorkerServiceHandler());
+    TTransportFactory tTransportFactory;
+    try {
+      tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);
+    } catch (IOException ioe) {
+      throw Throwables.propagate(ioe);
+    }
+    TThreadPoolServer.Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
+        .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+      args.stopTimeoutVal = 0;
+    } else {
+      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
+    }
+    return new TThreadPoolServer(args);
+  }
+
+  /**
+   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server
+   *
+   * @return a thrift server socket
+   */
+  private TServerSocket createThriftServerSocket() {
+    try {
+      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
+          mTachyonConf));
+    } catch (TTransportException tte) {
+      LOG.error(tte.getMessage(), tte);
+      throw Throwables.propagate(tte);
+    }
   }
 
   /**

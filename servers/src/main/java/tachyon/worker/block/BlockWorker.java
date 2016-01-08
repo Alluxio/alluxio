@@ -18,16 +18,8 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.server.TThreadPoolServer.Args;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
-import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -35,9 +27,7 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.metrics.MetricsSystem;
-import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.BlockWorkerClientService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -83,16 +73,14 @@ public final class BlockWorker extends WorkerBase {
   private final NetAddress mWorkerNetAddress;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
-  /** Server socket for thrift */
-  private final TServerSocket mThriftServerSocket;
   /** RPC local port for thrift */
   private final int mPort;
-  /** Thread pool for thrift */
-  private final TThreadPoolServer mThriftServer;
   /** Worker start time in milliseconds */
   private final long mStartTimeMs;
+  // TODO(binfan): move to TachyonWorker
   /** Worker Web UI server */
   private final UIWebServer mWebServer;
+  // TODO(binfan): move to TachyonWorker
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
   /** Space reserver for the block data manager */
@@ -110,21 +98,6 @@ public final class BlockWorker extends WorkerBase {
    */
   public BlockWorkerClientServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
-  }
-
-  /**
-   * @return the worker RPC service bind host
-   */
-  public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
-        .getHostAddress();
-  }
-
-  /**
-   * @return the worker RPC service port
-   */
-  public int getRPCLocalPort() {
-    return mPort;
   }
 
   /**
@@ -195,11 +168,6 @@ public final class BlockWorker extends WorkerBase {
 
     // Setup RPC Server
     mServiceHandler = new BlockWorkerClientServiceHandler(mBlockDataManager);
-    mThriftServerSocket = createThriftServerSocket();
-    mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
-    // Reset worker RPC port
-    mTachyonConf.set(Constants.WORKER_RPC_PORT, Integer.toString(mPort));
-    mThriftServer = createThriftServer();
 
     // Setup web server
     mWebServer =
@@ -214,6 +182,7 @@ public final class BlockWorker extends WorkerBase {
     int webPort = mWebServer.getLocalPort();
 
     // Get the worker id
+    mPort = mTachyonConf.getInt(Constants.WORKER_RPC_PORT);
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
             mPort, mDataServer.getPort(), webPort);
@@ -248,7 +217,8 @@ public final class BlockWorker extends WorkerBase {
    * Runs the block worker. The thread calling this will be blocked until the thrift server shuts
    * down.
    */
-  public void process() {
+  @Override
+  public void start() {
     getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
@@ -266,7 +236,6 @@ public final class BlockWorker extends WorkerBase {
       getExecutorService().submit(mSpaceReserver);
     }
 
-    mThriftServer.serve();
   }
 
   /**
@@ -274,10 +243,10 @@ public final class BlockWorker extends WorkerBase {
    *
    * @throws IOException if the data server fails to close
    */
+  @Override
   public void stop() throws IOException {
     mDataServer.close();
-    mThriftServer.stop();
-    mThriftServerSocket.close();
+
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
@@ -293,55 +262,11 @@ public final class BlockWorker extends WorkerBase {
       LOG.error("Failed to stop web server", e);
     }
     mBlockDataManager.stop();
-    while (!mDataServer.isClosed() || mThriftServer.isServing()) {
-      // The reason to stop and close again is due to some issues in Thrift.
+    while (!mDataServer.isClosed()) {
       mDataServer.close();
-      mThriftServer.stop();
-      mThriftServerSocket.close();
       CommonUtils.sleepMs(100);
     }
   }
 
-  /**
-   * Helper method to create a {@link org.apache.thrift.server.TThreadPoolServer} for handling
-   * incoming RPC requests.
-   *
-   * @return a thrift server
-   */
-  private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
-    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
-    BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler> processor =
-        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(mServiceHandler);
-    TTransportFactory tTransportFactory;
-    try {
-      tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);
-    } catch (IOException ioe) {
-      throw Throwables.propagate(ioe);
-    }
-    Args args = new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
-        .maxWorkerThreads(maxWorkerThreads).processor(processor).transportFactory(tTransportFactory)
-        .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
-      args.stopTimeoutVal = 0;
-    } else {
-      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
-    }
-    return new TThreadPoolServer(args);
-  }
 
-  /**
-   * Helper method to create a {@link org.apache.thrift.transport.TServerSocket} for the RPC server
-   *
-   * @return a thrift server socket
-   */
-  private TServerSocket createThriftServerSocket() {
-    try {
-      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-          mTachyonConf));
-    } catch (TTransportException tte) {
-      LOG.error(tte.getMessage(), tte);
-      throw Throwables.propagate(tte);
-    }
-  }
 }
