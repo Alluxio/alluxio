@@ -38,15 +38,11 @@ public class LocalFileBlockWriterTest {
   private LocalFileBlockWriter mWriter;
   private String mTestFilePath;
 
-  /**
-   * Rule for the temporary folder.
-   */
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  /**
-   * The exception expected to be thrown.
-   */
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 

@@ -95,11 +95,11 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes the specified bytes to this output stream.  Before close, the bytes are all writen to
+   * Writes the specified bytes to this output stream.  Before close, the bytes are all written to
    * local file.
    *
-   * @param b the <code>byte</code>
-   * @throws IOException if an I/O error occurs. In particular,  an <code>IOException</code> may be
+   * @param b the {@code byte}
+   * @throws IOException if an I/O error occurs. In particular,  an {@code IOException} may be
    *                     thrown if the output stream has been closed
    */
   @Override
@@ -126,7 +126,7 @@ public final class OSSOutputStream extends OutputStream {
    * @param b the data
    * @param off the start offset in the data
    * @param len the number of bytes to write
-   * @throws IOException if an I/O error occurs. In particular, an <code>IOException</code> is
+   * @throws IOException if an I/O error occurs. In particular, an {@code IOException} is
    *                     thrown if the output stream is closed
    */
   @Override
@@ -136,7 +136,7 @@ public final class OSSOutputStream extends OutputStream {
 
   /**
    * Flushes this output stream and forces any buffered output bytes to be written out. Before
-   * close, the data are flushed to local file
+   * close, the data are flushed to local file.
    *
    * @throws IOException if an I/O error occurs
    */
