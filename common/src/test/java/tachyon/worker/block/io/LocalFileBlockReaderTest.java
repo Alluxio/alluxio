@@ -36,15 +36,11 @@ public class LocalFileBlockReaderTest {
   private LocalFileBlockReader mReader;
   private String mTestFilePath;
 
-  /**
-   * Rule for the temporary folder.
-   */
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  /**
-   * The exception expected to be thrown.
-   */
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -85,7 +81,7 @@ public class LocalFileBlockReaderTest {
   }
 
   /**
-   * Tests that an exception if thrown if the read crosses the file length limit.
+   * Tests that an exception is thrown if the read exceeds the file length limit.
    *
    * @throws Exception if the data from the block cannot be read
    */
