@@ -16,6 +16,7 @@
 package tachyon.worker;
 
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.NetAddress;
 
 /**
  * A {@link WorkerContext} object stores {@link TachyonConf}.
@@ -30,6 +31,14 @@ public final class WorkerContext {
   private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
+   * The {@link WorkerSource} for collecting master metrics.
+   */
+  private static WorkerSource sWorkerSource = new WorkerSource();
+
+  /** Net address of this worker */
+  private static NetAddress sWorkerNetAddress;
+
+  /**
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
    * within the worker process.
    *
@@ -37,6 +46,32 @@ public final class WorkerContext {
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * Returns the one and only static {@link WorkerSource} object which is shared among all classes
+   * within the worker process.
+   *
+   * @return the {@link WorkerSource} for the master process
+   */
+  public static WorkerSource getWorkerSource() {
+    return sWorkerSource;
+  }
+
+  /**
+   * @return {@link NetAddress} object of this worker
+   */
+  public static NetAddress getWorkerNetAddress() {
+    return sWorkerNetAddress;
+  }
+
+  /**
+   * Sets {@link NetAddress} object of this worker.
+   *
+   * @param workerNetAddress {@link NetAddress} object of this worker
+   */
+  public static void setWorkerNetAddress(NetAddress workerNetAddress) {
+    sWorkerNetAddress = workerNetAddress;
   }
 
   /**
