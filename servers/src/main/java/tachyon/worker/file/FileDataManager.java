@@ -62,6 +62,7 @@ public final class FileDataManager {
   // the file are persisted, but not sent back to master for confirmation yet
   private final Set<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
+  private final Object mLock = new Object();
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -85,7 +86,7 @@ public final class FileDataManager {
    * @return true if the file is being persisted, false otherwise
    */
   private boolean isFilePersisting(long fileId) {
-    synchronized (this) {
+    synchronized (mLock) {
       return mPersistedFiles.contains(fileId);
     }
   }
@@ -120,7 +121,7 @@ public final class FileDataManager {
    * @return true if the file is being persisted, false otherwise
    */
   public boolean isFilePersisted(long fileId) {
-    synchronized (this) {
+    synchronized (mLock) {
       return mPersistedFiles.contains(fileId);
     }
   }
@@ -131,7 +132,7 @@ public final class FileDataManager {
    * @param fileId the file id
    */
   private void addPersistedFile(long fileId) {
-    synchronized (this) {
+    synchronized (mLock) {
       mPersistedFiles.add(fileId);
     }
   }
@@ -143,7 +144,7 @@ public final class FileDataManager {
    * @return true if the file exists in under storage system, false otherwise
    * @throws IOException an I/O exception occurs
    */
-  public synchronized boolean fileExistsInUfs(long fileId) throws IOException {
+  private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
     String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockDataManager.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
@@ -159,7 +160,7 @@ public final class FileDataManager {
    * @throws IOException if the file persistence fails
    */
   public void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    synchronized (this) {
+    synchronized (mLock) {
       mPersistingInProgressFiles.add(fileId);
     }
 
@@ -215,7 +216,7 @@ public final class FileDataManager {
     outputStream.flush();
     outputChannel.close();
     outputStream.close();
-    synchronized (this) {
+    synchronized (mLock) {
       mPersistingInProgressFiles.remove(fileId);
       mPersistedFiles.add(fileId);
     }
@@ -248,7 +249,7 @@ public final class FileDataManager {
    */
   public List<Long> getPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
-    synchronized (this) {
+    synchronized (mLock) {
       toReturn.addAll(mPersistedFiles);
       return toReturn;
     }
@@ -258,7 +259,7 @@ public final class FileDataManager {
    * Clears the given persisted files stored in {@link #mPersistedFiles}.
    */
   public void clearPersistedFiles(List<Long> persistedFiles) {
-    synchronized (this) {
+    synchronized (mLock) {
       mPersistedFiles.removeAll(persistedFiles);
     }
   }
