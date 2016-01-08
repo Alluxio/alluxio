@@ -23,10 +23,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileInfo;
 
 /**
  * Integration tests for {@link RawColumn}.
@@ -58,8 +57,8 @@ public class RawColumnIntegrationTest {
       for (int pid = 0; pid < 5; pid ++) {
         // Create an empty partition
         mTachyonRawTables.createPartition(column, pid).close();
-        TachyonFile file = mTachyonRawTables.openPartition(column, pid);
-        FileInfo partitionInfo = mFileSystem.getInfo(file);
+        TachyonURI file = mTachyonRawTables.getPartitionUri(column, pid);
+        URIStatus partitionInfo = mFileSystem.getStatus(file);
         Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.MASTER_COLUMN_FILE_PREFIX
             + col + TachyonURI.SEPARATOR + pid, partitionInfo.getPath());
       }
