@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.List;
 
 import tachyon.client.ClientContext;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
@@ -38,7 +38,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {

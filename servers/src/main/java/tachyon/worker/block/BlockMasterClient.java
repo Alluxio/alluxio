@@ -31,9 +31,9 @@ import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.WorkerNetAddress;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
@@ -106,7 +106,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getId(final NetAddress address)
+  public synchronized long getId(final WorkerNetAddress address)
       throws IOException, ConnectionFailedException {
     return retryRPC(new RpcCallable<Long>() {
       @Override

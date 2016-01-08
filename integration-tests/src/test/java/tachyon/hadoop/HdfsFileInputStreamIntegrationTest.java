@@ -48,13 +48,13 @@ import tachyon.util.io.BufferUtils;
  */
 public class HdfsFileInputStreamIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
-  private static final int WORKER_CAPACITY = 10000;
+  private static final int WORKER_CAPACITY = 10 * Constants.MB;
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
 
   @ClassRule
   public static LocalTachyonClusterResource sLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES, Constants.GB);
+      new LocalTachyonClusterResource(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES, Constants.MB);
   private static TachyonFileSystem sTachyonFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
