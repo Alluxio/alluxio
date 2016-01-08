@@ -35,6 +35,10 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
    * in the subsequent calls has the same order from the first, and it will skip the workers that
    * are no longer active.
+   *
+   * @param workerInfoList the info of the active workers
+   * @param blockSizeBytes the size of the block in bytes
+   * @return the address of the worker to write to
    */
   @Override
   public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,

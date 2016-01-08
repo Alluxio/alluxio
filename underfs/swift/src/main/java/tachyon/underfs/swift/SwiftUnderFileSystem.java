@@ -143,10 +143,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * @inheritDoc
    *
-   * @see UnderFileSystem#delete(java.lang.String, boolean).
-   * recursive will delete all objects with given prefix.
-   * parent will not be deleted.
-   * Method always returns {@code true}.
+   * Parent will not be deleted.
+   *
+   * @param path the file or folder name
+   * @param recursive will delete all objects with given prefix
+   * @return always returns {@code true}
+   * @throws IOException if a non-Tachyon error occurs
+   * @see UnderFileSystem#delete(java.lang.String, boolean)
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
@@ -251,11 +254,19 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
+  /**
+   * @inheritDoc
+   *
    * There is no notion of directories in Swift.
    * The content of containers are objects.
    * Object name may contain nested structure like a/b/c/d.data
+   *
+   * @param path the folder to create
+   * @param createParent If true, the method creates any necessary but nonexistent parent
+   *        directories. Otherwise, the method does not create nonexistent parent directories.
+   * @return always returns {@code true}
+   * @throws IOException if a non-Tachyon error occurs
+   * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
    */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
@@ -291,7 +302,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * @inheritDoc
    *
-   * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
+   *
    * The rename works as follows:
    * If src path exists: src renamed to dst. src is deleted on the success.
    * If src path is not exists: src is assumed to be directory.
@@ -300,6 +311,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * For each returned object: src in the name is replaced with dst.
    * Object is deleted if copy was successful.
    * Directory rename always returns true.
+   *
+   * @param src The source file or folder name
+   * @param dst The destination file or folder name
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
+   * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {
