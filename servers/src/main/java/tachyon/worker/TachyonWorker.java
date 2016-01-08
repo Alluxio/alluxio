@@ -46,6 +46,8 @@ import tachyon.worker.file.FileSystemWorker;
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
  * workers that are configured to run.
+ *
+ * This class is not thread-safe.
  */
 public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -197,7 +199,7 @@ public final class TachyonWorker {
    * Starts the Tachyon worker server.
    */
   public void start() throws Exception {
-    // NOTE: the order to start different services is sensitive. Make sure you change it cautiously.
+    // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving metrics system, this will not block
     mWorkerMetricsSystem.start();
@@ -223,6 +225,8 @@ public final class TachyonWorker {
     // Consequence: worker id is granted
     startWorkers();
     LOG.info("Started worker with id {}", WorkerIdRegistry.getWorkerId());
+
+    mIsServing = true;
 
     // Start serving RPC, this will block
     LOG.info("Tachyon Worker version {} started @ {} {}", Version.VERSION, mWorkerAddress);
