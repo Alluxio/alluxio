@@ -15,12 +15,14 @@
 
 package tachyon.worker.block.meta;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
@@ -67,6 +69,11 @@ public class BlockMetaBaseTest {
     mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     mDir = mTier.getDir(0);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test
