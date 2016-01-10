@@ -248,6 +248,9 @@ public final class BlockWorkerClient extends ClientBase {
     return mWorkerDataServerAddress;
   }
 
+  /**
+   * @return the id of the session
+   */
   public synchronized long getSessionId() {
     return mSessionId;
   }
