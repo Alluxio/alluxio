@@ -110,6 +110,7 @@ public final class MasterBlockInfo {
   }
 
   /**
+   * @param targetTierAlias the tier alias to target
    * @return true if the block is in the given tier
    */
   public synchronized boolean isInTier(String targetTierAlias) {
