@@ -17,6 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.File;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Sets;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
@@ -54,6 +56,11 @@ public class StorageTierViewTest {
             Sets.<Long>newHashSet());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestTierView = new StorageTierView(mTestTier, metaManagerView);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

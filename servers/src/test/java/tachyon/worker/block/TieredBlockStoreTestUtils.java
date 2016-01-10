@@ -59,6 +59,8 @@ public class TieredBlockStoreTestUtils {
    * the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which
    * calls this method with default values.
    *
+   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
+   *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
    * @param tierOrdinal like {@link #TIER_ORDINAL}, length must be &gt; 0
@@ -89,10 +91,11 @@ public class TieredBlockStoreTestUtils {
     int nTier = tierOrdinal.length;
 
     tierPath = createDirHierarchy(baseDir, tierPath);
+    TachyonConf conf = WorkerContext.getConf();
     if (workerDataFolder != null) {
-      sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
+      conf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    sTachyonConf.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    conf.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i ++) {
@@ -104,6 +107,8 @@ public class TieredBlockStoreTestUtils {
    * Sets up a {@link TachyonConf} for a {@link TieredBlockStore} with only *one tier* configured by
    * the parameters. For simplicity, you can use {@link #setupTachyonConfDefault(String)} which sets
    * up the tierBlockStore with default values.
+   *
+   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for all the paths of directories in the tiered
    *        storage; when specified, the directory needs to exist before calling this method
@@ -121,15 +126,18 @@ public class TieredBlockStoreTestUtils {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
+    TachyonConf conf = WorkerContext.getConf();
     if (workerDataFolder != null) {
-      sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
+      conf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    sTachyonConf.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    conf.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
     setupTachyonConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
   }
 
   /**
    * Sets up a specific tier's {@link TachyonConf} for a {@link TieredBlockStore}.
+   *
+   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param ordinal ordinal value of the tier
    * @param tierAlias alias of the tier
@@ -143,15 +151,17 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         String.format("tierPath and tierCapacity should have the same length"));
 
-    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal),
+    TachyonConf conf = WorkerContext.getConf();
+
+    conf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal),
         tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, ordinal),
+    conf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, ordinal),
         tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, ordinal),
+    conf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, ordinal),
         tierCapacityString);
   }
 
@@ -198,6 +208,8 @@ public class TieredBlockStoreTestUtils {
   /**
    * Creates a BlockMetadataManager with {@link #setupTachyonConfDefault(String)}.
    *
+   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
+   *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
    * @return the created metadata manager
@@ -210,6 +222,8 @@ public class TieredBlockStoreTestUtils {
 
   /**
    * Creates a {@link BlockMetadataManagerView} with {@link #setupTachyonConfDefault(String)}.
+   *
+   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
@@ -226,6 +240,8 @@ public class TieredBlockStoreTestUtils {
   /**
    * Sets up a {@link TachyonConf} with default values of {@link #TIER_ORDINAL}, {@link #TIER_ALIAS}
    * , {@link #TIER_PATH} with the baseDir as path prefix, {@link #TIER_CAPACITY_BYTES}.
+   *
+   * This method modifies the {@link WorkerContext} configuration, so be sure to reset it when done.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method

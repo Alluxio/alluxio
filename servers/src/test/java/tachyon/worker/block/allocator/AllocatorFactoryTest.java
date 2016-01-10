@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.allocator;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,6 +44,11 @@ public class AllocatorFactoryTest {
     String baseDir = mTestFolder.newFolder().getAbsolutePath();
     mManagerView = TieredBlockStoreTestUtils.defaultMetadataManagerView(baseDir);
     mTachyonConf = WorkerContext.getConf();
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

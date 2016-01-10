@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.File;
 import java.lang.reflect.Field;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,6 +34,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.io.FileUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -84,6 +86,11 @@ public final class TieredBlockStoreTest {
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
     mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   // Different sessions can concurrently grab block locks on different blocks
