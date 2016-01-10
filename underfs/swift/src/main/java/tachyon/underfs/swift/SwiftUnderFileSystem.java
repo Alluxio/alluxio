@@ -142,11 +142,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * @inheritDoc
-   *
-   * @see UnderFileSystem#delete(java.lang.String, boolean).
-   * recursive will delete all objects with given prefix.
-   * parent will not be deleted.
-   * Method always returns {@code true}.
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
@@ -251,11 +246,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
-   * There is no notion of directories in Swift.
-   * The content of containers are objects.
-   * Object name may contain nested structure like a/b/c/d.data
+  /**
+   * @inheritDoc
    */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
@@ -290,16 +282,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * @inheritDoc
-   *
-   * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
-   * The rename works as follows:
-   * If src path exists: src renamed to dst. src is deleted on the success.
-   * If src path is not exists: src is assumed to be directory.
-   * Both src and dst paths are formatted to a/b/c/
-   * Listing is performed on src.
-   * For each returned object: src in the name is replaced with dst.
-   * Object is deleted if copy was successful.
-   * Directory rename always returns true.
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {
