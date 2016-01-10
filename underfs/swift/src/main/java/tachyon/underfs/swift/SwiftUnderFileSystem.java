@@ -142,6 +142,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * @inheritDoc
+   *
+   * @param path The file or folder name
+   * @param recursive Whether we delete folder and its children
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
@@ -248,6 +253,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * @inheritDoc
+   *
+   * @param path the folder to create
+   * @param createParent If true, the method creates any necessary but nonexistent parent
+   *        directories. Otherwise, the method does not create nonexistent parent directories.
+   * @return {@code true} if and only if the directory was created; {@code false}
+   *         otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
@@ -282,6 +294,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * @inheritDoc
+   *
+   * @param src The source file or folder name
+   * @param dst The destination file or folder name
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {

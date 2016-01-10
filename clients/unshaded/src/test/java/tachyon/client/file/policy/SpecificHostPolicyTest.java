@@ -32,6 +32,9 @@ import tachyon.worker.NetAddress;
 public final class SpecificHostPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the correct worker is returned when using the policy.
+   */
   @Test
   public void policyTest() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
@@ -44,6 +47,10 @@ public final class SpecificHostPolicyTest {
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
+  /**
+   * Tests that no worker is chosen when the worker specified in the policy is not part of the
+   * worker list.
+   */
   @Test
   public void noMatchingHostTest() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
