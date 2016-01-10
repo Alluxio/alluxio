@@ -53,7 +53,6 @@ import tachyon.client.util.ClientTestUtils;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
@@ -367,8 +366,7 @@ public class FileOutStreamTest {
   /**
    * Tests that the async write invokes the expected client APIs.
    *
-   * @throws IOException when the write fails
-   * @throws TachyonException when a Tachyon exception occurs
+   * @throws Exception when the write fails
    */
   @Test
   public void asyncWriteTest() throws Exception {
@@ -388,6 +386,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests the location policy created with different options.
+   *
+   * @throws IOException if creating the the test stream fails
    */
   @Test
   public void locationPolicyTest() throws IOException {
@@ -408,6 +408,11 @@ public class FileOutStreamTest {
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
 
+  /**
+   * Tests that the correct exception message is produced when the location policy is not specified.
+   *
+   * @throws IOException if creating the test stream fails
+   */
   @Test
   public void missingLocationPolicyTest() throws IOException {
     OutStreamOptions options =
