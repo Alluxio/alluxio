@@ -46,7 +46,7 @@ import tachyon.worker.file.FileSystemWorker;
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
  * workers that are configured to run.
- *
+ * <p>
  * This class is not thread-safe.
  */
 public final class TachyonWorker {
@@ -60,7 +60,7 @@ public final class TachyonWorker {
   private FileSystemWorker mFileSystemWorker;
 
   /** is true if the worker is serving the RPC server */
-  private boolean mIsServing = false;
+  private boolean mIsServingRPC = false;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
   /** Worker Web UI server */
@@ -78,6 +78,9 @@ public final class TachyonWorker {
   /** Worker start time in milliseconds */
   private long mStartTimeMs;
 
+  /**
+   * Constructor of {@link TachyonWorker}.
+   */
   public TachyonWorker() {
     try {
       mStartTimeMs = System.currentTimeMillis();
@@ -112,7 +115,7 @@ public final class TachyonWorker {
               mTachyonConf);
 
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
     }
   }
@@ -125,12 +128,19 @@ public final class TachyonWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
-    TachyonWorker worker;
+    TachyonWorker worker = null;
     try {
       worker = new TachyonWorker();
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
+      if (worker != null) {
+        try {
+          worker.stop();
+        } catch (Exception ex) {
+          // continue to exit
+        }
+      }
       System.exit(-1);
     }
   }
@@ -226,7 +236,7 @@ public final class TachyonWorker {
     startWorkers();
     LOG.info("Started worker with id {}", WorkerIdRegistry.getWorkerId());
 
-    mIsServing = true;
+    mIsServingRPC = true;
 
     // Start serving RPC, this will block
     LOG.info("Tachyon Worker version {} started @ {} {}", Version.VERSION, mWorkerAddress);
@@ -238,11 +248,11 @@ public final class TachyonWorker {
    * Stops the Tachyon worker server. Should only be called by tests.
    */
   public void stop() throws Exception {
-    if (mIsServing) {
+    if (mIsServingRPC) {
       LOG.info("Stopping RPC server on Tachyon Worker @ {}", mWorkerAddress);
       stopServing();
       stopWorkers();
-      mIsServing = false;
+      mIsServingRPC = false;
     } else {
       LOG.info("Stopping Tachyon Master @ {}", mWorkerAddress);
     }
