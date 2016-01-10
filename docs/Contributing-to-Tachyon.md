@@ -14,16 +14,16 @@ Thank you for your interest in Tachyon! We greatly appreciate any new features o
 
 There are a few things that new contributors can do to familiarize themselves with Tachyon:
 
-1.  [Run Tachyon Locally](Running-Tachyon-Locally.html)
+1.  [Run Tachyon Locally](Running-Tachyon-Locally.md)
 
-2.  [Run Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
+2.  [Run Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.md)
 
-3.  Read [Configuration-Settings](Configuration-Settings.html) and [Command-Line Interface](Command-Line-Interface.html)
+3.  Read [Configuration-Settings](Configuration-Settings.md) and [Command-Line Interface](Command-Line-Interface.md)
 
 4.  Read a
     [Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
 
-5.  [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
+5.  [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.md)
 
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
