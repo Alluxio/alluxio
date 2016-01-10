@@ -32,6 +32,9 @@ import tachyon.worker.NetAddress;
 public final class RoundRobinPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the correct workers are chosen when round robin is used.
+   */
   @Test
   public void getWorkerTest() {
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
