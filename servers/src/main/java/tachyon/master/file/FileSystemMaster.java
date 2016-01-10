@@ -507,6 +507,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
    * @throws BlockInfoException if an invalid block information in encountered
+   * @throws IOException if the creation fails
    */
   public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
@@ -760,6 +761,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the {@link FileBlockInfo} for the file and block index
    * @throws FileDoesNotExistException if the file does not exist
    * @throws BlockInfoException if the block size is invalid
+   * @throws InvalidPathException if the mount table is not able to resolve the file
    */
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
@@ -790,6 +792,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the file id to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path of the given file is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(long fileId)
       throws FileDoesNotExistException, InvalidPathException {
@@ -833,6 +836,7 @@ public final class FileSystemMaster extends MasterBase {
    * @param file the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
+   * @throws InvalidPathException if the mount table is not able to resolve the file
    */
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
       throws InvalidPathException {
@@ -967,7 +971,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath(TachyonURI, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException {
@@ -1297,6 +1301,12 @@ public final class FileSystemMaster extends MasterBase {
     return new ArrayList<Long>(lostFiles);
   }
 
+  /**
+   * Reports a file as lost.
+   *
+   * @param fileId the id of the file
+   * @throws FileDoesNotExistException if the file does not exist
+   */
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
