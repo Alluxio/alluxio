@@ -51,9 +51,8 @@ public final class LoadMetadataCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      LoadMetadataOptions recursive =
-          new LoadMetadataOptions.Builder().setRecursive(true).build();
-      mTfs.loadMetadata(inputPath, recursive);
+      LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
+      mTfs.loadMetadata(inputPath, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }

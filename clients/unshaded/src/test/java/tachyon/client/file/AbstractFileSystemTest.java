@@ -254,8 +254,7 @@ public final class AbstractFileSystemTest {
   @Test
   public void loadMetadataTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenReturn(FILE_ID);
-    LoadMetadataOptions loadMetadataOptions =
-        new LoadMetadataOptions.Builder().setRecursive(true).build();
+    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
     Assert.assertEquals(FILE_ID,
         mFileSystem.loadMetadata(new TachyonURI("/"), loadMetadataOptions).getFileId());
     Mockito.verify(mFileSystemMasterClient).loadMetadata("/", true);
@@ -269,8 +268,7 @@ public final class AbstractFileSystemTest {
   @Test
   public void loadMetadataExceptionTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenThrow(EXCEPTION);
-    LoadMetadataOptions loadMetadataOptions =
-        new LoadMetadataOptions.Builder().setRecursive(true).build();
+    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
     try {
       mFileSystem.loadMetadata(new TachyonURI("/"), loadMetadataOptions).getFileId();
       Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);

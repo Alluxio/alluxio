@@ -21,15 +21,6 @@ import org.junit.Test;
  * Tests for the {@link ListStatusOptions} class.
  */
 public class ListStatusOptionsTest {
-
-  /**
-   * Tests that building a {@link ListStatusOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    new ListStatusOptions.Builder().build();
-  }
-
   /**
    * Tests that building a {@link ListStatusOptions} with the defaults works.
    */

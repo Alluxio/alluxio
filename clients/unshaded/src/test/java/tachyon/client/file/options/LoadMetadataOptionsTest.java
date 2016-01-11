@@ -15,8 +15,6 @@
 
 package tachyon.client.file.options;
 
-import java.util.Random;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,23 +22,6 @@ import org.junit.Test;
  * Tests for the {@link LoadMetadataOptions} class.
  */
 public class LoadMetadataOptionsTest {
-
-  /**
-   * Tests that building a {@link LoadMetadataOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
-
-    LoadMetadataOptions options =
-        new LoadMetadataOptions.Builder()
-            .setRecursive(recursive)
-            .build();
-
-    Assert.assertEquals(recursive, options.isRecursive());
-  }
-
   /**
    * Tests that building a {@link LoadMetadataOptions} with the defaults works.
    */
