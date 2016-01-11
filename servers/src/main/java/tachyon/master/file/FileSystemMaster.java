@@ -447,12 +447,15 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws AccessControlException if permission checking fails
    */
-  public void completeFile(long fileId, CompleteFileOptions options)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException {
+  public void completeFile(long fileId, CompleteFileOptions options) throws BlockInfoException,
+      FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
+      FileAlreadyCompletedException, AccessControlException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
     synchronized (mInodeTree) {
+      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+      checkPermission(FileSystemAction.WRITE, path, false);
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
       if (!inode.isFile()) {
@@ -671,11 +674,7 @@ public final class FileSystemMaster extends MasterBase {
     MasterContext.getMasterSource().incDeletePathOps(1);
     synchronized (mInodeTree) {
       TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
-      try {
-        checkPermission(FileSystemAction.WRITE, path, true);
-      } catch (InvalidPathException e) {
-        LOG.warn("Invalid path {} for checking permission: " + e.getMessage(), path);
-      }
+      checkPermission(FileSystemAction.WRITE, path, true);
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
       DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
@@ -1256,8 +1255,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
    */
-  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
+  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException,
+      AccessControlException {
     MasterContext.getMasterSource().incFreeFileOps(1);
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -1268,6 +1269,8 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
+      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+      checkPermission(FileSystemAction.WRITE, path, false);
       List<Inode> freeInodes = new ArrayList<Inode>();
       freeInodes.add(inode);
       if (inode.isDirectory()) {
@@ -1382,6 +1385,7 @@ public final class FileSystemMaster extends MasterBase {
       AccessControlException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.READ, path, false);
       ufsPath = mMountTable.resolve(path);
     }
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1450,6 +1454,7 @@ public final class FileSystemMaster extends MasterBase {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
       if (mountInternal(tachyonPath, ufsPath)) {
         boolean loadMetadataSuceeded = false;
         try {
@@ -1504,10 +1509,11 @@ public final class FileSystemMaster extends MasterBase {
     return mMountTable.add(tachyonPath, ufsPath);
   }
 
-  public boolean unmount(TachyonURI tachyonPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+  public boolean unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
+      InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
+      checkPermission(FileSystemAction.WRITE, tachyonPath, true);
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
         // Use the internal delete API, setting {@code replayed} to false to prevent the delete
@@ -1549,8 +1555,9 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file doesn't exist
+   * @throws AccessControlException if permission checking fails
    */
-  public void resetFile(long fileId) throws FileDoesNotExistException {
+  public void resetFile(long fileId) throws FileDoesNotExistException, AccessControlException {
     // TODO(yupeng) check the file is not persisted
     synchronized (mInodeTree) {
       // free the file first
@@ -1566,10 +1573,14 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the id of the file
    * @param options state options to be set, see {@link SetStateOptions}
    * @throws FileDoesNotExistException if the file doesn't exist
+   * @throws AccessControlException if permission checking fails
    */
-  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException {
+  public void setState(long fileId, SetStateOptions options) throws FileDoesNotExistException,
+      AccessControlException {
     MasterContext.getMasterSource().incSetStateOps(1);
     synchronized (mInodeTree) {
+      TachyonURI path = mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+      checkPermission(FileSystemAction.WRITE, path, false);
       long opTimeMs = System.currentTimeMillis();
       setStateInternal(fileId, opTimeMs, options);
       SetStateEntry.Builder setState =
@@ -1739,9 +1750,10 @@ public final class FileSystemMaster extends MasterBase {
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if permission checking fails
    */
   public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
       SetStateOptions.Builder builder = new SetStateOptions.Builder().setPersisted(true);
       setState(fileId, builder.build());
@@ -1981,43 +1993,51 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Checks user's permission on a path.
+   * Checks user's permission on a path. If the path is invalid, it should bypass the
+   * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
+   * mInodeTree before calling it.
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
    * @param checkParent indicates whether to check its parent
    * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
    */
-  private void checkPermission(FileSystemAction action, TachyonURI path,
-      boolean checkParent) throws AccessControlException, InvalidPathException {
+  private void checkPermission(FileSystemAction action, TachyonURI path, boolean checkParent)
+      throws AccessControlException {
     // bypasses permission checking if security is not enabled.
     if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       return;
     }
 
-    // collects inodes info on the path
-    List<FileInfo> fileInfos = collectFileInfoList(path);
+    try {
+      // collects inodes info on the path
+      List<FileInfo> fileInfos = collectFileInfoList(path);
 
-    // collects user and groups
-    String user = getClientUser();
-    List<String> groups = getGroups(user);
+      // collects user and groups
+      String user = getClientUser();
+      List<String> groups = getGroups(user);
 
-    // perform permission check
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-    if (checkParent) {
-      if ((fileInfos.size() == 1 && pathComponents.length > 1)
-          || (fileInfos.size() == 2 && pathComponents.length == 2)
-          && action.equals(FileSystemAction.WRITE)) {
-        // Handle a special case where the path is a level under root "/" and checking write
-        // permission on it. We simply assume user has write permission on the root "/",
-        // with a limitation that the user must be the owner of the path.
-        FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+      // perform permission check
+      String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+      if (checkParent) {
+        if (// involved methods: create, mkdir, rename, deleteFile
+            action.equals(FileSystemAction.WRITE)
+            // create or mkdir under root "/", then assumes to have write permission.
+            && (fileInfos.size() == 1 && pathComponents.length > 1)
+            // rename or deleteFile under root "/", then must be the owner.
+            || (fileInfos.size() == 2 && pathComponents.length == 2)) {
+          // Handle a special case where the path is a level under root "/" and checking write
+          // permission on it. We simply assume user has write permission on the root "/",
+          // with a limitation that the user must be the owner of the path.
+          FileSystemPermissionChecker.checkOwner(user, groups, path, fileInfos);
+        } else {
+          FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
+        }
       } else {
-        FileSystemPermissionChecker.checkParentPermission(user, groups, action, path, fileInfos);
+        FileSystemPermissionChecker.checkPermission(user, groups, action, path, fileInfos);
       }
-    } else {
-      FileSystemPermissionChecker.checkPermission(user, groups, action, path, fileInfos);
+    } catch (InvalidPathException e) {
+      LOG.warn("Invalid Path {} for checking permission: " + e.getMessage(), path);
     }
   }
 
