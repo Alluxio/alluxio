@@ -51,12 +51,19 @@ public final class BlockMetadataManagerViewTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mMetaManagerView;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
+   */
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
@@ -65,11 +72,17 @@ public final class BlockMetadataManagerViewTest {
         Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     WorkerContext.reset();
   }
 
+  /**
+   * Tests the {@link BlockMetadataManagerView#getTierView(String)} method.
+   */
   @Test
   public void getTierViewTest() {
     for (StorageTier tier : mMetaManager.getTiers()) {
@@ -80,11 +93,17 @@ public final class BlockMetadataManagerViewTest {
     }
   }
 
+  /**
+   * Tests the {@link BlockMetadataManagerView#getTierViews()} method.
+   */
   @Test
   public void getTierViewsTest() {
     Assert.assertEquals(mMetaManager.getTiers().size(), mMetaManagerView.getTierViews().size());
   }
 
+  /**
+   * Tests the {@link BlockMetadataManagerView#getTierViewsBelow(String)} method.
+   */
   @Test
   public void getTierViewsBelowTest() {
     for (StorageTier tier : mMetaManager.getTiers()) {
@@ -94,6 +113,9 @@ public final class BlockMetadataManagerViewTest {
     }
   }
 
+  /**
+   * Tests the {@link BlockMetadataManagerView#getAvailableBytes(BlockStoreLocation)} method.
+   */
   @Test
   public void getAvailableBytesTest() {
     BlockStoreLocation location;
@@ -116,6 +138,12 @@ public final class BlockMetadataManagerViewTest {
     }
   }
 
+  /**
+   * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getBlockMeta(long)}
+   * method when the block does not exist.
+   *
+   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this blockId is found
+   */
   @Test
   public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {
     mThrown.expect(BlockDoesNotExistException.class);
@@ -123,14 +151,23 @@ public final class BlockMetadataManagerViewTest {
     mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
   }
 
+  /**
+   * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getTierView(String)}
+   * method when the tier alias does not exist.
+   */
   @Test
-  public void getTierNotExistingTest() throws Exception {
+  public void getTierNotExistingTest() {
     String badTierAlias = "HDD";
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetaManagerView.getTierView(badTierAlias);
   }
 
+  /**
+   * Tests the {@link BlockMetadataManagerView#getBlockMeta(long)}  method.
+   *
+   * @throws Exception if an operation on the metadata of the block fails
+   */
   @Test
   public void getBlockMetaTest() throws Exception {
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getDir(TEST_DIR);
@@ -160,6 +197,10 @@ public final class BlockMetadataManagerViewTest {
     Assert.assertTrue(mMetaManagerView.isBlockEvictable(TEST_BLOCK_ID));
   }
 
+  /**
+   * Tests the {@link BlockMetadataManagerView#isBlockLocked(long)} and the
+   * {@link BlockMetadataManagerView#isBlockPinned(long)} method.
+   */
   @Test
   public void isBlockPinnedOrLockedTest() {
     long inode = BlockId.createBlockId(BlockId.getContainerId(TEST_BLOCK_ID),

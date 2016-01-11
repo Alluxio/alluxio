@@ -45,6 +45,7 @@ public class EvictorTestBase {
   protected Evictor mEvictor;
   protected Allocator mAllocator;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
