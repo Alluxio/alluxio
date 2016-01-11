@@ -313,7 +313,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       } else {
         lastInode =
             new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
-                .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL())
+                .setBlockSizeBytes(options.getBlockSizeBytes()).setTtl(options.getTtl())
                 .setName(name).setParentId(currentInodeDirectory.getId())
                 .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
                     : PersistenceState.NOT_PERSISTED)
@@ -363,7 +363,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws InvalidPathException {
     InodeFile file = (InodeFile) getInodeByPath(path);
     file.setBlockSize(blockSizeBytes);
-    file.setTTL(ttl);
+    file.setTtl(ttl);
     return file.getId();
   }
 

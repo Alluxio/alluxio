@@ -67,8 +67,8 @@ import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.master.file.meta.TTLBucket;
-import tachyon.master.file.meta.TTLBucketList;
+import tachyon.master.file.meta.TtlBucket;
+import tachyon.master.file.meta.TtlBucketList;
 import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
@@ -132,9 +132,9 @@ public final class FileSystemMaster extends MasterBase {
    * accessed from tests.
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mTTLCheckerService;
+  private Future<?> mTtlCheckerService;
 
-  private final TTLBucketList mTTLBuckets = new TTLBucketList();
+  private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
   /**
    * @param baseDirectory the base journal directory
@@ -277,8 +277,8 @@ public final class FileSystemMaster extends MasterBase {
     // getExecutorService() because the super.start initializes the executor service.
     super.start(isLeader);
     if (isLeader) {
-      mTTLCheckerService = getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTTLCheckExecutor(),
+      mTtlCheckerService = getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTtlCheckExecutor(),
               MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
   }
@@ -529,7 +529,7 @@ public final class FileSystemMaster extends MasterBase {
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
         .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
         .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
-        .setRecursive(options.isRecursive()).setTTL(options.getTTL())
+        .setRecursive(options.isRecursive()).setTtl(options.getTtl())
         .setPermissionStatus(PermissionStatus.get(MasterContext.getConf(), true)).build();
     InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
@@ -539,7 +539,7 @@ public final class FileSystemMaster extends MasterBase {
       inode.setCacheable(true);
     }
 
-    mTTLBuckets.insert(inode);
+    mTtlBuckets.insert(inode);
 
     MasterContext.getMasterSource().incFilesCreated(1);
     MasterContext.getMasterSource().incDirectoriesCreated(created.size() - 1);
@@ -1561,8 +1561,8 @@ public final class FileSystemMaster extends MasterBase {
       if (options.hasPinned()) {
         setState.setPinned(options.getPinned());
       }
-      if (options.hasTTL()) {
-        setState.setTtl(options.getTTL());
+      if (options.hasTtl()) {
+        setState.setTtl(options.getTtl());
       }
       if (options.hasPersisted()) {
         setState.setPersisted(options.getPersisted());
@@ -1748,14 +1748,14 @@ public final class FileSystemMaster extends MasterBase {
       mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
       inode.setLastModificationTimeMs(opTimeMs);
     }
-    if (options.hasTTL()) {
+    if (options.hasTtl()) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.TTL_ONLY_FOR_FILE);
-      long ttl = options.getTTL();
+      long ttl = options.getTtl();
       InodeFile file = (InodeFile) inode;
-      if (file.getTTL() != ttl) {
-        mTTLBuckets.remove(file);
-        file.setTTL(ttl);
-        mTTLBuckets.insert(file);
+      if (file.getTtl() != ttl) {
+        mTtlBuckets.remove(file);
+        file.setTtl(ttl);
+        mTtlBuckets.insert(file);
         file.setLastModificationTimeMs(opTimeMs);
       }
     }
@@ -1782,7 +1782,7 @@ public final class FileSystemMaster extends MasterBase {
       builder.setPinned(entry.getPinned());
     }
     if (entry.hasTtl()) {
-      builder.setTTL(entry.getTtl());
+      builder.setTtl(entry.getTtl());
     }
     if (entry.hasPersisted()) {
       builder.setPersisted(entry.getPersisted());
@@ -1793,12 +1793,12 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * This class represents the executor for periodic inode TTL check.
    */
-  private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
+  private final class MasterInodeTtlCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       synchronized (mInodeTree) {
-        Set<TTLBucket> expiredBuckets = mTTLBuckets.getExpiredBuckets(System.currentTimeMillis());
-        for (TTLBucket bucket : expiredBuckets) {
+        Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
+        for (TtlBucket bucket : expiredBuckets) {
           for (InodeFile file : bucket.getFiles()) {
             if (!file.isDeleted()) {
               // file.isPinned() is deliberately not checked because ttl will have effect no matter
@@ -1813,7 +1813,7 @@ public final class FileSystemMaster extends MasterBase {
           }
         }
 
-        mTTLBuckets.removeBuckets(expiredBuckets);
+        mTtlBuckets.removeBuckets(expiredBuckets);
       }
     }
   }
