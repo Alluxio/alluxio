@@ -36,7 +36,7 @@ public final class CreateOptions {
     // TODO(calvin): Should this just be an int?
     private long mBlockSizeBytes;
     private boolean mRecursive;
-    private long mTTL;
+    private long mTtl;
     private UnderStorageType mUnderStorageType;
 
     /**
@@ -54,7 +54,7 @@ public final class CreateOptions {
     public Builder(TachyonConf conf) {
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mRecursive = false;
-      mTTL = Constants.NO_TTL;
+      mTtl = Constants.NO_TTL;
       WriteType defaultWriteType =
           conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
       mUnderStorageType = defaultWriteType.getUnderStorageType();
@@ -91,8 +91,8 @@ public final class CreateOptions {
      *        whether the file is pinned
      * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -138,13 +138,13 @@ public final class CreateOptions {
 
   private final long mBlockSizeBytes;
   private final boolean mRecursive;
-  private final long mTTL;
+  private final long mTtl;
   private final UnderStorageType mUnderStorageType;
 
   private CreateOptions(CreateOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
     mRecursive = builder.mRecursive;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
     mUnderStorageType = builder.mUnderStorageType;
   }
 
@@ -168,8 +168,8 @@ public final class CreateOptions {
    *         created file should be kept around before it is automatically deleted, irrespective of
    *         whether the file is pinned
    */
-  public long getTTL() {
-    return mTTL;
+  public long getTtl() {
+    return mTtl;
   }
 
   /**
@@ -187,7 +187,7 @@ public final class CreateOptions {
     StringBuilder sb = new StringBuilder("CreateOptions(");
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
     sb.append(", Recursive: ").append(mRecursive);
-    sb.append(", TTL: ").append(mTTL);
+    sb.append(", TTL: ").append(mTtl);
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
     sb.append(")");
     return sb.toString();
@@ -201,7 +201,7 @@ public final class CreateOptions {
     options.setBlockSizeBytes(mBlockSizeBytes);
     options.setPersisted(mUnderStorageType.isSyncPersist());
     options.setRecursive(mRecursive);
-    options.setTtl(mTTL);
+    options.setTtl(mTtl);
     return options;
   }
 }

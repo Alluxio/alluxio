@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,20 +33,21 @@ import org.junit.runners.Parameterized;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 
 /**
- * This is a parameterized unit test for Evictor classes that implement {@link Evictor}
+ * This is a parametrized unit test for classes that implement the {@link Evictor} interface.
  *
- * It performs sanity check on Evictors regardless of their types, in cases like not evicting any
+ * It performs sanity check on evictors regardless of their types, in cases such as not evicting any
  * blocks when the required space is already available, proposed eviction ensuring enough space, and
  * returning null eviction plan when the requests can not be achieved.
  *
- * Behavior for a specific type of evictor will be tested in other classes, e.x. tests to ensure
- * that blocks evicted by {@link LRUEvictor} are in the right order should be in LRUEvictorTest.
+ * Behavior for a specific type of evictor is tested in other classes, e.g. tests to ensure that
+ * blocks evicted by {@link LRUEvictor} are in the right order should be in {@link LRUEvictorTest}.
  */
 @RunWith(Parameterized.class)
 public class EvictorContractTestBase extends EvictorTestBase {
@@ -88,6 +90,11 @@ public class EvictorContractTestBase extends EvictorTestBase {
 
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

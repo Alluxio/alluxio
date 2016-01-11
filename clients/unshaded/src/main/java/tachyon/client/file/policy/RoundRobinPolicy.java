@@ -18,8 +18,8 @@ package tachyon.client.file.policy;
 import java.util.Collections;
 import java.util.List;
 
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.NetAddress;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
@@ -35,9 +35,13 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
    * in the subsequent calls has the same order from the first, and it will skip the workers that
    * are no longer active.
+   *
+   * @param workerInfoList the info of the active workers
+   * @param blockSizeBytes the size of the block in bytes
+   * @return the address of the worker to write to
    */
   @Override
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+  public NetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     if (!mInitialized) {
       mWorkerInfoList = workerInfoList;
@@ -48,7 +52,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
 
     // at most try all the workers
     for (int i = 0; i < mWorkerInfoList.size(); i ++) {
-      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
+      NetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
       if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
@@ -64,7 +68,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
    * @return the worker info in the list that matches the host name, null if not found
    */
   private BlockWorkerInfo findBlockWorkerInfo(List<BlockWorkerInfo> workerInfoList,
-      WorkerNetAddress address) {
+      NetAddress address) {
     for (BlockWorkerInfo info : workerInfoList) {
       if (info.getNetAddress().equals(address)) {
         return info;

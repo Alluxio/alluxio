@@ -20,13 +20,16 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -54,6 +57,11 @@ public final class FileDataManager {
   private final List<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link FileDataManager}.
+   *
+   * @param blockDataManager a block data manager handle
+   */
   public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistedFiles = Lists.newArrayList();
@@ -75,36 +83,48 @@ public final class FileDataManager {
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    for (long blockId : blockIds) {
-      long lockId;
-      try {
-        lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
-      } catch (BlockDoesNotExistException e) {
-        throw new IOException(e);
+    Map<Long, Long> blockIdToLockId = Maps.newHashMap();
+    List<Throwable> errors = new ArrayList<Throwable>();
+    try {
+      // lock all the blocks to prevent any eviction
+      for (long blockId : blockIds) {
+        long lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+        blockIdToLockId.put(blockId, lockId);
       }
 
-      // obtain block reader
-      try {
-        BlockReader reader;
-        try {
-          reader =
-              mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-        } catch (BlockDoesNotExistException e) {
-          throw new IOException(e);
-        } catch (InvalidWorkerStateException e) {
-          throw new IOException(e);
-        }
+      for (long blockId : blockIds) {
+        long lockId = blockIdToLockId.get(blockId);
+
+        // obtain block reader
+        BlockReader reader =
+            mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
 
         // write content out
         ReadableByteChannel inputChannel = reader.getChannel();
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
-      } finally {
+      }
+    } catch (BlockDoesNotExistException e) {
+      errors.add(e);
+    } catch (InvalidWorkerStateException e) {
+      errors.add(e);
+    } finally {
+      // make sure all the locks are released
+      for (long lockId : blockIdToLockId.values()) {
         try {
           mBlockDataManager.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException e) {
-          throw new IOException(e);
+        } catch (BlockDoesNotExistException bdnee) {
+          errors.add(bdnee);
         }
+      }
+
+      if (!errors.isEmpty()) {
+        StringBuilder errorStr = new StringBuilder();
+        errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
+        for (Throwable e : errors) {
+          errorStr.append(e).append('\n');
+        }
+        throw new IOException(errorStr.toString());
       }
     }
 
@@ -136,6 +156,11 @@ public final class FileDataManager {
     return dstPath;
   }
 
+  /**
+   * Returns a list of file to persist, removing them from the internal queue.
+   *
+   * @return a list to files to persist
+   */
   public synchronized List<Long> popPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
     toReturn.addAll(mPersistedFiles);

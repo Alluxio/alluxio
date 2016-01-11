@@ -29,6 +29,11 @@ import tachyon.worker.block.meta.StorageTierView;
 public final class GreedyAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
+  /**
+   * Creates a new instance of {@link GreedyAllocator}.
+   *
+   * @param view {@link BlockMetadataManagerView} to pass to the allocator
+   */
   public GreedyAllocator(BlockMetadataManagerView view) {
     mManagerView = Preconditions.checkNotNull(view);
   }
@@ -41,13 +46,10 @@ public final class GreedyAllocator implements Allocator {
   }
 
   /**
-   * Should only be accessed by
-   * {@link #allocateBlockWithView(long, long, BlockStoreLocation, BlockMetadataManagerView)}
-   * inside class. Allocates a block from the given block store location. The location can be a
-   * specific location, or
-   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
+   * Allocates a block from the given block store location. The location can be a specific location,
+   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(String)}.
    *
-   * @param sessionId the ID of session to apply for the block allocation
+   * @param sessionId the id of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a {@link StorageDirView} in which to create the temp block meta if success, null

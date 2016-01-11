@@ -22,6 +22,13 @@ public class BlockTransferInfo {
   private final BlockStoreLocation mSrcLocation;
   private final BlockStoreLocation mDstLocation;
 
+  /**
+   * Creates a new instance of {@link BlockTransferInfo}.
+   *
+   * @param blockId the block id
+   * @param srcLocation the source {@link BlockStoreLocation}
+   * @param dstLocation the destination {@link BlockStoreLocation}
+   */
   public BlockTransferInfo(long blockId, BlockStoreLocation srcLocation,
       BlockStoreLocation dstLocation) {
     mBlockId = blockId;
@@ -29,14 +36,23 @@ public class BlockTransferInfo {
     mDstLocation = dstLocation;
   }
 
+  /**
+   * @return the block id
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
+  /**
+   * @return the source {@link BlockStoreLocation}
+   */
   public BlockStoreLocation getSrcLocation() {
     return mSrcLocation;
   }
 
+  /**
+   * @return the destination {@link BlockStoreLocation}
+   */
   public BlockStoreLocation getDstLocation() {
     return mDstLocation;
   }

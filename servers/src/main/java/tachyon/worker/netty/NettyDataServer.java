@@ -46,6 +46,13 @@ public final class NettyDataServer implements DataServer {
   // Use a shared handler for all pipelines.
   private final DataServerHandler mDataServerHandler;
 
+  /**
+   * Creates a new instance of {@link NettyDataServer}.
+   *
+   * @param address the server address
+   * @param dataManager a block data manager handle
+   * @param tachyonConf Tachyon configuration
+   */
   public NettyDataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       final TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
@@ -105,9 +112,6 @@ public final class NettyDataServer implements DataServer {
     return boot;
   }
 
-  /**
-   * Gets the actual bind hostname.
-   */
   @Override
   public String getBindHost() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
@@ -117,9 +121,6 @@ public final class NettyDataServer implements DataServer {
     return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostName();
   }
 
-  /**
-   * Gets the port the server is listening on.
-   */
   @Override
   public int getPort() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
@@ -136,8 +137,8 @@ public final class NettyDataServer implements DataServer {
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
    * preset.
    *
-   * @param type the channel type. Current channel types supported are nio and epoll
-   * @return an instance of ServerBootstrap
+   * @param type the channel type; current channel types supported are nio and epoll
+   * @return an instance of {@code ServerBootstrap}
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();

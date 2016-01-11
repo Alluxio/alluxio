@@ -24,13 +24,19 @@ import tachyon.conf.TachyonConf;
  * Abstraction for an authentication provider for different authentication types.
  */
 public interface AuthenticationProvider {
+
   /**
-   * Factory method to create an instance of {@link AuthenticationProvider} based on
-   * {@link AuthType} and {@link TachyonConf}.
+   * Factory for {@link AuthenticationProvider}.
    */
   class Factory {
-    public static AuthenticationProvider getAuthenticationProvider(AuthType authType,
-        TachyonConf conf) throws AuthenticationException {
+    /**
+     * @param authType authentication type to use
+     * @param conf Tachyon configuration
+     * @return the generated {@link AuthenticationProvider}
+     * @throws AuthenticationException when unsupported authentication type is used
+     */
+    public static AuthenticationProvider create(AuthType authType, TachyonConf conf)
+        throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
           return new SimpleAuthenticationProviderImpl();
@@ -44,16 +50,15 @@ public interface AuthenticationProvider {
   }
 
   /**
-   * The authenticate method is called by the
-   * {@link tachyon.security.authentication.PlainSaslServer.PlainServerCallbackHandler} in the
-   * {@link PlainSaslServer} layer to authenticate users for their requests. If a user is to be
+   * The authenticate method is called by the {@link PlainSaslServer.PlainServerCallbackHandler} in
+   * the {@link PlainSaslServer} layer to authenticate users for their requests. If a user is to be
    * granted, return nothing/throw nothing. When a user is to be disallowed, throw an appropriate
    * {@link AuthenticationException}.
    *
    * @param user The username received over the connection request
    * @param password The password received over the connection request
    *
-   * @throws AuthenticationException When a user is found to be invalid by the implementation
+   * @throws AuthenticationException when a user is found to be invalid by the implementation
    */
   void authenticate(String user, String password) throws AuthenticationException;
 }

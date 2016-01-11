@@ -222,7 +222,7 @@ public abstract class MasterBase implements Master {
   }
 
   /**
-   * @return the executor service for this master
+   * @return the {@link ExecutorService} for this master
    */
   protected ExecutorService getExecutorService() {
     return mExecutorService;

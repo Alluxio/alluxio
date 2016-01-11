@@ -64,7 +64,7 @@ public final class PlainSaslUtils {
       TachyonConf conf) throws SaslException {
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
     AuthenticationProvider provider =
-        AuthenticationProvider.Factory.getAuthenticationProvider(authType, conf);
+        AuthenticationProvider.Factory.create(authType, conf);
     saslFactory.addServerDefinition(PlainSaslServerProvider.MECHANISM, null, null,
         new HashMap<String, String>(), new PlainSaslServer.PlainServerCallbackHandler(provider));
 

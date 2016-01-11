@@ -43,7 +43,7 @@ import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -56,6 +56,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   private final transient TachyonMaster mMaster;
   private final transient TachyonConf mTachyonConf;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceBrowseServlet}.
+   *
+   * @param master the Tachyon master
+   */
   public WebInterfaceBrowseServlet(TachyonMaster master) {
     mMaster = master;
     mTachyonConf = new TachyonConf();
@@ -67,9 +72,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @param path the path of the file to display
    * @param request the {@link HttpServletRequest} object
    * @param offset where the file starts to display
-   * @throws FileDoesNotExistException
-   * @throws IOException
-   * @throws InvalidPathException
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
+   * @throws InvalidPathException if an invalid path is encountered
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
@@ -107,9 +112,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     } else {
       fileData = "The requested file is not complete yet.";
     }
-    List<UiBlockInfo> uiBlockInfo = new ArrayList<UiBlockInfo>();
+    List<UIFileBlockInfo> uiBlockInfo = new ArrayList<UIFileBlockInfo>();
     for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
-      uiBlockInfo.add(new UiBlockInfo(fileBlockInfo));
+      uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
@@ -124,8 +129,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    *
    * @param request the {@link HttpServletRequest} object
    * @param response the {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -147,7 +152,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     try {
       long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
       FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
-      UiFileInfo currentFileInfo = new UiFileInfo(fileInfo);
+      UIFileInfo currentFileInfo = new UIFileInfo(fileInfo);
       if (currentFileInfo.getAbsolutePath() == null) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
@@ -205,14 +210,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(filesInfo.size());
+    List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(filesInfo.size());
     for (FileInfo fileInfo : filesInfo) {
-      UiFileInfo toAdd = new UiFileInfo(fileInfo);
+      UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId()).get(0);
-          List<NetAddress> addrs = Lists.newArrayList();
+          List<WorkerNetAddress> addrs = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
             addrs.add(location.getWorkerAddress());
@@ -233,7 +238,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       fileInfos.add(toAdd);
     }
-    Collections.sort(fileInfos, UiFileInfo.PATH_STRING_COMPARE);
+    Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
 
     request.setAttribute("nTotalFile", fileInfos.size());
 
@@ -246,7 +251,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     try {
       int offset = Integer.parseInt(request.getParameter("offset"));
       int limit = Integer.parseInt(request.getParameter("limit"));
-      List<UiFileInfo> sub = fileInfos.subList(offset, offset + limit);
+      List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
       request.setAttribute("fileInfos", sub);
     } catch (NumberFormatException nfe) {
       request.setAttribute("fatalError",
@@ -268,29 +273,30 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function sets the fileinfos for folders that are in the path to the current directory.
+   * This function sets the file information for directories that are in the path to the current
+   * directory.
    *
    * @param path the path of the current directory
    * @param request the {@link HttpServletRequest} object
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if an invalid path is encountered
    */
   private void setPathDirectories(TachyonURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException {
     if (path.isRoot()) {
-      request.setAttribute("pathInfos", new UiFileInfo[0]);
+      request.setAttribute("pathInfos", new UIFileInfo[0]);
       return;
     }
 
     String[] splitPath = PathUtils.getPathComponents(path.toString());
-    UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
+    UIFileInfo[] pathInfos = new UIFileInfo[splitPath.length - 1];
     TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
     long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-    pathInfos[0] = new UiFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
+    pathInfos[0] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
     for (int i = 1; i < splitPath.length - 1; i ++) {
       currentPath = currentPath.join(splitPath[i]);
       fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
-      pathInfos[i] = new UiFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
+      pathInfos[i] = new UIFileInfo(mMaster.getFileSystemMaster().getFileInfo(fileId));
     }
     request.setAttribute("pathInfos", pathInfos);
   }

@@ -27,6 +27,11 @@ import io.netty.channel.ChannelFutureListener;
 final class ClosableResourceChannelListener implements ChannelFutureListener {
   private final Closeable mResource;
 
+  /**
+   * Creates a new instance of {@link ClosableResourceChannelListener}.
+   *
+   * @param resource the resource to close
+   */
   ClosableResourceChannelListener(Closeable resource) {
     mResource = resource;
   }

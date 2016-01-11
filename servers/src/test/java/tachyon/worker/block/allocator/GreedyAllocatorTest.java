@@ -20,12 +20,15 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link GreedyAllocator}.
+ */
 public class GreedyAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
-    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+    mAllocator = Allocator.Factory.create(conf, getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

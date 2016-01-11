@@ -39,6 +39,11 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
   private final transient TachyonMaster mMaster;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceMemoryServlet}.
+   *
+   * @param master Tachyon master
+   */
   public WebInterfaceMemoryServlet(TachyonMaster master) {
     mMaster = Preconditions.checkNotNull(master);
   }
@@ -46,8 +51,8 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
    * @throws ServletException if the target resource throws this exception
    * @throws IOException if the target resource throws this exception
    */
@@ -60,13 +65,13 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     List<TachyonURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
     Collections.sort(inMemoryFiles);
 
-    List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
+    List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(inMemoryFiles.size());
     for (TachyonURI file : inMemoryFiles) {
       try {
         long fileId = mMaster.getFileSystemMaster().getFileId(file);
         FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
-          fileInfos.add(new UiFileInfo(fileInfo));
+          fileInfos.add(new UIFileInfo(fileInfo));
         }
       } catch (FileDoesNotExistException fee) {
         request.setAttribute("fatalError",
@@ -87,7 +92,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
     try {
       int offset = Integer.parseInt(request.getParameter("offset"));
       int limit = Integer.parseInt(request.getParameter("limit"));
-      List<UiFileInfo> sub = fileInfos.subList(offset, offset + limit);
+      List<UIFileInfo> sub = fileInfos.subList(offset, offset + limit);
       request.setAttribute("fileInfos", sub);
     } catch (NumberFormatException nfe) {
       request.setAttribute("fatalError",

@@ -49,6 +49,11 @@ public class SpaceReserver implements Runnable {
   /** Flag to indicate if the checking should continue */
   private volatile boolean mRunning;
 
+  /**
+   * Creates a new instance of {@link SpaceReserver}.
+   *
+   * @param blockManager a block manager handle
+   */
   public SpaceReserver(BlockDataManager blockManager) {
     mBlockManager = blockManager;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());

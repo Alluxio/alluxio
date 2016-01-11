@@ -31,9 +31,15 @@ import tachyon.exception.TachyonException;
 public final class TachyonRawTables extends AbstractTachyonRawTables {
   private static TachyonRawTables sTachyonRawTables;
 
+  /**
+   * The factory for the {@link TachyonRawTables}.
+   */
   public static final class TachyonRawTablesFactory {
     private TachyonRawTablesFactory() {} // prevent init
 
+    /**
+     * @return the current {@link TachyonRawTables} instance
+     */
     public static synchronized TachyonRawTables get() {
       if (sTachyonRawTables == null) {
         sTachyonRawTables = new TachyonRawTables();
@@ -49,6 +55,13 @@ public final class TachyonRawTables extends AbstractTachyonRawTables {
   /**
    * Convenience method for {@link TachyonRawTables#create(TachyonURI, int, ByteBuffer)} with
    * empty metadata.
+   *
+   * @param path the path of the table to create in Tachyon space, this must not already exist as
+   *             a file or table.
+   * @param numColumns the number of columns in the table
+   * @return a {@link RawTable} satisfying the input parameters
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
    */
   public RawTable create(TachyonURI path, int numColumns) throws IOException, TachyonException {
     return create(path, numColumns, ByteBuffer.allocate(0));

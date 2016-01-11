@@ -31,6 +31,12 @@ public final class EvictionPlan {
   /** A list of pairs of block id to remove and its location */
   private final List<Pair<Long, BlockStoreLocation>> mToEvict;
 
+  /**
+   * Creates a new instance of {@link EvictionPlan}.
+   *
+   * @param toTransfer a list of block transfer information
+   * @param toEvict a list of blocks to be evicted
+   */
   public EvictionPlan(List<BlockTransferInfo> toTransfer,
       List<Pair<Long, BlockStoreLocation>> toEvict) {
     mToMove = Preconditions.checkNotNull(toTransfer);
@@ -52,9 +58,8 @@ public final class EvictionPlan {
   }
 
   /**
-   * Whether the plan is empty, an empty plan means both toMove and toEvict are
-   * empty, also, an empty plan indicates no action (move or evict) needs to be taken to meet the
-   * requirement.
+   * Whether the plan is empty, an empty plan means both toMove and toEvict are empty, also, an
+   * empty plan indicates no action (move or evict) needs to be taken to meet the requirement.
    *
    * @return true if empty otherwise false
    */

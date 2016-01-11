@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,6 +42,9 @@ import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 import tachyon.worker.file.FileSystemMasterClient;
 
+/**
+ * Unit tests for {@link BlockDataManager}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
@@ -71,7 +75,7 @@ public class BlockDataManagerTest {
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
       mWorkerId = mRandom.nextLong();
-      WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
+      ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
       mManager =

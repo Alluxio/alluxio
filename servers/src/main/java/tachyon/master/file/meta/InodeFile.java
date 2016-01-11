@@ -40,32 +40,50 @@ public final class InodeFile extends Inode {
   private static final FileSystemPermission UMASK =
       new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
+  /**
+   * Builder for {@link InodeFile}.
+   */
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
     private boolean mCacheable;
-    private long mTTL;
+    private long mTtl;
 
+    /**
+     * Creates a new builder for {@link InodeFile}.
+     */
     public Builder() {
       super();
       mBlockContainerId = 0;
       mBlockSizeBytes = 0;
       mCacheable = false;
       mDirectory = false;
-      mTTL = Constants.NO_TTL;
+      mTtl = Constants.NO_TTL;
     }
 
+    /**
+     * @param blockContainerId the block container id to use
+     * @return the builder
+     */
     public Builder setBlockContainerId(long blockContainerId) {
       mBlockContainerId = blockContainerId;
       mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
       return this;
     }
 
+    /**
+     * @param blockSizeBytes the block size in bytes to use
+     * @return the builder
+     */
     public Builder setBlockSizeBytes(long blockSizeBytes) {
       mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
+    /**
+     * @param cacheable the cacheable flag value to use
+     * @return the builder
+     */
     public Builder setCacheable(boolean cacheable) {
       mCacheable = cacheable;
       return this;
@@ -79,10 +97,11 @@ public final class InodeFile extends Inode {
     }
 
     /**
-     * Sets the ttl in milliseconds.
+     * @param ttl the ttl value to use
+     * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -121,7 +140,7 @@ public final class InodeFile extends Inode {
   // length of inode file in bytes.
   private long mLength;
 
-  private long mTTL;
+  private long mTtl;
 
   private InodeFile(InodeFile.Builder builder) {
     super(builder);
@@ -131,7 +150,7 @@ public final class InodeFile extends Inode {
     mCacheable = builder.mCacheable;
     mCompleted = false;
     mLength = 0;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
   }
 
   @Override
@@ -152,7 +171,7 @@ public final class InodeFile extends Inode {
     ret.isPersisted = isPersisted();
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
-    ret.ttl = mTTL;
+    ret.ttl = mTtl;
     ret.userName = getUserName();
     ret.groupName = getGroupName();
     ret.permission = getPermission();
@@ -181,8 +200,8 @@ public final class InodeFile extends Inode {
   /**
    * @param ttl the TTL to use, in milliseconds
    */
-  public void setTTL(long ttl) {
-    mTTL = ttl;
+  public void setTtl(long ttl) {
+    mTtl = ttl;
   }
 
   /**
@@ -219,6 +238,13 @@ public final class InodeFile extends Inode {
     return blockId;
   }
 
+  /**
+   * Gets the block id for a given index.
+   *
+   * @param blockIndex the index to get the block id for
+   * @return the block id for the index
+   * @throws BlockInfoException if the index of the block is out of range
+   */
   public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException(
@@ -241,14 +267,17 @@ public final class InodeFile extends Inode {
     return mCompleted;
   }
 
+  /**
+   * Sets the id's of the block.
+   *
+   * @param blockIds the id's of the block
+   */
   public synchronized void setBlockIds(List<Long> blockIds) {
     mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
   }
 
   /**
-   * Sets whether the file is cacheable or not.
-   *
-   * @param cacheable If true, the file is cacheable
+   * @param cacheable the cacheable flag value to use
    */
   public synchronized void setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
@@ -275,6 +304,7 @@ public final class InodeFile extends Inode {
    *
    * @param length The new length of the file, cannot be negative
    * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
    */
   public synchronized void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
@@ -302,7 +332,7 @@ public final class InodeFile extends Inode {
     sb.append(", Completed: ").append(mCompleted);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
-    sb.append(", mTTL: ").append(mTTL);
+    sb.append(", mTtl: ").append(mTtl);
     sb.append(")");
     return sb.toString();
   }
@@ -310,6 +340,7 @@ public final class InodeFile extends Inode {
   /**
    * Converts the entry to an {@link InodeFile}.
    *
+   * @param entry the entry to convert
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
@@ -326,7 +357,7 @@ public final class InodeFile extends Inode {
             .setParentId(entry.getParentId())
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
-            .setTTL(entry.getTtl())
+            .setTtl(entry.getTtl())
             .setPermissionStatus(permissionStatus)
             .build();
 
@@ -355,7 +386,7 @@ public final class InodeFile extends Inode {
         .setCompleted(isCompleted())
         .setCacheable(isCacheable())
         .addAllBlocks(mBlocks)
-        .setTtl(mTTL)
+        .setTtl(mTtl)
         .setUserName(getUserName())
         .setGroupName(getGroupName())
         .setPermission(getPermission())
@@ -364,11 +395,9 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the ttl of the inode file
-   *
    * @return the ttl of the file
    */
-  public synchronized long getTTL() {
-    return mTTL;
+  public synchronized long getTtl() {
+    return mTtl;
   }
 }
