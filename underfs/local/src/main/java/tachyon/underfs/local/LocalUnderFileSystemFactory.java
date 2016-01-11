@@ -21,6 +21,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.util.OSUtils;
 
 /**
  * Factory for {@link LocalUnderFileSystem} instances
@@ -38,6 +39,25 @@ public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
     if (path == null) {
       return false;
     }
-    return path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://");
+    return path.startsWith(TachyonURI.SEPARATOR)
+        || path.startsWith("file://")
+        || hasWindowsDrive(path, false);
+  }
+
+  /**
+   * Check if the path is a windows path.
+   *
+   * @param path the path to check
+   * @param slashed if the path starts with a slash.
+   * @return true if it is a windows path, false otherwise
+   */
+  private boolean hasWindowsDrive(String path, boolean slashed) {
+    int start = slashed ? 1 : 0;
+    return OSUtils.isWindows()
+        && path.length() >= start + 2
+        && (!slashed || path.charAt(0) == '/')
+        && path.charAt(start + 1) == ':'
+        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a'
+        && path.charAt(start) <= 'z'));
   }
 }
