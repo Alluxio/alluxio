@@ -39,9 +39,15 @@ public class TempBlockMetaTest {
   private String mTestDirPath;
   private TempBlockMeta mTempBlockMeta;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up a dependency fails
+   */
   @Before
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
@@ -54,28 +60,43 @@ public class TempBlockMetaTest {
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     WorkerContext.reset();
   }
 
+  /**
+   * Tests the {@link TempBlockMeta#getPath()} method.
+   */
   @Test
   public void getPathTest() {
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_SESSION_ID, TEST_BLOCK_ID),
         mTempBlockMeta.getPath());
   }
 
+  /**
+   * Tests the {@link TempBlockMeta#getCommitPath()} method.
+   */
   @Test
   public void getCommitPathTest() {
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
         mTempBlockMeta.getCommitPath());
   }
 
+  /**
+   * Tests the {@link TempBlockMeta#getSessionId()} method.
+   */
   @Test
   public void getSessionIdTest() {
     Assert.assertEquals(TEST_SESSION_ID, mTempBlockMeta.getSessionId());
   }
 
+  /**
+   * Tests the {@link TempBlockMeta#setBlockSize(long)} method.
+   */
   @Test
   public void setBlockSizeTest() {
     Assert.assertEquals(TEST_BLOCK_SIZE, mTempBlockMeta.getBlockSize());

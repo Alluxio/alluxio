@@ -51,6 +51,12 @@ public final class Format {
     return true;
   }
 
+  /**
+   * Formats the Tachyon file system via {@code java -cp %s tachyon.Format <MASTER/WORKER>}.
+   *
+   * @param args either {@code MASTER} or {@code WORKER}
+   * @throws IOException if a non-Tachyon related exception occurs
+   */
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
       LOG.info(USAGE);

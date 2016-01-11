@@ -45,10 +45,10 @@ public final class CommandUtils {
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
    * @throws IOException when failing to set/unset the TTL
    */
-  public static void setTTL(TachyonFileSystem tfs, TachyonURI path, long ttlMs) throws IOException {
+  public static void setTtl(TachyonFileSystem tfs, TachyonURI path, long ttlMs) throws IOException {
     try {
       TachyonFile fd = tfs.open(path);
-      SetStateOptions options = new SetStateOptions.Builder().setTTL(ttlMs).build();
+      SetStateOptions options = new SetStateOptions.Builder().setTtl(ttlMs).build();
       tfs.setState(fd, options);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

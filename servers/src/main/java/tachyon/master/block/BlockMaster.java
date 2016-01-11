@@ -402,7 +402,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * @param blockId the block id to get information for
    * @return the {@link BlockInfo} for the given block id. Called via RPC
-   * @throws BlockInfoException
+   * @throws BlockInfoException if the block info is not found
    */
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
     synchronized (mBlocks) {

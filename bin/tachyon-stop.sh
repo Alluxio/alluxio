@@ -28,7 +28,7 @@ kill_remote_workers() {
   $LAUNCHER $bin/tachyon-workers.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
 }
 
-WHAT=${1:-all}
+WHAT=${1:--h}
 
 case "$WHAT" in
   master)
