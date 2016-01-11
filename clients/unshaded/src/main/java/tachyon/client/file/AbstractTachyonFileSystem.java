@@ -239,11 +239,11 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   }
 
   @Override
-  public boolean setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+  public void setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
       IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.setAcl(path.getPath(), options);
+      masterClient.setAcl(path.getPath(), options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

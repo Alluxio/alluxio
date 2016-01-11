@@ -405,5 +405,7 @@ public final class Constants {
   public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       "tachyon.security.authorization.permission.supergroup";
 
+  public static final short INVALID_PERMISSION = -1;
+
   private Constants() {} // prevent instantiation
 }

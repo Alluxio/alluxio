@@ -22,12 +22,13 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetAclOptions;
+//TODO(dong): server side should use a separate SetStateOptions in tachyon.master.file.options
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.SetAclOptions;
 import tachyon.thrift.CompleteFileTOptions;
 import tachyon.thrift.CreateTOptions;
 import tachyon.thrift.FileBlockInfo;
@@ -206,9 +207,9 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public boolean setAcl(String path, SetAclTOptions options) throws TachyonTException {
+  public void setAcl(String path, SetAclTOptions options) throws TachyonTException {
     try {
-      return mFileSystemMaster.setAcl(new TachyonURI(path), new SetAclOptions(options));
+      mFileSystemMaster.setAcl(new TachyonURI(path), new SetAclOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }

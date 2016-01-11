@@ -185,7 +185,7 @@ service FileSystemMasterClientService extends common.TachyonService {
   /**
    * Sets the acl of a path.
    */
-  bool setAcl( /** the path of a file or directory */ 1: string path,
+  void setAcl( /** the path of a file or directory */ 1: string path,
        /** the method options */ 2: SetAclTOptions options)
     throws (1: exception.TachyonTException e)
 
