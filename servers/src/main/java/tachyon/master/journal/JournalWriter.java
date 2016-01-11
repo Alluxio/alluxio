@@ -86,6 +86,8 @@ public final class JournalWriter {
 
   /**
    * Marks all logs as completed.
+   *
+   * @throws IOException if an I/O error occurs
    */
   public synchronized void completeAllLogs() throws IOException {
     LOG.info("Marking all logs as complete.");
@@ -108,7 +110,7 @@ public final class JournalWriter {
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
    * @return the output stream for the journal checkpoint
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
       throws IOException {
@@ -132,7 +134,7 @@ public final class JournalWriter {
    * this writer.
    *
    * @return the output stream for the journal entries
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized JournalOutputStream getEntryOutputStream() throws IOException {
     if (mCheckpointOutputStream == null || !mCheckpointOutputStream.isClosed()) {
