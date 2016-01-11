@@ -72,6 +72,11 @@ public final class FileSystemPermissionChecker {
   public static void checkParentPermission(String user, List<String> groups, FileSystemAction
       action, TachyonURI path, List<FileInfo> fileInfoList) throws AccessControlException,
       InvalidPathException {
+    // root "/" has no parent, so return without checking
+    if (PathUtils.isRoot(path.getPath())) {
+      return;
+    }
+
     String[] pathComponents = PathUtils.getPathComponents(path.getPath());
 
     // remove the last element if all components of the path exist, since we only check the parent.
