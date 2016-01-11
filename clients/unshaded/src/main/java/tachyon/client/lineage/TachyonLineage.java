@@ -37,7 +37,7 @@ import tachyon.thrift.LineageInfo;
  * but goes through the implementations provided in {@link AbstractLineageClient}.
  */
 @PublicApi
-public final class TachyonLineage extends AbstractLineageClient {
+public class TachyonLineage extends AbstractLineageClient {
   private static TachyonLineage sTachyonLineage;
 
   /**
