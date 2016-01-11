@@ -47,6 +47,8 @@ public final class PreconditionMessage {
       "The location policy is not specified";
   public static final String INODE_TREE_UNINITIALIZED_IS_ROOT_ID =
       "Cannot call isRootId() before initializeRoot()";
+  public static final String INVALID_SET_ACL_OPTIONS =
+      "Invalid set acl options: %s, %s, %s";
   public static final String LINEAGE_DOES_NOT_EXIST = "Lineage id %s does not exist";
   public static final String LINEAGE_NO_OUTPUT_FILE =
       "The output file %s is not associated with any lineage";

@@ -13,35 +13,34 @@
  * the License.
  */
 
-package tachyon.client.file.options;
+package tachyon.master.file.options;
 
 import tachyon.Constants;
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
+import tachyon.master.MasterContext;
 import tachyon.thrift.SetAclTOptions;
 
 /**
  * Method option for setting the acl.
  */
-@PublicApi
 public class SetAclOptions {
 
   /**
-   * Builder for {@link SetAclOptions}.
+   * Builder for {@link SetAclOptions}
    */
-  public static class Builder implements OptionsBuilder<SetAclOptions> {
+  public static class Builder {
     private String mOwner;
     private String mGroup;
     private short mPermission;
     private boolean mRecursive;
+    private long mOperationTimeMs;
 
     /**
      * Creates a new builder for {@link SetAclOptions}.
      */
     public Builder() {
-      this(ClientContext.getConf());
+      this(MasterContext.getConf());
     }
 
     /**
@@ -54,6 +53,7 @@ public class SetAclOptions {
       mGroup = null;
       mPermission = Constants.INVALID_PERMISSION;
       mRecursive = false;
+      mOperationTimeMs = System.currentTimeMillis();
     }
 
     /**
@@ -101,12 +101,22 @@ public class SetAclOptions {
     }
 
     /**
+     * Sets the operation time.
+     *
+     * @param operationTimeMs the operation time to use
+     * @return the builder
+     */
+    public Builder setOperationTimeMs(long operationTimeMs) {
+      mOperationTimeMs = operationTimeMs;
+      return this;
+    }
+
+    /**
      * Builds a new instance of {@link SetAclOptions}.
      *
      * @return a {@link SetAclOptions} instance
      * @throws IllegalArgumentException if the options are invalid
      */
-    @Override
     public SetAclOptions build() {
       SetAclOptions options = new SetAclOptions(this);
       if (options.isValid()) {
@@ -121,6 +131,7 @@ public class SetAclOptions {
   private final String mGroup;
   private final short mPermission;
   private final boolean mRecursive;
+  private long mOperationTimeMs;
 
   /**
    * Constructs a new method option for setting the acl.
@@ -133,6 +144,7 @@ public class SetAclOptions {
     mPermission =
         options.isSetPermission() ? (short) options.getPermission() : Constants.INVALID_PERMISSION;
     mRecursive = options.isSetRecursive() ? options.isRecursive() : null;
+    mOperationTimeMs = System.currentTimeMillis();
   }
 
   private SetAclOptions(Builder builder) {
@@ -140,6 +152,7 @@ public class SetAclOptions {
     mGroup = builder.mGroup;
     mPermission = builder.mPermission;
     mRecursive = builder.mRecursive;
+    mOperationTimeMs = builder.mOperationTimeMs;
   }
 
   /**
@@ -192,31 +205,9 @@ public class SetAclOptions {
   }
 
   /**
-   * @return Thrift representation of the options
+   * @return the operation time
    */
-  public SetAclTOptions toThrift() {
-    SetAclTOptions options = new SetAclTOptions();
-    if (mOwner != null) {
-      options.setOwner(mOwner);
-    }
-    if (mGroup != null) {
-      options.setGroup(mGroup);
-    }
-    if (mPermission != Constants.INVALID_PERMISSION) {
-      options.setPermission(mPermission);
-    }
-    options.setRecursive(mRecursive);
-    return options;
-  }
-
-  public String toString() {
-    StringBuilder sb = new StringBuilder("SetAclOptions(");
-    sb.append(super.toString())
-        .append(", Owner: ").append(mOwner)
-        .append(", Group: ").append(mGroup)
-        .append(", Permission: ").append(mPermission)
-        .append(", Recursive: ").append(mRecursive);
-    sb.append(")");
-    return sb.toString();
+  public long getOperationTimeMs() {
+    return mOperationTimeMs;
   }
 }

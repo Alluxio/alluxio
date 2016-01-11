@@ -371,12 +371,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public synchronized boolean setAcl(final String path, final SetAclOptions options) throws
+  public synchronized void setAcl(final String path, final SetAclOptions options) throws
       TachyonException, IOException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.setAcl(path, options.toThrift());
+      public Void call() throws TachyonTException, TException {
+        mClient.setAcl(path, options.toThrift());
+        return null;
       }
     });
   }

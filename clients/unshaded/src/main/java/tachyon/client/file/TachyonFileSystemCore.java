@@ -187,11 +187,10 @@ interface TachyonFileSystemCore {
    *
    * @param path to be set acl on
    * @param options the acl option to be set
-   * @return true if set successfully, false otherwise
    * @throws TachyonException if a Tachyon error occurs
    * @throws IOException an I/O error occurs
    */
-  public boolean setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
+  public void setAcl(TachyonURI path, SetAclOptions options) throws TachyonException,
       IOException;
 
   /**
