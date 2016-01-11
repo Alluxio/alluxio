@@ -891,7 +891,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets absolute paths of all in memory files. Called by the web ui.
+   * Gets absolute paths of all in memory files. Called by the web UI.
    *
    * @return absolute paths of all in memory files
    */
@@ -1252,7 +1252,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the path of a file with the given id. Called by the internal web ui.
+   * Gets the path of a file with the given id. Called by the internal web UI.
    *
    * @param fileId The id of the file to look up
    * @return the path of the file
@@ -1265,7 +1265,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the set of inode ids which are pinned. Called via RPC
+   * @return The set of inode ids which are pinned. Called via RPC.
    */
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
@@ -1281,7 +1281,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the white list. Called by the internal web ui
+   * @return The white list. Called by the internal web UI.
    */
   public List<String> getWhiteList() {
     return mWhitelist.getList();
