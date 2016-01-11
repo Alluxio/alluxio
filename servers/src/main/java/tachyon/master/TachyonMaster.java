@@ -57,6 +57,11 @@ import tachyon.web.UIWebServer;
 public class TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Starts the Tachyon master server via {@code java -cp <TACHYON-VERSION> tachyon.Master}.
+   *
+   * @param args there are no arguments used
+   */
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} tachyon.Master", Version.TACHYON_JAR);
@@ -273,6 +278,8 @@ public class TachyonMaster {
 
   /**
    * Starts the Tachyon master server.
+   *
+   * @throws Exception if starting the master fails
    */
   public void start() throws Exception {
     startMasters(true);
@@ -281,6 +288,8 @@ public class TachyonMaster {
 
   /**
    * Stops the Tachyon master server. Should only be called by tests.
+   *
+   * @throws Exception if stopping the master fails
    */
   public void stop() throws Exception {
     if (mIsServing) {

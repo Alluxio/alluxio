@@ -31,6 +31,9 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.FormatUtils;
 
+/**
+ * Contains information about a file to be displayed in the UI.
+ */
 public final class UIFileInfo {
   /**
    * Provides ordering of {@link UIFileInfo} based off a string comparison of the
