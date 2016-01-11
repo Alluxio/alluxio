@@ -48,8 +48,11 @@ public final class TachyonLineageFileSystemTest {
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
 
+  /**
+   * Sets up all dependencies before running a test.
+   */
   @Before
-  public void before() throws Exception {
+  public void before() {
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
@@ -63,6 +66,10 @@ public final class TachyonLineageFileSystemTest {
     Whitebox.setInternalState(mTachyonLineageFileSystem, "mContext", mFileSystemContext);
   }
 
+  /**
+   * Tests that the same instance is returned when using the {@link TachyonLineageFileSystem#get()}
+   * method.
+   */
   @Test
   public void getInstanceTest() {
     TachyonLineageFileSystem lfs = TachyonLineageFileSystem.get();
@@ -70,32 +77,47 @@ public final class TachyonLineageFileSystemTest {
     Assert.assertEquals(lfs, TachyonLineageFileSystem.get());
   }
 
+  /**
+   * Tests that a {@link LineageFileOutStream} is returned.
+   *
+   * @throws Exception if reinitializing the file from the client or getting the stream fails
+   */
   @Test
   public void getLineageOutStreamTest() throws Exception {
     TachyonURI path = new TachyonURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(1L);
     OutStreamOptions options =
-        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTTL(0).build();
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
+  /**
+   * Tests that a {@link DummyFileOutputStream} is returned.
+   *
+   * @throws Exception if reinitializing the file from the client or getting the stream fails
+   */
   @Test
   public void getDummyOutStreamTest() throws Exception {
     TachyonURI path = new TachyonURI("test");
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(-1L);
     OutStreamOptions options =
-        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTTL(0).build();
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
+  /**
+   * Tests that a {@link FileOutStream} is returned.
+   *
+   * @throws Exception if reinitializing the file from the client or getting the stream fails
+   */
   @Test
   public void getNonLineageStreamTest() throws Exception {
     TachyonURI path = new TachyonURI("test");
@@ -103,7 +125,7 @@ public final class TachyonLineageFileSystemTest {
         .thenThrow(new LineageDoesNotExistException("lineage does not exist"));
 
     OutStreamOptions options =
-        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTTL(0).build();
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof FileOutStream);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
@@ -112,6 +134,11 @@ public final class TachyonLineageFileSystemTest {
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
 
+  /**
+   * Tests that reporting a lost file from the file system informs the client about this file.
+   *
+   * @throws Exception if reporting a lost file fails
+   */
   @Test
   public void reportLostFileTest() throws Exception {
     TachyonURI path = new TachyonURI("test");

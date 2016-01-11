@@ -34,6 +34,9 @@ import tachyon.worker.NetAddress;
 public final class LocalFirstPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the local host is returned first.
+   */
   @Test
   public void getLocalFirst() {
     String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
@@ -47,6 +50,9 @@ public final class LocalFirstPolicyTest {
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
+  /**
+   * Tests that another worker is picked in case the local host does not have enough space.
+   */
   @Test
   public void getOthersWhenNotEnoughSpaceOnLocal() {
     String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());

@@ -17,53 +17,44 @@ package tachyon.shell.command;
 
 import java.io.IOException;
 
-import com.google.common.base.Preconditions;
-
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Sets a new TTL value for the file at path both of the TTL value and the path
- * are specified by args.
+ * Unsets the TTL value for the given path.
  */
-public final class SetTTLCommand extends AbstractTfsShellCommand {
+public final class UnsetTtlCommand extends AbstractTfsShellCommand {
 
-  /**
-   * @param conf the configuration for Tachyon
-   * @param tfs the filesystem of Tachyon
-   */
-  public SetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public UnsetTtlCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
   @Override
   public String getCommandName() {
-    return "setTTL";
+    return "unsetTtl";
   }
 
   @Override
   protected int getNumOfArgs() {
-    return 2;
+    return 1;
   }
 
   @Override
   public void run(String... args) throws IOException {
-    long ttlMs = Long.parseLong(args[1]);
-    Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
-    TachyonURI path = new TachyonURI(args[0]);
-    CommandUtils.setTTL(mTfs, path, ttlMs);
-    System.out.println("TTL of file '" + path + "' was successfully set to " + ttlMs
-        + " milliseconds.");
+    TachyonURI inputPath = new TachyonURI(args[0]);
+    CommandUtils.setTtl(mTfs, inputPath, Constants.NO_TTL);
+    System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 
   @Override
   public String getUsage() {
-    return "setTTL <path> <time to live(in milliseconds)>";
+    return "unsetTtl <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Sets a new TTL value for the file at path.";
+    return "Unsets the TTL value for the given path.";
   }
 }

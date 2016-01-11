@@ -18,11 +18,13 @@ package tachyon.worker.block.allocator;
 import java.io.IOException;
 import java.util.HashSet;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
@@ -72,6 +74,11 @@ public class BaseAllocatorTest {
   @Before
   public void before() throws Exception {
     resetManagerView();
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   protected void resetManagerView() throws Exception {

@@ -32,6 +32,11 @@ public final class NetAddress {
 
   /**
    * Constructs the worker net address.
+   *
+   * @param host the host of the worker
+   * @param rpcPort the RPC port
+   * @param dataPort the data port
+   * @param webPort the web port
    */
   public NetAddress(String host, int rpcPort, int dataPort, int webPort) {
     mHost = host;
