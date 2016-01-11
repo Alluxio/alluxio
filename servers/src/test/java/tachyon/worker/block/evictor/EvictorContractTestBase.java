@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.junit.runners.Parameterized;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.StorageDir;
@@ -88,6 +90,11 @@ public class EvictorContractTestBase extends EvictorTestBase {
 
     List<StorageTier> tiers = mMetaManager.getTiers();
     mTestDir = tiers.get(TEST_TIER_LEVEL).getDir(TEST_DIR);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

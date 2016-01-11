@@ -37,7 +37,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -57,10 +57,10 @@ public final class TachyonBlockStoreTest {
   private static final int WORKER_RPC_PORT = 7;
   private static final int WORKER_DATA_PORT = 9;
   private static final int WORKER_WEB_PORT = 10;
-  private static final NetAddress WORKER_NET_ADDRESS_LOCAL =
-      new NetAddress(WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
-  private static final NetAddress WORKER_NET_ADDRESS_REMOTE =
-      new NetAddress(WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress(
+      WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress(
+      WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
   private static final String STORAGE_TIER = "mem";
   private static final BlockLocation BLOCK_LOCATION_LOCAL =
       new BlockLocation(WORKER_ID_LOCAL, WORKER_NET_ADDRESS_LOCAL, STORAGE_TIER);

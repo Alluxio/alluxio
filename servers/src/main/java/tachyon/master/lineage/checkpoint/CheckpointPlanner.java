@@ -28,10 +28,11 @@ import tachyon.util.CommonUtils;
  */
 public interface CheckpointPlanner {
 
+  /**
+   * Factory for {@link CheckpointPlanner}.
+   */
   class Factory {
     /**
-     * Factory for {@link CheckpointPlanner}.
-     *
      * @param conf TachyonConf to determine the planner type
      * @param lineageStoreView a view of the lineage store
      * @param fileSystemMasterView a view of the file system master

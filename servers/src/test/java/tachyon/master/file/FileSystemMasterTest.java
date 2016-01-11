@@ -47,8 +47,8 @@ import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.meta.PersistenceState;
-import tachyon.master.file.meta.TTLBucket;
-import tachyon.master.file.meta.TTLBucketPrivateAccess;
+import tachyon.master.file.meta.TtlBucket;
+import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
@@ -56,7 +56,7 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemCommand;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.IdUtils;
 
 /**
@@ -88,13 +88,13 @@ public final class FileSystemMasterTest {
     sNestedFileOptions =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
-    sOldTtlIntervalMs = TTLBucket.getTTLIntervalMs();
-    TTLBucketPrivateAccess.setTTLIntervalMs(TTLCHECKER_INTERVAL_MS);
+    sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
+    TtlBucketPrivateAccess.setTtlIntervalMs(TTLCHECKER_INTERVAL_MS);
   }
 
   @AfterClass
   public static void afterClass() {
-    TTLBucketPrivateAccess.setTTLIntervalMs(sOldTtlIntervalMs);
+    TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
   }
 
   @Before
@@ -115,12 +115,12 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.start(true);
 
     // set up workers
-    mWorkerId1 = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
+    mWorkerId1 = mBlockMaster.getWorkerId(new WorkerNetAddress("localhost", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         Maps.<String, List<Long>>newHashMap());
-    mWorkerId2 = mBlockMaster.getWorkerId(new NetAddress("remote", 80, 81, 82));
+    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress("remote", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
@@ -180,7 +180,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
   }
 
-  private void executeTTLCheckOnce() throws Exception {
+  private void executeTtlCheckOnce() throws Exception {
     // Wait for the TTL check executor to be ready to execute its heartbeat.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
         TimeUnit.SECONDS));
@@ -193,79 +193,79 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void createFileWithTTLTest() throws Exception {
+  public void createFileWithTtlTest() throws Exception {
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).setTTL(1).build();
+            .setRecursive(true).setTtl(1).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
 
-    executeTTLCheckOnce();
+    executeTtlCheckOnce();
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
 
   @Test
-  public void setTTLForFileWithNoTTLTest() throws Exception {
+  public void setTtlForFileWithNoTtlTest() throws Exception {
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
-    executeTTLCheckOnce();
+    executeTtlCheckOnce();
     // Since no valid TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(0).build());
-    executeTTLCheckOnce();
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(0).build());
+    executeTtlCheckOnce();
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
 
   @Test
-  public void setSmallerTTLForFileWithTTLTest() throws Exception {
+  public void setSmallerTtlForFileWithTtlTest() throws Exception {
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).setTTL(Constants.HOUR_MS).build();
+            .setRecursive(true).setTtl(Constants.HOUR_MS).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
-    executeTTLCheckOnce();
+    executeTtlCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(0).build());
-    executeTTLCheckOnce();
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(0).build());
+    executeTtlCheckOnce();
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
 
   @Test
-  public void setLargerTTLForFileWithTTLTest() throws Exception {
+  public void setLargerTtlForFileWithTtlTest() throws Exception {
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).setTTL(0).build();
+            .setRecursive(true).setTtl(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(Constants.HOUR_MS)
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(Constants.HOUR_MS)
         .build());
-    executeTTLCheckOnce();
+    executeTtlCheckOnce();
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
 
   @Test
-  public void setNoTTLForFileWithTTLTest() throws Exception {
+  public void setNoTtlForFileWithTtlTest() throws Exception {
     CreateOptions options =
         new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
-            .setRecursive(true).setTTL(0).build();
+            .setRecursive(true).setTtl(0).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(Constants.NO_TTL)
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTtl(Constants.NO_TTL)
         .build());
-    executeTTLCheckOnce();
+    executeTtlCheckOnce();
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
 
@@ -289,7 +289,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTTL(1)
+    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTtl(1)
         .build());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertFalse(fileInfo.isPinned);
@@ -298,7 +298,7 @@ public final class FileSystemMasterTest {
     // Set ttl for a directory, raise IllegalArgumentException.
     mThrown.expect(IllegalArgumentException.class);
     mFileSystemMaster.setState(mFileSystemMaster.getFileId(NESTED_URI),
-        new SetStateOptions.Builder().setTTL(1).build());
+        new SetStateOptions.Builder().setTtl(1).build());
   }
 
   @Test
@@ -394,7 +394,7 @@ public final class FileSystemMasterTest {
     ExecutorService service =
         (ExecutorService) Whitebox.getInternalState(mFileSystemMaster, "mExecutorService");
     Future<?> ttlThread =
-        (Future<?>) Whitebox.getInternalState(mFileSystemMaster, "mTTLCheckerService");
+        (Future<?>) Whitebox.getInternalState(mFileSystemMaster, "mTtlCheckerService");
     Assert.assertFalse(ttlThread.isDone());
     Assert.assertFalse(service.isShutdown());
     mFileSystemMaster.stop();

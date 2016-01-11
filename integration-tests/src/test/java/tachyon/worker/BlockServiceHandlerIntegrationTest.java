@@ -57,13 +57,13 @@ import tachyon.worker.block.BlockWorkerClientServiceHandler;
  * Integration tests for {@link BlockWorkerClientServiceHandler}
  */
 public class BlockServiceHandlerIntegrationTest {
-  private static final long WORKER_CAPACITY_BYTES = 10000;
+  private static final long WORKER_CAPACITY_BYTES = 10 * Constants.MB;
   private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mWorkerServiceHandler = null;
   private TachyonFileSystem mTfs = null;
