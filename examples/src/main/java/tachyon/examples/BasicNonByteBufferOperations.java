@@ -77,7 +77,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private void write(FileSystem tachyonClient) throws IOException, TachyonException {
-    FileOutStream fileOutStream = getOrCreate(tachyonClient, mFilePath, mDeleteIfExists);
+    FileOutStream fileOutStream = createFile(tachyonClient, mFilePath, mDeleteIfExists);
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(mLength);
@@ -89,7 +89,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
   }
 
-  private FileOutStream getOrCreate(FileSystem fileSystem, TachyonURI filePath,
+  private FileOutStream createFile(FileSystem fileSystem, TachyonURI filePath,
       boolean deleteIfExists) throws IOException, TachyonException {
     CreateFileOptions options = CreateFileOptions.defaults().setWriteType(mWriteType);
     if (!fileSystem.exists(filePath)) {
