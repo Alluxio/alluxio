@@ -27,6 +27,9 @@ import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.WorkerNetAddress;
 
+/**
+ * Contains information for displaying a file block in the UI.
+ */
 public final class UIFileBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
   private final Set<String> mTierAliases = new HashSet<String>();
@@ -80,6 +83,7 @@ public final class UIFileBlockInfo {
   }
 
   /**
+   * @param tierAlias the alias for the tier
    * @return true if the block is in the given tier alias in some worker, false otherwise
    */
   public boolean isInTier(String tierAlias) {
