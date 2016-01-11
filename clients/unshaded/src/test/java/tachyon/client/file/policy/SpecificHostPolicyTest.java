@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests {@link SpecificHostPolicy}.
@@ -32,26 +32,33 @@ import tachyon.client.block.BlockWorkerInfo;
 public final class SpecificHostPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the correct worker is returned when using the policy.
+   */
   @Test
   public void policyTest() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
     Assert.assertEquals("worker2",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
+  /**
+   * Tests that no worker is chosen when the worker specified in the policy is not part of the
+   * worker list.
+   */
   @Test
   public void noMatchingHostTest() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
+        new BlockWorkerInfo(new NetAddress("worker2", PORT, PORT, PORT), Constants.GB, 0));
     Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
   }
 }

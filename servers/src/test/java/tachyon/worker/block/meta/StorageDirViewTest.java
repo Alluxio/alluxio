@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,6 +30,7 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
@@ -61,6 +63,11 @@ public class StorageDirViewTest {
     mTestDir = mTestTier.getDir(TEST_DIR);
     mTestTierView = new StorageTierView(mTestTier, mMetaManagerView);
     mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

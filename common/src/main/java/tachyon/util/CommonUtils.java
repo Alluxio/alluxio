@@ -158,8 +158,7 @@ public final class CommonUtils {
    * non-existing user it will return EMPTY list. This method may return duplicate groups.
    *
    * @param user user name
-   * @return the groups list that the <code>user</code> belongs to. The primary group is returned
-   *         first.
+   * @return the groups list that the {@code user} belongs to. The primary group is returned first
    * @throws IOException if encounter any error when running the command
    */
   public static List<String> getUnixGroups(String user) throws IOException {

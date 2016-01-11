@@ -59,4 +59,9 @@ public final class RmrCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "rmr <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Removes the specified file or directory (works recursively for directories).";
+  }
 }

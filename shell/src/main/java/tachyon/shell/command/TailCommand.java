@@ -90,4 +90,9 @@ public final class TailCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "tail <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Prints the file's last 1KB of contents to the console.";
+  }
 }

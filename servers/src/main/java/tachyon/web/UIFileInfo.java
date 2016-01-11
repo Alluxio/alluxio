@@ -28,7 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.master.file.meta.PersistenceState;
 import tachyon.security.authorization.FileSystemPermission;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.FormatUtils;
 
 public final class UIFileInfo {
@@ -291,8 +291,8 @@ public final class UIFileInfo {
   /**
    * @param fileLocations the file locations to use
    */
-  public void setFileLocations(List<NetAddress> fileLocations) {
-    for (NetAddress addr : fileLocations) {
+  public void setFileLocations(List<WorkerNetAddress> fileLocations) {
+    for (WorkerNetAddress addr : fileLocations) {
       mFileLocations.add(addr.getHost() + ":" + addr.getRpcPort());
     }
   }

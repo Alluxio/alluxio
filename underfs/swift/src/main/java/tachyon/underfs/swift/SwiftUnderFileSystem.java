@@ -70,12 +70,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
+   * @param containerName the name of the container
    * @param tachyonConf the configuration for Tachyon
-   * @param conf the configuration
    */
   public SwiftUnderFileSystem(String containerName,
-      TachyonConf tachyonConf) throws Exception {
+      TachyonConf tachyonConf) {
     super(tachyonConf);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
@@ -141,11 +140,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return create(path);
   }
 
-  /* @inheritDoc
-   * @see UnderFileSystem#delete(java.lang.String, boolean).
-   * recursive will delete all objects with given prefix.
-   * parent will not be deleted.
-   * Method always returns {@code true}.
+  /**
+   * @inheritDoc
+   *
+   * @param path The file or folder name
+   * @param recursive Whether we delete folder and its children
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
@@ -250,11 +251,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#mkdirs(java.lang.String, boolean)
-   * There is no notion of directories in Swift.
-   * The content of containers are objects.
-   * Object name may contain nested structure like a/b/c/d.data
+  /**
+   * @inheritDoc
+   *
+   * @param path the folder to create
+   * @param createParent If true, the method creates any necessary but nonexistent parent
+   *        directories. Otherwise, the method does not create nonexistent parent directories.
+   * @return {@code true} if and only if the directory was created; {@code false}
+   *         otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
@@ -287,16 +292,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return path;
   }
 
-  /* @inheritDoc
-   * @see tachyon.underfs.UnderFileSystem#rename(java.lang.String, java.lang.String)
-   * The rename works as follows:
-   * If src path exists: src renamed to dst. src is deleted on the success.
-   * If src path is not exists: src is assumed to be directory.
-   * Both src and dst paths are formatted to a/b/c/
-   * Listing is performed on src.
-   * For each returned object: src in the name is replaced with dst.
-   * Object is deleted if copy was successful.
-   * Directory rename always returns true.
+  /**
+   * @inheritDoc
+   *
+   * @param src The source file or folder name
+   * @param dst The destination file or folder name
+   * @return true if succeed, false otherwise
+   * @throws IOException if a non-Tachyon error occurs
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {

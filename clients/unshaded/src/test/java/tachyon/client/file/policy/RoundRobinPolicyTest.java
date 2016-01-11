@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests {@link RoundRobinPolicy}.
@@ -32,14 +32,17 @@ import tachyon.client.block.BlockWorkerInfo;
 public final class RoundRobinPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the correct workers are chosen when round robin is used.
+   */
   @Test
   public void getWorkerTest() {
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker2", PORT, PORT, PORT),
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new NetAddress("worker2", PORT, PORT, PORT),
         2 * (long) Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress("worker3", PORT, PORT, PORT),
+    workerInfoList.add(new BlockWorkerInfo(new NetAddress("worker3", PORT, PORT, PORT),
         3 * (long) Constants.GB, 0));
     RoundRobinPolicy policy = new RoundRobinPolicy();
 

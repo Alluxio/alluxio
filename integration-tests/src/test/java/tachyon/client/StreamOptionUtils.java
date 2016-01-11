@@ -33,7 +33,7 @@ public final class StreamOptionUtils {
    * Gets WriteBoth {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteBoth(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
@@ -44,7 +44,7 @@ public final class StreamOptionUtils {
    * Gets WriteTachyon {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteTachyon(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
@@ -55,7 +55,7 @@ public final class StreamOptionUtils {
    * Gets WriteUnderStore {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteUnderStore(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
@@ -66,7 +66,7 @@ public final class StreamOptionUtils {
    * Gets WriteLocal {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteLocal(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
@@ -89,10 +89,21 @@ public final class StreamOptionUtils {
    * Gets ReadNoCache {@link InStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the InStreamOptions
+   * @return the {@link InStreamOptions}
    */
   public static InStreamOptions getInStreamOptionsReadNoCache(TachyonConf conf) {
     return new InStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
         .build();
+  }
+
+  /**
+   * Gets AsyncWrite {@link OutStreamOptions}.
+   *
+   * @param conf the Tachyon config
+   * @return the {@link OutStreamOptions}
+   */
+  public static OutStreamOptions getOutStreamOptionsWriteAsync(TachyonConf conf) {
+    return new OutStreamOptions.Builder().setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.ASYNC_PERSIST).build();
   }
 }

@@ -47,7 +47,7 @@ import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.BlockInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
@@ -263,7 +263,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
-      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
               workerAddr.getHost(), workerAddr.getDataPort()));
@@ -295,7 +295,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
-      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
               workerAddr.getHost(), workerAddr.getDataPort()));
@@ -323,7 +323,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
-      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
               workerAddr.getHost(), workerAddr.getDataPort()));
@@ -543,7 +543,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test remote read stream lock in <code>RemoteBlockInStream</code>.
+   * Tests remote read stream lock in {@link RemoteBlockInStream}.
    */
   @Test
   public void remoteReadLockTest() throws Exception {
@@ -555,7 +555,7 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
 
-      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       InetSocketAddress workerInetAddr =
           new InetSocketAddress(workerAddr.getHost(), workerAddr.getDataPort());
 

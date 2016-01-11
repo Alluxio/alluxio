@@ -24,9 +24,9 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests {@link LocalFirstPolicy}.
@@ -34,27 +34,33 @@ import tachyon.util.network.NetworkAddressUtils;
 public final class LocalFirstPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the local host is returned first.
+   */
   @Test
   public void getLocalFirst() {
     String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress(localhostName, PORT, PORT, PORT),
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new NetAddress(localhostName, PORT, PORT, PORT),
         Constants.GB, 0));
     Assert.assertEquals(localhostName,
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
   }
 
+  /**
+   * Tests that another worker is picked in case the local host does not have enough space.
+   */
   @Test
   public void getOthersWhenNotEnoughSpaceOnLocal() {
     String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
     workerInfoList.add(
-        new BlockWorkerInfo(new WorkerNetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
-    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress(localhostName, PORT, PORT, PORT),
+        new BlockWorkerInfo(new NetAddress("worker1", PORT, PORT, PORT), Constants.GB, 0));
+    workerInfoList.add(new BlockWorkerInfo(new NetAddress(localhostName, PORT, PORT, PORT),
         Constants.MB, Constants.MB));
     Assert.assertEquals("worker1",
         policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());

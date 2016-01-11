@@ -64,6 +64,12 @@ public final class OSSOutputStream extends OutputStream {
   /** Flag to indicate this stream has been closed, to ensure close is only done once */
   private boolean mClosed;
 
+  /**
+   * @param bucketName the name of the bucket
+   * @param key the key of the file
+   * @param client the client for OSS
+   * @throws IOException if writing to a file fails
+   */
   public OSSOutputStream(String bucketName, String key, OSSClient client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
@@ -89,8 +95,12 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes the specified bytes to this output stream.
-   * Before close, the bytes are all writen to local file
+   * Writes the specified bytes to this output stream.  Before close, the bytes are all written to
+   * local file.
+   *
+   * @param b the {@code byte}
+   * @throws IOException if an I/O error occurs. In particular,  an {@code IOException} may be
+   *                     thrown if the output stream has been closed
    */
   @Override
   public void write(int b) throws IOException {
@@ -98,8 +108,11 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes b.length bytes from the specified byte array to this output stream.
-   * Before close, the bytes are all writen to local file
+   * Writes b.length bytes from the specified byte array to this output stream. Before close, the
+   * bytes are all writen to local file.
+   *
+   * @param b the data
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void write(byte[] b) throws IOException {
@@ -107,8 +120,14 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Writes len bytes from the specified byte array starting at offset off to this output stream
-   * Before close, the bytes are all writen to local file
+   * Writes len bytes from the specified byte array starting at offset off to this output stream.
+   * Before close, the bytes are all writen to local file.
+   *
+   * @param b the data
+   * @param off the start offset in the data
+   * @param len the number of bytes to write
+   * @throws IOException if an I/O error occurs. In particular, an {@code IOException} is
+   *                     thrown if the output stream is closed
    */
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
@@ -116,9 +135,10 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Flushes this output stream and forces any buffered
-   * output bytes to be written out.
-   * Before close, the data are flushed to local file
+   * Flushes this output stream and forces any buffered output bytes to be written out. Before
+   * close, the data are flushed to local file.
+   *
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void flush() throws IOException {
@@ -126,10 +146,11 @@ public final class OSSOutputStream extends OutputStream {
   }
 
   /**
-   * Closing the {@ OSSOutputStream} is the place that does the real
-   * upload from local temp file to OSS Service
-   * After closed, the file will uploaded to OSS and the local
-   * temp file will be deleted
+   * Closing the {@link OSSOutputStream} is the place that does the real upload from local temp file
+   * to OSS Service. After closed, the file will uploaded to OSS and the local temp file will be
+   * deleted.
+   *
+   * @throws IOException if an I/O error occurs
    */
   @Override
   public void close() throws IOException {
