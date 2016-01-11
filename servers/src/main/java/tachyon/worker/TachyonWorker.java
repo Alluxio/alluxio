@@ -87,7 +87,6 @@ public final class TachyonWorker {
       mTachyonConf = WorkerContext.getConf();
 
       mBlockWorker = new BlockWorker();
-      // Setup the file worker
       mFileSystemWorker = new FileSystemWorker(mBlockWorker.getBlockDataManager());
 
       // Setup metrics collection system
