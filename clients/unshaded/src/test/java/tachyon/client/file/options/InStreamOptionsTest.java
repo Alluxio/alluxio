@@ -28,22 +28,6 @@ import tachyon.conf.TachyonConf;
  * Tests for the {@link InStreamOptions} class.
  */
 public class InStreamOptionsTest {
-
-  /**
-   * Tests that building an {@link InStreamOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    TachyonStorageType tachyonType = TachyonStorageType.STORE;
-
-    InStreamOptions options =
-        new InStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(tachyonType)
-            .build();
-
-    Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-  }
-
   /**
    * Tests that building an {@link InStreamOptions} with the defaults works.
    */
