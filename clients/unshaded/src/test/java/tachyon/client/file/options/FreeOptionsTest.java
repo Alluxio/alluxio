@@ -15,8 +15,6 @@
 
 package tachyon.client.file.options;
 
-import java.util.Random;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,23 +22,6 @@ import org.junit.Test;
  * Tests for the {@link FreeOptions} class.
  */
 public class FreeOptionsTest {
-
-  /**
-   * Tests that building a {@link FreeOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
-
-    FreeOptions options =
-        new FreeOptions.Builder()
-            .setRecursive(recursive)
-            .build();
-
-    Assert.assertEquals(recursive, options.isRecursive());
-  }
-
   /**
    * Tests that building a {@link FreeOptions} with the defaults works.
    */

@@ -160,7 +160,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void freeTest() throws Exception {
-    FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
+    FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     mFileSystem.free(new TachyonFile(FILE_ID), freeOptions);
     Mockito.verify(mFileSystemMasterClient).free(FILE_ID, true);
   }
@@ -172,7 +172,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void freeExceptionTest() throws Exception {
-    FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
+    FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     Mockito.when(mFileSystemMasterClient.free(FILE_ID, true)).thenThrow(EXCEPTION);
     try {
       mFileSystem.free(new TachyonFile(FILE_ID), freeOptions);
