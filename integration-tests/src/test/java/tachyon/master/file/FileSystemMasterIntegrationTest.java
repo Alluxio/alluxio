@@ -47,7 +47,7 @@ import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.meta.TTLBucketPrivateAccess;
+import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
@@ -282,8 +282,8 @@ public class FileSystemMasterIntegrationTest {
         mLocalTachyonClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
 
-    TTLBucketPrivateAccess
-        .setTTLIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
+    TtlBucketPrivateAccess
+        .setTtlIntervalMs(mMasterTachyonConf.getLong(Constants.MASTER_TTLCHECKER_INTERVAL_MS));
   }
 
   @Test
@@ -685,7 +685,7 @@ public class FileSystemMasterIntegrationTest {
   public void ttlCreateFileTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     long ttl = 100;
-    CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTTL(ttl).build();
+    CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
     mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
@@ -696,7 +696,7 @@ public class FileSystemMasterIntegrationTest {
   public void ttlExpiredCreateFileTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     long ttl = 1;
-    CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTTL(ttl).build();
+    CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
     long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile1")));
@@ -711,7 +711,7 @@ public class FileSystemMasterIntegrationTest {
   public void ttlRenameTest() throws Exception {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), MkdirOptions.defaults());
     long ttl = 1;
-    CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTTL(ttl).build();
+    CreateOptions options = new CreateOptions.Builder(MasterContext.getConf()).setTtl(ttl).build();
     long fileId = mFsMaster.create(new TachyonURI("/testFolder/testFile1"), options);
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true,
         TEST_CURRENT_TIME);

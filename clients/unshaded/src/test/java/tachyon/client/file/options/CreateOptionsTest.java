@@ -46,13 +46,13 @@ public class CreateOptionsTest {
         new CreateOptions.Builder(new TachyonConf())
             .setBlockSizeBytes(blockSize)
             .setRecursive(recursive)
-            .setTTL(ttl)
+            .setTtl(ttl)
             .setUnderStorageType(ufsType)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
@@ -71,7 +71,7 @@ public class CreateOptionsTest {
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     ClientContext.reset();
   }
