@@ -724,8 +724,11 @@ public class FileSystemMasterPermissionCheckTest {
   @Test
   public void setAclFailByOptionsTest() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage(ExceptionMessage.INVALID_SET_ACL_OPTIONS.getMessage(
+        TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0777));
 
-    verifySetAcl(TEST_USER_1, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) 0777, false);
+    verifySetAcl(TEST_USER_1, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroups(),
+        (short) 0777, false);
   }
 
   private void verifySetAcl(TestUser owner, String path, String user, String group,

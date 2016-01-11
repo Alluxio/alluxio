@@ -1824,7 +1824,6 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path to be set acl on
    * @param options acl option to be set
-   * @return true if set successfully, false otherwise
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
@@ -1834,11 +1833,10 @@ public final class FileSystemMaster extends MasterBase {
         options.getOwner(), options.getGroup(), options.getPermission());
 
     if (options.getOwner() != null) {
-      setOwner(path, options.getOwner(), options.isRecursive());
-    } else if (options.getGroup() != null) {
-      setGroup(path, options.getGroup(), options.isRecursive());
-    } else if (options.getPermission() != -1) {
-      setPermission(path, options.getPermission(), options.isRecursive());
+      setOwner(path, options);
+    } else if (options.getGroup() != null
+        || options.getPermission() != Constants.INVALID_PERMISSION) {
+      setGroupOrPermission(path, options);
     }
   }
 
@@ -1846,101 +1844,64 @@ public final class FileSystemMaster extends MasterBase {
    * Sets the user to be the owner of the path. Only a super user can change the owner of a path.
    *
    * @param path to be set owner on
-   * @param user to be set as the owner
-   * @param recursive indicates whether to set all the children recursively when path is a dir
-   * @return true if set successfully, false otherwise
+   * @param options acl option to be set
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  private void setOwner(TachyonURI path, String user, boolean recursive)
+  private void setOwner(TachyonURI path, SetAclOptions options)
       throws AccessControlException, InvalidPathException {
     FileSystemPermissionChecker.checkSuperuser(getClientUser(), getGroups(getClientUser()));
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode targetInode = mInodeTree.getInodeByPath(path);
-      if (recursive && targetInode.isDirectory()) {
+      if (options.isRecursive() && targetInode.isDirectory()) {
         List<Inode> inodeChildren =
             mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
         for (Inode inode : inodeChildren) {
-          setAclInternal(inode, opTimeMs, user, null, Constants.INVALID_PERMISSION);
+          setAclInternal(inode, opTimeMs, options);
         }
       }
-      setAclInternal(targetInode, opTimeMs, user, null, Constants.INVALID_PERMISSION);
+      setAclInternal(targetInode, opTimeMs, options);
     }
   }
 
   /**
-   * Sets the group of the path. Only a super user or the path owner can change.
-   *
-   * @param path to be set group on
-   * @param group to be set
-   * @param recursive indicates whether to set all the children recursively when path is a dir
-   * @return true if set successfully, false otherwise
-   * @throws AccessControlException if permission checking fails
-   * @throws InvalidPathException if the path is invalid
-   */
-  private void setGroup(TachyonURI path, String group, boolean recursive) throws
-      AccessControlException, InvalidPathException {
-    synchronized (mInodeTree) {
-      setGroupOrPermission(path, group, Constants.INVALID_PERMISSION, recursive);
-    }
-  }
-
-  /**
-   * Sets the permission of the path. Only a super user or the path owner can change.
+   * Sets the group or permission of the path. Only a super user or the path owner can change.
    *
    * @param path to be set permission on
-   * @param permission to be set
-   * @param recursive indicates whether to set all the children recursively when path is a dir
-   * @return true if set successfully, false otherwise
+   * @param options acl option to be set
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  private void setPermission(TachyonURI path, short permission, boolean recursive) throws
+  private void setGroupOrPermission(TachyonURI path, SetAclOptions options) throws
       AccessControlException, InvalidPathException {
-    synchronized (mInodeTree) {
-      setGroupOrPermission(path, null, permission, recursive);
-    }
-  }
-
-  private void setGroupOrPermission(TachyonURI path, String group, short permission,
-      boolean recursive) throws AccessControlException, InvalidPathException {
     checkOwner(path);
     long opTimeMs = System.currentTimeMillis();
     Inode targetInode = mInodeTree.getInodeByPath(path);
-    if (recursive && targetInode.isDirectory()) {
+    if (options.isRecursive() && targetInode.isDirectory()) {
       List<Inode> inodeChildren =
           mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
       for (Inode inode : inodeChildren) {
         checkOwner(mInodeTree.getPath(inode));
       }
       for (Inode inode : inodeChildren) {
-        if (group != null) {
-          setAclInternal(inode, opTimeMs, null, group, Constants.INVALID_PERMISSION);
-        } else if (permission != Constants.INVALID_PERMISSION) {
-          setAclInternal(inode, opTimeMs, null, null, permission);
-        }
+        setAclInternal(inode, opTimeMs, options);
       }
     }
-    if (group != null) {
-      setAclInternal(targetInode, opTimeMs, null, group, Constants.INVALID_PERMISSION);
-    } else if (permission != Constants.INVALID_PERMISSION) {
-      setAclInternal(targetInode, opTimeMs, null, null, permission);
-    }
+    setAclInternal(targetInode, opTimeMs, options);
   }
 
   /**
-   * Sets acl attributes to the inode. Only one of user, group, or permission is set.
+   * Sets acl attributes to the inode. Only one of user, group, or permission in
+   * {@link SetAclOptions} is set.
    *
    * @param inode the inode to be set on
    * @param opTimeMs the time of the operation
-   * @param user to be set as the owner. If null, it is not set
-   * @param group to be set as the group. If null, it is not set
-   * @param permission to be set as the permission. If -1, it is not set
-   * @throws AccessControlException
+   * @param options acl option to be set
+   * @throws AccessControlException if security is not enabled
    */
-  private void setAclInternal(Inode inode, long opTimeMs, String user, String group,
-      short permission) throws AccessControlException {
+  private void setAclInternal(Inode inode, long opTimeMs, SetAclOptions options)
+      throws AccessControlException {
     // throws exception if security is not enabled.
     if (!SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       throw new AccessControlException(ExceptionMessage.SECURITY_IS_NOT_ENABLED.getMessage());
@@ -1948,14 +1909,14 @@ public final class FileSystemMaster extends MasterBase {
 
     SetAclEntry.Builder setAcl = SetAclEntry.newBuilder().setId(inode.getId())
         .setOpTimeMs(opTimeMs);
-    if (user != null) {
-      setAcl.setUserName(user);
+    if (options.getOwner() != null) {
+      setAcl.setUserName(options.getOwner());
     }
-    if (group != null) {
-      setAcl.setGroupName(group);
+    if (options.getGroup() != null) {
+      setAcl.setGroupName(options.getGroup());
     }
-    if (permission != Constants.INVALID_PERMISSION) {
-      setAcl.setPermission(permission);
+    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+      setAcl.setPermission(options.getPermission());
     }
 
     try {
