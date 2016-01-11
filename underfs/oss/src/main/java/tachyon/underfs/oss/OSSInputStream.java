@@ -68,6 +68,9 @@ public class OSSInputStream extends InputStream {
 
   @Override
   public long skip(long n) throws IOException {
-    throw new IOException("unsupported skip in OSSInputStream currently.");
+    // TODO(luoli523) currently, the oss sdk doesn't support get the oss Object in a
+    // special position of the stream. It will support this feature in the future.
+    // Now we just read n bytes and discard to skip.
+    return super.skip(n);
   }
 }
