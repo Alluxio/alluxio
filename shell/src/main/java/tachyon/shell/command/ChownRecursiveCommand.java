@@ -24,9 +24,9 @@ import tachyon.conf.TachyonConf;
 /**
  * Changes the owner of a file or directory specified by args recursively.
  */
-public final class ChownrCommand extends AbstractACLCommand {
+public final class ChownRecursiveCommand extends AbstractACLCommand {
 
-  public ChownrCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public ChownRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 

@@ -33,7 +33,7 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
   }
 
   /**
-   * Changes the own for the directory or file with the path specified in args.
+   * Changes the owner for the directory or file with the path specified in args.
    *
    * @param path The {@link TachyonURI} path as the input of the command
    * @param owner The owner to be updated to the file or directory
@@ -45,9 +45,9 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
       SetAclOptions options =
           new SetAclOptions.Builder().setOwner(owner).setRecursive(recursive).build();
       if (mTfs.setAcl(path, options)) {
-        System.out.println("Chown " + path + " to " + owner);
+        System.out.println("Changed owner of " + path + " to " + owner);
       } else {
-        throw new IOException("mv: Failed to Chown " + path + " to " + owner);
+        throw new IOException("Failed to changed owner of " + path + " to " + owner);
       }
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
@@ -67,9 +67,9 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
       SetAclOptions options =
           new SetAclOptions.Builder().setGroup(group).setRecursive(recursive).build();
       if (mTfs.setAcl(path, options)) {
-        System.out.println("Chgrp " + path + " to " + group);
+        System.out.println("Changed group of " + path + " to " + group);
       } else {
-        throw new IOException("mv: Failed to Chgrp " + path + " to " + group);
+        throw new IOException("Failed to changed group of " + path + " to " + group);
       }
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
@@ -90,9 +90,9 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
       SetAclOptions options =
           new SetAclOptions.Builder().setPermission(newPermission).setRecursive(recursive).build();
       if (mTfs.setAcl(path, options)) {
-        System.out.println("Chmod " + path + " to " + newPermission);
+        System.out.println("Changed permission of " + path + " to " + newPermission);
       } else {
-        throw new IOException("mv: Failed to chmod " + path + " to " + newPermission);
+        throw new IOException("Failed to changed permission of  " + path + " to " + newPermission);
       }
     } catch (NumberFormatException e) {
       throw new IOException(e.getMessage());

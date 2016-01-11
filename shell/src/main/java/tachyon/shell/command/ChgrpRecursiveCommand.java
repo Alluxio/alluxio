@@ -22,17 +22,17 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Change the permission of a file or directory specified by args recursively.
+ * Changes the group of a file or directory specified by args recursively.
  */
-public final class ChmodrCommand extends AbstractACLCommand {
+public final class ChgrpRecursiveCommand extends AbstractACLCommand {
 
-  public ChmodrCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public ChgrpRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
   @Override
   public String getCommandName() {
-    return "chmodr";
+    return "chgrpr";
   }
 
   @Override
@@ -42,13 +42,13 @@ public final class ChmodrCommand extends AbstractACLCommand {
 
   @Override
   public void run(String... args) throws IOException {
-    String modeStr = args[0];
+    String group = args[0];
     TachyonURI path = new TachyonURI(args[1]);
-    chmod(path, modeStr, true);
+    chgrp(path, group, true);
   }
 
   @Override
   public String getUsage() {
-    return "chmodr <mode> <path>";
+    return "chgrpr <group> <path>";
   }
 }
