@@ -287,7 +287,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Stops the Tachyon master server. Should only be called by tests.
+   * Stops the Tachyon master server.
    *
    * @throws Exception if stopping the master fails
    */

@@ -15,34 +15,26 @@
 
 package tachyon.worker;
 
-import java.util.concurrent.ExecutorService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
-
-import tachyon.Constants;
+import java.io.IOException;
 
 /**
- * This is the base class for all workers, and contains common functionality.
+ * Interface of a Tachyon worker.
  */
-public abstract class WorkerBase implements Worker {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** The executor service for the master sync */
-  private final ExecutorService mExecutorService;
+public interface Worker {
 
   /**
-   * @param executorService executor service to use internally
+   * Starts the worker. Here, the worker should initialize state and possibly start threads required
+   * for operation.
+   *
+   * @throws IOException if I/O error occurs
    */
-  protected WorkerBase(ExecutorService executorService)  {
-    mExecutorService = Preconditions.checkNotNull(executorService);
-  }
+  void start() throws IOException;
 
   /**
-   * @return the executor service
+   * Stops the worker. Here, anything created or started in {@link #start()} should be cleaned up
+   * and shutdown.
+   *
+   * @throws IOException if I/O error occurs
    */
-  protected ExecutorService getExecutorService() {
-    return mExecutorService;
-  }
+  void stop() throws IOException;
 }
