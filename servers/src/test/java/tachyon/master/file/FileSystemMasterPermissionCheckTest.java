@@ -29,12 +29,14 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AccessControlException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.file.options.CreateOptions;
 import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
@@ -43,6 +45,7 @@ import tachyon.security.authentication.PlainSaslServer;
 import tachyon.security.authorization.FileSystemAction;
 import tachyon.security.group.GroupMappingService;
 import tachyon.thrift.FileInfo;
+import tachyon.util.io.PathUtils;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by
@@ -466,6 +469,172 @@ public class FileSystemMasterPermissionCheckTest {
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file,
             "testSubDir")));
     verifyGetFileId(TEST_USER_2, file);
+  }
+
+  @Test
+  public void setStateSuccessTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
+    verifyCreate(TEST_USER_1, file, false);
+    SetStateOptions expect = getNonDefaultSetState();
+    SetStateOptions result = verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+
+    Assert.assertEquals(expect.getTTL(), result.getTTL());
+    Assert.assertEquals(expect.getPinned(), result.getPinned());
+  }
+
+  @Test
+  public void setStateFailTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
+    verifyCreate(TEST_USER_1, file, false);
+    SetStateOptions expect = getNonDefaultSetState();
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
+        TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testState1")));
+    verifySetState(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+  }
+
+  private SetStateOptions getNonDefaultSetState() {
+    boolean recursive = true;
+    long ttl = 11;
+
+    return new SetStateOptions.Builder().setPinned(recursive).setTTL(ttl).build();
+  }
+
+  private long getFileId(TestUser user, String path) throws AccessControlException {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    return mFileSystemMaster.getFileId(new TachyonURI(path));
+  }
+
+  private SetStateOptions verifySetState(TestUser user, long fileId, SetStateOptions options)
+      throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+
+    mFileSystemMaster.setState(fileId, options);
+
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    return new SetStateOptions.Builder()
+        .setPinned(fileInfo.isIsPinned())
+        .setTTL(fileInfo.getTtl())
+        .setPersisted(fileInfo.isIsPersisted())
+        .build();
+  }
+
+  @Test
+  public void completeFileSuccessTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
+    verifyCreate(TEST_USER_1, file, false);
+    CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
+    verifyCompleteFile(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+  }
+
+  @Test
+  public void completeFileFailTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
+    verifyCreate(TEST_USER_1, file, false);
+    CompleteFileOptions expect = getNonDefaultCompleteFileOptions();
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
+        TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
+    verifyCompleteFile(TEST_USER_2, getFileId(TEST_USER_1, file), expect);
+  }
+
+  private CompleteFileOptions getNonDefaultCompleteFileOptions() {
+    long ufsLength = 12;
+    long operationTimeMs = 21;
+
+    return new CompleteFileOptions.Builder(MasterContext.getConf()).setUfsLength(ufsLength)
+        .setOperationTimeMs(operationTimeMs).build();
+  }
+
+  private void verifyCompleteFile(TestUser user, long fileId, CompleteFileOptions options)
+      throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    mFileSystemMaster.completeFile(fileId, options);
+  }
+
+  @Test
+  public void freeFileSuccessTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
+    verifyCreate(TEST_USER_1, file, false);
+    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
+  }
+
+  @Test
+  public void freeNonNullDirectorySuccessTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    MasterContext.reset(conf);
+
+    String subDir = PathUtils.concatPath(TEST_DIR_URI, "/testState");
+    verifyMkdir(TEST_USER_1, subDir, false);
+    String file = subDir + "/testState1";
+    verifyCreate(TEST_USER_1, file, false);
+    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, subDir), true);
+  }
+
+  @Test
+  public void freeFileFailTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
+    verifyCreate(TEST_USER_1, file, false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
+        TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
+    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
+  }
+
+  @Test
+  public void freeNonNullDirectoryFailTest() throws Exception {
+    // set unmask
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    MasterContext.reset(conf);
+
+    String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
+    verifyCreate(TEST_USER_1, file, false);
+
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(toExceptionMessage(
+        TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
+    verifyFree(TEST_USER_2, getFileId(TEST_USER_1, file), false);
+  }
+
+  private void verifyFree(TestUser user, long fileId, boolean recursive) throws Exception {
+    PlainSaslServer.AuthorizedClientUser.set(user.getUser());
+    mFileSystemMaster.free(fileId, recursive);
   }
 
   private void verifyGetFileId(TestUser user, String path) throws Exception {
