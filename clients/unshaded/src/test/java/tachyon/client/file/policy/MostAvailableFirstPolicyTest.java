@@ -32,6 +32,9 @@ import tachyon.worker.NetAddress;
 public final class MostAvailableFirstPolicyTest {
   private static final int PORT = 1;
 
+  /**
+   * Tests that the worker with the most available space is chosen.
+   */
   @Test
   public void getMostAvailableWorkerTest() {
     List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();

@@ -31,6 +31,8 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
 
   /**
    * Constructs the policy with the hostname.
+   *
+   * @param hostname the name of the host
    */
   public SpecificHostPolicy(String hostname) {
     mHostname = Preconditions.checkNotNull(hostname);

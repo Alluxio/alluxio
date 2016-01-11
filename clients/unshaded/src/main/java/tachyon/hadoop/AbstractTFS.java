@@ -331,7 +331,6 @@ abstract class AbstractTFS extends FileSystem {
    *
    * @see FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
    */
-  @Override
   public abstract String getScheme();
 
   @Override

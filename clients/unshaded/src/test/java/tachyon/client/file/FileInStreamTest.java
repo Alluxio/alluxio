@@ -459,7 +459,7 @@ public class FileInStreamTest {
    * Tests the location policy created with different options.
    */
   @Test
-  public void locationPolicyTest() throws IOException {
+  public void locationPolicyTest() {
     mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
 
@@ -476,8 +476,11 @@ public class FileInStreamTest {
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
   }
 
+  /**
+   * Tests that the correct exception message is produced when the location policy is not specified.
+   */
   @Test
-  public void missingLocationPolicyTest() throws IOException {
+  public void missingLocationPolicyTest() {
     try {
       mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
           .setTachyonStorageType(TachyonStorageType.STORE).setLocationPolicy(null).build());

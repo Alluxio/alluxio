@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.File;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,6 +32,7 @@ import com.google.common.collect.Sets;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.BlockId;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
@@ -61,6 +63,11 @@ public final class BlockMetadataManagerViewTest {
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
         Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

@@ -18,10 +18,10 @@ package tachyon.master.file.meta;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Class which provides access to private state of {@link TTLBucket}.
+ * Class which provides access to private state of {@link TtlBucket}.
  */
-public final class TTLBucketPrivateAccess {
-  public static void setTTLIntervalMs(long intervalMs) {
-    Whitebox.setInternalState(TTLBucket.class, "sTTLIntervalMs", intervalMs);
+public final class TtlBucketPrivateAccess {
+  public static void setTtlIntervalMs(long intervalMs) {
+    Whitebox.setInternalState(TtlBucket.class, "sTtlIntervalMs", intervalMs);
   }
 }
