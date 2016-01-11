@@ -35,6 +35,7 @@ import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.DirectoryNotEmptyException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -48,6 +49,14 @@ import tachyon.thrift.FileInfo;
 */
 @PublicApi
 public class BaseFileSystem implements FileSystem {
+  public static BaseFileSystem get() {
+    return new BaseFileSystem();
+  }
+
+  protected BaseFileSystem() {
+    // BaseFileSystem currently has no state
+  }
+
   @Override
   public void createDirectory(TachyonURI path)
       throws FileAlreadyExistsException, InvalidPathException, IOException, TachyonException {
@@ -148,8 +157,11 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(TachyonURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    // TODO(calvin): Fix the exception handling in the master
     try {
       return new URIStatus(masterClient.getFileInfo(path));
+    } catch (FileDoesNotExistException e) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
@@ -166,8 +178,11 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     List<FileInfo> fileInfos;
+    // TODO(calvin): Fix the exception handling in the master
     try {
       fileInfos = masterClient.getFileInfoList(path);
+    } catch (FileDoesNotExistException e) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
@@ -205,7 +220,10 @@ public class BaseFileSystem implements FileSystem {
       throws IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      masterClient.mount(src, dst);
+      // TODO(calvin): Make this fail on the master side
+      if (!masterClient.mount(src, dst)) {
+        throw new IOException("Unable to mount");
+      }
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
@@ -235,7 +253,10 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, TachyonException {
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      masterClient.rename(src, dst);
+      // TODO(calvin): Update this code on the master side.
+      if (!masterClient.rename(src, dst)) {
+        throw new IOException("mv: Failed to rename " + src + " to " + dst);
+      }
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }

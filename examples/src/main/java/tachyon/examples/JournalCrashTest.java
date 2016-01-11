@@ -30,11 +30,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.WriteType;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.table.TachyonRawTables;
 import tachyon.client.table.TachyonRawTables.TachyonRawTablesFactory;
 import tachyon.conf.TachyonConf;
@@ -117,10 +115,10 @@ public class JournalCrashTest {
         try {
           TachyonURI testURI = new TachyonURI(mWorkDir + mSuccessNum);
           if (ClientOpType.CREATE_FILE == mOpType) {
-            sTfs.getOutStream(testURI, sOutStreamOptions).close();
+            sTfs.createFile(testURI, sCreateFileOptions).close();
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
             try {
-              sTfs.getOutStream(testURI, sOutStreamOptions).close();
+              sTfs.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
               if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
@@ -129,10 +127,10 @@ public class JournalCrashTest {
             } catch (Exception e) {
               throw e;
             }
-            sTfs.delete(sTfs.open(testURI));
+            sTfs.delete(testURI);
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
             try {
-              sTfs.getOutStream(testURI, sOutStreamOptions).close();
+              sTfs.createFile(testURI, sCreateFileOptions).close();
             } catch (TachyonException e) {
               // If file already exists, ignore it.
               if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
@@ -141,7 +139,7 @@ public class JournalCrashTest {
             } catch (Exception e) {
               throw e;
             }
-            sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
+            sTfs.rename(testURI, new TachyonURI(testURI + "-rename"));
           } else if (ClientOpType.CREATE_TABLE == mOpType) {
             try {
               sTachyonRawTables.create(new TachyonURI(mWorkDir + mSuccessNum), 1, null);
@@ -169,7 +167,7 @@ public class JournalCrashTest {
   private static final int EXIT_SUCCESS = 0;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static OutStreamOptions sOutStreamOptions = null;
+  private static CreateFileOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
   private static int sCreateDeleteClientNum;
   private static int sCreateFileClientNum;
@@ -178,7 +176,7 @@ public class JournalCrashTest {
   private static long sMaxAliveTimeMs;
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
-  private static TachyonFileSystem sTfs = null;
+  private static FileSystem sTfs = null;
   /** Old Tachyon client, only be used for raw table functionality */
   private static TachyonRawTables sTachyonRawTables = null;
   /** The total time to run this test. */
@@ -195,27 +193,19 @@ public class JournalCrashTest {
       for (int s = 0; s < successNum; s ++) {
         TachyonURI checkURI = new TachyonURI(workDir + s);
         if (ClientOpType.CREATE_FILE == opType) {
-          try {
-            sTfs.open(checkURI);
-          } catch (Exception e) {
+          if (!sTfs.exists(checkURI)) {
             // File not exist. This is unexpected for CREATE_FILE.
             LOG.error("File not exist for create test. Check failed! File: {}", checkURI);
             return false;
           }
         } else if (ClientOpType.CREATE_DELETE_FILE == opType) {
-          try {
-            sTfs.open(checkURI);
-          } catch (Exception e) {
-            // File not exist. This is expected for CREATE_DELETE_FILE.
-            continue;
+          if (sTfs.exists(checkURI)) {
+            LOG.error("File exists for create/delete test. Check failed! File: {}", checkURI);
+            return false;
           }
-          LOG.error("File exists for create/delete test. Check failed! File: {}", checkURI);
-          return false;
         } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
-          try {
-            sTfs.open(new TachyonURI(checkURI + "-rename"));
-          } catch (Exception e) {
-            // File not exist. This is unexpected for CREATE_RENAME_FILE.
+          if (!sTfs.exists(new TachyonURI(checkURI + "-rename"))) {
+            // File not exist. This is unexpected for CREATE_FILE.
             LOG.error("File not exist for create/rename test. Check failed! File: {}-rename",
                 checkURI);
             return false;
@@ -257,10 +247,7 @@ public class JournalCrashTest {
     stopCluster();
 
     // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
-    sOutStreamOptions =
-        new OutStreamOptions.Builder(new TachyonConf())
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    sCreateFileOptions = CreateFileOptions.defaults().setWriteType(WriteType.NONE);
     // Set the max retry to avoid long pending for client disconnect.
     if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {
       System.setProperty(Constants.MASTER_RETRY_COUNT, "10");
@@ -278,10 +265,10 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = TachyonFileSystemFactory.get();
+      sTfs = FileSystem.Factory.get();
       sTachyonRawTables = TachyonRawTablesFactory.get();
       try {
-        sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
+        sTfs.delete(new TachyonURI(sTestDir));
       } catch (Exception ioe) {
         // Test Directory not exist
       }

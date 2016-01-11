@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.thrift.NetAddress;
@@ -52,7 +52,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   }
 
   @Override
-  public TachyonFileSystem getClient() throws IOException {
+  public FileSystem getClient() throws IOException {
     return mMaster.getClient();
   }
 

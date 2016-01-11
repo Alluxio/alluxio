@@ -21,7 +21,6 @@ import java.io.InputStream;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
@@ -32,17 +31,17 @@ import org.slf4j.LoggerFactory;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.OpenFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -52,13 +51,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private long mCurrentPosition;
-  private TachyonFileSystem mTFS;
-  private long mFileId;
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
   private Statistics mStatistics;
-  private FileInfo mFileInfo;
+  private URIStatus mFileInfo;
 
   private FSDataInputStream mHdfsInputStream = null;
 
@@ -70,40 +67,36 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private int mBufferPosition = 0;
   private byte[] mBuffer;
 
-  private final TachyonConf mTachyonConf;
-
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
-   * @param fileId the file id
+   * @param uri the Tachyon file URI
    * @param hdfsPath the HDFS path
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size
    * @param stats filesystem statistics
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(long fileId, Path hdfsPath, Configuration conf, int bufferSize,
-      FileSystem.Statistics stats) throws IOException {
-    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", fileId, hdfsPath, conf,
+  public HdfsFileInputStream(TachyonURI uri, Path hdfsPath, Configuration conf, int bufferSize,
+      org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
+    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, hdfsPath, conf,
         bufferSize, stats);
-    mTachyonConf = ClientContext.getConf();
-    long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    TachyonConf tachyonConf = ClientContext.getConf();
+    long bufferBytes = tachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
-    mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
-    mFileId = fileId;
+    FileSystem fs = FileSystem.Factory.get();
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
     mStatistics = stats;
     try {
-      mFileInfo = mTFS.getInfo(new TachyonFile(mFileId));
-      mTachyonFileInputStream = mTFS.getInStream(new TachyonFile(mFileId),
-          new InStreamOptions.Builder(ClientContext.getConf())
-              .setTachyonStorageType(TachyonStorageType.STORE).build());
+      mFileInfo = fs.getStatus(uri);
+      mTachyonFileInputStream =
+          fs.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
-          ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(hdfsPath, fileId));
+          ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(hdfsPath, uri));
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -140,7 +133,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   // TODO(calvin): Consider removing this when the recovery logic is available in FileInStream
   private void getHdfsInputStream() throws IOException {
     if (mHdfsInputStream == null) {
-      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      org.apache.hadoop.fs.FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
       mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
       mHdfsInputStream.seek(mCurrentPosition);
     }
@@ -154,7 +147,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   private void getHdfsInputStream(long position) throws IOException {
     if (mHdfsInputStream == null) {
-      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      org.apache.hadoop.fs.FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
       mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
     }
     mHdfsInputStream.seek(position);

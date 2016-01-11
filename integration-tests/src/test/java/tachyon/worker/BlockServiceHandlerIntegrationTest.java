@@ -34,19 +34,17 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
+import tachyon.client.WriteType;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidPathException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
@@ -66,7 +64,7 @@ public class BlockServiceHandlerIntegrationTest {
       new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mWorkerServiceHandler = null;
-  private TachyonFileSystem mTfs = null;
+  private FileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
@@ -105,8 +103,8 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
-    mTfs.getOutStream(new TachyonURI("/testFile"));
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    mTfs.createFile(new TachyonURI("/testFile"));
+    URIStatus file = mTfs.getStatus(new TachyonURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     // Construct the block ids for the file.
@@ -133,8 +131,8 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that cancelling a block will remove the temporary file
   @Test
   public void cancelBlockTest() throws Exception {
-    mTfs.getOutStream(new TachyonURI("/testFile"));
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    mTfs.createFile(new TachyonURI("/testFile"));
+    URIStatus file = mTfs.getStatus(new TachyonURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
@@ -156,11 +154,11 @@ public class BlockServiceHandlerIntegrationTest {
   public void lockBlockTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
-            .setTachyonStorageType(TachyonStorageType.STORE).build();
-    FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
+            .setWriteType(WriteType.MUST_CACHE);
+    FileOutStream out = mTfs.createFile(new TachyonURI("/testFile"), options);
+    URIStatus file = mTfs.getStatus(new TachyonURI("/testFile"));
 
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
@@ -186,8 +184,8 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that lock block returns error on failure
   @Test
   public void lockBlockFailureTest() throws Exception {
-    mTfs.getOutStream(new TachyonURI("/testFile"));
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    mTfs.createFile(new TachyonURI("/testFile"));
+    URIStatus file = mTfs.getStatus(new TachyonURI("/testFile"));
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
     Exception exception = null;
@@ -205,35 +203,35 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void evictionTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
-    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, blockSize);
+    TachyonURI file1 = new TachyonURI("/file1");
+    TachyonFSTestUtils.createByteFile(mTfs, file1, WriteType.MUST_CACHE, blockSize);
 
     // File should be in memory after it is written with MUST_CACHE
-    FileInfo fileInfo1 = mTfs.getInfo(file1);
-    Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
+    URIStatus fileInfo1 = mTfs.getStatus(file1);
+    Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
 
-    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, blockSize);
+    TachyonURI file2 = new TachyonURI("/file2");
+    TachyonFSTestUtils.createByteFile(mTfs, file2, WriteType.MUST_CACHE, blockSize);
 
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
-    fileInfo1 = mTfs.getInfo(file1);
-    FileInfo fileInfo2 = mTfs.getInfo(file2);
-    Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
-    Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
+    fileInfo1 = mTfs.getStatus(file1);
+    URIStatus fileInfo2 = mTfs.getStatus(file2);
+    Assert.assertEquals(100, fileInfo1.getInMemoryPercentage());
+    Assert.assertEquals(100, fileInfo2.getInMemoryPercentage());
 
-    TachyonFile file3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", TachyonStorageType.STORE,
-        UnderStorageType.NO_PERSIST, blockSize);
+    TachyonURI file3 = new TachyonURI("/file3");
+    TachyonFSTestUtils.createByteFile(mTfs, file3, WriteType.MUST_CACHE, blockSize);
 
     waitForHeartbeat();
 
-    fileInfo1 = mTfs.getInfo(file1);
-    fileInfo2 = mTfs.getInfo(file2);
-    FileInfo fileInfo3 = mTfs.getInfo(file3);
+    fileInfo1 = mTfs.getStatus(file1);
+    fileInfo2 = mTfs.getStatus(file2);
+    URIStatus fileInfo3 = mTfs.getStatus(file3);
 
     // File 3 should be in memory and one of file 1 or 2 should be in memory
-    Assert.assertEquals(100, fileInfo3.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo3.getInMemoryPercentage());
     Assert.assertTrue("Exactly one of file1 and file2 should be 100% in memory",
-        fileInfo1.inMemoryPercentage == 100 ^ fileInfo2.inMemoryPercentage == 100);
+        fileInfo1.getInMemoryPercentage() == 100 ^ fileInfo2.getInMemoryPercentage() == 100);
   }
 
   // Tests that space will be allocated when possible

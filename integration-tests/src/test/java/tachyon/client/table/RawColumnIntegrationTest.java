@@ -23,10 +23,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileInfo;
 
 /**
  * Integration tests for {@link RawColumn}.
@@ -37,12 +36,12 @@ public class RawColumnIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
       new LocalTachyonClusterResource(10000, 1000, Constants.GB);
-  private TachyonFileSystem mTachyonFileSystem = null;
+  private FileSystem mFileSystem = null;
   private TachyonRawTables mTachyonRawTables = null;
 
   @Before
   public final void before() throws Exception {
-    mTachyonFileSystem = mLocalTachyonClusterResource.get().getClient();
+    mFileSystem = mLocalTachyonClusterResource.get().getClient();
     mTachyonRawTables = TachyonRawTables.TachyonRawTablesFactory.get();
   }
 
@@ -58,8 +57,8 @@ public class RawColumnIntegrationTest {
       for (int pid = 0; pid < 5; pid ++) {
         // Create an empty partition
         mTachyonRawTables.createPartition(column, pid).close();
-        TachyonFile file = mTachyonRawTables.openPartition(column, pid);
-        FileInfo partitionInfo = mTachyonFileSystem.getInfo(file);
+        TachyonURI file = mTachyonRawTables.getPartitionUri(column, pid);
+        URIStatus partitionInfo = mFileSystem.getStatus(file);
         Assert.assertEquals("/table" + TachyonURI.SEPARATOR + Constants.MASTER_COLUMN_FILE_PREFIX
             + col + TachyonURI.SEPARATOR + pid, partitionInfo.getPath());
       }

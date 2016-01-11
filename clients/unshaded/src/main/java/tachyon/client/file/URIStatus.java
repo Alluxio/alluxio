@@ -193,4 +193,33 @@ public class URIStatus {
   public boolean isPersisted() {
     return mInfo.isIsPersisted();
   }
+
+  /**
+   * @return whether the entity referenced by this uri is pinned, mutable
+   */
+  public boolean isPinned() {
+    return mInfo.isIsPinned();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof URIStatus)) {
+      return false;
+    }
+    URIStatus that = (URIStatus) o;
+    return mInfo.equals(that.mInfo);
+  }
+
+  @Override
+  public int hashCode() {
+    return mInfo.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return mInfo.toString();
+  }
 }

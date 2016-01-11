@@ -18,8 +18,10 @@ package tachyon.client.file;
 import java.io.IOException;
 import java.util.List;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.client.file.options.CreateFileOptions;
 import tachyon.client.file.options.DeleteOptions;
@@ -33,6 +35,7 @@ import tachyon.client.file.options.OpenFileOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.client.lineage.LineageFileSystem;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -46,7 +49,16 @@ import tachyon.exception.TachyonException;
  * by the default implementation.
  */
 @PublicApi
-interface FileSystem {
+public interface FileSystem {
+  class Factory {
+    public static FileSystem get() {
+      if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
+        return LineageFileSystem.get();
+      }
+      return BaseFileSystem.get();
+    }
+  }
+
   /**
    * Convenience method for {@link #createDirectory(TachyonURI, CreateDirectoryOptions)} with
    * default options.

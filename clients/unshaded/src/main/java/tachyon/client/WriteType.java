@@ -54,11 +54,16 @@ public enum WriteType {
    * through).
    *
    * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use
-   *             {@link tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data
+   *             {@link tachyon.client.lineage.LineageFileSystem} for asynchronous data
    *             persistence.
    */
   @Deprecated
-  ASYNC_THROUGH(5);
+  ASYNC_THROUGH(5),
+  /**
+   * Do not store the data in Tachyon or Under Storage. This write type should only be used for
+   * testing.
+   */
+  NONE(6);
 
   private final int mValue;
 
@@ -97,7 +102,7 @@ public enum WriteType {
    * This method is deprecated, it is not recommended to use {@link #ASYNC_THROUGH}.
    *
    * @return true if the write type is {@link #ASYNC_THROUGH}, false otherwise
-   * @deprecated Use {@link tachyon.client.lineage.TachyonLineageFileSystem} for asynchronous data
+   * @deprecated Use {@link tachyon.client.lineage.LineageFileSystem} for asynchronous data
    *             persistence.
    */
   @Deprecated

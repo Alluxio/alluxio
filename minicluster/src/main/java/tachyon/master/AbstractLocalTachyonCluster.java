@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.underfs.UnderFileSystemCluster;
@@ -410,12 +410,12 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Returns a {@link tachyon.client.file.TachyonFileSystem} client.
+   * Returns a {@link FileSystem} client.
    *
    * @return a TachyonFS client
    * @throws IOException when the operation fails
    */
-  public abstract TachyonFileSystem getClient() throws IOException;
+  public abstract FileSystem getClient() throws IOException;
 
   /**
    * Gets the master which should be listening for RPC and Web requests.

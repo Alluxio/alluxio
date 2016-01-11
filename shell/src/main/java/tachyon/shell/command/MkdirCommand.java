@@ -18,8 +18,8 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.options.CreateDirectoryOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -33,7 +33,7 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public MkdirCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public MkdirCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -52,8 +52,8 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
     TachyonURI inputPath = new TachyonURI(args[0]);
 
     try {
-      MkdirOptions options = new MkdirOptions.Builder(mTachyonConf).setRecursive(true).build();
-      mTfs.mkdir(inputPath, options);
+      CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
+      mTfs.createDirectory(inputPath, options);
       System.out.println("Successfully created directory " + inputPath);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());

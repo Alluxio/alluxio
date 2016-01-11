@@ -18,7 +18,7 @@ package tachyon.shell.command;
 import java.io.IOException;
 
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -27,7 +27,7 @@ import tachyon.conf.TachyonConf;
  */
 public final class UnpinCommand extends WithWildCardPathCommand {
 
-  public UnpinCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public UnpinCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
