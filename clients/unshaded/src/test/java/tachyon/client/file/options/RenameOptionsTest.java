@@ -21,15 +21,6 @@ import org.junit.Test;
  * Tests for the {@link RenameOptions} class.
  */
 public class RenameOptionsTest {
-
-  /**
-   * Tests that building a {@link RenameOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    new RenameOptions.Builder().build();
-  }
-
   /**
    * Tests that building a {@link RenameOptions} with the defaults works.
    */

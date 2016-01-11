@@ -21,15 +21,6 @@ import org.junit.Test;
  * Tests for the {@link UnmountOptions} class.
  */
 public class UnmountOptionsTest {
-
-  /**
-   * Tests that building an {@link UnmountOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    new UnmountOptions.Builder().build();
-  }
-
   /**
    * Tests that building an {@link UnmountOptions} with the defaults works.
    */
