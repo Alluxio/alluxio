@@ -31,7 +31,7 @@ public final class WorkerContext {
   private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
-   * The {@link WorkerSource} for collecting master metrics.
+   * The {@link WorkerSource} for collecting worker metrics.
    */
   private static WorkerSource sWorkerSource = new WorkerSource();
 
@@ -52,7 +52,7 @@ public final class WorkerContext {
    * Returns the one and only static {@link WorkerSource} object which is shared among all classes
    * within the worker process.
    *
-   * @return the {@link WorkerSource} for the master process
+   * @return the {@link WorkerSource} for the worker process
    */
   public static WorkerSource getWorkerSource() {
     return sWorkerSource;
@@ -83,7 +83,7 @@ public final class WorkerContext {
   }
 
   /**
-   * Resets the master context, for test only.
+   * Resets the worker context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
   public static void reset(TachyonConf conf) {

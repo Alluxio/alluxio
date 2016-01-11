@@ -198,7 +198,7 @@ public final class BlockWorker extends WorkerBase {
     getExecutorService().shutdownNow();
 
     mBlockDataManager.stop();
-    // TODO(binfan): investigate why we need to close dataserver again. There usd to be a comment
+    // TODO(binfan): investigate why we need to close dataserver again. There used to be a comment
     // saying the reason to stop and close again is due to some issues in Thrift.
     while (!mDataServer.isClosed()) {
       mDataServer.close();
