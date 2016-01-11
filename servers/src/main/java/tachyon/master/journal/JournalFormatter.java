@@ -30,6 +30,10 @@ import tachyon.util.CommonUtils;
  * This describes the interface for serializing and deserializing entries in the journal.
  */
 public interface JournalFormatter {
+
+  /**
+   * Factory for {@link JournalFormatter}.
+   */
   class Factory {
     /**
      * Factory method for {@link JournalFormatter}.
@@ -52,7 +56,7 @@ public interface JournalFormatter {
    *
    * @param entry The journal entry to serialize
    * @param outputStream the output stream to serialize the entry to
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
 
@@ -63,7 +67,7 @@ public interface JournalFormatter {
    * @param inputStream The input stream to deserialize
    * @return a {@link JournalInputStream} for reading all the journal entries in the given input
    *         stream.
-   * @throws IOException
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   JournalInputStream deserialize(InputStream inputStream) throws IOException;
 }

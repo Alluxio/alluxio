@@ -20,7 +20,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.CreateTOptions;
 
+/**
+ * Method option for creating a file.
+ */
 public final class CreateOptions {
+
+  /**
+   * Builder for {@link CreateOptions}.
+   */
   public static class Builder {
     private long mBlockSizeBytes;
     private long mOperationTimeMs;

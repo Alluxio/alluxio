@@ -35,6 +35,9 @@ public final class TTLBucketList {
    */
   private final ConcurrentSkipListSet<TTLBucket> mBucketList;
 
+  /**
+   * Creates a new list of {@link TTLBucket}s
+   */
   public TTLBucketList() {
     mBucketList = new ConcurrentSkipListSet<TTLBucket>();
   }
