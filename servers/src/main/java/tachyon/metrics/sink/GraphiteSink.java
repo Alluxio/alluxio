@@ -46,6 +46,7 @@ public class GraphiteSink implements Sink {
    *
    * @param properties the properties which may contain polling period and unit properties
    * @param registry the metric registry to register
+   * @throws IllegalArgumentException if the {@code host} or {@code port} property is missing
    */
   public GraphiteSink(Properties properties, MetricRegistry registry)
       throws IllegalArgumentException {
