@@ -46,6 +46,7 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.PersistenceState;
 import tachyon.master.file.meta.TtlBucket;
 import tachyon.master.file.meta.TtlBucketPrivateAccess;
 import tachyon.master.file.options.CompleteFileOptions;
@@ -103,6 +104,8 @@ public final class FileSystemMasterTest {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
         HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
@@ -429,6 +432,26 @@ public final class FileSystemMasterTest {
 
     long workerId = mFileSystemMaster.scheduleAsyncPersistence(fileId);
     Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
+  }
+
+  @Test
+  public void lostFilesDetectionTest() throws Exception {
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
+    mFileSystemMaster.reportLostFile(fileId);
+
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
+
+    // run the detector
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
+        TimeUnit.SECONDS));
+
+    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {

@@ -23,6 +23,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -54,8 +56,13 @@ public final class FileDataManager {
   private final UnderFileSystem mUfs;
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
-  private final List<Long> mPersistedFiles;
+
+  // the file being persisted
+  private final Set<Long> mPersistingInProgressFiles;
+  // the file are persisted, but not sent back to master for confirmation yet
+  private final Set<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
+  private final Object mLock = new Object();
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -64,11 +71,85 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mPersistedFiles = Lists.newArrayList();
+    mPersistingInProgressFiles = Sets.newHashSet();
+    mPersistedFiles = Sets.newHashSet();
     mTachyonConf = WorkerContext.getConf();
     // Create Under FileSystem Client
     String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+  }
+
+  /**
+   * Checks if the given file is being persisted.
+   *
+   * @param fileId the file id
+   * @return true if the file is being persisted, false otherwise
+   */
+  private boolean isFilePersisting(long fileId) {
+    synchronized (mLock) {
+      return mPersistedFiles.contains(fileId);
+    }
+  }
+
+  /**
+   * Checks if the given file needs persistence.
+   *
+   * @param fileId the file id
+   * @return false if the file is being persisted, or is already persisted; otherwise true
+   */
+  public boolean needPersistence(long fileId) {
+    if (isFilePersisting(fileId) || isFilePersisted(fileId)) {
+      return false;
+    }
+
+    try {
+      if (fileExistsInUfs(fileId)) {
+        // mark as persisted
+        addPersistedFile(fileId);
+        return false;
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to check if file {} exists in under storage system", fileId, e);
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given file is persisted.
+   *
+   * @param fileId the file id
+   * @return true if the file is being persisted, false otherwise
+   */
+  public boolean isFilePersisted(long fileId) {
+    synchronized (mLock) {
+      return mPersistedFiles.contains(fileId);
+    }
+  }
+
+  /**
+   * Adds a file as persisted.
+   *
+   * @param fileId the file id
+   */
+  private void addPersistedFile(long fileId) {
+    synchronized (mLock) {
+      mPersistedFiles.add(fileId);
+    }
+  }
+
+  /**
+   * Checks if the given file exists in the under storage system.
+   *
+   * @param fileId the file id
+   * @return true if the file exists in under storage system, false otherwise
+   * @throws IOException an I/O exception occurs
+   */
+  private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
+    String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+    FileInfo fileInfo = mBlockDataManager.getFileInfo(fileId);
+    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+
+    return mUfs.exists(dstPath);
   }
 
   /**
@@ -78,7 +159,11 @@ public final class FileDataManager {
    * @param blockIds the list of block ids
    * @throws IOException if the file persistence fails
    */
-  public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
+  public void persistFile(long fileId, List<Long> blockIds) throws IOException {
+    synchronized (mLock) {
+      mPersistingInProgressFiles.add(fileId);
+    }
+
     String dstPath = prepareUfsFilePath(fileId);
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
@@ -131,7 +216,10 @@ public final class FileDataManager {
     outputStream.flush();
     outputChannel.close();
     outputStream.close();
-    mPersistedFiles.add(fileId);
+    synchronized (mLock) {
+      mPersistingInProgressFiles.remove(fileId);
+      mPersistedFiles.add(fileId);
+    }
   }
 
   /**
@@ -157,14 +245,22 @@ public final class FileDataManager {
   }
 
   /**
-   * Returns a list of file to persist, removing them from the internal queue.
-   *
-   * @return a list to files to persist
+   * @return the persisted file
    */
-  public synchronized List<Long> popPersistedFiles() {
+  public List<Long> getPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
-    toReturn.addAll(mPersistedFiles);
-    mPersistedFiles.clear();
-    return toReturn;
+    synchronized (mLock) {
+      toReturn.addAll(mPersistedFiles);
+      return toReturn;
+    }
+  }
+
+  /**
+   * Clears the given persisted files stored in {@link #mPersistedFiles}.
+   */
+  public void clearPersistedFiles(List<Long> persistedFiles) {
+    synchronized (mLock) {
+      mPersistedFiles.removeAll(persistedFiles);
+    }
   }
 }
