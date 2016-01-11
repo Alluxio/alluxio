@@ -67,8 +67,7 @@ public class Performance {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
       sTFS.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber))).close();
-      LOG.info(
-          FormatUtils.formatTimeTakenMs(startTimeMs, "createFile"));
+      LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile"));
     }
   }
 

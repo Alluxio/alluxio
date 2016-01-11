@@ -292,8 +292,6 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
     URIStatus fileStatus;
     try {
       fileStatus = mTFS.getStatus(tPath);
-    } catch (InvalidPathException e) {
-      throw new FileNotFoundException(e.getMessage());
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
     } catch (TachyonException e) {
