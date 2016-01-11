@@ -20,7 +20,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.security.authorization.PermissionStatus;
 
+/**
+ * Method option for creating a path.
+ */
 public final class CreatePathOptions {
+
+  /**
+   * Builder for {@link CreatePathOptions}.
+   */
   public static class Builder {
     private boolean mAllowExists;
     private long mBlockSizeBytes;

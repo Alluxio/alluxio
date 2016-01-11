@@ -40,6 +40,9 @@ public final class InodeFile extends Inode {
   private static final FileSystemPermission UMASK =
       new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
+  /**
+   * Builder for {@link InodeFile}.
+   */
   public static class Builder extends Inode.Builder<InodeFile.Builder> {
     private long mBlockContainerId;
     private long mBlockSizeBytes;
@@ -235,6 +238,13 @@ public final class InodeFile extends Inode {
     return blockId;
   }
 
+  /**
+   * Gets the block id for a given index.
+   *
+   * @param blockIndex the index to get the block id for
+   * @return the block id for the index
+   * @throws BlockInfoException if the index of the block is out of range
+   */
   public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException(
@@ -257,6 +267,11 @@ public final class InodeFile extends Inode {
     return mCompleted;
   }
 
+  /**
+   * Sets the id's of the block.
+   *
+   * @param blockIds the id's of the block
+   */
   public synchronized void setBlockIds(List<Long> blockIds) {
     mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
   }
@@ -325,6 +340,7 @@ public final class InodeFile extends Inode {
   /**
    * Converts the entry to an {@link InodeFile}.
    *
+   * @param entry the entry to convert
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
