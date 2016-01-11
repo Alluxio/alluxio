@@ -1796,7 +1796,8 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Checks user's permission on a path. If the path is invalid, it should bypass the
-   * {@link InvalidPathException} and the logic at operation will handle it.
+   * {@link InvalidPathException} and the logic at operation will handle it. The caller should lock
+   * mInodeTree before calling it.
    *
    * @param action requested {@link FileSystemAction} by user
    * @param path the path to check permission on
