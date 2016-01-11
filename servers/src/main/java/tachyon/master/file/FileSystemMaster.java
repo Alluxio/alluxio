@@ -599,7 +599,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the total number of files and directories.
+   * Gets the total number of files and directories.
    *
    * @return the number of files and directories
    */
@@ -610,7 +610,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the number of pinned files and directories.
+   * Gets the number of pinned files and directories.
    *
    * @return the number of pinned files and directories
    */
@@ -919,7 +919,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
+   * Gets the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
    * 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
    *
    * @param inode the inode
