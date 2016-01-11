@@ -20,6 +20,9 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link Utils}.
+ */
 public class UtilsTest {
   @Test
   public void convertToClockTimeWithShortValue() {

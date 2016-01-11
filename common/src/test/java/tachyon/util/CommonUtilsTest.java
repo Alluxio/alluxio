@@ -203,6 +203,11 @@ public class CommonUtilsTest {
     Assert.assertEquals(groups.get(1), userGroup2);
   }
 
+  /**
+   * Test for the {@link CommonUtils#getPrimaryGroupName(TachyonConf, String)} method.
+   *
+   * @throws Throwable if getting the primary group name fails
+   */
   @Test
   public void userPrimaryGroupTest() throws Throwable {
     String userName = "tachyon-user1";

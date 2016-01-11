@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
-import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
@@ -34,11 +33,13 @@ import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.client.block.UnderStoreBlockInStream;
 import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
+import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
-import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -59,6 +60,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private final TachyonStorageType mTachyonStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
   private final long mBlockSize;
+  /** The location policy for CACHE type of read into Tachyon */
+  private final FileWriteLocationPolicy mLocationPolicy;
   /** Total length of the file in bytes */
   private final long mFileLength;
   /** File System context containing the {@link FileSystemMasterClient} pool */
@@ -91,6 +94,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mClosed = false;
+    mLocationPolicy = options.getLocationPolicy();
+    if (mShouldCacheCurrentBlock) {
+      Preconditions.checkNotNull(options.getLocationPolicy(),
+          PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
+    }
   }
 
   @Override
@@ -225,12 +233,21 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       updateBlockInStream(currentBlockId);
       if (mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream = mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
-              NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+          long blockSize = getCurrentBlockSize();
+          NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+              mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
+          mCurrentCacheStream =
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException ioe) {
           LOG.warn("Failed to get TachyonStore stream, the block {} will not be in TachyonStorage. "
               + "Exception: {}", currentBlockId, ioe.getMessage());
           mShouldCacheCurrentBlock = false;
+        } catch (TachyonException e) {
+          LOG.warn(
+              "Failed to get worker for writing the block"
+                  + " the block {} will not be in TachyonStorage. Exception: {}",
+              currentBlockId, e.getMessage());
+          throw new IOException(e);
         }
       }
     }
@@ -268,6 +285,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
+   * @return the size of the current block being written
+   */
+  private long getCurrentBlockSize() {
+    long remaining = mFileLength - mPos;
+    return remaining < mBlockSize ? remaining : mBlockSize;
+  }
+
+  /**
    * Similar to {@link #checkAndAdvanceBlockInStream()}, but a specific position can be specified
    * and the stream pointer will be at that offset after this method completes.
    *
@@ -285,12 +310,21 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream = mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
-              NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+          long blockSize = getCurrentBlockSize();
+          NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+              mContext.getTachyonBlockStore().getWorkerInfoList(), blockSize);
+          mCurrentCacheStream =
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException ioe) {
           LOG.warn("Failed to write to TachyonStore stream, block {} will not be in "
               + "TachyonStorage. Exception: {}", getCurrentBlockId(), ioe.getMessage());
           mShouldCacheCurrentBlock = false;
+        } catch (TachyonException e) {
+          LOG.warn(
+              "Failed to get worker for writing the block"
+                  + " the block {} will not be in TachyonStorage. Exception: {}",
+              currentBlockId, e.getMessage());
+          throw new IOException(e);
         }
       } else {
         mShouldCacheCurrentBlock = false;

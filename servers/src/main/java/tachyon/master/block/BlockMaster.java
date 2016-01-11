@@ -65,8 +65,8 @@ import tachyon.thrift.BlockMasterClientService;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
@@ -79,7 +79,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Block metadata management. */
+  // Block metadata management.
   /**
    * Blocks on all workers, including active and lost blocks. This state must be journaled. Access
    * must be synchronized on mBlocks. If both block and worker metadata must be locked, mBlocks must
@@ -95,7 +95,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
 
-  /** Worker metadata management. */
+  // Worker metadata management.
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
@@ -150,6 +150,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_NAME);
   }
 
+  /**
+   * Creates a new instance of {@link BlockMaster}.
+   *
+   * @param journal the journal to use for tracking master operations
+   */
   public BlockMaster(Journal journal) {
     super(journal, 2);
   }
@@ -397,7 +402,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   /**
    * @param blockId the block id to get information for
    * @return the {@link BlockInfo} for the given block id. Called via RPC
-   * @throws BlockInfoException
+   * @throws BlockInfoException if the block info is not found
    */
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
     synchronized (mBlocks) {
@@ -474,9 +479,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param workerNetAddress the worker {@link NetAddress}
    * @return the worker id for this worker
    */
-  public long getWorkerId(NetAddress workerNetAddress) {
+  public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
-    NetAddress workerAddress = new NetAddress(workerNetAddress);
+    WorkerNetAddress workerAddress = new WorkerNetAddress(workerNetAddress);
 
     synchronized (mWorkers) {
       if (mWorkers.contains(mAddressIndex, workerAddress)) {

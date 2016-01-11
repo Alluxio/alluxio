@@ -28,6 +28,9 @@ import io.netty.buffer.Unpooled;
 
 import tachyon.network.protocol.databuffer.DataByteBuffer;
 
+/**
+ * Unit tests for {@link RPCBlockReadResponse}.
+ */
 public class RPCBlockReadResponseTest {
   private static final long BLOCK_ID = 1;
   private static final long OFFSET = 2;

@@ -59,7 +59,7 @@ public final class LocalTachyonMaster {
 
     mJournalFolder = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
 
-    mTachyonMaster = TachyonMaster.Factory.createMaster();
+    mTachyonMaster = TachyonMaster.Factory.create();
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
@@ -132,6 +132,15 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.web.resources");
     System.clearProperty("tachyon.master.min.worker.threads");
 
+  }
+
+  /**
+   * Kill the master thread, by calling {@link Thread#interrupt()}.
+   *
+   * @throws Exception if master thread cannot be interrupted
+   */
+  public void kill() throws Exception {
+    mMasterThread.interrupt();
   }
 
   public void clearClients() throws IOException {

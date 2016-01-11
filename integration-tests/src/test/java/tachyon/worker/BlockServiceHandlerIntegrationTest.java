@@ -51,21 +51,21 @@ import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.block.BlockServiceHandler;
+import tachyon.worker.block.BlockWorkerClientServiceHandler;
 
 /**
- * Integration tests for {@link BlockServiceHandler}
+ * Integration tests for {@link BlockWorkerClientServiceHandler}
  */
 public class BlockServiceHandlerIntegrationTest {
-  private static final long WORKER_CAPACITY_BYTES = 10000;
+  private static final long WORKER_CAPACITY_BYTES = 10 * Constants.MB;
   private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource =
-      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB,
+      new LocalTachyonClusterResource(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.MB,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-  private BlockServiceHandler mWorkerServiceHandler = null;
+  private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
@@ -88,8 +88,8 @@ public class BlockServiceHandlerIntegrationTest {
     mTfs = mLocalTachyonClusterResource.get().getClient();
     mMasterTachyonConf = mLocalTachyonClusterResource.get().getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonClusterResource.get().getWorkerTachyonConf();
-    mWorkerServiceHandler =
-        mLocalTachyonClusterResource.get().getWorker().getWorkerServiceHandler();
+    mBlockWorkerServiceHandler =
+        mLocalTachyonClusterResource.get().getWorker().getBlockWorkerServiceHandler();
 
     mBlockMasterClient = new BlockMasterClient(
         new InetSocketAddress(mLocalTachyonClusterResource.get().getMasterHostname(),
@@ -113,9 +113,10 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId0 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
     final long blockId1 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 1);
 
-    String filename = mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0, blockSize);
+    String filename =
+        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0, blockSize);
     createBlockFile(filename, blockSize);
-    mWorkerServiceHandler.cacheBlock(SESSION_ID, blockId0);
+    mBlockWorkerServiceHandler.cacheBlock(SESSION_ID, blockId0);
 
     // The master should be immediately updated with the persisted block
     Assert.assertEquals(blockSize, mBlockMasterClient.getUsedBytes());
@@ -123,7 +124,7 @@ public class BlockServiceHandlerIntegrationTest {
     // Attempting to cache a non existent block should throw an exception
     Exception exception = null;
     try {
-      mWorkerServiceHandler.cacheBlock(SESSION_ID, blockId1);
+      mBlockWorkerServiceHandler.cacheBlock(SESSION_ID, blockId1);
     } catch (TException e) {
       exception = e;
     }
@@ -139,9 +140,10 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
-    String filename = mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize);
+    String filename =
+        mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize);
     createBlockFile(filename, blockSize);
-    mWorkerServiceHandler.cancelBlock(SESSION_ID, blockId);
+    mBlockWorkerServiceHandler.cancelBlock(SESSION_ID, blockId);
 
     // The block should not exist after being cancelled
     Assert.assertFalse(new File(filename).exists());
@@ -167,7 +169,7 @@ public class BlockServiceHandlerIntegrationTest {
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
-    String localPath = mWorkerServiceHandler.lockBlock(blockId, SESSION_ID).blockPath;
+    String localPath = mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID).blockPath;
 
     // The local path should exist
     Assert.assertNotNull(localPath);
@@ -180,7 +182,7 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertEquals(blockSize, bytesRead);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(bytesRead, data));
 
-    mWorkerServiceHandler.unlockBlock(blockId, SESSION_ID);
+    mBlockWorkerServiceHandler.unlockBlock(blockId, SESSION_ID);
   }
 
   // Tests that lock block returns error on failure
@@ -192,7 +194,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     Exception exception = null;
     try {
-      mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
+      mBlockWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
     } catch (TachyonTException e) {
       exception = e;
     }
@@ -243,24 +245,25 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId2 = 12346L;
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
 
-    mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize);
-    boolean result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
+    mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize);
+    boolean result = mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
 
     // Initial request and first additional request should succeed
     Assert.assertTrue(result);
 
-    result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, WORKER_CAPACITY_BYTES);
+    result = mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, WORKER_CAPACITY_BYTES);
 
     // Impossible request should fail
     Assert.assertFalse(result);
 
     // Request for space on a nonexistent block should fail
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
+    Assert.assertFalse(mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
 
     // Request for impossible initial space should fail
     Exception exception = null;
     try {
-      mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
+      mBlockWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2,
+          WORKER_CAPACITY_BYTES + 1);
     } catch (TachyonTException e) {
       exception = e;
     }
@@ -276,16 +279,18 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId1 = 12345L;
     final long blockId2 = 23456L;
 
-    String filePath1 = mWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize);
-    String filePath2 = mWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize);
+    String filePath1 =
+        mBlockWorkerServiceHandler.requestBlockLocation(userId1, blockId1, chunkSize);
+    String filePath2 =
+        mBlockWorkerServiceHandler.requestBlockLocation(userId2, blockId2, chunkSize);
 
     // Initial requests should succeed
     Assert.assertTrue(filePath1 != null);
     Assert.assertTrue(filePath2 != null);
 
     // Additional requests for space should fail
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId1, blockId1, chunkSize));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(userId2, blockId2, chunkSize));
+    Assert.assertFalse(mBlockWorkerServiceHandler.requestSpace(userId1, blockId1, chunkSize));
+    Assert.assertFalse(mBlockWorkerServiceHandler.requestSpace(userId2, blockId2, chunkSize));
   }
 
   // Creates a block file and write an increasing byte array into it

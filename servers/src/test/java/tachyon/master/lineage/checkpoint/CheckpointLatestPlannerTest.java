@@ -38,7 +38,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 
 /**
- * Tests {@link CheckpointLatestPlanner}.
+ * Unit tests for {@link CheckpointLatestPlanner}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})

@@ -43,7 +43,7 @@ import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
 /**
- * The Server to serve data file read requests from remote machines. The current implementation is
+ * The server to serve data file read requests from remote machines. The current implementation is
  * based on non-blocking NIO.
  */
 public final class NIODataServer implements Runnable, DataServer {

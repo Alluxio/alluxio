@@ -610,6 +610,11 @@ The user configuration specifies values regarding file system access.
   <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
 </tr>
 <tr>
+  <td>tachyon.user.file.write.location.policy.class</td>
+  <td>tachyon.client.file.policy.LocalFirstPolicy</td>
+  <td>The default location policy for choosing workers for writing a file's blocks</td>
+</tr>
+<tr>
   <td>tachyon.user.file.readtype.default</td>
   <td>CACHE_PROMOTE</td>
   <td>Default write type when creating Tachyon files.
@@ -733,9 +738,9 @@ configuration options.
   <td>The Mesos task name for the Tachyon worker task.</td>
 </tr>
 <tr>
-  <td>tachyon.integration.yarn.one.worker.per.host</td>
-  <td>true</td>
-  <td>If true, Tachyon workers in Yarn will be spread out to have at most one worker per host.</td>
+  <td>tachyon.integration.yarn.max.workers.per.host</td>
+  <td>1</td>
+  <td>The maximum number of Tachyon workers which may be allocated to a single host.</td>
 </tr>
 <tr>
   <td>tachyon.integration.worker.resource.cpu</td>

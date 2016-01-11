@@ -35,9 +35,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerIdRegistry;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster.
@@ -46,7 +45,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
-  private static final long CLUSTER_READY_TIMEOUT_MS = 20000;
+  private static final long CLUSTER_READY_TIMEOUT_MS = 60000;
   private static final String ELLIPSIS = "…";
   private static final Random RANDOM_GENERATOR = new Random();
 
@@ -57,8 +56,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected TachyonConf mMasterConf;
   protected TachyonConf mWorkerConf;
 
-  protected BlockWorker mWorker;
-  protected FileSystemWorker mFileSystemWorker;
+  protected TachyonWorker mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mTachyonHome;
@@ -193,7 +191,7 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Configure and start master.
+   * Configures and starts a master.
    *
    * @param conf configuration of this test
    * @throws IOException when the operation fails
@@ -201,7 +199,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected abstract void startMaster(TachyonConf conf) throws IOException;
 
   /**
-   * Configure and start worker.
+   * Configures and starts a worker.
    *
    * @param conf configuration of this test
    * @throws IOException if an I/O error occurs
@@ -218,13 +216,13 @@ public abstract class AbstractLocalTachyonCluster {
    */
   protected void setupTest(TachyonConf conf) throws IOException {
     String tachyonHome = conf.get(Constants.TACHYON_HOME);
-    // Delete the tachyon home dir for this test from ufs to avoid permission problems
+    // Deletes the tachyon home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(tachyonHome, conf);
 
-    // Create ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
+    // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
     UnderFileSystemUtils.mkdirIfNotExists(conf.get(Constants.UNDERFS_ADDRESS), conf);
 
-    // Create storage dirs for worker
+    // Creates storage dirs for worker
     int numLevel = conf.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level ++) {
       String tierLevelDirPath =
@@ -235,17 +233,17 @@ public abstract class AbstractLocalTachyonCluster {
       }
     }
 
-    // Start the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
+    // Starts the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
     // (see also {@link tachyon.LocalMiniDFSCluster} and sets up the folder like
     // "hdfs://xxx:xxx/tachyon*".
     mUfsCluster = UnderFileSystemCluster.get(mTachyonHome, conf);
 
-    // Set the journal folder
+    // Sets the journal folder
     String journalFolder =
         mUfsCluster.getUnderFilesystemAddress() + "/journal" + RANDOM_GENERATOR.nextLong();
     conf.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
 
-    // Format the journal
+    // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder, conf);
     for (String masterServiceName : mMasterServiceNames) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(journalFolder, masterServiceName),
@@ -254,19 +252,21 @@ public abstract class AbstractLocalTachyonCluster {
     UnderFileSystemUtils
         .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()), conf);
 
-    // If we are using the LocalMiniDFSCluster, we need to update the UNDERFS_ADDRESS to point to
-    // the cluster's current address. This must happen after UFS is started with
-    // UnderFileSystemCluster.get().
+    // If we are using the LocalMiniDFSCluster or S3UnderStorageCluster or OSSUnderStorageCluster,
+    // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
+    // This must happen after UFS is started with UnderFileSystemCluster.get().
     // TODO(andrew): Move logic to the integration-tests project so that we can use instanceof here
     // instead of comparing classnames.
-    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")) {
+    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")
+        || mUfsCluster.getClass().getSimpleName().equals("S3UnderStorageCluster")
+        || mUfsCluster.getClass().getSimpleName().equals("OSSUnderStorageCluster")) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mTachyonHome;
       conf.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }
   }
 
   /**
-   * Stop both of the tachyon and underfs service threads.
+   * Stops both the tachyon and underfs service threads.
    *
    * @throws Exception when the operation fails
    */
@@ -278,14 +278,14 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Stop the tachyon filesystem's service thread only.
+   * Stops the tachyon filesystem's service thread only.
    *
    * @throws Exception when the operation fails
    */
   public abstract void stopTFS() throws Exception;
 
   /**
-   * Cleanup the underfs cluster test folder only.
+   * Cleans up the underfs cluster test folder only.
    *
    * @throws Exception when the operation fails
    */
@@ -297,7 +297,7 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Create a default {@link tachyon.conf.TachyonConf} for testing.
+   * Creates a default {@link tachyon.conf.TachyonConf} for testing.
    *
    * @return a testing TachyonConf
    * @throws IOException when the operation fails
@@ -353,11 +353,11 @@ public abstract class AbstractLocalTachyonCluster {
     testConf.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
     testConf.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
 
-    // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
+    // Performs an immediate shutdown of data server. Graceful shutdown is unnecessary and slow
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
     testConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
-    // Setup tiered store
+    // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mTachyonHome, "ramdisk");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
@@ -382,21 +382,19 @@ public abstract class AbstractLocalTachyonCluster {
   }
 
   /**
-   * Run a worker.
+   * Runs a worker.
    *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new BlockWorker();
-    mFileSystemWorker = new FileSystemWorker(mWorker.getBlockDataManager());
+    mWorker = new TachyonWorker();
 
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
-          mFileSystemWorker.start();
-          mWorker.process();
+          mWorker.start();
 
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
@@ -421,26 +419,26 @@ public abstract class AbstractLocalTachyonCluster {
   protected abstract LocalTachyonMaster getMaster();
 
   /**
-   * Get master's {@link tachyon.conf.TachyonConf}.
+   * Gets master's {@link tachyon.conf.TachyonConf}.
    */
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;
   }
 
   /**
-   * Reset context when stop the local tachyon cluster.
+   * Resets contexts. This is called when the cluster is stopped.
    */
   protected void resetContext() {}
 
   /**
-   * Set hostname.
+   * Sets hostname.
    */
   protected void setHostname() {
     mHostname = NetworkAddressUtils.getLocalHostName(100);
   }
 
   /**
-   * Set tachyon home.
+   * Sets tachyon home.
    *
    * @throws IOException when the operation fails
    */

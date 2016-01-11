@@ -15,7 +15,6 @@
 
 package tachyon.worker;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
@@ -28,17 +27,20 @@ import tachyon.Constants;
 /**
  * This is the base class for all workers, and contains common functionality.
  */
-public abstract class WorkerBase {
+public abstract class WorkerBase implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The executor service for the master sync */
   private final ExecutorService mExecutorService;
 
-  protected WorkerBase(ExecutorService executorService) throws IOException {
+  /**
+   * @param executorService executor service to use internally
+   */
+  protected WorkerBase(ExecutorService executorService)  {
     mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   /**
-   * @return the executor service for this master
+   * @return the executor service
    */
   protected ExecutorService getExecutorService() {
     return mExecutorService;

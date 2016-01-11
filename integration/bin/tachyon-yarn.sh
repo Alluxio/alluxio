@@ -56,5 +56,5 @@ export YARN_OPTS="${YARN_OPTS:-${TACHYON_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} tachyon.yarn.Client \
     -num_workers $NUM_WORKERS \
-    -master_address localhost \
+    -master_address ${TACHYON_MASTER_ADDRESS:-localhost} \
     -resource_path ${HDFS_PATH}

@@ -27,13 +27,13 @@ import tachyon.conf.TachyonConf;
  * ordinal numbers from the given {@link TachyonConf}. This class is thread safe.
  */
 public abstract class StorageTierAssoc {
-  /*
+  /**
    * An immutable bi-directional mapping between storage level aliases and their ordinals. Immutable
    * maps are thread safe.
    */
   private final ImmutableBiMap<String, Integer> mAliasToOrdinal;
 
-  /*
+  /**
    * Constructs a new instance using the given TachyonConf object. The mapping cannot be modified
    * after creation.
    *
@@ -51,11 +51,11 @@ public abstract class StorageTierAssoc {
     mAliasToOrdinal = builder.build();
   }
 
-  /*
+  /**
    * Constructs a new instance using the given list of storage tier aliases in order of their
    * position in the hierarchy.
    *
-   * @param aliases the list of aliases
+   * @param storageTierAliases the list of aliases
    */
   protected StorageTierAssoc(List<String> storageTierAliases) {
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<String, Integer>();
@@ -65,20 +65,31 @@ public abstract class StorageTierAssoc {
     mAliasToOrdinal = builder.build();
   }
 
+  /**
+   * @param ordinal a storage tier ordinal
+   * @return the storage tier alias matching the given ordinal
+   */
   public String getAlias(int ordinal) {
     return mAliasToOrdinal.inverse().get(ordinal);
   }
 
+  /**
+   * @param alias a storage tier alias
+   * @return the storage tier ordinal matching the given alias
+   */
   public int getOrdinal(String alias) {
     return mAliasToOrdinal.get(alias);
   }
 
+  /**
+   * @return the size of the alias-ordinal mapping
+   */
   public int size() {
     return mAliasToOrdinal.size();
   }
 
   /**
-   * @return A list of storage tier aliases in order of their ordinal value
+   * @return a list of storage tier aliases in order of their ordinal value
    */
   public List<String> getOrderedStorageAliases() {
     int size = size();

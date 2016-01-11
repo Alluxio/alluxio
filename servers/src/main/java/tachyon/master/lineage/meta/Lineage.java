@@ -42,7 +42,7 @@ public final class Lineage implements JournalEntryRepresentable {
   private final long mCreationTimeMs;
 
   /**
-   * Creates a new lineage.
+   * Creates a new instance of {@link Lineage}.
    *
    * @param id the lineage id
    * @param inputFiles the input file ids
@@ -54,7 +54,9 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * A method for lineage only. TODO(yupeng): hide this method
+   * Creates a new instance of {@link Lineage}.
+   *
+   * This method should only used by lineage. TODO(yupeng): hide this method
    *
    * @param id the lineage id
    * @param inputFiles the input files
@@ -109,6 +111,7 @@ public final class Lineage implements JournalEntryRepresentable {
   /**
    * Converts the entry to a {@link Lineage}.
    *
+   * @param entry the entry to convert
    * @return the {@link Lineage} representation
    */
   public static Lineage fromJournalEntry(LineageEntry entry) {

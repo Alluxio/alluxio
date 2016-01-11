@@ -21,16 +21,16 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.Utils;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.resource.ResourcePool;
-import tachyon.thrift.NetAddress;
+import tachyon.worker.NetAddress;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with
  * {@link ResourcePool#acquire()}, {@link ResourcePool#release(Object)} must be called when the
  * thread is done using the client.
  */
-final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
+final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
@@ -54,21 +54,21 @@ final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   }
 
   @Override
-  public void release(WorkerClient workerClient) {
+  public void release(BlockWorkerClient blockWorkerClient) {
     try {
       // Heartbeat to send the client metrics.
-      workerClient.sessionHeartbeat();
+      blockWorkerClient.sessionHeartbeat();
     } catch (Exception e) {
       LOG.warn("Failed sending client metrics before releasing the worker client", e);
     }
-    workerClient.createNewSession(Utils.getRandomNonNegativeLong());
-    super.release(workerClient);
+    blockWorkerClient.createNewSession(Utils.getRandomNonNegativeLong());
+    super.release(blockWorkerClient);
   }
 
   @Override
-  protected WorkerClient createNewResource() {
+  protected BlockWorkerClient createNewResource() {
     long clientId = Utils.getRandomNonNegativeLong();
-    return new WorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
+    return new BlockWorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
         ClientContext.getConf(), clientId, true, ClientContext.getClientMetrics());
   }
 }

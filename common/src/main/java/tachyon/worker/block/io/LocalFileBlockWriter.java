@@ -71,7 +71,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * @param offset starting offset of the block file to write
    * @param inputBuf {@link ByteBuffer} that input data is stored in
    * @return the size of data that was written
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private long write(long offset, ByteBuffer inputBuf) throws IOException {
     int inputBufLength = inputBuf.limit() - inputBuf.position();

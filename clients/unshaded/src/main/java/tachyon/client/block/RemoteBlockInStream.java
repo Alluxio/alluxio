@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockReader;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.exception.ExceptionMessage;
 
@@ -37,7 +37,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   private final Long mLockId;
 
   /** Client to communicate with the remote worker. */
-  private final WorkerClient mWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
 
@@ -55,15 +55,15 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mLocation = location;
 
     mContext = BlockStoreContext.INSTANCE;
-    mWorkerClient = mContext.acquireWorkerClient(location.getHostName());
+    mBlockWorkerClient = mContext.acquireWorkerClient(location.getHostName());
 
     try {
-      mLockId = mWorkerClient.lockBlock(blockId).lockId;
+      mLockId = mBlockWorkerClient.lockBlock(blockId).lockId;
       if (mLockId == null) {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
     } catch (IOException e) {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
     }
   }
@@ -78,11 +78,11 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     ClientContext.getClientMetrics().incBlocksReadRemote(1);
 
     try {
-      mWorkerClient.unlockBlock(mBlockId);
+      mBlockWorkerClient.unlockBlock(mBlockId);
     } catch (ConnectionFailedException e) {
       throw new IOException(e);
     } finally {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
     }
     mClosed = true;
   }
@@ -126,10 +126,10 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     while (bytesLeft > 0) {
       // TODO(calvin): Fix needing to recreate reader each time.
       RemoteBlockReader reader =
-          RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
+          RemoteBlockReader.Factory.create(ClientContext.getConf());
       try {
         ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, getPosition(),
-            bytesLeft, mLockId, mWorkerClient.getSessionId());
+            bytesLeft, mLockId, mBlockWorkerClient.getSessionId());
         int bytesRead = data.remaining();
         data.get(b, off, bytesRead);
         bytesLeft -= bytesRead;

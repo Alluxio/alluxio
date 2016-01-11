@@ -48,17 +48,22 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
 
   private final transient FileSystemMaster mFsMaster;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceDownloadServlet}.
+   *
+   * @param fsMaster file system master
+   */
   public WebInterfaceDownloadServlet(FileSystemMaster fsMaster) {
     mFsMaster = Preconditions.checkNotNull(fsMaster);
   }
 
   /**
-   * Prepares for downloading a file
+   * Prepares for downloading a file.
    *
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws ServletException
-   * @throws IOException
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -90,11 +95,11 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   /**
    * This function prepares for downloading a file.
    *
-   * @param path The path of the file to download
-   * @param request The {@link HttpServletRequest} object
-   * @param response The {@link HttpServletResponse} object
-   * @throws FileDoesNotExistException
-   * @throws IOException
+   * @param path the path of the file to download
+   * @param request the {@link HttpServletRequest} object
+   * @param response the {@link HttpServletResponse} object
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
    */
   private void downloadFile(TachyonURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,

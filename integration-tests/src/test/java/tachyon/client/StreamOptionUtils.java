@@ -17,8 +17,8 @@ package tachyon.client;
 
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.conf.TachyonConf;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * A util class to obtain common In/OutStreamOptions for tests
@@ -33,7 +33,7 @@ public final class StreamOptionUtils {
    * Gets WriteBoth {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteBoth(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
@@ -44,7 +44,7 @@ public final class StreamOptionUtils {
    * Gets WriteTachyon {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteTachyon(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
@@ -55,7 +55,7 @@ public final class StreamOptionUtils {
    * Gets WriteUnderStore {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteUnderStore(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
@@ -66,12 +66,12 @@ public final class StreamOptionUtils {
    * Gets WriteLocal {@link OutStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the OutStreamOptions
+   * @return the {@link OutStreamOptions}
    */
   public static OutStreamOptions getOutStreamOptionsWriteLocal(TachyonConf conf) {
     return new OutStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.STORE)
-               .setUnderStorageType(UnderStorageType.SYNC_PERSIST)
-               .setHostname(NetworkAddressUtils.getLocalHostName(conf)).build();
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST)
+        .setLocationPolicy(new LocalFirstPolicy()).build();
   }
 
   /**
@@ -89,10 +89,21 @@ public final class StreamOptionUtils {
    * Gets ReadNoCache {@link InStreamOptions}
    *
    * @param conf the Tachyon config
-   * @return the InStreamOptions
+   * @return the {@link InStreamOptions}
    */
   public static InStreamOptions getInStreamOptionsReadNoCache(TachyonConf conf) {
     return new InStreamOptions.Builder(conf).setTachyonStorageType(TachyonStorageType.NO_STORE)
         .build();
+  }
+
+  /**
+   * Gets AsyncWrite {@link OutStreamOptions}.
+   *
+   * @param conf the Tachyon config
+   * @return the {@link OutStreamOptions}
+   */
+  public static OutStreamOptions getOutStreamOptionsWriteAsync(TachyonConf conf) {
+    return new OutStreamOptions.Builder().setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.ASYNC_PERSIST).build();
   }
 }

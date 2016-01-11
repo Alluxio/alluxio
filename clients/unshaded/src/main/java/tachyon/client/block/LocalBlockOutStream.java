@@ -25,7 +25,7 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.util.io.FileUtils;
@@ -40,7 +40,7 @@ import tachyon.worker.block.io.LocalFileBlockWriter;
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
-  private final WorkerClient mWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
   private final LocalFileBlockWriter mWriter;
   private long mReservedBytes;
 
@@ -54,12 +54,12 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   public LocalBlockOutStream(long blockId, long blockSize) throws IOException {
     super(blockId, blockSize);
     mCloser = Closer.create();
-    mWorkerClient =
+    mBlockWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     try {
       long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
-      String blockPath = mWorkerClient.requestBlockLocation(mBlockId, initialSize);
+      String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;
       FileUtils.createBlockPath(blockPath);
       mWriter = new LocalFileBlockWriter(blockPath);
@@ -68,7 +68,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
     } catch (IOException ioe) {
-      mContext.releaseWorkerClient(mWorkerClient);
+      mContext.releaseWorkerClient(mBlockWorkerClient);
       throw ioe;
     }
   }
@@ -80,11 +80,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     }
     mCloser.close();
     try {
-      mWorkerClient.cancelBlock(mBlockId);
+      mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-    mContext.releaseWorkerClient(mWorkerClient);
+    mContext.releaseWorkerClient(mBlockWorkerClient);
     mClosed = true;
   }
 
@@ -97,13 +97,13 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mCloser.close();
     if (mWrittenBytes > 0) {
       try {
-        mWorkerClient.cacheBlock(mBlockId);
+        mBlockWorkerClient.cacheBlock(mBlockId);
       } catch (TachyonException e) {
         throw new IOException(e);
       }
       ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
     }
-    mContext.releaseWorkerClient(mWorkerClient);
+    mContext.releaseWorkerClient(mBlockWorkerClient);
     mClosed = true;
   }
 
@@ -133,7 +133,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   }
 
   private long requestSpace(long requestBytes) throws IOException {
-    if (!mWorkerClient.requestSpace(mBlockId, requestBytes)) {
+    if (!mBlockWorkerClient.requestSpace(mBlockId, requestBytes)) {
       throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage());
     }
     return requestBytes;

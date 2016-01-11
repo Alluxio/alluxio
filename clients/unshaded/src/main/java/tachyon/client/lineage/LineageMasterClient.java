@@ -71,6 +71,16 @@ public final class LineageMasterClient extends MasterClientBase {
     mClient = new LineageMasterClientService.Client(mProtocol);
   }
 
+  /**
+   * Creates a lineage.
+   *
+   * @param inputFiles the list of input file names
+   * @param outputFiles the list of output file names
+   * @param job the job used for the creation
+   * @return the value of the lineage creation result
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   public synchronized long createLineage(final List<String> inputFiles,
       final List<String> outputFiles, final CommandLineJob job) throws IOException,
       TachyonException {
@@ -83,6 +93,15 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Deletes a lineage.
+   *
+   * @param lineageId the id of the lineage
+   * @param cascade true if the deletion is cascading, false otherwise
+   * @return true if the deletion was successful, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   public synchronized boolean deleteLineage(final long lineageId, final boolean cascade)
       throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
@@ -93,6 +112,16 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Reinitializates a given file.
+   *
+   * @param path the path to the file
+   * @param blockSizeBytes the size of the block in bytes
+   * @param ttl the time to live for the file
+   * @return the value of the lineage creation result
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   public synchronized long reinitializeFile(final String path, final long blockSizeBytes,
       final long ttl) throws IOException, TachyonException {
     return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
@@ -103,6 +132,13 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Retrieves the list of lineage information.
+   *
+   * @return a list of lineage information
+   * @throws ConnectionFailedException if the connection fails
+   * @throws IOException if a non-Tachyon exception occurs
+   */
   public synchronized List<LineageInfo> getLineageInfoList()
       throws ConnectionFailedException, IOException {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
@@ -113,6 +149,13 @@ public final class LineageMasterClient extends MasterClientBase {
     });
   }
 
+  /**
+   * Reports a file as lost.
+   *
+   * @param path the path to the lost file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
   public synchronized void reportLostFile(final String path) throws IOException, TachyonException {
     retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override

@@ -24,8 +24,8 @@ import tachyon.Constants;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;
+import tachyon.thrift.WorkerNetAddress;
 
 /**
  * This class is a Thrift handler for block master RPCs invoked by a Tachyon worker.
@@ -33,6 +33,11 @@ import tachyon.thrift.TachyonTException;
 public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService.Iface {
   private final BlockMaster mBlockMaster;
 
+  /**
+   * Creates a new instance of {@link BlockMasterWorkerServiceHandler}.
+   *
+   * @param blockMaster the {@link BlockMaster} the handler uses internally
+   */
   public BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
     Preconditions.checkNotNull(blockMaster);
     mBlockMaster = blockMaster;
@@ -44,7 +49,7 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   }
 
   @Override
-  public long getWorkerId(NetAddress workerNetAddress) {
+  public long getWorkerId(WorkerNetAddress workerNetAddress) {
     return mBlockMaster.getWorkerId(workerNetAddress);
   }
 
