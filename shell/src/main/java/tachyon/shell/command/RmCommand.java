@@ -42,6 +42,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
+    // TODO(calvin): Remove explicit state checking.
     try {
       if (!mTfs.exists(path)) {
         throw new IOException("Path " + path + " does not exist");

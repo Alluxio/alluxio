@@ -70,7 +70,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * Constructs a new stream for reading a file from HDFS.
    *
-   * @param uri the Tachyon file uri
+   * @param uri the Tachyon file URI
    * @param hdfsPath the HDFS path
    * @param conf Hadoop configuration
    * @param bufferSize the buffer size

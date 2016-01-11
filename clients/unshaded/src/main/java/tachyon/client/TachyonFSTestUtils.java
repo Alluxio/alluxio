@@ -138,10 +138,10 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Converts an {@link CreateFileOptions} object to an {@link OpenFileOptions} object with a
+   * Converts a {@link CreateFileOptions} object to an {@link OpenFileOptions} object with a
    * matching Tachyon storage type.
    *
-   * @param op an {@link CreateFileOptions} object
+   * @param op a {@link CreateFileOptions} object
    * @return an {@link OpenFileOptions} object with a matching Tachyon storage type
    */
   public static OpenFileOptions toOpenFileOptions(CreateFileOptions op) {
