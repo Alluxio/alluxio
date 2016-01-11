@@ -41,7 +41,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   private final LineageIdGenerator mLineageIdGenerator;
   private final DirectedAcyclicGraph<Lineage> mLineageDAG;
 
-  /** Indices for lineages */
+  // Indices for lineages
   /** Index of the output files of lineage to lineage */
   private Map<Long, Lineage> mOutputFileIndex;
   private Map<Long, Lineage> mIdIndex;
@@ -164,7 +164,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    *
    * @param fileId the file id
    * @return the lineage containing the output file
-   * @throws LineageDoesNotExistException
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
   public synchronized Lineage getLineageOfOutputFile(long fileId)
       throws LineageDoesNotExistException {

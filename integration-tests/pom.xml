@@ -192,12 +192,90 @@
               <systemPropertyVariables>
                 <ufs>tachyon.underfs.s3.S3UnderStorageCluster</ufs>
                 <!-- Change "myAccessKey" to your access key for this test -->
-                <accessKey>myAccessKey</accessKey>
+                <fs.s3n.awsAccessKeyId>myAccessKey</fs.s3n.awsAccessKeyId>
                 <!-- Change "mySecreteKey" to your secrete key for this test -->
-                <secretKey>mySecretKey</secretKey>
+                <fs.s3n.awsSecretAccessKey>mySecreteKey</fs.s3n.awsSecretAccessKey>
                 <!-- Change "s3n://my-bucket/tachyon-test" to the name of your
                      S3 bucket for this test -->
                 <s3Bucket>s3n://my-bucket/tachyon-test</s3Bucket>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>ossTest</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-underfs-oss</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpcore</artifactId>
+          <version>4.4</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <ufs>tachyon.underfs.oss.OSSUnderStorageCluster</ufs>
+                <!-- Change "yourAccessId" to your oss access id for this test -->
+                <fs.oss.accessKeyId>yourAccessId</fs.oss.accessKeyId>
+                <!-- Change "yourSecretKey" to your oss access secret key for this test -->
+                <fs.oss.accessKeySecret>yourSecretKey</fs.oss.accessKeySecret>
+                <!-- Change this endpoint for your oss service address for this test -->
+                <fs.oss.endpoint>http://oss-cn-hangzhou.aliyuncs.com</fs.oss.endpoint>
+                <!-- Change "your-bucket" to your oss bucket for this test -->
+                <ossBucket>oss://your-bucket/tachyon-integration-test/</ossBucket>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>swiftTest</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-underfs-swift</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <!--argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/dump</argLine-->
+              <systemPropertyVariables>
+                <ufs>tachyon.underfs.swift.SwiftUnderStorageCluster</ufs>
+                <!-- Change "myAuthUrl" to point authentication URL -->
+                <authUrlKey>myAuthUrl</authUrlKey>
+                <!-- Change "myAuthMethod" to define authentication type -->
+                <authMethodKey>myAuthMethod</authMethodKey>
+                <!-- Change "myUserKey" to contain the user  -->
+                <userKey>myUserKey</userKey>
+                <!-- Change "myApiKey" to contain the user's key or password  -->
+                <apiKey>myApiKey</apiKey>
+                <!-- Change "myTenantKey" to contain the user's tenant or account  -->
+                <tenantKey>myTenantKey</tenantKey>
+                <!-- Change "container/folder" to contain the testing container  -->
+                <!-- Keep the structure in form container/folder -->
+                <containerKey>swift://container/folder</containerKey>
               </systemPropertyVariables>
             </configuration>
           </plugin>

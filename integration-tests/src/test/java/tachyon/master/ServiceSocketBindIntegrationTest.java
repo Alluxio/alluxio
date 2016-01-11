@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
 import tachyon.client.block.BlockMasterClient;
 import tachyon.client.block.BlockStoreContext;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.util.network.NetworkAddressUtils;
@@ -49,7 +49,7 @@ public class ServiceSocketBindIntegrationTest {
 
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
-  private WorkerClient mWorkerClient;
+  private BlockWorkerClient mBlockWorkerClient;
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
@@ -71,8 +71,8 @@ public class ServiceSocketBindIntegrationTest {
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
-    mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-    mWorkerClient.connect();
+    mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
+    mBlockWorkerClient.connect();
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
@@ -98,7 +98,7 @@ public class ServiceSocketBindIntegrationTest {
   private void closeServices() throws Exception {
     mWorkerWebService.disconnect();
     mWorkerDataService.close();
-    mWorkerClient.close();
+    mBlockWorkerClient.close();
     mMasterWebService.disconnect();
     mBlockMasterClient.close();
   }
@@ -112,7 +112,7 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mWorkerClient.isConnected());
+    Assert.assertTrue(mBlockWorkerClient.isConnected());
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
@@ -182,7 +182,7 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mWorkerClient.isConnected());
+    Assert.assertTrue(mBlockWorkerClient.isConnected());
 
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
@@ -213,7 +213,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
-      mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient("127.0.0.1");
+      mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient("127.0.0.1");
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (RuntimeException rte) {
       // This is expected, since Work RPC service is NOT listening on loopback.

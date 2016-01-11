@@ -17,6 +17,8 @@ package tachyon.client.file.options;
 
 /**
  * This interface should be implemented by all Tachyon option builders for client-side operations.
+ *
+ * @param <T> the type of the method option
  */
 public interface OptionsBuilder<T> {
   /**

@@ -34,8 +34,8 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
 /**
- * SpaceReserver periodically checks if there is enough space reserved on each storage tier, if
- * there is no enough free space on some tier, free space from it.
+ * {@link SpaceReserver} periodically checks if there is enough space reserved on each storage tier,
+ * if there is no enough free space on some tier, free space from it.
  */
 public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -49,6 +49,11 @@ public class SpaceReserver implements Runnable {
   /** Flag to indicate if the checking should continue */
   private volatile boolean mRunning;
 
+  /**
+   * Creates a new instance of {@link SpaceReserver}.
+   *
+   * @param blockManager a block manager handle
+   */
   public SpaceReserver(BlockDataManager blockManager) {
     mBlockManager = blockManager;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());

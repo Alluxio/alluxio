@@ -33,13 +33,15 @@ public interface Evictor {
 
   class Factory {
     /**
-     * @param conf {@link TachyonConf} to determine the evictor type
-     * @param view {@link BlockMetadataManagerView} to pass to Evictor
+     * Factory for {@link Evictor}.
+     *
+     * @param conf {@link TachyonConf} to determine the {@link Evictor} type
+     * @param view {@link BlockMetadataManagerView} to pass to {@link Evictor}
      * @param allocator an allocation policy
-     * @return the generated Evictor
+     * @return the generated {@link Evictor}
      */
-    public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view,
-        Allocator allocator) {
+    public static Evictor create(TachyonConf conf, BlockMetadataManagerView view,
+                                 Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
@@ -52,24 +54,23 @@ public interface Evictor {
   }
 
   /**
-   * Frees space in the given block store location and with the given view.
-   * After eviction, at least one {@link tachyon.worker.block.meta.StorageDir} in the location has
-   * the specific amount of free space after eviction. The location can be a specific
+   * Frees space in the given block store location and with the given view. After eviction, at least
+   * one {@link tachyon.worker.block.meta.StorageDir} in the location has the specific amount of
+   * free space after eviction. The location can be a specific
    * {@link tachyon.worker.block.meta.StorageDir}, or {@link BlockStoreLocation#anyTier()} or
    * {@link BlockStoreLocation#anyDirInTier(String)}. The view is generated and passed by the
    * calling {@link tachyon.worker.block.BlockStore}.
-   *
-   * <P>
-   * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,
-   * or an eviction plan with toMove and toEvict fields to indicate how to free space. If both
-   * toMove and toEvict of the plan are empty, it indicates that Evictor has no actions to take and
-   * the requirement is already met.
+   * <p>
+   * This method returns null if {@link Evictor} fails to propose a feasible plan to meet the
+   * requirement, or an eviction plan with toMove and toEvict fields to indicate how to free space.
+   * If both toMove and toEvict of the plan are empty, it indicates that {@link Evictor} has no
+   * actions to take and the requirement is already met.
    *
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
    * @param view generated and passed by block store
-   * @return an eviction plan (possibly with empty fields) to get the free space, or null if no plan
-   *         is feasible
+   * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null if
+   *         no plan is feasible
    * @throws IllegalArgumentException if given block location is invalid
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,

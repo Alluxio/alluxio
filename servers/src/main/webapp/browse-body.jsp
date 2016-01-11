@@ -17,12 +17,12 @@
           <div class="navbar-inner">
             <ul class="nav nav-pills">
               <% if (request.getAttribute("pathInfos") != null) { %>
-                <% for (UiFileInfo pathInfo : ((UiFileInfo[]) request.getAttribute("pathInfos"))) { %>
+                <% for (UIFileInfo pathInfo : ((UIFileInfo[]) request.getAttribute("pathInfos"))) { %>
                   <li><a href="./browse?path=<%= encode(pathInfo.getAbsolutePath(), "UTF-8") %>"><%= escapeHtml(pathInfo.getName()) %> </a></li>
                 <% } %>
               <% } %>
               <% if (request.getAttribute("currentDirectory") != null) { %>
-                <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UiFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
+                <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UIFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
               <% } %>
             </ul>
           </div>
@@ -35,8 +35,9 @@
             <th>In-Memory</th>
             <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
               <th>Owner</th>
+              <th>Group</th>
             <% } %>
-            <th>Persisted</th>
+            <th>Persistence State</th>
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
@@ -90,7 +91,7 @@
             </c:forEach>
           -->
             <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <% for (UIFileInfo fileInfo : ((List<UIFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
                   <th>
                     <% if (fileInfo.getIsDirectory()) { %>
@@ -118,9 +119,10 @@
                   </th>
                   <% if (!((Boolean)request.getAttribute("viewLog"))) { %>
                     <th><%= fileInfo.getUserName() %></th>
+                    <th><%= fileInfo.getGroupName() %></th>
                   <% } %>
-                  <th><%= (fileInfo.getPersisted() ? "YES" : "NO") %></th>
-                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
+                  <th><%= (fileInfo.getPersistenceState()) %></th>
+                  <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>

@@ -35,12 +35,14 @@ import tachyon.client.Utils;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -60,10 +62,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
   private String mUfsPath;
+  private FileWriteLocationPolicy mLocationPolicy;
 
   protected boolean mCanceled;
   protected boolean mClosed;
-  private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   protected BufferedBlockOutStream mCurrentBlockOutStream;
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
@@ -97,8 +99,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
     mClosed = false;
     mCanceled = false;
-    mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
+        PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
   }
 
   @Override
@@ -172,6 +175,10 @@ public class FileOutStream extends OutputStream implements Cancelable {
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
+    }
+
+    if (mUnderStorageType.isAsyncPersist()) {
+      scheduleAsyncPersist();
     }
     mClosed = true;
   }
@@ -252,9 +259,15 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
-      mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
-      mShouldCacheCurrentBlock = true;
+      try {
+        NetAddress address = mLocationPolicy.getWorkerForNextBlock(
+            mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
+        mCurrentBlockOutStream =
+            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
+        mShouldCacheCurrentBlock = true;
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
     }
   }
 
@@ -287,9 +300,25 @@ public class FileOutStream extends OutputStream implements Cancelable {
       FileInfo fileInfo = client.getFileInfo(mFileId);
       mUfsPath = fileInfo.getUfsPath();
     } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(client);
+    }
+  }
+
+  /**
+   * Schedules the async persistence of the current file.
+   *
+   * @throws IOException an I/O error occurs
+   */
+  protected void scheduleAsyncPersist() throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.scheduleAsyncPersist(mFileId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
     }
   }
 }

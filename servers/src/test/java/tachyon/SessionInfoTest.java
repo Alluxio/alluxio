@@ -22,7 +22,7 @@ import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit tests for {@link SessionInfo}
+ * Unit tests for {@link SessionInfo}.
  */
 public final class SessionInfoTest {
   private static final int MIN_LEN = 1;

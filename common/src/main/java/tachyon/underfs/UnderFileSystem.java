@@ -117,6 +117,7 @@ public abstract class UnderFileSystem {
     S3,
     GLUSTERFS,
     SWIFT,
+    OSS,
   }
 
   /**
@@ -176,7 +177,7 @@ public abstract class UnderFileSystem {
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
           || isHadoopUnderFS(header, tachyonConf) || header.equals(Constants.HEADER_S3)
-          || header.equals(Constants.HEADER_S3N)) {
+          || header.equals(Constants.HEADER_S3N) || header.equals(Constants.HEADER_OSS)) {
         if (path.getPath().isEmpty()) {
           return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
         } else {

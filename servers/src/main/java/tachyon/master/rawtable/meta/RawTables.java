@@ -23,10 +23,11 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TableDoesNotExistException;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.rawtable.RawTableMaster;
 import tachyon.util.io.BufferUtils;
 
 /**
- * All RawTables managed by {@link tachyon.master.rawtable.RawTableMaster}.
+ * All RawTables managed by {@link RawTableMaster}.
  */
 public class RawTables implements JournalCheckpointStreamable {
   private final IndexedSet.FieldIndex<RawTable> mIdIndex = new IndexedSet.FieldIndex<RawTable>() {
@@ -41,11 +42,11 @@ public class RawTables implements JournalCheckpointStreamable {
   private final IndexedSet<RawTable> mTables = new IndexedSet<RawTable>(mIdIndex);
 
   /**
-   * Add a raw table.
+   * Adds a raw table.
    *
-   * @param tableId The id of the raw table
-   * @param columns The number of columns in the raw table
-   * @param metadata The additional metadata of the raw table
+   * @param tableId the id of the raw table
+   * @param columns the number of columns in the raw table
+   * @param metadata the additional metadata of the raw table
    * @return true if the raw table does not exist before and successfully added, false otherwise
    */
   public synchronized boolean add(long tableId, int columns, ByteBuffer metadata) {
@@ -56,9 +57,9 @@ public class RawTables implements JournalCheckpointStreamable {
   }
 
   /**
-   * Remove a raw table.
+   * Removes a raw table.
    *
-   * @param tableId The id of the raw table
+   * @param tableId the id of the raw table
    * @return true if the table exists and successfully removed, false otherwise
    */
   public synchronized boolean remove(long tableId) {
@@ -76,7 +77,7 @@ public class RawTables implements JournalCheckpointStreamable {
   }
 
   /**
-   * Get the number of the columns of a raw table.
+   * Gets the number of the columns of a raw table.
    *
    * @param tableId the id of the raw table
    * @return the number of the columns, -1 if the table does not exist
@@ -87,7 +88,7 @@ public class RawTables implements JournalCheckpointStreamable {
   }
 
   /**
-   * Get the metadata of the specified raw table.
+   * Gets the metadata of the specified raw table.
    *
    * @param tableId The id of the raw table
    * @return null if it has no metadata, or a copy of the internal metadata
@@ -98,7 +99,7 @@ public class RawTables implements JournalCheckpointStreamable {
   }
 
   /**
-   * Get the raw table info.
+   * Gets the raw table info.
    *
    * @param tableId the raw table id
    * @return the raw table info if the table exists, null otherwise
@@ -108,11 +109,11 @@ public class RawTables implements JournalCheckpointStreamable {
   }
 
   /**
-   * Update the metadata of the specified raw table. If the new specified metadata is null, the
+   * Updates the metadata of the specified raw table. If the new specified metadata is null, the
    * internal metadata will be updated to an empty byte buffer.
    *
-   * @param tableId The id of the raw table
-   * @param metadata The new metadata of the raw table
+   * @param tableId the id of the raw table
+   * @param metadata the new metadata of the raw table
    * @throws TableDoesNotExistException when the table does not exist
    */
   public synchronized void updateMetadata(long tableId, ByteBuffer metadata)

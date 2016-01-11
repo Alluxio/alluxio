@@ -25,6 +25,9 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.LocalFirstPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -39,25 +42,25 @@ public class OutStreamOptionsTest {
   public void builderTest() {
     Random random = new Random();
     long blockSize = random.nextLong();
-    String hostname = "localhost";
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
 
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf())
             .setBlockSizeBytes(blockSize)
-            .setHostname(hostname)
             .setTachyonStorageType(tachyonType)
-            .setTTL(ttl)
+            .setTtl(ttl)
             .setUnderStorageType(ufsType)
+            .setLocationPolicy(policy)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(hostname, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertEquals(policy, options.getLocationPolicy());
   }
 
   /**
@@ -75,10 +78,10 @@ public class OutStreamOptionsTest {
     OutStreamOptions options = OutStreamOptions.defaults();
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertEquals(null, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
+    Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();
   }
 }

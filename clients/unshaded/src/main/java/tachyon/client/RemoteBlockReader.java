@@ -31,12 +31,17 @@ import tachyon.util.CommonUtils;
  */
 public interface RemoteBlockReader extends Closeable {
 
+  /**
+   * The factory for the {@link RemoteBlockReader}.
+   */
   class Factory {
     /**
+     * Factory for {@link RemoteBlockReader}.
+     *
      * @param conf Tachyon configuration
      * @return a new instance of {@link RemoteBlockReader}
      */
-    public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
+    public static RemoteBlockReader create(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<RemoteBlockReader>getClass(Constants.USER_BLOCK_REMOTE_READER), null, null);

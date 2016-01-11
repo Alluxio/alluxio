@@ -48,15 +48,17 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.WorkerNetAddress;
 
 /**
  * Unit tests for {@link tachyon.master.block.BlockMaster}.
  */
 public class BlockMasterTest {
-  private static final NetAddress NET_ADDRESS_1 = new NetAddress("localhost", 80, 81, 82);
-  private static final NetAddress NET_ADDRESS_2 = new NetAddress("localhost", 83, 84, 85);
+  private static final WorkerNetAddress NET_ADDRESS_1 =
+      new WorkerNetAddress("localhost", 80, 81, 82);
+  private static final WorkerNetAddress NET_ADDRESS_2 =
+      new WorkerNetAddress("localhost", 83, 84, 85);
 
   private BlockMaster mMaster;
   private PrivateAccess mPrivateAccess;
@@ -123,7 +125,7 @@ public class BlockMasterTest {
 
   @Test
   public void registerLostWorkerTest() throws Exception {
-    final NetAddress na = NET_ADDRESS_1;
+    final WorkerNetAddress na = NET_ADDRESS_1;
     final long expectedId = 1;
     final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
 
@@ -328,9 +330,9 @@ public class BlockMasterTest {
     }
 
     /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
+     * Looks up the {@link MasterWorkerInfo} for a given worker id.
      *
-     * @param workerId the worker ID to look up
+     * @param workerId the worker id to look up
      * @return the {@link MasterWorkerInfo} for the given workerId
      */
     private MasterWorkerInfo getWorkerById(long workerId) {
@@ -340,9 +342,9 @@ public class BlockMasterTest {
     }
 
     /**
-     * Looks up the {@link MasterBlockInfo} for the given block ID.
+     * Looks up the {@link MasterBlockInfo} for the given block id.
      *
-     * @param blockId the block ID
+     * @param blockId the block id
      * @return the {@link MasterBlockInfo}
      */
     public MasterBlockInfo getMasterBlockInfo(long blockId) {

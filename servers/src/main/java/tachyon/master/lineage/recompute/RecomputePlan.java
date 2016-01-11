@@ -33,6 +33,11 @@ public class RecomputePlan {
   /** A list of lineages to recompute */
   private final List<Lineage> mToRecompute;
 
+  /**
+   * Creates a new instance of {@link RecomputePlan}.
+   *
+   * @param toRecompute the lineages to recompute
+   */
   public RecomputePlan(List<Lineage> toRecompute) {
     mToRecompute = Preconditions.checkNotNull(toRecompute);
   }

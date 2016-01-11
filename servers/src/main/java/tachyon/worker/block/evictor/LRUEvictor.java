@@ -37,7 +37,7 @@ public class LRUEvictor extends EvictorBase {
   private static final boolean UNUSED_MAP_VALUE = true;
 
   /**
-   * access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
+   * Access-ordered {@link java.util.LinkedHashMap} from blockId to {@link #UNUSED_MAP_VALUE}(just a
    * placeholder to occupy the value), acts as a LRU double linked list where most recently accessed
    * element is put at the tail while least recently accessed element is put at the head.
    */
@@ -46,6 +46,8 @@ public class LRUEvictor extends EvictorBase {
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   /**
+   * Creates a new instance of {@link LRUEvictor}.
+   *
    * @param view a view of block metadata information
    * @param allocator an allocation policy
    */

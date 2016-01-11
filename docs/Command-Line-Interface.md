@@ -176,8 +176,8 @@ should have the final escaped parameters (cat /\\*).
     contains.</td>
   </tr>
   <tr>
-    <td>setTTL</td>
-    <td>setTTL "time"</td>
+    <td>setTtl</td>
+    <td>setTtl "time"</td>
     <td>Set the TTL (time to live) in milliseconds to a file.</td>
   </tr>
   <tr>
@@ -205,8 +205,8 @@ should have the final escaped parameters (cat /\\*).
     directory.</td>
   </tr>
   <tr>
-    <td>unsetTTL</td>
-    <td>unsetTTL</td>
+    <td>unsetTtl</td>
+    <td>unsetTtl</td>
     <td>Remove the TTL (time to live) setting from a file.</td>
   </tr>
 </table>
@@ -474,16 +474,16 @@ For example, `rmr` can be used to clean up entire subtrees in the Tachyon.
 $ ./bin/tachyon tfs rmr /tmp/tests
 ```
 
-## setTTL
-The `setTTL` command sets the time-to-live of a file, in milliseconds. The file will automatically
+## setTtl
+The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
 be deleted once the current time is greater than the TTL + creation time of the file. This delete
 will affect both Tachyon and the under storage system.
 
-For example, `setTTL` can be used to clean up files the administrator knows are unnecessary after a
+For example, `setTtl` can be used to clean up files the administrator knows are unnecessary after a
 period of time.
 
 ```bash
-$ ./bin/tachyon tfs setTTL /data/good-for-one-day 86400000
+$ ./bin/tachyon tfs setTtl /data/good-for-one-day 86400000
 ```
 
 ## tail
@@ -532,13 +532,13 @@ pattern.
 $ ./bin/tachyon tfs unpin /data/yesterday/join-table
 ```
 
-## unsetTTL
-The `unsetTTL` command will remove the TTL of a file in Tachyon. This is a metadata operation and
-will not evict or store blocks in Tachyon. The TTL of a file can later be reset with `setTTL`.
+## unsetTtl
+The `unsetTtl` command will remove the TTL of a file in Tachyon. This is a metadata operation and
+will not evict or store blocks in Tachyon. The TTL of a file can later be reset with `setTtl`.
 
-For example, `unsetTTL` can be used if a regularly managed file requires manual management due to
+For example, `unsetTtl` can be used if a regularly managed file requires manual management due to
 some special case.
 
 ```bash
-$ ./bin/tachyon tfs unsetTTL /data/yesterday/data-not-yet-analyzed
+$ ./bin/tachyon tfs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```

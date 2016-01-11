@@ -22,28 +22,31 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.collections.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
-@Ignore("TACHYON-987")
 public class MasterFaultToleranceIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
@@ -54,10 +57,15 @@ public class MasterFaultToleranceIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonClusterMultiMaster.stop();
+    // Reset the master conf.
+    MasterContext.getConf().merge(new TachyonConf());
   }
 
   @Before
   public final void before() throws Exception {
+    // TODO(gpang): Implement multi-master cluster as a resource.
+    // Reset the master conf.
+    MasterContext.getConf().merge(new TachyonConf());
     mLocalTachyonClusterMultiMaster =
         new LocalTachyonClusterMultiMaster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
     mLocalTachyonClusterMultiMaster.start();
@@ -136,7 +144,8 @@ public class MasterFaultToleranceIntegrationTest {
         // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
         // node can not be deleted.
         for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
-          mTfs.delete(new TachyonFile(file.getFileId()));
+          mTfs.delete(new TachyonFile(file.getFileId()),
+              new DeleteOptions.Builder().setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);
@@ -160,8 +169,7 @@ public class MasterFaultToleranceIntegrationTest {
         new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(1024)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
-      TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
-      tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
+      mTfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());

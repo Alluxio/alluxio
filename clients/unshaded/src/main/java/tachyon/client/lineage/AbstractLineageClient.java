@@ -49,6 +49,9 @@ public abstract class AbstractLineageClient implements LineageClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected LineageContext mContext;
 
+  /**
+   * Constructs a new instance with a {@link LineageContext}.
+   */
   public AbstractLineageClient() {
     mContext = LineageContext.INSTANCE;
   }

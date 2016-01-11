@@ -25,7 +25,7 @@ import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit test for {@link StorageTierAssoc}
+ * Unit tests for {@link StorageTierAssoc}.
  */
 public class StorageTierAssocTest {
   private void checkStorageTierAssoc(StorageTierAssoc assoc, TachyonConf conf,

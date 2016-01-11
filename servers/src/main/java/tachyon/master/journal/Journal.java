@@ -44,6 +44,8 @@ public abstract class Journal {
   private final JournalFormatter mJournalFormatter;
 
   /**
+   * Creates a new instance of {@link Journal}.
+   *
    * @param directory the base directory for this journal
    */
   public Journal(String directory) {
@@ -52,7 +54,7 @@ public abstract class Journal {
       directory += TachyonURI.SEPARATOR;
     }
     mDirectory = directory;
-    mJournalFormatter = JournalFormatter.Factory.createJournalFormatter(MasterContext.getConf());
+    mJournalFormatter = JournalFormatter.Factory.create(MasterContext.getConf());
   }
 
   /**

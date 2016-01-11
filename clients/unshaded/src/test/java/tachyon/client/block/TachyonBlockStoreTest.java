@@ -32,12 +32,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.client.ClientContext;
-import tachyon.client.worker.WorkerClient;
+import tachyon.client.worker.BlockWorkerClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -45,7 +45,7 @@ import tachyon.util.network.NetworkAddressUtils;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, NetworkAddressUtils.class,
-    WorkerClient.class})
+    BlockWorkerClient.class})
 public final class TachyonBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 1000L;
@@ -57,10 +57,10 @@ public final class TachyonBlockStoreTest {
   private static final int WORKER_RPC_PORT = 7;
   private static final int WORKER_DATA_PORT = 9;
   private static final int WORKER_WEB_PORT = 10;
-  private static final NetAddress WORKER_NET_ADDRESS_LOCAL =
-      new NetAddress(WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
-  private static final NetAddress WORKER_NET_ADDRESS_REMOTE =
-      new NetAddress(WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress(
+      WORKER_HOSTNAME_LOCAL, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
+  private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress(
+      WORKER_HOSTNAME_REMOTE, WORKER_RPC_PORT, WORKER_DATA_PORT, WORKER_WEB_PORT);
   private static final String STORAGE_TIER = "mem";
   private static final BlockLocation BLOCK_LOCATION_LOCAL =
       new BlockLocation(WORKER_ID_LOCAL, WORKER_NET_ADDRESS_LOCAL, STORAGE_TIER);
@@ -70,6 +70,9 @@ public final class TachyonBlockStoreTest {
   private static final BlockInfo BLOCK_INFO = new BlockInfo(BLOCK_ID, BLOCK_LENGTH,
       Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
 
+  /**
+   * The rule for a temporary folder.
+   */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
@@ -77,17 +80,19 @@ public final class TachyonBlockStoreTest {
   private TachyonBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
   private BlockMasterClient mMasterClient;
-  private WorkerClient mWorkerClient;
+  private BlockWorkerClient mBlockWorkerClient;
 
   /**
    * Sets up a testable {@link TachyonBlockStore}. Setup consists of the following:
    *
    * 1. The singleton {@link BlockStoreContext} is replaced with {@link #mBlockStoreContext}<br>
-   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and {@link #mWorkerClient}
-   *    when asked for master/worker clients<br>
+   * 2. {@link #mBlockStoreContext} will return {@link #mMasterClient} and
+   *    {@link #mBlockWorkerClient} when asked for master/worker clients<br>
    * 3. {@link #mTestFile} is created inside {@link #mTestFolder}<br>
-   * 4. {@link #mWorkerClient} is made to understand that locking {@link #BLOCK_ID} should return
-   *    the path to {@link #mTestFile}.
+   * 4. {@link #mBlockWorkerClient} is made to understand that locking {@link #BLOCK_ID} should
+   *    return the path to {@link #mTestFile}.
+   *
+   * @throws Exception when acquiring a worker client fails
    */
   @Before
   public void before() throws Exception {
@@ -102,16 +107,18 @@ public final class TachyonBlockStoreTest {
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
     Mockito.when(mBlockStoreContext.acquireMasterClient()).thenReturn(mMasterClient);
 
-    mWorkerClient = PowerMockito.mock(WorkerClient.class);
-    Mockito.when(mWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult(LOCK_ID, mTestFile.getAbsolutePath()));
     Mockito.when(mBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
-        .thenReturn(mWorkerClient);
+        .thenReturn(mBlockWorkerClient);
   }
 
   /**
    * Tests {@link TachyonBlockStore#getInStream(long)} when a local block exists, making sure that
    * the local block is preferred.
+   *
+   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
@@ -132,6 +139,8 @@ public final class TachyonBlockStoreTest {
   /**
    * Tests {@link TachyonBlockStore#getInStream(long)} when no local block exists, making sure that
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
+   *
+   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {

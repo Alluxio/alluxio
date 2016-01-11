@@ -24,6 +24,9 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 
+/**
+ * Unit tests for {@link CreateOptions}.
+ */
 public class CreateOptionsTest {
   @Test
   public void builderTest() {
@@ -40,14 +43,14 @@ public class CreateOptionsTest {
             .setOperationTimeMs(operationTimeMs)
             .setPersisted(persisted)
             .setRecursive(recursive)
-            .setTTL(ttl)
+            .setTtl(ttl)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
   }
 
   @Test
@@ -61,7 +64,7 @@ public class CreateOptionsTest {
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     MasterContext.reset();
   }
 }

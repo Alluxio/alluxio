@@ -39,6 +39,9 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period */
   private final Map<String, List<Long>> mAddedBlocks;
 
+  /**
+   * Creates a new instance of {@link BlockHeartbeatReporter}.
+   */
   public BlockHeartbeatReporter() {
     mLock = new Object();
     mRemovedBlocks = new ArrayList<Long>(100);
@@ -114,7 +117,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   /**
    * Adds a block to the list of added blocks in this heartbeat period.
    *
-   * @param blockId The id of the block to add
+   * @param blockId the id of the block to add
    * @param tierAlias alias of the storage tier containing the block
    */
   private void addBlockToAddedBlocks(long blockId, String tierAlias) {
@@ -128,7 +131,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   /**
    * Removes the block from the added blocks map, if it exists.
    *
-   * @param blockId The block to remove
+   * @param blockId the block to remove
    */
   private void removeBlockFromAddedBlocks(long blockId) {
     Iterator<Entry<String, List<Long>>> iterator = mAddedBlocks.entrySet().iterator();

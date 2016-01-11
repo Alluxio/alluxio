@@ -15,10 +15,12 @@
 
 package tachyon.worker.file;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,17 +32,18 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidWorkerStateException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
-import tachyon.worker.file.FileDataManager;
 
 /**
  * Tests {@link FileDataManager}.
@@ -49,6 +52,11 @@ import tachyon.worker.file.FileDataManager;
 @PrepareForTest({BlockDataManager.class, BufferUtils.class})
 public final class FileDataManagerTest {
 
+  /**
+   * Tests that a file gets persisted.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   @SuppressWarnings("unchecked")
   public void persistFileTest() throws Exception {
@@ -87,28 +95,84 @@ public final class FileDataManagerTest {
     manager.persistFile(fileId, blockIds);
 
     // verify file persisted
-    List<Long> persistedFiles = (List<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
-    Assert.assertEquals(Lists.newArrayList(fileId), persistedFiles);
+    Set<Long> persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
+    Assert.assertEquals(Sets.newHashSet(fileId), persistedFiles);
 
     // verify fastCopy called twice, once per block
     PowerMockito.verifyStatic(Mockito.times(2));
     BufferUtils.fastCopy(Mockito.any(ReadableByteChannel.class),
         Mockito.any(WritableByteChannel.class));
+
+    // verify the file is not needed for another persistence
+    Assert.assertFalse(manager.needPersistence(fileId));
   }
 
+  /**
+   * Tests that persisted file are cleared in the manager.
+   */
   @Test
   @SuppressWarnings("unchecked")
-  public void popPersistedFilesTest() {
+  public void clearPersistedFilesTest() {
     BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
     FileDataManager manager = new FileDataManager(blockDataManager);
-    List<Long> persistedFiles = Lists.newArrayList(1L, 2L);
+    Set<Long> persistedFiles = Sets.newHashSet(1L, 2L);
 
-    Whitebox.setInternalState(manager, "mPersistedFiles", Lists.newArrayList(persistedFiles));
-    List<Long> poppedList = manager.popPersistedFiles();
-    Assert.assertEquals(persistedFiles, poppedList);
+    Whitebox.setInternalState(manager, "mPersistedFiles", Sets.newHashSet(persistedFiles));
+    List<Long> poppedList = manager.getPersistedFiles();
+    Assert.assertEquals(persistedFiles, Sets.newHashSet(poppedList));
+
     // verify persisted files cleared in the manager
-    persistedFiles = (List<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
-    Assert.assertTrue(persistedFiles.isEmpty());
+    poppedList.remove(2L);
+    manager.clearPersistedFiles(poppedList);
+    persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
+    Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
   }
 
+  /**
+   * Tests that the correct error message is provided when persisting a file fails.
+   *
+   * @throws Exception when the Whitebox fails
+   */
+  @Test
+  public void errorHandlingTest() throws Exception {
+    long fileId = 1;
+    List<Long> blockIds = Lists.newArrayList(1L, 2L);
+
+    // mock block data manager
+    BlockDataManager blockDataManager = Mockito.mock(BlockDataManager.class);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.path = "test";
+    Mockito.when(blockDataManager.getFileInfo(fileId)).thenReturn(fileInfo);
+    for (long blockId : blockIds) {
+      Mockito.when(blockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
+          .thenReturn(blockId);
+      Mockito.doThrow(new InvalidWorkerStateException("invalid worker")).when(blockDataManager)
+          .readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId);
+    }
+
+    FileDataManager manager = new FileDataManager(blockDataManager);
+
+    // mock ufs
+    UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
+    String ufsRoot = new TachyonConf().get(Constants.UNDERFS_ADDRESS);
+    Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
+    Whitebox.setInternalState(manager, "mUfs", ufs);
+    OutputStream outputStream = Mockito.mock(OutputStream.class);
+
+    // mock BufferUtils
+    PowerMockito.mockStatic(BufferUtils.class);
+    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+
+    try {
+      manager.persistFile(fileId, blockIds);
+      Assert.fail("the persist should fail");
+    } catch (IOException e) {
+      Assert.assertEquals("the blocks of file1 are failed to persist\n"
+          + "tachyon.exception.InvalidWorkerStateException: invalid worker\n", e.getMessage());
+      // verify the locks are all unlocked
+      Mockito.verify(blockDataManager).unlockBlock(1L);
+      Mockito.verify(blockDataManager).unlockBlock(2L);
+    }
+  }
 }

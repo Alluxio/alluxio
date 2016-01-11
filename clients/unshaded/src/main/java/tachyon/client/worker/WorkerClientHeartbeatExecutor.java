@@ -24,14 +24,14 @@ import tachyon.heartbeat.HeartbeatExecutor;
  * the worker may withdraw the space granted to the particular session.
  */
 final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
 
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient) {
-    mWorkerClient = Preconditions.checkNotNull(workerClient);
+  public WorkerClientHeartbeatExecutor(BlockWorkerClient blockWorkerClient) {
+    mBlockWorkerClient = Preconditions.checkNotNull(blockWorkerClient);
   }
 
   @Override
   public void heartbeat() {
-    mWorkerClient.periodicHeartbeat();
+    mBlockWorkerClient.periodicHeartbeat();
   }
 }
