@@ -13,31 +13,28 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker;
 
-import java.util.List;
-
-import tachyon.conf.TachyonConf;
+import java.io.IOException;
 
 /**
- * {@link StorageTierAssoc} for masters.
+ * Interface of a Tachyon worker.
  */
-public class MasterStorageTierAssoc extends StorageTierAssoc {
+public interface Worker {
 
   /**
-   * @param conf the configuration for Tachyon
-   */
-  public MasterStorageTierAssoc(TachyonConf conf) {
-    super(conf, Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS,
-        Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
-  }
-
-  /**
-   * Creates a new instance of {@link MasterStorageTierAssoc}.
+   * Starts the worker. Here, the worker should initialize state and possibly start threads required
+   * for operation.
    *
-   * @param storageTierAliases a list of storage tier aliases
+   * @throws IOException if I/O error occurs
    */
-  public MasterStorageTierAssoc(List<String> storageTierAliases) {
-    super(storageTierAliases);
-  }
+  void start() throws IOException;
+
+  /**
+   * Stops the worker. Here, anything created or started in {@link #start()} should be cleaned up
+   * and shutdown.
+   *
+   * @throws IOException if I/O error occurs
+   */
+  void stop() throws IOException;
 }
