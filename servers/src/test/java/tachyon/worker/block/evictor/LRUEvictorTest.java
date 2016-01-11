@@ -30,11 +30,20 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
  * used blocks and cascading LRU eviction.
  */
 public class LRUEvictorTest extends EvictorTestBase {
+
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
+   */
   @Before
   public final void before() throws Exception {
     init(LRUEvictor.class.getName());
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     WorkerContext.reset();
@@ -45,6 +54,11 @@ public class LRUEvictorTest extends EvictorTestBase {
     ((BlockStoreEventListener) mEvictor).onAccessBlock(SESSION_ID, blockId);
   }
 
+  /**
+   * Tests that the eviction in the bottom tier works.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void evictInBottomTierTest() throws Exception {
     int bottomTierOrdinal =
@@ -73,6 +87,12 @@ public class LRUEvictorTest extends EvictorTestBase {
     }
   }
 
+  /**
+   * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
+   * no eviction.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest1() throws Exception {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
@@ -100,6 +120,12 @@ public class LRUEvictorTest extends EvictorTestBase {
     }
   }
 
+  /**
+   * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
+   * second tier are evicted.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest2() throws Exception {
     // Two tiers, the second tier has more dirs than the first tier and each dir in the second tier
@@ -138,6 +164,11 @@ public class LRUEvictorTest extends EvictorTestBase {
     }
   }
 
+  /**
+   * Tests the behavior of moving blocks with the cascading eviction.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest3() throws Exception {
     // First Tier 2000, 3000
