@@ -236,7 +236,7 @@ public final class TachyonWorker {
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Tachyon Worker version {} started @ {} {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Tachyon Worker version {} started @ {}", Version.VERSION, mWorkerAddress);
     mThriftServer.serve();
     LOG.info("Tachyon Worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
   }
@@ -251,7 +251,7 @@ public final class TachyonWorker {
       stopWorkers();
       mIsServingRPC = false;
     } else {
-      LOG.info("Stopping Tachyon Master @ {}", mWorkerAddress);
+      LOG.info("Stopping Tachyon Worker @ {}", mWorkerAddress);
     }
   }
 
