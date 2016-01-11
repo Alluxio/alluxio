@@ -44,13 +44,11 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
     try {
       SetAclOptions options =
           new SetAclOptions.Builder().setOwner(owner).setRecursive(recursive).build();
-      if (mTfs.setAcl(path, options)) {
-        System.out.println("Changed owner of " + path + " to " + owner);
-      } else {
-        throw new IOException("Failed to changed owner of " + path + " to " + owner);
-      }
+      mTfs.setAcl(path, options);
+      System.out.println("Changed owner of " + path + " to " + owner);
     } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException("Failed to changed owner of " + path + " to " + owner + " : "
+          + e.getMessage());
     }
   }
 
@@ -66,13 +64,11 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
     try {
       SetAclOptions options =
           new SetAclOptions.Builder().setGroup(group).setRecursive(recursive).build();
-      if (mTfs.setAcl(path, options)) {
-        System.out.println("Changed group of " + path + " to " + group);
-      } else {
-        throw new IOException("Failed to changed group of " + path + " to " + group);
-      }
+      mTfs.setAcl(path, options);
+      System.out.println("Changed group of " + path + " to " + group);
     } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException("Failed to changed group of " + path + " to " + group + " : "
+          + e.getMessage());
     }
   }
 
@@ -85,19 +81,16 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
    * @throws IOException if command failed
    */
   protected void chmod(TachyonURI path, String modeStr, boolean recursive) throws IOException {
+    short newPermission = 0;
     try {
-      short newPermission = Short.parseShort(modeStr);
+      newPermission = Short.parseShort(modeStr);
       SetAclOptions options =
           new SetAclOptions.Builder().setPermission(newPermission).setRecursive(recursive).build();
-      if (mTfs.setAcl(path, options)) {
-        System.out.println("Changed permission of " + path + " to " + newPermission);
-      } else {
-        throw new IOException("Failed to changed permission of  " + path + " to " + newPermission);
-      }
-    } catch (NumberFormatException e) {
-      throw new IOException(e.getMessage());
-    } catch (TachyonException e) {
-      throw new IOException(e.getMessage());
+      mTfs.setAcl(path, options);
+      System.out.println("Changed permission of " + path + " to " + newPermission);
+    } catch (Exception e) {
+      throw new IOException("Failed to changed permission of  " + path + " to " + newPermission
+          + " : " + e.getMessage());
     }
   }
 }
