@@ -31,15 +31,15 @@ import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.FileSystemMasterClient;
+import tachyon.client.file.URIStatus;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileInfo;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
@@ -73,7 +73,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("fatalError", "");
-    TachyonFileSystem tFS = TachyonFileSystemFactory.get();
+    FileSystem tFS = FileSystem.Factory.get();
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
@@ -184,64 +184,45 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   /***
    * Gets the {@link UIFileInfo} object based on file id.
    *
-   * @param tachyonFileSystem the {@link TachyonFileSystem} client
+   * @param fileSystem the {@link FileSystem} client
    * @param fileId the file id of the file
    * @return the {@link UIFileInfo} object of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId)
+  private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
-    return getUiFileInfo(tachyonFileSystem, fileId, TachyonURI.EMPTY_URI);
-  }
-
-  /***
-   * Gets the {@link UIFileInfo} object based on file path.
-   *
-   * @param tachyonFileSystem the {@link TachyonFileSystem} client
-   * @param filePath the path of the file
-   * @return the {@link UIFileInfo} object of the file
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
-   */
-  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
-    return getUiFileInfo(tachyonFileSystem, -1, filePath);
+    // TODO(calvin): Remove this dependency
+    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
+    try {
+      return getUiFileInfo(fileSystem, new TachyonURI(masterClient.getFileInfo(fileId).getPath()));
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
+    }
   }
 
   /**
    * Gets the {@link UIFileInfo} object that represents the file id, or the file path if file id is
    * -1.
    *
-   * @param tachyonFileSystem the {@link TachyonFileSystem} client
-   * @param fileId the file id of the file
+   * @param fileSystem the {@link FileSystem} client
    * @param filePath the path of the file. valid iff fileId is -1
    * @return the {@link UIFileInfo} object of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  private UIFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
-      TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
-      InvalidPathException, IOException, TachyonException {
-    TachyonFile file = null;
-    if (fileId != -1) {
-      file = new TachyonFile(fileId);
-    } else {
-      file = tachyonFileSystem.open(filePath);
-    }
-    FileInfo fileInfo;
+  private UIFileInfo getUiFileInfo(FileSystem fileSystem, TachyonURI filePath)
+      throws BlockDoesNotExistException, FileDoesNotExistException, InvalidPathException,
+      IOException, TachyonException {
+    URIStatus status;
     try {
-      fileInfo = tachyonFileSystem.getInfo(file);
-      if (fileInfo == null) {
-        throw new FileDoesNotExistException(
-            fileId != -1 ? Long.toString(fileId) : filePath.toString());
-      }
+      status = fileSystem.getStatus(filePath);
     } catch (TachyonException e) {
       throw new FileDoesNotExistException(filePath.toString());
     }
-    UIFileInfo uiFileInfo = new UIFileInfo(fileInfo);
+    UIFileInfo uiFileInfo = new UIFileInfo(status.getInfo());
     boolean blockExistOnWorker = false;
-    for (long blockId : fileInfo.getBlockIds()) {
+    for (long blockId : status.getBlockIds()) {
       if (mBlockDataManager.hasBlockMeta(blockId)) {
         blockExistOnWorker = true;
         BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
@@ -253,8 +234,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       }
     }
     if (!blockExistOnWorker) {
-      throw new FileDoesNotExistException(
-          fileId != -1 ? Long.toString(fileId) : filePath.toString());
+      throw new FileDoesNotExistException(filePath.toString());
     }
     return uiFileInfo;
   }

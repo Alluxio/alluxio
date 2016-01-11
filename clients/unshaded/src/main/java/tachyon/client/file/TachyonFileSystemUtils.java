@@ -28,20 +28,17 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.file.options.GetInfoOptions;
-import tachyon.client.file.options.InStreamOptions;
-import tachyon.client.file.options.OpenOptions;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.ReadType;
+import tachyon.client.file.options.OpenFileOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * Collection of utility methods to handle with {@link TachyonFileSystem} related objects
+ * Collection of utility methods to handle with {@link FileSystem} related objects
  */
 public final class TachyonFileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -63,9 +60,9 @@ public final class TachyonFileSystemUtils {
    * @throws TachyonException if a Tachyon Exception occurs
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
-   * @see #waitCompleted(TachyonFileSystemCore, TachyonURI, long, TimeUnit)
+   * @see #waitCompleted(FileSystem, TachyonURI, long, TimeUnit)
    */
-  public static boolean waitCompleted(TachyonFileSystemCore tfs, TachyonURI uri)
+  public static boolean waitCompleted(FileSystem tfs, TachyonURI uri)
       throws IOException, TachyonException, InterruptedException {
     return TachyonFileSystemUtils.waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS);
   }
@@ -102,30 +99,23 @@ public final class TachyonFileSystemUtils {
    * @throws InterruptedException if the thread receives an interrupt while waiting for file
    *         completion
    */
-  public static boolean waitCompleted(final TachyonFileSystemCore tfs, final TachyonURI uri,
+  public static boolean waitCompleted(final FileSystem tfs, final TachyonURI uri,
       final long timeout, final TimeUnit tunit)
           throws IOException, TachyonException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
     final long pollPeriod =
         ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
-    TachyonFile file = null;
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
     long toSleep = 0;
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
-
-      if (file == null) {
-        file = tfs.openIfExists(uri, OpenOptions.defaults());
-        if (file == null) {
-          LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
-              + "created.", uri);
-        }
-      }
-
-      if (file != null) {
-        completed = tfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+      if (!tfs.exists(uri)) {
+        LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
+            + "created.", uri);
+      } else {
+        completed = tfs.getStatus(uri).isCompleted();
       }
 
       if (timeout == 0) {
@@ -148,25 +138,24 @@ public final class TachyonFileSystemUtils {
   /**
    * Persist the given file to the under file system.
    *
-   * @param tfs {@link TachyonFileSystem} to carry out Tachyon operations
-   * @param file the file to persist
-   * @param fileInfo the file info of the file
+   * @param fs {@link FileSystem} to carry out Tachyon operations
+   * @param uri the uri of the file to persist
+   * @param status the status info of the file
    * @param tachyonConf TachyonConf object
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws TachyonException if an unexpected Tachyon error occurs
    */
-  public static long persistFile(TachyonFileSystem tfs, TachyonFile file, FileInfo fileInfo,
+  public static long persistFile(FileSystem fs, TachyonURI uri, URIStatus status,
       TachyonConf tachyonConf) throws IOException, FileDoesNotExistException, TachyonException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
     try {
-      InStreamOptions inStreamOptions = new InStreamOptions.Builder(tachyonConf)
-          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
-      FileInStream in = closer.register(tfs.getInStream(file, inStreamOptions));
-      TachyonURI dstPath = new TachyonURI(fileInfo.getUfsPath());
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      FileInStream in = closer.register(fs.openFile(uri, options));
+      TachyonURI dstPath = new TachyonURI(status.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), tachyonConf);
       String parentPath = dstPath.getParent().toString();
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
@@ -180,7 +169,7 @@ public final class TachyonFileSystemUtils {
       closer.close();
     }
     // Tell the master to mark the file as persisted
-    tfs.setState(file, (new SetStateOptions.Builder()).setPersisted(true).build());
+    fs.setAttribute(uri, SetAttributeOptions.defaults().setPersisted(true));
     return ret;
   }
 }

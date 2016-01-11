@@ -25,11 +25,10 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -96,7 +95,7 @@ public class TfsShellUtils {
    * @return a list of {@link TachyonURI}s that matches the inputURI
    * @throws IOException
    */
-  public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
+  public static List<TachyonURI> getTachyonURIs(FileSystem tachyonClient,
       TachyonURI inputURI) throws IOException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
       return Lists.newArrayList(inputURI);
@@ -122,25 +121,24 @@ public class TfsShellUtils {
    * @return a list of {@link TachyonURI}s of the files that match the inputURI in parentDir
    * @throws IOException
    */
-  private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
+  private static List<TachyonURI> getTachyonURIs(FileSystem tachyonClient,
       TachyonURI inputURI, TachyonURI parentDir) throws IOException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
-    List<FileInfo> files = null;
+    List<URIStatus> statuses = null;
     try {
-      TachyonFile parentFile = tachyonClient.open(parentDir);
-      files = tachyonClient.listStatus(parentFile);
+      statuses = tachyonClient.listStatus(parentDir);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
-    for (FileInfo file : files) {
+    for (URIStatus status : statuses) {
       TachyonURI fileURI =
-          new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());
+          new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), status.getPath());
       if (match(fileURI, inputURI)) { // if it matches
         res.add(fileURI);
       } else {
-        if (file.isFolder) { // if it is a folder, we do it recursively
+        if (status.isFolder()) { // if it is a folder, we do it recursively
           TachyonURI dirURI =
-              new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());
+              new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), status.getPath());
           String prefix = inputURI.getLeadingPath(dirURI.getDepth());
           if (prefix != null && match(dirURI, new TachyonURI(prefix))) {
             res.addAll(getTachyonURIs(tachyonClient, inputURI, dirURI));

@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
+import tachyon.client.file.FileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 
@@ -48,8 +48,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Creates a new partition in a column of a raw table. The partition is represented as a file,
-   * and the user may interact with it through the FileSystem API. See
-   * {@link tachyon.client.file.TachyonFileSystem}.
+   * and the user may interact with it through the FileSystem API. See {@link FileSystem}.
    *
    * @param column the raw column under which to create the partition
    * @param partitionId the index of the partition to create
@@ -72,7 +71,7 @@ interface TachyonRawTablesCore {
 
   /**
    * Gets the number of partitions currently in the {@link RawColumn}. Each partition is a
-   * separate {@link TachyonFile}.
+   * separate file.
    *
    * @param column the raw column containing the partitions
    * @return the number of partitions currently in the column
@@ -80,6 +79,18 @@ interface TachyonRawTablesCore {
    * @throws TachyonException if an internal Tachyon error occurs
    */
   int getPartitionCount(RawColumn column) throws IOException, TachyonException;
+
+  /**
+   * Gets the partition {@link TachyonURI} which can be used to access the partition data directly.
+   *
+   * @param column the column to get the partition from
+   * @param partitionId the id of the partition
+   * @return the uri referencing the partition
+   * @throws IOException if a non Tachyon related I/O error occurs
+   * @throws TachyonException if an internal Tachyon error occurs
+   */
+  TachyonURI getPartitionUri(RawColumn column, int partitionId)
+      throws IOException, TachyonException;
 
   /**
    * Gets a handle for the given raw table, if it exists.
@@ -90,18 +101,6 @@ interface TachyonRawTablesCore {
    * @throws TachyonException if an internal Tachyon error occurs
    */
   RawTable open(TachyonURI path) throws IOException, TachyonException;
-
-  /**
-   * Gets the file handle for a partition of a column. A partition should be accessed through
-   * a file API. See {@link tachyon.client.file.TachyonFileSystem}.
-   *
-   * @param column the raw column which contains the partition
-   * @param partitionId the index of the partition, which starts from 0
-   * @return the {@link TachyonFile} which may be used to interact with the partition
-   * @throws IOException if a non Tachyon related I/O error occurs
-   * @throws TachyonException if an internal Tachyon error occurs
-   */
-  TachyonFile openPartition(RawColumn column, int partitionId) throws IOException, TachyonException;
 
   /**
    * Updates the user defined metadata for the raw table. This will overwrite the previous

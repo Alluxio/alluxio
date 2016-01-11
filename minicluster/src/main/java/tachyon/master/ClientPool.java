@@ -23,30 +23,29 @@ import java.util.List;
 
 import com.google.common.base.Supplier;
 
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
- * Keeps a collection of all clients ({@link tachyon.client.file.TachyonFileSystem}) returned. The
- * main reason for this is to build cleanup clients.
+ * Keeps a collection of all clients ({@link FileSystem}) returned. The main reason for this is
+ * to build cleanup clients.
  */
 public final class ClientPool implements Closeable {
-  private final List<TachyonFileSystem> mClients =
-      Collections.synchronizedList(new ArrayList<TachyonFileSystem>());
+  private final List<FileSystem> mClients =
+      Collections.synchronizedList(new ArrayList<FileSystem>());
 
   ClientPool(Supplier<String> uriSupplier) {}
 
   /**
-   * Returns a {@link tachyon.client.file.TachyonFileSystem} client. This client does not need to be
+   * Returns a {@link FileSystem} client. This client does not need to be
    * closed directly, but can be closed by calling {@link #close()} on this object.
    *
    * @param tachyonConf Tachyon configuration
    * @return a TachyonFS client
    * @throws IOException when the operation fails
    */
-  public TachyonFileSystem getClient(TachyonConf tachyonConf) throws IOException {
-    final TachyonFileSystem fs = TachyonFileSystemFactory.get();
+  public FileSystem getClient(TachyonConf tachyonConf) throws IOException {
+    final FileSystem fs = FileSystem.Factory.get();
     mClients.add(fs);
     return fs;
   }

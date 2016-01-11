@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -27,7 +27,7 @@ import tachyon.conf.TachyonConf;
  */
 public final class UnsetTTLCommand extends AbstractTfsShellCommand {
 
-  public UnsetTTLCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public UnsetTTLCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 

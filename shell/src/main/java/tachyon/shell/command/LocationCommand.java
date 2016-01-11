@@ -19,12 +19,11 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.block.TachyonBlockStore;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.FileSystem;
+import tachyon.client.file.URIStatus;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
-import tachyon.thrift.FileInfo;
 
 /**
  * Displays a list of hosts that have the file specified in args stored.
@@ -35,7 +34,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
-  public LocationCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  public LocationCommand(TachyonConf conf, FileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -46,17 +45,15 @@ public final class LocationCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(TachyonURI path) throws IOException {
-    TachyonFile fd;
-    FileInfo fInfo;
+    URIStatus status;
     try {
-      fd = mTfs.open(path);
-      fInfo = mTfs.getInfo(fd);
+      status = mTfs.getStatus(path);
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
 
-    System.out.println(path + " with file id " + fd.getFileId() + " is on nodes: ");
-    for (long blockId : fInfo.getBlockIds()) {
+    System.out.println(path + " with file id " + status.getFileId() + " is on nodes: ");
+    for (long blockId : status.getBlockIds()) {
       for (BlockLocation location : TachyonBlockStore.get().getInfo(blockId).getLocations()) {
         System.out.println(location.getWorkerAddress().getHost());
       }

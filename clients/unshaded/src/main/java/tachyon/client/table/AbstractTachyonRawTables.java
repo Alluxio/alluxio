@@ -22,9 +22,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.FileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.util.io.PathUtils;
@@ -36,11 +34,11 @@ import tachyon.util.io.PathUtils;
 @PublicApi
 public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   protected RawTableContext mContext;
-  protected TachyonFileSystem mTachyonFileSystem;
+  protected FileSystem mFileSystem;
 
   protected AbstractTachyonRawTables() {
     mContext = RawTableContext.INSTANCE;
-    mTachyonFileSystem = TachyonFileSystemFactory.get();
+    mFileSystem = FileSystem.Factory.get();
   }
 
   // TODO(calvin): Consider different client options
@@ -59,7 +57,7 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   @Override
   public FileOutStream createPartition(RawColumn column, int partitionId)
       throws IOException, TachyonException {
-    return mTachyonFileSystem.getOutStream(getPartitionUri(column, partitionId));
+    return mFileSystem.createFile(getPartitionUri(column, partitionId));
   }
 
   @Override
@@ -73,18 +71,19 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
   }
 
   @Override
-  public TachyonFile openPartition(RawColumn column, int partitionId)
-      throws IOException, TachyonException {
-    return mTachyonFileSystem.open(getPartitionUri(column, partitionId));
-  }
-
-  @Override
   public int getPartitionCount(RawColumn column) throws IOException, TachyonException {
     RawTableInfo info = getInfo(column.getRawTable());
     TachyonURI columnUri = new TachyonURI(PathUtils.concatPath(info.getPath(),
         Constants.MASTER_COLUMN_FILE_PREFIX + column.getColumnIndex()));
-    TachyonFile file = mTachyonFileSystem.open(columnUri);
-    return mTachyonFileSystem.listStatus(file).size();
+    return mFileSystem.listStatus(columnUri).size();
+  }
+
+  @Override
+  public TachyonURI getPartitionUri(RawColumn column, int partitionId)
+      throws IOException, TachyonException {
+    RawTableInfo info = getInfo(column.getRawTable());
+    return new TachyonURI(PathUtils.concatPath(info.getPath(), Constants.MASTER_COLUMN_FILE_PREFIX
+        + column.getColumnIndex(), partitionId));
   }
 
   @Override
@@ -107,12 +106,5 @@ public abstract class AbstractTachyonRawTables implements TachyonRawTablesCore {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
-  }
-
-  private TachyonURI getPartitionUri(RawColumn column, int partitionId)
-      throws IOException, TachyonException {
-    RawTableInfo info = getInfo(column.getRawTable());
-    return new TachyonURI(PathUtils.concatPath(info.getPath(), Constants.MASTER_COLUMN_FILE_PREFIX
-        + column.getColumnIndex(), partitionId));
   }
 }
