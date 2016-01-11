@@ -32,6 +32,9 @@ import tachyon.worker.block.meta.StorageDirView;
 @PublicApi
 public interface Allocator {
 
+  /**
+   * Factory for {@link Allocator}.
+   */
   class Factory {
     /**
      * Factory for {@link Allocator}.
@@ -64,7 +67,6 @@ public interface Allocator {
    * @param view of the metadata manager
    * @return a {@link StorageDirView} in which to create the temp block meta if success, null
    *         otherwise
-   * @throws IllegalArgumentException if block location is invalid
    */
   StorageDirView allocateBlockWithView(long sessionId, long blockSize, BlockStoreLocation location,
       BlockMetadataManagerView view);
