@@ -128,18 +128,16 @@ public final class TachyonWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
-    TachyonWorker worker = null;
+    TachyonWorker worker = new TachyonWorker();
     try {
-      worker = new TachyonWorker();
       worker.start();
     } catch (Exception e) {
-      LOG.error("Uncaught exception while running worker, shutting down and exiting.", e);
-      if (worker != null) {
-        try {
-          worker.stop();
-        } catch (Exception ex) {
-          // continue to exit
-        }
+      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
+      try {
+        worker.stop();
+      } catch (Exception ex) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
       }
       System.exit(-1);
     }
@@ -223,11 +221,10 @@ public final class TachyonWorker {
     // Set updated net address for this worker in context
     // Requirement: RPC, web, and dataserver ports are updated
     // Consequence: create a NetAddress object and set it into WorkerContext
-    mWorkerNetAddress =
-        new WorkerNetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-            mTachyonConf),
-            mTachyonConf.getInt(Constants.WORKER_RPC_PORT),
-            getDataLocalPort(), mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
+    mWorkerNetAddress = new WorkerNetAddress(
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+        mTachyonConf.getInt(Constants.WORKER_RPC_PORT), getDataLocalPort(),
+        mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
     WorkerContext.setWorkerNetAddress(mWorkerNetAddress);
 
     // Start each worker
@@ -298,11 +295,10 @@ public final class TachyonWorker {
     } catch (IOException ioe) {
       throw Throwables.propagate(ioe);
     }
-    TThreadPoolServer.Args args =
-        new TThreadPoolServer.Args(mThriftServerSocket).minWorkerThreads(minWorkerThreads)
-            .maxWorkerThreads(maxWorkerThreads).processor(processor)
-            .transportFactory(tTransportFactory)
-            .protocolFactory(new TBinaryProtocol.Factory(true, true));
+    TThreadPoolServer.Args args = new TThreadPoolServer.Args(mThriftServerSocket)
+        .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
+        .transportFactory(tTransportFactory)
+        .protocolFactory(new TBinaryProtocol.Factory(true, true));
     if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
@@ -318,8 +314,8 @@ public final class TachyonWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-          mTachyonConf));
+      return new TServerSocket(
+          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
