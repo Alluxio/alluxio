@@ -36,8 +36,8 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.BlockWorkerClientService;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -80,7 +80,7 @@ public final class BlockWorker extends WorkerBase {
   /** Client for all file system master communication */
   private final FileSystemMasterClient mFileSystemMasterClient;
   /** Net address of this worker */
-  private final NetAddress mWorkerNetAddress;
+  private final WorkerNetAddress mWorkerNetAddress;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
   /** Server socket for thrift */
@@ -156,10 +156,10 @@ public final class BlockWorker extends WorkerBase {
   }
 
   /**
-   * Creates a Tachyon Block Worker.
+   * Creates a new instance of {@link BlockWorker}.
    *
-   * @throws IOException for other exceptions
    * @throws ConnectionFailedException if network connection failed
+   * @throws IOException for other exceptions
    */
   public BlockWorker() throws IOException, ConnectionFailedException {
     super(Executors.newFixedThreadPool(4,
@@ -187,7 +187,7 @@ public final class BlockWorker extends WorkerBase {
 
     // Setup DataServer
     mDataServer =
-        DataServer.Factory.createDataServer(
+        DataServer.Factory.create(
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
             mBlockDataManager, mTachyonConf);
     // Reset data server port
@@ -214,9 +214,9 @@ public final class BlockWorker extends WorkerBase {
     int webPort = mWebServer.getLocalPort();
 
     // Get the worker id
-    mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
-            mPort, mDataServer.getPort(), webPort);
+    mWorkerNetAddress = new WorkerNetAddress(
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf), mPort,
+        mDataServer.getPort(), webPort);
     WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
@@ -240,7 +240,7 @@ public final class BlockWorker extends WorkerBase {
    *
    * @return the worker's net address
    */
-  public NetAddress getWorkerNetAddress() {
+  public WorkerNetAddress getWorkerNetAddress() {
     return mWorkerNetAddress;
   }
 

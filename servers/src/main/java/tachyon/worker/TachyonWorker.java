@@ -43,7 +43,7 @@ public final class TachyonWorker {
     try {
       worker = new BlockWorker();
        // Setup the file worker
-      LOG.info("Started file system worker at worker with ID {}", WorkerIdRegistry.getWorkerId());
+      LOG.info("Started file system worker at worker with id {}", WorkerIdRegistry.getWorkerId());
       fileWorker = new FileSystemWorker(worker.getBlockDataManager());
 
     } catch (Exception e) {
@@ -71,7 +71,7 @@ public final class TachyonWorker {
   }
 
   /**
-   * Verifies that no parameters are passed in
+   * Verifies that no parameters are passed in.
    *
    * @param args command line arguments
    */

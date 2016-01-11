@@ -51,14 +51,14 @@ public class OutStreamOptionsTest {
         new OutStreamOptions.Builder(new TachyonConf())
             .setBlockSizeBytes(blockSize)
             .setTachyonStorageType(tachyonType)
-            .setTTL(ttl)
+            .setTtl(ttl)
             .setUnderStorageType(ufsType)
             .setLocationPolicy(policy)
             .build();
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertEquals(policy, options.getLocationPolicy());
   }
@@ -79,7 +79,7 @@ public class OutStreamOptionsTest {
 
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();

@@ -75,7 +75,7 @@ public final class JournalTool {
   }
 
   /**
-   * Parse the input args with a command line format, using
+   * Parses the input args with a command line format, using
    * {@link org.apache.commons.cli.CommandLineParser}.
    *
    * @param args the input args

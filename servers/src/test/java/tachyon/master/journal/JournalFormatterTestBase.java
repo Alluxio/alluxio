@@ -260,7 +260,7 @@ public abstract class JournalFormatterTestBase {
   }
 
   /**
-   * Returns the implementation of {@link JournalFormatter} that wants to be tested.
+   * @return the implementation of {@link JournalFormatter} that wants to be tested
    */
   protected abstract JournalFormatter getFormatter();
 

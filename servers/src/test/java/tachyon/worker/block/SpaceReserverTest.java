@@ -30,10 +30,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.worker.file.FileSystemMasterClient;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.file.FileSystemMasterClient;
 
+/**
+ * Unit tests for {@link SpaceReserver}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMasterClient.class, BlockMasterClient.class})
 public class SpaceReserverTest {
@@ -48,14 +51,24 @@ public class SpaceReserverTest {
   private BlockStore mBlockStore;
   private SpaceReserver mSpaceReserver;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
+  /**
+   * Stops the {@link SpaceReserver} and resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     mSpaceReserver.stop();
+    WorkerContext.reset();
   }
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the test fails
+   */
   @Before
   public void before() throws Exception {
     FileSystemMasterClient workerFileSystemMasterClient =
@@ -77,6 +90,11 @@ public class SpaceReserverTest {
     mSpaceReserver = new SpaceReserver(blockDataManager);
   }
 
+  /**
+   * Tests that the reserver works as expected.
+   *
+   * @throws Exception if the Whitebox fails
+   */
   @Test
   public void reserveTest() throws Exception {
     // Reserve on top tier
@@ -91,7 +109,7 @@ public class SpaceReserverTest {
     Assert.assertEquals(4 * BLOCK_SIZE, (long) usedBytesOnTiers.get("MEM"));
     Assert.assertEquals(0, (long) usedBytesOnTiers.get("HDD"));
 
-    // Reserver kicks in, expect evicting one block from MEM to HHD
+    // Reserver kicks in, expect evicting one block from MEM to HDD
     Whitebox.invokeMethod(mSpaceReserver, "reserveSpace");
 
     storeMeta = mBlockStore.getBlockStoreMeta();
@@ -110,7 +128,7 @@ public class SpaceReserverTest {
     Assert.assertEquals(4 * BLOCK_SIZE, (long) usedBytesOnTiers.get("MEM"));
     Assert.assertEquals(10 * BLOCK_SIZE, (long) usedBytesOnTiers.get("HDD"));
 
-    // Reserver kicks in again, expect evicting one block from MEM to HHD and four blocks from HHD
+    // Reserver kicks in again, expect evicting one block from MEM to HDD and four blocks from HDD
     Whitebox.invokeMethod(mSpaceReserver, "reserveSpace");
 
     storeMeta = mBlockStore.getBlockStoreMeta();

@@ -33,6 +33,11 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;
   private final transient TachyonMaster mMaster;
 
+  /**
+   * Creates a new instance of {@link WebInterfaceDependencyServlet}.
+   *
+   * @param master Tachyon master
+   */
   public WebInterfaceDependencyServlet(TachyonMaster master) {
     mMaster = Preconditions.checkNotNull(master);
   }

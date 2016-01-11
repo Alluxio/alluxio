@@ -34,6 +34,12 @@ public final class MasterBlockInfo {
   /** Maps from the worker id to the tier alias the block is on. */
   private final Map<Long, String> mWorkerIdToAlias;
 
+  /**
+   * Creates a new instance of {@link MasterBlockInfo}.
+   *
+   * @param blockId the block id to use
+   * @param length the block length in bytes to use
+   */
   public MasterBlockInfo(long blockId, long length) {
     // TODO(gene): Check valid length?
     mBlockId = blockId;
@@ -67,7 +73,7 @@ public final class MasterBlockInfo {
   }
 
   /**
-   * Removes the worker from the locations of this block
+   * Removes the worker from the locations of this block.
    *
    * @param workerId the worker id to remove
    */
@@ -104,6 +110,7 @@ public final class MasterBlockInfo {
   }
 
   /**
+   * @param targetTierAlias the tier alias to target
    * @return true if the block is in the given tier
    */
   public synchronized boolean isInTier(String targetTierAlias) {

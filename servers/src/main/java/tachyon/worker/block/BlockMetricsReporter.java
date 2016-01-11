@@ -30,6 +30,11 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   private final WorkerSource mWorkerSource;
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /**
+   * Creates a new instance of {@link BlockMetricsReporter}.
+   *
+   * @param workerSource a worker source handle
+   */
   public BlockMetricsReporter(WorkerSource workerSource) {
     mWorkerSource = workerSource;
     mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
@@ -37,7 +42,7 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
 
   @Override
   public void onAccessBlock(long sessionId, long blockId) {
-    mWorkerSource.incBlocksAccessed();
+    mWorkerSource.incBlocksAccessed(1);
   }
 
   @Override
@@ -46,13 +51,13 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      mWorkerSource.incBlocksPromoted();
+      mWorkerSource.incBlocksPromoted(1);
     }
   }
 
   @Override
   public void onRemoveBlockByClient(long sessionId, long blockId) {
-    mWorkerSource.incBlocksDeleted();
+    mWorkerSource.incBlocksDeleted(1);
   }
 
   @Override
@@ -61,24 +66,24 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
     int oldTierOrdinal = mStorageTierAssoc.getOrdinal(oldLocation.tierAlias());
     int newTierOrdinal = mStorageTierAssoc.getOrdinal(newLocation.tierAlias());
     if (newTierOrdinal == 0 && oldTierOrdinal != newTierOrdinal) {
-      mWorkerSource.incBlocksPromoted();
+      mWorkerSource.incBlocksPromoted(1);
     }
   }
 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
-    mWorkerSource.incBlocksEvicted();
+    mWorkerSource.incBlocksEvicted(1);
   }
 
   @Override
   public void onAbortBlock(long sessionId, long blockId) {
-    mWorkerSource.incBlocksCanceled();
+    mWorkerSource.incBlocksCanceled(1);
   }
 
   /**
    * Updates session metrics from the heartbeat from a client.
    *
-   * @param metrics The set of metrics the client has gathered since the last heartbeat
+   * @param metrics the set of metrics the client has gathered since the last heartbeat
    */
   public void updateClientMetrics(List<Long> metrics) {
     if (metrics != null && !metrics.isEmpty() && metrics.get(Constants.CLIENT_METRICS_VERSION_INDEX)

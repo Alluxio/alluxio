@@ -34,7 +34,7 @@ public class SetStateOptions {
    */
   public static class Builder implements OptionsBuilder<SetStateOptions> {
     private Boolean mPinned;
-    private Long mTTL;
+    private Long mTtl;
     private Boolean mPersisted;
 
     /**
@@ -51,7 +51,7 @@ public class SetStateOptions {
      */
     public Builder(TachyonConf conf) {
       mPinned = null;
-      mTTL = null;
+      mTtl = null;
       mPersisted = null;
     }
 
@@ -76,8 +76,8 @@ public class SetStateOptions {
      *        whether the file is pinned
      * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -112,7 +112,7 @@ public class SetStateOptions {
   }
 
   private final Boolean mPinned;
-  private final Long mTTL;
+  private final Long mTtl;
   private final Boolean mPersisted;
 
   /**
@@ -122,13 +122,13 @@ public class SetStateOptions {
    */
   public SetStateOptions(SetStateTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
-    mTTL = options.isSetTtl() ? options.getTtl() : null;
+    mTtl = options.isSetTtl() ? options.getTtl() : null;
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
   }
 
   private SetStateOptions(SetStateOptions.Builder builder) {
     mPinned = builder.mPinned;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
     mPersisted = builder.mPersisted;
   }
 
@@ -150,8 +150,8 @@ public class SetStateOptions {
   /**
    * @return true if the TTL value is set, otherwise false
    */
-  public boolean hasTTL() {
-    return mTTL != null;
+  public boolean hasTtl() {
+    return mTtl != null;
   }
 
   /**
@@ -159,9 +159,9 @@ public class SetStateOptions {
    *         created file should be kept around before it is automatically deleted, irrespective of
    *         whether the file is pinned
    */
-  public long getTTL() {
-    Preconditions.checkState(hasTTL(), PreconditionMessage.MUST_SET_TTL);
-    return mTTL;
+  public long getTtl() {
+    Preconditions.checkState(hasTtl(), PreconditionMessage.MUST_SET_TTL);
+    return mTtl;
   }
 
   /**
@@ -188,8 +188,8 @@ public class SetStateOptions {
     if (mPinned != null) {
       options.setPinned(mPinned);
     }
-    if (mTTL != null) {
-      options.setTtl(mTTL);
+    if (mTtl != null) {
+      options.setTtl(mTtl);
     }
     if (mPersisted != null) {
       options.setPersisted(mPersisted);
@@ -203,7 +203,7 @@ public class SetStateOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("SetStateOptions(");
-    sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTTL)
+    sb.append(super.toString()).append(", Pinned: ").append(mPinned).append(", TTL: ").append(mTtl)
         .append(", Persisted: ").append(mPersisted);
     sb.append(")");
     return sb.toString();

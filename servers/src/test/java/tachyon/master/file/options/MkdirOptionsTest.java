@@ -22,6 +22,9 @@ import org.junit.Test;
 
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link MkdirOptions}.
+ */
 public class MkdirOptionsTest {
   @Test
   public void builderTest() {

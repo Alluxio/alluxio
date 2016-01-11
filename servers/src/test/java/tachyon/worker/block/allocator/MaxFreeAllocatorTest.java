@@ -20,12 +20,15 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
+/**
+ * Unit tests for {@link MaxFreeAllocator}.
+ */
 public class MaxFreeAllocatorTest extends BaseAllocatorTest {
   @Test
   public void allocateBlockTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+    mAllocator = Allocator.Factory.create(conf, getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

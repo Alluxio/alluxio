@@ -23,10 +23,14 @@ import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 
 /**
- * TODO(yupeng): add javadoc
+ * Deletes a lineage by its id. If the cascade flag is set to true it performs a cascading delete.
  */
 public final class DeleteLineageCommand extends AbstractTfsShellCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public DeleteLineageCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -60,5 +64,11 @@ public final class DeleteLineageCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "deleteLineage <lineageId> <cascade(true|false)>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Deletes a lineage. If cascade is specified as true, "
+      + "dependent lineages will also be deleted.";
   }
 }

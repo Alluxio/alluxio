@@ -65,10 +65,20 @@ public class RawTableMaster extends MasterBase {
   private final FileSystemMaster mFileSystemMaster;
   private final RawTables mRawTables = new RawTables();
 
+  /**
+   * @param baseDirectory the base journal directory
+   * @return the journal directory for this master
+   */
   public static String getJournalDirectory(String baseDirectory) {
     return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_NAME);
   }
 
+  /**
+   * Creates a new instance of {@link RawTableMaster}.
+   *
+   * @param fileSystemMaster the file system master
+   * @param journal the journal
+   */
   public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, 2);
     TachyonConf conf = MasterContext.getConf();

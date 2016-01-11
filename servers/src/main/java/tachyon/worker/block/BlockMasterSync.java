@@ -33,7 +33,7 @@ import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.Command;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 
@@ -56,7 +56,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
   /** The net address of the worker */
-  private final NetAddress mWorkerAddress;
+  private final WorkerNetAddress mWorkerAddress;
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
@@ -69,13 +69,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private long mLastSuccessfulHeartbeatMs;
 
   /**
-   * Constructor for BlockMasterSync
+   * Creates a new instance of {@link BlockMasterSync}.
    *
    * @param blockDataManager the {@link BlockDataManager} this syncer is updating to
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
-  BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
+  BlockMasterSync(BlockDataManager blockDataManager, WorkerNetAddress workerAddress,
       BlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
@@ -190,13 +190,20 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Thread to remove block from master
+   * Thread to remove block from master.
    */
   private class BlockRemover implements Runnable {
     private BlockDataManager mBlockDataManager;
     private long mSessionId;
     private long mBlockId;
 
+    /**
+     * Creates a new instance of {@link BlockRemover}.
+     *
+     * @param blockDataManager a block data manager handle
+     * @param sessionId the session id
+     * @param blockId the block id
+     */
     public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
       mBlockDataManager = blockDataManager;
       mSessionId = sessionId;

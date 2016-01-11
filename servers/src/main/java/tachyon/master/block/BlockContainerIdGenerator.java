@@ -29,6 +29,9 @@ public final class BlockContainerIdGenerator
 
   private final AtomicLong mNextContainerId;
 
+  /**
+   * Creates a new instance of {@link BlockContainerIdGenerator}.
+   */
   public BlockContainerIdGenerator() {
     mNextContainerId = new AtomicLong(0);
   }
@@ -38,6 +41,9 @@ public final class BlockContainerIdGenerator
     return mNextContainerId.getAndIncrement();
   }
 
+  /**
+   * @param id the next container id to use
+   */
   public synchronized void setNextContainerId(long id) {
     mNextContainerId.set(id);
   }

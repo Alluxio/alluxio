@@ -30,12 +30,14 @@ public interface CheckpointPlanner {
 
   class Factory {
     /**
+     * Factory for {@link CheckpointPlanner}.
+     *
      * @param conf TachyonConf to determine the planner type
      * @param lineageStoreView a view of the lineage store
      * @param fileSystemMasterView a view of the file system master
      * @return the generated planner
      */
-    public static CheckpointPlanner createPlanner(TachyonConf conf,
+    public static CheckpointPlanner create(TachyonConf conf,
         LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
