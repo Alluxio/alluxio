@@ -39,7 +39,7 @@ public final class OutStreamOptions {
   public static class Builder implements OptionsBuilder<OutStreamOptions> {
     private long mBlockSizeBytes;
     private TachyonStorageType mTachyonStorageType;
-    private long mTTL;
+    private long mTtl;
     private UnderStorageType mUnderStorageType;
     private FileWriteLocationPolicy mLocationPolicy;
 
@@ -61,7 +61,7 @@ public final class OutStreamOptions {
           conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
       mTachyonStorageType = defaultWriteType.getTachyonStorageType();
       mUnderStorageType = defaultWriteType.getUnderStorageType();
-      mTTL = Constants.NO_TTL;
+      mTtl = Constants.NO_TTL;
       try {
         mLocationPolicy =
             CommonUtils
@@ -115,8 +115,8 @@ public final class OutStreamOptions {
      *        whether the file is pinned
      * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -156,7 +156,7 @@ public final class OutStreamOptions {
   private final long mBlockSizeBytes;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final long mTTL;
+  private final long mTtl;
   private FileWriteLocationPolicy mLocationPolicy;
 
   /**
@@ -169,7 +169,7 @@ public final class OutStreamOptions {
   private OutStreamOptions(OutStreamOptions.Builder builder) {
     mBlockSizeBytes = builder.mBlockSizeBytes;
     mTachyonStorageType = builder.mTachyonStorageType;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
     mUnderStorageType = builder.mUnderStorageType;
     mLocationPolicy = builder.mLocationPolicy;
   }
@@ -192,8 +192,8 @@ public final class OutStreamOptions {
    * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    *         should be kept around before it is automatically deleted
    */
-  public long getTTL() {
-    return mTTL;
+  public long getTtl() {
+    return mTtl;
   }
 
   /**
@@ -219,7 +219,7 @@ public final class OutStreamOptions {
     sb.append(super.toString()).append(", BlockSizeBytes: ").append(mBlockSizeBytes);
     sb.append(", TachyonStorageType: ").append(mTachyonStorageType.toString());
     sb.append(", UnderStorageType: ").append(mUnderStorageType.toString());
-    sb.append(", TTL: ").append(mTTL);
+    sb.append(", TTL: ").append(mTtl);
     sb.append(", LocationPolicy: ").append(mLocationPolicy.toString());
     sb.append(")");
     return sb.toString();

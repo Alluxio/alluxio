@@ -99,7 +99,8 @@ public class JournalReader {
   /**
    * @return the input stream for the next completed log file. Will return null if the next
    *         completed log file does not exist yet.
-   * @throws IOException
+   * @throws IOException if the reader is no longer valid or when trying to get an input stream
+   *                     before a checkpoint was read
    */
   public JournalInputStream getNextInputStream() throws IOException {
     if (!mCheckpointRead) {
@@ -125,7 +126,7 @@ public class JournalReader {
 
   /**
    * @return the last modified time of the checkpoint file in ms
-   * @throws IOException
+   * @throws IOException if the checkpoint does not exist
    */
   public long getCheckpointLastModifiedTimeMs() throws IOException {
     if (!mUfs.exists(mCheckpointPath)) {

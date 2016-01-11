@@ -40,7 +40,7 @@ import tachyon.util.io.BufferUtils;
 public class RawTableIntegrationTest {
   @Rule
   public LocalTachyonClusterResource mLocalTachyonClusterResource = new LocalTachyonClusterResource(
-      10000, 1000, Constants.GB, Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      10 * Constants.MB, 1000, Constants.MB, Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private TachyonFileSystem mTachyonFileSystem = null;
   private TachyonRawTables mTachyonRawTables = null;
   private int mMaxCols = 1000;

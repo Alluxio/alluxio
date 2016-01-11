@@ -22,9 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -40,7 +38,6 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -56,10 +53,10 @@ import tachyon.client.util.ClientTestUtils;
 import tachyon.client.worker.BlockWorkerClient;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.PreconditionMessage;
-import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Tests for the {@link FileOutStream} class.
@@ -84,12 +81,6 @@ public class FileOutStreamTest {
   private AtomicBoolean mUnderStorageFlushed;
 
   private FileOutStream mTestStream;
-
-  /**
-   * The exception expected to be thrown.
-   */
-  @Rule
-  public final ExpectedException mThrown = ExpectedException.none();
 
   /**
    * Sets up the different contexts and clients before a test runs.
@@ -125,9 +116,8 @@ public class FileOutStreamTest {
 
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = Maps.newHashMap();
-    Mockito.when(
-        mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH), Mockito.anyString()))
-        .thenAnswer(new Answer<BufferedBlockOutStream>() {
+    Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
+        Mockito.any(NetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
@@ -140,7 +130,7 @@ public class FileOutStreamTest {
           }
         });
     BlockWorkerInfo workerInfo =
-        new BlockWorkerInfo(new WorkerNetAddress("localhost", 1, 2, 3), Constants.GB, 0);
+        new BlockWorkerInfo(new NetAddress("localhost", 1, 2, 3), Constants.GB, 0);
     Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mTachyonOutStreamMap = outStreamMap;
 
@@ -286,9 +276,12 @@ public class FileOutStreamTest {
     Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
     Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
     Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage(ExceptionMessage.FAILED_CACHE.getMessage("test error"));
-    mTestStream.write(7);
+    try {
+      mTestStream.write(7);
+      Assert.fail("the test should fail");
+    } catch (IOException e) {
+      Assert.assertEquals(ExceptionMessage.FAILED_CACHE.getMessage("test error"), e.getMessage());
+    }
   }
 
   /**
@@ -331,9 +324,13 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeBadBufferOffsetTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6));
-    mTestStream.write(new byte[10], 5, 6);
+    try {
+      mTestStream.write(new byte[10], 5, 6);
+      Assert.fail("buffer write with invalid offset/length should fail");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
+          e.getMessage());
+    }
   }
 
   /**
@@ -343,9 +340,12 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeNullBufferTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-    mTestStream.write(null);
+    try {
+      mTestStream.write(null);
+      Assert.fail("writing null should fail");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL, e.getMessage());
+    }
   }
 
   /**
@@ -355,16 +355,18 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeNullBufferOffsetTest() throws IOException {
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-    mTestStream.write(null, 0, 0);
+    try {
+      mTestStream.write(null, 0, 0);
+      Assert.fail("writing null should fail");
+    } catch (IllegalArgumentException e) {
+      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL, e.getMessage());
+    }
   }
 
   /**
    * Tests that the async write invokes the expected client APIs.
    *
-   * @throws IOException when the write fails
-   * @throws TachyonException when a Tachyon exception occurs
+   * @throws Exception when the write fails
    */
   @Test
   public void asyncWriteTest() throws Exception {
@@ -384,6 +386,8 @@ public class FileOutStreamTest {
 
   /**
    * Tests the location policy created with different options.
+   *
+   * @throws IOException if creating the the test stream fails
    */
   @Test
   public void locationPolicyTest() throws IOException {
@@ -402,6 +406,25 @@ public class FileOutStreamTest {
     mTestStream = createTestStream(FILE_ID, options);
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);
+  }
+
+  /**
+   * Tests that the correct exception message is produced when the location policy is not specified.
+   *
+   * @throws IOException if creating the test stream fails
+   */
+  @Test
+  public void missingLocationPolicyTest() throws IOException {
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).setLocationPolicy(null).build();
+    try {
+      mTestStream = createTestStream(FILE_ID, options);
+      Assert.fail("missing location policy should fail");
+    } catch (NullPointerException e) {
+      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
+          e.getMessage());
+    }
   }
 
   private void verifyIncreasingBytesWritten(int len) {

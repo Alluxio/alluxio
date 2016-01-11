@@ -52,6 +52,11 @@ import tachyon.worker.block.io.BlockReader;
 @PrepareForTest({BlockDataManager.class, BufferUtils.class})
 public final class FileDataManagerTest {
 
+  /**
+   * Tests that a file gets persisted.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   @SuppressWarnings("unchecked")
   public void persistFileTest() throws Exception {
@@ -102,6 +107,9 @@ public final class FileDataManagerTest {
     Assert.assertFalse(manager.needPersistence(fileId));
   }
 
+  /**
+   * Tests that persisted file are cleared in the manager.
+   */
   @Test
   @SuppressWarnings("unchecked")
   public void clearPersistedFilesTest() {
@@ -120,6 +128,11 @@ public final class FileDataManagerTest {
     Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
   }
 
+  /**
+   * Tests that the correct error message is provided when persisting a file fails.
+   *
+   * @throws Exception when the Whitebox fails
+   */
   @Test
   public void errorHandlingTest() throws Exception {
     long fileId = 1;

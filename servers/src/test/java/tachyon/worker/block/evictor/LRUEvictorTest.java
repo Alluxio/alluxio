@@ -15,10 +15,12 @@
 
 package tachyon.worker.block.evictor;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
@@ -31,6 +33,11 @@ public class LRUEvictorTest extends EvictorTestBase {
   @Before
   public final void before() throws Exception {
     init(LRUEvictor.class.getName());
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   // access the block to update evictor
