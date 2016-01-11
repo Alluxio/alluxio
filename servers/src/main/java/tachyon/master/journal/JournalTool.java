@@ -54,7 +54,8 @@ public final class JournalTool {
 
   /**
    * Reads a journal via
-   * {@code java -cp assembly/target/tachyon-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+   * {@code java -cp \
+   * assembly/target/tachyon-assemblies-<VERSION-OF-TACHYON>-SNAPSHOT-jar-with-dependencies.jar \
    * tachyon.master.journal.JournalTool < journal/FileSystemMaster/log.out}.
    *
    * @param args arguments passed to the tool
