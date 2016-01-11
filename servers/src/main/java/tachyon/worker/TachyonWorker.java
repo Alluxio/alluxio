@@ -241,7 +241,7 @@ public final class TachyonWorker {
   }
 
   /**
-   * Stops the Tachyon worker server. Should only be called by tests.
+   * Stops the Tachyon worker server.
    */
   public void stop() throws Exception {
     if (mIsServingRPC) {
