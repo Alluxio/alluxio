@@ -35,7 +35,7 @@ public final class CreatePathOptions {
     private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
-    private long mTTL;
+    private long mTtl;
     private PermissionStatus mPermissionStatus;
 
     /**
@@ -57,7 +57,7 @@ public final class CreatePathOptions {
       mOperationTimeMs = System.currentTimeMillis();
       mRecursive = false;
       mPersisted = false;
-      mTTL = Constants.NO_TTL;
+      mTtl = Constants.NO_TTL;
       mPermissionStatus = PermissionStatus.getDirDefault();
     }
 
@@ -124,8 +124,8 @@ public final class CreatePathOptions {
      *        created file should be kept around before it is automatically deleted
      * @return the builder
      */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
+    public Builder setTtl(long ttl) {
+      mTtl = ttl;
       return this;
     }
 
@@ -161,7 +161,7 @@ public final class CreatePathOptions {
   private final long mOperationTimeMs;
   private final boolean mPersisted;
   private final boolean mRecursive;
-  private final long mTTL;
+  private final long mTtl;
   private PermissionStatus mPermissionStatus;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
@@ -171,7 +171,7 @@ public final class CreatePathOptions {
     mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
-    mTTL = builder.mTTL;
+    mTtl = builder.mTtl;
     mPermissionStatus = builder.mPermissionStatus;
   }
 
@@ -223,8 +223,8 @@ public final class CreatePathOptions {
    * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
    *         should be kept around before it is automatically deleted
    */
-  public long getTTL() {
-    return mTTL;
+  public long getTtl() {
+    return mTtl;
   }
 
   /**
