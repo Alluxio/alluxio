@@ -24,18 +24,23 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.worker.BlockWorkerClient;
+import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.WorkerNetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Tests {@link BlockStoreContext}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockStoreContext.class, BlockWorkerClient.class, BlockWorkerClientPool.class})
+@PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, BlockStoreContext.class,
+    BlockWorkerClient.class, BlockWorkerClientPool.class})
 public final class BlockStoreContextTest {
   /**
    * This test ensures acquiring all the available BlockStore master clients blocks further
@@ -101,15 +106,25 @@ public final class BlockStoreContextTest {
    */
   @Test(timeout = 10000)
   public void acquireWorkerLimitTest() throws Exception {
+    // Use mocks for the master client to make sure the pool of local block worker clients is
+    // initialized properly.
+    Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
+    BlockMasterClient masterClientMock = PowerMockito.mock(BlockMasterClient.class);
+    List<WorkerInfo> list = Lists.newArrayList();
+    list.add(new WorkerInfo(0, new WorkerNetAddress("localhost", 0, 0, 0), 0, "", 0, 0, 0));
+    PowerMockito.doReturn(list).when(masterClientMock).getWorkerInfoList();
+    PowerMockito.whenNew(BlockMasterClient.class).withArguments(Mockito.any(), Mockito.any())
+        .thenReturn(masterClientMock);
+
     // Use mocks for the block worker client to prevent it from trying to invoke the session
     // heartbeat RPC.
-    BlockWorkerClient mock = PowerMockito.mock(BlockWorkerClient.class);
-    PowerMockito.doNothing().when(mock).sessionHeartbeat();
-    PowerMockito.doReturn(true).when(mock).isLocal();
+    BlockWorkerClient workerClientMock = PowerMockito.mock(BlockWorkerClient.class);
+    PowerMockito.doNothing().when(workerClientMock).sessionHeartbeat();
+    PowerMockito.doReturn(true).when(workerClientMock).isLocal();
     PowerMockito
         .whenNew(BlockWorkerClient.class)
         .withArguments(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyLong(),
-            Mockito.anyBoolean(), Mockito.any()).thenReturn(mock);
+            Mockito.anyBoolean(), Mockito.any()).thenReturn(workerClientMock);
 
     final List<BlockWorkerClient> clients = Lists.newArrayList();
 
