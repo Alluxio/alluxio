@@ -35,6 +35,12 @@ import tachyon.worker.NetAddress;
  * A shared context in each client JVM for common block master client functionality such as a pool
  * of master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis. This class is thread safe.
+ *
+ * NOTE: The context maintains a pool of block master clients that is already thread-safe.
+ * Synchronizing {@link BlockStoreContext} methods could lead to deadlock: thread A attempts to
+ * acquire a client when there are no clients left in the pool and blocks holding a lock on the
+ * {@link BlockStoreContext}, when thread B attempts to release a client it owns, it is unable to do
+ * so, because thread A holds the lock on {@link BlockStoreContext}.
  */
 public enum BlockStoreContext {
   INSTANCE;
@@ -107,11 +113,6 @@ public enum BlockStoreContext {
   /**
    * Releases a block master client into the block master client pool.
    *
-   * NOTE: the client pool is already thread-safe. Synchronizing on {@link BlockStoreContext} will
-   * lead to deadlock: thread A acquired a client and awaits for {@link BlockStoreContext} to
-   * release the client, while thread B holds the lock of {@link BlockStoreContext} but waits for
-   * available clients.
-   *
    * @param masterClient a block master client to release
    */
   public void releaseMasterClient(BlockMasterClient masterClient) {
@@ -125,7 +126,7 @@ public enum BlockStoreContext {
    *
    * @return a {@link BlockWorkerClient} to a worker in the Tachyon system
    */
-  public synchronized BlockWorkerClient acquireWorkerClient() {
+  public BlockWorkerClient acquireWorkerClient() {
     BlockWorkerClient client = acquireLocalWorkerClient();
     if (client == null) {
       // Get a worker client for any worker in the system.
@@ -142,7 +143,7 @@ public enum BlockStoreContext {
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
    * @throws IOException if no Tachyon worker is available for the given hostname
    */
-  public synchronized BlockWorkerClient acquireWorkerClient(String hostname) throws IOException {
+  public BlockWorkerClient acquireWorkerClient(String hostname) throws IOException {
     BlockWorkerClient client;
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       client = acquireLocalWorkerClient();
@@ -162,7 +163,7 @@ public enum BlockStoreContext {
    * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
    * @throws IOException if no Tachyon worker is available for the given hostname
    */
-  public synchronized BlockWorkerClient acquireWorkerClient(NetAddress address)
+  public BlockWorkerClient acquireWorkerClient(NetAddress address)
       throws IOException {
     BlockWorkerClient client;
     if (address == null) {
@@ -185,11 +186,10 @@ public enum BlockStoreContext {
    *
    * @return a {@link BlockWorkerClient} to a worker in the Tachyon system or null if failed
    */
-  public synchronized BlockWorkerClient acquireLocalWorkerClient() {
+  public BlockWorkerClient acquireLocalWorkerClient() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       initializeLocalBlockWorkerClientPool();
     }
-
     if (mLocalBlockWorkerClientPool == null) {
       return null;
     }
@@ -204,7 +204,7 @@ public enum BlockStoreContext {
    * @param hostname the worker hostname to connect to, empty string for any worker
    * @return a worker client with a connection to the specified hostname
    */
-  private synchronized BlockWorkerClient acquireRemoteWorkerClient(String hostname) {
+  private BlockWorkerClient acquireRemoteWorkerClient(String hostname) {
     NetAddress workerAddress = getWorkerAddress(hostname);
     return acquireRemoteWorkerClient(workerAddress);
   }
@@ -217,7 +217,7 @@ public enum BlockStoreContext {
    * @param address the address of the worker
    * @return a worker client with a connection to the specified hostname
    */
-  private synchronized BlockWorkerClient acquireRemoteWorkerClient(NetAddress address) {
+  private BlockWorkerClient acquireRemoteWorkerClient(NetAddress address) {
     // If we couldn't find a worker, crash.
     if (address == null) {
       // TODO(calvin): Better exception usage.
@@ -234,11 +234,6 @@ public enum BlockStoreContext {
   /**
    * Releases the {@link BlockWorkerClient} back to the client pool, or destroys it if it was a
    * remote client.
-   *
-   * NOTE: the client pool is already thread-safe. Synchronizing on {@link BlockStoreContext} will
-   * lead to deadlock: thread A acquired a client and awaits for {@link BlockStoreContext} to
-   * release the client, while thread B holds the lock of {@link BlockStoreContext} but waits for
-   * available clients.
    *
    * @param blockWorkerClient the worker client to release, the client should not be accessed after
    *        this method is called
@@ -264,7 +259,7 @@ public enum BlockStoreContext {
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
   // before the client does. Also, when this is fixed, fix the TODO(cc) in
   // TachyonBlockStore#getInStream too.
-  public synchronized boolean hasLocalWorker() {
+  public boolean hasLocalWorker() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       initializeLocalBlockWorkerClientPool();
     }
@@ -275,7 +270,7 @@ public enum BlockStoreContext {
    * Re-initializes the {@link BlockStoreContext}. This method should only be used in
    * {@link ClientContext}.
    */
-  public synchronized void reset() {
+  public void reset() {
     if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
     }

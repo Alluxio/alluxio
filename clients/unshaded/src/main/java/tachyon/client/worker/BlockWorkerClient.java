@@ -161,7 +161,7 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void beforeDisconnect() {
+  protected synchronized void beforeDisconnect() {
     // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
@@ -169,14 +169,14 @@ public final class BlockWorkerClient extends ClientBase {
   }
 
   @Override
-  protected void afterDisconnect() {
+  protected synchronized void afterDisconnect() {
     if (mHeartbeat != null) {
       mHeartbeat.cancel(true);
     }
   }
 
   @Override
-  protected TachyonService.Client getClient() {
+  protected synchronized TachyonService.Client getClient() {
     return mClient;
   }
 
@@ -402,6 +402,7 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void sessionHeartbeat() throws ConnectionFailedException, IOException {
+    System.out.println("this is wrong");
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

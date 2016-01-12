@@ -210,7 +210,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   /**
    * @return the create time, in milliseconds
    */
-  public long getCreationTimeMs() {
+  public synchronized long getCreationTimeMs() {
     return mCreationTimeMs;
   }
 
@@ -257,21 +257,21 @@ public abstract class Inode implements JournalEntryRepresentable {
   /**
    * @return true if the inode is deleted, false otherwise
    */
-  public boolean isDeleted() {
+  public synchronized boolean isDeleted() {
     return mDeleted;
   }
 
   /**
    * @return true if the inode is a directory, false otherwise
    */
-  public boolean isDirectory() {
+  public synchronized boolean isDirectory() {
     return mDirectory;
   }
 
   /**
    * @return true if the inode is a file, false otherwise
    */
-  public boolean isFile() {
+  public synchronized boolean isFile() {
     return !mDirectory;
   }
 

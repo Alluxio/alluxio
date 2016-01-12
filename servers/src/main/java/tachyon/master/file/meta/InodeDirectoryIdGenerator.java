@@ -72,7 +72,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
    *
    * @param entry {@link InodeDirectoryIdGeneratorEntry} to use for initialization
    */
-  public void initFromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
+  public synchronized void initFromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
     mContainerId = entry.getContainerId();
     mSequenceNumber = entry.getSequenceNumber();
     mInitialized = true;

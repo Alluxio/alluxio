@@ -39,7 +39,7 @@
 	UC: Useless non-empty void method
 	UPM: Private method is never called
       -->
-    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,IS,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM"/>
+    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM"/>
   </Match>
 
   <Match>
