@@ -45,11 +45,11 @@ public class FileSystemMasterClientService {
     /**
      * Marks a file as completed.
      * 
-     * @param fileId the id of the file
+     * @param path the path of the file
      * 
      * @param options the method options
      */
-    public void completeFile(long fileId, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
+    public void completeFile(String path, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException;
 
     /**
      * Creates a directory
@@ -182,7 +182,7 @@ public class FileSystemMasterClientService {
 
   public interface AsyncIface extends tachyon.thrift.TachyonService .AsyncIface {
 
-    public void completeFile(long fileId, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void completeFile(String path, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void createDirectory(String path, CreateDirectoryTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -236,16 +236,16 @@ public class FileSystemMasterClientService {
       super(iprot, oprot);
     }
 
-    public void completeFile(long fileId, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
+    public void completeFile(String path, CompleteFileTOptions options) throws tachyon.thrift.TachyonTException, org.apache.thrift.TException
     {
-      send_completeFile(fileId, options);
+      send_completeFile(path, options);
       recv_completeFile();
     }
 
-    public void send_completeFile(long fileId, CompleteFileTOptions options) throws org.apache.thrift.TException
+    public void send_completeFile(String path, CompleteFileTOptions options) throws org.apache.thrift.TException
     {
       completeFile_args args = new completeFile_args();
-      args.setFileId(fileId);
+      args.setPath(path);
       args.setOptions(options);
       sendBase("completeFile", args);
     }
@@ -664,26 +664,26 @@ public class FileSystemMasterClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void completeFile(long fileId, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void completeFile(String path, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      completeFile_call method_call = new completeFile_call(fileId, options, resultHandler, this, ___protocolFactory, ___transport);
+      completeFile_call method_call = new completeFile_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class completeFile_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private long fileId;
+      private String path;
       private CompleteFileTOptions options;
-      public completeFile_call(long fileId, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public completeFile_call(String path, CompleteFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.fileId = fileId;
+        this.path = path;
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("completeFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         completeFile_args args = new completeFile_args();
-        args.setFileId(fileId);
+        args.setPath(path);
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
@@ -1251,7 +1251,7 @@ public class FileSystemMasterClientService {
       public completeFile_result getResult(I iface, completeFile_args args) throws org.apache.thrift.TException {
         completeFile_result result = new completeFile_result();
         try {
-          iface.completeFile(args.fileId, args.options);
+          iface.completeFile(args.path, args.options);
         } catch (tachyon.thrift.TachyonTException e) {
           result.e = e;
         }
@@ -1709,7 +1709,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, completeFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.completeFile(args.fileId, args.options,resultHandler);
+        iface.completeFile(args.path, args.options,resultHandler);
       }
     }
 
@@ -2585,7 +2585,7 @@ public class FileSystemMasterClientService {
   public static class completeFile_args implements org.apache.thrift.TBase<completeFile_args, completeFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<completeFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeFile_args");
 
-    private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -2595,9 +2595,9 @@ public class FileSystemMasterClientService {
     }
 
     /**
-     * the id of the file
+     * the path of the file
      */
-    public long fileId; // required
+    public String path; // required
     /**
      * the method options
      */
@@ -2606,9 +2606,9 @@ public class FileSystemMasterClientService {
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
-       * the id of the file
+       * the path of the file
        */
-      FILE_ID((short)1, "fileId"),
+      PATH((short)1, "path"),
       /**
        * the method options
        */
@@ -2627,8 +2627,8 @@ public class FileSystemMasterClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // FILE_ID
-            return FILE_ID;
+          case 1: // PATH
+            return PATH;
           case 2: // OPTIONS
             return OPTIONS;
           default:
@@ -2671,13 +2671,11 @@ public class FileSystemMasterClientService {
     }
 
     // isset id assignments
-    private static final int __FILEID_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CompleteFileTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -2688,12 +2686,11 @@ public class FileSystemMasterClientService {
     }
 
     public completeFile_args(
-      long fileId,
+      String path,
       CompleteFileTOptions options)
     {
       this();
-      this.fileId = fileId;
-      setFileIdIsSet(true);
+      this.path = path;
       this.options = options;
     }
 
@@ -2701,8 +2698,9 @@ public class FileSystemMasterClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public completeFile_args(completeFile_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.fileId = other.fileId;
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
       if (other.isSetOptions()) {
         this.options = new CompleteFileTOptions(other.options);
       }
@@ -2714,38 +2712,38 @@ public class FileSystemMasterClientService {
 
     @Override
     public void clear() {
-      setFileIdIsSet(false);
-      this.fileId = 0;
+      this.path = null;
       this.options = null;
     }
 
     /**
-     * the id of the file
+     * the path of the file
      */
-    public long getFileId() {
-      return this.fileId;
+    public String getPath() {
+      return this.path;
     }
 
     /**
-     * the id of the file
+     * the path of the file
      */
-    public completeFile_args setFileId(long fileId) {
-      this.fileId = fileId;
-      setFileIdIsSet(true);
+    public completeFile_args setPath(String path) {
+      this.path = path;
       return this;
     }
 
-    public void unsetFileId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILEID_ISSET_ID);
+    public void unsetPath() {
+      this.path = null;
     }
 
-    /** Returns true if field fileId is set (has been assigned a value) and false otherwise */
-    public boolean isSetFileId() {
-      return EncodingUtils.testBit(__isset_bitfield, __FILEID_ISSET_ID);
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
     }
 
-    public void setFileIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
     }
 
     /**
@@ -2780,11 +2778,11 @@ public class FileSystemMasterClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case FILE_ID:
+      case PATH:
         if (value == null) {
-          unsetFileId();
+          unsetPath();
         } else {
-          setFileId((Long)value);
+          setPath((String)value);
         }
         break;
 
@@ -2801,8 +2799,8 @@ public class FileSystemMasterClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case FILE_ID:
-        return Long.valueOf(getFileId());
+      case PATH:
+        return getPath();
 
       case OPTIONS:
         return getOptions();
@@ -2818,8 +2816,8 @@ public class FileSystemMasterClientService {
       }
 
       switch (field) {
-      case FILE_ID:
-        return isSetFileId();
+      case PATH:
+        return isSetPath();
       case OPTIONS:
         return isSetOptions();
       }
@@ -2839,12 +2837,12 @@ public class FileSystemMasterClientService {
       if (that == null)
         return false;
 
-      boolean this_present_fileId = true;
-      boolean that_present_fileId = true;
-      if (this_present_fileId || that_present_fileId) {
-        if (!(this_present_fileId && that_present_fileId))
+      boolean this_present_path = true && this.isSetPath();
+      boolean that_present_path = true && that.isSetPath();
+      if (this_present_path || that_present_path) {
+        if (!(this_present_path && that_present_path))
           return false;
-        if (this.fileId != that.fileId)
+        if (!this.path.equals(that.path))
           return false;
       }
 
@@ -2864,10 +2862,10 @@ public class FileSystemMasterClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_fileId = true;
-      list.add(present_fileId);
-      if (present_fileId)
-        list.add(fileId);
+      boolean present_path = true && (isSetPath());
+      list.add(present_path);
+      if (present_path)
+        list.add(path);
 
       boolean present_options = true && (isSetOptions());
       list.add(present_options);
@@ -2885,12 +2883,12 @@ public class FileSystemMasterClientService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
+      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+      if (isSetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2925,8 +2923,12 @@ public class FileSystemMasterClientService {
       StringBuilder sb = new StringBuilder("completeFile_args(");
       boolean first = true;
 
-      sb.append("fileId:");
-      sb.append(this.fileId);
+      sb.append("path:");
+      if (this.path == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.path);
+      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("options:");
@@ -2958,8 +2960,6 @@ public class FileSystemMasterClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -2984,10 +2984,10 @@ public class FileSystemMasterClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // FILE_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.fileId = iprot.readI64();
-                struct.setFileIdIsSet(true);
+            case 1: // PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.path = iprot.readString();
+                struct.setPathIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3016,9 +3016,11 @@ public class FileSystemMasterClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI64(struct.fileId);
-        oprot.writeFieldEnd();
+        if (struct.path != null) {
+          oprot.writeFieldBegin(PATH_FIELD_DESC);
+          oprot.writeString(struct.path);
+          oprot.writeFieldEnd();
+        }
         if (struct.options != null) {
           oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
           struct.options.write(oprot);
@@ -3042,15 +3044,15 @@ public class FileSystemMasterClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, completeFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
+        if (struct.isSetPath()) {
           optionals.set(0);
         }
         if (struct.isSetOptions()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetFileId()) {
-          oprot.writeI64(struct.fileId);
+        if (struct.isSetPath()) {
+          oprot.writeString(struct.path);
         }
         if (struct.isSetOptions()) {
           struct.options.write(oprot);
@@ -3062,8 +3064,8 @@ public class FileSystemMasterClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.fileId = iprot.readI64();
-          struct.setFileIdIsSet(true);
+          struct.path = iprot.readString();
+          struct.setPathIsSet(true);
         }
         if (incoming.get(1)) {
           struct.options = new CompleteFileTOptions();

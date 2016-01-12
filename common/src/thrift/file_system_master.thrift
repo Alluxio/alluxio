@@ -74,7 +74,7 @@ service FileSystemMasterClientService extends common.TachyonService {
   /**
    * Marks a file as completed.
    */
-  void completeFile( /** the id of the file */ 1: i64 fileId,
+  void completeFile( /** the path of the file */ 1: string path,
       /** the method options */ 2: CompleteFileTOptions options)
     throws (1: exception.TachyonTException e)
 

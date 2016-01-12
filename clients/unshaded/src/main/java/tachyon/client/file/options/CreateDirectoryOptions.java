@@ -20,7 +20,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
-import tachyon.thrift.MkdirTOptions;
+import tachyon.thrift.CreateDirectoryTOptions;
 
 @PublicApi
 public final class CreateDirectoryOptions {
@@ -111,9 +111,8 @@ public final class CreateDirectoryOptions {
   /**
    * @return Thrift representation of the options
    */
-  // TODO(calvin): Rename the mkdir options to CreateDirectoryTOptions
-  public MkdirTOptions toThrift() {
-    MkdirTOptions options = new MkdirTOptions();
+  public CreateDirectoryTOptions toThrift() {
+    CreateDirectoryTOptions options = new CreateDirectoryTOptions();
     options.setAllowExists(mAllowExists);
     options.setRecursive(mRecursive);
     options.setPersisted(mUnderStorageType.isSyncPersist());

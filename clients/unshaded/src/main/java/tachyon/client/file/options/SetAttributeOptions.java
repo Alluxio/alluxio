@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
 import tachyon.exception.PreconditionMessage;
+import tachyon.thrift.SetAttributeTOptions;
 import tachyon.thrift.SetStateTOptions;
 
 /**
@@ -38,7 +39,7 @@ public final class SetAttributeOptions {
    * @param options the thrift options to convert from
    * @return a {@link SetAttributeOptions} logically equivalent to the given thrift options
    */
-  public static SetAttributeOptions fromThriftOptions(SetStateTOptions options) {
+  public static SetAttributeOptions fromThriftOptions(SetAttributeTOptions options) {
     return new SetAttributeOptions(options);
   }
 
@@ -46,7 +47,7 @@ public final class SetAttributeOptions {
   private Long mTTL;
   private Boolean mPersisted;
 
-  private SetAttributeOptions(SetStateTOptions options) {
+  private SetAttributeOptions(SetAttributeTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;
     mTTL = options.isSetTtl() ? options.getTtl() : null;
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
@@ -141,8 +142,8 @@ public final class SetAttributeOptions {
   /**
    * @return Thrift representation of the options
    */
-  public SetStateTOptions toThrift() {
-    SetStateTOptions options = new SetStateTOptions();
+  public SetAttributeTOptions toThrift() {
+    SetAttributeTOptions options = new SetAttributeTOptions();
     if (mPinned != null) {
       options.setPinned(mPinned);
     }
