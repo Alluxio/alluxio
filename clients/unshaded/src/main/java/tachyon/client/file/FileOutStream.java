@@ -200,7 +200,6 @@ public class FileOutStream extends OutStreamBase {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-        mBytesWritten++;
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
@@ -210,6 +209,7 @@ public class FileOutStream extends OutStreamBase {
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
+    mBytesWritten ++;
   }
 
   @Override
