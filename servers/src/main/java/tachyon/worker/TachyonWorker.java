@@ -39,7 +39,6 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
@@ -80,7 +79,7 @@ public final class TachyonWorker {
   /** The address for the rpc server */
   private InetSocketAddress mWorkerAddress;
   /** Net address of this worker */
-  private WorkerNetAddress mWorkerNetAddress;
+  private NetAddress mNetAddress;
   /** Worker start time in milliseconds */
   private long mStartTimeMs;
 
@@ -211,13 +210,13 @@ public final class TachyonWorker {
   }
 
   /**
-   * Gets this worker's {@link tachyon.thrift.WorkerNetAddress}, which is the worker's hostname, rpc
+   * Gets this worker's {@link NetAddress}, which is the worker's hostname, rpc
    * server port, data server port, and web server port.
    *
    * @return the worker's net address
    */
-  public WorkerNetAddress getWorkerNetAddress() {
-    return mWorkerNetAddress;
+  public NetAddress getNetAddress() {
+    return mNetAddress;
   }
 
   /**
@@ -238,11 +237,11 @@ public final class TachyonWorker {
     // Set updated net address for this worker in context
     // Requirement: RPC, web, and dataserver ports are updated
     // Consequence: create a NetAddress object and set it into WorkerContext
-    mWorkerNetAddress = new WorkerNetAddress(
+    mNetAddress = new NetAddress(
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
         mTachyonConf.getInt(Constants.WORKER_RPC_PORT), getDataLocalPort(),
         mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
-    WorkerContext.setWorkerNetAddress(mWorkerNetAddress);
+    WorkerContext.setWorkerNetAddress(mNetAddress);
 
     // Start each worker
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
