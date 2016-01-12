@@ -235,11 +235,9 @@ public class FileOutStream extends OutStreamBase {
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
-            mBytesWritten += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
-            mBytesWritten += (int) currentBlockLeftBytes;
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
           }
@@ -253,6 +251,7 @@ public class FileOutStream extends OutStreamBase {
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
+    mBytesWritten += len;
   }
 
   private void getNextBlock() throws IOException {
