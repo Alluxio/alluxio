@@ -33,7 +33,7 @@ public class ListStatusOptionsTest {
   }
 
   /**
-   * Tests getting and setting fields
+   * Tests getting and setting fields.
    */
   @Test
   public void fieldsTest() {
