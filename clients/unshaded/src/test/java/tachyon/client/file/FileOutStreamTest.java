@@ -428,8 +428,8 @@ public class FileOutStreamTest {
   }
 
   /**
-   * Tests that the number of bytes written is correct when the stream with different under
-   * storage types.
+   * Tests that the number of bytes written is correct when the stream is created with different
+   * under storage types.
    *
    * @throws IOException if creating the test stream fails
    */
