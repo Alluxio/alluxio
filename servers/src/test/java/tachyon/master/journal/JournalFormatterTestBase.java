@@ -42,6 +42,7 @@ import tachyon.Constants;
 import tachyon.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import tachyon.proto.journal.Block.BlockInfoEntry;
 import tachyon.proto.journal.File.AddMountPointEntry;
+import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
 import tachyon.proto.journal.File.DeleteFileEntry;
 import tachyon.proto.journal.File.DeleteMountPointEntry;
@@ -50,7 +51,6 @@ import tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import tachyon.proto.journal.File.InodeFileEntry;
 import tachyon.proto.journal.File.InodeLastModificationTimeEntry;
 import tachyon.proto.journal.File.PersistDirectoryEntry;
-import tachyon.proto.journal.File.PersistFileEntry;
 import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
@@ -61,7 +61,6 @@ import tachyon.proto.journal.KeyValue.CreateStoreEntry;
 import tachyon.proto.journal.Lineage.DeleteLineageEntry;
 import tachyon.proto.journal.Lineage.LineageEntry;
 import tachyon.proto.journal.Lineage.LineageIdGeneratorEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.proto.journal.RawTable.UpdateMetadataEntry;
 import tachyon.security.authorization.PermissionStatus;
@@ -163,12 +162,6 @@ public abstract class JournalFormatterTestBase {
             .setPersistDirectory(PersistDirectoryEntry.newBuilder()
                 .setId(TEST_FILE_ID))
             .build())
-        .add(JournalEntry.newBuilder()
-            .setPersistFile(PersistFileEntry.newBuilder()
-                .setId(TEST_FILE_ID)
-                .setLength(TEST_LENGTH_BYTES)
-                .setOpTimeMs(TEST_OP_TIME_MS))
-            .build())
         .add(
             JournalEntry.newBuilder()
             .setCompleteFile(CompleteFileEntry.newBuilder()
@@ -242,8 +235,8 @@ public abstract class JournalFormatterTestBase {
                 .setSequenceNumber(TEST_SEQUENCE_NUMBER))
             .build())
         .add(JournalEntry.newBuilder()
-            .setPersistFilesRequest(PersistFilesRequestEntry.newBuilder()
-                .addAllFileIds(Arrays.asList(1L, 2L)))
+            .setAsyncPersistRequest(AsyncPersistRequestEntry.newBuilder()
+                .setFileId(1L))
             .build())
         .add(
             JournalEntry.newBuilder()
@@ -282,7 +275,7 @@ public abstract class JournalFormatterTestBase {
   }
 
   /**
-   * Returns the implementation of {@link JournalFormatter} that wants to be tested.
+   * @return the implementation of {@link JournalFormatter} that wants to be tested
    */
   protected abstract JournalFormatter getFormatter();
 

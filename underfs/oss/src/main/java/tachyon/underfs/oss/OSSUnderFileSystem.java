@@ -218,6 +218,10 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
+    // if the path not exists, or it is a file, then should return null
+    if (!exists(path) || isFile(path)) {
+      return null;
+    }
     // Non recursive list
     path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
     return listInternal(path, false);
@@ -310,6 +314,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @return key as a directory path
    */
   private String convertToFolderName(String key) {
+    // Strips the slash if it is the end of the key string. This is because the slash at
+    // the end of the string is not part of the Object key in OSS.
+    if (key.endsWith(PATH_SEPARATOR)) {
+      key = key.substring(0, key.length() - PATH_SEPARATOR.length());
+    }
     return key + FOLDER_SUFFIX;
   }
 
@@ -412,7 +421,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @return true if the key exists and is a directory
    */
   private boolean isFolder(String key) {
-    key = key.endsWith(PATH_SEPARATOR) ? key.substring(0, key.length() - 1) : key;
     // Root is a folder
     if (isRoot(key)) {
       return true;

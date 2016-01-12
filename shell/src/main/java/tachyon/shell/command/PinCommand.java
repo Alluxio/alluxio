@@ -50,4 +50,10 @@ public final class PinCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "pin <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Pins the given file or directory in memory (works recursively for directories). "
+      + "Pinned files are never evicted from memory, unless TTL is set.";
+  }
 }

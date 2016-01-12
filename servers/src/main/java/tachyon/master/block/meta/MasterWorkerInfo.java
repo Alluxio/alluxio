@@ -32,8 +32,8 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 
 /**
@@ -42,7 +42,7 @@ import tachyon.util.CommonUtils;
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
-  private final NetAddress mWorkerAddress;
+  private final WorkerNetAddress mWorkerAddress;
   /** The id of the worker */
   private final long mId;
   /** Start time of the worker in ms */
@@ -73,7 +73,7 @@ public final class MasterWorkerInfo {
    * @param id the worker id to use
    * @param address the worker address to use
    */
-  public MasterWorkerInfo(long id, NetAddress address) {
+  public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mWorkerAddress = Preconditions.checkNotNull(address);
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
@@ -190,7 +190,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public NetAddress getAddress() {
+  public WorkerNetAddress getAddress() {
     return mWorkerAddress;
   }
 

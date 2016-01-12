@@ -31,6 +31,10 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
+
+  /**
+   * Builder for {@link InodeDirectory}.
+   */
   public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
 
     /**
@@ -188,6 +192,7 @@ public final class InodeDirectory extends Inode {
   /**
    * Converts the entry to an {@link InodeDirectory}.
    *
+   * @param entry the entry to convert
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
