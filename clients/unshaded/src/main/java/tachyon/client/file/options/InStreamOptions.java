@@ -26,14 +26,14 @@ import tachyon.client.TachyonStorageType;
  */
 @PublicApi
 public final class InStreamOptions {
+  private ReadType mReadType;
+
   /**
    * @return the default {@link InStreamOptions}
    */
   public static InStreamOptions defaults() {
     return new InStreamOptions();
   }
-
-  private ReadType mReadType;
 
   private InStreamOptions() {
     mReadType =

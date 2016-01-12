@@ -22,15 +22,15 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class RenameOptions {
+  /** Flag to overwrite the destination if it exists, currently unsupported */
+  private boolean mOverwrite;
+
   /**
    * @return the default {@link RenameOptions}
    */
   public static RenameOptions defaults() {
     return new RenameOptions();
   }
-
-  /** Flag to overwrite the destination if it exists, currently unsupported */
-  private boolean mOverwrite;
 
   private RenameOptions() {
     mOverwrite = false;

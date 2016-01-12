@@ -22,14 +22,14 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class FreeOptions {
+  private boolean mRecursive;
+
   /**
    * @return the default {@link FreeOptions}
    */
   public static FreeOptions defaults() {
     return new FreeOptions();
   }
-
-  private boolean mRecursive;
 
   private FreeOptions() {
     mRecursive = false;

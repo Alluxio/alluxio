@@ -22,15 +22,15 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class MountOptions {
+  /** Flag for if the mount should be a read-only mount, currently unsupported */
+  private boolean mReadOnly;
+
   /**
    * @return the default {@link MountOptions}
    */
   public static MountOptions defaults() {
     return new MountOptions();
   }
-
-  /** Flag for if the mount should be a read-only mount, currently unsupported */
-  private boolean mReadOnly;
 
   private MountOptions() {
     mReadOnly = false;

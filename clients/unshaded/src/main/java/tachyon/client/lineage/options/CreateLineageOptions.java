@@ -22,15 +22,15 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class CreateLineageOptions {
+  /** Flag indicating whether or not to overwrite, currently unsupported */
+  private boolean mOverwrite;
+
   /**
    * @return the default options
    */
   public static CreateLineageOptions defaults() {
     return new CreateLineageOptions();
   }
-
-  /** Flag indicating whether or not to overwrite, currently unsupported */
-  private boolean mOverwrite;
 
   private CreateLineageOptions() {
     mOverwrite = false;

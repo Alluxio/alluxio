@@ -22,16 +22,16 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class UnmountOptions {
+  /** Whether the data under the mount should be synchronously freed from Tachyon, currently
+   * unsupported */
+  private boolean mFreeData;
+
   /**
    * @return the default {@link UnmountOptions}
    */
   public static UnmountOptions defaults() {
     return new UnmountOptions();
   }
-
-  /** Whether the data under the mount should be synchronously freed from Tachyon, currently
-   * unsupported */
-  private boolean mFreeData;
 
   private UnmountOptions() {
     mFreeData = false;

@@ -22,14 +22,15 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class DeleteLineageOptions {
+  /** Whether to delete all downstream lineages */
+  private boolean mCascade;
+
   /**
    * @return the default options
    */
   public static DeleteLineageOptions defaults() {
     return new DeleteLineageOptions();
   }
-
-  private boolean mCascade;
 
   private DeleteLineageOptions() {
     mCascade = false;
