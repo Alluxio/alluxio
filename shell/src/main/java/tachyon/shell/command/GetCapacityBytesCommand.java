@@ -27,6 +27,8 @@ import tachyon.conf.TachyonConf;
 public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
 
   /**
+   * Constructs a new instance to get the capacity of the {@link TachyonFileSystem}.
+   *
    * @param conf the configuration for Tachyon
    * @param tfs the filesystem of Tachyon
    */
@@ -53,5 +55,10 @@ public final class GetCapacityBytesCommand extends AbstractTfsShellCommand {
   @Override
   public String getUsage() {
     return "getCapacityBytes";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Gets the capacity of the Tachyon file system.";
   }
 }

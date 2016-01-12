@@ -13,15 +13,30 @@
  * the License.
  */
 
-package tachyon.master.file.meta;
+package tachyon.underfs.oss;
 
-import org.powermock.reflect.Whitebox;
+import org.junit.Assert;
+import org.junit.Test;
+
+import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystemFactory;
+import tachyon.underfs.UnderFileSystemRegistry;
 
 /**
- * Class which provides access to private state of {@link TTLBucket}.
+ * Tests for the {@link OSSUnderFileSystemFactory} class.
  */
-public final class TTLBucketPrivateAccess {
-  public static void setTTLIntervalMs(long intervalMs) {
-    Whitebox.setInternalState(TTLBucket.class, "sTTLIntervalMs", intervalMs);
+public class OSSUnderFileSystemFactoryTest {
+
+  /**
+   * Tests that the OSS ufs module correctly accepts paths that begin with oss://.
+   */
+  @Test
+  public void factoryTest() {
+    TachyonConf conf = new TachyonConf();
+
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path", conf);
+
+    Assert.assertNotNull(
+        "A UnderFileSystemFactory should exist for oss paths when using this module", factory);
   }
 }

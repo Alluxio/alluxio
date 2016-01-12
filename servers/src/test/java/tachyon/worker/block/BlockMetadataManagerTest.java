@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,16 +28,21 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.WorkerOutOfSpaceException;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
+/**
+ * Unit tests for {@link BlockMetadataManager}.
+ */
 public final class BlockMetadataManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
@@ -65,6 +70,11 @@ public final class BlockMetadataManagerTest {
         TIER_PATH, TIER_CAPACITY_BYTES, null);
 
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
+  }
+
+  @After
+  public void after() {
+    WorkerContext.reset();
   }
 
   @Test

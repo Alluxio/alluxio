@@ -13,29 +13,30 @@
  * the License.
  */
 
-package tachyon.underfs.swift;
+package tachyon.client.lineage;
 
-import org.apache.hadoop.conf.Configuration;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 
-import tachyon.conf.TachyonConf;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.options.OutStreamOptions;
 
 /**
- * Utility methods for the Swift implementation of the {@link tachyon.underfs.UnderFileSystem}.
+ * Tests {@link LineageFileOutStream}.
  */
-public class SwiftUnderFileSystemUtils {
+public final class LineageFileOutStreamTest {
 
   /**
-   * Replaces default key with user provided key.
+   * Tests that the correct {@link UnderStorageType} is set when creating the stream.
    *
-   * @param conf the Hadoop configuration
-   * @param tachyonConf the Tachyon configuration
-   * @param key the key to add
+   * @throws Exception if creating the stream fails
    */
-  public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
-    if (System.getProperty(key) != null && conf.get(key) == null) {
-      conf.set(key, System.getProperty(key));
-    } else if (tachyonConf.containsKey(key)) {
-      conf.set(key, tachyonConf.get(key));
-    }
+  @Test
+  public void outStreamCreationTest() throws Exception {
+    LineageFileOutStream stream = new LineageFileOutStream(0, OutStreamOptions.defaults());
+    UnderStorageType underStorageType =
+        (UnderStorageType) Whitebox.getInternalState(stream, "mUnderStorageType");
+    Assert.assertEquals(UnderStorageType.ASYNC_PERSIST, underStorageType);
   }
 }
