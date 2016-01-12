@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,8 +24,6 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.WriteType;
 import tachyon.thrift.MkdirTOptions;
-
-import java.util.Random;
 
 /**
  * Tests for the {@link CreateDirectoryOptions} class.
