@@ -37,7 +37,7 @@ import org.powermock.reflect.Whitebox;
 import com.google.common.collect.Lists;
 
 import tachyon.client.ClientContext;
-import tachyon.client.TachyonStorageType;
+import tachyon.client.ReadType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
@@ -114,8 +114,8 @@ public class FileInStreamTest {
     mInfo.setBlockIds(blockIds);
 
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
-    mTestStream = new FileInStream(mInfo, new InStreamOptions.Builder(ClientContext.getConf())
-        .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
+    mTestStream =
+        new FileInStream(mInfo, InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
   }
 
   /**

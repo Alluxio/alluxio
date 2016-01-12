@@ -20,90 +20,43 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonStorageType;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for reading a file.
  */
 @PublicApi
 public final class InStreamOptions {
-
-  /**
-   * Builder for {@link InStreamOptions}.
-   */
-  public static class Builder implements OptionsBuilder<InStreamOptions> {
-    private TachyonStorageType mTachyonStorageType;
-
-    /**
-     * Creates a new builder for {@link InStreamOptions}.
-     */
-    public Builder() {
-      this(ClientContext.getConf());
-    }
-
-    /**
-     * Creates a new builder for {@link InStreamOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {
-      ReadType defaultReadType =
-          conf.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
-      mTachyonStorageType = defaultReadType.getTachyonStorageType();
-    }
-
-    /**
-     * Sets the {@link ReadType}.
-     *
-     * @param readType the {@link ReadType} for this operation. Setting this will override the
-     *                 {@link TachyonStorageType}.
-     * @return the builder
-     */
-    public Builder setReadType(ReadType readType) {
-      mTachyonStorageType = readType.getTachyonStorageType();
-      return this;
-    }
-
-    /**
-     * This is an advanced API, use {@link Builder#setReadType(ReadType)} when possible.
-     *
-     * @param tachyonStorageType the Tachyon storage type to use
-     * @return the builder
-     */
-    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
-      mTachyonStorageType = tachyonStorageType;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link InStreamOptions}.
-     *
-     * @return a {@link InStreamOptions} instance
-     */
-    @Override
-    public InStreamOptions build() {
-      return new InStreamOptions(this);
-    }
-  }
-
-  private final TachyonStorageType mTachyonStorageType;
+  private ReadType mReadType;
 
   /**
    * @return the default {@link InStreamOptions}
    */
   public static InStreamOptions defaults() {
-    return new Builder().build();
+    return new InStreamOptions();
   }
 
-  private InStreamOptions(InStreamOptions.Builder builder) {
-    mTachyonStorageType = builder.mTachyonStorageType;
+  private InStreamOptions() {
+    mReadType =
+        ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
   }
 
   /**
    * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
-    return mTachyonStorageType;
+    return mReadType.getTachyonStorageType();
+  }
+
+  /**
+   * Sets the {@link ReadType}.
+   *
+   * @param readType the {@link ReadType} for this operation. Setting this will override the
+   *                 {@link TachyonStorageType}.
+   * @return the updated options object
+   */
+  public InStreamOptions setReadType(ReadType readType) {
+    mReadType = readType;
+    return this;
   }
 
   /**
@@ -112,8 +65,7 @@ public final class InStreamOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InStreamOptions(");
-    sb.append(super.toString()).append(", TachyonStorageType: ")
-        .append(mTachyonStorageType.toString());
+    sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
     sb.append(")");
     return sb.toString();
   }

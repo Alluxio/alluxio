@@ -39,9 +39,9 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerNetAddress;
+import tachyon.client.WriteType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BlockWorkerInfo;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -160,8 +160,9 @@ public class FileOutStreamTest {
     Mockito.when(mUnderFileSystem.create(Mockito.anyString(), Mockito.eq((int) BLOCK_LENGTH)))
         .thenReturn(mUnderStorageOutputStream);
 
-    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -279,8 +280,9 @@ public class FileOutStreamTest {
    */
   @Test
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
-    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.MUST_CACHE);
     mTestStream = createTestStream(FILE_NAME, options);
 
     BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
@@ -366,8 +368,9 @@ public class FileOutStreamTest {
    */
   @Test
   public void locationPolicyTest() throws IOException {
-    OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf())
-        .setBlockSizeBytes(BLOCK_LENGTH).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    OutStreamOptions options =
+        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.MUST_CACHE);
     mTestStream = createTestStream(FILE_NAME, options);
 
     // by default local first policy used
@@ -375,9 +378,7 @@ public class FileOutStreamTest {
     Assert.assertTrue(policy instanceof LocalFirstPolicy);
 
     // configure a different policy
-    options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(BLOCK_LENGTH)
-        .setUnderStorageType(UnderStorageType.NO_PERSIST)
-        .setLocationPolicy(new RoundRobinPolicy()).build();
+    options.setLocationPolicy(new RoundRobinPolicy());
     mTestStream = createTestStream(FILE_NAME, options);
     policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
     Assert.assertTrue(policy instanceof RoundRobinPolicy);

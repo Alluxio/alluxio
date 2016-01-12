@@ -198,8 +198,7 @@ public class JournalIntegrationTest {
   @Test
   public void deleteTest() throws Exception {
     CreateDirectoryOptions recMkdir = CreateDirectoryOptions.defaults().setRecursive(true);
-    DeleteOptions recDelete =
-        new DeleteOptions.Builder().setRecursive(true).build();
+    DeleteOptions recDelete = DeleteOptions.defaults().setRecursive(true);
     for (int i = 0; i < 10; i ++) {
       String dirPath = "/i" + i;
       mTfs.createDirectory(new TachyonURI(dirPath), recMkdir);

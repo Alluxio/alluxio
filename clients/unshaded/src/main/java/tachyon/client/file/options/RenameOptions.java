@@ -16,47 +16,39 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for renaming a file or a directory.
  */
 @PublicApi
 public final class RenameOptions {
-
-  /**
-   * Builder for {@link RenameOptions}.
-   */
-  public static class Builder implements OptionsBuilder<RenameOptions> {
-    /**
-     * Creates a new builder for {@link RenameOptions}.
-     */
-    public Builder() {}
-
-    /**
-     * Creates a new builder for {@link RenameOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * Builds a new instance of {@link RenameOptions}.
-     *
-     * @return a {@link RenameOptions} instance
-     */
-    @Override
-    public RenameOptions build() {
-      return new RenameOptions(this);
-    }
-  }
+  /** Flag to overwrite the destination if it exists, currently unsupported */
+  private boolean mOverwrite;
 
   /**
    * @return the default {@link RenameOptions}
    */
   public static RenameOptions defaults() {
-    return new Builder().build();
+    return new RenameOptions();
   }
 
-  private RenameOptions(RenameOptions.Builder builder) {}
+  private RenameOptions() {
+    mOverwrite = false;
+  }
+
+  /**
+   * @return whether to overwrite if the destination exists
+   */
+  public boolean isOverwrite() {
+    return mOverwrite;
+  }
+
+  /**
+   * @param overwrite the overwrite flag to set
+   * @return the updated options object
+   */
+  public RenameOptions setOverwrite(boolean overwrite) {
+    mOverwrite = overwrite;
+    return this;
+  }
 }
