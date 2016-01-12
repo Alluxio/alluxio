@@ -24,7 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Change the permission of a file or directory specified by args.
  */
-public final class ChmodCommand extends AbstractACLCommand {
+public final class ChmodCommand extends AbstractAclCommand {
 
   public ChmodCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
