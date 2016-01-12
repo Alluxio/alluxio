@@ -28,8 +28,9 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public abstract class OutStreamBase extends OutputStream implements Cancelable {
-  // TODO(binfan): make mBytesWritten long so we could present offset > 2GB. This requires
-  // checking the codebase for this assumption (using int to denote an offset).
+  // TODO(binfan): make mBytesWritten long so we could make offset > 2GB. This
+  // requires checking the codebase for this assumption (using int to denote an offset).
+  // See TACHYON-1536.
   /** The number of bytes written */
   protected int mBytesWritten = 0;
 
