@@ -47,28 +47,37 @@ public final class File {
    * next available id: 3
    * </pre>
    */
-  public  static final class AddMountPointEntry extends
+  public static final class AddMountPointEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.AddMountPointEntry)
       AddMountPointEntryOrBuilder {
     // Use AddMountPointEntry.newBuilder() to construct.
-    private AddMountPointEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private AddMountPointEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private AddMountPointEntry() {
-      tachyonPath_ = "";
-      ufsPath_ = "";
+    private AddMountPointEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final AddMountPointEntry defaultInstance;
+    public static AddMountPointEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public AddMountPointEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private AddMountPointEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -102,11 +111,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -124,9 +132,24 @@ public final class File {
               tachyon.proto.journal.File.AddMountPointEntry.class, tachyon.proto.journal.File.AddMountPointEntry.Builder.class);
     }
 
+    public static com.google.protobuf.Parser<AddMountPointEntry> PARSER =
+        new com.google.protobuf.AbstractParser<AddMountPointEntry>() {
+      public AddMountPointEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new AddMountPointEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AddMountPointEntry> getParserForType() {
+      return PARSER;
+    }
+
     private int bitField0_;
     public static final int TACHYON_PATH_FIELD_NUMBER = 1;
-    private volatile java.lang.Object tachyonPath_;
+    private java.lang.Object tachyonPath_;
     /**
      * <code>optional string tachyon_path = 1;</code>
      */
@@ -168,7 +191,7 @@ public final class File {
     }
 
     public static final int UFS_PATH_FIELD_NUMBER = 2;
-    private volatile java.lang.Object ufsPath_;
+    private java.lang.Object ufsPath_;
     /**
      * <code>optional string ufs_path = 2;</code>
      */
@@ -209,6 +232,10 @@ public final class File {
       }
     }
 
+    private void initFields() {
+      tachyonPath_ = "";
+      ufsPath_ = "";
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -221,13 +248,14 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, getTachyonPathBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(2, getUfsPathBytes());
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -244,12 +272,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, getUfsPathBytes());
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.AddMountPointEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -303,17 +337,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.AddMountPointEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -358,6 +387,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         tachyonPath_ = "";
@@ -365,6 +398,10 @@ public final class File {
         ufsPath_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -422,8 +459,7 @@ public final class File {
           ufsPath_ = other.ufsPath_;
           onChanged();
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -605,44 +641,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.AddMountPointEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AddMountPointEntry)
-    private static final tachyon.proto.journal.File.AddMountPointEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.AddMountPointEntry();
+      defaultInstance = new AddMountPointEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.AddMountPointEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<AddMountPointEntry> PARSER =
-        new com.google.protobuf.AbstractParser<AddMountPointEntry>() {
-      public AddMountPointEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new AddMountPointEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<AddMountPointEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.AddMountPointEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AddMountPointEntry)
   }
 
   public interface AsyncPersistRequestEntryOrBuilder extends
@@ -665,27 +669,37 @@ public final class File {
    * next available id: 2
    * </pre>
    */
-  public  static final class AsyncPersistRequestEntry extends
+  public static final class AsyncPersistRequestEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.AsyncPersistRequestEntry)
       AsyncPersistRequestEntryOrBuilder {
     // Use AsyncPersistRequestEntry.newBuilder() to construct.
-    private AsyncPersistRequestEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private AsyncPersistRequestEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private AsyncPersistRequestEntry() {
-      fileId_ = 0L;
+    private AsyncPersistRequestEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final AsyncPersistRequestEntry defaultInstance;
+    public static AsyncPersistRequestEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public AsyncPersistRequestEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private AsyncPersistRequestEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -712,11 +726,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -732,6 +745,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.AsyncPersistRequestEntry.class, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<AsyncPersistRequestEntry> PARSER =
+        new com.google.protobuf.AbstractParser<AsyncPersistRequestEntry>() {
+      public AsyncPersistRequestEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new AsyncPersistRequestEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AsyncPersistRequestEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -750,6 +778,9 @@ public final class File {
       return fileId_;
     }
 
+    private void initFields() {
+      fileId_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -762,10 +793,11 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, fileId_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -778,12 +810,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, fileId_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -837,17 +875,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.AsyncPersistRequestEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -892,11 +925,19 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         fileId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -943,8 +984,7 @@ public final class File {
         if (other.hasFileId()) {
           setFileId(other.getFileId());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1006,44 +1046,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.AsyncPersistRequestEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AsyncPersistRequestEntry)
-    private static final tachyon.proto.journal.File.AsyncPersistRequestEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.AsyncPersistRequestEntry();
+      defaultInstance = new AsyncPersistRequestEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.AsyncPersistRequestEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<AsyncPersistRequestEntry> PARSER =
-        new com.google.protobuf.AbstractParser<AsyncPersistRequestEntry>() {
-      public AsyncPersistRequestEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new AsyncPersistRequestEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<AsyncPersistRequestEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.AsyncPersistRequestEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AsyncPersistRequestEntry)
   }
 
   public interface CompleteFileEntryOrBuilder extends
@@ -1097,30 +1105,37 @@ public final class File {
    * next available id: 5
    * </pre>
    */
-  public  static final class CompleteFileEntry extends
+  public static final class CompleteFileEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.CompleteFileEntry)
       CompleteFileEntryOrBuilder {
     // Use CompleteFileEntry.newBuilder() to construct.
-    private CompleteFileEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private CompleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private CompleteFileEntry() {
-      blockIds_ = java.util.Collections.emptyList();
-      id_ = 0L;
-      length_ = 0L;
-      opTimeMs_ = 0L;
+    private CompleteFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final CompleteFileEntry defaultInstance;
+    public static CompleteFileEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public CompleteFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private CompleteFileEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1178,11 +1193,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
           blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
@@ -1201,6 +1215,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_CompleteFileEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.CompleteFileEntry.class, tachyon.proto.journal.File.CompleteFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<CompleteFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<CompleteFileEntry>() {
+      public CompleteFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompleteFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompleteFileEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -1271,6 +1300,12 @@ public final class File {
       return opTimeMs_;
     }
 
+    private void initFields() {
+      blockIds_ = java.util.Collections.emptyList();
+      id_ = 0L;
+      length_ = 0L;
+      opTimeMs_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1283,6 +1318,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       for (int i = 0; i < blockIds_.size(); i++) {
         output.writeInt64(1, blockIds_.get(i));
       }
@@ -1295,7 +1331,7 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(4, opTimeMs_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -1325,12 +1361,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, opTimeMs_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.CompleteFileEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1384,17 +1426,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.CompleteFileEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -1439,6 +1476,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         blockIds_ = java.util.Collections.emptyList();
@@ -1450,6 +1491,10 @@ public final class File {
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1525,8 +1570,7 @@ public final class File {
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1718,44 +1762,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.CompleteFileEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CompleteFileEntry)
-    private static final tachyon.proto.journal.File.CompleteFileEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.CompleteFileEntry();
+      defaultInstance = new CompleteFileEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.CompleteFileEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<CompleteFileEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CompleteFileEntry>() {
-      public CompleteFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new CompleteFileEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CompleteFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.CompleteFileEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CompleteFileEntry)
   }
 
   public interface DeleteFileEntryOrBuilder extends
@@ -1796,29 +1808,37 @@ public final class File {
    * next available id: 4
    * </pre>
    */
-  public  static final class DeleteFileEntry extends
+  public static final class DeleteFileEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.DeleteFileEntry)
       DeleteFileEntryOrBuilder {
     // Use DeleteFileEntry.newBuilder() to construct.
-    private DeleteFileEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private DeleteFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private DeleteFileEntry() {
-      id_ = 0L;
-      recursive_ = false;
-      opTimeMs_ = 0L;
+    private DeleteFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final DeleteFileEntry defaultInstance;
+    public static DeleteFileEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public DeleteFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private DeleteFileEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1855,11 +1875,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1875,6 +1894,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_DeleteFileEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.DeleteFileEntry.class, tachyon.proto.journal.File.DeleteFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<DeleteFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<DeleteFileEntry>() {
+      public DeleteFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteFileEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -1923,6 +1957,11 @@ public final class File {
       return opTimeMs_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      recursive_ = false;
+      opTimeMs_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1935,6 +1974,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -1944,7 +1984,7 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(3, opTimeMs_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -1965,12 +2005,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, opTimeMs_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.DeleteFileEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2024,17 +2070,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.DeleteFileEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -2079,6 +2120,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -2088,6 +2133,10 @@ public final class File {
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -2148,8 +2197,7 @@ public final class File {
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -2275,44 +2323,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.DeleteFileEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteFileEntry)
-    private static final tachyon.proto.journal.File.DeleteFileEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.DeleteFileEntry();
+      defaultInstance = new DeleteFileEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.DeleteFileEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<DeleteFileEntry> PARSER =
-        new com.google.protobuf.AbstractParser<DeleteFileEntry>() {
-      public DeleteFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new DeleteFileEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.DeleteFileEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteFileEntry)
   }
 
   public interface DeleteMountPointEntryOrBuilder extends
@@ -2340,27 +2356,37 @@ public final class File {
    * next available id: 2
    * </pre>
    */
-  public  static final class DeleteMountPointEntry extends
+  public static final class DeleteMountPointEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.DeleteMountPointEntry)
       DeleteMountPointEntryOrBuilder {
     // Use DeleteMountPointEntry.newBuilder() to construct.
-    private DeleteMountPointEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private DeleteMountPointEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private DeleteMountPointEntry() {
-      tachyonPath_ = "";
+    private DeleteMountPointEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final DeleteMountPointEntry defaultInstance;
+    public static DeleteMountPointEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public DeleteMountPointEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private DeleteMountPointEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -2388,11 +2414,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -2410,9 +2435,24 @@ public final class File {
               tachyon.proto.journal.File.DeleteMountPointEntry.class, tachyon.proto.journal.File.DeleteMountPointEntry.Builder.class);
     }
 
+    public static com.google.protobuf.Parser<DeleteMountPointEntry> PARSER =
+        new com.google.protobuf.AbstractParser<DeleteMountPointEntry>() {
+      public DeleteMountPointEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteMountPointEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteMountPointEntry> getParserForType() {
+      return PARSER;
+    }
+
     private int bitField0_;
     public static final int TACHYON_PATH_FIELD_NUMBER = 1;
-    private volatile java.lang.Object tachyonPath_;
+    private java.lang.Object tachyonPath_;
     /**
      * <code>optional string tachyon_path = 1;</code>
      */
@@ -2453,6 +2493,9 @@ public final class File {
       }
     }
 
+    private void initFields() {
+      tachyonPath_ = "";
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -2465,10 +2508,11 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, getTachyonPathBytes());
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -2481,12 +2525,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, getTachyonPathBytes());
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.DeleteMountPointEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2540,17 +2590,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.DeleteMountPointEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -2595,11 +2640,19 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         tachyonPath_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -2648,8 +2701,7 @@ public final class File {
           tachyonPath_ = other.tachyonPath_;
           onChanged();
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -2755,44 +2807,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.DeleteMountPointEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteMountPointEntry)
-    private static final tachyon.proto.journal.File.DeleteMountPointEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.DeleteMountPointEntry();
+      defaultInstance = new DeleteMountPointEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.DeleteMountPointEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<DeleteMountPointEntry> PARSER =
-        new com.google.protobuf.AbstractParser<DeleteMountPointEntry>() {
-      public DeleteMountPointEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new DeleteMountPointEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteMountPointEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.DeleteMountPointEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteMountPointEntry)
   }
 
   public interface InodeDirectoryEntryOrBuilder extends
@@ -2916,36 +2936,37 @@ public final class File {
    * next available id: 11
    * </pre>
    */
-  public  static final class InodeDirectoryEntry extends
+  public static final class InodeDirectoryEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.InodeDirectoryEntry)
       InodeDirectoryEntryOrBuilder {
     // Use InodeDirectoryEntry.newBuilder() to construct.
-    private InodeDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private InodeDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private InodeDirectoryEntry() {
-      id_ = 0L;
-      parentId_ = 0L;
-      name_ = "";
-      persistenceState_ = "";
-      pinned_ = false;
-      creationTimeMs_ = 0L;
-      lastModificationTimeMs_ = 0L;
-      userName_ = "";
-      groupName_ = "";
-      permission_ = 0;
+    private InodeDirectoryEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeDirectoryEntry defaultInstance;
+    public static InodeDirectoryEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public InodeDirectoryEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private InodeDirectoryEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -3021,11 +3042,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -3041,6 +3061,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_InodeDirectoryEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.InodeDirectoryEntry.class, tachyon.proto.journal.File.InodeDirectoryEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeDirectoryEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeDirectoryEntry>() {
+      public InodeDirectoryEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeDirectoryEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeDirectoryEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -3075,7 +3110,7 @@ public final class File {
     }
 
     public static final int NAME_FIELD_NUMBER = 3;
-    private volatile java.lang.Object name_;
+    private java.lang.Object name_;
     /**
      * <code>optional string name = 3;</code>
      */
@@ -3117,7 +3152,7 @@ public final class File {
     }
 
     public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
-    private volatile java.lang.Object persistenceState_;
+    private java.lang.Object persistenceState_;
     /**
      * <code>optional string persistence_state = 4;</code>
      */
@@ -3204,7 +3239,7 @@ public final class File {
     }
 
     public static final int USER_NAME_FIELD_NUMBER = 8;
-    private volatile java.lang.Object userName_;
+    private java.lang.Object userName_;
     /**
      * <code>optional string user_name = 8;</code>
      */
@@ -3246,7 +3281,7 @@ public final class File {
     }
 
     public static final int GROUP_NAME_FIELD_NUMBER = 9;
-    private volatile java.lang.Object groupName_;
+    private java.lang.Object groupName_;
     /**
      * <code>optional string group_name = 9;</code>
      */
@@ -3302,6 +3337,18 @@ public final class File {
       return permission_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      parentId_ = 0L;
+      name_ = "";
+      persistenceState_ = "";
+      pinned_ = false;
+      creationTimeMs_ = 0L;
+      lastModificationTimeMs_ = 0L;
+      userName_ = "";
+      groupName_ = "";
+      permission_ = 0;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -3314,6 +3361,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -3344,7 +3392,7 @@ public final class File {
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         output.writeInt32(10, permission_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -3393,12 +3441,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(10, permission_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.InodeDirectoryEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -3452,17 +3506,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.InodeDirectoryEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -3507,6 +3556,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -3530,6 +3583,10 @@ public final class File {
         permission_ = 0;
         bitField0_ = (bitField0_ & ~0x00000200);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -3647,8 +3704,7 @@ public final class File {
         if (other.hasPermission()) {
           setPermission(other.getPermission());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -4174,44 +4230,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.InodeDirectoryEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeDirectoryEntry)
-    private static final tachyon.proto.journal.File.InodeDirectoryEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.InodeDirectoryEntry();
+      defaultInstance = new InodeDirectoryEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.InodeDirectoryEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<InodeDirectoryEntry> PARSER =
-        new com.google.protobuf.AbstractParser<InodeDirectoryEntry>() {
-      public InodeDirectoryEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new InodeDirectoryEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<InodeDirectoryEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.InodeDirectoryEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeDirectoryEntry)
   }
 
   public interface InodeDirectoryIdGeneratorEntryOrBuilder extends
@@ -4243,28 +4267,37 @@ public final class File {
    * next available id: 3
    * </pre>
    */
-  public  static final class InodeDirectoryIdGeneratorEntry extends
+  public static final class InodeDirectoryIdGeneratorEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.InodeDirectoryIdGeneratorEntry)
       InodeDirectoryIdGeneratorEntryOrBuilder {
     // Use InodeDirectoryIdGeneratorEntry.newBuilder() to construct.
-    private InodeDirectoryIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private InodeDirectoryIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private InodeDirectoryIdGeneratorEntry() {
-      containerId_ = 0L;
-      sequenceNumber_ = 0L;
+    private InodeDirectoryIdGeneratorEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeDirectoryIdGeneratorEntry defaultInstance;
+    public static InodeDirectoryIdGeneratorEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public InodeDirectoryIdGeneratorEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private InodeDirectoryIdGeneratorEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -4296,11 +4329,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -4316,6 +4348,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry.class, tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeDirectoryIdGeneratorEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeDirectoryIdGeneratorEntry>() {
+      public InodeDirectoryIdGeneratorEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeDirectoryIdGeneratorEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeDirectoryIdGeneratorEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -4349,6 +4396,10 @@ public final class File {
       return sequenceNumber_;
     }
 
+    private void initFields() {
+      containerId_ = 0L;
+      sequenceNumber_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -4361,13 +4412,14 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, containerId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, sequenceNumber_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -4384,12 +4436,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, sequenceNumber_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -4443,17 +4501,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -4498,6 +4551,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         containerId_ = 0L;
@@ -4505,6 +4562,10 @@ public final class File {
         sequenceNumber_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -4558,8 +4619,7 @@ public final class File {
         if (other.hasSequenceNumber()) {
           setSequenceNumber(other.getSequenceNumber());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -4653,44 +4713,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.InodeDirectoryIdGeneratorEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeDirectoryIdGeneratorEntry)
-    private static final tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry();
+      defaultInstance = new InodeDirectoryIdGeneratorEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<InodeDirectoryIdGeneratorEntry> PARSER =
-        new com.google.protobuf.AbstractParser<InodeDirectoryIdGeneratorEntry>() {
-      public InodeDirectoryIdGeneratorEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new InodeDirectoryIdGeneratorEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<InodeDirectoryIdGeneratorEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.InodeDirectoryIdGeneratorEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeDirectoryIdGeneratorEntry)
   }
 
   public interface InodeFileEntryOrBuilder extends
@@ -4872,42 +4900,37 @@ public final class File {
    * next available id: 17
    * </pre>
    */
-  public  static final class InodeFileEntry extends
+  public static final class InodeFileEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.InodeFileEntry)
       InodeFileEntryOrBuilder {
     // Use InodeFileEntry.newBuilder() to construct.
-    private InodeFileEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private InodeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private InodeFileEntry() {
-      id_ = 0L;
-      parentId_ = 0L;
-      name_ = "";
-      persistenceState_ = "";
-      pinned_ = false;
-      creationTimeMs_ = 0L;
-      lastModificationTimeMs_ = 0L;
-      blockSizeBytes_ = 0L;
-      length_ = 0L;
-      completed_ = false;
-      cacheable_ = false;
-      blocks_ = java.util.Collections.emptyList();
-      ttl_ = 0L;
-      userName_ = "";
-      groupName_ = "";
-      permission_ = 0;
+    private InodeFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeFileEntry defaultInstance;
+    public static InodeFileEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public InodeFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private InodeFileEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -5029,11 +5052,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000800) == 0x00000800)) {
           blocks_ = java.util.Collections.unmodifiableList(blocks_);
@@ -5052,6 +5074,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_InodeFileEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.InodeFileEntry.class, tachyon.proto.journal.File.InodeFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeFileEntry>() {
+      public InodeFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeFileEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -5086,7 +5123,7 @@ public final class File {
     }
 
     public static final int NAME_FIELD_NUMBER = 3;
-    private volatile java.lang.Object name_;
+    private java.lang.Object name_;
     /**
      * <code>optional string name = 3;</code>
      */
@@ -5128,7 +5165,7 @@ public final class File {
     }
 
     public static final int PERSISTENCE_STATE_FIELD_NUMBER = 4;
-    private volatile java.lang.Object persistenceState_;
+    private java.lang.Object persistenceState_;
     /**
      * <code>optional string persistence_state = 4;</code>
      */
@@ -5312,7 +5349,7 @@ public final class File {
     }
 
     public static final int USER_NAME_FIELD_NUMBER = 14;
-    private volatile java.lang.Object userName_;
+    private java.lang.Object userName_;
     /**
      * <code>optional string user_name = 14;</code>
      */
@@ -5354,7 +5391,7 @@ public final class File {
     }
 
     public static final int GROUP_NAME_FIELD_NUMBER = 15;
-    private volatile java.lang.Object groupName_;
+    private java.lang.Object groupName_;
     /**
      * <code>optional string group_name = 15;</code>
      */
@@ -5410,6 +5447,24 @@ public final class File {
       return permission_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      parentId_ = 0L;
+      name_ = "";
+      persistenceState_ = "";
+      pinned_ = false;
+      creationTimeMs_ = 0L;
+      lastModificationTimeMs_ = 0L;
+      blockSizeBytes_ = 0L;
+      length_ = 0L;
+      completed_ = false;
+      cacheable_ = false;
+      blocks_ = java.util.Collections.emptyList();
+      ttl_ = 0L;
+      userName_ = "";
+      groupName_ = "";
+      permission_ = 0;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -5422,6 +5477,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -5470,7 +5526,7 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         output.writeInt32(16, permission_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -5548,12 +5604,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(16, permission_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.InodeFileEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -5607,17 +5669,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.InodeFileEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -5662,6 +5719,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -5697,6 +5758,10 @@ public final class File {
         permission_ = 0;
         bitField0_ = (bitField0_ & ~0x00008000);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -5864,8 +5929,7 @@ public final class File {
         if (other.hasPermission()) {
           setPermission(other.getPermission());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -6617,44 +6681,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.InodeFileEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeFileEntry)
-    private static final tachyon.proto.journal.File.InodeFileEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.InodeFileEntry();
+      defaultInstance = new InodeFileEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.InodeFileEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<InodeFileEntry> PARSER =
-        new com.google.protobuf.AbstractParser<InodeFileEntry>() {
-      public InodeFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new InodeFileEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<InodeFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.InodeFileEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeFileEntry)
   }
 
   public interface InodeLastModificationTimeEntryOrBuilder extends
@@ -6686,28 +6718,37 @@ public final class File {
    * next available id: 3
    * </pre>
    */
-  public  static final class InodeLastModificationTimeEntry extends
+  public static final class InodeLastModificationTimeEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.InodeLastModificationTimeEntry)
       InodeLastModificationTimeEntryOrBuilder {
     // Use InodeLastModificationTimeEntry.newBuilder() to construct.
-    private InodeLastModificationTimeEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private InodeLastModificationTimeEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private InodeLastModificationTimeEntry() {
-      id_ = 0L;
-      lastModificationTimeMs_ = 0L;
+    private InodeLastModificationTimeEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final InodeLastModificationTimeEntry defaultInstance;
+    public static InodeLastModificationTimeEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public InodeLastModificationTimeEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private InodeLastModificationTimeEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -6739,11 +6780,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -6759,6 +6799,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.InodeLastModificationTimeEntry.class, tachyon.proto.journal.File.InodeLastModificationTimeEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<InodeLastModificationTimeEntry> PARSER =
+        new com.google.protobuf.AbstractParser<InodeLastModificationTimeEntry>() {
+      public InodeLastModificationTimeEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new InodeLastModificationTimeEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InodeLastModificationTimeEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -6792,6 +6847,10 @@ public final class File {
       return lastModificationTimeMs_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      lastModificationTimeMs_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -6804,13 +6863,14 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt64(2, lastModificationTimeMs_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -6827,12 +6887,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, lastModificationTimeMs_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.InodeLastModificationTimeEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -6886,17 +6952,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.InodeLastModificationTimeEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -6941,6 +7002,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -6948,6 +7013,10 @@ public final class File {
         lastModificationTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -7001,8 +7070,7 @@ public final class File {
         if (other.hasLastModificationTimeMs()) {
           setLastModificationTimeMs(other.getLastModificationTimeMs());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -7096,44 +7164,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.InodeLastModificationTimeEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeLastModificationTimeEntry)
-    private static final tachyon.proto.journal.File.InodeLastModificationTimeEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.InodeLastModificationTimeEntry();
+      defaultInstance = new InodeLastModificationTimeEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.InodeLastModificationTimeEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<InodeLastModificationTimeEntry> PARSER =
-        new com.google.protobuf.AbstractParser<InodeLastModificationTimeEntry>() {
-      public InodeLastModificationTimeEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new InodeLastModificationTimeEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<InodeLastModificationTimeEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.InodeLastModificationTimeEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.InodeLastModificationTimeEntry)
   }
 
   public interface PersistDirectoryEntryOrBuilder extends
@@ -7156,27 +7192,37 @@ public final class File {
    * next available id: 2
    * </pre>
    */
-  public  static final class PersistDirectoryEntry extends
+  public static final class PersistDirectoryEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.PersistDirectoryEntry)
       PersistDirectoryEntryOrBuilder {
     // Use PersistDirectoryEntry.newBuilder() to construct.
-    private PersistDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private PersistDirectoryEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private PersistDirectoryEntry() {
-      id_ = 0L;
+    private PersistDirectoryEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final PersistDirectoryEntry defaultInstance;
+    public static PersistDirectoryEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public PersistDirectoryEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private PersistDirectoryEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -7203,11 +7249,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -7223,6 +7268,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_PersistDirectoryEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.PersistDirectoryEntry.class, tachyon.proto.journal.File.PersistDirectoryEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<PersistDirectoryEntry> PARSER =
+        new com.google.protobuf.AbstractParser<PersistDirectoryEntry>() {
+      public PersistDirectoryEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new PersistDirectoryEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PersistDirectoryEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -7241,6 +7301,9 @@ public final class File {
       return id_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -7253,10 +7316,11 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -7269,12 +7333,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, id_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.PersistDirectoryEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -7328,17 +7398,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.PersistDirectoryEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -7383,11 +7448,19 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -7434,8 +7507,7 @@ public final class File {
         if (other.hasId()) {
           setId(other.getId());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -7497,44 +7569,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.PersistDirectoryEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.PersistDirectoryEntry)
-    private static final tachyon.proto.journal.File.PersistDirectoryEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.PersistDirectoryEntry();
+      defaultInstance = new PersistDirectoryEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.PersistDirectoryEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<PersistDirectoryEntry> PARSER =
-        new com.google.protobuf.AbstractParser<PersistDirectoryEntry>() {
-      public PersistDirectoryEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new PersistDirectoryEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<PersistDirectoryEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.PersistDirectoryEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.PersistDirectoryEntry)
   }
 
   public interface PersistFileEntryOrBuilder extends
@@ -7575,29 +7615,37 @@ public final class File {
    * next available id: 4
    * </pre>
    */
-  public  static final class PersistFileEntry extends
+  public static final class PersistFileEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.PersistFileEntry)
       PersistFileEntryOrBuilder {
     // Use PersistFileEntry.newBuilder() to construct.
-    private PersistFileEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private PersistFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private PersistFileEntry() {
-      id_ = 0L;
-      length_ = 0L;
-      opTimeMs_ = 0L;
+    private PersistFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final PersistFileEntry defaultInstance;
+    public static PersistFileEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public PersistFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private PersistFileEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -7634,11 +7682,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -7654,6 +7701,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_PersistFileEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.PersistFileEntry.class, tachyon.proto.journal.File.PersistFileEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<PersistFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<PersistFileEntry>() {
+      public PersistFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new PersistFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PersistFileEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -7702,6 +7764,11 @@ public final class File {
       return opTimeMs_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      length_ = 0L;
+      opTimeMs_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -7714,6 +7781,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -7723,7 +7791,7 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(3, opTimeMs_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -7744,12 +7812,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, opTimeMs_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.PersistFileEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -7803,17 +7877,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.PersistFileEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -7858,6 +7927,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -7867,6 +7940,10 @@ public final class File {
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -7927,8 +8004,7 @@ public final class File {
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -8054,44 +8130,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.PersistFileEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.PersistFileEntry)
-    private static final tachyon.proto.journal.File.PersistFileEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.PersistFileEntry();
+      defaultInstance = new PersistFileEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.PersistFileEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<PersistFileEntry> PARSER =
-        new com.google.protobuf.AbstractParser<PersistFileEntry>() {
-      public PersistFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new PersistFileEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<PersistFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.PersistFileEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.PersistFileEntry)
   }
 
   public interface ReinitializeFileEntryOrBuilder extends
@@ -8137,29 +8181,37 @@ public final class File {
    * next available id: 4
    * </pre>
    */
-  public  static final class ReinitializeFileEntry extends
+  public static final class ReinitializeFileEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.ReinitializeFileEntry)
       ReinitializeFileEntryOrBuilder {
     // Use ReinitializeFileEntry.newBuilder() to construct.
-    private ReinitializeFileEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private ReinitializeFileEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private ReinitializeFileEntry() {
-      path_ = "";
-      blockSizeBytes_ = 0L;
-      ttl_ = 0L;
+    private ReinitializeFileEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final ReinitializeFileEntry defaultInstance;
+    public static ReinitializeFileEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public ReinitializeFileEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private ReinitializeFileEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -8197,11 +8249,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -8219,9 +8270,24 @@ public final class File {
               tachyon.proto.journal.File.ReinitializeFileEntry.class, tachyon.proto.journal.File.ReinitializeFileEntry.Builder.class);
     }
 
+    public static com.google.protobuf.Parser<ReinitializeFileEntry> PARSER =
+        new com.google.protobuf.AbstractParser<ReinitializeFileEntry>() {
+      public ReinitializeFileEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new ReinitializeFileEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ReinitializeFileEntry> getParserForType() {
+      return PARSER;
+    }
+
     private int bitField0_;
     public static final int PATH_FIELD_NUMBER = 1;
-    private volatile java.lang.Object path_;
+    private java.lang.Object path_;
     /**
      * <code>optional string path = 1;</code>
      */
@@ -8292,6 +8358,11 @@ public final class File {
       return ttl_;
     }
 
+    private void initFields() {
+      path_ = "";
+      blockSizeBytes_ = 0L;
+      ttl_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -8304,6 +8375,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, getPathBytes());
       }
@@ -8313,7 +8385,7 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(3, ttl_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -8334,12 +8406,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, ttl_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.ReinitializeFileEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -8393,17 +8471,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.ReinitializeFileEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -8448,6 +8521,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         path_ = "";
@@ -8457,6 +8534,10 @@ public final class File {
         ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -8519,8 +8600,7 @@ public final class File {
         if (other.hasTtl()) {
           setTtl(other.getTtl());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -8690,44 +8770,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.ReinitializeFileEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.ReinitializeFileEntry)
-    private static final tachyon.proto.journal.File.ReinitializeFileEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.ReinitializeFileEntry();
+      defaultInstance = new ReinitializeFileEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.ReinitializeFileEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<ReinitializeFileEntry> PARSER =
-        new com.google.protobuf.AbstractParser<ReinitializeFileEntry>() {
-      public ReinitializeFileEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new ReinitializeFileEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ReinitializeFileEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.ReinitializeFileEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.ReinitializeFileEntry)
   }
 
   public interface RenameEntryOrBuilder extends
@@ -8773,29 +8821,37 @@ public final class File {
    * next available id: 4
    * </pre>
    */
-  public  static final class RenameEntry extends
+  public static final class RenameEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.RenameEntry)
       RenameEntryOrBuilder {
     // Use RenameEntry.newBuilder() to construct.
-    private RenameEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private RenameEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private RenameEntry() {
-      id_ = 0L;
-      dstPath_ = "";
-      opTimeMs_ = 0L;
+    private RenameEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RenameEntry defaultInstance;
+    public static RenameEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public RenameEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private RenameEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -8833,11 +8889,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -8853,6 +8908,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_RenameEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.RenameEntry.class, tachyon.proto.journal.File.RenameEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RenameEntry> PARSER =
+        new com.google.protobuf.AbstractParser<RenameEntry>() {
+      public RenameEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RenameEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RenameEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -8872,7 +8942,7 @@ public final class File {
     }
 
     public static final int DST_PATH_FIELD_NUMBER = 2;
-    private volatile java.lang.Object dstPath_;
+    private java.lang.Object dstPath_;
     /**
      * <code>optional string dst_path = 2;</code>
      */
@@ -8928,6 +8998,11 @@ public final class File {
       return opTimeMs_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      dstPath_ = "";
+      opTimeMs_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -8940,6 +9015,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -8949,7 +9025,7 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt64(3, opTimeMs_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -8970,12 +9046,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, opTimeMs_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.RenameEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -9029,17 +9111,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.RenameEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -9084,6 +9161,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -9093,6 +9174,10 @@ public final class File {
         opTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -9155,8 +9240,7 @@ public final class File {
         if (other.hasOpTimeMs()) {
           setOpTimeMs(other.getOpTimeMs());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -9326,44 +9410,12 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.RenameEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.RenameEntry)
-    private static final tachyon.proto.journal.File.RenameEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.RenameEntry();
+      defaultInstance = new RenameEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.RenameEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<RenameEntry> PARSER =
-        new com.google.protobuf.AbstractParser<RenameEntry>() {
-      public RenameEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new RenameEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<RenameEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.RenameEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.RenameEntry)
   }
 
   public interface SetStateEntryOrBuilder extends
@@ -9422,31 +9474,37 @@ public final class File {
    * next available id: 6
    * </pre>
    */
-  public  static final class SetStateEntry extends
+  public static final class SetStateEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.SetStateEntry)
       SetStateEntryOrBuilder {
     // Use SetStateEntry.newBuilder() to construct.
-    private SetStateEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private SetStateEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private SetStateEntry() {
-      id_ = 0L;
-      opTimeMs_ = 0L;
-      pinned_ = false;
-      ttl_ = 0L;
-      persisted_ = false;
+    private SetStateEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final SetStateEntry defaultInstance;
+    public static SetStateEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public SetStateEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private SetStateEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -9493,11 +9551,10 @@ public final class File {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -9513,6 +9570,21 @@ public final class File {
       return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_SetStateEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.File.SetStateEntry.class, tachyon.proto.journal.File.SetStateEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<SetStateEntry> PARSER =
+        new com.google.protobuf.AbstractParser<SetStateEntry>() {
+      public SetStateEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new SetStateEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SetStateEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -9591,6 +9663,13 @@ public final class File {
       return persisted_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      opTimeMs_ = 0L;
+      pinned_ = false;
+      ttl_ = 0L;
+      persisted_ = false;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -9603,6 +9682,7 @@ public final class File {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -9618,7 +9698,7 @@ public final class File {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBool(5, persisted_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -9647,12 +9727,18 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(5, persisted_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.File.SetStateEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -9706,17 +9792,12 @@ public final class File {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.File.SetStateEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -9761,6 +9842,10 @@ public final class File {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -9774,6 +9859,10 @@ public final class File {
         persisted_ = false;
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -9848,8 +9937,7 @@ public final class File {
         if (other.hasPersisted()) {
           setPersisted(other.getPersisted());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -10039,112 +10127,80 @@ public final class File {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.SetStateEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.SetStateEntry)
-    private static final tachyon.proto.journal.File.SetStateEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.File.SetStateEntry();
+      defaultInstance = new SetStateEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.File.SetStateEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<SetStateEntry> PARSER =
-        new com.google.protobuf.AbstractParser<SetStateEntry>() {
-      public SetStateEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new SetStateEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<SetStateEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.File.SetStateEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.SetStateEntry)
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_AddMountPointEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_AddMountPointEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_CompleteFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_CompleteFileEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_DeleteFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_DeleteFileEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_DeleteMountPointEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_DeleteMountPointEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_InodeDirectoryEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_InodeDirectoryEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_InodeFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_InodeFileEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_PersistDirectoryEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_PersistDirectoryEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_PersistFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_PersistFileEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_ReinitializeFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_ReinitializeFileEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_RenameEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_RenameEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_SetStateEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable

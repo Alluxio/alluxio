@@ -46,29 +46,37 @@ public final class RawTable {
    * next available id: 4
    * </pre>
    */
-  public  static final class RawTableEntry extends
+  public static final class RawTableEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.RawTableEntry)
       RawTableEntryOrBuilder {
     // Use RawTableEntry.newBuilder() to construct.
-    private RawTableEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private RawTableEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private RawTableEntry() {
-      id_ = 0L;
-      columns_ = 0;
-      metadata_ = com.google.protobuf.ByteString.EMPTY;
+    private RawTableEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RawTableEntry defaultInstance;
+    public static RawTableEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public RawTableEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private RawTableEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -105,11 +113,10 @@ public final class RawTable {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -125,6 +132,21 @@ public final class RawTable {
       return tachyon.proto.journal.RawTable.internal_static_tachyon_proto_journal_RawTableEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.RawTable.RawTableEntry.class, tachyon.proto.journal.RawTable.RawTableEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RawTableEntry> PARSER =
+        new com.google.protobuf.AbstractParser<RawTableEntry>() {
+      public RawTableEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RawTableEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RawTableEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -173,6 +195,11 @@ public final class RawTable {
       return metadata_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      columns_ = 0;
+      metadata_ = com.google.protobuf.ByteString.EMPTY;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -185,6 +212,7 @@ public final class RawTable {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -194,7 +222,7 @@ public final class RawTable {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBytes(3, metadata_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -215,12 +243,18 @@ public final class RawTable {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, metadata_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.RawTable.RawTableEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -274,17 +308,12 @@ public final class RawTable {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.RawTable.RawTableEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -329,6 +358,10 @@ public final class RawTable {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -338,6 +371,10 @@ public final class RawTable {
         metadata_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -398,8 +435,7 @@ public final class RawTable {
         if (other.hasMetadata()) {
           setMetadata(other.getMetadata());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -528,44 +564,12 @@ public final class RawTable {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.RawTableEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.RawTableEntry)
-    private static final tachyon.proto.journal.RawTable.RawTableEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.RawTable.RawTableEntry();
+      defaultInstance = new RawTableEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.RawTable.RawTableEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<RawTableEntry> PARSER =
-        new com.google.protobuf.AbstractParser<RawTableEntry>() {
-      public RawTableEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new RawTableEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<RawTableEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.RawTable.RawTableEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.RawTableEntry)
   }
 
   public interface UpdateMetadataEntryOrBuilder extends
@@ -597,28 +601,37 @@ public final class RawTable {
    * next available id: 3
    * </pre>
    */
-  public  static final class UpdateMetadataEntry extends
+  public static final class UpdateMetadataEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.UpdateMetadataEntry)
       UpdateMetadataEntryOrBuilder {
     // Use UpdateMetadataEntry.newBuilder() to construct.
-    private UpdateMetadataEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private UpdateMetadataEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private UpdateMetadataEntry() {
-      id_ = 0L;
-      metadata_ = com.google.protobuf.ByteString.EMPTY;
+    private UpdateMetadataEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final UpdateMetadataEntry defaultInstance;
+    public static UpdateMetadataEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public UpdateMetadataEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private UpdateMetadataEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -650,11 +663,10 @@ public final class RawTable {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -670,6 +682,21 @@ public final class RawTable {
       return tachyon.proto.journal.RawTable.internal_static_tachyon_proto_journal_UpdateMetadataEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.RawTable.UpdateMetadataEntry.class, tachyon.proto.journal.RawTable.UpdateMetadataEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<UpdateMetadataEntry> PARSER =
+        new com.google.protobuf.AbstractParser<UpdateMetadataEntry>() {
+      public UpdateMetadataEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateMetadataEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateMetadataEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -703,6 +730,10 @@ public final class RawTable {
       return metadata_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      metadata_ = com.google.protobuf.ByteString.EMPTY;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -715,13 +746,14 @@ public final class RawTable {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(2, metadata_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -738,12 +770,18 @@ public final class RawTable {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, metadata_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.RawTable.UpdateMetadataEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -797,17 +835,12 @@ public final class RawTable {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.RawTable.UpdateMetadataEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -852,6 +885,10 @@ public final class RawTable {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -859,6 +896,10 @@ public final class RawTable {
         metadata_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -912,8 +953,7 @@ public final class RawTable {
         if (other.hasMetadata()) {
           setMetadata(other.getMetadata());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1010,52 +1050,20 @@ public final class RawTable {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.UpdateMetadataEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.UpdateMetadataEntry)
-    private static final tachyon.proto.journal.RawTable.UpdateMetadataEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.RawTable.UpdateMetadataEntry();
+      defaultInstance = new UpdateMetadataEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.RawTable.UpdateMetadataEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<UpdateMetadataEntry> PARSER =
-        new com.google.protobuf.AbstractParser<UpdateMetadataEntry>() {
-      public UpdateMetadataEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new UpdateMetadataEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<UpdateMetadataEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.RawTable.UpdateMetadataEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.UpdateMetadataEntry)
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_RawTableEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_RawTableEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_UpdateMetadataEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable

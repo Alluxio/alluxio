@@ -73,6 +73,12 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-keyvalue-clients</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-local</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

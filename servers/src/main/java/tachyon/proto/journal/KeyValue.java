@@ -89,30 +89,37 @@ public final class KeyValue {
    * next available id: 5
    * </pre>
    */
-  public  static final class CompletePartitionEntry extends
+  public static final class CompletePartitionEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.CompletePartitionEntry)
       CompletePartitionEntryOrBuilder {
     // Use CompletePartitionEntry.newBuilder() to construct.
-    private CompletePartitionEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private CompletePartitionEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private CompletePartitionEntry() {
-      storeId_ = 0L;
-      keyStart_ = "";
-      keyLimit_ = "";
-      blockId_ = 0L;
+    private CompletePartitionEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final CompletePartitionEntry defaultInstance;
+    public static CompletePartitionEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public CompletePartitionEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private CompletePartitionEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -156,11 +163,10 @@ public final class KeyValue {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -176,6 +182,21 @@ public final class KeyValue {
       return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_CompletePartitionEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.KeyValue.CompletePartitionEntry.class, tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<CompletePartitionEntry> PARSER =
+        new com.google.protobuf.AbstractParser<CompletePartitionEntry>() {
+      public CompletePartitionEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompletePartitionEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompletePartitionEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -195,7 +216,7 @@ public final class KeyValue {
     }
 
     public static final int KEY_START_FIELD_NUMBER = 2;
-    private volatile java.lang.Object keyStart_;
+    private java.lang.Object keyStart_;
     /**
      * <code>optional string key_start = 2;</code>
      *
@@ -249,7 +270,7 @@ public final class KeyValue {
     }
 
     public static final int KEY_LIMIT_FIELD_NUMBER = 3;
-    private volatile java.lang.Object keyLimit_;
+    private java.lang.Object keyLimit_;
     /**
      * <code>optional string key_limit = 3;</code>
      *
@@ -317,6 +338,12 @@ public final class KeyValue {
       return blockId_;
     }
 
+    private void initFields() {
+      storeId_ = 0L;
+      keyStart_ = "";
+      keyLimit_ = "";
+      blockId_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -329,6 +356,7 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
@@ -341,7 +369,7 @@ public final class KeyValue {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(4, blockId_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -366,12 +394,18 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, blockId_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.KeyValue.CompletePartitionEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -425,17 +459,12 @@ public final class KeyValue {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.KeyValue.CompletePartitionEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -480,6 +509,10 @@ public final class KeyValue {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
@@ -491,6 +524,10 @@ public final class KeyValue {
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -562,8 +599,7 @@ public final class KeyValue {
         if (other.hasBlockId()) {
           setBlockId(other.getBlockId());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -857,44 +893,12 @@ public final class KeyValue {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.CompletePartitionEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CompletePartitionEntry)
-    private static final tachyon.proto.journal.KeyValue.CompletePartitionEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.KeyValue.CompletePartitionEntry();
+      defaultInstance = new CompletePartitionEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.KeyValue.CompletePartitionEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<CompletePartitionEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CompletePartitionEntry>() {
-      public CompletePartitionEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new CompletePartitionEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CompletePartitionEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.KeyValue.CompletePartitionEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CompletePartitionEntry)
   }
 
   public interface CompleteStoreEntryOrBuilder extends
@@ -917,27 +921,37 @@ public final class KeyValue {
    * next available id: 2
    * </pre>
    */
-  public  static final class CompleteStoreEntry extends
+  public static final class CompleteStoreEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.CompleteStoreEntry)
       CompleteStoreEntryOrBuilder {
     // Use CompleteStoreEntry.newBuilder() to construct.
-    private CompleteStoreEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private CompleteStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private CompleteStoreEntry() {
-      storeId_ = 0L;
+    private CompleteStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final CompleteStoreEntry defaultInstance;
+    public static CompleteStoreEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public CompleteStoreEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private CompleteStoreEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -964,11 +978,10 @@ public final class KeyValue {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -984,6 +997,21 @@ public final class KeyValue {
       return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_CompleteStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.KeyValue.CompleteStoreEntry.class, tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<CompleteStoreEntry> PARSER =
+        new com.google.protobuf.AbstractParser<CompleteStoreEntry>() {
+      public CompleteStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CompleteStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CompleteStoreEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -1002,6 +1030,9 @@ public final class KeyValue {
       return storeId_;
     }
 
+    private void initFields() {
+      storeId_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1014,10 +1045,11 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -1030,12 +1062,18 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, storeId_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.KeyValue.CompleteStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1089,17 +1127,12 @@ public final class KeyValue {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.KeyValue.CompleteStoreEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -1144,11 +1177,19 @@ public final class KeyValue {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1195,8 +1236,7 @@ public final class KeyValue {
         if (other.hasStoreId()) {
           setStoreId(other.getStoreId());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1258,44 +1298,12 @@ public final class KeyValue {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.CompleteStoreEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CompleteStoreEntry)
-    private static final tachyon.proto.journal.KeyValue.CompleteStoreEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.KeyValue.CompleteStoreEntry();
+      defaultInstance = new CompleteStoreEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.KeyValue.CompleteStoreEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<CompleteStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CompleteStoreEntry>() {
-      public CompleteStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new CompleteStoreEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CompleteStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.KeyValue.CompleteStoreEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CompleteStoreEntry)
   }
 
   public interface CreateStoreEntryOrBuilder extends
@@ -1318,27 +1326,37 @@ public final class KeyValue {
    * next available id: 2
    * </pre>
    */
-  public  static final class CreateStoreEntry extends
+  public static final class CreateStoreEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.CreateStoreEntry)
       CreateStoreEntryOrBuilder {
     // Use CreateStoreEntry.newBuilder() to construct.
-    private CreateStoreEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private CreateStoreEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private CreateStoreEntry() {
-      storeId_ = 0L;
+    private CreateStoreEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final CreateStoreEntry defaultInstance;
+    public static CreateStoreEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public CreateStoreEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private CreateStoreEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1365,11 +1383,10 @@ public final class KeyValue {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1385,6 +1402,21 @@ public final class KeyValue {
       return tachyon.proto.journal.KeyValue.internal_static_tachyon_proto_journal_CreateStoreEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.KeyValue.CreateStoreEntry.class, tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<CreateStoreEntry> PARSER =
+        new com.google.protobuf.AbstractParser<CreateStoreEntry>() {
+      public CreateStoreEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new CreateStoreEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<CreateStoreEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -1403,6 +1435,9 @@ public final class KeyValue {
       return storeId_;
     }
 
+    private void initFields() {
+      storeId_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1415,10 +1450,11 @@ public final class KeyValue {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, storeId_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -1431,12 +1467,18 @@ public final class KeyValue {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, storeId_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.KeyValue.CreateStoreEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1490,17 +1532,12 @@ public final class KeyValue {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.KeyValue.CreateStoreEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -1545,11 +1582,19 @@ public final class KeyValue {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         storeId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1596,8 +1641,7 @@ public final class KeyValue {
         if (other.hasStoreId()) {
           setStoreId(other.getStoreId());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1659,57 +1703,25 @@ public final class KeyValue {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.CreateStoreEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CreateStoreEntry)
-    private static final tachyon.proto.journal.KeyValue.CreateStoreEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.KeyValue.CreateStoreEntry();
+      defaultInstance = new CreateStoreEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.KeyValue.CreateStoreEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<CreateStoreEntry> PARSER =
-        new com.google.protobuf.AbstractParser<CreateStoreEntry>() {
-      public CreateStoreEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new CreateStoreEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CreateStoreEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.KeyValue.CreateStoreEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.CreateStoreEntry)
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_CompletePartitionEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_CompletePartitionEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_CompleteStoreEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_CompleteStoreEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_CreateStoreEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable

@@ -37,28 +37,37 @@ public final class Lineage {
    * next available id: 3
    * </pre>
    */
-  public  static final class DeleteLineageEntry extends
+  public static final class DeleteLineageEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.DeleteLineageEntry)
       DeleteLineageEntryOrBuilder {
     // Use DeleteLineageEntry.newBuilder() to construct.
-    private DeleteLineageEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private DeleteLineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private DeleteLineageEntry() {
-      lineageId_ = 0L;
-      cascade_ = false;
+    private DeleteLineageEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final DeleteLineageEntry defaultInstance;
+    public static DeleteLineageEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public DeleteLineageEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private DeleteLineageEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -90,11 +99,10 @@ public final class Lineage {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -110,6 +118,21 @@ public final class Lineage {
       return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_DeleteLineageEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.Lineage.DeleteLineageEntry.class, tachyon.proto.journal.Lineage.DeleteLineageEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<DeleteLineageEntry> PARSER =
+        new com.google.protobuf.AbstractParser<DeleteLineageEntry>() {
+      public DeleteLineageEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new DeleteLineageEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteLineageEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -143,6 +166,10 @@ public final class Lineage {
       return cascade_;
     }
 
+    private void initFields() {
+      lineageId_ = 0L;
+      cascade_ = false;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -155,13 +182,14 @@ public final class Lineage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, lineageId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBool(2, cascade_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -178,12 +206,18 @@ public final class Lineage {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(2, cascade_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.Lineage.DeleteLineageEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -237,17 +271,12 @@ public final class Lineage {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.Lineage.DeleteLineageEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -292,6 +321,10 @@ public final class Lineage {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         lineageId_ = 0L;
@@ -299,6 +332,10 @@ public final class Lineage {
         cascade_ = false;
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -352,8 +389,7 @@ public final class Lineage {
         if (other.hasCascade()) {
           setCascade(other.getCascade());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -447,44 +483,12 @@ public final class Lineage {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.DeleteLineageEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteLineageEntry)
-    private static final tachyon.proto.journal.Lineage.DeleteLineageEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.Lineage.DeleteLineageEntry();
+      defaultInstance = new DeleteLineageEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.Lineage.DeleteLineageEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<DeleteLineageEntry> PARSER =
-        new com.google.protobuf.AbstractParser<DeleteLineageEntry>() {
-      public DeleteLineageEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new DeleteLineageEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteLineageEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.Lineage.DeleteLineageEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.DeleteLineageEntry)
   }
 
   public interface LineageEntryOrBuilder extends
@@ -570,32 +574,37 @@ public final class Lineage {
    * next available id: 7
    * </pre>
    */
-  public  static final class LineageEntry extends
+  public static final class LineageEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.LineageEntry)
       LineageEntryOrBuilder {
     // Use LineageEntry.newBuilder() to construct.
-    private LineageEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private LineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private LineageEntry() {
-      id_ = 0L;
-      inputFiles_ = java.util.Collections.emptyList();
-      outputFileIds_ = java.util.Collections.emptyList();
-      jobCommand_ = "";
-      jobOutputPath_ = "";
-      creationTimeMs_ = 0L;
+    private LineageEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LineageEntry defaultInstance;
+    public static LineageEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public LineageEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private LineageEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -681,11 +690,10 @@ public final class Lineage {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           inputFiles_ = java.util.Collections.unmodifiableList(inputFiles_);
@@ -707,6 +715,21 @@ public final class Lineage {
       return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_LineageEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.Lineage.LineageEntry.class, tachyon.proto.journal.Lineage.LineageEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LineageEntry> PARSER =
+        new com.google.protobuf.AbstractParser<LineageEntry>() {
+      public LineageEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LineageEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LineageEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -770,7 +793,7 @@ public final class Lineage {
     }
 
     public static final int JOB_COMMAND_FIELD_NUMBER = 4;
-    private volatile java.lang.Object jobCommand_;
+    private java.lang.Object jobCommand_;
     /**
      * <code>optional string job_command = 4;</code>
      */
@@ -812,7 +835,7 @@ public final class Lineage {
     }
 
     public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 5;
-    private volatile java.lang.Object jobOutputPath_;
+    private java.lang.Object jobOutputPath_;
     /**
      * <code>optional string job_output_path = 5;</code>
      */
@@ -868,6 +891,14 @@ public final class Lineage {
       return creationTimeMs_;
     }
 
+    private void initFields() {
+      id_ = 0L;
+      inputFiles_ = java.util.Collections.emptyList();
+      outputFileIds_ = java.util.Collections.emptyList();
+      jobCommand_ = "";
+      jobOutputPath_ = "";
+      creationTimeMs_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -880,6 +911,7 @@ public final class Lineage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, id_);
       }
@@ -898,7 +930,7 @@ public final class Lineage {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(6, creationTimeMs_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -941,12 +973,18 @@ public final class Lineage {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(6, creationTimeMs_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.Lineage.LineageEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1000,17 +1038,12 @@ public final class Lineage {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.Lineage.LineageEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -1055,6 +1088,10 @@ public final class Lineage {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -1070,6 +1107,10 @@ public final class Lineage {
         creationTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000020);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1171,8 +1212,7 @@ public final class Lineage {
         if (other.hasCreationTimeMs()) {
           setCreationTimeMs(other.getCreationTimeMs());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1550,44 +1590,12 @@ public final class Lineage {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.LineageEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.LineageEntry)
-    private static final tachyon.proto.journal.Lineage.LineageEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.Lineage.LineageEntry();
+      defaultInstance = new LineageEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.Lineage.LineageEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<LineageEntry> PARSER =
-        new com.google.protobuf.AbstractParser<LineageEntry>() {
-      public LineageEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new LineageEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<LineageEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.Lineage.LineageEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.LineageEntry)
   }
 
   public interface LineageIdGeneratorEntryOrBuilder extends
@@ -1610,27 +1618,37 @@ public final class Lineage {
    * next available id: 2
    * </pre>
    */
-  public  static final class LineageIdGeneratorEntry extends
+  public static final class LineageIdGeneratorEntry extends
       com.google.protobuf.GeneratedMessage implements
       // @@protoc_insertion_point(message_implements:tachyon.proto.journal.LineageIdGeneratorEntry)
       LineageIdGeneratorEntryOrBuilder {
     // Use LineageIdGeneratorEntry.newBuilder() to construct.
-    private LineageIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder builder) {
+    private LineageIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
+      this.unknownFields = builder.getUnknownFields();
     }
-    private LineageIdGeneratorEntry() {
-      sequenceNumber_ = 0L;
+    private LineageIdGeneratorEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final LineageIdGeneratorEntry defaultInstance;
+    public static LineageIdGeneratorEntry getDefaultInstance() {
+      return defaultInstance;
     }
 
+    public LineageIdGeneratorEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
     @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
-    getUnknownFields() {
+        getUnknownFields() {
       return this.unknownFields;
     }
     private LineageIdGeneratorEntry(
         com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry) {
-      this();
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
       int mutable_bitField0_ = 0;
       com.google.protobuf.UnknownFieldSet.Builder unknownFields =
           com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -1657,11 +1675,10 @@ public final class Lineage {
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw new RuntimeException(e.setUnfinishedMessage(this));
+        throw e.setUnfinishedMessage(this);
       } catch (java.io.IOException e) {
-        throw new RuntimeException(
-            new com.google.protobuf.InvalidProtocolBufferException(
-                e.getMessage()).setUnfinishedMessage(this));
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
       } finally {
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1677,6 +1694,21 @@ public final class Lineage {
       return tachyon.proto.journal.Lineage.internal_static_tachyon_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               tachyon.proto.journal.Lineage.LineageIdGeneratorEntry.class, tachyon.proto.journal.Lineage.LineageIdGeneratorEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<LineageIdGeneratorEntry> PARSER =
+        new com.google.protobuf.AbstractParser<LineageIdGeneratorEntry>() {
+      public LineageIdGeneratorEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new LineageIdGeneratorEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LineageIdGeneratorEntry> getParserForType() {
+      return PARSER;
     }
 
     private int bitField0_;
@@ -1695,6 +1727,9 @@ public final class Lineage {
       return sequenceNumber_;
     }
 
+    private void initFields() {
+      sequenceNumber_ = 0L;
+    }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -1707,10 +1742,11 @@ public final class Lineage {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt64(1, sequenceNumber_);
       }
-      unknownFields.writeTo(output);
+      getUnknownFields().writeTo(output);
     }
 
     private int memoizedSerializedSize = -1;
@@ -1723,12 +1759,18 @@ public final class Lineage {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, sequenceNumber_);
       }
-      size += unknownFields.getSerializedSize();
+      size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
     }
 
     private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
     public static tachyon.proto.journal.Lineage.LineageIdGeneratorEntry parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1782,17 +1824,12 @@ public final class Lineage {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
     public static Builder newBuilder(tachyon.proto.journal.Lineage.LineageIdGeneratorEntry prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      return newBuilder().mergeFrom(prototype);
     }
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
+    public Builder toBuilder() { return newBuilder(this); }
 
     @java.lang.Override
     protected Builder newBuilderForType(
@@ -1837,11 +1874,19 @@ public final class Lineage {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
         }
       }
+      private static Builder create() {
+        return new Builder();
+      }
+
       public Builder clear() {
         super.clear();
         sequenceNumber_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
       }
 
       public com.google.protobuf.Descriptors.Descriptor
@@ -1888,8 +1933,7 @@ public final class Lineage {
         if (other.hasSequenceNumber()) {
           setSequenceNumber(other.getSequenceNumber());
         }
-        this.mergeUnknownFields(other.unknownFields);
-        onChanged();
+        this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
@@ -1951,57 +1995,25 @@ public final class Lineage {
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.LineageIdGeneratorEntry)
     }
 
-    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.LineageIdGeneratorEntry)
-    private static final tachyon.proto.journal.Lineage.LineageIdGeneratorEntry DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new tachyon.proto.journal.Lineage.LineageIdGeneratorEntry();
+      defaultInstance = new LineageIdGeneratorEntry(true);
+      defaultInstance.initFields();
     }
 
-    public static tachyon.proto.journal.Lineage.LineageIdGeneratorEntry getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    public static final com.google.protobuf.Parser<LineageIdGeneratorEntry> PARSER =
-        new com.google.protobuf.AbstractParser<LineageIdGeneratorEntry>() {
-      public LineageIdGeneratorEntry parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        try {
-          return new LineageIdGeneratorEntry(input, extensionRegistry);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof
-              com.google.protobuf.InvalidProtocolBufferException) {
-            throw (com.google.protobuf.InvalidProtocolBufferException)
-                e.getCause();
-          }
-          throw e;
-        }
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<LineageIdGeneratorEntry> getParserForType() {
-      return PARSER;
-    }
-
-    public tachyon.proto.journal.Lineage.LineageIdGeneratorEntry getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.LineageIdGeneratorEntry)
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_DeleteLineageEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_DeleteLineageEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_LineageEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_LineageEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_LineageIdGeneratorEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
