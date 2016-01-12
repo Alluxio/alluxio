@@ -29,7 +29,26 @@ public final class GetLineageInfoListOptions {
     return new GetLineageInfoListOptions();
   }
 
+  /** Whether or not to list the lineage info recursively, currently not supported */
+  private boolean mRecursive;
+
   private GetLineageInfoListOptions() {
-    // No options available currently
+    mRecursive = false;
+  }
+
+  /**
+   * @return the recursive flag
+   */
+  public boolean isRecursive() {
+    return mRecursive;
+  }
+
+  /**
+   * @param recursive the recursive flag to set
+   * @return the updated options object
+   */
+  public GetLineageInfoListOptions setRecurisve(boolean recursive) {
+    mRecursive = recursive;
+    return this;
   }
 }

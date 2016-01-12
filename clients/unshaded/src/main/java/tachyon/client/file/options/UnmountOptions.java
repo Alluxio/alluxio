@@ -36,4 +36,20 @@ public final class UnmountOptions {
   private UnmountOptions() {
     mFreeData = false;
   }
+
+  /**
+   * @return whether to free the data from the mount
+   */
+  public boolean isFreeData() {
+    return mFreeData;
+  }
+
+  /**
+   * @param freeData the free data flag to set
+   * @return the updated options object
+   */
+  public UnmountOptions setFreeData(boolean freeData) {
+    mFreeData = freeData;
+    return this;
+  }
 }
