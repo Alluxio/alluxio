@@ -191,6 +191,7 @@ public class TachyonMaster {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
 
+      mAdditionalMasters = Lists.newArrayList();
       List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       // Discover and register the available factories
       ServiceLoader<MasterFactory> discoveredMasterFactories =
