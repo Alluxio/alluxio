@@ -155,7 +155,7 @@ public class BlockMetadataManagerView {
    * @return the {@link StorageTierView} object associated with the alias
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public StorageTierView getTierView(String tierAlias) {
+  public StorageTierView getTierView(String tierAlias) throws IllegalArgumentException {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (tierView == null) {
       throw new IllegalArgumentException(
@@ -181,7 +181,7 @@ public class BlockMetadataManagerView {
    * @return the list of {@link StorageTierView}
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public List<StorageTierView> getTierViewsBelow(String tierAlias) {
+  public List<StorageTierView> getTierViewsBelow(String tierAlias) throws IllegalArgumentException {
     int ordinal = getTierView(tierAlias).getTierViewOrdinal();
     return mTierViews.subList(ordinal + 1, mTierViews.size());
   }
@@ -208,7 +208,7 @@ public class BlockMetadataManagerView {
    * @return available bytes
    * @throws IllegalArgumentException if location does not belong to tiered storage
    */
-  public long getAvailableBytes(BlockStoreLocation location) {
+  public long getAvailableBytes(BlockStoreLocation location) throws IllegalArgumentException {
     return mMetadataManager.getAvailableBytes(location);
   }
 

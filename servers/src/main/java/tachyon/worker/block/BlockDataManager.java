@@ -167,7 +167,6 @@ public final class BlockDataManager {
    *        {@link BlockStoreLocation#ANY_TIER} for any tier
    * @param initialBytes the initial amount of bytes to be allocated
    * @return a string representing the path to the local file
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -189,7 +188,6 @@ public final class BlockDataManager {
    * @param blockId the id of the block to be created
    * @param tierAlias the alias of the tier to place the new block in
    * @param initialBytes the initial amount of bytes to be allocated
-   * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
@@ -300,7 +298,6 @@ public final class BlockDataManager {
    * @param sessionId the id of the client
    * @param blockId the id of the block to move
    * @param tierAlias the alias of the tier to move the block to
-   * @throws IllegalArgumentException if tierAlias is out of range of tiered storage
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation

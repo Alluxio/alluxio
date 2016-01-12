@@ -26,11 +26,14 @@ import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 
 /**
- * Interface for the eviction policy in Tachyon
+ * Interface for the eviction policy in Tachyon.
  */
 @PublicApi
 public interface Evictor {
 
+  /**
+   * Factory for {@link Evictor}.
+   */
   class Factory {
     /**
      * Factory for {@link Evictor}.
@@ -71,7 +74,6 @@ public interface Evictor {
    * @param view generated and passed by block store
    * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null if
    *         no plan is feasible
-   * @throws IllegalArgumentException if given block location is invalid
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view);
