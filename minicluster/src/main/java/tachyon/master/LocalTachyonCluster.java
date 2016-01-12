@@ -22,7 +22,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerContext;
 
@@ -84,8 +84,8 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
     return mWorkerConf;
   }
 
-  public WorkerNetAddress getWorkerAddress() {
-    return mWorker.getWorkerNetAddress();
+  public NetAddress getWorkerAddress() {
+    return mWorker.getNetAddress();
   }
 
   @Override

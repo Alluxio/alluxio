@@ -27,12 +27,12 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ConnectionFailedException;
 import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.DataServer;
+import tachyon.worker.NetAddress;
 import tachyon.worker.WorkerBase;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
@@ -137,10 +137,10 @@ public final class BlockWorker extends WorkerBase {
    */
   @Override
   public void start() throws IOException {
-    WorkerNetAddress workerNetAddress;
+    NetAddress netAddress;
     try {
-      workerNetAddress = WorkerContext.getWorkerNetAddress();
-      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, workerNetAddress);
+      netAddress = WorkerContext.getNetAddress();
+      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
     } catch (ConnectionFailedException e) {
       LOG.error("Failed to get a worker id from block master", e);
       throw Throwables.propagate(e);
@@ -148,7 +148,7 @@ public final class BlockWorker extends WorkerBase {
 
     // Setup BlockMasterSync
     mBlockMasterSync =
-        new BlockMasterSync(mBlockDataManager, workerNetAddress, mBlockMasterClient);
+        new BlockMasterSync(mBlockDataManager, netAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
