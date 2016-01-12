@@ -80,5 +80,5 @@ $ ./bin/tachyon runTests
 You can stop Tachyon any time by running:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```
