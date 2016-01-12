@@ -46,7 +46,7 @@ public final class OpenFileOptions {
   /**
    * @param readType the {@link tachyon.client.ReadType} for this operation. Setting this will
    *        override the TachyonStorageType.
-   * @return the builder
+   * @return the updated options object
    */
   public OpenFileOptions setReadType(ReadType readType) {
     mReadType = readType;

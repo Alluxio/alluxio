@@ -52,7 +52,7 @@ public final class InStreamOptions {
    *
    * @param readType the {@link ReadType} for this operation. Setting this will override the
    *                 {@link TachyonStorageType}.
-   * @return the builder
+   * @return the updated options object
    */
   public InStreamOptions setReadType(ReadType readType) {
     mReadType = readType;

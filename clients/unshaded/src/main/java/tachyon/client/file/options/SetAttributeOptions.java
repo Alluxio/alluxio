@@ -110,7 +110,7 @@ public final class SetAttributeOptions {
    * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
    *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
    *        matter this value is true or false
-   * @return the builder
+   * @return the updated options object
    */
   public SetAttributeOptions setPinned(boolean pinned) {
     mPinned = pinned;
@@ -121,7 +121,7 @@ public final class SetAttributeOptions {
    * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, irrespective of
    *        whether the file is pinned
-   * @return the builder
+   * @return the updated options object
    */
   public SetAttributeOptions setTTL(long ttl) {
     mTTL = ttl;
@@ -131,7 +131,7 @@ public final class SetAttributeOptions {
   /**
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
-   * @return the builder
+   * @return the updated options object
    */
   public SetAttributeOptions setPersisted(boolean persisted) {
     mPersisted = persisted;

@@ -48,7 +48,7 @@ public final class FreeOptions {
    *
    * @param recursive the recursive flag value to use; if the object to be freed is a directory,
    *        the flag specifies whether the directory content should be recursively freed as well
-   * @return the builder
+   * @return the updated options object
    */
   public FreeOptions setRecursive(boolean recursive) {
     mRecursive = recursive;

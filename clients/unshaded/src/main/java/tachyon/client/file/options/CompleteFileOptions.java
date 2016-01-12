@@ -45,7 +45,7 @@ public final class CompleteFileOptions {
 
   /**
    * @param ufsLength the UFS file length to use
-   * @return the builder
+   * @return the updated options object
    */
   public CompleteFileOptions setUfsLength(long ufsLength) {
     mUfsLength = ufsLength;
