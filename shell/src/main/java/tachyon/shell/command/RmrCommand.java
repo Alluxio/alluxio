@@ -45,7 +45,7 @@ public final class RmrCommand extends WithWildCardPathCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     try {
-      DeleteOptions options = new DeleteOptions.Builder().setRecursive(true).build();
+      DeleteOptions options = DeleteOptions.defaults().setRecursive(true);
       mTfs.delete(path, options);
       System.out.println(path + " has been removed");
     } catch (TachyonException e) {

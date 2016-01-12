@@ -45,7 +45,7 @@ public final class FreeCommand extends WithWildCardPathCommand {
   @Override
   void runCommand(TachyonURI path) throws IOException {
     try {
-      FreeOptions options = new FreeOptions.Builder().setRecursive(true).build();
+      FreeOptions options = FreeOptions.defaults().setRecursive(true);
       mTfs.free(path, options);
       System.out.println(path + " was successfully freed from memory.");
     } catch (TachyonException e) {

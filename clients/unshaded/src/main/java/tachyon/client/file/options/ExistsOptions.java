@@ -44,4 +44,16 @@ public final class ExistsOptions {
   public boolean isCheckUfs() {
     return mCheckUfs;
   }
+
+  /**
+   * Sets the checkUfs flag which determines if this operation should go to the ufs if the data
+   * is not found in Tachyon.
+   *
+   * @param checkUfs the check ufs flag to set
+   * @return the updated options object
+   */
+  public ExistsOptions setCheckUfs(boolean checkUfs) {
+    mCheckUfs = checkUfs;
+    return this;
+  }
 }

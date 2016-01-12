@@ -26,7 +26,7 @@ import tachyon.client.TachyonStorageType;
  */
 @PublicApi
 public final class OpenFileOptions {
-  private TachyonStorageType mTachyonStorageType;
+  private ReadType mReadType;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -39,18 +39,17 @@ public final class OpenFileOptions {
    * Creates a new instance with defaults based on the configuration
    */
   private OpenFileOptions() {
-    ReadType defaultReadType =
+    mReadType =
         ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
-    mTachyonStorageType = defaultReadType.getTachyonStorageType();
   }
 
   /**
    * @param readType the {@link tachyon.client.ReadType} for this operation. Setting this will
    *        override the TachyonStorageType.
-   * @return the builder
+   * @return the updated options object
    */
   public OpenFileOptions setReadType(ReadType readType) {
-    mTachyonStorageType = readType.getTachyonStorageType();
+    mReadType = readType;
     return this;
   }
 
@@ -58,15 +57,14 @@ public final class OpenFileOptions {
    * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
-    return mTachyonStorageType;
+    return mReadType.getTachyonStorageType();
   }
 
   /**
    * @return the {@link OutStreamOptions} representation of this object
    */
   public InStreamOptions toInStreamOptions() {
-    InStreamOptions.Builder builder = new InStreamOptions.Builder();
-    return builder.setTachyonStorageType(mTachyonStorageType).build();
+    return InStreamOptions.defaults().setReadType(mReadType);
   }
 
   /**
@@ -75,8 +73,7 @@ public final class OpenFileOptions {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("OpenFileOptions(");
-    sb.append(super.toString()).append(", TachyonStorageType: ")
-        .append(mTachyonStorageType.toString());
+    sb.append(super.toString()).append(", ReadType: ").append(mReadType.toString());
     sb.append(")");
     return sb.toString();
   }
