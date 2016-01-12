@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.client.AbstractOutStream;
+import tachyon.client.OutStreamBase;
 import tachyon.util.io.ByteIOUtils;
 
 /**
@@ -32,14 +32,14 @@ import tachyon.util.io.ByteIOUtils;
  * (valueLength bytes)
  */
 public final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
-  private AbstractOutStream mOutStream;
+  private OutStreamBase mOutStream;
 
   /**
    * Constructs a {@link BasePayloadWriter} instance.
    *
    * @param out the stream to output payload
    */
-  BasePayloadWriter(AbstractOutStream out) {
+  BasePayloadWriter(OutStreamBase out) {
     mOutStream = Preconditions.checkNotNull(out);
   }
 

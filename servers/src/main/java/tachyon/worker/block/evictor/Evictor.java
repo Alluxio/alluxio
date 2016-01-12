@@ -26,11 +26,14 @@ import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 
 /**
- * Interface for the eviction policy in Tachyon
+ * Interface for the eviction policy in Tachyon.
  */
 @PublicApi
 public interface Evictor {
 
+  /**
+   * Factory for {@link Evictor}.
+   */
   class Factory {
     /**
      * Factory for {@link Evictor}.
@@ -66,12 +69,13 @@ public interface Evictor {
    * If both toMove and toEvict of the plan are empty, it indicates that {@link Evictor} has no
    * actions to take and the requirement is already met.
    *
+   * Throws an {@link IllegalArgumentException} if the given block location is invalid.
+   *
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
    * @param view generated and passed by block store
    * @return an {@link EvictionPlan} (possibly with empty fields) to get the free space, or null if
    *         no plan is feasible
-   * @throws IllegalArgumentException if given block location is invalid
    */
   EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
       BlockMetadataManagerView view);

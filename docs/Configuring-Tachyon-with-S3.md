@@ -166,5 +166,5 @@ and directories created by Tachyon exist. For this test, you should see files na
 To stop Tachyon, you can run:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```
