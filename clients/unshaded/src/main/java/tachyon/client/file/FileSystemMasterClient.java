@@ -84,26 +84,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Creates a new file.
-   *
-   * @param path the file path
-   * @param options method options
-   * @return the file id referencing the newly created file
-   * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
-   */
-  // TODO(calvin): Remove this
-  public synchronized long create(final String path, final CreateOptions options)
-      throws IOException, TachyonException {
-    return retryRPC(new RpcCallableThrowsTachyonTException<Long>() {
-      @Override
-      public Long call() throws TachyonTException, TException {
-        return mClient.create(path, options.toThrift());
-      }
-    });
-  }
-
-  /**
    * Creates a new directory.
    *
    * @param path the directory path
@@ -113,10 +93,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized void createDirectory(final TachyonURI path,
       final CreateDirectoryOptions options) throws IOException, TachyonException {
-    retryRPC(new RpcCallableThrowsTachyonTException<Boolean>() {
+    retryRPC(new RpcCallableThrowsTachyonTException<Void>() {
       @Override
-      public Boolean call() throws TachyonTException, TException {
-        return mClient.mkdir(path.getPath(), options.toThrift());
+      public Void call() throws TachyonTException, TException {
+        mClient.createDirectory(path.getPath(), options.toThrift());
+        return null;
       }
     });
   }
@@ -135,7 +116,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     return retryRPC(new RpcCallableThrowsTachyonTException<TachyonURI>() {
       @Override
       public TachyonURI call() throws TachyonTException, TException {
-        mClient.create(path.getPath(), options.toThrift());
+        mClient.createFile(path.getPath(), options.toThrift());
         // TODO(calvin): Look into changing the master side implementation
         return path;
       }
