@@ -18,6 +18,8 @@ package tachyon.client.file.options;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * Tests for the {@link GetStatusOptions} class.
  */
@@ -27,4 +29,19 @@ public class GetStatusOptionsTest {
     GetStatusOptions options = GetStatusOptions.defaults();
     Assert.assertFalse(options.isCheckUfs());
   }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean checkUfs = random.nextBoolean();
+
+    GetStatusOptions options = GetStatusOptions.defaults();
+    options.setCheckUfs(checkUfs);
+
+    Assert.assertEquals(checkUfs, options.isCheckUfs());
+  }
+
 }
