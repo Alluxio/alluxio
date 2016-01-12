@@ -107,7 +107,7 @@ public final class CreateFileOptions {
 
   /**
    * @param blockSizeBytes the block size to use
-   * @return the builder
+   * @return the updated options object
    */
   public CreateFileOptions setBlockSizeBytes(long blockSizeBytes) {
     mBlockSizeBytes = blockSizeBytes;
@@ -116,7 +116,7 @@ public final class CreateFileOptions {
 
   /**
    * @param locationPolicy the location policy to use
-   * @return the builder
+   * @return the updated options object
    */
   public CreateFileOptions setLocationPolicy(FileWriteLocationPolicy locationPolicy) {
     mLocationPolicy = locationPolicy;
@@ -125,7 +125,7 @@ public final class CreateFileOptions {
 
   /**
    * @param recursive whether or not to recursively create the file's parents
-   * @return the updated object
+   * @return the updated options object
    */
   public CreateFileOptions setRecurisve(boolean recursive) {
     mRecursive = recursive;
@@ -136,7 +136,7 @@ public final class CreateFileOptions {
    * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, no matter whether
    *        the file is pinned
-   * @return this object
+   * @return the updated options object
    */
   public CreateFileOptions setTTL(long ttl) {
     mTTL = ttl;
@@ -146,7 +146,7 @@ public final class CreateFileOptions {
   /**
    * @param writeType the {@link tachyon.client.WriteType} to use for this operation. This will
    *        override both the TachyonStorageType and UnderStorageType.
-   * @return this object
+   * @return the updated options object
    */
   public CreateFileOptions setWriteType(WriteType writeType) {
     mWriteType = writeType;

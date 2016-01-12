@@ -48,7 +48,7 @@ public final class LoadMetadataOptions {
    *
    * @param recursive the recursive flag value to use; it specifies whether parent directories
    *        should be created if they do not already exist
-   * @return the builder
+   * @return the updated options object
    */
   public LoadMetadataOptions setRecursive(boolean recursive) {
     mRecursive = recursive;

@@ -48,7 +48,7 @@ public final class DeleteOptions {
    *
    * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
    *        the flag specifies whether the directory content should be recursively deleted as well
-   * @return the builder
+   * @return the updated options object
    */
   public DeleteOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
