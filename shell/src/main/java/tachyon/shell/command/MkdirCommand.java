@@ -78,7 +78,7 @@ public final class MkdirCommand extends AbstractTfsShellCommand {
   public boolean validateArgs(String... args) {
     boolean valid = args.length >= getNumOfArgs();
     if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments at least\n");
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
     }
     return valid;
   }
