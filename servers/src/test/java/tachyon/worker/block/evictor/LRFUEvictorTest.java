@@ -43,8 +43,8 @@ import tachyon.worker.block.allocator.MaxFreeAllocator;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Sanity check on specific behavior of {@link LRFUEvictor} such as evicting/moving least blocks
- * with minimum CRF value and cascading LRFU eviction.
+ * Unit tests for specific behavior of {@link LRFUEvictor} such as evicting/moving blocks with
+ * minimum CRF value and cascading LRFU eviction.
  */
 public class LRFUEvictorTest {
   private static final long SESSION_ID = 2;
@@ -58,9 +58,15 @@ public class LRFUEvictorTest {
   private double mStepFactor;
   private double mAttenuationFactor;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
+   */
   @Before
   public final void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
@@ -117,6 +123,11 @@ public class LRFUEvictorTest {
     return sortedCRF;
   }
 
+  /**
+   * Tests that the eviction in the bottom tier works.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void evictInBottomTierTest() throws Exception {
     int bottomTierOrdinal = TieredBlockStoreTestUtils
@@ -169,6 +180,12 @@ public class LRFUEvictorTest {
     }
   }
 
+  /**
+   * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
+   * no eviction.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest1() throws Exception {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
@@ -221,6 +238,12 @@ public class LRFUEvictorTest {
     }
   }
 
+  /**
+   * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
+   * second tier are evicted.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest2() throws Exception {
     // Two tiers, the second tier has more dirs than the first tier and each dir in the second tier

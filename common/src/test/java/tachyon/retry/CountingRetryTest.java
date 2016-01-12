@@ -18,8 +18,14 @@ package tachyon.retry;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests for the {@link CountingRetry} class.
+ */
 public class CountingRetryTest {
 
+  /**
+   * Tests that the provided number of retries is equal the actual number of retries.
+   */
   @Test
   public void testNumRetries() {
     int numTries = 10;

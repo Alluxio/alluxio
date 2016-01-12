@@ -25,12 +25,15 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterSource;
 import tachyon.worker.WorkerSource;
 
+/**
+ * Unit tests for {@link MetricsSystem}.
+ */
 public class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
   private TachyonConf mTachyonConf;
 
   @Before
-  public final void Before() {
+  public final void before() {
     mTachyonConf = new TachyonConf();
     Properties metricsProps = new Properties();
     metricsProps.setProperty("*.sink.console.class", "tachyon.metrics.sink.ConsoleSink");

@@ -649,6 +649,411 @@ public final class File {
     // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AddMountPointEntry)
   }
 
+  public interface AsyncPersistRequestEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.AsyncPersistRequestEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional int64 file_id = 1;</code>
+     */
+    boolean hasFileId();
+    /**
+     * <code>optional int64 file_id = 1;</code>
+     */
+    long getFileId();
+  }
+  /**
+   * Protobuf type {@code tachyon.proto.journal.AsyncPersistRequestEntry}
+   *
+   * <pre>
+   * next available id: 2
+   * </pre>
+   */
+  public static final class AsyncPersistRequestEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:tachyon.proto.journal.AsyncPersistRequestEntry)
+      AsyncPersistRequestEntryOrBuilder {
+    // Use AsyncPersistRequestEntry.newBuilder() to construct.
+    private AsyncPersistRequestEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private AsyncPersistRequestEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final AsyncPersistRequestEntry defaultInstance;
+    public static AsyncPersistRequestEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public AsyncPersistRequestEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private AsyncPersistRequestEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              fileId_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              tachyon.proto.journal.File.AsyncPersistRequestEntry.class, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<AsyncPersistRequestEntry> PARSER =
+        new com.google.protobuf.AbstractParser<AsyncPersistRequestEntry>() {
+      public AsyncPersistRequestEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new AsyncPersistRequestEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AsyncPersistRequestEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int FILE_ID_FIELD_NUMBER = 1;
+    private long fileId_;
+    /**
+     * <code>optional int64 file_id = 1;</code>
+     */
+    public boolean hasFileId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 file_id = 1;</code>
+     */
+    public long getFileId() {
+      return fileId_;
+    }
+
+    private void initFields() {
+      fileId_ = 0L;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, fileId_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, fileId_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static tachyon.proto.journal.File.AsyncPersistRequestEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(tachyon.proto.journal.File.AsyncPersistRequestEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code tachyon.proto.journal.AsyncPersistRequestEntry}
+     *
+     * <pre>
+     * next available id: 2
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:tachyon.proto.journal.AsyncPersistRequestEntry)
+        tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                tachyon.proto.journal.File.AsyncPersistRequestEntry.class, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder.class);
+      }
+
+      // Construct using tachyon.proto.journal.File.AsyncPersistRequestEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        fileId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return tachyon.proto.journal.File.internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor;
+      }
+
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry getDefaultInstanceForType() {
+        return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
+      }
+
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry build() {
+        tachyon.proto.journal.File.AsyncPersistRequestEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry buildPartial() {
+        tachyon.proto.journal.File.AsyncPersistRequestEntry result = new tachyon.proto.journal.File.AsyncPersistRequestEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.fileId_ = fileId_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof tachyon.proto.journal.File.AsyncPersistRequestEntry) {
+          return mergeFrom((tachyon.proto.journal.File.AsyncPersistRequestEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(tachyon.proto.journal.File.AsyncPersistRequestEntry other) {
+        if (other == tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance()) return this;
+        if (other.hasFileId()) {
+          setFileId(other.getFileId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        tachyon.proto.journal.File.AsyncPersistRequestEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (tachyon.proto.journal.File.AsyncPersistRequestEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private long fileId_ ;
+      /**
+       * <code>optional int64 file_id = 1;</code>
+       */
+      public boolean hasFileId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 file_id = 1;</code>
+       */
+      public long getFileId() {
+        return fileId_;
+      }
+      /**
+       * <code>optional int64 file_id = 1;</code>
+       */
+      public Builder setFileId(long value) {
+        bitField0_ |= 0x00000001;
+        fileId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 file_id = 1;</code>
+       */
+      public Builder clearFileId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        fileId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.AsyncPersistRequestEntry)
+    }
+
+    static {
+      defaultInstance = new AsyncPersistRequestEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:tachyon.proto.journal.AsyncPersistRequestEntry)
+  }
+
   public interface CompleteFileEntryOrBuilder extends
       // @@protoc_insertion_point(interface_extends:tachyon.proto.journal.CompleteFileEntry)
       com.google.protobuf.MessageOrBuilder {
@@ -9736,6 +10141,11 @@ public final class File {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_tachyon_proto_journal_AddMountPointEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tachyon_proto_journal_CompleteFileEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -9806,39 +10216,40 @@ public final class File {
     java.lang.String[] descriptorData = {
       "\n\022journal/file.proto\022\025tachyon.proto.jour" +
       "nal\"<\n\022AddMountPointEntry\022\024\n\014tachyon_pat" +
-      "h\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t\"V\n\021CompleteFil" +
-      "eEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n" +
-      "\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017Del" +
-      "eteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive\030\002 " +
-      "\001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMountPo" +
-      "intEntry\022\024\n\014tachyon_path\030\001 \001(\t\"\345\001\n\023Inode" +
-      "DirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030" +
-      "\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_state",
-      "\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_" +
-      "ms\030\006 \001(\003\022!\n\031last_modification_time_ms\030\007 " +
-      "\001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_name\030\t \001" +
-      "(\t\022\022\n\npermission\030\n \001(\005\"O\n\036InodeDirectory" +
-      "IdGeneratorEntry\022\024\n\014container_id\030\001 \001(\003\022\027" +
-      "\n\017sequence_number\030\002 \001(\003\"\315\002\n\016InodeFileEnt" +
-      "ry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004nam" +
-      "e\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pi" +
-      "nned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031" +
-      "last_modification_time_ms\030\007 \001(\003\022\030\n\020block",
-      "_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcom" +
-      "pleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006block" +
-      "s\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\021\n\tuser_name\030\016 \001(\t\022" +
-      "\022\n\ngroup_name\030\017 \001(\t\022\022\n\npermission\030\020 \001(\005\"" +
-      "O\n\036InodeLastModificationTimeEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022!\n\031last_modification_time_ms\030\002 \001(\003" +
-      "\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n" +
-      "\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030" +
-      "\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025Reinitializ" +
-      "eFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_b",
-      "ytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEntry\022\n" +
-      "\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_" +
-      "ms\030\003 \001(\003\"_\n\rSetStateEntry\022\n\n\002id\030\001 \001(\003\022\022\n" +
-      "\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl" +
-      "\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010"
+      "h\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t\"+\n\030AsyncPersis" +
+      "tRequestEntry\022\017\n\007file_id\030\001 \001(\003\"V\n\021Comple" +
+      "teFileEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001" +
+      "(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D" +
+      "\n\017DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursi" +
+      "ve\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMo" +
+      "untPointEntry\022\024\n\014tachyon_path\030\001 \001(\t\"\345\001\n\023" +
+      "InodeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen",
+      "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
+      "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
+      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
+      "ms\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_nam" +
+      "e\030\t \001(\t\022\022\n\npermission\030\n \001(\005\"O\n\036InodeDire" +
+      "ctoryIdGeneratorEntry\022\024\n\014container_id\030\001 " +
+      "\001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\315\002\n\016InodeFi" +
+      "leEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014" +
+      "\n\004name\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022" +
+      "\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(",
+      "\003\022!\n\031last_modification_time_ms\030\007 \001(\003\022\030\n\020" +
+      "block_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021" +
+      "\n\tcompleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006" +
+      "blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\021\n\tuser_name\030\016" +
+      " \001(\t\022\022\n\ngroup_name\030\017 \001(\t\022\022\n\npermission\030\020" +
+      " \001(\005\"O\n\036InodeLastModificationTimeEntry\022\n" +
+      "\n\002id\030\001 \001(\003\022!\n\031last_modification_time_ms\030" +
+      "\002 \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001" +
+      "(\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006le" +
+      "ngth\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025Reinit",
+      "ializeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_s" +
+      "ize_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEn" +
+      "try\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_" +
+      "time_ms\030\003 \001(\003\"_\n\rSetStateEntry\022\n\n\002id\030\001 \001" +
+      "(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013" +
+      "\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -9858,74 +10269,80 @@ public final class File {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_AddMountPointEntry_descriptor,
         new java.lang.String[] { "TachyonPath", "UfsPath", });
-    internal_static_tachyon_proto_journal_CompleteFileEntry_descriptor =
+    internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
+    internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_tachyon_proto_journal_AsyncPersistRequestEntry_descriptor,
+        new java.lang.String[] { "FileId", });
+    internal_static_tachyon_proto_journal_CompleteFileEntry_descriptor =
+      getDescriptor().getMessageTypes().get(2);
     internal_static_tachyon_proto_journal_CompleteFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_CompleteFileEntry_descriptor,
         new java.lang.String[] { "BlockIds", "Id", "Length", "OpTimeMs", });
     internal_static_tachyon_proto_journal_DeleteFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_tachyon_proto_journal_DeleteFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_DeleteFileEntry_descriptor,
         new java.lang.String[] { "Id", "Recursive", "OpTimeMs", });
     internal_static_tachyon_proto_journal_DeleteMountPointEntry_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_tachyon_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_DeleteMountPointEntry_descriptor,
         new java.lang.String[] { "TachyonPath", });
     internal_static_tachyon_proto_journal_InodeDirectoryEntry_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_tachyon_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_InodeDirectoryEntry_descriptor,
         new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", });
     internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor,
         new java.lang.String[] { "ContainerId", "SequenceNumber", });
     internal_static_tachyon_proto_journal_InodeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_tachyon_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_InodeFileEntry_descriptor,
         new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", });
     internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_InodeLastModificationTimeEntry_descriptor,
         new java.lang.String[] { "Id", "LastModificationTimeMs", });
     internal_static_tachyon_proto_journal_PersistDirectoryEntry_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_tachyon_proto_journal_PersistDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_PersistDirectoryEntry_descriptor,
         new java.lang.String[] { "Id", });
     internal_static_tachyon_proto_journal_PersistFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_tachyon_proto_journal_PersistFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_PersistFileEntry_descriptor,
         new java.lang.String[] { "Id", "Length", "OpTimeMs", });
     internal_static_tachyon_proto_journal_ReinitializeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_tachyon_proto_journal_ReinitializeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_ReinitializeFileEntry_descriptor,
         new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", });
     internal_static_tachyon_proto_journal_RenameEntry_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_tachyon_proto_journal_RenameEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_RenameEntry_descriptor,
         new java.lang.String[] { "Id", "DstPath", "OpTimeMs", });
     internal_static_tachyon_proto_journal_SetStateEntry_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_tachyon_proto_journal_SetStateEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_SetStateEntry_descriptor,

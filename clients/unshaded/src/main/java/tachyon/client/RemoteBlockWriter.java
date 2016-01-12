@@ -30,6 +30,9 @@ import tachyon.util.CommonUtils;
  */
 public interface RemoteBlockWriter extends Closeable {
 
+  /**
+   * The factory for the {@link RemoteBlockWriter}.
+   */
   class Factory {
     /**
      * Factory for {@link RemoteBlockWriter}.

@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,10 +30,14 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
+/**
+ * Tests for the {@link StorageDirView} class.
+ */
 public class StorageDirViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
@@ -46,9 +51,15 @@ public class StorageDirViewTest {
   private StorageTierView mTestTierView;
   private BlockMetadataManagerView mMetaManagerView;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up a dependency fails
+   */
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
@@ -63,36 +74,67 @@ public class StorageDirViewTest {
     mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
+  }
+
+  /**
+   * Tests the {@link StorageDirView#getDirViewIndex()} method.
+   */
   @Test
   public void getDirViewIndexTest() {
     Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
   }
 
+  /**
+   * Tests the {@link StorageDirView#getParentTierView()} method.
+   */
   @Test
   public void getParentTierViewTest() {
     Assert.assertEquals(mTestTierView, mTestDirView.getParentTierView());
   }
 
+  /**
+   * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
+   */
   @Test
   public void toBlockStoreLocationTest() {
     Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
   }
 
+  /**
+   * Tests the {@link StorageDirView#getCapacityBytes()} method.
+   */
   @Test
   public void getCapacityBytesTest() {
     Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
   }
 
+  /**
+   * Tests the {@link StorageDirView#getAvailableBytes()} method.
+   */
   @Test
   public void getAvailableBytesTest() {
     Assert.assertEquals(mTestDir.getAvailableBytes(), mTestDirView.getAvailableBytes());
   }
 
+  /**
+   * Tests the {@link StorageDirView#getCommittedBytes()} method.
+   */
   @Test
   public void getCommittedBytesTest() {
     Assert.assertEquals(mTestDir.getCommittedBytes(), mTestDirView.getCommittedBytes());
   }
 
+  /**
+   * Tests the {@link StorageDirView#getEvictableBlocks()} method.
+   *
+   * @throws Exception if adding the temporary block metadata fails
+   */
   @Test
   public void getEvictableBlocksTest() throws Exception {
     // When test dir is empty, expect no block to be evictable
@@ -126,6 +168,9 @@ public class StorageDirViewTest {
         CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
   }
 
+  /**
+   * Tests the {@link StorageDirView#createTempBlockMeta(long, long, long)} method.
+   */
   @Test
   public void createTempBlockMetaTest() {
     TempBlockMeta tempBlockMeta =

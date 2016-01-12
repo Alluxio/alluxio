@@ -15,24 +15,46 @@
 
 package tachyon.worker.block.evictor;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
+import tachyon.worker.block.meta.StorageDir;
 
 /**
- * Sanity check on specific behavior of {@link PartialLRUEvictor} such as evicting/moving least
- * recently used blocks in {@link tachyon.worker.block.meta.StorageDir} with max free space and
- * cascading {@link PartialLRUEvictor} eviction.
+ * Unit tests for specific behavior of {@link PartialLRUEvictor} such as evicting/moving least
+ * recently used blocks in {@link StorageDir} with max free space and cascading
+ * {@link PartialLRUEvictor} eviction.
  */
-public class PartialLRUEvictorTestBase extends EvictorTestBase {
+public class PartialLRUEvictorTest extends EvictorTestBase {
+
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
+   */
   @Before
   public final void before() throws Exception {
     init(PartialLRUEvictor.class.getName());
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
+  @After
+  public void after() {
+    WorkerContext.reset();
+  }
+
+  /**
+   * Tests that the eviction in the bottom tier works.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void evictInBottomTierTest() throws Exception {
     int bottomTierLevel =
@@ -59,6 +81,12 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     Assert.assertEquals(BLOCK_ID + nDir - 1, toEvictBlockId);
   }
 
+  /**
+   * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
+   * no eviction.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest1() throws Exception {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
@@ -83,6 +111,12 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     Assert.assertEquals(BLOCK_ID + nDir - 1, blockId);
   }
 
+  /**
+   * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
+   * second tier are evicted.
+   *
+   * @throws Exception if the caching fails
+   */
   @Test
   public void cascadingEvictionTest2() throws Exception {
     // Two tiers, the second tier has more dirs than the first tier and each dir in the second tier

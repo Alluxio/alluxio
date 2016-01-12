@@ -30,6 +30,10 @@ import tachyon.exception.TachyonException;
  */
 public final class RmrCommand extends WithWildCardPathCommand {
 
+  /**
+   * @param conf the configuration for Tachyon
+   * @param tfs the filesystem of Tachyon
+   */
   public RmrCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
@@ -54,5 +58,10 @@ public final class RmrCommand extends WithWildCardPathCommand {
   @Override
   public String getUsage() {
     return "rmr <path>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Removes the specified file or directory (works recursively for directories).";
   }
 }

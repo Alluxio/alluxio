@@ -13,17 +13,18 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.worker;
 
 import com.google.common.base.Objects;
 
 import tachyon.annotation.PublicApi;
+import tachyon.thrift.WorkerNetAddress;
 
 /**
  * The network address of a worker.
  */
 @PublicApi
-public final class WorkerNetAddress {
+public final class NetAddress {
   private final String mHost;
   private final int mRpcPort;
   private final int mDataPort;
@@ -31,12 +32,29 @@ public final class WorkerNetAddress {
 
   /**
    * Constructs the worker net address.
+   *
+   * @param host the host of the worker
+   * @param rpcPort the RPC port
+   * @param dataPort the data port
+   * @param webPort the web port
    */
-  public WorkerNetAddress(String host, int rpcPort, int dataPort, int webPort) {
+  public NetAddress(String host, int rpcPort, int dataPort, int webPort) {
     mHost = host;
     mRpcPort = rpcPort;
     mDataPort = dataPort;
     mWebPort = webPort;
+  }
+
+  /**
+   * Constructs the worker net address from thrift construct.
+   *
+   * @param netAddress the thrift net address
+   */
+  public NetAddress(WorkerNetAddress netAddress) {
+    mHost = netAddress.host;
+    mRpcPort = netAddress.rpcPort;
+    mDataPort = netAddress.dataPort;
+    mWebPort = netAddress.webPort;
   }
 
   /**
@@ -67,15 +85,22 @@ public final class WorkerNetAddress {
     return mWebPort;
   }
 
+  /**
+   * @return a net address of thrift construct
+   */
+  public WorkerNetAddress toThrift() {
+    return new WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof WorkerNetAddress)) {
+    if (!(o instanceof NetAddress)) {
       return false;
     }
-    WorkerNetAddress that = (WorkerNetAddress) o;
+    NetAddress that = (NetAddress) o;
     return mHost.equals(that.mHost) && mRpcPort == that.mRpcPort && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort;
   }
