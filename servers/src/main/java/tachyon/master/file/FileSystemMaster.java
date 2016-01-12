@@ -77,6 +77,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalProtoUtils;
 import tachyon.proto.journal.File.AddMountPointEntry;
+import tachyon.proto.journal.File.AsyncPersistRequestEntry;
 import tachyon.proto.journal.File.CompleteFileEntry;
 import tachyon.proto.journal.File.DeleteFileEntry;
 import tachyon.proto.journal.File.DeleteMountPointEntry;
@@ -89,7 +90,6 @@ import tachyon.proto.journal.File.ReinitializeFileEntry;
 import tachyon.proto.journal.File.RenameEntry;
 import tachyon.proto.journal.File.SetStateEntry;
 import tachyon.proto.journal.Journal.JournalEntry;
-import tachyon.proto.journal.Lineage.PersistFilesRequestEntry;
 import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -133,6 +133,12 @@ public final class FileSystemMaster extends MasterBase {
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTtlCheckerService;
+
+  /**
+   * The service that detects lost files. We store it here so that it can be accessed from tests.
+   */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private Future<?> mLostFilesDetectionService;
 
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
@@ -241,9 +247,9 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (innerEntry instanceof PersistFilesRequestEntry) {
+    } else if (innerEntry instanceof AsyncPersistRequestEntry) {
       try {
-        setPersistingState(((PersistFilesRequestEntry) innerEntry).getFileIdsList());
+        scheduleAsyncPersistenceInternal(((AsyncPersistRequestEntry) innerEntry).getFileId());
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -280,6 +286,9 @@ public final class FileSystemMaster extends MasterBase {
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTtlCheckExecutor(),
               MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+      mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
+          MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -1580,6 +1589,20 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException when the file does not exist
    */
   public long scheduleAsyncPersistence(long fileId) throws FileDoesNotExistException {
+    long workerId = scheduleAsyncPersistenceInternal(fileId);
+
+    synchronized (mInodeTree) {
+      // write to journal
+      AsyncPersistRequestEntry asyncPersistRequestEntry =
+          AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
+      writeJournalEntry(
+          JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+      flushJournal();
+      return workerId;
+    }
+  }
+
+  private long scheduleAsyncPersistenceInternal(long fileId) throws FileDoesNotExistException {
     // find the worker
     long workerId = getWorkerStoringFile(fileId);
 
@@ -1601,9 +1624,6 @@ public final class FileSystemMaster extends MasterBase {
       }
       mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
     }
-
-    // TODO(yupeng) TACHYON-1456 add fault tolerance and flush journal
-
     return workerId;
   }
 
@@ -1692,27 +1712,7 @@ public final class FileSystemMaster extends MasterBase {
       }
     }
     mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
-
-    // write to journal
-    PersistFilesRequestEntry persistFilesRequest =
-        PersistFilesRequestEntry.newBuilder().addAllFileIds(fileIdsToPersist).build();
-    writeJournalEntry(
-        JournalEntry.newBuilder().setPersistFilesRequest(persistFilesRequest).build());
-    flushJournal();
     return filesToPersist;
-  }
-
-  /**
-   * Updates a list of files as being persisted.
-   *
-   * @param fileIds the id of the files
-   * @throws FileDoesNotExistException when a file does not exist
-   */
-  private void setPersistingState(List<Long> fileIds) throws FileDoesNotExistException {
-    for (long fileId : fileIds) {
-      InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-      inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    }
   }
 
   /**
@@ -1814,6 +1814,29 @@ public final class FileSystemMaster extends MasterBase {
         }
 
         mTtlBuckets.removeBuckets(expiredBuckets);
+      }
+    }
+  }
+
+  /**
+   * Lost files periodic check.
+   */
+  private final class LostFilesDetectionHeartbeatExecutor implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() {
+      for (long fileId : getLostFiles()) {
+        // update the state
+        synchronized (mInodeTree) {
+          Inode inode;
+          try {
+            inode = mInodeTree.getInodeById(fileId);
+            if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
+              inode.setPersistenceState(PersistenceState.LOST);
+            }
+          } catch (FileDoesNotExistException e) {
+            LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+          }
+        }
       }
     }
   }

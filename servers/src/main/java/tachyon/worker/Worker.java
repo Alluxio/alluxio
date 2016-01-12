@@ -13,14 +13,28 @@
  * the License.
  */
 
-package tachyon.master.file.meta;
+package tachyon.worker;
+
+import java.io.IOException;
 
 /**
- * The persistence state of a file in the under-storage system.
+ * Interface of a Tachyon worker.
  */
-public enum PersistenceState {
-  NOT_PERSISTED, // file not persisted in the under FS
-  IN_PROGRESS, // used for async persistence, the async persistence is scheduled and in progress
-  PERSISTED, // the file is persisted in the under FS
-  LOST // the file is lost but not persisted in the under FS
+public interface Worker {
+
+  /**
+   * Starts the worker. Here, the worker should initialize state and possibly start threads required
+   * for operation.
+   *
+   * @throws IOException if I/O error occurs
+   */
+  void start() throws IOException;
+
+  /**
+   * Stops the worker. Here, anything created or started in {@link #start()} should be cleaned up
+   * and shutdown.
+   *
+   * @throws IOException if I/O error occurs
+   */
+  void stop() throws IOException;
 }

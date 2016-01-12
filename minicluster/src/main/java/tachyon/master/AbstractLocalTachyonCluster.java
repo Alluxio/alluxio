@@ -35,9 +35,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.TachyonWorker;
 import tachyon.worker.WorkerIdRegistry;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Local Tachyon cluster.
@@ -57,8 +56,7 @@ public abstract class AbstractLocalTachyonCluster {
   protected TachyonConf mMasterConf;
   protected TachyonConf mWorkerConf;
 
-  protected BlockWorker mWorker;
-  protected FileSystemWorker mFileSystemWorker;
+  protected TachyonWorker mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mTachyonHome;
@@ -390,15 +388,13 @@ public abstract class AbstractLocalTachyonCluster {
    * @throws ConnectionFailedException if network connection failed
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new BlockWorker();
-    mFileSystemWorker = new FileSystemWorker(mWorker.getBlockDataManager());
+    mWorker = new TachyonWorker();
 
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
         try {
-          mFileSystemWorker.start();
-          mWorker.process();
+          mWorker.start();
 
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
