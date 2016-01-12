@@ -133,7 +133,11 @@ public final class FileSystemMaster extends MasterBase {
    */
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mTtlCheckerService;
-
+  /**
+   * Creates a new list of {@link TtlBucket}s.
+   *
+   * @return the list of {@link TtlBucket}s for this master
+   */
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
   /**
