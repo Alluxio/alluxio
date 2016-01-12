@@ -69,7 +69,7 @@ public final class CreateDirectoryOptions {
   /**
    * @param allowExists the allowExists flag value to use; it specifies whether an exception
    *        should be thrown if the directory being made already exists.
-   * @return the updated options
+   * @return the updated options object
    */
   public CreateDirectoryOptions setAllowExists(boolean allowExists) {
     mAllowExists = allowExists;
@@ -79,7 +79,7 @@ public final class CreateDirectoryOptions {
   /**
    * @param recursive the recursive flag value to use; it specifies whether parent directories
    *        should be created if they do not already exist
-   * @return the updated options
+   * @return the updated options object
    */
   public CreateDirectoryOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
@@ -88,7 +88,7 @@ public final class CreateDirectoryOptions {
 
   /**
    * @param writeType the write type to use
-   * @return the updated options
+   * @return the updated options object
    */
   public CreateDirectoryOptions setWriteType(WriteType writeType) {
     mUnderStorageType = writeType.getUnderStorageType();

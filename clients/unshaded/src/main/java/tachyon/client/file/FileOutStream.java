@@ -121,7 +121,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
 
     Boolean canComplete = false;
-    CompleteFileOptions.Builder builder = new CompleteFileOptions.Builder(ClientContext.getConf());
+    CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
       String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
@@ -145,7 +145,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
         if (!ufs.rename(tmpPath, mUfsPath)) {
           throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
-        builder.setUfsLength(ufs.getFileSize(mUfsPath));
+        options.setUfsLength(ufs.getFileSize(mUfsPath));
         canComplete = true;
       }
     }
@@ -170,7 +170,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.completeFile(mUri, builder.build());
+        masterClient.completeFile(mUri, options);
       } catch (TachyonException e) {
         throw new IOException(e);
       } finally {

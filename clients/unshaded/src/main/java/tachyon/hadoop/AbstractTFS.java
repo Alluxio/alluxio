@@ -203,7 +203,7 @@ abstract class AbstractTFS extends org.apache.hadoop.fs.FileSystem {
       mStatistics.incrementWriteOps(1);
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    DeleteOptions options = new DeleteOptions.Builder().setRecursive(recursive).build();
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
       mTFS.delete(path, options);
       return true;

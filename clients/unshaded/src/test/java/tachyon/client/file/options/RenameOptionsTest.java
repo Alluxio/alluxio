@@ -15,26 +15,34 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Tests for the {@link RenameOptions} class.
  */
 public class RenameOptionsTest {
-
-  /**
-   * Tests that building a {@link RenameOptions} works.
-   */
-  @Test
-  public void builderTest() {
-    new RenameOptions.Builder().build();
-  }
-
   /**
    * Tests that building a {@link RenameOptions} with the defaults works.
    */
   @Test
   public void defaultsTest() {
     OpenOptions.defaults();
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean overwrite = random.nextBoolean();
+
+    RenameOptions options = RenameOptions.defaults();
+    options.setOverwrite(overwrite);
+
+    Assert.assertEquals(overwrite, options.isOverwrite());
   }
 }
