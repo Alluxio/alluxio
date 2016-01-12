@@ -76,11 +76,8 @@ public final class FileSystemContextTest {
   class AcquireClient implements Runnable {
     @Override
     public void run() {
-      System.out.println("1");
       FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
-      System.out.println("2");
       FileSystemContext.INSTANCE.releaseMasterClient(client);
-      System.out.println("3");
     }
   }
 }
