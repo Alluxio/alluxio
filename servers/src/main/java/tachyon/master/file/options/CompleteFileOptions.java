@@ -19,7 +19,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.thrift.CompleteFileTOptions;
 
+/**
+ * Method option for completing a file.
+ */
 public final class CompleteFileOptions {
+
+  /**
+   * Builder for {@link CompleteFileOptions}.
+   */
   public static class Builder {
     private long mUfsLength;
     private long mOperationTimeMs;

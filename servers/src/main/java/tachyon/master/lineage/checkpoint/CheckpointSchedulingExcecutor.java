@@ -39,6 +39,10 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
   private final FileSystemMaster mFileSystemMaster;
   private final CheckpointPlanner mPlanner;
 
+  /**
+   * @param lineageMaster the master for lineage
+   * @param fileSystemMaster the master for the file system
+   */
   public CheckpointSchedulingExcecutor(LineageMaster lineageMaster,
       FileSystemMaster fileSystemMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
