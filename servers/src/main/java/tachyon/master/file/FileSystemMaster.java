@@ -334,10 +334,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the {@link FileInfo} for a given path.
-   *
    * @param fileId the file id to get the {@link FileInfo} for
-   * @return the {@link FileInfo} for the given file id
+   * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
@@ -349,10 +347,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the persistence state of a given file.
-   *
    * @param fileId the file id
-   * @return the persistence state
+   * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public PersistenceState getPersistenceState(long fileId)
@@ -589,10 +585,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the next block id for a given file id.
-   *
    * @param fileId the file id to get the next block id for
-   * @return the next block id for the file
+   * @return the next block id for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
@@ -792,10 +786,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns all the {@link FileBlockInfo} of the given file.
-   *
    * @param fileId the file id to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path of the given file is invalid
    */
@@ -821,10 +813,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns all the {@link FileBlockInfo} of the given file.
-   *
    * @param path the path to the file
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
@@ -896,8 +886,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets absolute paths of all in memory files.
-   *
    * @return absolute paths of all in memory files
    */
   public List<TachyonURI> getInMemoryFiles() {
