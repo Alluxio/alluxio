@@ -293,7 +293,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Whether the filesystem contains a directory with the id. Called by internal masters.
+   * Whether the filesystem contains a directory with the id.
    *
    * @param id id of the directory
    * @return true if there is a directory with the id, false otherwise
@@ -311,8 +311,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the file id for a given path. Called via RPC, as well as internal masters. If the given
-   * path does not exist in Tachyon, the method attempts to load it from UFS.
+   * Returns the file id for a given path. If the given path does not exist in Tachyon, the method
+   * attempts to load it from UFS.
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
@@ -334,10 +334,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the {@link FileInfo} for a given path. Called via RPC, as well as internal masters.
-   *
    * @param fileId the file id to get the {@link FileInfo} for
-   * @return the {@link FileInfo} for the given file id
+   * @return the {@link FileInfo} for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
@@ -349,10 +347,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the persistence state of a given file.
-   *
    * @param fileId the file id
-   * @return the persistence state
+   * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public PersistenceState getPersistenceState(long fileId)
@@ -384,7 +380,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns a list {@link FileInfo} for a given file id. If the given file id is a file, the list
    * only contains a single object. If it is a directory, the resulting list contains all direct
-   * children of the directory. Called via RPC, as well as internal masters.
+   * children of the directory.
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the list of {@link FileInfo}s
@@ -416,7 +412,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Completes a file. After a file is completed, it cannot be written to. Called via RPC.
+   * Completes a file. After a file is completed, it cannot be written to.
    *
    * @param fileId the file id to complete
    * @param options the method options
@@ -506,7 +502,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Creates a file (not a directory) for a given path. Called via RPC.
+   * Creates a file (not a directory) for a given path.
    *
    * @param path the file to create
    * @param options method options
@@ -586,10 +582,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the next block id for a given file id. Called via RPC.
-   *
    * @param fileId the file id to get the next block id for
-   * @return the next block id for the file
+   * @return the next block id for the given file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
@@ -624,7 +618,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Deletes a given file id. Called via RPC.
+   * Deletes a given file id.
    *
    * @param fileId the file id to delete
    * @param recursive if true, will delete all its children
@@ -754,7 +748,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the {@link FileBlockInfo} for given file and block index. Called via RPC.
+   * Returns the {@link FileBlockInfo} for given file and block index.
    *
    * @param fileId the file id to get the info for
    * @param fileBlockIndex the block index of the file to get the block info for
@@ -787,10 +781,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
-   *
    * @param fileId the file id to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path of the given file is invalid
    */
@@ -816,10 +808,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
-   *
    * @param path the path to the file
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
@@ -890,8 +880,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets absolute paths of all in memory files. Called by the web ui.
-   *
    * @return absolute paths of all in memory files
    */
   public List<TachyonURI> getInMemoryFiles() {
@@ -961,7 +949,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Creates a directory for a given path. Called via RPC, and internal masters.
+   * Creates a directory for a given path.
    *
    * @param path the path of the directory
    * @param options method options
@@ -1032,7 +1020,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Renames a file to a destination. Called via RPC.
+   * Renames a file to a destination.
    *
    * @param fileId the source file to rename
    * @param dstPath the destination path to rename the file to
@@ -1210,8 +1198,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    * Frees or evicts all of the blocks of the file from tachyon storage. If the given file is a
-   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed. Called
-   * via RPC.
+   * directory, and the 'recursive' flag is enabled, all descendant files will also be freed.
    *
    * @param fileId the file to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
@@ -1250,9 +1237,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the path of a file with the given id. Called by the internal web ui.
+   * Gets the path of a file with the given id.
    *
-   * @param fileId The id of the file to look up
+   * @param fileId the id of the file to look up
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist
    */
@@ -1263,7 +1250,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the set of inode ids which are pinned. Called via RPC
+   * @return the set of inode ids which are pinned
    */
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
@@ -1279,7 +1266,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the white list. Called by the internal web ui
+   * @return the white list
    */
   public List<String> getWhiteList() {
     return mWhitelist.getList();
