@@ -107,7 +107,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
-          return o.getAddress();
+          return o.getWorkerAddress();
         }
       };
   /**
@@ -683,7 +683,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
         ret.add(new BlockLocation(masterBlockLocation.getWorkerId(),
-            workerInfo.getAddress().toThrift(), masterBlockLocation.getTierAlias()));
+            workerInfo.getWorkerAddress().toThrift(), masterBlockLocation.getTierAlias()));
       }
     }
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);

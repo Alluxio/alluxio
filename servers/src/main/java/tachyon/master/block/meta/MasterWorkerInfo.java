@@ -190,7 +190,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public NetAddress getAddress() {
+  public NetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 
