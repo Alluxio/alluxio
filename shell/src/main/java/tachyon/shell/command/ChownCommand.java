@@ -24,7 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Changes the owner of a file or directory specified by args.
  */
-public final class ChownCommand extends AbstractACLCommand {
+public final class ChownCommand extends AbstractAclCommand {
 
   public ChownCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

@@ -24,7 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Changes the group of a file or directory specified by args.
  */
-public final class ChgrpCommand extends AbstractACLCommand {
+public final class ChgrpCommand extends AbstractAclCommand {
 
   public ChgrpCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

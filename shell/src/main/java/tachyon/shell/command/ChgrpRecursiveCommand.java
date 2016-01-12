@@ -24,7 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Changes the group of a file or directory specified by args recursively.
  */
-public final class ChgrpRecursiveCommand extends AbstractACLCommand {
+public final class ChgrpRecursiveCommand extends AbstractAclCommand {
 
   public ChgrpRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

@@ -24,7 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Change the permission of a file or directory specified by args recursively.
  */
-public final class ChmodRecursiveCommand extends AbstractACLCommand {
+public final class ChmodRecursiveCommand extends AbstractAclCommand {
 
   public ChmodRecursiveCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);

@@ -26,9 +26,9 @@ import tachyon.exception.TachyonException;
 /**
  * Parent class for commands: chown, chownr, chgrp, chgrpr, chmod and chmodr.
  */
-public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
+public abstract class AbstractAclCommand extends AbstractTfsShellCommand {
 
-  protected AbstractACLCommand(TachyonConf conf, TachyonFileSystem tfs) {
+  protected AbstractAclCommand(TachyonConf conf, TachyonFileSystem tfs) {
     super(conf, tfs);
   }
 
@@ -83,14 +83,15 @@ public abstract class AbstractACLCommand extends AbstractTfsShellCommand {
   protected void chmod(TachyonURI path, String modeStr, boolean recursive) throws IOException {
     short newPermission = 0;
     try {
-      newPermission = Short.parseShort(modeStr);
+      newPermission = Short.parseShort(modeStr, 8);
       SetAclOptions options =
           new SetAclOptions.Builder().setPermission(newPermission).setRecursive(recursive).build();
       mTfs.setAcl(path, options);
-      System.out.println("Changed permission of " + path + " to " + newPermission);
+      System.out.println("Changed permission of " + path + " to "
+          + Integer.toOctalString(newPermission));
     } catch (Exception e) {
-      throw new IOException("Failed to changed permission of  " + path + " to " + newPermission
-          + " : " + e.getMessage());
+      throw new IOException("Failed to changed permission of  " + path + " to "
+          + Integer.toOctalString(newPermission) + " : " + e.getMessage());
     }
   }
 }
