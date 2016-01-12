@@ -56,6 +56,9 @@ import tachyon.thrift.RawTableMasterClientService;
 import tachyon.util.IdUtils;
 import tachyon.util.io.PathUtils;
 
+/**
+ * Master for managing {@link RawTables}.
+ */
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -144,6 +147,7 @@ public class RawTableMaster extends MasterBase {
    * @throws InvalidPathException when path is invalid
    * @throws TableColumnException when number of columns is out of range
    * @throws TableMetadataException when metadata size is too large
+   * @throws IOException if creating directories in the table directory fails
    */
   public long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistsException, InvalidPathException, TableColumnException,

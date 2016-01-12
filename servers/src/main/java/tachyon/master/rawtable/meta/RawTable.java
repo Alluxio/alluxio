@@ -24,6 +24,9 @@ import tachyon.proto.journal.Journal.JournalEntry;
 import tachyon.proto.journal.RawTable.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
+/**
+ * A raw table is a directory with sub-directories representing columns.
+ */
 public class RawTable implements JournalEntryRepresentable {
   /** Table id */
   private final long mId;
@@ -59,14 +62,23 @@ public class RawTable implements JournalEntryRepresentable {
     setMetadata(metadata);
   }
 
+  /**
+   * @return the id of the table
+   */
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the columns of the table
+   */
   public int getColumns() {
     return mColumns;
   }
 
+  /**
+   * @return the metadata for the table
+   */
   public ByteBuffer getMetadata() {
     return mMetadata;
   }

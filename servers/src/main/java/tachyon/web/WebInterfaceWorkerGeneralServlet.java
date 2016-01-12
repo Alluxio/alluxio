@@ -38,6 +38,9 @@ import tachyon.worker.block.BlockStoreMeta;
  */
 public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
+  /**
+   * Displays information about a storage directory in the UI.
+   */
   public static class UIStorageDir {
     private final String mTierAlias;
     private final String mDirPath;
@@ -88,6 +91,9 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     }
   }
 
+  /**
+   * Displays information about a worker in the UI.
+   */
   public static class UIWorkerInfo {
     public static final boolean DEBUG = Constants.DEBUG;
     public static final String VERSION = Version.VERSION;
