@@ -15,7 +15,10 @@
 
 package tachyon.client.file.options;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Random;
 
 /**
  * Tests for the {@link UnmountOptions} class.
@@ -27,5 +30,19 @@ public class UnmountOptionsTest {
   @Test
   public void defaultsTest() {
     UnmountOptions.defaults();
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean freeData = random.nextBoolean();
+
+    UnmountOptions options = UnmountOptions.defaults();
+    options.setFreeData(freeData);
+
+    Assert.assertEquals(freeData, options.isFreeData());
   }
 }

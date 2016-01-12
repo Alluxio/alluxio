@@ -23,6 +23,8 @@ import tachyon.client.ClientContext;
 import tachyon.client.WriteType;
 import tachyon.thrift.MkdirTOptions;
 
+import java.util.Random;
+
 /**
  * Tests for the {@link CreateDirectoryOptions} class.
  */
@@ -36,6 +38,26 @@ public class CreateDirectoryOptionsTest {
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean allowExists = random.nextBoolean();
+    boolean recursive = random.nextBoolean();
+    WriteType writeType = WriteType.NONE;
+
+    CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
+    options.setAllowExists(allowExists);
+    options.setRecursive(recursive);
+    options.setWriteType(writeType);
+
+    Assert.assertEquals(allowExists, options.isAllowExists());
+    Assert.assertEquals(recursive, options.isRecursive());
+    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
   @Test

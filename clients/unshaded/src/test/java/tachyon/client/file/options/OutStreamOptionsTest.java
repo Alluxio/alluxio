@@ -23,8 +23,12 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
+
+import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
@@ -50,5 +54,29 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     ClientContext.reset();
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    long blockSize = random.nextLong();
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
+    long ttl = random.nextLong();
+    WriteType writeType = WriteType.NONE;
+
+    OutStreamOptions options = OutStreamOptions.defaults();
+    options.setBlockSizeBytes(blockSize);
+    options.setLocationPolicy(policy);
+    options.setTTL(ttl);
+    options.setWriteType(writeType);
+
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
+    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 }

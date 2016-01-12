@@ -71,6 +71,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTTL());
     Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
+    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
   @Test

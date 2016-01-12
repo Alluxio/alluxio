@@ -35,6 +35,19 @@ public class OpenFileOptionsTest {
     Assert.assertEquals(mDefaultReadType.getTachyonStorageType(), options.getTachyonStorageType());
   }
 
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    ReadType readType = ReadType.NO_CACHE;
+
+    OpenFileOptions options = OpenFileOptions.defaults();
+    options.setReadType(readType);
+
+    Assert.assertEquals(readType.getTachyonStorageType(), options.getTachyonStorageType());
+  }
+
   @Test
   public void toInStreamOptionsTest() {
     OpenFileOptions options = OpenFileOptions.defaults();
