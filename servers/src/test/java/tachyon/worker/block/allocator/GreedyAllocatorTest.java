@@ -26,7 +26,7 @@ import tachyon.conf.TachyonConf;
 public class GreedyAllocatorTest extends BaseAllocatorTest {
 
   /**
-   * Tests that block are allocated in the first storage directory which has enough free space.
+   * Tests that blocks are allocated in the first storage directory which has enough free space.
    *
    * @throws Exception if adding the metadata of the block fails
    */
