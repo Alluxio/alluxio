@@ -51,7 +51,7 @@ public final class IntegrationTestUtils {
     long start = System.currentTimeMillis();
     FileSystemWorker worker = TachyonWorkerPrivateAccess
         .getFileSystemWorker(localTachyonClusterResource.get().getWorker());
-    FileDataManager fileDataManager = FileSystemWorkerPrivateAccess.getFileSystemWorker(worker);
+    FileDataManager fileDataManager = FileSystemWorkerPrivateAccess.getFileDataManager(worker);
     while (!fileDataManager.isFilePersisted(fileId)) {
       if (System.currentTimeMillis() - start > timeoutMs) {
         throw new RuntimeException("Timed out waiting for " + fileId + " to be persisted");
