@@ -1819,7 +1819,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets the acl of a file or directory. Only one of owner, group, or permission in the
+   * Sets the acl of a file or directory. At least one of owner, group, or permission in the
    * {@link SetAclOptions} could be set at a time.
    *
    * @param path to be set acl on
@@ -1833,10 +1833,14 @@ public final class FileSystemMaster extends MasterBase {
         options.getOwner(), options.getGroup(), options.getPermission());
 
     if (options.getOwner() != null) {
-      setOwner(path, options);
-    } else if (options.getGroup() != null
+      setOwner(path,new SetAclOptions.Builder().setOwner(options.getOwner())
+          .setRecursive(options.isRecursive()).build());
+    }
+
+    if (options.getGroup() != null
         || options.getPermission() != Constants.INVALID_PERMISSION) {
-      setGroupOrPermission(path, options);
+      setGroupOrPermission(path, new SetAclOptions.Builder().setGroup(options.getGroup())
+          .setPermission(options.getPermission()).setRecursive(options.isRecursive()).build());
     }
   }
 
@@ -1892,7 +1896,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Sets acl attributes to the inode. Only one of user, group, or permission in
+   * Sets acl attributes to the inode. At least one of user, group, or permission in
    * {@link SetAclOptions} is set.
    *
    * @param inode the inode to be set on

@@ -143,8 +143,8 @@ public class SetAclOptions {
   }
 
   /**
-   * Checks whether the instance of {@link SetAclOptions} is valid, which means only one of three
-   * attributes (owner, group, permission) takes effect.
+   * Checks whether the instance of {@link SetAclOptions} is valid,
+   * which means at least one of three attributes (owner, group, permission) takes effect.
    *
    * @return true if the instance of {@link SetAclOptions} is valid, false otherwise
    */
@@ -160,7 +160,7 @@ public class SetAclOptions {
       num ++;
     }
 
-    return num == 1 ? true : false;
+    return num >= 1 ? true : false;
   }
 
   /**

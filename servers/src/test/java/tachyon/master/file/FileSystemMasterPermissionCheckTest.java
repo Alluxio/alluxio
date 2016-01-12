@@ -722,13 +722,35 @@ public class FileSystemMasterPermissionCheckTest {
   }
 
   @Test
-  public void setAclFailByOptionsTest() throws Exception {
+  public void setAclSuccessTest() throws Exception {
+    // super user sets owner, group, and permission
+    verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroups(),
+        (short) 0600, false);
+
+    // owner sets group and permission
+    verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) 0777, true);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(
+        new TachyonURI(TEST_DIR_FILE_URI)));
+    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
+    Assert.assertEquals((short) 0777, fileInfo.getPermission());
+  }
+
+  @Test
+  public void setAclFailByNotSuperuserTest() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
+
+    verifySetAcl(TEST_USER_2, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroups(),
+        (short) 0600, false);
+  }
+
+  @Test
+  public void setAclFailByInvalidOptionsTest() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_SET_ACL_OPTIONS.getMessage(
-        TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0777));
+        null, null, (short) -1));
 
-    verifySetAcl(TEST_USER_1, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroups(),
-        (short) 0777, false);
+    verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, null, (short) -1, false);
   }
 
   private void verifySetAcl(TestUser owner, String path, String user, String group,

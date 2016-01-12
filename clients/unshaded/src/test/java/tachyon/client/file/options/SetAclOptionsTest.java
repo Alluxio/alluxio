@@ -72,14 +72,6 @@ public class SetAclOptionsTest {
   public void invalidOptionsTest() {
     mThrown.expect(IllegalArgumentException.class);
 
-    Random random = new Random();
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String owner = new String(bytes);
-    random.nextBytes(bytes);
-    String group = new String(bytes);
-    short permission = (short) random.nextInt();
-
-    new SetAclOptions.Builder().setOwner(owner).setGroup(group).setPermission(permission).build();
+    new SetAclOptions.Builder().build();
   }
 }
