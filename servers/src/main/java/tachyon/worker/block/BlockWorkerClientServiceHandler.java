@@ -124,11 +124,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Locks the file in Tachyon's space while the session is reading it, and the path of the block
-   * file locked will be returned.
+   * Locks the file in Tachyon's space while the session is reading it.
    *
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
+   * @return the path of the block file locked
    * @throws TachyonTException if a tachyon error occurs
    */
   @Override
@@ -143,10 +143,11 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
-   * storage layers in Tachyon's space. return true if the block is successfully promoted, false
+   * storage layers in Tachyon's space.
    * otherwise.
    *
    * @param blockId the id of the block to move to the top layer
+   * @return true if the block is successfully promoted, otherwise false
    * @throws TachyonTException if a tachyon error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
@@ -166,14 +167,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
   /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
-   * storage directory which fits the initial block size by some allocation strategy, and the
-   * temporary file path of the block file will be returned. if there is no enough space on Tachyon
-   * storage WorkerOutOfSpaceException will be thrown, if the file is already being written by the
-   * session, FileAlreadyExistsException will be thrown.
+   * storage directory which fits the initial block size by some allocation strategy. If there is
+   * not enough space on Tachyon storage {@link tachyon.exception.WorkerOutOfSpaceException} will be
+   * thrown, if the file is already being written by the session,
+   * {@link tachyon.exception.FileAlreadyExistsException} will be thrown.
    *
    * @param sessionId the id of the client requesting the create
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
+   * @return the temporary file path of the block file
    * @throws TachyonTException if a tachyon error occurs
    * @throws ThriftIOException if an I/O error occurs
    */
@@ -191,12 +193,13 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Used to request space for some block file. return true if the worker successfully allocates
-   * space for the block on block’s location, false if there is no enough space.
+   * Used to request space for some block file.
    *
    * @param sessionId the id of the client requesting space
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
+   * @return true if the worker successfully allocates space for the block on block’s location,
+   *         false if there is no enough space
    */
   @Override
   public boolean requestSpace(long sessionId, long blockId, long requestBytes) {
@@ -211,11 +214,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
-   * block file. return true if successfully unlock the block, return false if the block is not
-   * found or failed to delete the block.
+   * block file.
    *
    * @param blockId the id of the block to unlock
    * @param sessionId the id of the client requesting the unlock
+   * @return true if successfully unlock the block, return false if the block is not
+   * found or failed to delete the block
    * @throws TachyonTException if a tachyon error occurs
    */
   @Override

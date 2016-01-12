@@ -166,7 +166,7 @@ public final class BlockMetadataManager {
    * @return available bytes
    * @throws IllegalArgumentException when location does not belong to tiered storage
    */
-  public long getAvailableBytes(BlockStoreLocation location) {
+  public long getAvailableBytes(BlockStoreLocation location) throws IllegalArgumentException {
     long spaceAvailable = 0;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
@@ -215,7 +215,8 @@ public final class BlockMetadataManager {
    * @return the path of this block in this location
    * @throws IllegalArgumentException if location is not a specific {@link StorageDir}
    */
-  public String getBlockPath(long blockId, BlockStoreLocation location) {
+  public String getBlockPath(long blockId, BlockStoreLocation location)
+      throws IllegalArgumentException {
     return BlockMetaBase.commitPath(getDir(location), blockId);
   }
 
@@ -235,7 +236,7 @@ public final class BlockMetadataManager {
    * @return the {@link StorageDir} object
    * @throws IllegalArgumentException if location is not a specific dir or the location is invalid
    */
-  public StorageDir getDir(BlockStoreLocation location) {
+  public StorageDir getDir(BlockStoreLocation location) throws IllegalArgumentException {
     if (location.equals(BlockStoreLocation.anyTier())
         || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
       throw new IllegalArgumentException(
@@ -269,7 +270,7 @@ public final class BlockMetadataManager {
    * @return the {@link StorageTier} object associated with the alias
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public StorageTier getTier(String tierAlias) {
+  public StorageTier getTier(String tierAlias) throws IllegalArgumentException {
     StorageTier tier = mAliasToTiers.get(tierAlias);
     if (tier == null) {
       throw new IllegalArgumentException(
@@ -294,7 +295,7 @@ public final class BlockMetadataManager {
    * @return the list of {@link StorageTier}
    * @throws IllegalArgumentException if tierAlias is not found
    */
-  public List<StorageTier> getTiersBelow(String tierAlias) {
+  public List<StorageTier> getTiersBelow(String tierAlias) throws IllegalArgumentException {
     int ordinal = getTier(tierAlias).getTierOrdinal();
     return mTiers.subList(ordinal + 1, mTiers.size());
   }
@@ -388,7 +389,8 @@ public final class BlockMetadataManager {
    */
   @Deprecated
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
+      throws IllegalArgumentException, BlockDoesNotExistException, BlockAlreadyExistsException,
+             WorkerOutOfSpaceException {
     // If existing location belongs to the target location, simply return the current block meta.
     BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
     if (oldLocation.belongTo(newLocation)) {
@@ -448,5 +450,4 @@ public final class BlockMetadataManager {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }
-
 }

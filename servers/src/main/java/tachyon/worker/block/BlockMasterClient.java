@@ -146,6 +146,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnTiers mapping from storage tier alias to the list of list of blocks
+   * @throws TachyonException if registering the worker fails
    * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
