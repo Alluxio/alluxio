@@ -23,14 +23,14 @@ import tachyon.thrift.CompleteFileTOptions;
  */
 @PublicApi
 public final class CompleteFileOptions {
+  private long mUfsLength;
+
   /**
    * @return the default {@link CompleteFileOptions}
    */
   public static CompleteFileOptions defaults() {
     return new CompleteFileOptions();
   }
-
-  private long mUfsLength;
 
   private CompleteFileOptions() {
     mUfsLength = 0;

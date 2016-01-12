@@ -22,14 +22,14 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class DeleteOptions {
+  private boolean mRecursive;
+
   /**
    * @return the default {@link DeleteOptions}
    */
   public static DeleteOptions defaults() {
     return new DeleteOptions();
   }
-
-  private boolean mRecursive;
 
   private DeleteOptions() {
     mRecursive = false;

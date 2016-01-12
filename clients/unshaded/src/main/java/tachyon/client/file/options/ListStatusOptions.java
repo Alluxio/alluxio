@@ -22,15 +22,15 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class ListStatusOptions {
+  /** Whether or not to check the ufs if the path does not exist in Tachyon */
+  private boolean mCheckUfs;
+
   /**
    * @return the default {@link ListStatusOptions}
    */
   public static ListStatusOptions defaults() {
     return new ListStatusOptions();
   }
-
-  /** Whether or not to check the ufs if the path does not exist in Tachyon */
-  private boolean mCheckUfs;
 
   private ListStatusOptions() {
     mCheckUfs = false;

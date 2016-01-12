@@ -27,6 +27,10 @@ import tachyon.thrift.SetStateTOptions;
  */
 @PublicApi
 public final class SetAttributeOptions {
+  private Boolean mPinned;
+  private Long mTTL;
+  private Boolean mPersisted;
+
   /**
    * @return the default {@link SetAttributeOptions}
    */
@@ -41,10 +45,6 @@ public final class SetAttributeOptions {
   public static SetAttributeOptions fromThriftOptions(SetStateTOptions options) {
     return new SetAttributeOptions(options);
   }
-
-  private Boolean mPinned;
-  private Long mTTL;
-  private Boolean mPersisted;
 
   private SetAttributeOptions(SetStateTOptions options) {
     mPinned = options.isSetPinned() ? options.isPinned() : null;

@@ -22,14 +22,14 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class LoadMetadataOptions {
+  private boolean mRecursive;
+
   /**
    * @return the default {@link LoadMetadataOptions}
    */
   public static LoadMetadataOptions defaults() {
     return new LoadMetadataOptions();
   }
-
-  private boolean mRecursive;
 
   private LoadMetadataOptions() {
     mRecursive = false;

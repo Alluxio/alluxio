@@ -26,14 +26,14 @@ import tachyon.client.TachyonStorageType;
  */
 @PublicApi
 public final class OpenFileOptions {
+  private ReadType mReadType;
+
   /**
    * @return the default {@link InStreamOptions}
    */
   public static OpenFileOptions defaults() {
     return new OpenFileOptions();
   }
-
-  private ReadType mReadType;
 
   /**
    * Creates a new instance with defaults based on the configuration

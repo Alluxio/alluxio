@@ -22,15 +22,15 @@ import tachyon.annotation.PublicApi;
  */
 @PublicApi
 public final class GetLineageInfoListOptions {
+  /** Whether or not to list the lineage info recursively, currently not supported */
+  private boolean mRecursive;
+
   /**
    * @return the default options
    */
   public static GetLineageInfoListOptions defaults() {
     return new GetLineageInfoListOptions();
   }
-
-  /** Whether or not to list the lineage info recursively, currently not supported */
-  private boolean mRecursive;
 
   private GetLineageInfoListOptions() {
     mRecursive = false;
@@ -47,7 +47,7 @@ public final class GetLineageInfoListOptions {
    * @param recursive the recursive flag to set
    * @return the updated options object
    */
-  public GetLineageInfoListOptions setRecurisve(boolean recursive) {
+  public GetLineageInfoListOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
     return this;
   }
