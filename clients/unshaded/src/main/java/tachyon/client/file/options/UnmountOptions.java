@@ -16,47 +16,40 @@
 package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for unmounting a path.
  */
 @PublicApi
 public final class UnmountOptions {
-
-  /**
-   * Builder for {@link UnmountOptions}.
-   */
-  public static class Builder implements OptionsBuilder<UnmountOptions> {
-    /**
-     * Creates a new builder for {@link UnmountOptions}.
-     */
-    public Builder() {}
-
-    /**
-     * Creates a new builder for {@link UnmountOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * Builds a new instance of {@link UnmountOptions}.
-     *
-     * @return a {@link UnmountOptions} instance
-     */
-    @Override
-    public UnmountOptions build() {
-      return new UnmountOptions(this);
-    }
-  }
+  /** Whether the data under the mount should be synchronously freed from Tachyon, currently
+   * unsupported */
+  private boolean mFreeData;
 
   /**
    * @return the default {@link UnmountOptions}
    */
   public static UnmountOptions defaults() {
-    return new Builder().build();
+    return new UnmountOptions();
   }
 
-  private UnmountOptions(UnmountOptions.Builder builder) {}
+  private UnmountOptions() {
+    mFreeData = false;
+  }
+
+  /**
+   * @return whether to free the data from the mount
+   */
+  public boolean isFreeData() {
+    return mFreeData;
+  }
+
+  /**
+   * @param freeData the free data flag to set
+   * @return the updated options object
+   */
+  public UnmountOptions setFreeData(boolean freeData) {
+    mFreeData = freeData;
+    return this;
+  }
 }

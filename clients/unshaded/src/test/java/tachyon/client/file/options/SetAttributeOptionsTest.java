@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,5 +30,28 @@ public class SetAttributeOptionsTest {
     Assert.assertFalse(options.hasPersisted());
     Assert.assertFalse(options.hasPinned());
     Assert.assertFalse(options.hasTTL());
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean persisted = random.nextBoolean();
+    boolean pinned = random.nextBoolean();
+    long ttl = random.nextLong();
+
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setPersisted(persisted);
+    options.setPinned(pinned);
+    options.setTTL(ttl);
+
+    Assert.assertTrue(options.hasPersisted());
+    Assert.assertEquals(persisted, options.getPersisted());
+    Assert.assertTrue(options.hasPinned());
+    Assert.assertEquals(pinned, options.getPinned());
+    Assert.assertTrue(options.hasTTL());
+    Assert.assertEquals(ttl, options.getTTL());
   }
 }

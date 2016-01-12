@@ -131,7 +131,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void deleteTest() throws Exception {
-    DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
+    DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     mFileSystem.delete(new TachyonFile(FILE_ID), deleteOptions);
     Mockito.verify(mFileSystemMasterClient).delete(FILE_ID, true);
   }
@@ -143,7 +143,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void deleteExceptionTest() throws Exception {
-    DeleteOptions deleteOptions = new DeleteOptions.Builder().setRecursive(true).build();
+    DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     Mockito.when(mFileSystemMasterClient.delete(FILE_ID, true)).thenThrow(EXCEPTION);
     try {
       mFileSystem.delete(new TachyonFile(FILE_ID), deleteOptions);
@@ -160,7 +160,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void freeTest() throws Exception {
-    FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
+    FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     mFileSystem.free(new TachyonFile(FILE_ID), freeOptions);
     Mockito.verify(mFileSystemMasterClient).free(FILE_ID, true);
   }
@@ -172,7 +172,7 @@ public final class AbstractFileSystemTest {
    */
   @Test
   public void freeExceptionTest() throws Exception {
-    FreeOptions freeOptions = new FreeOptions.Builder().setRecursive(true).build();
+    FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     Mockito.when(mFileSystemMasterClient.free(FILE_ID, true)).thenThrow(EXCEPTION);
     try {
       mFileSystem.free(new TachyonFile(FILE_ID), freeOptions);
@@ -254,8 +254,7 @@ public final class AbstractFileSystemTest {
   @Test
   public void loadMetadataTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenReturn(FILE_ID);
-    LoadMetadataOptions loadMetadataOptions =
-        new LoadMetadataOptions.Builder().setRecursive(true).build();
+    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
     Assert.assertEquals(FILE_ID,
         mFileSystem.loadMetadata(new TachyonURI("/"), loadMetadataOptions).getFileId());
     Mockito.verify(mFileSystemMasterClient).loadMetadata("/", true);
@@ -269,8 +268,7 @@ public final class AbstractFileSystemTest {
   @Test
   public void loadMetadataExceptionTest() throws Exception {
     Mockito.when(mFileSystemMasterClient.loadMetadata("/", true)).thenThrow(EXCEPTION);
-    LoadMetadataOptions loadMetadataOptions =
-        new LoadMetadataOptions.Builder().setRecursive(true).build();
+    LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
     try {
       mFileSystem.loadMetadata(new TachyonURI("/"), loadMetadataOptions).getFileId();
       Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);

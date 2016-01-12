@@ -16,36 +16,39 @@
 package tachyon.client.lineage.options;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.conf.TachyonConf;
 
 /**
  * Method option for creating lineage.
  */
 @PublicApi
 public final class CreateLineageOptions {
-  private static class Builder {
-    /**
-     * Creates a new builder for {@link CreateLineageOptions}.
-     *
-     * @param conf a Tachyon configuration
-     */
-    public Builder(TachyonConf conf) {}
-
-    /**
-     * @return builds a new instance of {@link CreateLineageOptions}
-     */
-    public CreateLineageOptions build() {
-      return new CreateLineageOptions(this);
-    }
-  }
+  /** Flag indicating whether or not to overwrite, currently unsupported */
+  private boolean mOverwrite;
 
   /**
    * @return the default options
    */
   public static CreateLineageOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new CreateLineageOptions();
   }
 
-  private CreateLineageOptions(CreateLineageOptions.Builder buidler) {}
+  private CreateLineageOptions() {
+    mOverwrite = false;
+  }
+
+  /**
+   * @return whether the overwrite flag is set
+   */
+  public boolean isOverwrite() {
+    return mOverwrite;
+  }
+
+  /**
+   * @param overwrite the overwrite flag to set
+   * @return the updated options object
+   */
+  public CreateLineageOptions setOverwrite(boolean overwrite) {
+    mOverwrite = overwrite;
+    return this;
+  }
 }
