@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.worker.BlockWorkerClient;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
@@ -127,6 +128,10 @@ public final class BlockStoreContextTest {
             Mockito.anyBoolean(), Mockito.any()).thenReturn(workerClientMock);
 
     final List<BlockWorkerClient> clients = Lists.newArrayList();
+
+    // Reduce the size of the worker thread pool to lower the chance of a timeout.
+    TachyonConf conf = Whitebox.getInternalState(ClientContext.class, "sTachyonConf");
+    conf.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
