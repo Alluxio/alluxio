@@ -27,6 +27,8 @@ import tachyon.proto.journal.Journal;
  * Unit tests for {@link BlockContainerIdGenerator}.
  */
 public final class BlockContainerIdGeneratorTest {
+  /** A non-default, container id for testing. */
+  private static final long TEST_ID = 1234;
   private BlockContainerIdGenerator mGenerator;
 
   @Before
@@ -43,19 +45,19 @@ public final class BlockContainerIdGeneratorTest {
 
   @Test
   public void setNextContainerIdTest() {
-    mGenerator.setNextContainerId(123);
-    Assert.assertEquals(123, mGenerator.getNewContainerId());
-    Assert.assertEquals(124, mGenerator.getNewContainerId());
-    Assert.assertEquals(125, mGenerator.getNewContainerId());
+    mGenerator.setNextContainerId(TEST_ID);
+    Assert.assertEquals(TEST_ID, mGenerator.getNewContainerId());
+    Assert.assertEquals(TEST_ID + 1, mGenerator.getNewContainerId());
+    Assert.assertEquals(TEST_ID + 2, mGenerator.getNewContainerId());
   }
 
   @Test
   public void toJournalEntryTest() {
-    mGenerator.setNextContainerId(123);
+    mGenerator.setNextContainerId(TEST_ID);
     Journal.JournalEntry entry = mGenerator.toJournalEntry();
     Assert.assertTrue(entry.hasBlockContainerIdGenerator());
     Block.BlockContainerIdGeneratorEntry generatorEntry = entry.getBlockContainerIdGenerator();
     Assert.assertNotNull(generatorEntry);
-    Assert.assertEquals(123, generatorEntry.getNextContainerId());
+    Assert.assertEquals(TEST_ID, generatorEntry.getNextContainerId());
   }
 }
