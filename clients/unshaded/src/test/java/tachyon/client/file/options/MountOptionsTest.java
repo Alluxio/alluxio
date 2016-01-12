@@ -15,7 +15,10 @@
 
 package tachyon.client.file.options;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Random;
 
 /**
  * Tests for the {@link MountOptions} class.
@@ -27,5 +30,19 @@ public class MountOptionsTest {
   @Test
   public void defaultsTest() {
     MountOptions.defaults();
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean readOnly = random.nextBoolean();
+
+    MountOptions options = MountOptions.defaults();
+    options.setReadOnly(readOnly);
+
+    Assert.assertEquals(readOnly, options.isReadOnly());
   }
 }
