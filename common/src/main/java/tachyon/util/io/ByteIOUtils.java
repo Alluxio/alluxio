@@ -26,31 +26,73 @@ public final class ByteIOUtils {
 
   private ByteIOUtils() {} // prevent instantiation.
 
+  /**
+   * Reads a specific byte value from the input byte array at given offset.
+   *
+   * @param buf input byte array
+   * @param pos offset into the byte buffer to read
+   * @return the byte value read
+   */
   public static byte readByte(byte[] buf, int pos) {
     checkBoundary(buf, pos, 1);
     return (byte) (buf[pos] & 0xff);
   }
 
+  /**
+   * Reads a specific byte value from the input byte buffer at given offset.
+   *
+   * @param buf input byte buffer
+   * @param pos offset into the byte buffer to read
+   * @return the byte value read
+   */
   public static byte readByte(ByteBuffer buf, int pos) {
     return (byte) (buf.get(pos) & 0xff);
   }
 
+  /**
+   * Reads a specific short byte value (2 bytes) from the input byte array at given offset.
+   *
+   * @param buf input byte buffer
+   * @param pos offset into the byte buffer to read
+   * @return the short value read
+   */
   public static short readShort(byte[] buf, int pos) {
     checkBoundary(buf, pos, 2);
     return (short) (((short) (buf[pos] & 0xff) << 8) | ((short) (buf[pos + 1] & 0xff)));
   }
 
+  /**
+   * Reads a specific integer byte value (4 bytes) from the input byte array at given offset.
+   *
+   * @param buf input byte array
+   * @param pos offset into the byte buffer to read
+   * @return the int value read
+   */
   public static int readInt(byte[] buf, int pos) {
     checkBoundary(buf, pos, 4);
     return (((buf[pos ++] & 0xff) << 24) | ((buf[pos ++] & 0xff) << 16)
         | ((buf[pos ++] & 0xff) << 8) | (buf[pos] & 0xff));
   }
 
+  /**
+   * Reads a specific integer byte value (4 bytes) from the input byte buffer at given offset.
+   *
+   * @param buf input byte buffer
+   * @param pos offset into the byte buffer to read
+   * @return the int value read
+   */
   public static int readInt(ByteBuffer buf, int pos) {
     return (((buf.get(pos) & 0xff) << 24) | ((buf.get(pos + 1) & 0xff) << 16)
         | ((buf.get(pos + 2) & 0xff) << 8) | (buf.get(pos + 3) & 0xff));
   }
 
+  /**
+   * Reads a specific long byte value (8 bytes) from the input byte array.
+   *
+   * @param buf input byte buffer
+   * @param pos offset into the byte buffer to read
+   * @return the long value read
+   */
   public static long readLong(byte[] buf, int pos) {
     checkBoundary(buf, pos, 8);
     return (((long) (buf[pos ++] & 0xff) << 56) | ((long) (buf[pos ++] & 0xff) << 48)
@@ -59,11 +101,25 @@ public final class ByteIOUtils {
         | ((long) (buf[pos ++] & 0xff) << 8) | ((long) (buf[pos] & 0xff)));
   }
 
+  /**
+   * Writes a single byte value (1 byte) to the output byte array at given offset.
+   *
+   * @param buf output byte buffer
+   * @param pos offset into the byte buffer to write
+   * @param v byte value to write
+   */
   public static void writeByte(byte[] buf, int pos, byte v) {
     checkBoundary(buf, pos, 1);
     buf[pos] = v;
   }
 
+  /**
+   * Writes a single byte value (1 byte) to the output byte buffer at given offset.
+   *
+   * @param buf output byte buffer
+   * @param pos offset into the byte buffer to write
+   * @param v byte value to write
+   */
   public static void writeByte(ByteBuffer buf, int pos, byte v) {
     buf.put(pos, v);
   }
@@ -73,7 +129,7 @@ public final class ByteIOUtils {
    * {@link OutputStream#write(int)}.
    *
    * @param out output stream
-   * @param v short value to write
+   * @param v byte value to write
    * @throws IOException if an I/O error occurs. In particular, an <code>IOException</code> may be
    *         thrown if the output stream has been closed.
    */
@@ -81,6 +137,13 @@ public final class ByteIOUtils {
     out.write(v);
   }
 
+  /**
+   * Writes a specific short value (2 bytes) to the output byte buffer at given offset.
+   *
+   * @param buf output byte buffer
+   * @param pos offset into the byte buffer to write
+   * @param v short value to write
+   */
   public static void writeShort(byte[] buf, int pos, short v) {
     checkBoundary(buf, pos, 2);
     buf[pos ++] = (byte) (0xff & (v >> 8));
@@ -100,6 +163,13 @@ public final class ByteIOUtils {
     out.write((byte) (0xff & v));
   }
 
+  /**
+   * Writes a specific integer value (4 bytes) to the output byte array at given offset.
+   *
+   * @param buf output byte array
+   * @param pos offset into the byte buffer to write
+   * @param v int value to write
+   */
   public static void writeInt(byte[] buf, int pos, int v) {
     checkBoundary(buf, pos, 4);
     buf[pos ++] = (byte) (0xff & (v >> 24));
@@ -108,6 +178,13 @@ public final class ByteIOUtils {
     buf[pos] = (byte) (0xff & v);
   }
 
+  /**
+   * Writes a specific integer value (4 bytes) to the output byte buffer at given offset.
+   *
+   * @param buf output byte buffer
+   * @param pos offset into the byte buffer to write
+   * @param v int value to write
+   */
   public static void writeInt(ByteBuffer buf, int pos, int v) {
     buf.put(pos ++, (byte) (0xff & (v >> 24)));
     buf.put(pos ++, (byte) (0xff & (v >> 16)));
@@ -130,6 +207,13 @@ public final class ByteIOUtils {
     out.write((byte) (0xff & v));
   }
 
+  /**
+   * Writes a specific long value (8 bytes) to the output byte array at given offset.
+   *
+   * @param buf output byte array
+   * @param pos offset into the byte buffer to write
+   * @param v long value to write
+   */
   public static void writeLong(byte[] buf, int pos, long v) {
     checkBoundary(buf, pos, 8);
     buf[pos ++] = (byte) (0xff & (v >> 56));
