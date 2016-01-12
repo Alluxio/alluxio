@@ -364,7 +364,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     TachyonURI path = mInodeTree.getPath(inode);
@@ -479,7 +478,6 @@ public final class FileSystemMaster extends MasterBase {
   void completeFileInternal(List<Long> blockIds, long fileId, long length, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
     inode.setBlockIds(blockIds);
     inode.setLastModificationTimeMs(opTimeMs);
@@ -534,7 +532,6 @@ public final class FileSystemMaster extends MasterBase {
 
   InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     CreatePathOptions createPathOptions = new CreatePathOptions.Builder(MasterContext.getConf())
         .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
         .setOperationTimeMs(options.getOperationTimeMs()).setPersisted(options.isPersisted())
@@ -703,8 +700,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   boolean deleteFileInternal(long fileId, boolean recursive, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
-    //
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Tachyon and UFS.
     Inode inode = mInodeTree.getInodeById(fileId);
@@ -849,7 +844,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
       throws InvalidPathException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.blockInfo = blockInfo;
     fileBlockInfo.ufsLocations = new ArrayList<WorkerNetAddress>();
@@ -1136,7 +1130,6 @@ public final class FileSystemMaster extends MasterBase {
    */
   boolean renameInternal(long fileId, TachyonURI dstPath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode srcInode = mInodeTree.getInodeById(fileId);
     TachyonURI srcPath = mInodeTree.getPath(srcInode);
     LOG.debug("Renaming {} to {}", srcPath, dstPath);

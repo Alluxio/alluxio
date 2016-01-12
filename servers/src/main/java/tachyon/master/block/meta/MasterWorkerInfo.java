@@ -97,7 +97,7 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
+  public synchronized Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
@@ -190,7 +190,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public WorkerNetAddress getAddress() {
+  public synchronized WorkerNetAddress getAddress() {
     return mWorkerAddress;
   }
 
@@ -211,7 +211,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the capacity of the worker in bytes
    */
-  public long getCapacityBytes() {
+  public synchronized long getCapacityBytes() {
     return mCapacityBytes;
   }
 
@@ -267,7 +267,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the start time in milliseconds
    */
-  public long getStartTime() {
+  public synchronized long getStartTime() {
     return mStartTimeMs;
   }
 
