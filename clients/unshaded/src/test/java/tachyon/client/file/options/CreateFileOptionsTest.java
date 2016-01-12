@@ -15,12 +15,16 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.WriteType;
+import tachyon.client.file.policy.FileWriteLocationPolicy;
+import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.thrift.CreateTOptions;
 
 /**
@@ -41,6 +45,32 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(mDefaultWriteType.getTachyonStorageType(), options.getTachyonStorageType());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    long blockSize = random.nextLong();
+    FileWriteLocationPolicy policy = new RoundRobinPolicy();
+    boolean recursive = random.nextBoolean();
+    long ttl = random.nextLong();
+    WriteType writeType = WriteType.NONE;
+
+    CreateFileOptions options = CreateFileOptions.defaults();
+    options.setBlockSizeBytes(blockSize);
+    options.setLocationPolicy(policy);
+    options.setRecursive(recursive);
+    options.setTTL(ttl);
+    options.setWriteType(writeType);
+
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
+    Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertEquals(recursive, options.isRecursive());
+    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(writeType.getTachyonStorageType(), options.getTachyonStorageType());
   }
 
   @Test

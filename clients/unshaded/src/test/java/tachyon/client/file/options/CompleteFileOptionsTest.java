@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,5 +32,16 @@ public class CompleteFileOptionsTest {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
     Assert.assertEquals(0, options.getUfsLength());
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    long len = new Random().nextLong();
+    CompleteFileOptions options = CompleteFileOptions.defaults();
+    options.setUfsLength(len);
+    Assert.assertEquals(len, options.getUfsLength());
   }
 }

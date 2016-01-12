@@ -18,6 +18,8 @@ package tachyon.client.file.options;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * Tests for the {@link FreeOptions} class.
  */
@@ -30,5 +32,19 @@ public class FreeOptionsTest {
     FreeOptions options = FreeOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
+  }
+
+  /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
+
+    FreeOptions options = FreeOptions.defaults();
+    options.setRecursive(recursive);
+
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 }

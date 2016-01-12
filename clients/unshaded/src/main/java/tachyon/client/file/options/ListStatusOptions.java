@@ -43,4 +43,13 @@ public final class ListStatusOptions {
   public boolean isCheckUfs() {
     return mCheckUfs;
   }
+
+  /**
+   * @param checkUfs the check ufs flag to set
+   * @return the updated options object
+   */
+  public ListStatusOptions setCheckUfs(boolean checkUfs) {
+    mCheckUfs = checkUfs;
+    return this;
+  }
 }

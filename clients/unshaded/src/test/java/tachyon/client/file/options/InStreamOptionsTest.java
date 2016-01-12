@@ -38,6 +38,19 @@ public class InStreamOptionsTest {
   }
 
   /**
+   * Tests getting and setting fields
+   */
+  @Test
+  public void fieldsTest() {
+    ReadType readType = ReadType.NO_CACHE;
+
+    InStreamOptions options = InStreamOptions.defaults();
+    options.setReadType(readType);
+
+    Assert.assertEquals(options.getTachyonStorageType(), readType.getTachyonStorageType());
+  }
+
+  /**
    * Tests that building a {@link InStreamOptions} with a modified configuration works.
    */
   @Test

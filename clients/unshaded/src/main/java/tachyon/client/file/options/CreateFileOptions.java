@@ -127,7 +127,7 @@ public final class CreateFileOptions {
    * @param recursive whether or not to recursively create the file's parents
    * @return the updated options object
    */
-  public CreateFileOptions setRecurisve(boolean recursive) {
+  public CreateFileOptions setRecursive(boolean recursive) {
     mRecursive = recursive;
     return this;
   }
