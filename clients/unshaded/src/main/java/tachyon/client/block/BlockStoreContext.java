@@ -37,11 +37,12 @@ import tachyon.worker.NetAddress;
  * of master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis. This class is thread safe.
  *
- * NOTE: The context maintains a pool of block master clients that is already thread-safe.
- * Synchronizing {@link BlockStoreContext} methods could lead to deadlock: thread A attempts to
- * acquire a client when there are no clients left in the pool and blocks holding a lock on the
- * {@link BlockStoreContext}, when thread B attempts to release a client it owns, it is unable to do
- * so, because thread A holds the lock on {@link BlockStoreContext}.
+ * NOTE: The context maintains a pool of block master clients and a pool of block worker clients
+ * that are already thread-safe. Synchronizing {@link BlockStoreContext} methods could lead to
+ * deadlock: thread A attempts to acquire a client when there are no clients left in the pool and
+ * blocks holding a lock on the {@link BlockStoreContext}, when thread B attempts to release a
+ * client it owns, it is unable to do so, because thread A holds the lock on
+ * {@link BlockStoreContext}.
  */
 public enum BlockStoreContext {
   INSTANCE;
