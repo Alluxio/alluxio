@@ -30,6 +30,6 @@ public final class CreateLineageOptions {
   }
 
   private CreateLineageOptions() {
-
+    // No options available currently
   }
 }

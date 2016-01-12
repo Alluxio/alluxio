@@ -30,6 +30,6 @@ public final class GetLineageInfoListOptions {
   }
 
   private GetLineageInfoListOptions() {
-
+    // No options available currently
   }
 }
