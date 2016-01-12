@@ -397,7 +397,7 @@ public final class TachyonConf {
       }
       if (value != null) {
         LOG.debug("Replacing {} with {}", matcher.group(1), value);
-        resolved = resolved.replaceFirst(REGEX_STRING, value);
+        resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
       }
     }
     return resolved;
