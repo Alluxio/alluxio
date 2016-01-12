@@ -20,9 +20,13 @@ import java.util.List;
 import tachyon.conf.TachyonConf;
 
 /**
- * {@link StorageTierAssoc} for masters
+ * {@link StorageTierAssoc} for masters.
  */
 public class MasterStorageTierAssoc extends StorageTierAssoc {
+
+  /**
+   * @param conf the configuration for Tachyon
+   */
   public MasterStorageTierAssoc(TachyonConf conf) {
     super(conf, Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS,
         Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
