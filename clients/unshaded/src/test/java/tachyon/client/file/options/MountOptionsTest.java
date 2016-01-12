@@ -33,7 +33,7 @@ public class MountOptionsTest {
   }
 
   /**
-   * Tests getting and setting fields
+   * Tests getting and setting fields.
    */
   @Test
   public void fieldsTest() {
