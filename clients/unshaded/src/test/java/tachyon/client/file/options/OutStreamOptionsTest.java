@@ -15,6 +15,8 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,8 +29,6 @@ import tachyon.client.file.policy.FileWriteLocationPolicy;
 import tachyon.client.file.policy.LocalFirstPolicy;
 import tachyon.client.file.policy.RoundRobinPolicy;
 import tachyon.conf.TachyonConf;
-
-import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.

@@ -15,10 +15,10 @@
 
 package tachyon.client.file.options;
 
+import java.util.Random;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Random;
 
 /**
  * Tests for the {@link UnmountOptions} class.
