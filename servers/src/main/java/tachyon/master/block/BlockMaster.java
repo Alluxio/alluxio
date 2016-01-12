@@ -66,10 +66,10 @@ import tachyon.thrift.BlockMasterWorkerService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.WorkerInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.NetAddress;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -479,23 +479,22 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param workerNetAddress the worker {@link NetAddress}
    * @return the worker id for this worker
    */
-  public long getWorkerId(WorkerNetAddress workerNetAddress) {
+  public long getWorkerId(NetAddress workerNetAddress) {
     // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
-    WorkerNetAddress workerAddress = new WorkerNetAddress(workerNetAddress);
-
     synchronized (mWorkers) {
-      if (mWorkers.contains(mAddressIndex, workerAddress)) {
+      if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
         // This worker address is already mapped to a worker id.
-        long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerAddress).getId();
-        LOG.warn("The worker {} already exists as id {}.", workerAddress, oldWorkerId);
+        long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerNetAddress).getId();
+        LOG.warn("The worker {} already exists as id {}.", workerNetAddress, oldWorkerId);
         return oldWorkerId;
       }
 
-      if (mLostWorkers.contains(mAddressIndex, workerAddress)) { // this is one of the lost workers
+      if (mLostWorkers.contains(mAddressIndex, workerNetAddress)) {
+        // this is one of the lost workers
         final MasterWorkerInfo lostWorkerInfo =
-            mLostWorkers.getFirstByField(mAddressIndex, workerAddress);
+            mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
         final long lostWorkerId = lostWorkerInfo.getId();
-        LOG.warn("A lost worker {} has requested its old id {}.", workerAddress, lostWorkerId);
+        LOG.warn("A lost worker {} has requested its old id {}.", workerNetAddress, lostWorkerId);
 
         // Update the timestamp of the worker before it is considered an active worker.
         lostWorkerInfo.updateLastUpdatedTimeMs();
@@ -508,7 +507,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
 
-      LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerAddress, workerId);
+      LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
       return workerId;
     }
   }
@@ -683,8 +682,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        ret.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
-            masterBlockLocation.getTierAlias()));
+        ret.add(new BlockLocation(masterBlockLocation.getWorkerId(),
+            workerInfo.getAddress().toThrift(), masterBlockLocation.getTierAlias()));
       }
     }
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), ret);

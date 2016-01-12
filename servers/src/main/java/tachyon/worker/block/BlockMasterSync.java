@@ -33,7 +33,7 @@ import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.TachyonException;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.Command;
-import tachyon.thrift.WorkerNetAddress;
+import tachyon.worker.NetAddress;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
 
@@ -56,7 +56,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
   /** The net address of the worker */
-  private final WorkerNetAddress mWorkerAddress;
+  private final NetAddress mWorkerAddress;
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
@@ -75,7 +75,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param workerAddress the net address of the worker
    * @param masterClient the Tachyon master client
    */
-  BlockMasterSync(BlockDataManager blockDataManager, WorkerNetAddress workerAddress,
+  BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
       BlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;

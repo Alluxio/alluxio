@@ -34,7 +34,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.BlockWorkerClientService;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
@@ -74,7 +73,7 @@ public final class TachyonWorker {
   /** The address for the rpc server */
   private InetSocketAddress mWorkerAddress;
   /** Net address of this worker */
-  private WorkerNetAddress mWorkerNetAddress;
+  private NetAddress mWorkerNetAddress;
   /** Worker start time in milliseconds */
   private long mStartTimeMs;
 
@@ -198,7 +197,7 @@ public final class TachyonWorker {
    *
    * @return the worker's net address
    */
-  public WorkerNetAddress getWorkerNetAddress() {
+  public NetAddress getWorkerNetAddress() {
     return mWorkerNetAddress;
   }
 
@@ -220,7 +219,7 @@ public final class TachyonWorker {
     // Set updated net address for this worker in context
     // Requirement: RPC, web, and dataserver ports are updated
     // Consequence: create a NetAddress object and set it into WorkerContext
-    mWorkerNetAddress = new WorkerNetAddress(
+    mWorkerNetAddress = new NetAddress(
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
         mTachyonConf.getInt(Constants.WORKER_RPC_PORT), getDataLocalPort(),
         mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
