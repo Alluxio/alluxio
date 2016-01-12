@@ -26,7 +26,7 @@ import tachyon.conf.TachyonConf;
 public class MaxFreeAllocatorTest extends BaseAllocatorTest {
 
   /**
-   * Tests that block are allocated in the storage directory with the most available free space.
+   * Tests that blocks are allocated in the storage directory with the most available free space.
    *
    * @throws Exception if adding the metadata of the block fails
    */

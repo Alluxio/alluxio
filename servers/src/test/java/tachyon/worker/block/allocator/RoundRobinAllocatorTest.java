@@ -26,7 +26,7 @@ import tachyon.conf.TachyonConf;
 public class RoundRobinAllocatorTest extends BaseAllocatorTest {
 
   /**
-   * Tests that block are allocated in a round robin fashion.
+   * Tests that blocks are allocated in a round robin fashion.
    *
    * @throws Exception if adding the metadata of the block fails
    */
