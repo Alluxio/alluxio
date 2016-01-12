@@ -27,8 +27,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
-import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
+import tachyon.client.OutStreamBase;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
@@ -47,12 +47,12 @@ import tachyon.worker.NetAddress;
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
- * Tachyon space in the local machine or remote machines. If the
- * {@link UnderStorageType} is {@link UnderStorageType#SYNC_PERSIST}, another stream will write the
- * data to the under storage system.
+ * Tachyon space in the local machine or remote machines. If the {@link UnderStorageType} is
+ * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
+ * system.
  */
 @PublicApi
-public class FileOutStream extends OutputStream implements Cancelable {
+public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
@@ -100,6 +100,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+    mBytesWritten = 0;
     mLocationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
   }
@@ -199,6 +200,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
+        mBytesWritten++;
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
@@ -233,9 +235,11 @@ public class FileOutStream extends OutputStream implements Cancelable {
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
+            mBytesWritten += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
+            mBytesWritten += (int) currentBlockLeftBytes;
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
           }
