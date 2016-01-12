@@ -38,6 +38,7 @@ public final class BlockContainerIdGeneratorTest {
 
   @Test
   public void getNewContainerIdTest() {
+    // The default container id is 0.
     Assert.assertEquals(0, mGenerator.getNewContainerId());
     Assert.assertEquals(1, mGenerator.getNewContainerId());
     Assert.assertEquals(2, mGenerator.getNewContainerId());
@@ -55,6 +56,7 @@ public final class BlockContainerIdGeneratorTest {
   public void toJournalEntryTest() {
     mGenerator.setNextContainerId(TEST_ID);
     Journal.JournalEntry entry = mGenerator.toJournalEntry();
+    Assert.assertNotNull(entry);
     Assert.assertTrue(entry.hasBlockContainerIdGenerator());
     Block.BlockContainerIdGeneratorEntry generatorEntry = entry.getBlockContainerIdGenerator();
     Assert.assertNotNull(generatorEntry);
