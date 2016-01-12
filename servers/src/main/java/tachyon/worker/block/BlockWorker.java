@@ -137,10 +137,10 @@ public final class BlockWorker extends WorkerBase {
    */
   @Override
   public void start() throws IOException {
-    NetAddress workerNetAddress;
+    NetAddress netAddress;
     try {
-      workerNetAddress = WorkerContext.getWorkerNetAddress();
-      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, workerNetAddress);
+      netAddress = WorkerContext.getNetAddress();
+      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
     } catch (ConnectionFailedException e) {
       LOG.error("Failed to get a worker id from block master", e);
       throw Throwables.propagate(e);
@@ -148,7 +148,7 @@ public final class BlockWorker extends WorkerBase {
 
     // Setup BlockMasterSync
     mBlockMasterSync =
-        new BlockMasterSync(mBlockDataManager, workerNetAddress, mBlockMasterClient);
+        new BlockMasterSync(mBlockDataManager, netAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);

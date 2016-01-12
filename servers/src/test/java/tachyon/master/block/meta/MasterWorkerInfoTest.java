@@ -113,7 +113,7 @@ public final class MasterWorkerInfoTest {
   public void workerInfoGenerationTest() {
     WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
     Assert.assertEquals(mInfo.getId(), workerInfo.id);
-    Assert.assertEquals(mInfo.getAddress(), workerInfo.address);
+    Assert.assertEquals(mInfo.getWorkerAddress().toThrift(), workerInfo.address);
     Assert.assertEquals("In Service", workerInfo.state);
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);

@@ -85,7 +85,7 @@ public final class LocalTachyonCluster extends AbstractLocalTachyonCluster {
   }
 
   public NetAddress getWorkerAddress() {
-    return mWorker.getWorkerNetAddress();
+    return mWorker.getNetAddress();
   }
 
   @Override
