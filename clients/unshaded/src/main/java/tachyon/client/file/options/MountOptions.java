@@ -35,4 +35,20 @@ public final class MountOptions {
   private MountOptions() {
     mReadOnly = false;
   }
+
+  /**
+   * @return whether the read-only flag is set
+   */
+  public boolean isReadOnly() {
+    return mReadOnly;
+  }
+
+  /**
+   * @param readOnly the read only flag for this option
+   * @return the updated options object
+   */
+  public MountOptions setReadOnly(boolean readOnly) {
+    mReadOnly = readOnly;
+    return this;
+  }
 }

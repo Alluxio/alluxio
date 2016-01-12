@@ -29,7 +29,26 @@ public final class CreateLineageOptions {
     return new CreateLineageOptions();
   }
 
+  /** Flag indicating whether or not to overwrite, currently unsupported */
+  private boolean mOverwrite;
+
   private CreateLineageOptions() {
-    // No options available currently
+    mOverwrite = false;
+  }
+
+  /**
+   * @return whether the overwrite flag is set
+   */
+  public boolean isOverwrite() {
+    return mOverwrite;
+  }
+
+  /**
+   * @param overwrite the overwrite flag to set
+   * @return the updated options object
+   */
+  public CreateLineageOptions setOverwrite(boolean overwrite) {
+    mOverwrite = overwrite;
+    return this;
   }
 }

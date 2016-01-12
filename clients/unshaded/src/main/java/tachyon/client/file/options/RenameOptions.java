@@ -35,4 +35,20 @@ public final class RenameOptions {
   private RenameOptions() {
     mOverwrite = false;
   }
+
+  /**
+   * @return whether to overwrite if the destination exists
+   */
+  public boolean isOverwrite() {
+    return mOverwrite;
+  }
+
+  /**
+   * @param overwrite the overwrite flag to set
+   * @return the updated options object
+   */
+  public RenameOptions setOverwrite(boolean overwrite) {
+    mOverwrite = overwrite;
+    return this;
+  }
 }
