@@ -5,7 +5,7 @@ include "exception.thrift"
 
 struct WorkerInfo {
   1: i64 id
-  2: common.NetAddress address
+  2: common.WorkerNetAddress address
   3: i32 lastContactSec
   4: string state
   5: i64 capacityBytes
@@ -57,7 +57,7 @@ service BlockMasterWorkerService extends common.TachyonService {
   /**
    * Returns a worker id for the given network address.
    */
-  i64 getWorkerId( /** the worker network address */ 1: common.NetAddress workerNetAddress)
+  i64 getWorkerId( /** the worker network address */ 1: common.WorkerNetAddress workerNetAddress)
 
   /**
    * Periodic worker heartbeat returns an optional command for the worker to execute.

@@ -32,7 +32,6 @@ import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
-import tachyon.client.WorkerNetAddress;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.CompleteFileOptions;
 import tachyon.client.file.options.OutStreamOptions;
@@ -43,6 +42,7 @@ import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -177,6 +177,10 @@ public class FileOutStream extends AbstractOutStream {
         mContext.releaseMasterClient(masterClient);
       }
     }
+
+    if (mUnderStorageType.isAsyncPersist()) {
+      scheduleAsyncPersist();
+    }
     mClosed = true;
   }
 
@@ -260,12 +264,10 @@ public class FileOutStream extends AbstractOutStream {
 
     if (mTachyonStorageType.isStore()) {
       try {
-        WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
+        NetAddress address = mLocationPolicy.getWorkerForNextBlock(
             mContext.getTachyonBlockStore().getWorkerInfoList(), mBlockSize);
-        String hostname = address == null ? null : address.getHost();
-        // TODO(yupeng) use the returned address directly for constructing the out stream
         mCurrentBlockOutStream =
-            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
+            mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, address);
         mShouldCacheCurrentBlock = true;
       } catch (TachyonException e) {
         throw new IOException(e);
@@ -305,6 +307,22 @@ public class FileOutStream extends AbstractOutStream {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(client);
+    }
+  }
+
+  /**
+   * Schedules the async persistence of the current file.
+   *
+   * @throws IOException an I/O error occurs
+   */
+  protected void scheduleAsyncPersist() throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.scheduleAsyncPersist(mFileId);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
     }
   }
 }

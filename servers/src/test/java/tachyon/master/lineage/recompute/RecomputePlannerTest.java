@@ -35,6 +35,9 @@ import tachyon.master.file.options.CompleteFileOptions;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 
+/**
+ * Unit tests for {@link RecomputePlanner}.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
 public final class RecomputePlannerTest {

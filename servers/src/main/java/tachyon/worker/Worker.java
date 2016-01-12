@@ -13,15 +13,28 @@
  * the License.
  */
 
-package tachyon.master.file.meta;
+package tachyon.worker;
 
-import org.powermock.reflect.Whitebox;
+import java.io.IOException;
 
 /**
- * Class which provides access to private state of {@link TTLBucket}.
+ * Interface of a Tachyon worker.
  */
-public final class TTLBucketPrivateAccess {
-  public static void setTTLIntervalMs(long intervalMs) {
-    Whitebox.setInternalState(TTLBucket.class, "sTTLIntervalMs", intervalMs);
-  }
+public interface Worker {
+
+  /**
+   * Starts the worker. Here, the worker should initialize state and possibly start threads required
+   * for operation.
+   *
+   * @throws IOException if I/O error occurs
+   */
+  void start() throws IOException;
+
+  /**
+   * Stops the worker. Here, anything created or started in {@link #start()} should be cleaned up
+   * and shutdown.
+   *
+   * @throws IOException if I/O error occurs
+   */
+  void stop() throws IOException;
 }

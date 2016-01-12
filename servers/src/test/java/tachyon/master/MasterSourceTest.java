@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.metrics;
+package tachyon.master;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +37,6 @@ import tachyon.exception.FileAlreadyCompletedException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.heartbeat.HeartbeatContext;
-import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.options.CompleteFileOptions;
@@ -46,13 +45,13 @@ import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * Unit tests for {@link tachyon.master.MasterSource}.
+ * Unit tests for {@link MasterSource}.
  */
-public final class MetricsCountersTest {
+public final class MasterSourceTest {
   private static final long TTLCHECKER_INTERVAL_MS = 0;
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private static final TachyonURI ROOT_URI = new TachyonURI("/");
@@ -94,7 +93,7 @@ public final class MetricsCountersTest {
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81, 82));
+    mWorkerId = mBlockMaster.getWorkerId(new WorkerNetAddress("localhost", 80, 81, 82));
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),

@@ -204,141 +204,89 @@ public final class Journal {
     tachyon.proto.journal.File.PersistDirectoryEntryOrBuilder getPersistDirectoryOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+     * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    boolean hasPersistFile();
+    boolean hasAsyncPersistRequest();
     /**
-     * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+     * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    tachyon.proto.journal.File.PersistFileEntry getPersistFile();
+    tachyon.proto.journal.File.AsyncPersistRequestEntry getAsyncPersistRequest();
     /**
-     * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+     * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    tachyon.proto.journal.File.PersistFileEntryOrBuilder getPersistFileOrBuilder();
+    tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-     */
-    boolean hasPersistFilesRequest();
-    /**
-     * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-     */
-    tachyon.proto.journal.Lineage.PersistFilesRequestEntry getPersistFilesRequest();
-    /**
-     * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-     */
-    tachyon.proto.journal.Lineage.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder();
-
-    /**
-     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
      */
     boolean hasRawTable();
     /**
-     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
      */
     tachyon.proto.journal.RawTable.RawTableEntry getRawTable();
     /**
-     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
      */
     tachyon.proto.journal.RawTable.RawTableEntryOrBuilder getRawTableOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
      */
     boolean hasReinitializeFile();
     /**
-     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
      */
     tachyon.proto.journal.File.ReinitializeFileEntry getReinitializeFile();
     /**
-     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
      */
     tachyon.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+     * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
      */
     boolean hasRename();
     /**
-     * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+     * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
      */
     tachyon.proto.journal.File.RenameEntry getRename();
     /**
-     * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+     * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
      */
     tachyon.proto.journal.File.RenameEntryOrBuilder getRenameOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
      */
     boolean hasSetState();
     /**
-     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
      */
     tachyon.proto.journal.File.SetStateEntry getSetState();
     /**
-     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
      */
     tachyon.proto.journal.File.SetStateEntryOrBuilder getSetStateOrBuilder();
 
     /**
-     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
      */
     boolean hasUpdateMetadata();
     /**
-     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
      */
     tachyon.proto.journal.RawTable.UpdateMetadataEntry getUpdateMetadata();
     /**
-     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
      */
     tachyon.proto.journal.RawTable.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder();
-
-    /**
-     * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-     */
-    boolean hasCompletePartition();
-    /**
-     * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-     */
-    tachyon.proto.journal.KeyValue.CompletePartitionEntry getCompletePartition();
-    /**
-     * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-     */
-    tachyon.proto.journal.KeyValue.CompletePartitionEntryOrBuilder getCompletePartitionOrBuilder();
-
-    /**
-     * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-     */
-    boolean hasCompleteStore();
-    /**
-     * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-     */
-    tachyon.proto.journal.KeyValue.CompleteStoreEntry getCompleteStore();
-    /**
-     * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-     */
-    tachyon.proto.journal.KeyValue.CompleteStoreEntryOrBuilder getCompleteStoreOrBuilder();
-
-    /**
-     * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-     */
-    boolean hasCreateStore();
-    /**
-     * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-     */
-    tachyon.proto.journal.KeyValue.CreateStoreEntry getCreateStore();
-    /**
-     * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-     */
-    tachyon.proto.journal.KeyValue.CreateStoreEntryOrBuilder getCreateStoreOrBuilder();
   }
   /**
    * Protobuf type {@code tachyon.proto.journal.JournalEntry}
    *
    * <pre>
    * Wraps around all types of Tachyon journal messages.
-   * next available id: 26
+   * next available id: 22
    * </pre>
    */
   public static final class JournalEntry extends
@@ -578,34 +526,21 @@ public final class Journal {
               break;
             }
             case 130: {
-              tachyon.proto.journal.File.PersistFileEntry.Builder subBuilder = null;
+              tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder subBuilder = null;
               if (entryCase_ == 16) {
-                subBuilder = ((tachyon.proto.journal.File.PersistFileEntry) entry_).toBuilder();
+                subBuilder = ((tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_).toBuilder();
               }
-              entry_ = input.readMessage(tachyon.proto.journal.File.PersistFileEntry.PARSER, extensionRegistry);
+              entry_ = input.readMessage(tachyon.proto.journal.File.AsyncPersistRequestEntry.PARSER, extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom((tachyon.proto.journal.File.PersistFileEntry) entry_);
+                subBuilder.mergeFrom((tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
               entryCase_ = 16;
               break;
             }
             case 138: {
-              tachyon.proto.journal.Lineage.PersistFilesRequestEntry.Builder subBuilder = null;
-              if (entryCase_ == 17) {
-                subBuilder = ((tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_).toBuilder();
-              }
-              entry_ = input.readMessage(tachyon.proto.journal.Lineage.PersistFilesRequestEntry.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom((tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_);
-                entry_ = subBuilder.buildPartial();
-              }
-              entryCase_ = 17;
-              break;
-            }
-            case 146: {
               tachyon.proto.journal.RawTable.RawTableEntry.Builder subBuilder = null;
-              if (entryCase_ == 18) {
+              if (entryCase_ == 17) {
                 subBuilder = ((tachyon.proto.journal.RawTable.RawTableEntry) entry_).toBuilder();
               }
               entry_ = input.readMessage(tachyon.proto.journal.RawTable.RawTableEntry.PARSER, extensionRegistry);
@@ -613,12 +548,12 @@ public final class Journal {
                 subBuilder.mergeFrom((tachyon.proto.journal.RawTable.RawTableEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
-              entryCase_ = 18;
+              entryCase_ = 17;
               break;
             }
-            case 154: {
+            case 146: {
               tachyon.proto.journal.File.ReinitializeFileEntry.Builder subBuilder = null;
-              if (entryCase_ == 19) {
+              if (entryCase_ == 18) {
                 subBuilder = ((tachyon.proto.journal.File.ReinitializeFileEntry) entry_).toBuilder();
               }
               entry_ = input.readMessage(tachyon.proto.journal.File.ReinitializeFileEntry.PARSER, extensionRegistry);
@@ -626,12 +561,12 @@ public final class Journal {
                 subBuilder.mergeFrom((tachyon.proto.journal.File.ReinitializeFileEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
-              entryCase_ = 19;
+              entryCase_ = 18;
               break;
             }
-            case 162: {
+            case 154: {
               tachyon.proto.journal.File.RenameEntry.Builder subBuilder = null;
-              if (entryCase_ == 20) {
+              if (entryCase_ == 19) {
                 subBuilder = ((tachyon.proto.journal.File.RenameEntry) entry_).toBuilder();
               }
               entry_ = input.readMessage(tachyon.proto.journal.File.RenameEntry.PARSER, extensionRegistry);
@@ -639,12 +574,12 @@ public final class Journal {
                 subBuilder.mergeFrom((tachyon.proto.journal.File.RenameEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
-              entryCase_ = 20;
+              entryCase_ = 19;
               break;
             }
-            case 170: {
+            case 162: {
               tachyon.proto.journal.File.SetStateEntry.Builder subBuilder = null;
-              if (entryCase_ == 21) {
+              if (entryCase_ == 20) {
                 subBuilder = ((tachyon.proto.journal.File.SetStateEntry) entry_).toBuilder();
               }
               entry_ = input.readMessage(tachyon.proto.journal.File.SetStateEntry.PARSER, extensionRegistry);
@@ -652,12 +587,12 @@ public final class Journal {
                 subBuilder.mergeFrom((tachyon.proto.journal.File.SetStateEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
-              entryCase_ = 21;
+              entryCase_ = 20;
               break;
             }
-            case 178: {
+            case 170: {
               tachyon.proto.journal.RawTable.UpdateMetadataEntry.Builder subBuilder = null;
-              if (entryCase_ == 22) {
+              if (entryCase_ == 21) {
                 subBuilder = ((tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_).toBuilder();
               }
               entry_ = input.readMessage(tachyon.proto.journal.RawTable.UpdateMetadataEntry.PARSER, extensionRegistry);
@@ -665,46 +600,7 @@ public final class Journal {
                 subBuilder.mergeFrom((tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_);
                 entry_ = subBuilder.buildPartial();
               }
-              entryCase_ = 22;
-              break;
-            }
-            case 186: {
-              tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder subBuilder = null;
-              if (entryCase_ == 23) {
-                subBuilder = ((tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_).toBuilder();
-              }
-              entry_ = input.readMessage(tachyon.proto.journal.KeyValue.CompletePartitionEntry.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom((tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_);
-                entry_ = subBuilder.buildPartial();
-              }
-              entryCase_ = 23;
-              break;
-            }
-            case 194: {
-              tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder subBuilder = null;
-              if (entryCase_ == 24) {
-                subBuilder = ((tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_).toBuilder();
-              }
-              entry_ = input.readMessage(tachyon.proto.journal.KeyValue.CompleteStoreEntry.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom((tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_);
-                entry_ = subBuilder.buildPartial();
-              }
-              entryCase_ = 24;
-              break;
-            }
-            case 202: {
-              tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder subBuilder = null;
-              if (entryCase_ == 25) {
-                subBuilder = ((tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_).toBuilder();
-              }
-              entry_ = input.readMessage(tachyon.proto.journal.KeyValue.CreateStoreEntry.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom((tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_);
-                entry_ = subBuilder.buildPartial();
-              }
-              entryCase_ = 25;
+              entryCase_ = 21;
               break;
             }
           }
@@ -765,16 +661,12 @@ public final class Journal {
       LINEAGE(13),
       LINEAGE_ID_GENERATOR(14),
       PERSIST_DIRECTORY(15),
-      PERSIST_FILE(16),
-      PERSIST_FILES_REQUEST(17),
-      RAW_TABLE(18),
-      REINITIALIZE_FILE(19),
-      RENAME(20),
-      SET_STATE(21),
-      UPDATE_METADATA(22),
-      COMPLETE_PARTITION(23),
-      COMPLETE_STORE(24),
-      CREATE_STORE(25),
+      ASYNC_PERSIST_REQUEST(16),
+      RAW_TABLE(17),
+      REINITIALIZE_FILE(18),
+      RENAME(19),
+      SET_STATE(20),
+      UPDATE_METADATA(21),
       ENTRY_NOT_SET(0);
       private int value = 0;
       private EntryCase(int value) {
@@ -796,16 +688,12 @@ public final class Journal {
           case 13: return LINEAGE;
           case 14: return LINEAGE_ID_GENERATOR;
           case 15: return PERSIST_DIRECTORY;
-          case 16: return PERSIST_FILE;
-          case 17: return PERSIST_FILES_REQUEST;
-          case 18: return RAW_TABLE;
-          case 19: return REINITIALIZE_FILE;
-          case 20: return RENAME;
-          case 21: return SET_STATE;
-          case 22: return UPDATE_METADATA;
-          case 23: return COMPLETE_PARTITION;
-          case 24: return COMPLETE_STORE;
-          case 25: return CREATE_STORE;
+          case 16: return ASYNC_PERSIST_REQUEST;
+          case 17: return RAW_TABLE;
+          case 18: return REINITIALIZE_FILE;
+          case 19: return RENAME;
+          case 20: return SET_STATE;
+          case 21: return UPDATE_METADATA;
           case 0: return ENTRY_NOT_SET;
           default: throw new java.lang.IllegalArgumentException(
             "Value is undefined for this oneof enum.");
@@ -1201,264 +1089,160 @@ public final class Journal {
       return tachyon.proto.journal.File.PersistDirectoryEntry.getDefaultInstance();
     }
 
-    public static final int PERSIST_FILE_FIELD_NUMBER = 16;
+    public static final int ASYNC_PERSIST_REQUEST_FIELD_NUMBER = 16;
     /**
-     * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+     * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    public boolean hasPersistFile() {
+    public boolean hasAsyncPersistRequest() {
       return entryCase_ == 16;
     }
     /**
-     * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+     * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    public tachyon.proto.journal.File.PersistFileEntry getPersistFile() {
+    public tachyon.proto.journal.File.AsyncPersistRequestEntry getAsyncPersistRequest() {
       if (entryCase_ == 16) {
-         return (tachyon.proto.journal.File.PersistFileEntry) entry_;
+         return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
       }
-      return tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+     * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
      */
-    public tachyon.proto.journal.File.PersistFileEntryOrBuilder getPersistFileOrBuilder() {
+    public tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder() {
       if (entryCase_ == 16) {
-         return (tachyon.proto.journal.File.PersistFileEntry) entry_;
+         return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
       }
-      return tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
     }
 
-    public static final int PERSIST_FILES_REQUEST_FIELD_NUMBER = 17;
+    public static final int RAW_TABLE_FIELD_NUMBER = 17;
     /**
-     * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
+     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
      */
-    public boolean hasPersistFilesRequest() {
+    public boolean hasRawTable() {
       return entryCase_ == 17;
     }
     /**
-     * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
+     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
      */
-    public tachyon.proto.journal.Lineage.PersistFilesRequestEntry getPersistFilesRequest() {
+    public tachyon.proto.journal.RawTable.RawTableEntry getRawTable() {
       if (entryCase_ == 17) {
-         return (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_;
+         return (tachyon.proto.journal.RawTable.RawTableEntry) entry_;
       }
-      return tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance();
+      return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
+     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
      */
-    public tachyon.proto.journal.Lineage.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder() {
+    public tachyon.proto.journal.RawTable.RawTableEntryOrBuilder getRawTableOrBuilder() {
       if (entryCase_ == 17) {
-         return (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_;
+         return (tachyon.proto.journal.RawTable.RawTableEntry) entry_;
       }
-      return tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance();
+      return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
     }
 
-    public static final int RAW_TABLE_FIELD_NUMBER = 18;
+    public static final int REINITIALIZE_FILE_FIELD_NUMBER = 18;
     /**
-     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
      */
-    public boolean hasRawTable() {
+    public boolean hasReinitializeFile() {
       return entryCase_ == 18;
     }
     /**
-     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
      */
-    public tachyon.proto.journal.RawTable.RawTableEntry getRawTable() {
+    public tachyon.proto.journal.File.ReinitializeFileEntry getReinitializeFile() {
       if (entryCase_ == 18) {
-         return (tachyon.proto.journal.RawTable.RawTableEntry) entry_;
+         return (tachyon.proto.journal.File.ReinitializeFileEntry) entry_;
       }
-      return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
      */
-    public tachyon.proto.journal.RawTable.RawTableEntryOrBuilder getRawTableOrBuilder() {
+    public tachyon.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
       if (entryCase_ == 18) {
-         return (tachyon.proto.journal.RawTable.RawTableEntry) entry_;
+         return (tachyon.proto.journal.File.ReinitializeFileEntry) entry_;
       }
-      return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
     }
 
-    public static final int REINITIALIZE_FILE_FIELD_NUMBER = 19;
+    public static final int RENAME_FIELD_NUMBER = 19;
     /**
-     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+     * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
      */
-    public boolean hasReinitializeFile() {
+    public boolean hasRename() {
       return entryCase_ == 19;
     }
     /**
-     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+     * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
      */
-    public tachyon.proto.journal.File.ReinitializeFileEntry getReinitializeFile() {
+    public tachyon.proto.journal.File.RenameEntry getRename() {
       if (entryCase_ == 19) {
-         return (tachyon.proto.journal.File.ReinitializeFileEntry) entry_;
+         return (tachyon.proto.journal.File.RenameEntry) entry_;
       }
-      return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+     * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
      */
-    public tachyon.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
+    public tachyon.proto.journal.File.RenameEntryOrBuilder getRenameOrBuilder() {
       if (entryCase_ == 19) {
-         return (tachyon.proto.journal.File.ReinitializeFileEntry) entry_;
+         return (tachyon.proto.journal.File.RenameEntry) entry_;
       }
-      return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
     }
 
-    public static final int RENAME_FIELD_NUMBER = 20;
+    public static final int SET_STATE_FIELD_NUMBER = 20;
     /**
-     * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
      */
-    public boolean hasRename() {
+    public boolean hasSetState() {
       return entryCase_ == 20;
     }
     /**
-     * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
      */
-    public tachyon.proto.journal.File.RenameEntry getRename() {
+    public tachyon.proto.journal.File.SetStateEntry getSetState() {
       if (entryCase_ == 20) {
-         return (tachyon.proto.journal.File.RenameEntry) entry_;
+         return (tachyon.proto.journal.File.SetStateEntry) entry_;
       }
-      return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
      */
-    public tachyon.proto.journal.File.RenameEntryOrBuilder getRenameOrBuilder() {
+    public tachyon.proto.journal.File.SetStateEntryOrBuilder getSetStateOrBuilder() {
       if (entryCase_ == 20) {
-         return (tachyon.proto.journal.File.RenameEntry) entry_;
+         return (tachyon.proto.journal.File.SetStateEntry) entry_;
       }
-      return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
+      return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
     }
 
-    public static final int SET_STATE_FIELD_NUMBER = 21;
+    public static final int UPDATE_METADATA_FIELD_NUMBER = 21;
     /**
-     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
      */
-    public boolean hasSetState() {
+    public boolean hasUpdateMetadata() {
       return entryCase_ == 21;
     }
     /**
-     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
-     */
-    public tachyon.proto.journal.File.SetStateEntry getSetState() {
-      if (entryCase_ == 21) {
-         return (tachyon.proto.journal.File.SetStateEntry) entry_;
-      }
-      return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
-     */
-    public tachyon.proto.journal.File.SetStateEntryOrBuilder getSetStateOrBuilder() {
-      if (entryCase_ == 21) {
-         return (tachyon.proto.journal.File.SetStateEntry) entry_;
-      }
-      return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
-    }
-
-    public static final int UPDATE_METADATA_FIELD_NUMBER = 22;
-    /**
-     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
-     */
-    public boolean hasUpdateMetadata() {
-      return entryCase_ == 22;
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
      */
     public tachyon.proto.journal.RawTable.UpdateMetadataEntry getUpdateMetadata() {
-      if (entryCase_ == 22) {
+      if (entryCase_ == 21) {
          return (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_;
       }
       return tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance();
     }
     /**
-     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+     * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
      */
     public tachyon.proto.journal.RawTable.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder() {
-      if (entryCase_ == 22) {
+      if (entryCase_ == 21) {
          return (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_;
       }
       return tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance();
-    }
-
-    public static final int COMPLETE_PARTITION_FIELD_NUMBER = 23;
-    /**
-     * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-     */
-    public boolean hasCompletePartition() {
-      return entryCase_ == 23;
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-     */
-    public tachyon.proto.journal.KeyValue.CompletePartitionEntry getCompletePartition() {
-      if (entryCase_ == 23) {
-         return (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_;
-      }
-      return tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance();
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-     */
-    public tachyon.proto.journal.KeyValue.CompletePartitionEntryOrBuilder getCompletePartitionOrBuilder() {
-      if (entryCase_ == 23) {
-         return (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_;
-      }
-      return tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance();
-    }
-
-    public static final int COMPLETE_STORE_FIELD_NUMBER = 24;
-    /**
-     * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-     */
-    public boolean hasCompleteStore() {
-      return entryCase_ == 24;
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-     */
-    public tachyon.proto.journal.KeyValue.CompleteStoreEntry getCompleteStore() {
-      if (entryCase_ == 24) {
-         return (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_;
-      }
-      return tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance();
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-     */
-    public tachyon.proto.journal.KeyValue.CompleteStoreEntryOrBuilder getCompleteStoreOrBuilder() {
-      if (entryCase_ == 24) {
-         return (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_;
-      }
-      return tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance();
-    }
-
-    public static final int CREATE_STORE_FIELD_NUMBER = 25;
-    /**
-     * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-     */
-    public boolean hasCreateStore() {
-      return entryCase_ == 25;
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-     */
-    public tachyon.proto.journal.KeyValue.CreateStoreEntry getCreateStore() {
-      if (entryCase_ == 25) {
-         return (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_;
-      }
-      return tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance();
-    }
-    /**
-     * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-     */
-    public tachyon.proto.journal.KeyValue.CreateStoreEntryOrBuilder getCreateStoreOrBuilder() {
-      if (entryCase_ == 25) {
-         return (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_;
-      }
-      return tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance();
     }
 
     private void initFields() {
@@ -1523,34 +1307,22 @@ public final class Journal {
         output.writeMessage(15, (tachyon.proto.journal.File.PersistDirectoryEntry) entry_);
       }
       if (entryCase_ == 16) {
-        output.writeMessage(16, (tachyon.proto.journal.File.PersistFileEntry) entry_);
+        output.writeMessage(16, (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_);
       }
       if (entryCase_ == 17) {
-        output.writeMessage(17, (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_);
+        output.writeMessage(17, (tachyon.proto.journal.RawTable.RawTableEntry) entry_);
       }
       if (entryCase_ == 18) {
-        output.writeMessage(18, (tachyon.proto.journal.RawTable.RawTableEntry) entry_);
+        output.writeMessage(18, (tachyon.proto.journal.File.ReinitializeFileEntry) entry_);
       }
       if (entryCase_ == 19) {
-        output.writeMessage(19, (tachyon.proto.journal.File.ReinitializeFileEntry) entry_);
+        output.writeMessage(19, (tachyon.proto.journal.File.RenameEntry) entry_);
       }
       if (entryCase_ == 20) {
-        output.writeMessage(20, (tachyon.proto.journal.File.RenameEntry) entry_);
+        output.writeMessage(20, (tachyon.proto.journal.File.SetStateEntry) entry_);
       }
       if (entryCase_ == 21) {
-        output.writeMessage(21, (tachyon.proto.journal.File.SetStateEntry) entry_);
-      }
-      if (entryCase_ == 22) {
-        output.writeMessage(22, (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_);
-      }
-      if (entryCase_ == 23) {
-        output.writeMessage(23, (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_);
-      }
-      if (entryCase_ == 24) {
-        output.writeMessage(24, (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_);
-      }
-      if (entryCase_ == 25) {
-        output.writeMessage(25, (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_);
+        output.writeMessage(21, (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1623,43 +1395,27 @@ public final class Journal {
       }
       if (entryCase_ == 16) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(16, (tachyon.proto.journal.File.PersistFileEntry) entry_);
+          .computeMessageSize(16, (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_);
       }
       if (entryCase_ == 17) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(17, (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_);
+          .computeMessageSize(17, (tachyon.proto.journal.RawTable.RawTableEntry) entry_);
       }
       if (entryCase_ == 18) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(18, (tachyon.proto.journal.RawTable.RawTableEntry) entry_);
+          .computeMessageSize(18, (tachyon.proto.journal.File.ReinitializeFileEntry) entry_);
       }
       if (entryCase_ == 19) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(19, (tachyon.proto.journal.File.ReinitializeFileEntry) entry_);
+          .computeMessageSize(19, (tachyon.proto.journal.File.RenameEntry) entry_);
       }
       if (entryCase_ == 20) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(20, (tachyon.proto.journal.File.RenameEntry) entry_);
+          .computeMessageSize(20, (tachyon.proto.journal.File.SetStateEntry) entry_);
       }
       if (entryCase_ == 21) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(21, (tachyon.proto.journal.File.SetStateEntry) entry_);
-      }
-      if (entryCase_ == 22) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(22, (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_);
-      }
-      if (entryCase_ == 23) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(23, (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_);
-      }
-      if (entryCase_ == 24) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(24, (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_);
-      }
-      if (entryCase_ == 25) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(25, (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_);
+          .computeMessageSize(21, (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1744,7 +1500,7 @@ public final class Journal {
      *
      * <pre>
      * Wraps around all types of Tachyon journal messages.
-     * next available id: 26
+     * next available id: 22
      * </pre>
      */
     public static final class Builder extends
@@ -1918,73 +1674,45 @@ public final class Journal {
           }
         }
         if (entryCase_ == 16) {
-          if (persistFileBuilder_ == null) {
+          if (asyncPersistRequestBuilder_ == null) {
             result.entry_ = entry_;
           } else {
-            result.entry_ = persistFileBuilder_.build();
+            result.entry_ = asyncPersistRequestBuilder_.build();
           }
         }
         if (entryCase_ == 17) {
-          if (persistFilesRequestBuilder_ == null) {
-            result.entry_ = entry_;
-          } else {
-            result.entry_ = persistFilesRequestBuilder_.build();
-          }
-        }
-        if (entryCase_ == 18) {
           if (rawTableBuilder_ == null) {
             result.entry_ = entry_;
           } else {
             result.entry_ = rawTableBuilder_.build();
           }
         }
-        if (entryCase_ == 19) {
+        if (entryCase_ == 18) {
           if (reinitializeFileBuilder_ == null) {
             result.entry_ = entry_;
           } else {
             result.entry_ = reinitializeFileBuilder_.build();
           }
         }
-        if (entryCase_ == 20) {
+        if (entryCase_ == 19) {
           if (renameBuilder_ == null) {
             result.entry_ = entry_;
           } else {
             result.entry_ = renameBuilder_.build();
           }
         }
-        if (entryCase_ == 21) {
+        if (entryCase_ == 20) {
           if (setStateBuilder_ == null) {
             result.entry_ = entry_;
           } else {
             result.entry_ = setStateBuilder_.build();
           }
         }
-        if (entryCase_ == 22) {
+        if (entryCase_ == 21) {
           if (updateMetadataBuilder_ == null) {
             result.entry_ = entry_;
           } else {
             result.entry_ = updateMetadataBuilder_.build();
-          }
-        }
-        if (entryCase_ == 23) {
-          if (completePartitionBuilder_ == null) {
-            result.entry_ = entry_;
-          } else {
-            result.entry_ = completePartitionBuilder_.build();
-          }
-        }
-        if (entryCase_ == 24) {
-          if (completeStoreBuilder_ == null) {
-            result.entry_ = entry_;
-          } else {
-            result.entry_ = completeStoreBuilder_.build();
-          }
-        }
-        if (entryCase_ == 25) {
-          if (createStoreBuilder_ == null) {
-            result.entry_ = entry_;
-          } else {
-            result.entry_ = createStoreBuilder_.build();
           }
         }
         result.bitField0_ = to_bitField0_;
@@ -2064,12 +1792,8 @@ public final class Journal {
             mergePersistDirectory(other.getPersistDirectory());
             break;
           }
-          case PERSIST_FILE: {
-            mergePersistFile(other.getPersistFile());
-            break;
-          }
-          case PERSIST_FILES_REQUEST: {
-            mergePersistFilesRequest(other.getPersistFilesRequest());
+          case ASYNC_PERSIST_REQUEST: {
+            mergeAsyncPersistRequest(other.getAsyncPersistRequest());
             break;
           }
           case RAW_TABLE: {
@@ -2090,18 +1814,6 @@ public final class Journal {
           }
           case UPDATE_METADATA: {
             mergeUpdateMetadata(other.getUpdateMetadata());
-            break;
-          }
-          case COMPLETE_PARTITION: {
-            mergeCompletePartition(other.getCompletePartition());
-            break;
-          }
-          case COMPLETE_STORE: {
-            mergeCompleteStore(other.getCompleteStore());
-            break;
-          }
-          case CREATE_STORE: {
-            mergeCreateStore(other.getCreateStore());
             break;
           }
           case ENTRY_NOT_SET: {
@@ -4073,67 +3785,67 @@ public final class Journal {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.File.PersistFileEntry, tachyon.proto.journal.File.PersistFileEntry.Builder, tachyon.proto.journal.File.PersistFileEntryOrBuilder> persistFileBuilder_;
+          tachyon.proto.journal.File.AsyncPersistRequestEntry, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder> asyncPersistRequestBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public boolean hasPersistFile() {
+      public boolean hasAsyncPersistRequest() {
         return entryCase_ == 16;
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public tachyon.proto.journal.File.PersistFileEntry getPersistFile() {
-        if (persistFileBuilder_ == null) {
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry getAsyncPersistRequest() {
+        if (asyncPersistRequestBuilder_ == null) {
           if (entryCase_ == 16) {
-            return (tachyon.proto.journal.File.PersistFileEntry) entry_;
+            return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
           }
-          return tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance();
+          return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
         } else {
           if (entryCase_ == 16) {
-            return persistFileBuilder_.getMessage();
+            return asyncPersistRequestBuilder_.getMessage();
           }
-          return tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance();
+          return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public Builder setPersistFile(tachyon.proto.journal.File.PersistFileEntry value) {
-        if (persistFileBuilder_ == null) {
+      public Builder setAsyncPersistRequest(tachyon.proto.journal.File.AsyncPersistRequestEntry value) {
+        if (asyncPersistRequestBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           entry_ = value;
           onChanged();
         } else {
-          persistFileBuilder_.setMessage(value);
+          asyncPersistRequestBuilder_.setMessage(value);
         }
         entryCase_ = 16;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public Builder setPersistFile(
-          tachyon.proto.journal.File.PersistFileEntry.Builder builderForValue) {
-        if (persistFileBuilder_ == null) {
+      public Builder setAsyncPersistRequest(
+          tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder builderForValue) {
+        if (asyncPersistRequestBuilder_ == null) {
           entry_ = builderForValue.build();
           onChanged();
         } else {
-          persistFileBuilder_.setMessage(builderForValue.build());
+          asyncPersistRequestBuilder_.setMessage(builderForValue.build());
         }
         entryCase_ = 16;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public Builder mergePersistFile(tachyon.proto.journal.File.PersistFileEntry value) {
-        if (persistFileBuilder_ == null) {
+      public Builder mergeAsyncPersistRequest(tachyon.proto.journal.File.AsyncPersistRequestEntry value) {
+        if (asyncPersistRequestBuilder_ == null) {
           if (entryCase_ == 16 &&
-              entry_ != tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance()) {
-            entry_ = tachyon.proto.journal.File.PersistFileEntry.newBuilder((tachyon.proto.journal.File.PersistFileEntry) entry_)
+              entry_ != tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance()) {
+            entry_ = tachyon.proto.journal.File.AsyncPersistRequestEntry.newBuilder((tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_)
                 .mergeFrom(value).buildPartial();
           } else {
             entry_ = value;
@@ -4141,18 +3853,18 @@ public final class Journal {
           onChanged();
         } else {
           if (entryCase_ == 16) {
-            persistFileBuilder_.mergeFrom(value);
+            asyncPersistRequestBuilder_.mergeFrom(value);
           }
-          persistFileBuilder_.setMessage(value);
+          asyncPersistRequestBuilder_.setMessage(value);
         }
         entryCase_ = 16;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public Builder clearPersistFile() {
-        if (persistFileBuilder_ == null) {
+      public Builder clearAsyncPersistRequest() {
+        if (asyncPersistRequestBuilder_ == null) {
           if (entryCase_ == 16) {
             entryCase_ = 0;
             entry_ = null;
@@ -4163,211 +3875,76 @@ public final class Journal {
             entryCase_ = 0;
             entry_ = null;
           }
-          persistFileBuilder_.clear();
+          asyncPersistRequestBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public tachyon.proto.journal.File.PersistFileEntry.Builder getPersistFileBuilder() {
-        return getPersistFileFieldBuilder().getBuilder();
+      public tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder getAsyncPersistRequestBuilder() {
+        return getAsyncPersistRequestFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
-      public tachyon.proto.journal.File.PersistFileEntryOrBuilder getPersistFileOrBuilder() {
-        if ((entryCase_ == 16) && (persistFileBuilder_ != null)) {
-          return persistFileBuilder_.getMessageOrBuilder();
+      public tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder getAsyncPersistRequestOrBuilder() {
+        if ((entryCase_ == 16) && (asyncPersistRequestBuilder_ != null)) {
+          return asyncPersistRequestBuilder_.getMessageOrBuilder();
         } else {
           if (entryCase_ == 16) {
-            return (tachyon.proto.journal.File.PersistFileEntry) entry_;
+            return (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_;
           }
-          return tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance();
+          return tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.PersistFileEntry persist_file = 16;</code>
+       * <code>optional .tachyon.proto.journal.AsyncPersistRequestEntry async_persist_request = 16;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.File.PersistFileEntry, tachyon.proto.journal.File.PersistFileEntry.Builder, tachyon.proto.journal.File.PersistFileEntryOrBuilder> 
-          getPersistFileFieldBuilder() {
-        if (persistFileBuilder_ == null) {
+          tachyon.proto.journal.File.AsyncPersistRequestEntry, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder> 
+          getAsyncPersistRequestFieldBuilder() {
+        if (asyncPersistRequestBuilder_ == null) {
           if (!(entryCase_ == 16)) {
-            entry_ = tachyon.proto.journal.File.PersistFileEntry.getDefaultInstance();
+            entry_ = tachyon.proto.journal.File.AsyncPersistRequestEntry.getDefaultInstance();
           }
-          persistFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.journal.File.PersistFileEntry, tachyon.proto.journal.File.PersistFileEntry.Builder, tachyon.proto.journal.File.PersistFileEntryOrBuilder>(
-                  (tachyon.proto.journal.File.PersistFileEntry) entry_,
+          asyncPersistRequestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              tachyon.proto.journal.File.AsyncPersistRequestEntry, tachyon.proto.journal.File.AsyncPersistRequestEntry.Builder, tachyon.proto.journal.File.AsyncPersistRequestEntryOrBuilder>(
+                  (tachyon.proto.journal.File.AsyncPersistRequestEntry) entry_,
                   getParentForChildren(),
                   isClean());
           entry_ = null;
         }
         entryCase_ = 16;
-        return persistFileBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.Lineage.PersistFilesRequestEntry, tachyon.proto.journal.Lineage.PersistFilesRequestEntry.Builder, tachyon.proto.journal.Lineage.PersistFilesRequestEntryOrBuilder> persistFilesRequestBuilder_;
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public boolean hasPersistFilesRequest() {
-        return entryCase_ == 17;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public tachyon.proto.journal.Lineage.PersistFilesRequestEntry getPersistFilesRequest() {
-        if (persistFilesRequestBuilder_ == null) {
-          if (entryCase_ == 17) {
-            return (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_;
-          }
-          return tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance();
-        } else {
-          if (entryCase_ == 17) {
-            return persistFilesRequestBuilder_.getMessage();
-          }
-          return tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public Builder setPersistFilesRequest(tachyon.proto.journal.Lineage.PersistFilesRequestEntry value) {
-        if (persistFilesRequestBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          entry_ = value;
-          onChanged();
-        } else {
-          persistFilesRequestBuilder_.setMessage(value);
-        }
-        entryCase_ = 17;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public Builder setPersistFilesRequest(
-          tachyon.proto.journal.Lineage.PersistFilesRequestEntry.Builder builderForValue) {
-        if (persistFilesRequestBuilder_ == null) {
-          entry_ = builderForValue.build();
-          onChanged();
-        } else {
-          persistFilesRequestBuilder_.setMessage(builderForValue.build());
-        }
-        entryCase_ = 17;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public Builder mergePersistFilesRequest(tachyon.proto.journal.Lineage.PersistFilesRequestEntry value) {
-        if (persistFilesRequestBuilder_ == null) {
-          if (entryCase_ == 17 &&
-              entry_ != tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance()) {
-            entry_ = tachyon.proto.journal.Lineage.PersistFilesRequestEntry.newBuilder((tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            entry_ = value;
-          }
-          onChanged();
-        } else {
-          if (entryCase_ == 17) {
-            persistFilesRequestBuilder_.mergeFrom(value);
-          }
-          persistFilesRequestBuilder_.setMessage(value);
-        }
-        entryCase_ = 17;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public Builder clearPersistFilesRequest() {
-        if (persistFilesRequestBuilder_ == null) {
-          if (entryCase_ == 17) {
-            entryCase_ = 0;
-            entry_ = null;
-            onChanged();
-          }
-        } else {
-          if (entryCase_ == 17) {
-            entryCase_ = 0;
-            entry_ = null;
-          }
-          persistFilesRequestBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public tachyon.proto.journal.Lineage.PersistFilesRequestEntry.Builder getPersistFilesRequestBuilder() {
-        return getPersistFilesRequestFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      public tachyon.proto.journal.Lineage.PersistFilesRequestEntryOrBuilder getPersistFilesRequestOrBuilder() {
-        if ((entryCase_ == 17) && (persistFilesRequestBuilder_ != null)) {
-          return persistFilesRequestBuilder_.getMessageOrBuilder();
-        } else {
-          if (entryCase_ == 17) {
-            return (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_;
-          }
-          return tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.PersistFilesRequestEntry persist_files_request = 17;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.Lineage.PersistFilesRequestEntry, tachyon.proto.journal.Lineage.PersistFilesRequestEntry.Builder, tachyon.proto.journal.Lineage.PersistFilesRequestEntryOrBuilder> 
-          getPersistFilesRequestFieldBuilder() {
-        if (persistFilesRequestBuilder_ == null) {
-          if (!(entryCase_ == 17)) {
-            entry_ = tachyon.proto.journal.Lineage.PersistFilesRequestEntry.getDefaultInstance();
-          }
-          persistFilesRequestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.journal.Lineage.PersistFilesRequestEntry, tachyon.proto.journal.Lineage.PersistFilesRequestEntry.Builder, tachyon.proto.journal.Lineage.PersistFilesRequestEntryOrBuilder>(
-                  (tachyon.proto.journal.Lineage.PersistFilesRequestEntry) entry_,
-                  getParentForChildren(),
-                  isClean());
-          entry_ = null;
-        }
-        entryCase_ = 17;
-        return persistFilesRequestBuilder_;
+        return asyncPersistRequestBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.RawTable.RawTableEntry, tachyon.proto.journal.RawTable.RawTableEntry.Builder, tachyon.proto.journal.RawTable.RawTableEntryOrBuilder> rawTableBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public boolean hasRawTable() {
-        return entryCase_ == 18;
+        return entryCase_ == 17;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public tachyon.proto.journal.RawTable.RawTableEntry getRawTable() {
         if (rawTableBuilder_ == null) {
-          if (entryCase_ == 18) {
+          if (entryCase_ == 17) {
             return (tachyon.proto.journal.RawTable.RawTableEntry) entry_;
           }
           return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
         } else {
-          if (entryCase_ == 18) {
+          if (entryCase_ == 17) {
             return rawTableBuilder_.getMessage();
           }
           return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public Builder setRawTable(tachyon.proto.journal.RawTable.RawTableEntry value) {
         if (rawTableBuilder_ == null) {
@@ -4379,11 +3956,11 @@ public final class Journal {
         } else {
           rawTableBuilder_.setMessage(value);
         }
-        entryCase_ = 18;
+        entryCase_ = 17;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public Builder setRawTable(
           tachyon.proto.journal.RawTable.RawTableEntry.Builder builderForValue) {
@@ -4393,15 +3970,15 @@ public final class Journal {
         } else {
           rawTableBuilder_.setMessage(builderForValue.build());
         }
-        entryCase_ = 18;
+        entryCase_ = 17;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public Builder mergeRawTable(tachyon.proto.journal.RawTable.RawTableEntry value) {
         if (rawTableBuilder_ == null) {
-          if (entryCase_ == 18 &&
+          if (entryCase_ == 17 &&
               entry_ != tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.journal.RawTable.RawTableEntry.newBuilder((tachyon.proto.journal.RawTable.RawTableEntry) entry_)
                 .mergeFrom(value).buildPartial();
@@ -4410,26 +3987,26 @@ public final class Journal {
           }
           onChanged();
         } else {
-          if (entryCase_ == 18) {
+          if (entryCase_ == 17) {
             rawTableBuilder_.mergeFrom(value);
           }
           rawTableBuilder_.setMessage(value);
         }
-        entryCase_ = 18;
+        entryCase_ = 17;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public Builder clearRawTable() {
         if (rawTableBuilder_ == null) {
-          if (entryCase_ == 18) {
+          if (entryCase_ == 17) {
             entryCase_ = 0;
             entry_ = null;
             onChanged();
           }
         } else {
-          if (entryCase_ == 18) {
+          if (entryCase_ == 17) {
             entryCase_ = 0;
             entry_ = null;
           }
@@ -4438,32 +4015,32 @@ public final class Journal {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public tachyon.proto.journal.RawTable.RawTableEntry.Builder getRawTableBuilder() {
         return getRawTableFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       public tachyon.proto.journal.RawTable.RawTableEntryOrBuilder getRawTableOrBuilder() {
-        if ((entryCase_ == 18) && (rawTableBuilder_ != null)) {
+        if ((entryCase_ == 17) && (rawTableBuilder_ != null)) {
           return rawTableBuilder_.getMessageOrBuilder();
         } else {
-          if (entryCase_ == 18) {
+          if (entryCase_ == 17) {
             return (tachyon.proto.journal.RawTable.RawTableEntry) entry_;
           }
           return tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 18;</code>
+       * <code>optional .tachyon.proto.journal.RawTableEntry raw_table = 17;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.RawTable.RawTableEntry, tachyon.proto.journal.RawTable.RawTableEntry.Builder, tachyon.proto.journal.RawTable.RawTableEntryOrBuilder> 
           getRawTableFieldBuilder() {
         if (rawTableBuilder_ == null) {
-          if (!(entryCase_ == 18)) {
+          if (!(entryCase_ == 17)) {
             entry_ = tachyon.proto.journal.RawTable.RawTableEntry.getDefaultInstance();
           }
           rawTableBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4473,36 +4050,36 @@ public final class Journal {
                   isClean());
           entry_ = null;
         }
-        entryCase_ = 18;
+        entryCase_ = 17;
         return rawTableBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.ReinitializeFileEntry, tachyon.proto.journal.File.ReinitializeFileEntry.Builder, tachyon.proto.journal.File.ReinitializeFileEntryOrBuilder> reinitializeFileBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public boolean hasReinitializeFile() {
-        return entryCase_ == 19;
+        return entryCase_ == 18;
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public tachyon.proto.journal.File.ReinitializeFileEntry getReinitializeFile() {
         if (reinitializeFileBuilder_ == null) {
-          if (entryCase_ == 19) {
+          if (entryCase_ == 18) {
             return (tachyon.proto.journal.File.ReinitializeFileEntry) entry_;
           }
           return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
         } else {
-          if (entryCase_ == 19) {
+          if (entryCase_ == 18) {
             return reinitializeFileBuilder_.getMessage();
           }
           return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public Builder setReinitializeFile(tachyon.proto.journal.File.ReinitializeFileEntry value) {
         if (reinitializeFileBuilder_ == null) {
@@ -4514,11 +4091,11 @@ public final class Journal {
         } else {
           reinitializeFileBuilder_.setMessage(value);
         }
-        entryCase_ = 19;
+        entryCase_ = 18;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public Builder setReinitializeFile(
           tachyon.proto.journal.File.ReinitializeFileEntry.Builder builderForValue) {
@@ -4528,15 +4105,15 @@ public final class Journal {
         } else {
           reinitializeFileBuilder_.setMessage(builderForValue.build());
         }
-        entryCase_ = 19;
+        entryCase_ = 18;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public Builder mergeReinitializeFile(tachyon.proto.journal.File.ReinitializeFileEntry value) {
         if (reinitializeFileBuilder_ == null) {
-          if (entryCase_ == 19 &&
+          if (entryCase_ == 18 &&
               entry_ != tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.journal.File.ReinitializeFileEntry.newBuilder((tachyon.proto.journal.File.ReinitializeFileEntry) entry_)
                 .mergeFrom(value).buildPartial();
@@ -4545,26 +4122,26 @@ public final class Journal {
           }
           onChanged();
         } else {
-          if (entryCase_ == 19) {
+          if (entryCase_ == 18) {
             reinitializeFileBuilder_.mergeFrom(value);
           }
           reinitializeFileBuilder_.setMessage(value);
         }
-        entryCase_ = 19;
+        entryCase_ = 18;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public Builder clearReinitializeFile() {
         if (reinitializeFileBuilder_ == null) {
-          if (entryCase_ == 19) {
+          if (entryCase_ == 18) {
             entryCase_ = 0;
             entry_ = null;
             onChanged();
           }
         } else {
-          if (entryCase_ == 19) {
+          if (entryCase_ == 18) {
             entryCase_ = 0;
             entry_ = null;
           }
@@ -4573,32 +4150,32 @@ public final class Journal {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public tachyon.proto.journal.File.ReinitializeFileEntry.Builder getReinitializeFileBuilder() {
         return getReinitializeFileFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       public tachyon.proto.journal.File.ReinitializeFileEntryOrBuilder getReinitializeFileOrBuilder() {
-        if ((entryCase_ == 19) && (reinitializeFileBuilder_ != null)) {
+        if ((entryCase_ == 18) && (reinitializeFileBuilder_ != null)) {
           return reinitializeFileBuilder_.getMessageOrBuilder();
         } else {
-          if (entryCase_ == 19) {
+          if (entryCase_ == 18) {
             return (tachyon.proto.journal.File.ReinitializeFileEntry) entry_;
           }
           return tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 19;</code>
+       * <code>optional .tachyon.proto.journal.ReinitializeFileEntry reinitialize_file = 18;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.ReinitializeFileEntry, tachyon.proto.journal.File.ReinitializeFileEntry.Builder, tachyon.proto.journal.File.ReinitializeFileEntryOrBuilder> 
           getReinitializeFileFieldBuilder() {
         if (reinitializeFileBuilder_ == null) {
-          if (!(entryCase_ == 19)) {
+          if (!(entryCase_ == 18)) {
             entry_ = tachyon.proto.journal.File.ReinitializeFileEntry.getDefaultInstance();
           }
           reinitializeFileBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4608,36 +4185,36 @@ public final class Journal {
                   isClean());
           entry_ = null;
         }
-        entryCase_ = 19;
+        entryCase_ = 18;
         return reinitializeFileBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.RenameEntry, tachyon.proto.journal.File.RenameEntry.Builder, tachyon.proto.journal.File.RenameEntryOrBuilder> renameBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public boolean hasRename() {
-        return entryCase_ == 20;
+        return entryCase_ == 19;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public tachyon.proto.journal.File.RenameEntry getRename() {
         if (renameBuilder_ == null) {
-          if (entryCase_ == 20) {
+          if (entryCase_ == 19) {
             return (tachyon.proto.journal.File.RenameEntry) entry_;
           }
           return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
         } else {
-          if (entryCase_ == 20) {
+          if (entryCase_ == 19) {
             return renameBuilder_.getMessage();
           }
           return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public Builder setRename(tachyon.proto.journal.File.RenameEntry value) {
         if (renameBuilder_ == null) {
@@ -4649,11 +4226,11 @@ public final class Journal {
         } else {
           renameBuilder_.setMessage(value);
         }
-        entryCase_ = 20;
+        entryCase_ = 19;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public Builder setRename(
           tachyon.proto.journal.File.RenameEntry.Builder builderForValue) {
@@ -4663,15 +4240,15 @@ public final class Journal {
         } else {
           renameBuilder_.setMessage(builderForValue.build());
         }
-        entryCase_ = 20;
+        entryCase_ = 19;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public Builder mergeRename(tachyon.proto.journal.File.RenameEntry value) {
         if (renameBuilder_ == null) {
-          if (entryCase_ == 20 &&
+          if (entryCase_ == 19 &&
               entry_ != tachyon.proto.journal.File.RenameEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.journal.File.RenameEntry.newBuilder((tachyon.proto.journal.File.RenameEntry) entry_)
                 .mergeFrom(value).buildPartial();
@@ -4680,26 +4257,26 @@ public final class Journal {
           }
           onChanged();
         } else {
-          if (entryCase_ == 20) {
+          if (entryCase_ == 19) {
             renameBuilder_.mergeFrom(value);
           }
           renameBuilder_.setMessage(value);
         }
-        entryCase_ = 20;
+        entryCase_ = 19;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public Builder clearRename() {
         if (renameBuilder_ == null) {
-          if (entryCase_ == 20) {
+          if (entryCase_ == 19) {
             entryCase_ = 0;
             entry_ = null;
             onChanged();
           }
         } else {
-          if (entryCase_ == 20) {
+          if (entryCase_ == 19) {
             entryCase_ = 0;
             entry_ = null;
           }
@@ -4708,32 +4285,32 @@ public final class Journal {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public tachyon.proto.journal.File.RenameEntry.Builder getRenameBuilder() {
         return getRenameFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       public tachyon.proto.journal.File.RenameEntryOrBuilder getRenameOrBuilder() {
-        if ((entryCase_ == 20) && (renameBuilder_ != null)) {
+        if ((entryCase_ == 19) && (renameBuilder_ != null)) {
           return renameBuilder_.getMessageOrBuilder();
         } else {
-          if (entryCase_ == 20) {
+          if (entryCase_ == 19) {
             return (tachyon.proto.journal.File.RenameEntry) entry_;
           }
           return tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.RenameEntry rename = 20;</code>
+       * <code>optional .tachyon.proto.journal.RenameEntry rename = 19;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.RenameEntry, tachyon.proto.journal.File.RenameEntry.Builder, tachyon.proto.journal.File.RenameEntryOrBuilder> 
           getRenameFieldBuilder() {
         if (renameBuilder_ == null) {
-          if (!(entryCase_ == 20)) {
+          if (!(entryCase_ == 19)) {
             entry_ = tachyon.proto.journal.File.RenameEntry.getDefaultInstance();
           }
           renameBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4743,36 +4320,36 @@ public final class Journal {
                   isClean());
           entry_ = null;
         }
-        entryCase_ = 20;
+        entryCase_ = 19;
         return renameBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.SetStateEntry, tachyon.proto.journal.File.SetStateEntry.Builder, tachyon.proto.journal.File.SetStateEntryOrBuilder> setStateBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public boolean hasSetState() {
-        return entryCase_ == 21;
+        return entryCase_ == 20;
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public tachyon.proto.journal.File.SetStateEntry getSetState() {
         if (setStateBuilder_ == null) {
-          if (entryCase_ == 21) {
+          if (entryCase_ == 20) {
             return (tachyon.proto.journal.File.SetStateEntry) entry_;
           }
           return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
         } else {
-          if (entryCase_ == 21) {
+          if (entryCase_ == 20) {
             return setStateBuilder_.getMessage();
           }
           return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public Builder setSetState(tachyon.proto.journal.File.SetStateEntry value) {
         if (setStateBuilder_ == null) {
@@ -4784,11 +4361,11 @@ public final class Journal {
         } else {
           setStateBuilder_.setMessage(value);
         }
-        entryCase_ = 21;
+        entryCase_ = 20;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public Builder setSetState(
           tachyon.proto.journal.File.SetStateEntry.Builder builderForValue) {
@@ -4798,15 +4375,15 @@ public final class Journal {
         } else {
           setStateBuilder_.setMessage(builderForValue.build());
         }
-        entryCase_ = 21;
+        entryCase_ = 20;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public Builder mergeSetState(tachyon.proto.journal.File.SetStateEntry value) {
         if (setStateBuilder_ == null) {
-          if (entryCase_ == 21 &&
+          if (entryCase_ == 20 &&
               entry_ != tachyon.proto.journal.File.SetStateEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.journal.File.SetStateEntry.newBuilder((tachyon.proto.journal.File.SetStateEntry) entry_)
                 .mergeFrom(value).buildPartial();
@@ -4815,26 +4392,26 @@ public final class Journal {
           }
           onChanged();
         } else {
-          if (entryCase_ == 21) {
+          if (entryCase_ == 20) {
             setStateBuilder_.mergeFrom(value);
           }
           setStateBuilder_.setMessage(value);
         }
-        entryCase_ = 21;
+        entryCase_ = 20;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public Builder clearSetState() {
         if (setStateBuilder_ == null) {
-          if (entryCase_ == 21) {
+          if (entryCase_ == 20) {
             entryCase_ = 0;
             entry_ = null;
             onChanged();
           }
         } else {
-          if (entryCase_ == 21) {
+          if (entryCase_ == 20) {
             entryCase_ = 0;
             entry_ = null;
           }
@@ -4843,32 +4420,32 @@ public final class Journal {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public tachyon.proto.journal.File.SetStateEntry.Builder getSetStateBuilder() {
         return getSetStateFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       public tachyon.proto.journal.File.SetStateEntryOrBuilder getSetStateOrBuilder() {
-        if ((entryCase_ == 21) && (setStateBuilder_ != null)) {
+        if ((entryCase_ == 20) && (setStateBuilder_ != null)) {
           return setStateBuilder_.getMessageOrBuilder();
         } else {
-          if (entryCase_ == 21) {
+          if (entryCase_ == 20) {
             return (tachyon.proto.journal.File.SetStateEntry) entry_;
           }
           return tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 21;</code>
+       * <code>optional .tachyon.proto.journal.SetStateEntry set_state = 20;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.File.SetStateEntry, tachyon.proto.journal.File.SetStateEntry.Builder, tachyon.proto.journal.File.SetStateEntryOrBuilder> 
           getSetStateFieldBuilder() {
         if (setStateBuilder_ == null) {
-          if (!(entryCase_ == 21)) {
+          if (!(entryCase_ == 20)) {
             entry_ = tachyon.proto.journal.File.SetStateEntry.getDefaultInstance();
           }
           setStateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4878,36 +4455,36 @@ public final class Journal {
                   isClean());
           entry_ = null;
         }
-        entryCase_ = 21;
+        entryCase_ = 20;
         return setStateBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.RawTable.UpdateMetadataEntry, tachyon.proto.journal.RawTable.UpdateMetadataEntry.Builder, tachyon.proto.journal.RawTable.UpdateMetadataEntryOrBuilder> updateMetadataBuilder_;
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public boolean hasUpdateMetadata() {
-        return entryCase_ == 22;
+        return entryCase_ == 21;
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public tachyon.proto.journal.RawTable.UpdateMetadataEntry getUpdateMetadata() {
         if (updateMetadataBuilder_ == null) {
-          if (entryCase_ == 22) {
+          if (entryCase_ == 21) {
             return (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_;
           }
           return tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance();
         } else {
-          if (entryCase_ == 22) {
+          if (entryCase_ == 21) {
             return updateMetadataBuilder_.getMessage();
           }
           return tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public Builder setUpdateMetadata(tachyon.proto.journal.RawTable.UpdateMetadataEntry value) {
         if (updateMetadataBuilder_ == null) {
@@ -4919,11 +4496,11 @@ public final class Journal {
         } else {
           updateMetadataBuilder_.setMessage(value);
         }
-        entryCase_ = 22;
+        entryCase_ = 21;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public Builder setUpdateMetadata(
           tachyon.proto.journal.RawTable.UpdateMetadataEntry.Builder builderForValue) {
@@ -4933,15 +4510,15 @@ public final class Journal {
         } else {
           updateMetadataBuilder_.setMessage(builderForValue.build());
         }
-        entryCase_ = 22;
+        entryCase_ = 21;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public Builder mergeUpdateMetadata(tachyon.proto.journal.RawTable.UpdateMetadataEntry value) {
         if (updateMetadataBuilder_ == null) {
-          if (entryCase_ == 22 &&
+          if (entryCase_ == 21 &&
               entry_ != tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance()) {
             entry_ = tachyon.proto.journal.RawTable.UpdateMetadataEntry.newBuilder((tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_)
                 .mergeFrom(value).buildPartial();
@@ -4950,26 +4527,26 @@ public final class Journal {
           }
           onChanged();
         } else {
-          if (entryCase_ == 22) {
+          if (entryCase_ == 21) {
             updateMetadataBuilder_.mergeFrom(value);
           }
           updateMetadataBuilder_.setMessage(value);
         }
-        entryCase_ = 22;
+        entryCase_ = 21;
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public Builder clearUpdateMetadata() {
         if (updateMetadataBuilder_ == null) {
-          if (entryCase_ == 22) {
+          if (entryCase_ == 21) {
             entryCase_ = 0;
             entry_ = null;
             onChanged();
           }
         } else {
-          if (entryCase_ == 22) {
+          if (entryCase_ == 21) {
             entryCase_ = 0;
             entry_ = null;
           }
@@ -4978,32 +4555,32 @@ public final class Journal {
         return this;
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public tachyon.proto.journal.RawTable.UpdateMetadataEntry.Builder getUpdateMetadataBuilder() {
         return getUpdateMetadataFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       public tachyon.proto.journal.RawTable.UpdateMetadataEntryOrBuilder getUpdateMetadataOrBuilder() {
-        if ((entryCase_ == 22) && (updateMetadataBuilder_ != null)) {
+        if ((entryCase_ == 21) && (updateMetadataBuilder_ != null)) {
           return updateMetadataBuilder_.getMessageOrBuilder();
         } else {
-          if (entryCase_ == 22) {
+          if (entryCase_ == 21) {
             return (tachyon.proto.journal.RawTable.UpdateMetadataEntry) entry_;
           }
           return tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance();
         }
       }
       /**
-       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 22;</code>
+       * <code>optional .tachyon.proto.journal.UpdateMetadataEntry update_metadata = 21;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           tachyon.proto.journal.RawTable.UpdateMetadataEntry, tachyon.proto.journal.RawTable.UpdateMetadataEntry.Builder, tachyon.proto.journal.RawTable.UpdateMetadataEntryOrBuilder> 
           getUpdateMetadataFieldBuilder() {
         if (updateMetadataBuilder_ == null) {
-          if (!(entryCase_ == 22)) {
+          if (!(entryCase_ == 21)) {
             entry_ = tachyon.proto.journal.RawTable.UpdateMetadataEntry.getDefaultInstance();
           }
           updateMetadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -5013,413 +4590,8 @@ public final class Journal {
                   isClean());
           entry_ = null;
         }
-        entryCase_ = 22;
+        entryCase_ = 21;
         return updateMetadataBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.KeyValue.CompletePartitionEntry, tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder, tachyon.proto.journal.KeyValue.CompletePartitionEntryOrBuilder> completePartitionBuilder_;
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public boolean hasCompletePartition() {
-        return entryCase_ == 23;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CompletePartitionEntry getCompletePartition() {
-        if (completePartitionBuilder_ == null) {
-          if (entryCase_ == 23) {
-            return (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_;
-          }
-          return tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance();
-        } else {
-          if (entryCase_ == 23) {
-            return completePartitionBuilder_.getMessage();
-          }
-          return tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public Builder setCompletePartition(tachyon.proto.journal.KeyValue.CompletePartitionEntry value) {
-        if (completePartitionBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          entry_ = value;
-          onChanged();
-        } else {
-          completePartitionBuilder_.setMessage(value);
-        }
-        entryCase_ = 23;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public Builder setCompletePartition(
-          tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder builderForValue) {
-        if (completePartitionBuilder_ == null) {
-          entry_ = builderForValue.build();
-          onChanged();
-        } else {
-          completePartitionBuilder_.setMessage(builderForValue.build());
-        }
-        entryCase_ = 23;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public Builder mergeCompletePartition(tachyon.proto.journal.KeyValue.CompletePartitionEntry value) {
-        if (completePartitionBuilder_ == null) {
-          if (entryCase_ == 23 &&
-              entry_ != tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance()) {
-            entry_ = tachyon.proto.journal.KeyValue.CompletePartitionEntry.newBuilder((tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            entry_ = value;
-          }
-          onChanged();
-        } else {
-          if (entryCase_ == 23) {
-            completePartitionBuilder_.mergeFrom(value);
-          }
-          completePartitionBuilder_.setMessage(value);
-        }
-        entryCase_ = 23;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public Builder clearCompletePartition() {
-        if (completePartitionBuilder_ == null) {
-          if (entryCase_ == 23) {
-            entryCase_ = 0;
-            entry_ = null;
-            onChanged();
-          }
-        } else {
-          if (entryCase_ == 23) {
-            entryCase_ = 0;
-            entry_ = null;
-          }
-          completePartitionBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder getCompletePartitionBuilder() {
-        return getCompletePartitionFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CompletePartitionEntryOrBuilder getCompletePartitionOrBuilder() {
-        if ((entryCase_ == 23) && (completePartitionBuilder_ != null)) {
-          return completePartitionBuilder_.getMessageOrBuilder();
-        } else {
-          if (entryCase_ == 23) {
-            return (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_;
-          }
-          return tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompletePartitionEntry complete_partition = 23;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.KeyValue.CompletePartitionEntry, tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder, tachyon.proto.journal.KeyValue.CompletePartitionEntryOrBuilder> 
-          getCompletePartitionFieldBuilder() {
-        if (completePartitionBuilder_ == null) {
-          if (!(entryCase_ == 23)) {
-            entry_ = tachyon.proto.journal.KeyValue.CompletePartitionEntry.getDefaultInstance();
-          }
-          completePartitionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.journal.KeyValue.CompletePartitionEntry, tachyon.proto.journal.KeyValue.CompletePartitionEntry.Builder, tachyon.proto.journal.KeyValue.CompletePartitionEntryOrBuilder>(
-                  (tachyon.proto.journal.KeyValue.CompletePartitionEntry) entry_,
-                  getParentForChildren(),
-                  isClean());
-          entry_ = null;
-        }
-        entryCase_ = 23;
-        return completePartitionBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.KeyValue.CompleteStoreEntry, tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder, tachyon.proto.journal.KeyValue.CompleteStoreEntryOrBuilder> completeStoreBuilder_;
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public boolean hasCompleteStore() {
-        return entryCase_ == 24;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CompleteStoreEntry getCompleteStore() {
-        if (completeStoreBuilder_ == null) {
-          if (entryCase_ == 24) {
-            return (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_;
-          }
-          return tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance();
-        } else {
-          if (entryCase_ == 24) {
-            return completeStoreBuilder_.getMessage();
-          }
-          return tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public Builder setCompleteStore(tachyon.proto.journal.KeyValue.CompleteStoreEntry value) {
-        if (completeStoreBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          entry_ = value;
-          onChanged();
-        } else {
-          completeStoreBuilder_.setMessage(value);
-        }
-        entryCase_ = 24;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public Builder setCompleteStore(
-          tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder builderForValue) {
-        if (completeStoreBuilder_ == null) {
-          entry_ = builderForValue.build();
-          onChanged();
-        } else {
-          completeStoreBuilder_.setMessage(builderForValue.build());
-        }
-        entryCase_ = 24;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public Builder mergeCompleteStore(tachyon.proto.journal.KeyValue.CompleteStoreEntry value) {
-        if (completeStoreBuilder_ == null) {
-          if (entryCase_ == 24 &&
-              entry_ != tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance()) {
-            entry_ = tachyon.proto.journal.KeyValue.CompleteStoreEntry.newBuilder((tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            entry_ = value;
-          }
-          onChanged();
-        } else {
-          if (entryCase_ == 24) {
-            completeStoreBuilder_.mergeFrom(value);
-          }
-          completeStoreBuilder_.setMessage(value);
-        }
-        entryCase_ = 24;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public Builder clearCompleteStore() {
-        if (completeStoreBuilder_ == null) {
-          if (entryCase_ == 24) {
-            entryCase_ = 0;
-            entry_ = null;
-            onChanged();
-          }
-        } else {
-          if (entryCase_ == 24) {
-            entryCase_ = 0;
-            entry_ = null;
-          }
-          completeStoreBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder getCompleteStoreBuilder() {
-        return getCompleteStoreFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CompleteStoreEntryOrBuilder getCompleteStoreOrBuilder() {
-        if ((entryCase_ == 24) && (completeStoreBuilder_ != null)) {
-          return completeStoreBuilder_.getMessageOrBuilder();
-        } else {
-          if (entryCase_ == 24) {
-            return (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_;
-          }
-          return tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CompleteStoreEntry complete_store = 24;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.KeyValue.CompleteStoreEntry, tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder, tachyon.proto.journal.KeyValue.CompleteStoreEntryOrBuilder> 
-          getCompleteStoreFieldBuilder() {
-        if (completeStoreBuilder_ == null) {
-          if (!(entryCase_ == 24)) {
-            entry_ = tachyon.proto.journal.KeyValue.CompleteStoreEntry.getDefaultInstance();
-          }
-          completeStoreBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.journal.KeyValue.CompleteStoreEntry, tachyon.proto.journal.KeyValue.CompleteStoreEntry.Builder, tachyon.proto.journal.KeyValue.CompleteStoreEntryOrBuilder>(
-                  (tachyon.proto.journal.KeyValue.CompleteStoreEntry) entry_,
-                  getParentForChildren(),
-                  isClean());
-          entry_ = null;
-        }
-        entryCase_ = 24;
-        return completeStoreBuilder_;
-      }
-
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.KeyValue.CreateStoreEntry, tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder, tachyon.proto.journal.KeyValue.CreateStoreEntryOrBuilder> createStoreBuilder_;
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public boolean hasCreateStore() {
-        return entryCase_ == 25;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CreateStoreEntry getCreateStore() {
-        if (createStoreBuilder_ == null) {
-          if (entryCase_ == 25) {
-            return (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_;
-          }
-          return tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance();
-        } else {
-          if (entryCase_ == 25) {
-            return createStoreBuilder_.getMessage();
-          }
-          return tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public Builder setCreateStore(tachyon.proto.journal.KeyValue.CreateStoreEntry value) {
-        if (createStoreBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          entry_ = value;
-          onChanged();
-        } else {
-          createStoreBuilder_.setMessage(value);
-        }
-        entryCase_ = 25;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public Builder setCreateStore(
-          tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder builderForValue) {
-        if (createStoreBuilder_ == null) {
-          entry_ = builderForValue.build();
-          onChanged();
-        } else {
-          createStoreBuilder_.setMessage(builderForValue.build());
-        }
-        entryCase_ = 25;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public Builder mergeCreateStore(tachyon.proto.journal.KeyValue.CreateStoreEntry value) {
-        if (createStoreBuilder_ == null) {
-          if (entryCase_ == 25 &&
-              entry_ != tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance()) {
-            entry_ = tachyon.proto.journal.KeyValue.CreateStoreEntry.newBuilder((tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_)
-                .mergeFrom(value).buildPartial();
-          } else {
-            entry_ = value;
-          }
-          onChanged();
-        } else {
-          if (entryCase_ == 25) {
-            createStoreBuilder_.mergeFrom(value);
-          }
-          createStoreBuilder_.setMessage(value);
-        }
-        entryCase_ = 25;
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public Builder clearCreateStore() {
-        if (createStoreBuilder_ == null) {
-          if (entryCase_ == 25) {
-            entryCase_ = 0;
-            entry_ = null;
-            onChanged();
-          }
-        } else {
-          if (entryCase_ == 25) {
-            entryCase_ = 0;
-            entry_ = null;
-          }
-          createStoreBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder getCreateStoreBuilder() {
-        return getCreateStoreFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      public tachyon.proto.journal.KeyValue.CreateStoreEntryOrBuilder getCreateStoreOrBuilder() {
-        if ((entryCase_ == 25) && (createStoreBuilder_ != null)) {
-          return createStoreBuilder_.getMessageOrBuilder();
-        } else {
-          if (entryCase_ == 25) {
-            return (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_;
-          }
-          return tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance();
-        }
-      }
-      /**
-       * <code>optional .tachyon.proto.journal.CreateStoreEntry create_store = 25;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          tachyon.proto.journal.KeyValue.CreateStoreEntry, tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder, tachyon.proto.journal.KeyValue.CreateStoreEntryOrBuilder> 
-          getCreateStoreFieldBuilder() {
-        if (createStoreBuilder_ == null) {
-          if (!(entryCase_ == 25)) {
-            entry_ = tachyon.proto.journal.KeyValue.CreateStoreEntry.getDefaultInstance();
-          }
-          createStoreBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              tachyon.proto.journal.KeyValue.CreateStoreEntry, tachyon.proto.journal.KeyValue.CreateStoreEntry.Builder, tachyon.proto.journal.KeyValue.CreateStoreEntryOrBuilder>(
-                  (tachyon.proto.journal.KeyValue.CreateStoreEntry) entry_,
-                  getParentForChildren(),
-                  isClean());
-          entry_ = null;
-        }
-        entryCase_ = 25;
-        return createStoreBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:tachyon.proto.journal.JournalEntry)
@@ -5450,52 +4622,45 @@ public final class Journal {
       "\n\025journal/journal.proto\022\025tachyon.proto.j" +
       "ournal\032\023journal/block.proto\032\022journal/fil" +
       "e.proto\032\025journal/lineage.proto\032\027journal/" +
-      "raw_table.proto\032\027journal/key_value.proto" +
-      "\"\336\r\n\014JournalEntry\022\027\n\017sequence_number\030\001 \001" +
-      "(\003\022D\n\017add_mount_point\030\002 \001(\0132).tachyon.pr" +
-      "oto.journal.AddMountPointEntryH\000\022]\n\034bloc" +
-      "k_container_id_generator\030\003 \001(\01325.tachyon" +
-      ".proto.journal.BlockContainerIdGenerator" +
-      "EntryH\000\022;\n\nblock_info\030\004 \001(\0132%.tachyon.pr",
-      "oto.journal.BlockInfoEntryH\000\022A\n\rcomplete" +
-      "_file\030\005 \001(\0132(.tachyon.proto.journal.Comp" +
-      "leteFileEntryH\000\022=\n\013delete_file\030\006 \001(\0132&.t" +
-      "achyon.proto.journal.DeleteFileEntryH\000\022C" +
-      "\n\016delete_lineage\030\007 \001(\0132).tachyon.proto.j" +
-      "ournal.DeleteLineageEntryH\000\022J\n\022delete_mo" +
-      "unt_point\030\010 \001(\0132,.tachyon.proto.journal." +
-      "DeleteMountPointEntryH\000\022E\n\017inode_directo" +
-      "ry\030\t \001(\0132*.tachyon.proto.journal.InodeDi" +
-      "rectoryEntryH\000\022]\n\034inode_directory_id_gen",
-      "erator\030\n \001(\01325.tachyon.proto.journal.Ino" +
-      "deDirectoryIdGeneratorEntryH\000\022;\n\ninode_f" +
-      "ile\030\013 \001(\0132%.tachyon.proto.journal.InodeF" +
-      "ileEntryH\000\022]\n\034inode_last_modification_ti" +
-      "me\030\014 \001(\01325.tachyon.proto.journal.InodeLa" +
-      "stModificationTimeEntryH\000\0226\n\007lineage\030\r \001" +
-      "(\0132#.tachyon.proto.journal.LineageEntryH" +
-      "\000\022N\n\024lineage_id_generator\030\016 \001(\0132..tachyo" +
-      "n.proto.journal.LineageIdGeneratorEntryH" +
-      "\000\022I\n\021persist_directory\030\017 \001(\0132,.tachyon.p",
-      "roto.journal.PersistDirectoryEntryH\000\022?\n\014" +
-      "persist_file\030\020 \001(\0132\'.tachyon.proto.journ" +
-      "al.PersistFileEntryH\000\022P\n\025persist_files_r" +
-      "equest\030\021 \001(\0132/.tachyon.proto.journal.Per" +
-      "sistFilesRequestEntryH\000\0229\n\traw_table\030\022 \001" +
-      "(\0132$.tachyon.proto.journal.RawTableEntry" +
-      "H\000\022I\n\021reinitialize_file\030\023 \001(\0132,.tachyon." +
-      "proto.journal.ReinitializeFileEntryH\000\0224\n" +
-      "\006rename\030\024 \001(\0132\".tachyon.proto.journal.Re" +
-      "nameEntryH\000\0229\n\tset_state\030\025 \001(\0132$.tachyon",
-      ".proto.journal.SetStateEntryH\000\022E\n\017update" +
-      "_metadata\030\026 \001(\0132*.tachyon.proto.journal." +
-      "UpdateMetadataEntryH\000\022K\n\022complete_partit" +
-      "ion\030\027 \001(\0132-.tachyon.proto.journal.Comple" +
-      "tePartitionEntryH\000\022C\n\016complete_store\030\030 \001" +
-      "(\0132).tachyon.proto.journal.CompleteStore" +
-      "EntryH\000\022?\n\014create_store\030\031 \001(\0132\'.tachyon." +
-      "proto.journal.CreateStoreEntryH\000B\007\n\005entr" +
-      "yB\027\n\025tachyon.proto.journal"
+      "raw_table.proto\"\312\013\n\014JournalEntry\022\027\n\017sequ" +
+      "ence_number\030\001 \001(\003\022D\n\017add_mount_point\030\002 \001" +
+      "(\0132).tachyon.proto.journal.AddMountPoint" +
+      "EntryH\000\022]\n\034block_container_id_generator\030" +
+      "\003 \001(\01325.tachyon.proto.journal.BlockConta" +
+      "inerIdGeneratorEntryH\000\022;\n\nblock_info\030\004 \001" +
+      "(\0132%.tachyon.proto.journal.BlockInfoEntr",
+      "yH\000\022A\n\rcomplete_file\030\005 \001(\0132(.tachyon.pro" +
+      "to.journal.CompleteFileEntryH\000\022=\n\013delete" +
+      "_file\030\006 \001(\0132&.tachyon.proto.journal.Dele" +
+      "teFileEntryH\000\022C\n\016delete_lineage\030\007 \001(\0132)." +
+      "tachyon.proto.journal.DeleteLineageEntry" +
+      "H\000\022J\n\022delete_mount_point\030\010 \001(\0132,.tachyon" +
+      ".proto.journal.DeleteMountPointEntryH\000\022E" +
+      "\n\017inode_directory\030\t \001(\0132*.tachyon.proto." +
+      "journal.InodeDirectoryEntryH\000\022]\n\034inode_d" +
+      "irectory_id_generator\030\n \001(\01325.tachyon.pr",
+      "oto.journal.InodeDirectoryIdGeneratorEnt" +
+      "ryH\000\022;\n\ninode_file\030\013 \001(\0132%.tachyon.proto" +
+      ".journal.InodeFileEntryH\000\022]\n\034inode_last_" +
+      "modification_time\030\014 \001(\01325.tachyon.proto." +
+      "journal.InodeLastModificationTimeEntryH\000" +
+      "\0226\n\007lineage\030\r \001(\0132#.tachyon.proto.journa" +
+      "l.LineageEntryH\000\022N\n\024lineage_id_generator" +
+      "\030\016 \001(\0132..tachyon.proto.journal.LineageId" +
+      "GeneratorEntryH\000\022I\n\021persist_directory\030\017 " +
+      "\001(\0132,.tachyon.proto.journal.PersistDirec",
+      "toryEntryH\000\022P\n\025async_persist_request\030\020 \001" +
+      "(\0132/.tachyon.proto.journal.AsyncPersistR" +
+      "equestEntryH\000\0229\n\traw_table\030\021 \001(\0132$.tachy" +
+      "on.proto.journal.RawTableEntryH\000\022I\n\021rein" +
+      "itialize_file\030\022 \001(\0132,.tachyon.proto.jour" +
+      "nal.ReinitializeFileEntryH\000\0224\n\006rename\030\023 " +
+      "\001(\0132\".tachyon.proto.journal.RenameEntryH" +
+      "\000\0229\n\tset_state\030\024 \001(\0132$.tachyon.proto.jou" +
+      "rnal.SetStateEntryH\000\022E\n\017update_metadata\030" +
+      "\025 \001(\0132*.tachyon.proto.journal.UpdateMeta",
+      "dataEntryH\000B\007\n\005entryB\027\n\025tachyon.proto.jo" +
+      "urnal"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5512,19 +4677,17 @@ public final class Journal {
           tachyon.proto.journal.File.getDescriptor(),
           tachyon.proto.journal.Lineage.getDescriptor(),
           tachyon.proto.journal.RawTable.getDescriptor(),
-          tachyon.proto.journal.KeyValue.getDescriptor(),
         }, assigner);
     internal_static_tachyon_proto_journal_JournalEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_tachyon_proto_journal_JournalEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_tachyon_proto_journal_JournalEntry_descriptor,
-        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "PersistDirectory", "PersistFile", "PersistFilesRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "CompletePartition", "CompleteStore", "CreateStore", "Entry", });
+        new java.lang.String[] { "SequenceNumber", "AddMountPoint", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "PersistDirectory", "AsyncPersistRequest", "RawTable", "ReinitializeFile", "Rename", "SetState", "UpdateMetadata", "Entry", });
     tachyon.proto.journal.Block.getDescriptor();
     tachyon.proto.journal.File.getDescriptor();
     tachyon.proto.journal.Lineage.getDescriptor();
     tachyon.proto.journal.RawTable.getDescriptor();
-    tachyon.proto.journal.KeyValue.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -38,12 +38,12 @@ public class SetStateOptionsTest {
     SetStateOptions options =
         new SetStateOptions.Builder()
             .setPinned(recursive)
-            .setTTL(ttl)
+            .setTtl(ttl)
             .setPersisted(persist)
             .build();
 
     Assert.assertEquals(recursive, options.getPinned());
-    Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(persist, options.getPersisted());
   }
 
@@ -55,7 +55,7 @@ public class SetStateOptionsTest {
     SetStateOptions options = SetStateOptions.defaults();
 
     Assert.assertFalse(options.hasPinned());
-    Assert.assertFalse(options.hasTTL());
+    Assert.assertFalse(options.hasTtl());
     Assert.assertFalse(options.hasPersisted());
   }
 }

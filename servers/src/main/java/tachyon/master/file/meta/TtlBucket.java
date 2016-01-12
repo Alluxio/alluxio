@@ -27,50 +27,50 @@ import tachyon.master.MasterContext;
  * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
  * interval starts at a specific time and lasts for {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
  *
- * Not thread-safe. Only for use related to {@link TTLBucketList}.
+ * Not thread-safe. Only for use related to {@link TtlBucketList}.
  */
-public final class TTLBucket implements Comparable<TTLBucket> {
+public final class TtlBucket implements Comparable<TtlBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
-  private static long sTTLIntervalMs = MasterContext.getConf().getInt(
+  private static long sTtlIntervalMs = MasterContext.getConf().getInt(
       Constants.MASTER_TTLCHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
    */
-  private long mTTLIntervalStartTimeMs;
+  private long mTtlIntervalStartTimeMs;
   /** A set of InodeFiles whose ttl value is in the range of this bucket's interval. */
   private Set<InodeFile> mFiles;
 
   /**
-   * Creates a new instance of {@link TTLBucket}.
+   * Creates a new instance of {@link TtlBucket}.
    *
    * @param startTimeMs the start time to use
    */
-  public TTLBucket(long startTimeMs) {
-    mTTLIntervalStartTimeMs = startTimeMs;
+  public TtlBucket(long startTimeMs) {
+    mTtlIntervalStartTimeMs = startTimeMs;
     mFiles = new HashSet<InodeFile>();
   }
 
   /**
    * @return the ttl interval start time in milliseconds
    */
-  public long getTTLIntervalStartTimeMs() {
-    return mTTLIntervalStartTimeMs;
+  public long getTtlIntervalStartTimeMs() {
+    return mTtlIntervalStartTimeMs;
   }
 
   /**
    *
    * @return the ttl interval end time in milliseconds
    */
-  public long getTTLIntervalEndTimeMs() {
-    return mTTLIntervalStartTimeMs + sTTLIntervalMs;
+  public long getTtlIntervalEndTimeMs() {
+    return mTtlIntervalStartTimeMs + sTtlIntervalMs;
   }
 
   /**
    * @return the ttl interval in milliseconds
    */
-  public static long getTTLIntervalMs() {
-    return sTTLIntervalMs;
+  public static long getTtlIntervalMs() {
+    return sTtlIntervalMs;
   }
 
   /**
@@ -103,13 +103,13 @@ public final class TTLBucket implements Comparable<TTLBucket> {
    * Compares this bucket's TTL interval start time to that of another bucket.
    *
    * @param ttlBucket the bucket to be compared to
-   * @return 0 when return values of {@link #getTTLIntervalStartTimeMs()} from the two buckets are
+   * @return 0 when return values of {@link #getTtlIntervalStartTimeMs()} from the two buckets are
    *         the same, -1 when that value of current instance is smaller, otherwise, 1
    */
   @Override
-  public int compareTo(TTLBucket ttlBucket) {
-    long startTime1 = getTTLIntervalStartTimeMs();
-    long startTime2 = ttlBucket.getTTLIntervalStartTimeMs();
+  public int compareTo(TtlBucket ttlBucket) {
+    long startTime1 = getTtlIntervalStartTimeMs();
+    long startTime2 = ttlBucket.getTtlIntervalStartTimeMs();
 
     if (startTime1 < startTime2) {
       return -1;
@@ -124,27 +124,27 @@ public final class TTLBucket implements Comparable<TTLBucket> {
    * Compares to a specific object.
    *
    * @param o the object to compare
-   * @return true if object is also {@link TTLBucket} and represents the same TTLIntervalStartTime
+   * @return true if object is also {@link TtlBucket} and represents the same TtlIntervalStartTime
    */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof TTLBucket)) {
+    if (!(o instanceof TtlBucket)) {
       return false;
     }
-    TTLBucket that = (TTLBucket) o;
-    return mTTLIntervalStartTimeMs == that.mTTLIntervalStartTimeMs;
+    TtlBucket that = (TtlBucket) o;
+    return mTtlIntervalStartTimeMs == that.mTtlIntervalStartTimeMs;
   }
 
   /**
-   * Returns the hash code for the {@link TTLBucket}.
+   * Returns the hash code for the {@link TtlBucket}.
    *
-   * @return The hash code value for this {@link TTLBucket}
+   * @return The hash code value for this {@link TtlBucket}
    */
   @Override
   public int hashCode() {
-    return Objects.hashCode(mTTLIntervalStartTimeMs);
+    return Objects.hashCode(mTtlIntervalStartTimeMs);
   }
 }

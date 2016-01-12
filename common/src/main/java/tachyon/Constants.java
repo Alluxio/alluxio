@@ -67,6 +67,7 @@ public final class Constants {
 
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
+  public static final String HEADER_SWIFT = "swift://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -169,8 +170,8 @@ public final class Constants {
       "tachyon.integration.master.resource.cpu";
   public static final String INTEGRATION_MASTER_RESOURCE_MEM =
       "tachyon.integration.master.resource.mem";
-  public static final String INTEGRATION_YARN_ONE_WORKER_PER_HOST =
-      "tachyon.integration.yarn.one.worker.per.host";
+  public static final String INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
+      "tachyon.integration.yarn.workers.per.host.max";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
   public static final String INTEGRATION_MESOS_JRE_PATH =
@@ -380,6 +381,14 @@ public final class Constants {
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+
+  public static final String SWIFT_USER_KEY = "fs.swift.user";
+  public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
+  public static final String SWIFT_API_KEY = "fs.swift.apikey";
+  public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
+  public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
+  public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
+  public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 

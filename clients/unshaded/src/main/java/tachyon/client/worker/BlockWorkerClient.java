@@ -42,11 +42,11 @@ import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.BlockWorkerClientService;
 import tachyon.thrift.LockBlockResult;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonService;
 import tachyon.thrift.TachyonTException;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
+import tachyon.worker.NetAddress;
 
 /**
  * The client talks to a block worker server. It keeps sending keep alive message to the worker
@@ -239,6 +239,7 @@ public final class BlockWorkerClient extends ClientBase {
   /**
    * @return the address of the worker
    */
+  @Override
   public synchronized InetSocketAddress getAddress() {
     return mAddress;
   }
@@ -250,6 +251,9 @@ public final class BlockWorkerClient extends ClientBase {
     return mWorkerDataServerAddress;
   }
 
+  /**
+   * @return the id of the session
+   */
   public synchronized long getSessionId() {
     return mSessionId;
   }

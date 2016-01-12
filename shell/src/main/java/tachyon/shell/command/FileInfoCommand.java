@@ -69,4 +69,9 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   public String getUsage() {
     return "fileinfo <path>";
   }
+
+  @Override
+  public String getDescription() {
+    return "Displays all block info for the specified file.";
+  }
 }
