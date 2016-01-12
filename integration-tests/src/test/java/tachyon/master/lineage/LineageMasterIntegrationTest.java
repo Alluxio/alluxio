@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import com.google.common.collect.Lists;
 
@@ -45,6 +46,8 @@ import tachyon.master.file.meta.PersistenceState;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.LineageInfo;
 import tachyon.util.CommonUtils;
+import tachyon.worker.file.FileDataManager;
+import tachyon.worker.file.FileSystemWorker;
 
 /**
  * Integration tests for the lineage module.
@@ -141,10 +144,7 @@ public final class LineageMasterIntegrationTest {
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(),
           fileInfo.getPersistenceState());
 
-      // sleep and wait for worker to persist the file
-      // TODO(yupeng) use a deterministic way of control the completion of the task, to avoid flaky
-      // tests
-      CommonUtils.sleepMs(200);
+      waitForFilePersisted(fileId);
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
@@ -157,6 +157,16 @@ public final class LineageMasterIntegrationTest {
 
     } finally {
       lineageMasterClient.close();
+    }
+  }
+
+  private void waitForFilePersisted(long fileId) {
+    FileSystemWorker fileSystemWorker = Whitebox
+        .getInternalState(mLocalTachyonClusterResource.get().getWorker(), "mFileSystemWorker");
+    FileDataManager fileDataManager =
+        Whitebox.getInternalState(fileSystemWorker, "mFileDataManager");
+    while (!fileDataManager.isFilePersisted(fileId)) {
+      CommonUtils.sleepMs(10);
     }
   }
 
