@@ -402,7 +402,6 @@ public final class BlockWorkerClient extends ClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void sessionHeartbeat() throws ConnectionFailedException, IOException {
-    System.out.println("this is wrong");
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

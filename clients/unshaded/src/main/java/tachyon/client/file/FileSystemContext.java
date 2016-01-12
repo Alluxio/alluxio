@@ -34,7 +34,6 @@ public enum FileSystemContext {
   INSTANCE;
 
   private FileSystemMasterClientPool mFileSystemMasterClientPool;
-
   private final TachyonBlockStore mTachyonBlockStore;
 
   /**
