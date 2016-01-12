@@ -66,4 +66,4 @@ After this succeeds, you can visit your OSS directory OSS_BUCKET/OSS_DIRECTORY t
 
 To stop Tachyon, you can run:
 
-    $ ./bin/tachyon-stop.sh
+    $ ./bin/tachyon-stop.sh all

@@ -82,7 +82,7 @@ by Tachyon exist. For this test, you should see files named like:
 To stop Tachyon, you can run:
 
 ```bash
-$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-stop.sh all
 ```
 # Running functional test with IBM SoftLayer
 
