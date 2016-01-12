@@ -48,12 +48,19 @@ public class StorageTierTest {
   private String mTestDirPath1;
   private String mTestDirPath2;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up a dependency fails
+   */
   @Before
   public final void before() throws Exception {
     mTestDirPath1 = mFolder.newFolder().getAbsolutePath();
@@ -68,21 +75,35 @@ public class StorageTierTest {
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     WorkerContext.reset();
   }
 
+  /**
+   * Tests the {@link StorageTier#getTierAlias()} method.
+   */
   @Test
   public void getTierAliasTest() {
     Assert.assertEquals(TEST_TIER_ALIAS, mTier.getTierAlias());
   }
 
+  /**
+   * Tests the {@link StorageTier#getTierOrdinal()} method.
+   */
   @Test
   public void getTierLevelTest() {
     Assert.assertEquals(TEST_TIER_ORDINAL, mTier.getTierOrdinal());
   }
 
+  /**
+   * Tests the {@link StorageTier#getCapacityBytes()} method.
+   *
+   * @throws Exception if adding the temporary block metadata fails
+   */
   @Test
   public void getCapacityBytesTest() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
@@ -92,6 +113,11 @@ public class StorageTierTest {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
   }
 
+  /**
+   * Tests the {@link StorageTier#getAvailableBytes()} method.
+   *
+   * @throws Exception if adding the temporary block metadata fails
+   */
   @Test
   public void getAvailableBytesTest() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getAvailableBytes());
@@ -102,6 +128,9 @@ public class StorageTierTest {
         mTier.getAvailableBytes());
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get a directory by a non-existing index.
+   */
   @Test
   public void getDirTest() {
     mThrown.expect(IndexOutOfBoundsException.class);
@@ -113,6 +142,9 @@ public class StorageTierTest {
     mTier.getDir(2);
   }
 
+  /**
+   * Tests the {@link StorageTier#getStorageDirs()} method.
+   */
   @Test
   public void getStorageDirsTest() {
     List<StorageDir> dirs = mTier.getStorageDirs();

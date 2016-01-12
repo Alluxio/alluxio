@@ -25,6 +25,9 @@ import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.proto.journal.Journal.JournalEntry;
 
+/**
+ * This interface contains common operations for all masters.
+ */
 public interface Master extends JournalCheckpointStreamable {
   /**
    * @return a map from service names to {@link TProcessor}s that serve RPCs for this master

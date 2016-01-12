@@ -15,12 +15,13 @@
 
 package tachyon.master.file.meta;
 
+import org.powermock.reflect.Whitebox;
+
 /**
- * The persistence state of a file in the under-storage system.
+ * Class which provides access to private state of {@link TtlBucket}.
  */
-public enum PersistenceState {
-  NOT_PERSISTED, // file not persisted in the under FS
-  IN_PROGRESS, // used for async persistence, the async persistence is scheduled and in progress
-  PERSISTED, // the file is persisted in the under FS
-  LOST // the file is lost but not persisted in the under FS
+public final class TtlBucketPrivateAccess {
+  public static void setTtlIntervalMs(long intervalMs) {
+    Whitebox.setInternalState(TtlBucket.class, "sTtlIntervalMs", intervalMs);
+  }
 }

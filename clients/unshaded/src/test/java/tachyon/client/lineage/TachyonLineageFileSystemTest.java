@@ -88,7 +88,7 @@ public final class TachyonLineageFileSystemTest {
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(1L);
     OutStreamOptions options =
-        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTTL(0).build();
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
     // verify client is released
@@ -106,7 +106,7 @@ public final class TachyonLineageFileSystemTest {
     Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
         .thenReturn(-1L);
     OutStreamOptions options =
-        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTTL(0).build();
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
     // verify client is released
@@ -125,7 +125,7 @@ public final class TachyonLineageFileSystemTest {
         .thenThrow(new LineageDoesNotExistException("lineage does not exist"));
 
     OutStreamOptions options =
-        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTTL(0).build();
+        new OutStreamOptions.Builder().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0).build();
     FileOutStream outStream = mTachyonLineageFileSystem.getOutStream(path, options);
     Assert.assertTrue(outStream instanceof FileOutStream);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);

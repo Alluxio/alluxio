@@ -40,12 +40,19 @@ public class StorageTierViewTest {
   private StorageTier mTestTier;
   private StorageTierView mTestTierView;
 
+  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  /**
+   * Sets up all dependencies before a test runs.
+   *
+   * @throws Exception if setting up a dependency fails
+   */
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
@@ -58,36 +65,54 @@ public class StorageTierViewTest {
     mTestTierView = new StorageTierView(mTestTier, metaManagerView);
   }
 
+  /**
+   * Resets the context of the worker after a test ran.
+   */
   @After
   public void after() {
     WorkerContext.reset();
   }
 
+  /**
+   * Tests the {@link StorageTierView#getDirViews()} method.
+   */
   @Test
   public void getDirViewsTest() {
     Assert.assertEquals(TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length, mTestTierView
         .getDirViews().size());
   }
 
+  /**
+   * Tests the {@link StorageTierView#getDirView(int)} method.
+   */
   @Test
-  public void getDirViewTest() throws Exception {
+  public void getDirViewTest() {
     for (int i = 0; i < TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; i ++) {
       Assert.assertEquals(i, mTestTierView.getDirView(i).getDirViewIndex());
     }
   }
 
+  /**
+   * Tests that an exception is thrown when trying to get a storage directory view with a bad index.
+   */
   @Test
-  public void getDirViewBadIndexTest() throws Exception {
+  public void getDirViewBadIndexTest() {
     mThrown.expect(IndexOutOfBoundsException.class);
     int badDirIndex = TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
     Assert.assertEquals(badDirIndex, mTestTierView.getDirView(badDirIndex).getDirViewIndex());
   }
 
+  /**
+   * Tests the {@link StorageTierView#getTierViewAlias()} method.
+   */
   @Test
   public void getTierViewAliasTest() {
     Assert.assertEquals(mTestTier.getTierAlias(), mTestTierView.getTierViewAlias());
   }
 
+  /**
+   * Tests the {@link StorageTierView#getTierViewOrdinal()} method.
+   */
   @Test
   public void getTierViewOrdinalTest() {
     Assert.assertEquals(mTestTier.getTierOrdinal(), mTestTierView.getTierViewOrdinal());
