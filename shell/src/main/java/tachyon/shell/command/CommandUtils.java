@@ -92,7 +92,7 @@ public final class CommandUtils {
       } else {
         permString.append("-");
       }
-      permission >>= 4;
+      permission >>= 3;
     }
     if (isDir) {
       permString.append("d");
