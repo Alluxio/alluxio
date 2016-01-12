@@ -29,7 +29,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
-import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -58,7 +58,7 @@ public final class BaseKeyValuePartitionReader implements KeyValuePartitionReade
   BaseKeyValuePartitionReader(long blockId) throws TachyonException, IOException {
     mBlockId = blockId;
     BlockInfo info = TachyonBlockStore.get().getInfo(mBlockId);
-    NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+    WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
     mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
     mClosed = false;
   }

@@ -10,7 +10,7 @@ import "lineage.proto";
 import "raw_table.proto";
 
 // Wraps around all types of Tachyon journal messages.
-// next available id: 26
+// next available id: 25
 message JournalEntry {
   optional int64 sequence_number = 1;
   oneof entry {
@@ -18,9 +18,9 @@ message JournalEntry {
     BlockContainerIdGeneratorEntry block_container_id_generator = 3;
     BlockInfoEntry block_info = 4;
     CompleteFileEntry complete_file = 5;
-    CompletePartitionEntry complete_partition = 23;
-    CompleteStoreEntry complete_store = 24;
-    CreateStoreEntry create_store = 25;
+    CompletePartitionEntry complete_partition = 22;
+    CompleteStoreEntry complete_store = 23;
+    CreateStoreEntry create_store = 24;
     DeleteFileEntry delete_file = 6;
     DeleteLineageEntry delete_lineage = 7;
     DeleteMountPointEntry delete_mount_point = 8;
