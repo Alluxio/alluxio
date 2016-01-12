@@ -18,7 +18,7 @@ package tachyon.worker.file;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Class which provides access to private state of {@link FileDataManager}.
+ * Class which provides access to private state of {@link FileSystemWorker}.
  */
 public final class FileSystemWorkerPrivateAccess {
   public static FileDataManager getFileSystemWorker(FileSystemWorker worker) {
