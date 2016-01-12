@@ -134,6 +134,8 @@ public final class BlockWorker extends WorkerBase {
   /**
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
+   *
+   * @throws IOException if a non-Tachyon related exception occurs
    */
   @Override
   public void start() throws IOException {
