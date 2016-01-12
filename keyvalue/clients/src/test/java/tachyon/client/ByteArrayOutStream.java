@@ -18,10 +18,10 @@ package tachyon.client;
 import java.io.ByteArrayOutputStream;
 
 /**
- * A mock implementation of {@link AbstractOutStream} backed by a byte stream. Supposed to
+ * A mock implementation of {@link OutStreamBase} backed by a byte stream. Supposed to
  * be only used for tests.
  */
-public final class ByteArrayOutStream extends AbstractOutStream {
+public final class ByteArrayOutStream extends OutStreamBase {
   private ByteArrayOutputStream mOut;
   private boolean mClosed;
   private boolean mCanceled;

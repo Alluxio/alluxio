@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.AbstractOutStream;
 import tachyon.client.ClientContext;
+import tachyon.client.OutStreamBase;
 import tachyon.util.io.ByteIOUtils;
 
 /**
@@ -38,7 +38,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** handle to write to the underlying file */
-  private final AbstractOutStream mFileOutStream;
+  private final OutStreamBase mFileOutStream;
   /** number of key-value pairs added */
   private long mKeyCount = 0;
   /** key-value index */
@@ -58,7 +58,7 @@ public final class BaseKeyValuePartitionWriter implements KeyValuePartitionWrite
 
    * @param fileOutStream output stream to store the key-value file
    */
-  BaseKeyValuePartitionWriter(AbstractOutStream fileOutStream) {
+  BaseKeyValuePartitionWriter(OutStreamBase fileOutStream) {
     mFileOutStream = Preconditions.checkNotNull(fileOutStream);
     // TODO(binfan): write a header in the file
 

@@ -30,6 +30,10 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
+/**
+ * Implementation of an evictor which follows the least recently used algorithm. It discards the
+ * least recently used item based on its access.
+ */
 public class LRUEvictor extends EvictorBase {
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
   private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;

@@ -27,8 +27,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
-import tachyon.client.AbstractOutStream;
 import tachyon.client.ClientContext;
+import tachyon.client.OutStreamBase;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.Utils;
@@ -52,7 +52,7 @@ import tachyon.worker.NetAddress;
  * system.
  */
 @PublicApi
-public class FileOutStream extends AbstractOutStream {
+public class FileOutStream extends OutStreamBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
@@ -200,7 +200,6 @@ public class FileOutStream extends AbstractOutStream {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-        mBytesWritten++;
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
@@ -210,6 +209,7 @@ public class FileOutStream extends AbstractOutStream {
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
+    mBytesWritten ++;
   }
 
   @Override
@@ -235,11 +235,9 @@ public class FileOutStream extends AbstractOutStream {
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
-            mBytesWritten += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
-            mBytesWritten += (int) currentBlockLeftBytes;
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
           }
@@ -253,6 +251,7 @@ public class FileOutStream extends AbstractOutStream {
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
+    mBytesWritten += len;
   }
 
   private void getNextBlock() throws IOException {
