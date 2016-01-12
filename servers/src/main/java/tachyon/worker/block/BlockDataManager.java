@@ -160,6 +160,7 @@ public final class BlockDataManager {
 
   /**
    * Creates a block in Tachyon managed space. The block will be temporary until it is committed.
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to create
@@ -181,8 +182,8 @@ public final class BlockDataManager {
 
   /**
    * Creates a block. This method is only called from a data server.
-   *
    * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
+   * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be created
@@ -293,7 +294,8 @@ public final class BlockDataManager {
 
   /**
    * Moves a block from its current location to a target location, currently only tier level moves
-   * are supported
+   * are supported. Throws an {@link IllegalArgumentException} if the tierAlias is out of range of
+   * tiered storage.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to move

@@ -69,6 +69,8 @@ public interface Evictor {
    * If both toMove and toEvict of the plan are empty, it indicates that {@link Evictor} has no
    * actions to take and the requirement is already met.
    *
+   * Throws an {@link IllegalArgumentException} if the given block location is invalid.
+   *
    * @param availableBytes the amount of free space in bytes to be ensured after eviction
    * @param location the location in block store
    * @param view generated and passed by block store
