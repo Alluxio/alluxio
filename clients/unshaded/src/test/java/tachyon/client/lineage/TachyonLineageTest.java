@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
+import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
@@ -51,7 +52,7 @@ public final class TachyonLineageTest {
   public void before() throws Exception {
     mTachyonConf = new TachyonConf();
     mTachyonConf.set(Constants.USER_LINEAGE_ENABLED, "true");
-    PowerMockito.mockStatic( ClientContext.class);
+    PowerMockito.mockStatic(ClientContext.class);
     PowerMockito.when(ClientContext.getConf()).thenReturn(mTachyonConf);
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
@@ -76,6 +77,24 @@ public final class TachyonLineageTest {
     mTachyonLineage.createLineage(inputFiles, outputFiles, job);
     Mockito.verify(mLineageMasterClient).createLineage(Lists.newArrayList("input"),
         Lists.newArrayList("output"), job);
+    // verify client is released
+    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+  }
+
+  @Test
+  public void deleteLineageTest() throws Exception {
+    DeleteLineageOptions options =
+        new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(true).build();
+    mTachyonLineage.deleteLineage(0, options);
+    Mockito.verify(mLineageMasterClient).deleteLineage(0, true);
+    // verify client is released
+    Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
+  }
+
+  @Test
+  public void getLineageInfoList() throws Exception {
+    mTachyonLineage.getLineageInfoList();
+    Mockito.verify(mLineageMasterClient).getLineageInfoList();
     // verify client is released
     Mockito.verify(mLineageContext).releaseMasterClient(mLineageMasterClient);
   }
