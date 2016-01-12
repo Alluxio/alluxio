@@ -23,7 +23,10 @@ import tachyon.master.block.BlockContainerIdGenerator;
 import tachyon.proto.journal.Block;
 import tachyon.proto.journal.Journal;
 
-public class BlockContainerIdGeneratorTest {
+/**
+ * Unit tests for {@link BlockContainerIdGenerator}.
+ */
+public final class BlockContainerIdGeneratorTest {
   private BlockContainerIdGenerator mGenerator;
 
   @Before
