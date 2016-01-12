@@ -33,8 +33,8 @@ import tachyon.Constants;
 import tachyon.StorageTierAssoc;
 import tachyon.WorkerStorageTierAssoc;
 import tachyon.thrift.WorkerInfo;
-import tachyon.thrift.WorkerNetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.worker.NetAddress;
 
 /**
  * Metadata for a Tachyon worker.
@@ -42,7 +42,7 @@ import tachyon.util.CommonUtils;
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
-  private final WorkerNetAddress mWorkerAddress;
+  private final NetAddress mWorkerAddress;
   /** The id of the worker */
   private final long mId;
   /** Start time of the worker in ms */
@@ -73,7 +73,7 @@ public final class MasterWorkerInfo {
    * @param id the worker id to use
    * @param address the worker address to use
    */
-  public MasterWorkerInfo(long id, WorkerNetAddress address) {
+  public MasterWorkerInfo(long id, NetAddress address) {
     mWorkerAddress = Preconditions.checkNotNull(address);
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
@@ -177,7 +177,7 @@ public final class MasterWorkerInfo {
   public synchronized WorkerInfo generateClientWorkerInfo() {
     WorkerInfo ret = new WorkerInfo();
     ret.id = mId;
-    ret.address = mWorkerAddress;
+    ret.address = mWorkerAddress.toThrift();
     ret.lastContactSec =
         (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS);
     ret.state = "In Service";
@@ -190,7 +190,7 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public WorkerNetAddress getAddress() {
+  public NetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 

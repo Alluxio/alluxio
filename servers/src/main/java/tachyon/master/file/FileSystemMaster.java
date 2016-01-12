@@ -609,8 +609,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the total number of files and directories.
-   *
    * @return the number of files and directories
    */
   public int getNumberOfPaths() {
@@ -620,8 +618,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the number of pinned files and directories.
-   *
    * @return the number of pinned files and directories
    */
   public int getNumberOfPinnedFiles() {

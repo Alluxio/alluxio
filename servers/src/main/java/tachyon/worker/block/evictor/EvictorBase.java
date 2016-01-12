@@ -36,6 +36,9 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
+/**
+ * Provides the basic implementation for every evictor.
+ */
 public abstract class EvictorBase extends BlockStoreEventListenerBase implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected final Allocator mAllocator;
