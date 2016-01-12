@@ -20,6 +20,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.master.block.BlockContainerIdGenerator;
+import tachyon.proto.journal.Block;
+import tachyon.proto.journal.Journal;
 
 public class BlockContainerIdGeneratorTest {
   private BlockContainerIdGenerator mGenerator;
@@ -42,5 +44,15 @@ public class BlockContainerIdGeneratorTest {
     Assert.assertEquals(123, mGenerator.getNewContainerId());
     Assert.assertEquals(124, mGenerator.getNewContainerId());
     Assert.assertEquals(125, mGenerator.getNewContainerId());
+  }
+
+  @Test
+  public void toJournalEntryTest() {
+    mGenerator.setNextContainerId(123);
+    Journal.JournalEntry entry = mGenerator.toJournalEntry();
+    Assert.assertTrue(entry.hasBlockContainerIdGenerator());
+    Block.BlockContainerIdGeneratorEntry generatorEntry = entry.getBlockContainerIdGenerator();
+    Assert.assertNotNull(generatorEntry);
+    Assert.assertEquals(123, generatorEntry.getNextContainerId());
   }
 }
