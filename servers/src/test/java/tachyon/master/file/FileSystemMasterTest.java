@@ -37,7 +37,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.SetAttributeOptions;
 import tachyon.exception.DirectoryNotEmptyException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
@@ -213,7 +213,7 @@ public final class FileSystemMasterTest {
     // Since no valid TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(0).build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setTTL(0));
     executeTTLCheckOnce();
     // TTL is set to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -230,7 +230,7 @@ public final class FileSystemMasterTest {
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(0).build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setTTL(0));
     executeTTLCheckOnce();
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
@@ -245,8 +245,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
 
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(Constants.HOUR_MS)
-        .build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setTTL(Constants.HOUR_MS));
     executeTTLCheckOnce();
     // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
@@ -260,8 +259,7 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
     // deleted during next TTL check.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setTTL(Constants.NO_TTL)
-        .build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setTTL(0));
     executeTTLCheckOnce();
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
@@ -274,28 +272,27 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // No State.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults());
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Just set pinned flag.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(true).build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setPinned(true));
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertTrue(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
 
     // Both pinned flag and ttl value.
-    mFileSystemMaster.setState(fileId, new SetStateOptions.Builder().setPinned(false).setTTL(1)
-        .build());
+    mFileSystemMaster.setState(fileId, SetAttributeOptions.defaults().setPinned(false).setTTL(1));
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(1, fileInfo.getTtl());
 
     // Set ttl for a directory, raise IllegalArgumentException.
     mThrown.expect(IllegalArgumentException.class);
-    mFileSystemMaster.setState(mFileSystemMaster.getFileId(NESTED_URI),
-        new SetStateOptions.Builder().setTTL(1).build());
+    mFileSystemMaster.setState(mFileSystemMaster.getFileId(NESTED_URI), SetAttributeOptions
+        .defaults().setTTL(1));
   }
 
   @Test
