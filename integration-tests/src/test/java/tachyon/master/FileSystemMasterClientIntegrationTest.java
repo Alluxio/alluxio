@@ -24,8 +24,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonClusterResource;
+import tachyon.TachyonURI;
 import tachyon.client.file.FileSystemMasterClient;
-import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.CreateFileOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 
@@ -53,7 +54,7 @@ public class FileSystemMasterClientIntegrationTest {
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    fsMasterClient.create("/file", CreateOptions.defaults());
+    fsMasterClient.createFile(new TachyonURI("/file"), CreateFileOptions.defaults());
     Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());

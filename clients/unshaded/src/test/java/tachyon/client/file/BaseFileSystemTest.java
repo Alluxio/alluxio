@@ -94,8 +94,8 @@ package tachyon.client.file;
 //   */
 //  @Test
 //  public void createFileTest() throws Exception {
-//    Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(), Mockito.<CreateOptions>any()))
-//        .thenReturn(FILE_ID);
+//    Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(),
+//        Mockito.<CreateOptions>any())).thenReturn(FILE_ID);
 //    CreateOptions createOptions = CreateOptions.defaults();
 //    TachyonFile file = mFileSystem.create(new TachyonURI("/"), createOptions);
 //    Assert.assertEquals(FILE_ID, file.getFileId());
@@ -109,8 +109,8 @@ package tachyon.client.file;
 //   */
 //  @Test
 //  public void createExceptionTest() throws Exception {
-//    Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(), Mockito.<CreateOptions>any()))
-//        .thenThrow(EXCEPTION);
+//    Mockito.when(mFileSystemMasterClient.create(Mockito.anyString(),
+//        Mockito.<CreateOptions>any())).thenThrow(EXCEPTION);
 //    CreateOptions createOptions = CreateOptions.defaults();
 //    try {
 //      mFileSystem.create(new TachyonURI("/"), createOptions);
